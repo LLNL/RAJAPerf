@@ -1,0 +1,3 @@
+[submodule "src/polybench"]
+	path = src/polybench
+	url = https://github.com/willkill07/PolyBench-RAJA.git
