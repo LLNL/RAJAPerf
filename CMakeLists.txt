@@ -54,13 +54,19 @@ ExternalProject_Add(
     LOG_BUILD ON)
 
 ExternalProject_Get_Property(raja install_dir)
-include_directories(${install_dir}/include)
+message(STATUS ${install_dir})
+set(RAJA_DIR ${install_dir}/share/cmake/raja/)
+find_package(RAJA REQUIRED)
+include_directories(${RAJA_INCLUDE_DIR})
 
-add_library(RAJA      UNKNOWN IMPORTED)
-set_target_properties(RAJA PROPERTIES
-  IMPORTED_LOCATION ${install_dir}/lib/libRAJA.a
-)
-add_dependencies(RAJA      raja)
+# include_directories(${install_dir}/include)
+# 
+# add_library(RAJA      UNKNOWN IMPORTED)
+# set_target_properties(RAJA PROPERTIES
+#   IMPORTED_LOCATION ${install_dir}/lib/libRAJA.a
+# )
+# add_dependencies(RAJA      raja)
+
 
 enable_testing()
 
