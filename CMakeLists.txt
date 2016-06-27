@@ -1,7 +1,12 @@
+cmake_minimum_required(VERSION 3.1)
+
 project(RajaPerfSuite CXX)
 
-find_package(RAJA REQUIRED)
-include_directories(${RAJA_INCLUDE_DIR})
+include(ExternalProject)
+SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/tpl)
+
+#find_package(RAJA REQUIRED)
+#include_directories(${RAJA_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -9,10 +14,6 @@ set(CMAKE_CXX_STANDARD 14)
   find_package(OpenMP)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   #endif()
-
-include(ExternalProject)
-# Set default ExternalProject root directory
-SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/tpl)
 
 ExternalProject_Add(
     googletest
@@ -37,6 +38,29 @@ set_target_properties(gtest_main PROPERTIES
 )
 add_dependencies(gtest      googletest)
 add_dependencies(gtest_main googletest)
+
+ExternalProject_Add(
+    raja
+    GIT_REPOSITORY https://github.com/LLNL/RAJA.git 
+    GIT_TAG develop
+    CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+      -DCMAKE_BUILD_TYPE=Release
+      -DRAJA_ENABLE_NESTED=On
+      -DRAJA_ENABLE_TESTS=Off
+      -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/tpl
+      #INSTALL_COMMAND ""
+    LOG_DOWNLOAD ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON)
+
+ExternalProject_Get_Property(raja install_dir)
+include_directories(${install_dir}/include)
+
+add_library(RAJA      UNKNOWN IMPORTED)
+set_target_properties(RAJA PROPERTIES
+  IMPORTED_LOCATION ${install_dir}/lib/libRAJA.a
+)
+add_dependencies(RAJA      raja)
 
 enable_testing()
 

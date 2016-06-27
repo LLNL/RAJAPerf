@@ -52,7 +52,7 @@ TYPED_TEST_P(LcalsTest, PressureCalc) {
 
 REGISTER_TYPED_TEST_CASE_P(LcalsTest, PressureCalc);
 
-typedef ::testing::Types<RAJA::seq_exec, RAJA::simd_exec> > SequentialTypes; 
+typedef ::testing::Types<RAJA::seq_exec, RAJA::simd_exec> SequentialTypes; 
 INSTANTIATE_TYPED_TEST_CASE_P(Sequential, LcalsTest, SequentialTypes);
 
 #if defined(RAJA_ENABLE_OPENMP)
