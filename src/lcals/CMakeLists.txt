@@ -4,4 +4,4 @@ add_executable(lcals-aloops
 add_test(lcals-a
   lcals-aloops)
 
-target_link_libraries(lcals-aloops RAJA gtest gtest_main)
+target_link_libraries(lcals-aloops RAJA gbenchmark)
