@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.1)
 
 project(RajaPerfSuite CXX)
 
+include(cmake/macros.cmake)
+
 ExternalProject_Add(
     googlebenchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git

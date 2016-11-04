@@ -84,5 +84,14 @@ BENCHMARK_DEFINE_F(DdotFixture, DdotRajaOmp)(benchmark::State& state)
 BENCHMARK_REGISTER_F(DdotFixture, DdotRajaOmp)->Range(128, 8<<24);
 #endif
 
-BENCHMARK_MAIN();
+// template <typename POL>
+// void BM_Test(benchmark::State& state) {
+//   POL policy;
+//   while (state.keepRunning()) {
+//     RAJA::forall<policy>(0, state.range(0), [=] (int i) {
+//     });
+//   }
+// }
+// BENCHMARK_TEMPLATE(BM_Test, RAJA::seq_exec)->Arg(8);
 
+BENCHMARK_MAIN();
