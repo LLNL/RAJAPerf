@@ -1,53 +1,18 @@
-#include "RAJA/RAJA.hxx"
+#include "common/Benchmark.hxx"
 
 #include <random>
 
-namespace RAJA {
-  namespace perfsuite {
-    struct raw {};
-  }
-}
-
-template <typename POLICY, typename NUMERIC_T>
-class AddKernel {
+class AddBenchmark : public RAJA::Benchmark
+{
 public:
-  virtual void SetUp(const size_t size) {
-      this->size = size;
-      x = new NUMERIC_T[size];
-      y = new NUMERIC_T[size];
+  AddBenchmark(size_t size, size_t numIterations);
+  virtual ~AddBenchmark();
 
-      std::random_device rd;
-      std::mt19937 e2(rd());
-      std::uniform_real_distribution<> dist(0, 25);
-
-      for (int i = 0; i < size; ++i) {
-        x[i] = dist(e2);
-        y[i] = dist(e2);
-      }
-  }
-
-  virtual void Execute()
-  {
-    for( int i = 0; i < size; ++i) {
-      y[i] = x[i] + y[i];
-    }
-  }
-
-  virtual void TearDown()
-  {
-      delete[] x;
-      delete[] y;
-  }
-
-  virtual void Run(const size_t size){
-    SetUp(size);
-    Execute();
-    TearDown();
-  }
+  virtual void setUp();
+  virtual void executeBenchmark();
+  virtual void tearDown();
 
 protected:
-  NUMERIC_T* x;
-  NUMERIC_T* y;
-
-  size_t size;
+  double* x;
+  double* y;
 };

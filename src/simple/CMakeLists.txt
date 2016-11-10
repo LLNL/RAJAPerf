@@ -4,7 +4,10 @@
 # raja_add_benchmark(copy)
 
 add_executable(add
-  add-main.cxx)
+  add-main.cxx
+  add.cxx)
+
+target_link_libraries(add benchmark)
 
 #raja_add_benchmark(add)
 
