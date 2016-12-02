@@ -5,7 +5,13 @@
 int main(int argc, char* argv[])
 {
 
-  RAJA::Benchmark* add = new AddBenchmark(100, 10);
-  add->execute();
+  std::vector<RAJA::Benchmark*> variants;
 
+  variants.push_back(new AddBenchmark(100, 10));
+#if defined(ADD_RAJA_SEQ)
+#endif
+
+  for (benchmark : variants) {
+    benchmark->execute();
+  }
 }
