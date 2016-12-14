@@ -1,6 +1,6 @@
 #include "common/Benchmark.hxx"
 
-#include "add.hxx"
+#include "add/add.hxx"
 
 int main(int argc, char* argv[])
 {
