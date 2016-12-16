@@ -28,23 +28,27 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
 
-namespace RAJAperf
+namespace rajaperf
 {
 
 /*
  *******************************************************************************
  *
- * Ctor for PunParams struct defines suite execution defaults.
+ * Ctor for PunParams class defines suite execution defaults and parses
+ * command line args to set others that are specified when suite is run.
  *
  *******************************************************************************
  */
 RunParams::RunParams(int argc, char** argv)
  : npasses(1),
-   run_kernels("all");
-   run_variants("all"); 
-   length_fraction(1.0); 
-   output_file_prefix("RAJA_Perf_Suite");
+   run_kernels("all"),
+   run_variants("all"), 
+   length_fraction(1.0),
+   output_file_prefix("RAJA_Perf_Suite")
 {
   for (int i = 1; i < argc; ++i) {
 
@@ -75,20 +79,22 @@ RunParams::RunParams(int argc, char** argv)
       std::cout << std::endl;
       std::cout.flush();
 
+    }
+
   }
 }
 
 
-
-
-/*!
+/*
  *******************************************************************************
  *
- * \brief Parse input options and sets RunParams struct members.
+ * Dtor for RunParams class.
  *
  *******************************************************************************
  */
-void parseInputParams(int argc, char** argv, RunParams& params);
+RunParams::~RunParams()
+{
+}
 
 /*!
  *******************************************************************************
@@ -97,7 +103,10 @@ void parseInputParams(int argc, char** argv, RunParams& params);
  *
  *******************************************************************************
  */
-std::string getKernelName(KernelID kid);
+std::string getKernelName(KernelID kid)
+{
+   return std::string("foo");
+}
 
 /*!
  *******************************************************************************
@@ -106,8 +115,9 @@ std::string getKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-std::string getVariantName(VariantID vid);
+std::string getVariantName(VariantID vid)
+{
+   return std::string("bar");
+}
 
-}  // closing brace for RAJAperf namespace
-
-#endif  // closing endif for header file include guard
+}  // closing brace for rajaperf namespace

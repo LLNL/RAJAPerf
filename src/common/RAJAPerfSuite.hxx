@@ -38,7 +38,7 @@
 #ifndef RAJAPerfSuite_HXX
 #define RAJAPerfSuite_HXX
 
-namespace RAJAperf
+namespace rajaperf
 {
 
 /*!
@@ -52,8 +52,11 @@ namespace RAJAperf
  */
 enum KernelID {
 
-   PRESSURE_CALC = 0,
+//
+// LCALS kernels...
+//
 #if 0
+   PRESSURE_CALC = 0,
    ENERGY_CALC,
    VOL3D_CALC,
    DEL_DOT_VEC_2D,
@@ -61,7 +64,9 @@ enum KernelID {
    FIR,
 
    INIT3,
-   MULADDSUB,
+#endif
+   MULADDSUB = 0,
+#if 0
    IF_QUAD,
    TRAP_INT,
 
@@ -87,7 +92,15 @@ enum KernelID {
    FIND_FIRST_MIN,
 #endif
 
-   NUM_LOOP_KERNELS // Keep this one last and NEVER comment out (!!)
+//
+// Polybench kernels...
+//
+
+//
+// Stream kernels...
+//
+
+   NUM_KERNELS // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -104,11 +117,13 @@ enum KernelID {
 enum VariantID {
 
    BASELINE = 0,
-   BASELINE_OPENMP,
-   BASELINE_CUDA,
    RAJA_SERIAL,
+   BASELINE_OPENMP,
    RAJA_OPENMP,
-   RAJA_CUDA
+   BASELINE_CUDA,
+   RAJA_CUDA,
+
+   NUM_VARIANTS // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -116,11 +131,14 @@ enum VariantID {
 /*!
  *******************************************************************************
  *
- * \brief Structure to hold suite execution parameters.
+ * \brief Simple class to hold suite execution parameters.
  *
  *******************************************************************************
  */
-struct {
+class RunParams {
+public:
+  RunParams( int argc, char** argv );
+  ~RunParams( );
 
   int npasses;                     /*!< Number of passes through suite.  */
 
@@ -131,20 +149,17 @@ struct {
 
   std::string output_file_prefix;  /*!< Prefix for output data file. */
 
+#if 0 // RDH TODO
   std::vector<KernelBase*> kernels;/*!< Vector of kernel objects to run */
+#endif
   std::vector<VariantID> variants; /*!< Vector of variant IDs to run */
 
-} RunParams;
+private:
+// These are not implemented to prevent calling by accident.
+  RunParams();
 
+};
 
-/*!
- *******************************************************************************
- *
- * \brief Parse input options and sets RunParams struct members.
- *
- *******************************************************************************
- */
-void parseInputParams(int argc, char** argv, RunParams& params);
 
 /*!
  *******************************************************************************
@@ -155,6 +170,7 @@ void parseInputParams(int argc, char** argv, RunParams& params);
  */
 std::string getKernelName(KernelID kid);
 
+#if 0 // RDH TODO
 /*!
  *******************************************************************************
  *
@@ -163,6 +179,7 @@ std::string getKernelName(KernelID kid);
  *******************************************************************************
  */
 KernelBase getKernelObject(KernelID kid);
+#endif
 
 /*!
  *******************************************************************************
@@ -173,6 +190,6 @@ KernelBase getKernelObject(KernelID kid);
  */
 std::string getVariantName(VariantID vid);
 
-}  // closing brace for RAJAperf namespace
+}  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard

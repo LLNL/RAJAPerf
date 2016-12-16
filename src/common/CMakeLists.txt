@@ -1,2 +1,3 @@
-add_library(benchmark
-  Benchmark.cxx)
+add_library(common
+  KernelBase.cxx
+  RAJAPerfSuite.cxx)
