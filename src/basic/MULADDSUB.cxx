@@ -34,7 +34,7 @@ namespace basic
 {
 
 MULADDSUB::MULADDSUB()
-  : KernelBase(rajaperf::MULADDSUB)
+  : KernelBase(rajaperf::Basic_MULADDSUB)
 {
 }
 

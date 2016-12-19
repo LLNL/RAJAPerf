@@ -59,58 +59,64 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
 #if 0
-  std::string("INIT3"),
+  std::string("Basic_INIT3"),
 #endif
-  std::string("MULADDSUB"),
+  std::string("Basic_MULADDSUB"),
 #if 0
-  std::string("IF_QUAD"),
-  std::string("TRAP_INT"),
+  std::string("Basic_IF_QUAD"),
+  std::string("Basic_TRAP_INT"),
 #endif
 
 //
 // Lloops kernels...
 //
 #if 0
-  std::string("HYDRO_1D"),
-  std::string("ICCG"),
-  std::string("INNER_PROD"),
-  std::string("BAND_LIN_EQ"),
-  std::string("TRIDIAG_ELIM"),
-  std::string("EOS"),
-  std::string("ADI"),
-  std::string("INT_PREDICT"),
-  std::string("DIFF_PREDICT"),
-  std::string("FIRST_SUM"),
-  std::string("FIRST_DIFF"),
-  std::string("PIC_2D"),
-  std::string("PIC_1D"),
-  std::string("HYDRO_2D"),
-  std::string("GEN_LIN_RECUR"),
-  std::string("DISC_ORD"),
-  std::string("MAT_X_MAT"),
-  std::string("PLANCKIAN"),
-  std::string("IMP_HYDRO_2D"),
-  std::string("FIND_FIRST_MIN"),
+  std::string("LLoops_HYDRO_1D"),
+  std::string("LLoops_ICCG"),
+  std::string("LLoops_INNER_PROD"),
+  std::string("LLoops_BAND_LIN_EQ"),
+  std::string("LLoops_TRIDIAG_ELIM"),
+  std::string("LLoops_EOS"),
+  std::string("LLoops_ADI"),
+  std::string("LLoops_INT_PREDICT"),
+  std::string("LLoops_DIFF_PREDICT"),
+  std::string("LLoops_FIRST_SUM"),
+  std::string("LLoops_FIRST_DIFF"),
+  std::string("LLoops_PIC_2D"),
+  std::string("LLoops_PIC_1D"),
+  std::string("LLoops_HYDRO_2D"),
+  std::string("LLoops_GEN_LIN_RECUR"),
+  std::string("LLoops_DISC_ORD"),
+  std::string("LLoops_MAT_X_MAT"),
+  std::string("LLoops_PLANCKIAN"),
+  std::string("LLoops_IMP_HYDRO_2D"),
+  std::string("LLoops_FIND_FIRST_MIN"),
 #endif
 
 //
 // Polybench kernels...
 //
+#if 0
+  std::string("Polybench_***");
+#endif
 
 //
 // Stream kernels...
 //
+#if 0
+  std::string("Stream_***");
+#endif
 
 //
 // Apps kernels...
 //
 #if 0
-  std::string("PRESSURE_CALC"),
-  std::string("ENERGY_CALC"),
-  std::string("VOL3D_CALC"),
-  std::string("DEL_DOT_VEC_2D"),
-  std::string("COUPLE"),
-  std::string("FIR"),
+  std::string("Apps_PRESSURE_CALC"),
+  std::string("Apps_ENERGY_CALC"),
+  std::string("Apps_VOL3D_CALC"),
+  std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_COUPLE"),
+  std::string("Apps_FIR"),
 #endif
 
   "UNDEFINED"  // Keep this one at the end....
@@ -187,64 +193,76 @@ KernelBase* getKernelObject(KernelID kid)
     // Basic kernels...
     //
 #if 0
-    case INIT3 : {
+    case Basic_INIT3 : {
        kernel = new basic::INIT3();
        break;
     }
 #endif
-    case MULADDSUB : {
+    case Basic_MULADDSUB : {
        kernel = new basic::MULADDSUB();
        break;
     }
 #if 0
-  IF_QUAD
-  TRAP_INT
+    case Basic_IF_QUAD : {
+       kernel = new basic::IF_QUAD();
+       break;
+    }
+    case Basic_TRAP_INT : {
+       kernel = new basic::TRAP_INT();
+       break;
+    }
 #endif
 
 //
 // Lloops kernels...
 //
 #if 0
-  HYDRO_1D,
-  ICCG,
-  INNER_PROD,
-  BAND_LIN_EQ,
-  TRIDIAG_ELIM,
-  EOS,
-  ADI,
-  INT_PREDICT,
-  DIFF_PREDICT,
-  FIRST_SUM,
-  FIRST_DIFF,
-  PIC_2D,
-  PIC_1D,
-  HYDRO_2D,
-  GEN_LIN_RECUR,
-  DISC_ORD,
-  MAT_X_MAT,
-  PLANCKIAN,
-  IMP_HYDRO_2D,
-  FIND_FIRST_MIN,
+  LLoops_HYDRO_1D,
+  LLoops_ICCG,
+  LLoops_INNER_PROD,
+  LLoops_BAND_LIN_EQ,
+  LLoops_TRIDIAG_ELIM,
+  LLoops_EOS,
+  LLoops_ADI,
+  LLoops_INT_PREDICT,
+  LLoops_DIFF_PREDICT,
+  LLoops_FIRST_SUM,
+  LLoops_FIRST_DIFF,
+  LLoops_PIC_2D,
+  LLoops_PIC_1D,
+  LLoops_HYDRO_2D,
+  LLoops_GEN_LIN_RECUR,
+  LLoops_DISC_ORD,
+  LLoops_MAT_X_MAT,
+  LLoops_PLANCKIAN,
+  LLoops_IMP_HYDRO_2D,
+  LLoops_FIND_FIRST_MIN,
 #endif
 
 //
 // Polybench kernels...
 //
+#if 0
+  Polybench_***
+#endif
 
 //
 // Stream kernels...
 //
+#if 0
+  Stream_***
+#endif
 
 //
 // Apps kernels...
 //
 #if 0
-  PRESSURE_CALC,
-  ENERGY_CALC,
-  VOL3D_CALC,
-  DEL_DOT_VEC_2D,
-  COUPLE,
-  FIR,
+  Apps_PRESSURE_CALC,
+  Apps_ENERGY_CALC,
+  Apps_VOL3D_CALC,
+  Apps_DEL_DOT_VEC_2D,
+  Apps_COUPLE,
+  Apps_FIR,
 #endif
 
     default: {

@@ -61,58 +61,64 @@ enum KernelID {
 // Basic kernels...
 //
 #if 0
-  INIT3 = 0,
+  Basic_INIT3 = 0,
 #endif
-  MULADDSUB = 0,
+  Basic_MULADDSUB = 0,
 #if 0
-  IF_QUAD,
-  TRAP_INT,
+  Basic_IF_QUAD,
+  Basic_TRAP_INT,
 #endif
 
 //
-// Lloops kernels...
+// LLoops kernels...
 //
 #if 0
-  HYDRO_1D,
-  ICCG,
-  INNER_PROD,
-  BAND_LIN_EQ,
-  TRIDIAG_ELIM,
-  EOS,
-  ADI,
-  INT_PREDICT,
-  DIFF_PREDICT,
-  FIRST_SUM,
-  FIRST_DIFF,
-  PIC_2D,
-  PIC_1D,
-  HYDRO_2D,
-  GEN_LIN_RECUR,
-  DISC_ORD,
-  MAT_X_MAT,
-  PLANCKIAN,
-  IMP_HYDRO_2D,
-  FIND_FIRST_MIN,
+  LLoops_HYDRO_1D,
+  LLoops_ICCG,
+  LLoops_INNER_PROD,
+  LLoops_BAND_LIN_EQ,
+  LLoops_TRIDIAG_ELIM,
+  LLoops_EOS,
+  LLoops_ADI,
+  LLoops_INT_PREDICT,
+  LLoops_DIFF_PREDICT,
+  LLoops_FIRST_SUM,
+  LLoops_FIRST_DIFF,
+  LLoops_PIC_2D,
+  LLoops_PIC_1D,
+  LLoops_HYDRO_2D,
+  LLoops_GEN_LIN_RECUR,
+  LLoops_DISC_ORD,
+  LLoops_MAT_X_MAT,
+  LLoops_PLANCKIAN,
+  LLoops_IMP_HYDRO_2D,
+  LLoops_FIND_FIRST_MIN,
 #endif
 
 //
 // Polybench kernels...
 //
+#if 0
+  Polybench_***
+#endif
 
 //
 // Stream kernels...
 //
+#if 0
+  Stream_***
+#endif
 
 //
 // Apps kernels...
 //
 #if 0
-  PRESSURE_CALC,
-  ENERGY_CALC,
-  VOL3D_CALC,
-  DEL_DOT_VEC_2D,
-  COUPLE,
-  FIR,
+  Apps_PRESSURE_CALC,
+  Apps_ENERGY_CALC,
+  Apps_VOL3D_CALC,
+  Apps_DEL_DOT_VEC_2D,
+  Apps_COUPLE,
+  Apps_FIR,
 #endif
 
   NUM_KERNELS // Keep this one last and NEVER comment out (!!)
