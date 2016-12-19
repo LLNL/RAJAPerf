@@ -3,8 +3,8 @@
  *
  * \file
  *
- * \brief   Header file containing data and interfaces for defining 
- *          performance suite kernels, variants, and run parameters.
+ * \brief   Header file containing enums, names, and interfaces for defining 
+ *          performance suite kernels and variants.
  *
  ******************************************************************************
  */
@@ -41,6 +41,8 @@
 namespace rajaperf
 {
 
+class KernelBase;
+
 /*!
  *******************************************************************************
  *
@@ -48,48 +50,49 @@ namespace rajaperf
  *
  * IMPORTANT: This is only modified when a new kernel is added to the suite.
  *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *
  *******************************************************************************
  */
 enum KernelID {
 
 //
-// LCALS kernels...
+// Basic kernels...
 //
 #if 0
-   PRESSURE_CALC = 0,
-   ENERGY_CALC,
-   VOL3D_CALC,
-   DEL_DOT_VEC_2D,
-   COUPLE,
-   FIR,
-
-   INIT3,
+  INIT3 = 0,
 #endif
-   MULADDSUB = 0,
+  MULADDSUB = 0,
 #if 0
-   IF_QUAD,
-   TRAP_INT,
+  IF_QUAD,
+  TRAP_INT,
+#endif
 
-   HYDRO_1D,
-   ICCG,
-   INNER_PROD,
-   BAND_LIN_EQ,
-   TRIDIAG_ELIM,
-   EOS,
-   ADI,
-   INT_PREDICT,
-   DIFF_PREDICT,
-   FIRST_SUM,
-   FIRST_DIFF,
-   PIC_2D,
-   PIC_1D,
-   HYDRO_2D,
-   GEN_LIN_RECUR,
-   DISC_ORD,
-   MAT_X_MAT,
-   PLANCKIAN,
-   IMP_HYDRO_2D,
-   FIND_FIRST_MIN,
+//
+// Lloops kernels...
+//
+#if 0
+  HYDRO_1D,
+  ICCG,
+  INNER_PROD,
+  BAND_LIN_EQ,
+  TRIDIAG_ELIM,
+  EOS,
+  ADI,
+  INT_PREDICT,
+  DIFF_PREDICT,
+  FIRST_SUM,
+  FIRST_DIFF,
+  PIC_2D,
+  PIC_1D,
+  HYDRO_2D,
+  GEN_LIN_RECUR,
+  DISC_ORD,
+  MAT_X_MAT,
+  PLANCKIAN,
+  IMP_HYDRO_2D,
+  FIND_FIRST_MIN,
 #endif
 
 //
@@ -100,7 +103,19 @@ enum KernelID {
 // Stream kernels...
 //
 
-   NUM_KERNELS // Keep this one last and NEVER comment out (!!)
+//
+// Apps kernels...
+//
+#if 0
+  PRESSURE_CALC,
+  ENERGY_CALC,
+  VOL3D_CALC,
+  DEL_DOT_VEC_2D,
+  COUPLE,
+  FIR,
+#endif
+
+  NUM_KERNELS // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -112,51 +127,21 @@ enum KernelID {
  *
  * IMPORTANT: This is only modified when a new kernel is added to the suite.
  *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
+ *
  *******************************************************************************
  */
 enum VariantID {
 
-   BASELINE = 0,
-   RAJA_SERIAL,
-   BASELINE_OPENMP,
-   RAJA_OPENMP,
-   BASELINE_CUDA,
-   RAJA_CUDA,
+  BASELINE = 0,
+  RAJA_SERIAL,
+  BASELINE_OPENMP,
+  RAJA_OPENMP,
+  BASELINE_CUDA,
+  RAJA_CUDA,
 
-   NUM_VARIANTS // Keep this one last and NEVER comment out (!!)
-
-};
-
-
-/*!
- *******************************************************************************
- *
- * \brief Simple class to hold suite execution parameters.
- *
- *******************************************************************************
- */
-class RunParams {
-public:
-  RunParams( int argc, char** argv );
-  ~RunParams( );
-
-  int npasses;                     /*!< Number of passes through suite.  */
-
-  std::string run_kernels;         /*!< Filter which kernels to run... */
-  std::string run_variants;        /*!< Filter which variants to run... */
-
-  double length_fraction;          /*!< Fraction of default kernel length run */
-
-  std::string output_file_prefix;  /*!< Prefix for output data file. */
-
-#if 0 // RDH TODO
-  std::vector<KernelBase*> kernels;/*!< Vector of kernel objects to run */
-#endif
-  std::vector<VariantID> variants; /*!< Vector of variant IDs to run */
-
-private:
-// These are not implemented to prevent calling by accident.
-  RunParams();
+  NUM_VARIANTS // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -168,18 +153,7 @@ private:
  *
  *******************************************************************************
  */
-std::string getKernelName(KernelID kid);
-
-#if 0 // RDH TODO
-/*!
- *******************************************************************************
- *
- * \brief Return kernel object associated with KernelID enum value.
- *
- *******************************************************************************
- */
-KernelBase getKernelObject(KernelID kid);
-#endif
+const std::string& getKernelName(KernelID kid);
 
 /*!
  *******************************************************************************
@@ -188,7 +162,18 @@ KernelBase getKernelObject(KernelID kid);
  *
  *******************************************************************************
  */
-std::string getVariantName(VariantID vid);
+const std::string& getVariantName(VariantID vid); 
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Construct and return kernel object for given KernelID enum value.
+ *
+ *        IMPORTANT: Caller assumes ownerhip of returned object.
+ *
+ *******************************************************************************
+ */
+KernelBase* getKernelObject(KernelID kid);
 
 }  // closing brace for rajaperf namespace
 

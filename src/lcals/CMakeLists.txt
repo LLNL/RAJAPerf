@@ -1,5 +1,5 @@
-add_library(lcals
-  MULADDSUB.cxx)
+##add_library(lloops
+##  Kernel.cxx)
 
-target_link_libraries(lcals
-  RAJA)
+##target_link_libraries(lloops
+##  RAJA)

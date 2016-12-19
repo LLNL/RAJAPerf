@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file that drives performance suite.
+ * \brief   Header file containing executor class that runs suite.
  *
  ******************************************************************************
  */
@@ -23,28 +23,27 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+
+#ifndef RAJAPerfExecutor_HXX
+
 #include "common/RunParams.hxx"
-#include "common/Executor.hxx"
 
-//------------------------------------------------------------------------------
-int main( int argc, char** argv )
+namespace rajaperf {
+
+class Executor
 {
-  // STEP 0: Parse command line options and store in params object
-  rajaperf::RunParams params(argc, argv);
+public:
+  Executor(RunParams& params);
 
-#if 0
-  // STEP 1: Report parameter summary
-  rajaperf::reportRunSummary(params);  
-#endif
-    
-  // STEP 2: Run the loop suite
-  rajaperf::Executor executor(params);
-#if 0
-  executor.runSuite();
+  ~Executor();
 
-  // STEP 3: Write execution reports
-  rajaperf::outputRunData(params);  
-#endif
+  void runSuite();
 
-  return 0;
-}
+private:
+  Executor() = delete;
+
+};
+
+}  // closing brace for rajaperf namespace
+
+#endif  // closing endif for header file include guard

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file that drives performance suite.
+ * \brief   Header file for LCALS kernel MULADDSUB.
  *
  ******************************************************************************
  */
@@ -23,28 +23,35 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "common/RunParams.hxx"
-#include "common/Executor.hxx"
 
-//------------------------------------------------------------------------------
-int main( int argc, char** argv )
+#ifndef RAJAPerf_LCALS_MULADDSUB_HXX
+#define RAJAPerf_LCALS_MULADDSUB_HXX
+
+#include "common/KernelBase.hxx"
+
+namespace rajaperf 
 {
-  // STEP 0: Parse command line options and store in params object
-  rajaperf::RunParams params(argc, argv);
+namespace basic
+{
 
-#if 0
-  // STEP 1: Report parameter summary
-  rajaperf::reportRunSummary(params);  
-#endif
-    
-  // STEP 2: Run the loop suite
-  rajaperf::Executor executor(params);
-#if 0
-  executor.runSuite();
+class MULADDSUB : public KernelBase
+{
+public:
 
-  // STEP 3: Write execution reports
-  rajaperf::outputRunData(params);  
-#endif
+  MULADDSUB(); 
 
-  return 0;
-}
+  ~MULADDSUB();
+
+  void setUp(VariantID vid);
+  void executeKernel(VariantID vid, const RunParams& params); 
+  void computeChecksum(VariantID vid);
+  void tearDown(VariantID vid);
+
+private:
+
+};
+
+} // end namespace basic
+} // end namespace rajaperf
+
+#endif // closing endif for header file include guard
