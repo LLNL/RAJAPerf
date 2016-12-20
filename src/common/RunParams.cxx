@@ -44,56 +44,12 @@ namespace rajaperf
 RunParams::RunParams(int argc, char** argv)
  : npasses(1),
    sample_fraction(1.0),
-   length_fraction(1.0),
-   run_kernels("all"),
-   run_variants("all"), 
+   size_fraction(1.0),
+   kernel_filter(),
+   variant_filter(),
    output_file_prefix("RAJA_Perf_Suite")
 {
-  for (int i = 1; i < argc; ++i) {
-
-    if ( std::string(argv[i]) == std::string("--npasses") ) {
-
-      npasses = ::atoi( argv[++i] );
-
-    } else if ( std::string(argv[i]) == std::string("--sampfrac") ) {
-
-      sample_fraction = ::atof( argv[++i] );
-
-    } else if ( std::string(argv[i]) == std::string("--lenfrac") ) {
-
-      length_fraction = ::atof( argv[++i] );
-
-    } else if ( std::string(argv[i]) == std::string("--kernels") ) {
-
-      // RDH TODO...
-      std::cout << "\n\n";
-      std::cout << "Kernel filter option not implemented!\n";  
-      std::cout << "\tRunning all kernels by default..." << std::endl;
-      std::cout.flush();
-
-    } else if ( std::string(argv[i]) == std::string("--variants") ) {
-
-      // RDH TODO...
-      std::cout << "\n\n";
-      std::cout << "Variant filter not implemented!\n";  
-      std::cout << "\tRunning all variants by default..." << std::endl;
-      std::cout.flush();
-
-    } else if ( std::string(argv[i]) == std::string("--outfile") ) {
-   
-      output_file_prefix = std::string( argv[++i] ); 
-
-    } else if ( std::string(argv[i]) == std::string("--help") ) {
-
-      std::cout << "\n\n";
-      std::cout << "Usage: ./raja-perf [options] ";
-// RDH describe options...
-      std::cout << std::endl;
-      std::cout.flush();
-
-    }
-
-  }
+  parseCommandLineOptions(argc, argv);
 }
 
 
@@ -106,6 +62,79 @@ RunParams::RunParams(int argc, char** argv)
  */
 RunParams::~RunParams()
 {
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * Parse command line args to set how suite will run.
+ *
+ *******************************************************************************
+ */
+void RunParams::parseCommandLineOptions(int argc, char** argv)
+{
+  for (int i = 1; i < argc; ++i) {
+
+    if ( std::string(argv[i]) == std::string("--npasses") ) {
+
+      npasses = ::atoi( argv[++i] );
+
+    } else if ( std::string(argv[i]) == std::string("--sampfrac") ) {
+
+      sample_fraction = ::atof( argv[++i] );
+
+    } else if ( std::string(argv[i]) == std::string("--sizefrac") ) {
+
+      size_fraction = ::atof( argv[++i] );
+
+    } else if ( std::string(argv[i]) == std::string("--kernels") ) {
+
+      // RDH TODO...
+      std::cout << "\n\n";
+      std::cout << "Kernel filter option not implemented!\n";
+      std::cout << "\tRunning all kernels by default..." << std::endl;
+      std::cout.flush();
+
+    } else if ( std::string(argv[i]) == std::string("--variants") ) {
+
+      // RDH TODO...
+      std::cout << "\n\n";
+      std::cout << "Variant filter not implemented!\n";
+      std::cout << "\tRunning all variants by default..." << std::endl;
+      std::cout.flush();
+
+    } else if ( std::string(argv[i]) == std::string("--outfile") ) {
+
+      output_file_prefix = std::string( argv[++i] );
+
+    } else if ( std::string(argv[i]) == std::string("--help") ) {
+
+      std::cout << "\n\n";
+      std::cout << "Usage: ./raja-perf.exe [options] ";
+// RDH output formatted description of options and defaults...
+/* 
+      For example,
+
+      ./raja-perf.exe \
+      --npasses <int num passes through suite> 
+      --sampfrac <double fraction of default # times each kernel is run> 
+      --sizefrac <double fraction of default kernel iteration space size to run>
+      --kernels <list of strings: kernel names and/or suite names> 
+                 e.g.,
+                 polybench [runs all kernels in polybench suite]
+                 INIT3 MULADDSUB [runs INIT3 and MULADDSUB kernels]
+                 INIT3 apps [runs INIT3 kernel and all kernels in apps wuite])
+      --variants <list of strings: kernel variants>
+                 e.g., 
+                 BASELINE RAJA_CUDA [runs BASELINE and  RAJA_CUDA variants]
+*/
+      std::cout << std::endl;
+      std::cout.flush();
+
+    }
+
+  }
 }
 
 }  // closing brace for rajaperf namespace

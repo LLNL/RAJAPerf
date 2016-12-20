@@ -24,7 +24,9 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-// Std C++ includes
+#ifndef RAJAPerfSuite_HXX
+#define RAJAPerfSuite_HXX
+
 #include <string>
 #include <vector>
 
@@ -34,9 +36,6 @@
   #define omp_get_thread_num() 0
   #define omp_get_num_threads() 1
 #endif
-
-#ifndef RAJAPerfSuite_HXX
-#define RAJAPerfSuite_HXX
 
 namespace rajaperf
 {
@@ -70,29 +69,29 @@ enum KernelID {
 #endif
 
 //
-// LLoops kernels...
+// Livloops kernels...
 //
 #if 0
-  LLoops_HYDRO_1D,
-  LLoops_ICCG,
-  LLoops_INNER_PROD,
-  LLoops_BAND_LIN_EQ,
-  LLoops_TRIDIAG_ELIM,
-  LLoops_EOS,
-  LLoops_ADI,
-  LLoops_INT_PREDICT,
-  LLoops_DIFF_PREDICT,
-  LLoops_FIRST_SUM,
-  LLoops_FIRST_DIFF,
-  LLoops_PIC_2D,
-  LLoops_PIC_1D,
-  LLoops_HYDRO_2D,
-  LLoops_GEN_LIN_RECUR,
-  LLoops_DISC_ORD,
-  LLoops_MAT_X_MAT,
-  LLoops_PLANCKIAN,
-  LLoops_IMP_HYDRO_2D,
-  LLoops_FIND_FIRST_MIN,
+  Livloops_HYDRO_1D,
+  Livloops_ICCG,
+  Livloops_INNER_PROD,
+  Livloops_BAND_LIN_EQ,
+  Livloops_TRIDIAG_ELIM,
+  Livloops_EOS,
+  Livloops_ADI,
+  Livloops_INT_PREDICT,
+  Livloops_DIFF_PREDICT,
+  Livloops_FIRST_SUM,
+  Livloops_FIRST_DIFF,
+  Livloops_PIC_2D,
+  Livloops_PIC_1D,
+  Livloops_HYDRO_2D,
+  Livloops_GEN_LIN_RECUR,
+  Livloops_DISC_ORD,
+  Livloops_MAT_X_MAT,
+  Livloops_PLANCKIAN,
+  Livloops_IMP_HYDRO_2D,
+  Livloops_FIND_FIRST_MIN,
 #endif
 
 //

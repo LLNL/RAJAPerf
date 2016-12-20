@@ -2,4 +2,5 @@
 ##  Kernel.cxx)
 
 ##target_link_libraries(apps
+##  common
 ##  RAJA)

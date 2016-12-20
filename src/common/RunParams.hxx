@@ -23,20 +23,14 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-
-#include "RAJAPerfSuite.hxx"
+#ifndef RAJAPerfRunParams_HXX
+#define RAJAPerfRunParams_HXX
 
 #include <string>
 #include <vector>
 
-
-#ifndef RunParams_HXX
-#define RunParams_HXX
-
 namespace rajaperf
 {
-
-class KernelBase;
 
 /*!
  *******************************************************************************
@@ -50,20 +44,20 @@ public:
   RunParams( int argc, char** argv );
   ~RunParams( );
 
-  int npasses;                     /*!< Number of passes through suite.  */
+  int npasses;                     /*!< Number of passes through suite  */
   double sample_fraction;          /*!< Frac of default kernel samples to run */
-  double length_fraction;          /*!< Frac of default kernel length to run */
+  double size_fraction;            /*!< Frac of default kernel iteration space
+                                        to run */
 
-  std::string run_kernels;         /*!< Filter which kernels to run... */
-  std::string run_variants;        /*!< Filter which variants to run... */
+  std::vector<std::string> kernel_filter;  /*!< Filter for kernels to run... */
+  std::vector<std::string> variant_filter; /*!< Filter for variants to run... */
 
   std::string output_file_prefix;  /*!< Prefix for output data file. */
 
-  std::vector<KernelBase*> kernels;/*!< Vector of kernel objects to run */
-  std::vector<VariantID> variants; /*!< Vector of variant IDs to run */
-
 private:
   RunParams() = delete;
+
+  void parseCommandLineOptions(int argc, char** argv);
 
 };
 

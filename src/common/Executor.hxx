@@ -26,21 +26,34 @@
 
 #ifndef RAJAPerfExecutor_HXX
 
+#include "common/RAJAPerfSuite.hxx"
 #include "common/RunParams.hxx"
 
 namespace rajaperf {
 
+class KernelBase;
+
 class Executor
 {
 public:
-  Executor(RunParams& params);
+  Executor( int argc, char** argv );
 
   ~Executor();
 
+  void setupSuite();
+
+  void reportRunSummary();
+
   void runSuite();
+  
+  void outputRunData();
 
 private:
   Executor() = delete;
+
+  RunParams run_params;
+  std::vector<KernelBase*> kernels;  
+  std::vector<VariantID>   variants;
 
 };
 

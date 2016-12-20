@@ -30,18 +30,71 @@
 
 namespace rajaperf {
 
-Executor::Executor(RunParams& params)
+Executor::Executor(int argc, char** argv)
+  : run_params(argc, argv)
 {
-  for (int ikern = 0; ikern < NUM_KERNELS; ++ikern) {
-     
-  }
 }
 
 Executor::~Executor()
 {
 }
 
+void Executor::setupSuite()
+{
+  //
+  // Assemble kernels to execute
+  //
+  if ( run_params.kernel_filter.size() == 0 ) {
+
+    //
+    // No kernels specified in input options, run them all...
+    //
+    for (int ikern = 0; ikern < NUM_KERNELS; ++ikern) {
+      kernels.push_back( getKernelObject(static_cast<KernelID>(ikern)) );
+    }
+
+  } else {
+
+     //
+     // Determine which kernels to run based on provided input options.
+     //
+     // These are strings in run_params.run_kernels
+     //
+
+  } 
+
+  //
+  // Assemble variants to execute
+  //
+  if ( run_params.variant_filter.size() == 0 ) {
+
+    //
+    // No variants specified in input options, run them all...
+    //
+    for (int ivar = 0; ivar < NUM_VARIANTS; ++ivar) {
+      variants.push_back( static_cast<VariantID>(ivar) );
+    }
+
+  } else {
+
+     //
+     // Determine which variants to run based on provided input options.
+     //
+     // These are strings in run_params.run_variants
+     //
+
+  }
+}
+
+void Executor::reportRunSummary()
+{
+}
+
 void Executor::runSuite()
+{
+}
+
+void Executor::outputRunData()
 {
 }
 

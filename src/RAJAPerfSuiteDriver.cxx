@@ -29,22 +29,21 @@
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  // STEP 0: Parse command line options and store in params object
-  rajaperf::RunParams params(argc, argv);
+  // STEP 1: Create suite executor object
+  rajaperf::Executor executor(argc, argv);
 
-#if 0
-  // STEP 1: Report parameter summary
-  rajaperf::reportRunSummary(params);  
-#endif
-    
-  // STEP 2: Run the loop suite
-  rajaperf::Executor executor(params);
-#if 0
+  // STEP 2: Assemble kernels and variants to run
+  executor.setupSuite();
+
+  // STEP 3: Report suite run summary 
+  //         (to enable users to catch errors before entire suite is run)
+  executor.reportRunSummary(); 
+
+  // STEP 4: Execute suite
   executor.runSuite();
 
-  // STEP 3: Write execution reports
-  rajaperf::outputRunData(params);  
-#endif
+  // STEP 5: Generate suite execution reports
+  executor.outputRunData();
 
   return 0;
 }

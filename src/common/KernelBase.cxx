@@ -46,9 +46,11 @@ KernelBase::KernelBase(KernelID kid)
   }
 }
 
+ 
 KernelBase::~KernelBase()
 {
 }
+
 
 void KernelBase::execute(VariantID vid, const RunParams& params) 
 {
@@ -60,6 +62,7 @@ void KernelBase::execute(VariantID vid, const RunParams& params)
 
   this->tearDown(vid);
 }
+
 
 #if 0 // RDH
 void KernelBase::recordExecTime(auto start, auto end)
