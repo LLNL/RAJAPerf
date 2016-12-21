@@ -76,7 +76,45 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   for (int i = 1; i < argc; ++i) {
 
-    if ( std::string(argv[i]) == std::string("--npasses") ) {
+    if ( std::string(argv[i]) == std::string("--help") ) {
+
+      std::cout << "\n\n";
+      std::cout << "Usage: ./raja-perf.exe [options] ";
+// RDH output formatted description of options and defaults...
+/* 
+      ./raja-perf.exe \
+      --help [print options with descriptions]
+      --print-kernels [print list of kernel names]
+      --print-variants [print list of variant names]
+      --print-suites [print list of suite names]
+      --npasses <int num passes through suite> 
+      --sampfrac <double fraction of default # times each kernel is run> 
+      --sizefrac <double fraction of default kernel iteration space size to run>
+      --kernels <list of strings: kernel names and/or suite names> 
+                 e.g.,
+                 polybench [runs all kernels in polybench suite]
+                 INIT3 MULADDSUB [runs INIT3 and MULADDSUB kernels]
+                 INIT3 apps [runs INIT3 kernel and all kernels in apps wuite])
+      --variants <list of strings: kernel variants>
+                 e.g., 
+                 BASELINE RAJA_CUDA [runs BASELINE and  RAJA_CUDA variants]
+*/
+      std::cout << std::endl;
+      std::cout.flush();
+
+    } else if ( std::string(argv[i]) == std::string("--print-kernels") ) {
+     
+      // print list of kernel names
+ 
+    } else if ( std::string(argv[i]) == std::string("--print-variants") ) {
+     
+      // print list of variant names
+ 
+    } else if ( std::string(argv[i]) == std::string("--print-suites") ) {
+
+      // print list of suite names 
+
+    } else if ( std::string(argv[i]) == std::string("--npasses") ) {
 
       npasses = ::atoi( argv[++i] );
 
@@ -108,30 +146,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       output_file_prefix = std::string( argv[++i] );
 
-    } else if ( std::string(argv[i]) == std::string("--help") ) {
-
-      std::cout << "\n\n";
-      std::cout << "Usage: ./raja-perf.exe [options] ";
-// RDH output formatted description of options and defaults...
-/* 
-      ./raja-perf.exe \
-      --help [print options with descriptions]
-      --print-kernels [print list of kernel names]
-      --print-variants [print list of variant names]
-      --print-suites [print list of suite names]
-      --npasses <int num passes through suite> 
-      --sampfrac <double fraction of default # times each kernel is run> 
-      --sizefrac <double fraction of default kernel iteration space size to run>
-      --kernels <list of strings: kernel names and/or suite names> 
-                 e.g.,
-                 polybench [runs all kernels in polybench suite]
-                 INIT3 MULADDSUB [runs INIT3 and MULADDSUB kernels]
-                 INIT3 apps [runs INIT3 kernel and all kernels in apps wuite])
-      --variants <list of strings: kernel variants>
-                 e.g., 
-                 BASELINE RAJA_CUDA [runs BASELINE and  RAJA_CUDA variants]
-*/
-      std::cout << std::endl;
+    } else {
+     
+      std::string huh(argv[i]);   
+      std::cout << "\nUnknown option: " << huh << std::endl;
       std::cout.flush();
 
     }
