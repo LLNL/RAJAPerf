@@ -29,15 +29,13 @@
 namespace rajaperf {
 
 KernelBase::KernelBase(KernelID kid) 
+  : kernel_id(kid),
+    name( getKernelName(kernel_id) ),
+    run_size(0),
+    run_samples(0),
+    default_size(0),
+    default_samples(0)
 {
-  kernel_id = kid;
-  name      = getKernelName(kernel_id);
-
-  run_length      = 0;
-  run_samples     = 0;
-  default_length  = 0;
-  default_samples = 0;
-
   for (size_t ivar = 0; ivar < NUM_VARIANTS; ++ivar) {
      min_time[ivar] = 0.0;
      max_time[ivar] = 0.0;
@@ -52,11 +50,11 @@ KernelBase::~KernelBase()
 }
 
 
-void KernelBase::execute(VariantID vid, const RunParams& params) 
+void KernelBase::execute(VariantID vid) 
 {
   this->setUp(vid);
   
-  this->executeKernel(vid, params); 
+  this->runKernel(vid); 
 
   this->computeChecksum(vid); 
 
@@ -64,15 +62,26 @@ void KernelBase::execute(VariantID vid, const RunParams& params)
 }
 
 
-#if 0 // RDH
-void KernelBase::recordExecTime(auto start, auto end)
+void KernelBase::startTimer()
 {
-  Duration time = end - start;
+  //start_time = ...;
+}
+
+void KernelBase::stopTimer()
+{
+  //stop_time = ...;
+  recordExecTime();
+}
+
+void KernelBase::recordExecTime()
+{
+#if 0 // RDH
+  Duration time = stop_time - start_time;
 
   min_time = std::min(min_time, time.count());
   max_time = std::max(min_time, time.count());
   tot_time += time.count();
-}
 #endif
+}
 
 }  // closing brace for rajaperf namespace

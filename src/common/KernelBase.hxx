@@ -46,24 +46,29 @@ public:
   using Duration = std::chrono::duration<double>;
 #endif
 
-  explicit KernelBase(KernelID kid);
+  KernelBase(KernelID kid);
 
   virtual ~KernelBase();
 
-  KernelID     getKernelID() { return kernel_id; }
-  std::string& getName() { return name; }
+  KernelID     getKernelID() const { return kernel_id; }
+  const std::string& getName() const { return name; }
+
+  int getRunSize() const { return run_size; }
+  int getRunSamples() const { return run_samples; }
+
+  int getDefaultSize() const { return default_size; }
+  int getDefaultSamples() const { return default_samples; }
 
   double getMinTime(VariantID vid) { return min_time[vid]; }
   double getMaxTime(VariantID vid) { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
 
-  void execute(VariantID vid, const RunParams& params);
-#if 0 // RDH
-  void recordExecTime(auto start, auto end); 
-#endif
+  void execute(VariantID vid);
+  void startTimer();
+  void stopTimer();
 
   virtual void setUp(VariantID vid) = 0;
-  virtual void executeKernel(VariantID vid, const RunParams& params) = 0;
+  virtual void runKernel(VariantID vid) = 0;
   virtual void computeChecksum(VariantID vid) = 0;
   virtual void tearDown(VariantID vid) = 0;
 
@@ -71,10 +76,10 @@ protected:
   KernelID    kernel_id;
   std::string name;
 
-  int run_length;
+  int run_size;
   int run_samples;
 
-  int default_length;
+  int default_size;
   int default_samples;
 
   double min_time[NUM_VARIANTS];
@@ -83,8 +88,14 @@ protected:
 
   long double checksum[NUM_VARIANTS];
 
+  // Type???
+  //start_time; 
+  //stop_time; 
+
 private:
    KernelBase() = delete;
+
+  void recordExecTime(); 
 };
 
 }  // closing brace for rajaperf namespace

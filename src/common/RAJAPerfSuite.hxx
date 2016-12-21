@@ -60,64 +60,64 @@ enum KernelID {
 // Basic kernels...
 //
 #if 0
-  Basic_INIT3 = 0,
+  basic_INIT3 = 0,
 #endif
-  Basic_MULADDSUB = 0,
+  basic_MULADDSUB = 0,
 #if 0
-  Basic_IF_QUAD,
-  Basic_TRAP_INT,
+  basic_IF_QUAD,
+  basic_TRAP_INT,
 #endif
 
 //
-// Livloops kernels...
+// livloops kernels...
 //
 #if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
+  livloops_HYDRO_1D,
+  livloops_ICCG,
+  livloops_INNER_PROD,
+  livloops_BAND_LIN_EQ,
+  livloops_TRIDIAG_ELIM,
+  livloops_EOS,
+  livloops_ADI,
+  livloops_INT_PREDICT,
+  livloops_DIFF_PREDICT,
+  livloops_FIRST_SUM,
+  livloops_FIRST_DIFF,
+  livloops_PIC_2D,
+  livloops_PIC_1D,
+  livloops_HYDRO_2D,
+  livloops_GEN_LIN_RECUR,
+  livloops_DISC_ORD,
+  livloops_MAT_X_MAT,
+  livloops_PLANCKIAN,
+  livloops_IMP_HYDRO_2D,
+  livloops_FIND_FIRST_MIN,
 #endif
 
 //
 // Polybench kernels...
 //
 #if 0
-  Polybench_***
+  polybench_***
 #endif
 
 //
 // Stream kernels...
 //
 #if 0
-  Stream_***
+  stream_***
 #endif
 
 //
 // Apps kernels...
 //
 #if 0
-  Apps_PRESSURE_CALC,
-  Apps_ENERGY_CALC,
-  Apps_VOL3D_CALC,
-  Apps_DEL_DOT_VEC_2D,
-  Apps_COUPLE,
-  Apps_FIR,
+  apps_PRESSURE_CALC,
+  apps_ENERGY_CALC,
+  apps_VOL3D_CALC,
+  apps_DEL_DOT_VEC_2D,
+  apps_COUPLE,
+  apps_FIR,
 #endif
 
   NUM_KERNELS // Keep this one last and NEVER comment out (!!)
@@ -178,7 +178,9 @@ const std::string& getVariantName(VariantID vid);
  *
  *******************************************************************************
  */
-KernelBase* getKernelObject(KernelID kid);
+KernelBase* getKernelObject(KernelID kid,
+                            double sample_frac,
+                            double size_frac);
 
 }  // closing brace for rajaperf namespace
 

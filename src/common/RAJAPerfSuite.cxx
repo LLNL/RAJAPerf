@@ -59,64 +59,64 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
 #if 0
-  std::string("Basic_INIT3"),
+  std::string("basic_INIT3"),
 #endif
-  std::string("Basic_MULADDSUB"),
+  std::string("basic_MULADDSUB"),
 #if 0
-  std::string("Basic_IF_QUAD"),
-  std::string("Basic_TRAP_INT"),
+  std::string("basic_IF_QUAD"),
+  std::string("basic_TRAP_INT"),
 #endif
 
 //
-// Lloops kernels...
+// Livloops kernels...
 //
 #if 0
-  std::string("Livloops_HYDRO_1D"),
-  std::string("Livloops_ICCG"),
-  std::string("Livloops_INNER_PROD"),
-  std::string("Livloops_BAND_LIN_EQ"),
-  std::string("Livloops_TRIDIAG_ELIM"),
-  std::string("Livloops_EOS"),
-  std::string("Livloops_ADI"),
-  std::string("Livloops_INT_PREDICT"),
-  std::string("Livloops_DIFF_PREDICT"),
-  std::string("Livloops_FIRST_SUM"),
-  std::string("Livloops_FIRST_DIFF"),
-  std::string("Livloops_PIC_2D"),
-  std::string("Livloops_PIC_1D"),
-  std::string("Livloops_HYDRO_2D"),
-  std::string("Livloops_GEN_LIN_RECUR"),
-  std::string("Livloops_DISC_ORD"),
-  std::string("Livloops_MAT_X_MAT"),
-  std::string("Livloops_PLANCKIAN"),
-  std::string("Livloops_IMP_HYDRO_2D"),
-  std::string("Livloops_FIND_FIRST_MIN"),
+  std::string("livloops_HYDRO_1D"),
+  std::string("livloops_ICCG"),
+  std::string("livloops_INNER_PROD"),
+  std::string("livloops_BAND_LIN_EQ"),
+  std::string("livloops_TRIDIAG_ELIM"),
+  std::string("livloops_EOS"),
+  std::string("livloops_ADI"),
+  std::string("livloops_INT_PREDICT"),
+  std::string("livloops_DIFF_PREDICT"),
+  std::string("livloops_FIRST_SUM"),
+  std::string("livloops_FIRST_DIFF"),
+  std::string("livloops_PIC_2D"),
+  std::string("livloops_PIC_1D"),
+  std::string("livloops_HYDRO_2D"),
+  std::string("livloops_GEN_LIN_RECUR"),
+  std::string("livloops_DISC_ORD"),
+  std::string("livloops_MAT_X_MAT"),
+  std::string("livloops_PLANCKIAN"),
+  std::string("livloops_IMP_HYDRO_2D"),
+  std::string("livloops_FIND_FIRST_MIN"),
 #endif
 
 //
 // Polybench kernels...
 //
 #if 0
-  std::string("Polybench_***");
+  std::string("polybench_***");
 #endif
 
 //
 // Stream kernels...
 //
 #if 0
-  std::string("Stream_***");
+  std::string("stream_***");
 #endif
 
 //
 // Apps kernels...
 //
 #if 0
-  std::string("Apps_PRESSURE_CALC"),
-  std::string("Apps_ENERGY_CALC"),
-  std::string("Apps_VOL3D_CALC"),
-  std::string("Apps_DEL_DOT_VEC_2D"),
-  std::string("Apps_COUPLE"),
-  std::string("Apps_FIR"),
+  std::string("apps_PRESSURE_CALC"),
+  std::string("apps_ENERGY_CALC"),
+  std::string("apps_VOL3D_CALC"),
+  std::string("apps_DEL_DOT_VEC_2D"),
+  std::string("apps_COUPLE"),
+  std::string("apps_FIR"),
 #endif
 
   "UNDEFINED"  // Keep this one at the end....
@@ -183,7 +183,9 @@ const std::string& getVariantName(VariantID vid)
  *
  *******************************************************************************
  */
-KernelBase* getKernelObject(KernelID kid)
+KernelBase* getKernelObject(KernelID kid,
+                            double sample_frac,
+                            double size_frac)
 {
   KernelBase* kernel = 0;
 
@@ -193,76 +195,76 @@ KernelBase* getKernelObject(KernelID kid)
     // Basic kernels...
     //
 #if 0
-    case Basic_INIT3 : {
+    case basic_INIT3 : {
        kernel = new basic::INIT3();
        break;
     }
 #endif
-    case Basic_MULADDSUB : {
-       kernel = new basic::MULADDSUB();
+    case basic_MULADDSUB : {
+       kernel = new basic::MULADDSUB(sample_frac, size_frac);
        break;
     }
 #if 0
-    case Basic_IF_QUAD : {
+    case basic_IF_QUAD : {
        kernel = new basic::IF_QUAD();
        break;
     }
-    case Basic_TRAP_INT : {
+    case basic_TRAP_INT : {
        kernel = new basic::TRAP_INT();
        break;
     }
 #endif
 
 //
-// Lloops kernels...
+// Livloops kernels...
 //
 #if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
+  livloops_HYDRO_1D,
+  livloops_ICCG,
+  livloops_INNER_PROD,
+  livloops_BAND_LIN_EQ,
+  livloops_TRIDIAG_ELIM,
+  livloops_EOS,
+  livloops_ADI,
+  livloops_INT_PREDICT,
+  livloops_DIFF_PREDICT,
+  livloops_FIRST_SUM,
+  livloops_FIRST_DIFF,
+  livloops_PIC_2D,
+  livloops_PIC_1D,
+  livloops_HYDRO_2D,
+  livloops_GEN_LIN_RECUR,
+  livloops_DISC_ORD,
+  livloops_MAT_X_MAT,
+  livloops_PLANCKIAN,
+  livloops_IMP_HYDRO_2D,
+  livloops_FIND_FIRST_MIN,
 #endif
 
 //
 // Polybench kernels...
 //
 #if 0
-  Polybench_***
+  polybench_***
 #endif
 
 //
 // Stream kernels...
 //
 #if 0
-  Stream_***
+  stream_***
 #endif
 
 //
 // Apps kernels...
 //
 #if 0
-  Apps_PRESSURE_CALC,
-  Apps_ENERGY_CALC,
-  Apps_VOL3D_CALC,
-  Apps_DEL_DOT_VEC_2D,
-  Apps_COUPLE,
-  Apps_FIR,
+  apps_PRESSURE_CALC,
+  apps_ENERGY_CALC,
+  apps_VOL3D_CALC,
+  apps_DEL_DOT_VEC_2D,
+  apps_COUPLE,
+  apps_FIR,
 #endif
 
     default: {

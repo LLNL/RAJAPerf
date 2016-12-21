@@ -114,9 +114,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       std::cout << "Usage: ./raja-perf.exe [options] ";
 // RDH output formatted description of options and defaults...
 /* 
-      For example,
-
       ./raja-perf.exe \
+      --help [print options with descriptions]
+      --print-kernels [print list of kernel names]
+      --print-variants [print list of variant names]
+      --print-suites [print list of suite names]
       --npasses <int num passes through suite> 
       --sampfrac <double fraction of default # times each kernel is run> 
       --sizefrac <double fraction of default kernel iteration space size to run>
