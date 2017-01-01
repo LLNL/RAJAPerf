@@ -29,6 +29,8 @@
 #include "common/RAJAPerfSuite.hxx"
 #include "common/KernelBase.hxx"
 
+#include <iostream>
+
 namespace rajaperf {
 
 Executor::Executor(int argc, char** argv)
@@ -42,6 +44,10 @@ Executor::~Executor()
 
 void Executor::setupSuite()
 {
+  if ( !run_params.good2go ) {
+    return;
+  }
+
   //
   // Assemble kernels to execute
   //
@@ -50,7 +56,7 @@ void Executor::setupSuite()
     //
     // No kernels specified in input options, run them all...
     //
-    for (int ikern = 0; ikern < NUM_KERNELS; ++ikern) {
+    for (int ikern = 0; ikern < NumKernels; ++ikern) {
       kernels.push_back( getKernelObject(static_cast<KernelID>(ikern),
                                          run_params.sample_fraction,
                                          run_params.size_fraction) );
@@ -74,7 +80,7 @@ void Executor::setupSuite()
     //
     // No variants specified in input options, run them all...
     //
-    for (int ivar = 0; ivar < NUM_VARIANTS; ++ivar) {
+    for (int ivar = 0; ivar < NumVariants; ++ivar) {
       variants.push_back( static_cast<VariantID>(ivar) );
     }
 
@@ -91,6 +97,11 @@ void Executor::setupSuite()
 
 void Executor::reportRunSummary()
 {
+  if ( !run_params.good2go ) {
+    std::cout << "\n\n RAJA perf suite will not be run now due to bad input"              << " or info request..." << std::endl;
+    std::cout.flush();
+    return;
+  } else {
    // 
    // Generate formatted summary of suite execution:
    //   - system, date, and time (e.g., utilities in ctime)
@@ -103,10 +114,15 @@ void Executor::reportRunSummary()
    //
    // Send to stdout and also to output summary file....
    //
+  }
 }
 
 void Executor::runSuite()
 {
+  if ( !run_params.good2go ) {
+    return;
+  }
+
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     for (size_t iv = 0; iv < variants.size(); ++iv) {
        kernels[ik]->execute( variants[iv] );
@@ -116,6 +132,10 @@ void Executor::runSuite()
 
 void Executor::outputRunData()
 {
+  if ( !run_params.good2go ) {
+    return;
+  }
+
   //
   // (RDH: I have code to generate this info in LCALS -- just need to
   //       pull it out and massage based on what we want)

@@ -40,9 +40,19 @@ namespace rajaperf
  *******************************************************************************
  */
 class RunParams {
+
+friend class Executor;
+
 public:
   RunParams( int argc, char** argv );
   ~RunParams( );
+
+private:
+  RunParams() = delete;
+
+  void parseCommandLineOptions(int argc, char** argv);
+
+  bool good2go;                    /*!< true if input is valid for run */
 
   int npasses;                     /*!< Number of passes through suite  */
   double sample_fraction;          /*!< Frac of default kernel samples to run */
@@ -53,11 +63,6 @@ public:
   std::vector<std::string> variant_filter; /*!< Filter for variants to run... */
 
   std::string output_file_prefix;  /*!< Prefix for output data file. */
-
-private:
-  RunParams() = delete;
-
-  void parseCommandLineOptions(int argc, char** argv);
 
 };
 

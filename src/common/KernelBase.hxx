@@ -82,11 +82,11 @@ protected:
   int default_size;
   int default_samples;
 
-  double min_time[NUM_VARIANTS];
-  double max_time[NUM_VARIANTS];
-  double tot_time[NUM_VARIANTS];
+  double min_time[NumVariants];
+  double max_time[NumVariants];
+  double tot_time[NumVariants];
 
-  long double checksum[NUM_VARIANTS];
+  long double checksum[NumVariants];
 
   // Type???
   //start_time; 
