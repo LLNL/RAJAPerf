@@ -44,22 +44,23 @@ Executor::~Executor()
 
 void Executor::setupSuite()
 {
-  if ( !run_params.good2go ) {
+  if ( !run_params.goodToRun() ) {
     return;
   }
 
   //
   // Assemble kernels to execute
   //
-  if ( run_params.kernel_filter.size() == 0 ) {
+  const std::vector<std::string>& kernel_filter = run_params.getKernelFilter();
+
+  if ( kernel_filter.empty() ) {
 
     //
     // No kernels specified in input options, run them all...
     //
     for (int ikern = 0; ikern < NumKernels; ++ikern) {
       kernels.push_back( getKernelObject(static_cast<KernelID>(ikern),
-                                         run_params.sample_fraction,
-                                         run_params.size_fraction) );
+                                         run_params) );
     }
 
   } else {
@@ -67,7 +68,7 @@ void Executor::setupSuite()
      //
      // Determine which kernels to run based on provided input options.
      //
-     // These are strings in run_params.run_kernels
+     // These are strings in kernel_filter vector
      //
 
   } 
@@ -75,7 +76,9 @@ void Executor::setupSuite()
   //
   // Assemble variants to execute
   //
-  if ( run_params.variant_filter.size() == 0 ) {
+  const std::vector<std::string>& variant_filter = run_params.getVariantFilter();
+
+  if ( variant_filter.empty() ) {
 
     //
     // No variants specified in input options, run them all...
@@ -89,7 +92,7 @@ void Executor::setupSuite()
      //
      // Determine which variants to run based on provided input options.
      //
-     // These are strings in run_params.run_variants
+     // These are strings in variant filter vector
      //
 
   }
@@ -97,8 +100,9 @@ void Executor::setupSuite()
 
 void Executor::reportRunSummary()
 {
-  if ( !run_params.good2go ) {
-    std::cout << "\n\n RAJA perf suite will not be run now due to bad input"              << " or info request..." << std::endl;
+  if ( !run_params.goodToRun() ) {
+    std::cout << "\n\n RAJA perf suite will not be run now due to bad input"
+              << " or info request..." << std::endl;
     std::cout.flush();
     return;
   } else {
@@ -119,7 +123,7 @@ void Executor::reportRunSummary()
 
 void Executor::runSuite()
 {
-  if ( !run_params.good2go ) {
+  if ( !run_params.goodToRun() ) {
     return;
   }
 
@@ -132,7 +136,7 @@ void Executor::runSuite()
 
 void Executor::outputRunData()
 {
-  if ( !run_params.good2go ) {
+  if ( !run_params.goodToRun() ) {
     return;
   }
 

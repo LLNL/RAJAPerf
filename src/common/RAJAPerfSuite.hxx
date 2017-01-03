@@ -28,7 +28,6 @@
 #define RAJAPerfSuite_HXX
 
 #include <string>
-#include <vector>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -41,6 +40,7 @@ namespace rajaperf
 {
 
 class KernelBase;
+class RunParams;
 
 
 /*!
@@ -86,14 +86,10 @@ enum KernelID {
 //
 // Basic kernels...
 //
-#if 0
   Basic_INIT3 = 0,
-#endif
-  Basic_MULADDSUB = 0,
-#if 0
+  Basic_MULADDSUB,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
-#endif
 
 //
 // Livloops kernels...
@@ -214,9 +210,7 @@ const std::string& getVariantName(VariantID vid);
  *
  *******************************************************************************
  */
-KernelBase* getKernelObject(KernelID kid,
-                            double sample_frac,
-                            double size_frac);
+KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
 
 }  // closing brace for rajaperf namespace
 

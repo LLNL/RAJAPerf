@@ -27,13 +27,17 @@
 
 #include "RAJAPerfSuite.hxx"
 
+#include "RunParams.hxx"
+
 //
-// LCALS kernels...
+// Basic kernels...
 //
-#if 0
 #include "basic/INIT3.hxx"
-#endif
 #include "basic/MULADDSUB.hxx"
+#include "basic/IF_QUAD.hxx"
+#include "basic/TRAP_INT.hxx"
+
+// include headers for other kernels HERE!!!
 
 #include <iostream>
 
@@ -203,36 +207,34 @@ const std::string& getVariantName(VariantID vid)
  *******************************************************************************
  */
 KernelBase* getKernelObject(KernelID kid,
-                            double sample_frac,
-                            double size_frac)
+                            const RunParams& run_params)
 {
   KernelBase* kernel = 0;
+
+  double sample_frac = run_params.getSampleFraction(); 
+  double size_frac   = run_params.getSizeFraction(); 
 
   switch ( kid ) {
 
     //
     // Basic kernels...
     //
-#if 0
     case Basic_INIT3 : {
-       kernel = new basic::INIT3();
+       kernel = new basic::INIT3(sample_frac, size_frac);
        break;
     }
-#endif
     case Basic_MULADDSUB : {
        kernel = new basic::MULADDSUB(sample_frac, size_frac);
        break;
     }
-#if 0
     case Basic_IF_QUAD : {
-       kernel = new basic::IF_QUAD();
+       kernel = new basic::IF_QUAD(sample_frac, size_frac);
        break;
     }
     case Basic_TRAP_INT : {
-       kernel = new basic::TRAP_INT();
+       kernel = new basic::TRAP_INT(sample_frac, size_frac);
        break;
     }
-#endif
 
 //
 // Livloops kernels...

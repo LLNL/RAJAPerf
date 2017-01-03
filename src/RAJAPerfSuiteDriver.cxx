@@ -35,7 +35,7 @@ int main( int argc, char** argv )
   executor.setupSuite();
 
   // STEP 3: Report suite run summary 
-  //         (to enable users to catch errors before entire suite is run)
+  //         (enable users to catch errors before entire suite is run)
   executor.reportRunSummary(); 
 
   // STEP 4: Execute suite

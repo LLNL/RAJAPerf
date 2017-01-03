@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef RAJAPerfRunParams_HXX
-#define RAJAPerfRunParams_HXX
+#ifndef RAJAPerf_RunParams_HXX
+#define RAJAPerf_RunParams_HXX
 
 #include <string>
 #include <vector>
@@ -41,11 +41,23 @@ namespace rajaperf
  */
 class RunParams {
 
-friend class Executor;
-
 public:
   RunParams( int argc, char** argv );
   ~RunParams( );
+
+  bool goodToRun() const { return good2go; } 
+
+  int getNumPasses() const { return npasses; }
+
+  double getSampleFraction() const { return sample_fraction; }
+
+  double getSizeFraction() const { return size_fraction; }
+
+  const std::vector<std::string>& getKernelFilter() const 
+                                  { return kernel_filter; }
+
+  const std::vector<std::string>& getVariantFilter() const 
+                                  { return variant_filter; }
 
 private:
   RunParams() = delete;

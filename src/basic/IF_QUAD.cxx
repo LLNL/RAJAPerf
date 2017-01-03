@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Basic kernel MULADDSUB.
+ * \brief   Implementation file for Basic kernel IF_QUAD.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "MULADDSUB.hxx"
+#include "IF_QUAD.hxx"
 
 #include <iostream>
 
@@ -33,26 +33,13 @@ namespace rajaperf
 namespace basic
 {
 
-#define KERNEL_DATA \
-  RAJA::Real_ptr out1 = m_out1; \
-  RAJA::Real_ptr out2 = m_out2; \
-  RAJA::Real_ptr out3 = m_out3; \
-  RAJA::Real_ptr in1  = m_in1; \
-  RAJA::Real_ptr in2  = m_in2;
+#define KERNEL_DATA 
 
-#define KERNEL_BODY(i) \
-  out1[i] = in1[i] * in2[i] ; \
-  out2[i] = in1[i] + in2[i] ; \
-  out3[i] = in1[i] - in2[i] ;
+#define KERNEL_BODY(i) 
 
 
-MULADDSUB::MULADDSUB(double sample_frac, double size_frac)
-  : KernelBase(rajaperf::Basic_MULADDSUB),
-    m_out1(0),
-    m_out2(0),
-    m_out3(0),
-    m_in1(0),
-    m_in2(0)
+IF_QUAD::IF_QUAD(double sample_frac, double size_frac)
+  : KernelBase(rajaperf::Basic_IF_QUAD)
 {
    default_size    = 100000;  
    default_samples = 10000;
@@ -60,7 +47,7 @@ MULADDSUB::MULADDSUB(double sample_frac, double size_frac)
    run_samples     = static_cast<SampIndex_type>(sample_frac * default_samples);
 }
 
-MULADDSUB::~MULADDSUB() 
+IF_QUAD::~IF_QUAD() 
 {
 }
 
@@ -68,7 +55,7 @@ MULADDSUB::~MULADDSUB()
 // NOTE: Setup and execute methods are implemented using switch statements
 //       for now. We may want to break the variants out differently...
 //
-void MULADDSUB::setUp(VariantID vid)
+void IF_QUAD::setUp(VariantID vid)
 {
   switch ( vid ) {
 
@@ -77,11 +64,6 @@ void MULADDSUB::setUp(VariantID vid)
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to allocate data based on array length and type
-//    allocate1DAligned(m_out1, run_size);
-//    allocate1DAligned(m_out2, run_size);
-//    allocate1DAligned(m_out3, run_size);
-//    allocate1DAligned(m_in1, run_size);
-//    allocate1DAligned(m_in2, run_size);
       break;
     }
 
@@ -105,9 +87,9 @@ void MULADDSUB::setUp(VariantID vid)
 
 }
 
-void MULADDSUB::runKernel(VariantID vid)
+void IF_QUAD::runKernel(VariantID vid)
 {
-  std::cout << "\nMULADDSUB::runKernel, vid = " << vid << std::endl;
+  std::cout << "\nIF_QUAD::runKernel, vid = " << vid << std::endl;
   std::cout << "\trun_samples = " << run_samples << std::endl;
   std::cout << "\trun_size = " << run_size << std::endl;
 
@@ -158,15 +140,12 @@ void MULADDSUB::runKernel(VariantID vid)
   }
 }
 
-void MULADDSUB::computeChecksum(VariantID vid)
+void IF_QUAD::computeChecksum(VariantID vid)
 {
   // Overloaded methods in common to update checksum based on type
-  //updateChksum(checksum[vid], run_size, m_out1);
-  //updateChksum(checksum[vid], run_size, m_out2);
-  //updateChksum(checksum[vid], run_size, m_out3);
 }
 
-void MULADDSUB::tearDown(VariantID vid)
+void IF_QUAD::tearDown(VariantID vid)
 {
   switch ( vid ) {
 
@@ -175,11 +154,6 @@ void MULADDSUB::tearDown(VariantID vid)
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to deallocate data
-//    dallocate(m_out1, run_size);
-//    dallocate(m_out2, run_size);
-//    dallocate(m_out3, run_size);
-//    dallocate(m_in1, run_size);
-//    dallocate(m_in2, run_size);
       break;
     }
 

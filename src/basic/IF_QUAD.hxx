@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file containing executor class that runs suite.
+ * \brief   Header file for Basic kernel IF_QUAD.
  *
  ******************************************************************************
  */
@@ -24,40 +24,35 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Executor_HXX
-#define RAJAPerf_Executor_HXX
+#ifndef RAJAPerf_Basic_IF_QUAD_HXX
+#define RAJAPerf_Basic_IF_QUAD_HXX
 
-#include "common/RAJAPerfSuite.hxx"
-#include "common/RunParams.hxx"
+#include "common/KernelBase.hxx"
+#include "RAJA/RAJA.hxx"
 
-namespace rajaperf {
+namespace rajaperf 
+{
+namespace basic
+{
 
-class KernelBase;
-
-class Executor
+class IF_QUAD : public KernelBase
 {
 public:
-  Executor( int argc, char** argv );
 
-  ~Executor();
+  IF_QUAD(double sample_frac, double size_frac); 
 
-  void setupSuite();
+  ~IF_QUAD();
 
-  void reportRunSummary();
-
-  void runSuite();
-  
-  void outputRunData();
+  void setUp(VariantID vid);
+  void runKernel(VariantID vid); 
+  void computeChecksum(VariantID vid);
+  void tearDown(VariantID vid);
 
 private:
-  Executor() = delete;
-
-  RunParams run_params;
-  std::vector<KernelBase*> kernels;  
-  std::vector<VariantID>   variants;
-
+  // Data not defined yet
 };
 
-}  // closing brace for rajaperf namespace
+} // end namespace basic
+} // end namespace rajaperf
 
-#endif  // closing endif for header file include guard
+#endif // closing endif for header file include guard

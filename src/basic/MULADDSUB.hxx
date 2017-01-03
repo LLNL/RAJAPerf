@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for LCALS kernel MULADDSUB.
+ * \brief   Header file for Basic kernel MULADDSUB.
  *
  ******************************************************************************
  */
@@ -24,30 +24,14 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_LCALS_MULADDSUB_HXX
-#define RAJAPerf_LCALS_MULADDSUB_HXX
+#ifndef RAJAPerf_Basic_MULADDSUB_HXX
+#define RAJAPerf_Basic_MULADDSUB_HXX
 
 #include "common/KernelBase.hxx"
 #include "RAJA/RAJA.hxx"
 
 namespace rajaperf 
 {
-
-//
-// IMPORTANT -- THESE ARE TEMPORARY !!!!!
-//
-// We actualy want a centralized type mechanism for scalar data and 
-// pointers to arrays of scalars. We can use what's in RAJA or define
-// our own typedefs for the suite based on that, etc. ...TBD!! 
-//
-const int DATA_ALIGN = 32;
-typedef RAJA::Index_type Index_type;
-typedef volatile int SampIndex_type;
-
-typedef RAJA::Real_type Real_type;
-typedef Real_type* Real_ptr;
-
-
 namespace basic
 {
 
@@ -65,11 +49,11 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_out1;
-  Real_ptr m_out2;
-  Real_ptr m_out3;
-  Real_ptr m_in1;
-  Real_ptr m_in2; 
+  RAJA::Real_ptr m_out1;
+  RAJA::Real_ptr m_out2;
+  RAJA::Real_ptr m_out3;
+  RAJA::Real_ptr m_in1;
+  RAJA::Real_ptr m_in2; 
 };
 
 } // end namespace basic
