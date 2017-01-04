@@ -189,10 +189,7 @@ void RunParams::printKernelNames(std::ostream& str)
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
   for (int ik = 0; ik < NumKernels; ++ik) {
-    std::string full_name(getKernelName(static_cast<KernelID>(ik)));
-    std::string::size_type pos = full_name.find("_");
-    std::string pname(full_name.substr(pos+1, std::string::npos));
-    str << pname << std::endl;
+    str << getKernelName(static_cast<KernelID>(ik)) << std::endl;
   }
   str.flush();
 }

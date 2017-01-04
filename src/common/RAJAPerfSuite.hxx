@@ -188,9 +188,22 @@ const std::string& getSuiteName(SuiteID sid);
  *
  * \brief Return kernel name associated with KernelID enum value.
  *
+ * Kernel name is full kernel name (see below) with suite name prefix removed.
+ *
  *******************************************************************************
  */
-const std::string& getKernelName(KernelID kid);
+std::string getKernelName(KernelID kid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return full kernel name associated with KernelID enum value.
+ *
+ * Full kernel name is <suite name>_<kernel name>.
+ *
+ *******************************************************************************
+ */
+const std::string& getFullKernelName(KernelID kid);
 
 /*!
  *******************************************************************************

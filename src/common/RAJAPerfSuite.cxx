@@ -190,11 +190,26 @@ const std::string& getSuiteName(SuiteID sid)
 /*
  *******************************************************************************
  *
- * \brief Return kernel name associated with KernelID enum value.
+ * \brief Return full kernel name associated with KernelID enum value.
  *
  *******************************************************************************
  */
-const std::string& getKernelName(KernelID kid)
+std::string getKernelName(KernelID kid)
+{
+  std::string::size_type pos = KernelNames[kid].find("_");
+  std::string kname(KernelNames[kid].substr(pos+1, std::string::npos));
+  return kname;
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * \brief Return full kernel name associated with KernelID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFullKernelName(KernelID kid)
 {
   return KernelNames[kid];
 }
