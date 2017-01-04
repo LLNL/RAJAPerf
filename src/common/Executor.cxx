@@ -101,7 +101,7 @@ void Executor::setupSuite()
 void Executor::reportRunSummary()
 {
   if ( !run_params.goodToRun() ) {
-    std::cout << "\n\n RAJA perf suite will not be run now due to bad input"
+    std::cout << "\n RAJA perf suite will not be run now due to bad input"
               << " or info request..." << std::endl;
     std::cout.flush();
     return;

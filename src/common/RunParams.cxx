@@ -26,6 +26,8 @@
 
 #include "RunParams.hxx"
 
+#include "RAJAPerfSuite.hxx"
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -79,53 +81,25 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     if ( std::string(argv[i]) == std::string("--help") ) {
 
-      std::cout << "\n\n";
-      std::cout << "Usage: ./raja-perf.exe [options]\n";
-      std::cout << "Valid options are:\n"; 
-
-      std::cout << "\t --help (prints options with descriptions}\n";
-      std::cout << "\t --print-kernels (prints valid kernel names}\n";
-      std::cout << "\t --print-variants (prints valid variant names}\n";
-      std::cout << "\t --print-suites (prints valid suite names}\n";
-      std::cout << "\t --npasses <int>\n"
-                << "\t      (num passes through suite)\n"; 
-      std::cout << "\t --sampfrac <double>\n"
-                << "\t      (fraction of default # times to run each kernel)\n";
-      std::cout << "\t --sizefrac <double>\n"
-                << "\t      (fraction of default kernel iteration space size to run)\n";
-      std::cout << "\t --kernels <space-separated list of strings>\n"
-                << "\t      (names of kernels and/or suites to run)\n"; 
-      std::cout << "\t\t e.g.,\n"
-                << "\t\t Polybench (run all kernels in Polybench suite)\n"
-                << "\t\t INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-                << "\t\t INIT3 Apps (run INIT3 kernsl and all kernels in Apps suite)\n"
-                << "\t\t (no string will runn all kernels)\n";
-      std::cout << "\t --variants <space-separated list of strings>\n"
-                << "\t      (names of variants)\n"; 
-      std::cout << "\t\t e.g.,\n"
-                << "\t\t Baseline RAJA_CUDA (run Baseline and RAJA_CUDA kernel variants)\n"
-                << "\t\t (no string will run all variants)\n";
-
-      std::cout << std::endl;
-      std::cout.flush();
+      printHelpMessage(std::cout);
 
       good2go = false;
 
     } else if ( std::string(argv[i]) == std::string("--print-kernels") ) {
      
-      // print list of kernel names
+      printKernelNames(std::cout);     
 
       good2go = false;
  
     } else if ( std::string(argv[i]) == std::string("--print-variants") ) {
-     
-      // print list of variant names
+
+      printVariantNames(std::cout);     
 
       good2go = false;
  
     } else if ( std::string(argv[i]) == std::string("--print-suites") ) {
 
-      // print list of suite names 
+      printSuiteNames(std::cout);     
 
       good2go = false;
 
@@ -174,6 +148,75 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     }
 
   }
+}
+
+
+void RunParams::printHelpMessage(std::ostream& str)
+{
+  str << "\nUsage: ./raja-perf.exe [options]\n";
+  str << "Valid options are:\n"; 
+
+  str << "\t --help (prints options with descriptions}\n";
+  str << "\t --print-kernels (prints valid kernel names}\n";
+  str << "\t --print-variants (prints valid variant names}\n";
+  str << "\t --print-suites (prints valid suite names}\n";
+  str << "\t --npasses <int>\n"
+            << "\t      (num passes through suite)\n"; 
+  str << "\t --sampfrac <double>\n"
+            << "\t      (fraction of default # times to run each kernel)\n";
+  str << "\t --sizefrac <double>\n"
+            << "\t      (fraction of default kernel iteration space size to run)\n";
+  str << "\t --kernels <space-separated list of strings>\n"
+            << "\t      (names of kernels and/or suites to run)\n"; 
+  str << "\t\t e.g.,\n"
+            << "\t\t Polybench (run all kernels in Polybench suite)\n"
+            << "\t\t INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
+            << "\t\t INIT3 Apps (run INIT3 kernsl and all kernels in Apps suite)\n"
+            << "\t\t (no string will runn all kernels)\n";
+  str << "\t --variants <space-separated list of strings>\n"
+            << "\t      (names of variants)\n"; 
+  str << "\t\t e.g.,\n"
+            << "\t\t Baseline RAJA_CUDA (run Baseline and RAJA_CUDA kernel variants)\n"
+            << "\t\t (no string will run all variants)\n";
+
+  str << std::endl;
+  str.flush();
+}
+
+
+void RunParams::printKernelNames(std::ostream& str)
+{
+  str << "\nAvailable kernels:";
+  str << "\n------------------\n";
+  for (int ik = 0; ik < NumKernels; ++ik) {
+    std::string full_name(getKernelName(static_cast<KernelID>(ik)));
+    std::string::size_type pos = full_name.find("_");
+    std::string pname(full_name.substr(pos+1, std::string::npos));
+    str << pname << std::endl;
+  }
+  str.flush();
+}
+
+
+void RunParams::printVariantNames(std::ostream& str)
+{
+  str << "\nAvailable variants:";
+  str << "\n-------------------\n";
+  for (int iv = 0; iv < NumVariants; ++iv) {
+    str << getVariantName(static_cast<VariantID>(iv)) << std::endl;
+  }
+  str.flush();
+}
+
+
+void RunParams::printSuiteNames(std::ostream& str)
+{
+  str << "\nAvailable suites:";
+  str << "\n-----------------\n";
+  for (int is = 0; is < NumSuites; ++is) {
+    str << getSuiteName(static_cast<SuiteID>(is)) << std::endl;
+  }
+  str.flush();
 }
 
 }  // closing brace for rajaperf namespace

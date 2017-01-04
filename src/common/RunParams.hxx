@@ -28,6 +28,7 @@
 
 #include <string>
 #include <vector>
+#include <iosfwd>
 
 namespace rajaperf
 {
@@ -63,6 +64,10 @@ private:
   RunParams() = delete;
 
   void parseCommandLineOptions(int argc, char** argv);
+  void printHelpMessage(std::ostream& str);
+  void printKernelNames(std::ostream& str);
+  void printVariantNames(std::ostream& str);
+  void printSuiteNames(std::ostream& str);
 
   bool good2go;                    /*!< true if input is valid for run */
 

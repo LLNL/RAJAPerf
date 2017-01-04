@@ -177,6 +177,19 @@ static const std::string VariantNames [] =
 /*
  *******************************************************************************
  *
+ * \brief Return suite name associated with SuiteID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getSuiteName(SuiteID sid)
+{
+  return SuiteNames[sid];
+}
+
+
+/*
+ *******************************************************************************
+ *
  * \brief Return kernel name associated with KernelID enum value.
  *
  *******************************************************************************
