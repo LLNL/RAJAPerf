@@ -46,7 +46,18 @@ public:
   RunParams( int argc, char** argv );
   ~RunParams( );
 
-  bool goodToRun() const { return good2go; } 
+  /*!
+   * \brief Return true if run parameters (from input) are valid; else false.
+   */
+  bool goodToGo() const { return good2go; } 
+
+  /*!
+   * \brief Set whether run parameters (from input) are valid.
+   */
+  void setGoodToGo(bool val) { good2go = val; }
+
+//@{
+//! @name Basic data accessors
 
   int getNumPasses() const { return npasses; }
 
@@ -60,14 +71,20 @@ public:
   const std::vector<std::string>& getVariantFilter() const 
                                   { return variant_filter; }
 
+//@}
+
+
 private:
   RunParams() = delete;
 
+//@{
+//! @name Routines used in command line parsing
   void parseCommandLineOptions(int argc, char** argv);
-  void printHelpMessage(std::ostream& str);
-  void printKernelNames(std::ostream& str);
-  void printVariantNames(std::ostream& str);
-  void printSuiteNames(std::ostream& str);
+  void printHelpMessage(std::ostream& str) const;
+  void printKernelNames(std::ostream& str) const;
+  void printVariantNames(std::ostream& str) const;
+  void printSuiteNames(std::ostream& str) const;
+//@}
 
   bool good2go;                    /*!< true if input is valid for run */
 

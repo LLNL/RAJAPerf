@@ -79,65 +79,99 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   for (int i = 1; i < argc && good2go; ++i) {
 
-    if ( std::string(argv[i]) == std::string("--help") ) {
+    std::string opt(std::string(argv[i]));
+
+    if ( opt == std::string("--help") ) {
 
       printHelpMessage(std::cout);
 
       good2go = false;
 
-    } else if ( std::string(argv[i]) == std::string("--print-kernels") ) {
+    } else if ( opt == std::string("--print-kernels") ) {
      
       printKernelNames(std::cout);     
 
       good2go = false;
  
-    } else if ( std::string(argv[i]) == std::string("--print-variants") ) {
+    } else if ( opt == std::string("--print-variants") ) {
 
       printVariantNames(std::cout);     
 
       good2go = false;
  
-    } else if ( std::string(argv[i]) == std::string("--print-suites") ) {
+    } else if ( opt == std::string("--print-suites") ) {
 
       printSuiteNames(std::cout);     
 
       good2go = false;
 
-    } else if ( std::string(argv[i]) == std::string("--npasses") ) {
+    } else if ( opt == std::string("--npasses") ) {
 
-      npasses = ::atoi( argv[++i] );
+      i++;
+      if ( i < argc ) { 
+        npasses = ::atoi( argv[i] );
+      } else {
+        std::cout << "\nBad input: must give --npasses an integer value" 
+                  << std::endl; 
+        good2go = false;
+      }
 
-    } else if ( std::string(argv[i]) == std::string("--sampfrac") ) {
+    } else if ( opt == std::string("--sampfrac") ) {
 
-      sample_fraction = ::atof( argv[++i] );
+      i++;
+      if ( i < argc ) { 
+        sample_fraction = ::atof( argv[i] );
+      } else {
+        std::cout << "\nBad input: must give --sampfrac a double value" 
+                  << std::endl;       
+        good2go = false;
+      }
 
-    } else if ( std::string(argv[i]) == std::string("--sizefrac") ) {
+    } else if ( opt == std::string("--sizefrac") ) {
 
-      size_fraction = ::atof( argv[++i] );
+      i++;
+      if ( i < argc ) { 
+        size_fraction = ::atof( argv[i] );
+      } else {
+        std::cout << "\nBad input: must give --sizefrac a double value"        
+                  << std::endl;
+        good2go = false;
+      }
 
-    } else if ( std::string(argv[i]) == std::string("--kernels") ) {
+    } else if ( opt == std::string("--kernels") ) {
 
-      // RDH TODO...
-      std::cout << "\n\n";
-      std::cout << "Kernel filter option not implemented!\n";
-      std::cout << "\tRunning all kernels by default..." << std::endl;
-      std::cout.flush();
+#if 0 // RDH TODO FIX THIS
+      i++;  
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
 
-      // Set good2go = false if input invalid...
+        while ( i < argc && opt.at(0) != '-' ) {
+          kernel_filter.push_back(opt);
+          if ( i+1 < argc ) {
+            opt = std::string(argv[++i]);
+          }
+        }
+      }
+#endif
 
     } else if ( std::string(argv[i]) == std::string("--variants") ) {
 
-      // RDH TODO...
-      std::cout << "\n\n";
-      std::cout << "Variant filter not implemented!\n";
-      std::cout << "\tRunning all variants by default..." << std::endl;
-      std::cout.flush();
+#if 0 // RDH TODO FIX THIS
+      if ( i+1 < argc ) {
+        opt = std::string(argv[++i]);
 
-      // Set good2go = false if input invalid...
+        while ( i < argc && opt.at(0) != '-' ) {
+          variant_filter.push_back(opt);
+          opt = std::string(argv[++i]);
+        }
+      }
+#endif
 
     } else if ( std::string(argv[i]) == std::string("--outfile") ) {
 
-      output_file_prefix = std::string( argv[++i] );
+      if ( i+1 < argc ) {
+        output_file_prefix = std::string( argv[++i] );
+      }
 
     } else {
      
@@ -145,13 +179,15 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       std::cout << "\nUnknown option: " << huh << std::endl;
       std::cout.flush();
 
+      good2go = false;
+
     }
 
   }
 }
 
 
-void RunParams::printHelpMessage(std::ostream& str)
+void RunParams::printHelpMessage(std::ostream& str) const
 {
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
@@ -184,7 +220,7 @@ void RunParams::printHelpMessage(std::ostream& str)
 }
 
 
-void RunParams::printKernelNames(std::ostream& str)
+void RunParams::printKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
@@ -195,7 +231,7 @@ void RunParams::printKernelNames(std::ostream& str)
 }
 
 
-void RunParams::printVariantNames(std::ostream& str)
+void RunParams::printVariantNames(std::ostream& str) const
 {
   str << "\nAvailable variants:";
   str << "\n-------------------\n";
@@ -206,7 +242,7 @@ void RunParams::printVariantNames(std::ostream& str)
 }
 
 
-void RunParams::printSuiteNames(std::ostream& str)
+void RunParams::printSuiteNames(std::ostream& str) const
 {
   str << "\nAvailable suites:";
   str << "\n-----------------\n";
