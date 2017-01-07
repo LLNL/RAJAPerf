@@ -30,6 +30,8 @@
 #include "common/RAJAPerfSuite.hxx"
 #include "common/RunParams.hxx"
 
+#include <iosfwd>
+
 namespace rajaperf {
 
 class KernelBase;
@@ -43,7 +45,7 @@ public:
 
   void setupSuite();
 
-  void reportRunSummary();
+  void reportRunSummary(std::ostream& str) const;
 
   void runSuite();
   

@@ -44,12 +44,14 @@ namespace rajaperf
  *******************************************************************************
  */
 RunParams::RunParams(int argc, char** argv)
- : good2go(true),
+ : input_state(Undefined),
    npasses(1),
    sample_fraction(1.0),
    size_fraction(1.0),
-   kernel_filter(),
-   variant_filter(),
+   kernel_input(),
+   unknown_kernel_input(),
+   variant_input(),
+   unknown_variant_input(),
    output_file_prefix("RAJA_Perf_Suite")
 {
   parseCommandLineOptions(argc, argv);
@@ -71,39 +73,72 @@ RunParams::~RunParams()
 /*
  *******************************************************************************
  *
+ * Print all run params data to given output stream.
+ *
+ *******************************************************************************
+ */
+void RunParams::print(std::ostream& str) const
+{
+  str << "\n npasses = " << npasses; 
+  str << "\n sample_fraction = " << sample_fraction; 
+  str << "\n size_fraction = " << size_fraction; 
+  str << "\n output_file_prefix = " << output_file_prefix; 
+
+  str << "\n kernel_input = "; 
+  for (size_t j = 0; j < kernel_input.size(); ++j) {
+    str << "\n\t" << kernel_input[j];
+  }
+  str << "\n unknown_kernel_input = ";
+  for (size_t j = 0; j < unknown_kernel_input.size(); ++j) {
+    str << "\n\t" << unknown_kernel_input[j];
+  }
+
+  str << "\n variant_input = "; 
+  for (size_t j = 0; j < variant_input.size(); ++j) {
+    str << "\n\t" << variant_input[j];
+  }
+  str << "\n unknown_variant_input = "; 
+  for (size_t j = 0; j < unknown_variant_input.size(); ++j) {
+    str << "\n\t" << unknown_variant_input[j];
+  }
+
+  str << std::endl;
+  str.flush();
+}
+
+
+/*
+ *******************************************************************************
+ *
  * Parse command line args to set how suite will run.
  *
  *******************************************************************************
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
-  for (int i = 1; i < argc && good2go; ++i) {
+  for (int i = 1; i < argc; ++i) {
 
     std::string opt(std::string(argv[i]));
 
     if ( opt == std::string("--help") ) {
 
       printHelpMessage(std::cout);
-
-      good2go = false;
+      input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-kernels") ) {
      
       printKernelNames(std::cout);     
-
-      good2go = false;
+      input_state = InfoRequest;
  
     } else if ( opt == std::string("--print-variants") ) {
 
       printVariantNames(std::cout);     
-
-      good2go = false;
+      input_state = InfoRequest;
  
     } else if ( opt == std::string("--print-suites") ) {
 
       printSuiteNames(std::cout);     
-
-      good2go = false;
+      input_state = InfoRequest;
 
     } else if ( opt == std::string("--npasses") ) {
 
@@ -111,20 +146,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) { 
         npasses = ::atoi( argv[i] );
       } else {
-        std::cout << "\nBad input: must give --npasses an integer value" 
+        std::cout << "\nBad input:"
+                  << " must give --npasses a value for number of passes (int)" 
                   << std::endl; 
-        good2go = false;
+        input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--sampfrac") ) {
+    } else if ( opt == std::string("--samplefrac") ) {
 
       i++;
       if ( i < argc ) { 
         sample_fraction = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input: must give --sampfrac a double value" 
+        std::cout << "\nBad input:"
+                  << " must give --samplefrac a value for sample fraction (double)" 
                   << std::endl;       
-        good2go = false;
+        input_state = BadInput;
       }
 
     } else if ( opt == std::string("--sizefrac") ) {
@@ -133,39 +170,41 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) { 
         size_fraction = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input: must give --sizefrac a double value"        
+        std::cout << "\nBad input:"
+                  << " must give --sizefrac a value for size fraction (double)"
                   << std::endl;
-        good2go = false;
+        input_state = BadInput;
       }
 
     } else if ( opt == std::string("--kernels") ) {
 
-#if 0 // RDH TODO FIX THIS
-      i++;  
-      if ( i < argc ) {
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
         opt = std::string(argv[i]);
-
-        while ( i < argc && opt.at(0) != '-' ) {
-          kernel_filter.push_back(opt);
-          if ( i+1 < argc ) {
-            opt = std::string(argv[++i]);
-          }
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          kernel_input.push_back(opt);
+          ++i;
         }
       }
-#endif
 
     } else if ( std::string(argv[i]) == std::string("--variants") ) {
 
-#if 0 // RDH TODO FIX THIS
-      if ( i+1 < argc ) {
-        opt = std::string(argv[++i]);
-
-        while ( i < argc && opt.at(0) != '-' ) {
-          variant_filter.push_back(opt);
-          opt = std::string(argv[++i]);
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          variant_input.push_back(opt);
+          ++i;
         }
       }
-#endif
 
     } else if ( std::string(argv[i]) == std::string("--outfile") ) {
 
@@ -175,11 +214,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else {
      
+      input_state = BadInput;
+
       std::string huh(argv[i]);   
       std::cout << "\nUnknown option: " << huh << std::endl;
       std::cout.flush();
-
-      good2go = false;
 
     }
 
@@ -197,23 +236,23 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-variants (prints valid variant names}\n";
   str << "\t --print-suites (prints valid suite names}\n";
   str << "\t --npasses <int>\n"
-            << "\t      (num passes through suite)\n"; 
-  str << "\t --sampfrac <double>\n"
-            << "\t      (fraction of default # times to run each kernel)\n";
+      << "\t      (num passes through suite)\n"; 
+  str << "\t --samplefrac <double>\n"
+      << "\t      (fraction of default # times to run each kernel)\n";
   str << "\t --sizefrac <double>\n"
-            << "\t      (fraction of default kernel iteration space size to run)\n";
+      << "\t      (fraction of default kernel iteration space size to run)\n";
   str << "\t --kernels <space-separated list of strings>\n"
-            << "\t      (names of kernels and/or suites to run)\n"; 
-  str << "\t\t e.g.,\n"
-            << "\t\t Polybench (run all kernels in Polybench suite)\n"
-            << "\t\t INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-            << "\t\t INIT3 Apps (run INIT3 kernsl and all kernels in Apps suite)\n"
-            << "\t\t (no string will runn all kernels)\n";
+      << "\t      (names of kernels and/or suites to run)\n"; 
+  str << "\t\t Examples...\n"
+      << "\t\t Polybench (run all kernels in Polybench suite)\n"
+      << "\t\t INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
+      << "\t\t INIT3 Apps (run INIT3 kernsl and all kernels in Apps suite)\n"
+      << "\t\t (if no string given, all kernels will be run)\n";
   str << "\t --variants <space-separated list of strings>\n"
-            << "\t      (names of variants)\n"; 
-  str << "\t\t e.g.,\n"
-            << "\t\t Baseline RAJA_CUDA (run Baseline and RAJA_CUDA kernel variants)\n"
-            << "\t\t (no string will run all variants)\n";
+      << "\t      (names of variants)\n"; 
+  str << "\t\t Examples...\n"
+      << "\t\t Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n"
+      << "\t\t (if no string given, all variants will be run)\n";
 
   str << std::endl;
   str.flush();

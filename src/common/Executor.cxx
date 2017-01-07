@@ -41,14 +41,17 @@ Executor::Executor(int argc, char** argv)
 {
 }
 
+
 Executor::~Executor()
 {
 }
 
+
 void Executor::setupSuite()
 {
 
-  if ( !run_params.goodToGo() ) {
+  RunParams::InputOpt in_state = run_params.getInputState();
+  if ( in_state == RunParams::InfoRequest || in_state == RunParams::BadInput ) {
     return;
   }
 
@@ -59,17 +62,14 @@ void Executor::setupSuite()
   typedef std::set<VariantID> VIDset;
 
   //
-  // Assemble kernels to execute from input filter.
-  //
-  // unmatched will contain unmatched input.
+  // Determine which kernels to execute from input.
   // run_kern will be non-duplicated ordered set of IDs of kernel to run.
   //
-  const Svector& kernel_filter = run_params.getKernelFilter();
-  Slist unmatched;
+  const Svector& kernel_input = run_params.getKernelInput();
 
   KIDset run_kern;
 
-  if ( kernel_filter.empty() ) {
+  if ( kernel_input.empty() ) {
 
     //
     // No kernels specified in input, run them all...
@@ -84,18 +84,19 @@ void Executor::setupSuite()
     // Need to parse input to determine which kernels to run
     // 
 
-    // Make list copy of input kernel filter to manipulate
-    Slist filter(kernel_filter.begin(), kernel_filter.end());
+    // Make list copy of kernel input to manipulate
+    // (need to process potential suite names and/or kernel names)
+    Slist input(kernel_input.begin(), kernel_input.end());
 
     //
     // Search input for matching suite names.
     // suites2run will contain names of suites to run.
     //
     Svector suites2run;
-    for (Slist::iterator fit = filter.begin(); fit != filter.end(); ++fit) {
+    for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
       for (size_t is = 0; is < NumSuites; ++is) {
         const std::string& suite_name = getSuiteName(static_cast<SuiteID>(is));
-        if ( suite_name == *fit ) {
+        if ( suite_name == *it ) {
           suites2run.push_back(suite_name);
         }
       }
@@ -103,7 +104,7 @@ void Executor::setupSuite()
 
     // 
     // If suite name(s) found in input, assemble kernels in suite(s) 
-    // to run and remove those suite name(s) from input filter.
+    // to run and remove those suite name(s) from input list.
     //
     for (size_t is = 0; is < suites2run.size(); ++is) {
       const std::string& sname(suites2run[is]);
@@ -115,65 +116,44 @@ void Executor::setupSuite()
         }
       }
 
-      filter.remove(sname);
+      input.remove(sname);
     }
 
     //
-    // If filter still has entries, look for matching names of individual 
-    // kernels in remaining input.
+    // Look for matching names of individual kernels in remaining input.
     // 
-    // Assemble unmatched input for warning message.
+    // Assemble unknown input for warning message.
     //
+    Svector unknown;
 
-    for (Slist::iterator fit = filter.begin(); fit != filter.end(); ++fit) {
+    for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
       bool found_it = false;
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(*fit) != std::string::npos ) {
+        if ( getFullKernelName(kid).find(*it) != std::string::npos ) {
           run_kern.insert(kid);
           found_it = true;
         }
       }
 
-      if ( !found_it )  unmatched.push_back(*fit); 
+      if ( !found_it )  unknown.push_back(*it); 
     }
 
-  } 
+    run_params.setUnknownKernelInput(unknown);
 
-  //
-  // Create kernel objects to execute. If unmatched is not empty, 
-  // then there was unmatched input --> report error.
-  //
-  if ( unmatched.empty() ) {
-
-    for (KIDset::iterator kid = run_kern.begin(); 
-         kid != run_kern.end(); ++kid) {
-      kernels.push_back( getKernelObject(*kid, run_params) );
-    }
-
-  } else {
-    run_params.setGoodToGo(false); 
-#if 0 // RDH TODO
-    Report unknown input in kernel filter in Run Summary...
-#else
-    std::cout << "\nBAD KERNEL INPUT!!\n";
-#endif
   }
 
 
   //
-  // Assemble variants to execute from input filter.
-  //
-  // unmatched will contain unmatched input.
+  // Determine variants to execute from input.
   // run_var will be non-duplicated ordered set of IDs of variants to run.
   //
-  const Svector& variant_filter = run_params.getVariantFilter();
-  unmatched.clear();
+  const Svector& variant_input = run_params.getVariantInput();
 
   VIDset run_var;
 
-  if ( variant_filter.empty() ) {
+  if ( variant_input.empty() ) {
 
     //
     // No variants specified in input options, run them all...
@@ -188,89 +168,129 @@ void Executor::setupSuite()
     // Need to parse input to determine which variants to run
     // 
 
-    // Make list copy of input variant filter to manipulate
-    Slist filter(variant_filter.begin(), variant_filter.end());
-
     //
     // Search input for matching variant names.
     //
-    // Assemble unmatched input for warning message.
+    // Assemble unknown input for warning message.
     //
-    Slist unmatched;
+    Svector unknown;
 
-    for (Slist::iterator fit = filter.begin(); fit != filter.end(); ++fit) {
+    for (size_t it = 0; it < variant_input.size(); ++it) {
       bool found_it = false;
 
       for (size_t iv = 0; iv < NumVariants && !found_it; ++iv) {
         VariantID vid = static_cast<VariantID>(iv);
-        if ( getVariantName(vid) == *fit ) {
+        if ( getVariantName(vid) == variant_input[it] ) {
           run_var.insert(vid);
           found_it = true;
         }
       }
 
-      if ( !found_it )  unmatched.push_back(*fit);
+      if ( !found_it )  unknown.push_back(variant_input[it]);
     }
+
+    run_params.setUnknownVariantInput(unknown);
 
   }
 
   //
-  // Set variants to execute. If unmatched is not empty, 
-  // then there was unmatched input --> report error.
+  // Create kernel objects and variants to execute. If unknown input is not 
+  // empty for either case, then there were unmatched input items.
+  // 
+  // A message will be emitted later so user can sort it out...
   //
-  if ( unmatched.empty() ) {
 
-    for (VIDset::iterator vid = run_var.begin();
-         vid != run_var.end(); ++vid) {
-      variants.push_back( *vid );
+  if ( !(run_params.getUnknownKernelInput().empty()) ) {
+
+    run_params.setInputState(RunParams::BadInput); 
+
+  } else { // kernel input looks good
+
+    for (KIDset::iterator kid = run_kern.begin(); 
+         kid != run_kern.end(); ++kid) {
+      kernels.push_back( getKernelObject(*kid, run_params) );
     }
 
-  } else {
-    run_params.setGoodToGo(false);
-#if 0 // RDH TODO
-    Report unknown input in variant filter in Run Summary...
-#else
-    std::cout << "\nBAD VARIANT INPUT!!\n";
-#endif
-  }
+    if ( !(run_params.getUnknownVariantInput().empty()) ) {
+
+       run_params.setInputState(RunParams::BadInput);
+
+    } else { // variant input lools good
+
+      for (VIDset::iterator vid = run_var.begin();
+           vid != run_var.end(); ++vid) {
+        variants.push_back( *vid );
+      }
+
+      run_params.setInputState(RunParams::GoodToRun);
+
+    } // kernel and variant input both look good
+
+  } // if kernel input looks good
 
 }
 
-void Executor::reportRunSummary()
+
+void Executor::reportRunSummary(std::ostream& str) const
 {
-  if ( !run_params.goodToGo() ) {
-#if 0 // RDH TODO
-    Report bad input if it exists, else report that suite will not run
-    due to info request
-#endif
-    std::cout << "\n RAJA perf suite will not be run now due to bad input"
-              << " or info request..." << std::endl;
-    std::cout.flush();
-    return;
-  } else {
-   // 
-   // Generate formatted summary of suite execution:
-   //   - system, date, and time (e.g., utilities in ctime)
-   //   - Compiler, version, and options 
-   //       (RDH: I have something to generate this info in LCALS)
-   //   - RunParams: npasses, sample_fraction, size_fraction 
-   //       (in RunParams object)
-   //   - Listing of names of kernels and variants that will be run
-   //       (easily obtained from kernels and variants data members)
-   //
-   // Send to stdout and also to output summary file....
-   //
+  RunParams::InputOpt in_state = run_params.getInputState();
+
+  if ( in_state == RunParams::BadInput ) {
+
+    str << "\nRunParams state:\n";
+    str <<   "----------------";
+    run_params.print(str);
+
+    str << "\n\nRAJA perf suite will not be run now due to bad input."
+        << "\n  See run parameters or option messages above.\n" 
+        << std::endl;
+
+  } else if ( in_state == RunParams::GoodToRun ) { 
+
+    //
+    // RDH: Note the following information should also be written 
+    //      to a run summary file
+    //
+
+    str << "\nRunParams state:";
+    str << "\n----------------";
+    run_params.print(str);
+
+    // 
+    // Generate formatted summary of suite execution:
+    //   - system, date, and time (e.g., utilities in ctime)
+    //   - Compiler, version, and options 
+    //       (RDH: I think I have something to generate this info in LCALS)
+    // 
+
+    str << "\n\nRAJA perf suite run with the following variants and kernels." 
+        << std::endl;
+
+    str << "\nVariants"
+        << "\n--------\n";
+    for (size_t iv = 0; iv < variants.size(); ++iv) {
+       str << getVariantName(variants[iv]) << std::endl;
+    }
+
+    str << "\nKernels"
+        << "\n-------\n";
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+       str << kernels[ik]->getName() << std::endl;
+    }
+
   }
+
+  str.flush();
 }
 
 void Executor::runSuite()
 {
-  std::cout << "\nExecutor::runSuite : \n";
-  if ( !run_params.goodToGo() ) {
+  RunParams::InputOpt in_state = run_params.getInputState();
+  if ( in_state != RunParams::GoodToRun ) {
     return;
   }
 
-  std::cout << "\nRUNNING!\n";
+  std::cout << "\n\nRunning specified kernels and variants!\n";
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -283,13 +303,17 @@ void Executor::runSuite()
 
 void Executor::outputRunData()
 {
-  if ( !run_params.goodToGo() ) {
+  RunParams::InputOpt in_state = run_params.getInputState();
+  if ( in_state != RunParams::GoodToRun ) {
     return;
   }
 
+  std::cout << "\nOutput data generation not impllemented yet!!!" << std::endl;
+  std::cout.flush();
+
   //
   // (RDH: I have code to generate this info in LCALS -- just need to
-  //       pull it out and massage based on what we want)
+  //       pull it out and massage it into what we want)
   //
   // Generate output in appropriate format and write to file(s) in
   // appropriate format for what we want (e.g., csv (for tools), 
