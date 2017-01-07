@@ -28,7 +28,6 @@
 #define RAJAPerfSuite_HXX
 
 #include <string>
-#include <vector>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -41,16 +40,44 @@ namespace rajaperf
 {
 
 class KernelBase;
+class RunParams;
+
 
 /*!
  *******************************************************************************
  *
- * \brief Enumeration defining unique id for each KERNEL in suite.
+ * \brief Enumeration defining unique id for each sub-suite in full suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a sub-suite is added or removed.
  *
- *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
+ *            WITH ARRAY OF SUB_SUITE NAMES IN IMPLEMENTATION FILE!!! 
+ *
+ *******************************************************************************
+ */
+enum SuiteID {
+
+  Basic = 0,
+  Livloops,
+  Polybench,
+  Stream,
+  Apps,
+
+  NumSuites // Keep this one last and DO NOT remove (!!)
+
+};
+
+
+//
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each KERNEL in full suite.
+ *
+ * IMPORTANT: This is only modified when a kernel is added or removed.
+ *
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
+ *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
  *
  *******************************************************************************
  */
@@ -59,68 +86,64 @@ enum KernelID {
 //
 // Basic kernels...
 //
-#if 0
-  basic_INIT3 = 0,
-#endif
-  basic_MULADDSUB = 0,
-#if 0
-  basic_IF_QUAD,
-  basic_TRAP_INT,
-#endif
+  Basic_INIT3 = 0,
+  Basic_MULADDSUB,
+  Basic_IF_QUAD,
+  Basic_TRAP_INT,
 
 //
-// livloops kernels...
+// Livloops kernels...
 //
 #if 0
-  livloops_HYDRO_1D,
-  livloops_ICCG,
-  livloops_INNER_PROD,
-  livloops_BAND_LIN_EQ,
-  livloops_TRIDIAG_ELIM,
-  livloops_EOS,
-  livloops_ADI,
-  livloops_INT_PREDICT,
-  livloops_DIFF_PREDICT,
-  livloops_FIRST_SUM,
-  livloops_FIRST_DIFF,
-  livloops_PIC_2D,
-  livloops_PIC_1D,
-  livloops_HYDRO_2D,
-  livloops_GEN_LIN_RECUR,
-  livloops_DISC_ORD,
-  livloops_MAT_X_MAT,
-  livloops_PLANCKIAN,
-  livloops_IMP_HYDRO_2D,
-  livloops_FIND_FIRST_MIN,
+  Livloops_HYDRO_1D,
+  Livloops_ICCG,
+  Livloops_INNER_PROD,
+  Livloops_BAND_LIN_EQ,
+  Livloops_TRIDIAG_ELIM,
+  Livloops_EOS,
+  Livloops_ADI,
+  Livloops_INT_PREDICT,
+  Livloops_DIFF_PREDICT,
+  Livloops_FIRST_SUM,
+  Livloops_FIRST_DIFF,
+  Livloops_PIC_2D,
+  Livloops_PIC_1D,
+  Livloops_HYDRO_2D,
+  Livloops_GEN_LIN_RECUR,
+  Livloops_DISC_ORD,
+  Livloops_MAT_X_MAT,
+  Livloops_PLANCKIAN,
+  Livloops_IMP_HYDRO_2D,
+  Livloops_FIND_FIRST_MIN,
 #endif
 
 //
 // Polybench kernels...
 //
 #if 0
-  polybench_***
+  Polybench_***
 #endif
 
 //
 // Stream kernels...
 //
 #if 0
-  stream_***
+  Stream_***
 #endif
 
 //
 // Apps kernels...
 //
 #if 0
-  apps_PRESSURE_CALC,
-  apps_ENERGY_CALC,
-  apps_VOL3D_CALC,
-  apps_DEL_DOT_VEC_2D,
-  apps_COUPLE,
-  apps_FIR,
+  Apps_PRESSURE_CALC,
+  Apps_ENERGY_CALC,
+  Apps_VOL3D_CALC,
+  Apps_DEL_DOT_VEC_2D,
+  Apps_COUPLE,
+  Apps_FIR,
 #endif
 
-  NUM_KERNELS // Keep this one last and NEVER comment out (!!)
+  NumKernels // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -139,14 +162,14 @@ enum KernelID {
  */
 enum VariantID {
 
-  BASELINE = 0,
-  RAJA_SERIAL,
-  BASELINE_OPENMP,
-  RAJA_OPENMP,
-  BASELINE_CUDA,
+  Baseline = 0,
+  RAJA_Serial,
+  Baseline_OpenMP,
+  RAJA_OpenMP,
+  Baseline_CUDA,
   RAJA_CUDA,
 
-  NUM_VARIANTS // Keep this one last and NEVER comment out (!!)
+  NumVariants // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -154,11 +177,33 @@ enum VariantID {
 /*!
  *******************************************************************************
  *
- * \brief Return kernel name associated with KernelID enum value.
+ * \brief Return suite name associated with SuiteID enum value.
  *
  *******************************************************************************
  */
-const std::string& getKernelName(KernelID kid);
+const std::string& getSuiteName(SuiteID sid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return kernel name associated with KernelID enum value.
+ *
+ * Kernel name is full kernel name (see below) with suite name prefix removed.
+ *
+ *******************************************************************************
+ */
+std::string getKernelName(KernelID kid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return full kernel name associated with KernelID enum value.
+ *
+ * Full kernel name is <suite name>_<kernel name>.
+ *
+ *******************************************************************************
+ */
+const std::string& getFullKernelName(KernelID kid);
 
 /*!
  *******************************************************************************
@@ -178,9 +223,7 @@ const std::string& getVariantName(VariantID vid);
  *
  *******************************************************************************
  */
-KernelBase* getKernelObject(KernelID kid,
-                            double sample_frac,
-                            double size_frac);
+KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
 
 }  // closing brace for rajaperf namespace
 

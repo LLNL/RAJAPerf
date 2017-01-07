@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file containing executor class that runs suite.
+ * \brief   Header file for Basic kernel INIT3.
  *
  ******************************************************************************
  */
@@ -24,42 +24,35 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Executor_HXX
-#define RAJAPerf_Executor_HXX
+#ifndef RAJAPerf_Basic_INIT3_HXX
+#define RAJAPerf_Basic_INIT3_HXX
 
-#include "common/RAJAPerfSuite.hxx"
-#include "common/RunParams.hxx"
+#include "common/KernelBase.hxx"
+#include "RAJA/RAJA.hxx"
 
-#include <iosfwd>
+namespace rajaperf 
+{
+namespace basic
+{
 
-namespace rajaperf {
-
-class KernelBase;
-
-class Executor
+class INIT3 : public KernelBase
 {
 public:
-  Executor( int argc, char** argv );
 
-  ~Executor();
+  INIT3(double sample_frac, double size_frac); 
 
-  void setupSuite();
+  ~INIT3();
 
-  void reportRunSummary(std::ostream& str) const;
-
-  void runSuite();
-  
-  void outputRunData();
+  void setUp(VariantID vid);
+  void runKernel(VariantID vid); 
+  void computeChecksum(VariantID vid);
+  void tearDown(VariantID vid);
 
 private:
-  Executor() = delete;
-
-  RunParams run_params;
-  std::vector<KernelBase*> kernels;  
-  std::vector<VariantID>   variants;
-
+  // Data not defined yet
 };
 
-}  // closing brace for rajaperf namespace
+} // end namespace basic
+} // end namespace rajaperf
 
-#endif  // closing endif for header file include guard
+#endif // closing endif for header file include guard

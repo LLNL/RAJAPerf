@@ -36,7 +36,7 @@ KernelBase::KernelBase(KernelID kid)
     default_size(0),
     default_samples(0)
 {
-  for (size_t ivar = 0; ivar < NUM_VARIANTS; ++ivar) {
+  for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
      min_time[ivar] = 0.0;
      max_time[ivar] = 0.0;
      tot_time[ivar] = 0.0;

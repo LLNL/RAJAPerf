@@ -25,6 +25,8 @@
 
 #include "common/Executor.hxx"
 
+#include <iostream>
+
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
@@ -35,8 +37,8 @@ int main( int argc, char** argv )
   executor.setupSuite();
 
   // STEP 3: Report suite run summary 
-  //         (to enable users to catch errors before entire suite is run)
-  executor.reportRunSummary(); 
+  //         (enable users to catch errors before entire suite is run)
+  executor.reportRunSummary(std::cout); 
 
   // STEP 4: Execute suite
   executor.runSuite();

@@ -25,7 +25,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerfKernelBase_HXX
+#ifndef RAJAPerf_KernelBase_HXX
+#define RAJAPerf_KernelBase_HXX
 
 #include "common/RAJAPerfSuite.hxx"
 
@@ -34,7 +35,12 @@
 
 namespace rajaperf {
 
-class RunParams;
+//
+// Volatile index type for kernel sampling loops. If this is not used, 
+// some kernels may be optimized away.
+//
+typedef volatile int SampIndex_type;
+
 
 class KernelBase
 {
@@ -82,18 +88,18 @@ protected:
   int default_size;
   int default_samples;
 
-  double min_time[NUM_VARIANTS];
-  double max_time[NUM_VARIANTS];
-  double tot_time[NUM_VARIANTS];
+  double min_time[NumVariants];
+  double max_time[NumVariants];
+  double tot_time[NumVariants];
 
-  long double checksum[NUM_VARIANTS];
+  long double checksum[NumVariants];
 
   // Type???
   //start_time; 
   //stop_time; 
 
 private:
-   KernelBase() = delete;
+  KernelBase() = delete;
 
   void recordExecTime(); 
 };
