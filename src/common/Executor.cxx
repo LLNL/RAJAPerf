@@ -44,6 +44,9 @@ Executor::Executor(int argc, char** argv)
 
 Executor::~Executor()
 {
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    delete kernels[ik];
+  }
 }
 
 
