@@ -106,13 +106,20 @@ It is essential that the appropriate targets are updated in the appropriate
 
 ## Adding a kernel
 
-Two key pieces of information identify a kernel: the group in which it 
-resides and the name of the kernel itself. For concreteness, we describe
-how to add a kernel "Foo" that lives in the kernel group "Bar".
+Adding a new kernel to the suite involves several steps:
+
+1. Add unique kernel ID and unique name to the suite. 
+2. If the kernel is part of a new kernel group, add the group ID and name.
+3. Implement the kernel class which contains all operations needed to run it.
+
+These steps are described in the following sections.
 
 ### Add the kernel ID and name
 
-The files `RAJAPerfSuite.hxx` and `RAJAPerfSuite.cxx` define enumeration 
+Two key pieces of information identify a kernel: the group in which it 
+resides and the name of the kernel itself. For concreteness, we describe
+how to add a kernel "Foo" that lives in the kernel group "Bar". The files 
+`RAJAPerfSuite.hxx` and `RAJAPerfSuite.cxx` define enumeration 
 values and arrays of string names for the kernels, respectively. 
 
 First, add an enumeration value identifier for the kernel, that is unique 
@@ -224,7 +231,14 @@ next.
 #### Kernel class implementation
 
 Providing the Foo class implementation is straightforward. However, several
-conventions that we describe here must be followed.
+steps and conventions that we describe here must be followed:
+
+1. Initialize the 'KernelBase' class object with KernelID, default size, and sample count in the `class constructor`.
+2. Implement data allocation and initialization operation for each kernel variant in the `setUp` method.
+3. Implement kernel execution for each variant in the `RunKernel` method.
+4. Compute the checksum for each variant in the `computeChecksum` method.
+5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
+
 
 ##### Constructor and destructor
 
