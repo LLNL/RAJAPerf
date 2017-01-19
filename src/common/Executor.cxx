@@ -88,38 +88,38 @@ void Executor::setupSuite()
     // 
 
     // Make list copy of kernel input to manipulate
-    // (need to process potential suite names and/or kernel names)
+    // (need to process potential group names and/or kernel names)
     Slist input(kernel_input.begin(), kernel_input.end());
 
     //
-    // Search input for matching suite names.
-    // suites2run will contain names of suites to run.
+    // Search input for matching group names.
+    // groups2run will contain names of groups to run.
     //
-    Svector suites2run;
+    Svector groups2run;
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
-      for (size_t is = 0; is < NumSuites; ++is) {
-        const std::string& suite_name = getSuiteName(static_cast<SuiteID>(is));
-        if ( suite_name == *it ) {
-          suites2run.push_back(suite_name);
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          groups2run.push_back(group_name);
         }
       }
     }
 
     // 
-    // If suite name(s) found in input, assemble kernels in suite(s) 
-    // to run and remove those suite name(s) from input list.
+    // If group name(s) found in input, assemble kernels in group(s) 
+    // to run and remove those group name(s) from input list.
     //
-    for (size_t is = 0; is < suites2run.size(); ++is) {
-      const std::string& sname(suites2run[is]);
+    for (size_t ig = 0; ig < groups2run.size(); ++ig) {
+      const std::string& gname(groups2run[ig]);
 
       for (size_t ik = 0; ik < NumKernels; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(sname) != std::string::npos ) {
+        if ( getFullKernelName(kid).find(gname) != std::string::npos ) {
           run_kern.insert(kid);
         }
       }
 
-      input.remove(sname);
+      input.remove(gname);
     }
 
     //

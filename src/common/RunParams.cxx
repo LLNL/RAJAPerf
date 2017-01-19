@@ -120,26 +120,24 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     std::string opt(std::string(argv[i]));
 
-    if ( opt == std::string("--help") ) {
+    if ( opt == std::string("--help") ||
+         opt == std::string("-h") ) {
 
       printHelpMessage(std::cout);
       input_state = InfoRequest;
 
-    } else if ( opt == std::string("--print-kernels") ) {
+    } else if ( opt == std::string("--print-kernels") ||
+                opt == std::string("-pk") ) {
      
-      printKernelNames(std::cout);     
+      printFullKernelNames(std::cout);     
       input_state = InfoRequest;
  
-    } else if ( opt == std::string("--print-variants") ) {
+    } else if ( opt == std::string("--print-variants") ||
+                opt == std::string("-pv") ) {
 
       printVariantNames(std::cout);     
       input_state = InfoRequest;
  
-    } else if ( opt == std::string("--print-suites") ) {
-
-      printSuiteNames(std::cout);     
-      input_state = InfoRequest;
-
     } else if ( opt == std::string("--npasses") ) {
 
       i++;
@@ -176,7 +174,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--kernels") ) {
+    } else if ( opt == std::string("--kernels") ||
+                opt == std::string("-k") ) {
 
       bool done = false;
       i++;
@@ -191,7 +190,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
-    } else if ( std::string(argv[i]) == std::string("--variants") ) {
+    } else if ( std::string(argv[i]) == std::string("--variants") ||
+                std::string(argv[i]) == std::string("-v") ) {
 
       bool done = false;
       i++;
@@ -206,7 +206,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
-    } else if ( std::string(argv[i]) == std::string("--outfile") ) {
+    } else if ( std::string(argv[i]) == std::string("--outfile") ||
+                std::string(argv[i]) == std::string("-out") ) {
 
       if ( i+1 < argc ) {
         output_file_prefix = std::string( argv[++i] );
@@ -231,28 +232,30 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
 
-  str << "\t --help (prints options with descriptions}\n";
-  str << "\t --print-kernels (prints valid kernel names}\n";
-  str << "\t --print-variants (prints valid variant names}\n";
-  str << "\t --print-suites (prints valid suite names}\n";
+  str << "\t --help, -h (prints options with descriptions}\n";
+  str << "\t --print-kernels, -pk (prints valid kernel names}\n";
+  str << "\t --print-variants, -pv (prints valid variant names}\n";
   str << "\t --npasses <int>\n"
       << "\t      (num passes through suite)\n"; 
   str << "\t --samplefrac <double>\n"
       << "\t      (fraction of default # times to run each kernel)\n";
   str << "\t --sizefrac <double>\n"
       << "\t      (fraction of default kernel iteration space size to run)\n";
-  str << "\t --kernels <space-separated list of strings>\n"
-      << "\t      (names of kernels and/or suites to run)\n"; 
+  str << "\t --outfile, -out <string>\n"
+      << "\t      (name of output file prefix)\n";
+  str << "\t --kernels, -k <space-separated list of strings>\n"
+      << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
   str << "\t\t Examples...\n"
-      << "\t\t Polybench (run all kernels in Polybench suite)\n"
-      << "\t\t INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t INIT3 Apps (run INIT3 kernsl and all kernels in Apps suite)\n"
-      << "\t\t (if no string given, all kernels will be run)\n";
-  str << "\t --variants <space-separated list of strings>\n"
+      << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
+      << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
+      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n"
+      << "\t\t (if no string(s) given, all kernels will be run)\n";
+  str << "\t --variants, -k <space-separated list of strings>\n"
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
-      << "\t\t Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n"
-      << "\t\t (if no string given, all variants will be run)\n";
+      << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
+      << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n"
+      << "\t\t (if no string(s) given, all variants will be run)\n";
 
   str << std::endl;
   str.flush();
@@ -270,6 +273,17 @@ void RunParams::printKernelNames(std::ostream& str) const
 }
 
 
+void RunParams::printFullKernelNames(std::ostream& str) const
+{
+  str << "\nAvailable kernels (<group name>_<kernel name>):";
+  str << "\n-----------------------------------------\n";
+  for (int ik = 0; ik < NumKernels; ++ik) {
+    str << getFullKernelName(static_cast<KernelID>(ik)) << std::endl;
+  }
+  str.flush();
+}
+
+
 void RunParams::printVariantNames(std::ostream& str) const
 {
   str << "\nAvailable variants:";
@@ -281,12 +295,12 @@ void RunParams::printVariantNames(std::ostream& str) const
 }
 
 
-void RunParams::printSuiteNames(std::ostream& str) const
+void RunParams::printGroupNames(std::ostream& str) const
 {
-  str << "\nAvailable suites:";
+  str << "\nAvailable groups:";
   str << "\n-----------------\n";
-  for (int is = 0; is < NumSuites; ++is) {
-    str << getSuiteName(static_cast<SuiteID>(is)) << std::endl;
+  for (int is = 0; is < NumGroups; ++is) {
+    str << getGroupName(static_cast<GroupID>(is)) << std::endl;
   }
   str.flush();
 }

@@ -46,16 +46,16 @@ class RunParams;
 /*!
  *******************************************************************************
  *
- * \brief Enumeration defining unique id for each sub-suite in full suite.
+ * \brief Enumeration defining unique id for each group of kernels in suite.
  *
- * IMPORTANT: This is only modified when a sub-suite is added or removed.
+ * IMPORTANT: This is only modified when a group is added or removed.
  *
  *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF SUB_SUITE NAMES IN IMPLEMENTATION FILE!!! 
+ *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!! 
  *
  *******************************************************************************
  */
-enum SuiteID {
+enum GroupID {
 
   Basic = 0,
   Livloops,
@@ -63,7 +63,7 @@ enum SuiteID {
   Stream,
   Apps,
 
-  NumSuites // Keep this one last and DO NOT remove (!!)
+  NumGroups // Keep this one last and DO NOT remove (!!)
 
 };
 
@@ -72,7 +72,7 @@ enum SuiteID {
 /*!
  *******************************************************************************
  *
- * \brief Enumeration defining unique id for each KERNEL in full suite.
+ * \brief Enumeration defining unique id for each KERNEL in suite.
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
@@ -177,18 +177,18 @@ enum VariantID {
 /*!
  *******************************************************************************
  *
- * \brief Return suite name associated with SuiteID enum value.
+ * \brief Return group name associated with GroupID enum value.
  *
  *******************************************************************************
  */
-const std::string& getSuiteName(SuiteID sid);
+const std::string& getGroupName(GroupID gid);
 
 /*!
  *******************************************************************************
  *
  * \brief Return kernel name associated with KernelID enum value.
  *
- * Kernel name is full kernel name (see below) with suite name prefix removed.
+ * Kernel name is full kernel name (see below) with group name prefix removed.
  *
  *******************************************************************************
  */
@@ -199,7 +199,7 @@ std::string getKernelName(KernelID kid);
  *
  * \brief Return full kernel name associated with KernelID enum value.
  *
- * Full kernel name is <suite name>_<kernel name>.
+ * Full kernel name is <group name>_<kernel name>.
  *
  *******************************************************************************
  */

@@ -107,9 +107,10 @@ private:
 //! @name Routines used in command line parsing
   void parseCommandLineOptions(int argc, char** argv);
   void printHelpMessage(std::ostream& str) const;
+  void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
-  void printSuiteNames(std::ostream& str) const;
+  void printGroupNames(std::ostream& str) const;
 //@}
 
   InputOpt input_state;            /*!< state of command line input */

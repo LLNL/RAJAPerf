@@ -47,16 +47,16 @@ namespace rajaperf
 /*!
  *******************************************************************************
  *
- * \brief Array of names for each SUB-SUITE in full suite.
+ * \brief Array of names for each GROUP in suite.
  *
- * IMPORTANT: This is only modified when a sub-suite is added or removed.
+ * IMPORTANT: This is only modified when a group is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF SUITE IDS IN HEADER FILE!!!
+ *            ENUM OF GROUP IDS IN HEADER FILE!!!
  *
  *******************************************************************************
  */
-static const std::string SuiteNames [] =
+static const std::string GroupNames [] =
 {
   std::string("Basic"),
   std::string("Livloops"),
@@ -64,9 +64,9 @@ static const std::string SuiteNames [] =
   std::string("Stream"),
   std::string("Apps"),
 
-  std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
+  std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
-}; // END SuiteNames
+}; // END GroupNames
 
 
 /*!
@@ -177,13 +177,13 @@ static const std::string VariantNames [] =
 /*
  *******************************************************************************
  *
- * \brief Return suite name associated with SuiteID enum value.
+ * \brief Return group name associated with GroupID enum value.
  *
  *******************************************************************************
  */
-const std::string& getSuiteName(SuiteID sid)
+const std::string& getGroupName(GroupID sid)
 {
-  return SuiteNames[sid];
+  return GroupNames[sid];
 }
 
 
