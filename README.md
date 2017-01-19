@@ -11,8 +11,8 @@ optimizations (e.g., SIMD vectorization), etc.
 The kernels are borrowed from a variety of sources, such as benchmark 
 suites and applications. Kernels are partitioned into "groups", which indicates 
 the origin of the kernels, algorithm patterns they represent, etc. For 
-example, the "Apps" suite contains a collection of kernels extracted from 
-real scientific computing applications, kernels in the "Basic" suite are 
+example, the "Apps" group contains a collection of kernels extracted from 
+real scientific computing applications, kernels in the "Basic" group are 
 small and simple, but exhibit challenges for compiler optimizations, etc.
 
 * * *
@@ -78,8 +78,8 @@ suite 'src' directory in the build space. For example, giving it no options:
 will run the entire suite (all kernels and variants) in their default 
 configurations.
 
-The suite can be run in a variety of ways (e.g., subsets of kernels, variants,
-suites) by passing appropriate options to the executable. To see 
+The suite can be run in a variety of ways (e.g., specified subsets of kernels, 
+variants, groups) by passing appropriate options to the executable. To see 
 available options along with a brief description, pass the '--help' or '-h'
 option:
 ```
