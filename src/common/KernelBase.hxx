@@ -52,7 +52,7 @@ public:
   using Duration = std::chrono::duration<double>;
 #endif
 
-  KernelBase(KernelID kid);
+  KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
 
@@ -68,6 +68,9 @@ public:
   double getMinTime(VariantID vid) { return min_time[vid]; }
   double getMaxTime(VariantID vid) { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
+
+  void setDefaultSize(int size); 
+  void setDefaultSamples(int nsamp);
 
   void execute(VariantID vid);
   void startTimer();
@@ -88,9 +91,9 @@ protected:
   int default_size;
   int default_samples;
 
-  double min_time[NumVariants];
-  double max_time[NumVariants];
-  double tot_time[NumVariants];
+  long double min_time[NumVariants];
+  long double max_time[NumVariants];
+  long double tot_time[NumVariants];
 
   long double checksum[NumVariants];
 
@@ -102,6 +105,8 @@ private:
   KernelBase() = delete;
 
   void recordExecTime(); 
+
+  const RunParams& run_params;
 };
 
 }  // closing brace for rajaperf namespace

@@ -239,28 +239,25 @@ KernelBase* getKernelObject(KernelID kid,
 {
   KernelBase* kernel = 0;
 
-  double sample_frac = run_params.getSampleFraction(); 
-  double size_frac   = run_params.getSizeFraction(); 
-
   switch ( kid ) {
 
     //
     // Basic kernels...
     //
     case Basic_INIT3 : {
-       kernel = new basic::INIT3(sample_frac, size_frac);
+       kernel = new basic::INIT3(run_params);
        break;
     }
     case Basic_MULADDSUB : {
-       kernel = new basic::MULADDSUB(sample_frac, size_frac);
+       kernel = new basic::MULADDSUB(run_params);
        break;
     }
     case Basic_IF_QUAD : {
-       kernel = new basic::IF_QUAD(sample_frac, size_frac);
+       kernel = new basic::IF_QUAD(run_params);
        break;
     }
     case Basic_TRAP_INT : {
-       kernel = new basic::TRAP_INT(sample_frac, size_frac);
+       kernel = new basic::TRAP_INT(run_params);
        break;
     }
 

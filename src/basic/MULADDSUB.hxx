@@ -32,6 +32,8 @@
 
 namespace rajaperf 
 {
+class RunParams;
+
 namespace basic
 {
 
@@ -39,7 +41,7 @@ class MULADDSUB : public KernelBase
 {
 public:
 
-  MULADDSUB(double sample_frac, double size_frac); 
+  MULADDSUB(const RunParams& params);
 
   ~MULADDSUB();
 

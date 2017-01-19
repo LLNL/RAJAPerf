@@ -213,6 +213,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         output_file_prefix = std::string( argv[++i] );
       }
 
+    } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
+
+        input_state = DryRun;
+
     } else {
      
       input_state = BadInput;
@@ -256,6 +260,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
       << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n"
       << "\t\t (if no string(s) given, all variants will be run)\n";
+  str << "\t --dryrun (prints summary of how suite will run without running)\n";
 
   str << std::endl;
   str.flush();

@@ -32,6 +32,8 @@
 
 namespace rajaperf 
 {
+class RunParams;
+
 namespace basic
 {
 
@@ -39,7 +41,7 @@ class INIT3 : public KernelBase
 {
 public:
 
-  INIT3(double sample_frac, double size_frac); 
+  INIT3(const RunParams& params);
 
   ~INIT3();
 

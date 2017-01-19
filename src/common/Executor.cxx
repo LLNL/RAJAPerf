@@ -225,7 +225,12 @@ void Executor::setupSuite()
         variants.push_back( *vid );
       }
 
-      run_params.setInputState(RunParams::GoodToRun);
+      //
+      // If we've gotten to this point, we have good input to run.
+      //
+      if ( run_params.getInputState() != RunParams::DryRun ) {
+        run_params.setInputState(RunParams::GoodToRun);
+      }
 
     } // kernel and variant input both look good
 
@@ -248,7 +253,8 @@ void Executor::reportRunSummary(std::ostream& str) const
         << "\n  See run parameters or option messages above.\n" 
         << std::endl;
 
-  } else if ( in_state == RunParams::GoodToRun ) { 
+  } else if ( in_state == RunParams::GoodToRun || 
+              in_state == RunParams::DryRun ) { 
 
     //
     // RDH: Note the following information should also be written 
@@ -266,19 +272,19 @@ void Executor::reportRunSummary(std::ostream& str) const
     //       (RDH: I think I have something to generate this info in LCALS)
     // 
 
-    str << "\n\nRAJA perf suite run with the following variants and kernels." 
+    str << "\n\nRAJA perf suite will run with the following kernels and variants." 
         << std::endl;
-
-    str << "\nVariants"
-        << "\n--------\n";
-    for (size_t iv = 0; iv < variants.size(); ++iv) {
-       str << getVariantName(variants[iv]) << std::endl;
-    }
 
     str << "\nKernels"
         << "\n-------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
        str << kernels[ik]->getName() << std::endl;
+    }
+
+    str << "\nVariants"
+        << "\n--------\n";
+    for (size_t iv = 0; iv < variants.size(); ++iv) {
+       str << getVariantName(variants[iv]) << std::endl;
     }
 
   }

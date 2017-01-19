@@ -193,6 +193,8 @@ Here is what the header file for the Foo kernel object may look like:
 
 namespace rajaperf  // RAJA Performance Suite namespeace
 {
+class RunParams; // Forward declaration for ctor arg.
+
 namespace bar   // Kernel group namespace
 {
 

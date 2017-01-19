@@ -46,18 +46,16 @@ namespace basic
   out3[i] = in1[i] - in2[i] ;
 
 
-MULADDSUB::MULADDSUB(double sample_frac, double size_frac)
-  : KernelBase(rajaperf::Basic_MULADDSUB),
+MULADDSUB::MULADDSUB(const RunParams& params)
+  : KernelBase(rajaperf::Basic_MULADDSUB, params),
     m_out1(0),
     m_out2(0),
     m_out3(0),
     m_in1(0),
     m_in2(0)
 {
-   default_size    = 100000;  
-   default_samples = 10000;
-   run_size        = static_cast<RAJA::Index_type>(size_frac * default_size);
-   run_samples     = static_cast<SampIndex_type>(sample_frac * default_samples);
+   setDefaultSize(100000);
+   setDefaultSamples(10000);
 }
 
 MULADDSUB::~MULADDSUB() 

@@ -32,6 +32,8 @@
 
 namespace rajaperf 
 {
+class RunParams;
+
 namespace basic
 {
 
@@ -39,7 +41,7 @@ class TRAP_INT : public KernelBase
 {
 public:
 
-  TRAP_INT(double sample_frac, double size_frac); 
+  TRAP_INT(const RunParams& params);
 
   ~TRAP_INT();
 

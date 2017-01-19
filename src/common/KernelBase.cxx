@@ -26,15 +26,18 @@
 
 #include "KernelBase.hxx"
 
+#include "RunParams.hxx"
+
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid) 
+KernelBase::KernelBase(KernelID kid, const RunParams& params) 
   : kernel_id(kid),
     name( getKernelName(kernel_id) ),
     run_size(0),
     run_samples(0),
     default_size(0),
-    default_samples(0)
+    default_samples(0),
+    run_params(params)
 {
   for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
      min_time[ivar] = 0.0;
@@ -47,6 +50,19 @@ KernelBase::KernelBase(KernelID kid)
  
 KernelBase::~KernelBase()
 {
+}
+
+
+void KernelBase::setDefaultSize(int size)
+{
+  default_size = size;
+  run_size = static_cast<int>( size*run_params.getSizeFraction() );
+}
+
+void KernelBase::setDefaultSamples(int nsamp)
+{
+  default_samples = nsamp;
+  run_samples = static_cast<int>( nsamp*run_params.getSampleFraction() );
 }
 
 

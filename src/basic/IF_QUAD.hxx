@@ -32,6 +32,8 @@
 
 namespace rajaperf 
 {
+class RunParams;
+
 namespace basic
 {
 
@@ -39,7 +41,7 @@ class IF_QUAD : public KernelBase
 {
 public:
 
-  IF_QUAD(double sample_frac, double size_frac); 
+  IF_QUAD(const RunParams& params);
 
   ~IF_QUAD();
 
