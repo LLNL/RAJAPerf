@@ -28,11 +28,18 @@
 
 #include "common/RAJAPerfSuite.hxx"
 #include "common/KernelBase.hxx"
+#include "common/OutputUtils.hxx"
 
 #include <list>
 #include <set>
 #include <vector>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+
+#include <unistd.h>
+
 
 namespace rajaperf {
 
@@ -272,7 +279,17 @@ void Executor::reportRunSummary(std::ostream& str) const
     //       (RDH: I think I have something to generate this info in LCALS)
     // 
 
-    str << "\n\nRAJA perf suite will run with the following kernels and variants." 
+    std::string ofiles;
+    if ( !run_params.getOutputDirName().empty() ) {
+      ofiles = run_params.getOutputDirName();
+    } else {
+      ofiles = std::string(".");
+    }
+    ofiles += std::string("/") + run_params.getOutputFileName() + 
+              std::string(".*");
+
+    str << "\n\nRAJA perf suite will run with  kernels and variants listed below.\n" 
+        << "Output files will be " << ofiles << "\n"
         << std::endl;
 
     str << "\nKernels"
@@ -313,10 +330,22 @@ void Executor::runSuite()
 void Executor::outputRunData()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun ) {
+  if ( in_state != RunParams::GoodToRun &&
+       in_state != RunParams::DryRun ) {
     return;
   }
 
+  std::string outdir = recursiveMkdir(run_params.getOutputDirName()); 
+  std::string sum_fname;
+  if ( !outdir.empty() ) {
+    chdir(outdir.c_str());
+    sum_fname = std::string(outdir + "/" + run_params.getOutputFileName());
+  } else {
+    sum_fname = std::string("./" + run_params.getOutputFileName());
+  }
+
+  std::cout << "\nOutput file pattern: " << sum_fname << ".*" << std::endl;
+  
   std::cout << "\nOutput data generation not impllemented yet!!!" << std::endl;
   std::cout.flush();
 

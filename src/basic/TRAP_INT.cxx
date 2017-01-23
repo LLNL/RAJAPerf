@@ -86,6 +86,9 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
+  int run_size = getRunSize();
+  int run_samples = getRunSamples();
+
   std::cout << "\nTRAP_INT::runKernel, vid = " << vid << std::endl;
   std::cout << "\trun_samples = " << run_samples << std::endl;
   std::cout << "\trun_size = " << run_size << std::endl;

@@ -33,11 +33,12 @@ namespace rajaperf {
 KernelBase::KernelBase(KernelID kid, const RunParams& params) 
   : kernel_id(kid),
     name( getKernelName(kernel_id) ),
+    run_params(params),
     run_size(0),
     run_samples(0),
     default_size(0),
     default_samples(0),
-    run_params(params)
+    running_variant(NumVariants)
 {
   for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
      min_time[ivar] = 0.0;
@@ -68,6 +69,8 @@ void KernelBase::setDefaultSamples(int nsamp)
 
 void KernelBase::execute(VariantID vid) 
 {
+  running_variant = vid;
+
   this->setUp(vid);
   
   this->runKernel(vid); 
@@ -75,6 +78,8 @@ void KernelBase::execute(VariantID vid)
   this->computeChecksum(vid); 
 
   this->tearDown(vid);
+
+  running_variant = NumVariants; 
 }
 
 

@@ -52,7 +52,8 @@ RunParams::RunParams(int argc, char** argv)
    unknown_kernel_input(),
    variant_input(),
    unknown_variant_input(),
-   output_file_prefix("RAJA_Perf_Suite")
+   out_dir(),
+   out_file("RAJAPerf")
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -82,7 +83,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n sample_fraction = " << sample_fraction; 
   str << "\n size_fraction = " << size_fraction; 
-  str << "\n output_file_prefix = " << output_file_prefix; 
+  str << "\n out_dir = " << out_dir; 
+  str << "\n out_file = " << out_file; 
 
   str << "\n kernel_input = "; 
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -206,11 +208,30 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
-    } else if ( std::string(argv[i]) == std::string("--outfile") ||
-                std::string(argv[i]) == std::string("-out") ) {
+    } else if ( std::string(argv[i]) == std::string("--outdir") ||
+                std::string(argv[i]) == std::string("-od") ) {
 
-      if ( i+1 < argc ) {
-        output_file_prefix = std::string( argv[++i] );
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          out_dir = std::string( argv[i] );
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--outfile") ||
+                std::string(argv[i]) == std::string("-of") ) {
+
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          out_file = std::string( argv[i] );
+        }
       }
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
@@ -237,30 +258,46 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "Valid options are:\n"; 
 
   str << "\t --help, -h (prints options with descriptions}\n";
+
   str << "\t --print-kernels, -pk (prints valid kernel names}\n";
+
   str << "\t --print-variants, -pv (prints valid variant names}\n";
-  str << "\t --npasses <int>\n"
+
+  str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through suite)\n"; 
-  str << "\t --samplefrac <double>\n"
+
+  str << "\t --samplefrac <double> [default is 1.0]\n"
       << "\t      (fraction of default # times to run each kernel)\n";
-  str << "\t --sizefrac <double>\n"
+
+  str << "\t --sizefrac <double> [default is 1.0]\n"
       << "\t      (fraction of default kernel iteration space size to run)\n";
-  str << "\t --outfile, -out <string>\n"
-      << "\t      (name of output file prefix)\n";
-  str << "\t --kernels, -k <space-separated list of strings>\n"
+
+  str << "\t --outdir, -od <string> [Default is current directory]\n"
+      << "\t      (directory path for output data files)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --outdir foo (output files to ./foo directory\n"
+      << "\t\t --odir /nfs/tmp/me (output files to /nfs/tmp/me directory)\n";
+
+  str << "\t --outfile, -of <string> [Default is RAJAPerf\n"
+      << "\t      (file name prefix for output files)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --outfile mydata (output data will be in files 'mydata.*')\n"
+      << "\t\t --ofile dat (output data will be in files 'dat.*')\n";
+
+  str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n"
-      << "\t\t (if no string(s) given, all kernels will be run)\n";
-  str << "\t --variants, -k <space-separated list of strings>\n"
+      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n";
+
+  str << "\t --variants, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n"
-      << "\t\t (if no string(s) given, all variants will be run)\n";
-  str << "\t --dryrun (prints summary of how suite will run without running)\n";
+      << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n";
+
+  str << "\t --dryrun (print summary of how suite will run without running)\n";
 
   str << std::endl;
   str.flush();

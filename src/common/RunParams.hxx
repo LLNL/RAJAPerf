@@ -71,7 +71,7 @@ public:
 
 
 //@{
-//! @name Data accessors for processing input
+//! @name Getters/setters for processing input
 
   int getNumPasses() const { return npasses; }
 
@@ -92,6 +92,9 @@ public:
                                { unknown_variant_input = svec; }
   const std::vector<std::string>& getUnknownVariantInput() const
                                   { return unknown_variant_input; }
+
+  const std::string& getOutputDirName() const { return out_dir; }
+  const std::string& getOutputFileName() const { return out_file; }
 
 //@}
 
@@ -129,7 +132,8 @@ private:
   std::vector<std::string> variant_input;
   std::vector<std::string> unknown_variant_input;
 
-  std::string output_file_prefix;  /*!< Prefix for output data file. */
+  std::string out_dir;   /*!< Output directory name. */
+  std::string out_file;  /*!< Output data file name. */
 
 };
 

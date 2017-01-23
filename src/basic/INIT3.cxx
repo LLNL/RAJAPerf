@@ -87,6 +87,9 @@ void INIT3::setUp(VariantID vid)
 
 void INIT3::runKernel(VariantID vid)
 {
+  int run_size = getRunSize();
+  int run_samples = getRunSamples();
+
   std::cout << "\nINIT3::runKernel, vid = " << vid << std::endl;
   std::cout << "\trun_samples = " << run_samples << std::endl;
   std::cout << "\trun_size = " << run_size << std::endl;

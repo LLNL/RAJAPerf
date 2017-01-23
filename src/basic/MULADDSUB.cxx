@@ -105,6 +105,9 @@ void MULADDSUB::setUp(VariantID vid)
 
 void MULADDSUB::runKernel(VariantID vid)
 {
+  int run_size = getRunSize();
+  int run_samples = getRunSamples();
+
   std::cout << "\nMULADDSUB::runKernel, vid = " << vid << std::endl;
   std::cout << "\trun_samples = " << run_samples << std::endl;
   std::cout << "\trun_size = " << run_size << std::endl;

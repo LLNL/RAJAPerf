@@ -82,15 +82,6 @@ public:
   virtual void tearDown(VariantID vid) = 0;
 
 protected:
-  KernelID    kernel_id;
-  std::string name;
-
-  int run_size;
-  int run_samples;
-
-  int default_size;
-  int default_samples;
-
   long double min_time[NumVariants];
   long double max_time[NumVariants];
   long double tot_time[NumVariants];
@@ -106,7 +97,18 @@ private:
 
   void recordExecTime(); 
 
+  KernelID    kernel_id;
+  std::string name;
+
   const RunParams& run_params;
+
+  int run_size;
+  int run_samples;
+
+  int default_size;
+  int default_samples;
+
+  VariantID running_variant; 
 };
 
 }  // closing brace for rajaperf namespace
