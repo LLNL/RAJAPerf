@@ -66,7 +66,6 @@ void KernelBase::setDefaultSamples(int nsamp)
   run_samples = static_cast<int>( nsamp*run_params.getSampleFraction() );
 }
 
-
 void KernelBase::execute(VariantID vid) 
 {
   running_variant = vid;
@@ -82,27 +81,17 @@ void KernelBase::execute(VariantID vid)
   running_variant = NumVariants; 
 }
 
-
-void KernelBase::startTimer()
-{
-  //start_time = ...;
-}
-
-void KernelBase::stopTimer()
-{
-  //stop_time = ...;
-  recordExecTime();
-}
-
 void KernelBase::recordExecTime()
 {
-#if 0 // RDH
-  Duration time = stop_time - start_time;
+  RAJA::Timer::ElapsedType exec_time = timer.elapsed();
+  min_time[running_variant] = std::min(min_time[running_variant], exec_time);
+  max_time[running_variant] = std::max(min_time[running_variant], exec_time);
+  tot_time[running_variant] += exec_time;
+}
 
-  min_time = std::min(min_time, time.count());
-  max_time = std::max(min_time, time.count());
-  tot_time += time.count();
-#endif
+void KernelBase::print(std::ostream& os) const
+{
+// RDH: fill this in
 }
 
 }  // closing brace for rajaperf namespace

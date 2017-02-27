@@ -30,8 +30,10 @@
 
 #include "common/RAJAPerfSuite.hxx"
 
-#include <chrono>
+#include "RAJA/Timer.hxx"
+
 #include <string>
+#include <iostream>
 
 namespace rajaperf {
 
@@ -45,12 +47,6 @@ typedef volatile int SampIndex_type;
 class KernelBase
 {
 public:
-
-#if 0 // RDH
-  using clock = std::chrono::steady_clock;
-  using TimeType = clock::time_point;
-  using Duration = std::chrono::duration<double>;
-#endif
 
   KernelBase(KernelID kid, const RunParams& params);
 
@@ -73,8 +69,11 @@ public:
   void setDefaultSamples(int nsamp);
 
   void execute(VariantID vid);
-  void startTimer();
-  void stopTimer();
+  void startTimer() { timer.start(); }
+  void stopTimer()  { timer.stop(); recordExecTime(); }
+  void resetTimer() { timer.reset(); }
+
+  virtual void print(std::ostream& os) const; 
 
   virtual void setUp(VariantID vid) = 0;
   virtual void runKernel(VariantID vid) = 0;
@@ -82,15 +81,11 @@ public:
   virtual void tearDown(VariantID vid) = 0;
 
 protected:
-  long double min_time[NumVariants];
-  long double max_time[NumVariants];
-  long double tot_time[NumVariants];
+  RAJA::Timer::ElapsedType min_time[NumVariants];
+  RAJA::Timer::ElapsedType max_time[NumVariants];
+  RAJA::Timer::ElapsedType tot_time[NumVariants];
 
   long double checksum[NumVariants];
-
-  // Type???
-  //start_time; 
-  //stop_time; 
 
 private:
   KernelBase() = delete;
@@ -99,6 +94,8 @@ private:
 
   KernelID    kernel_id;
   std::string name;
+
+  RAJA::Timer timer;
 
   const RunParams& run_params;
 

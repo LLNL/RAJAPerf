@@ -120,7 +120,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   for (int i = 1; i < argc; ++i) {
 
-    std::string opt(std::string(argv[i]));
+    std::string opt(argv[i]);
 
     if ( opt == std::string("--help") ||
          opt == std::string("-h") ) {
@@ -291,7 +291,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
       << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n";
 
-  str << "\t --variants, -k <space-separated strings> [Default is run all]\n"
+  str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"

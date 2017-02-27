@@ -261,7 +261,7 @@ void Executor::reportRunSummary(std::ostream& str) const
         << std::endl;
 
   } else if ( in_state == RunParams::GoodToRun || 
-              in_state == RunParams::DryRun ) { 
+              in_state == RunParams::DryRun ) {
 
     //
     // RDH: Note the following information should also be written 
@@ -292,16 +292,16 @@ void Executor::reportRunSummary(std::ostream& str) const
         << "Output files will be " << ofiles << "\n"
         << std::endl;
 
-    str << "\nKernels"
-        << "\n-------\n";
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-       str << kernels[ik]->getName() << std::endl;
-    }
-
     str << "\nVariants"
         << "\n--------\n";
     for (size_t iv = 0; iv < variants.size(); ++iv) {
-       str << getVariantName(variants[iv]) << std::endl;
+      str << getVariantName(variants[iv]) << std::endl;
+    }
+
+    str << "\nKernels"
+        << "\n-------\n";
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      str << kernels[ik]->getName() << std::endl;
     }
 
   }
@@ -330,8 +330,7 @@ void Executor::runSuite()
 void Executor::outputRunData()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun &&
-       in_state != RunParams::DryRun ) {
+  if ( in_state != RunParams::GoodToRun ) {
     return;
   }
 

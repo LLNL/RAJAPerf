@@ -51,7 +51,7 @@ public:
    */
   enum InputOpt {
     InfoRequest,  /*!< option requesting information */
-    DryRun,       /*!< report how suite will run w/o running */
+    DryRun,       /*!< report summary of how suite will run w/o running */
     GoodToRun,    /*!< input defines a valid run, suite will run */
     BadInput,     /*!< erroneous input given */ 
     Undefined     /*!< input not defined (yet) */
