@@ -248,6 +248,9 @@ void Executor::setupSuite()
 
 void Executor::reportRunSummary(std::ostream& str) const
 {
+  str << "\n\nRAJA performance suite run summary...."
+      <<   "\n--------------------------------------" << std::endl;
+  
   RunParams::InputOpt in_state = run_params.getInputState();
 
   if ( in_state == RunParams::BadInput ) {
@@ -256,21 +259,18 @@ void Executor::reportRunSummary(std::ostream& str) const
     str <<   "----------------";
     run_params.print(str);
 
-    str << "\n\nRAJA perf suite will not be run now due to bad input."
+    str << "\n\nSuite will not be run now due to bad input."
         << "\n  See run parameters or option messages above.\n" 
         << std::endl;
 
   } else if ( in_state == RunParams::GoodToRun || 
               in_state == RunParams::DryRun ) {
 
-    //
-    // RDH: Note the following information should also be written 
-    //      to a run summary file
-    //
-
-    str << "\nRunParams state:";
-    str << "\n----------------";
-    run_params.print(str);
+    if ( in_state == RunParams::DryRun ) {
+      str << "\nRunParams state:";
+      str << "\n----------------";
+      run_params.print(str);
+    }
 
     // 
     // Generate formatted summary of suite execution:
@@ -288,9 +288,8 @@ void Executor::reportRunSummary(std::ostream& str) const
     ofiles += std::string("/") + run_params.getOutputFileName() + 
               std::string(".*");
 
-    str << "\n\nRAJA perf suite will run with  kernels and variants listed below.\n" 
-        << "Output files will be " << ofiles << "\n"
-        << std::endl;
+    str << "\nSuite will run with kernels and variants listed below.\n" 
+        << "Output files will be named " << ofiles << std::endl;
 
     str << "\nVariants"
         << "\n--------\n";

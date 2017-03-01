@@ -19,10 +19,14 @@ target_link_libraries(raja-perf.exe
 ##  apps
   )
 
-##file(WRITE  ./rajaperf_build_info.txt "Compiler: ${CMAKE_CXX_COMPILER}\n")
-##file(APPEND ./rajaperf_build_info.txt "Compiler Flags: ${CMAKE_CXX_FLAGS}")
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  set(PERFSUITE_COMP_OPTIONS "${CMAKE_CXX_FLAGS_DEBUG}")
+elseif (CMAKE_BUILD_TYPE MATCHES Release)
+  set(PERFSUITE_COMP_OPTIONS "${CMAKE_CXX_FLAGS_RELEASE}")
+elseif (CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+  set(PERFSUITE_COMP_OPTIONS "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+list(APPEND PERFSUITE_COMP_OPTIONS ${CMAKE_CXX_FLAGS})
 
-##add_custom_command(TARGET raja-perf.exe POST_BUILD 
-##                   COMMAND COMMAND ${CMAKE_COMMAND} -E copy
-##                   ${CMAKE_SOURCE_DIR}/src/rajaperf_build_info.txt
-##                   ${CMAKE_CURRENT_BINARY_DIR}/rajaperf_build_info.txt)
+configure_file(${CMAKE_SOURCE_DIR}/extra/performance/src/rajaperf_build_info.hxx.in
+  ${CMAKE_CURRENT_BINARY_DIR}/rajaperf_build_info.hxx)

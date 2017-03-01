@@ -75,7 +75,6 @@ void INIT3::setUp(VariantID vid)
       std::cout << "\n  Unknown variant id = " << vid << std::endl;
     }
 
-    // No default. We shouldn't need one...
   }
 
   //
@@ -164,7 +163,10 @@ void INIT3::tearDown(VariantID vid)
       break;
     }
 
-    // No default. We shouldn't need one...
+    default : {
+      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+    }
+
   }
 }
 
