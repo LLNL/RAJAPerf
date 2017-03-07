@@ -48,10 +48,11 @@ RunParams::RunParams(int argc, char** argv)
    npasses(1),
    sample_fraction(1.0),
    size_fraction(1.0),
+   reference_variant(),
    kernel_input(),
-   unknown_kernel_input(),
+   invalid_kernel_input(),
    variant_input(),
-   unknown_variant_input(),
+   invalid_variant_input(),
    out_dir(),
    out_file("RAJAPerf")
 {
@@ -83,6 +84,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n sample_fraction = " << sample_fraction; 
   str << "\n size_fraction = " << size_fraction; 
+  str << "\n reference_variant = " << reference_variant; 
   str << "\n out_dir = " << out_dir; 
   str << "\n out_file = " << out_file; 
 
@@ -90,18 +92,18 @@ void RunParams::print(std::ostream& str) const
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
   }
-  str << "\n unknown_kernel_input = ";
-  for (size_t j = 0; j < unknown_kernel_input.size(); ++j) {
-    str << "\n\t" << unknown_kernel_input[j];
+  str << "\n invalid_kernel_input = ";
+  for (size_t j = 0; j < invalid_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_kernel_input[j];
   }
 
   str << "\n variant_input = "; 
   for (size_t j = 0; j < variant_input.size(); ++j) {
     str << "\n\t" << variant_input[j];
   }
-  str << "\n unknown_variant_input = "; 
-  for (size_t j = 0; j < unknown_variant_input.size(); ++j) {
-    str << "\n\t" << unknown_variant_input[j];
+  str << "\n invalid_variant_input = "; 
+  for (size_t j = 0; j < invalid_variant_input.size(); ++j) {
+    str << "\n\t" << invalid_variant_input[j];
   }
 
   str << std::endl;
@@ -234,6 +236,19 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( std::string(argv[i]) == std::string("--refvar") ||
+                std::string(argv[i]) == std::string("-rv") ) {
+
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          reference_variant = std::string( argv[i] );
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
         input_state = DryRun;
@@ -278,7 +293,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --outdir foo (output files to ./foo directory\n"
       << "\t\t --odir /nfs/tmp/me (output files to /nfs/tmp/me directory)\n";
 
-  str << "\t --outfile, -of <string> [Default is RAJAPerf\n"
+  str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outfile mydata (output data will be in files 'mydata.*')\n"
@@ -296,6 +311,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
       << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n";
+
+  str << "\t --refvar, -rv <string> [Default is none]\n"
+      << "\t      (reference variant for speedup calculation)\n";
+  str << "\t\t Example...\n"
+      << "\t\t -refvar Baseline (speedups reported relative to Baseline variants)\n";
 
   str << "\t --dryrun (print summary of how suite will run without running)\n";
 

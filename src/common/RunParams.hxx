@@ -79,19 +79,21 @@ public:
 
   double getSizeFraction() const { return size_fraction; }
 
+  const std::string& getReferenceVariant() const { return reference_variant; }
+
   const std::vector<std::string>& getKernelInput() const 
                                   { return kernel_input; }
-  void setUnknownKernelInput( std::vector<std::string>& svec )
-                              { unknown_kernel_input = svec; }
-  const std::vector<std::string>& getUnknownKernelInput() const
-                                  { return unknown_kernel_input; }
+  void setInvalidKernelInput( std::vector<std::string>& svec )
+                              { invalid_kernel_input = svec; }
+  const std::vector<std::string>& getInvalidKernelInput() const
+                                  { return invalid_kernel_input; }
 
   const std::vector<std::string>& getVariantInput() const 
                                   { return variant_input; }
-  void setUnknownVariantInput( std::vector<std::string>& svec )
-                               { unknown_variant_input = svec; }
-  const std::vector<std::string>& getUnknownVariantInput() const
-                                  { return unknown_variant_input; }
+  void setInvalidVariantInput( std::vector<std::string>& svec )
+                               { invalid_variant_input = svec; }
+  const std::vector<std::string>& getInvalidVariantInput() const
+                                  { return invalid_variant_input; }
 
   const std::string& getOutputDirName() const { return out_dir; }
   const std::string& getOutputFileName() const { return out_file; }
@@ -124,13 +126,17 @@ private:
   double size_fraction;            /*!< Frac of default kernel iteration space
                                         to run */
 
+  std::string reference_variant;   /*!< Name of reference variant for speedup
+                                        calculations */ 
+
   //
-  // The names of these are self-explanatory
+  // Arrays to hold input strings for valid/invalid input. Helpful for  
+  // debugging command line args.
   //
   std::vector<std::string> kernel_input;
-  std::vector<std::string> unknown_kernel_input;
+  std::vector<std::string> invalid_kernel_input;
   std::vector<std::string> variant_input;
-  std::vector<std::string> unknown_variant_input;
+  std::vector<std::string> invalid_variant_input;
 
   std::string out_dir;   /*!< Output directory name. */
   std::string out_file;  /*!< Output data file name. */

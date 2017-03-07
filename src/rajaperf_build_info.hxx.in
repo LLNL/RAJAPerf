@@ -32,16 +32,19 @@ namespace rajaperf {
 // Version of RAJA used to build (ex: 0.2.4)
 static const std::string version = "@RAJA_VERSION_MAJOR@.@RAJA_VERSION_MINOR@.@RAJA_VERSION_PATCHLEVEL@";
 		
-// Systype/platform code built on (ex: chaos_5_x64_64)
-//static const std::string SYSTYPE = "@SYSTYPE@";
-		
 // Compiler used to build (ex: gcc-4.9.3)
 static const std::string compiler = "@CMAKE_CXX_COMPILER@";
 
 // Command options used to build (ex: -Ofast -mavx)
-//static const std::string compiler_options = "@CMAKE_CXX_FLAGS@";
-static const std::string compiler_options = "@PERFSUITE_COMP_OPTIONS@";
+static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
 		
-// Name of user who built code
+// Name of user who ran code
 //static const std::string user = "@USER@";
+
+// Date, time code was run
+//static const std::string user = "@USER@";
+
+// Systype/platform code ran on (ex: chaos_5_x64_64)
+//static const std::string SYSTYPE = "@RAJAPERF_SYSTYPE@";
+		
 }

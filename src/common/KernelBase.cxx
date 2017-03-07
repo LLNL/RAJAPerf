@@ -91,7 +91,29 @@ void KernelBase::recordExecTime()
 
 void KernelBase::print(std::ostream& os) const
 {
-// RDH: fill this in
+  os << "\nKernelBase::print..." << std::endl;
+  os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
+  os << "\t\t\t run_size(default_size) = " 
+     << run_size << "(" << default_size << ")" << std::endl;
+  os << "\t\t\t run_samples(default_samples) = " 
+     << run_samples << "(" << default_samples << ")" << std::endl;
+  os << "\t\t\t min_time: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << min_time[j] << std::endl; 
+  }
+  os << "\t\t\t max_time: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << max_time[j] << std::endl; 
+  }
+  os << "\t\t\t tot_time: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << tot_time[j] << std::endl; 
+  }
+  os << "\t\t\t checksum: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << checksum[j] << std::endl; 
+  }
+  os << std::endl;
 }
 
 }  // closing brace for rajaperf namespace

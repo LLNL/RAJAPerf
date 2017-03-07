@@ -44,7 +44,8 @@
 namespace rajaperf {
 
 Executor::Executor(int argc, char** argv)
-  : run_params(argc, argv)
+  : run_params(argc, argv),
+    baseline_variant(NumVariants)
 {
 }
 
@@ -132,9 +133,9 @@ void Executor::setupSuite()
     //
     // Look for matching names of individual kernels in remaining input.
     // 
-    // Assemble unknown input for warning message.
+    // Assemble invalid input for warning message.
     //
-    Svector unknown;
+    Svector invalid;
 
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
       bool found_it = false;
@@ -147,10 +148,10 @@ void Executor::setupSuite()
         }
       }
 
-      if ( !found_it )  unknown.push_back(*it); 
+      if ( !found_it )  invalid.push_back(*it); 
     }
 
-    run_params.setUnknownKernelInput(unknown);
+    run_params.setInvalidKernelInput(invalid);
 
   }
 
@@ -175,15 +176,25 @@ void Executor::setupSuite()
   } else {
 
     //
+    // Add reference variant to run variants if valid
+    //
+    for (size_t iv = 0; iv < NumVariants; ++iv) {
+      VariantID vid = static_cast<VariantID>(iv);
+      if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+        run_var.insert(vid);
+      }
+    }
+
+    //
     // Need to parse input to determine which variants to run
     // 
 
     //
     // Search input for matching variant names.
     //
-    // Assemble unknown input for warning message.
+    // Assemble invalid input for warning message.
     //
-    Svector unknown;
+    Svector invalid;
 
     for (size_t it = 0; it < variant_input.size(); ++it) {
       bool found_it = false;
@@ -196,21 +207,21 @@ void Executor::setupSuite()
         }
       }
 
-      if ( !found_it )  unknown.push_back(variant_input[it]);
+      if ( !found_it )  invalid.push_back(variant_input[it]);
     }
 
-    run_params.setUnknownVariantInput(unknown);
+    run_params.setInvalidVariantInput(invalid);
 
   }
 
   //
-  // Create kernel objects and variants to execute. If unknown input is not 
+  // Create kernel objects and variants to execute. If invalid input is not 
   // empty for either case, then there were unmatched input items.
   // 
   // A message will be emitted later so user can sort it out...
   //
 
-  if ( !(run_params.getUnknownKernelInput().empty()) ) {
+  if ( !(run_params.getInvalidKernelInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput); 
 
@@ -221,7 +232,7 @@ void Executor::setupSuite()
       kernels.push_back( getKernelObject(*kid, run_params) );
     }
 
-    if ( !(run_params.getUnknownVariantInput().empty()) ) {
+    if ( !(run_params.getInvalidVariantInput().empty()) ) {
 
        run_params.setInputState(RunParams::BadInput);
 
@@ -248,9 +259,6 @@ void Executor::setupSuite()
 
 void Executor::reportRunSummary(std::ostream& str) const
 {
-  str << "\n\nRAJA performance suite run summary...."
-      <<   "\n--------------------------------------" << std::endl;
-  
   RunParams::InputOpt in_state = run_params.getInputState();
 
   if ( in_state == RunParams::BadInput ) {
@@ -267,17 +275,22 @@ void Executor::reportRunSummary(std::ostream& str) const
               in_state == RunParams::DryRun ) {
 
     if ( in_state == RunParams::DryRun ) {
+
+      str << "\n\nRAJA performance suite dry run summary...."
+          <<   "\n--------------------------------------" << std::endl;
+ 
       str << "\nRunParams state:";
       str << "\n----------------";
       run_params.print(str);
-    }
 
-    // 
-    // Generate formatted summary of suite execution:
-    //   - system, date, and time (e.g., utilities in ctime)
-    //   - Compiler, version, and options 
-    //       (RDH: I think I have something to generate this info in LCALS)
-    // 
+    } 
+
+    if ( in_state == RunParams::GoodToRun ) {
+
+      str << "\n\nRAJA performance suite run summary...."
+          <<   "\n--------------------------------------" << std::endl;
+
+    }
 
     std::string ofiles;
     if ( !run_params.getOutputDirName().empty() ) {
@@ -333,38 +346,38 @@ void Executor::outputRunData()
     return;
   }
 
+  processRunData();
+
   std::string outdir = recursiveMkdir(run_params.getOutputDirName()); 
-  std::string sum_fname;
+  std::string out_fname;
   if ( !outdir.empty() ) {
     chdir(outdir.c_str());
-    sum_fname = std::string(outdir + "/" + run_params.getOutputFileName());
+    out_fname = std::string(outdir + "/" + run_params.getOutputFileName());
   } else {
-    sum_fname = std::string("./" + run_params.getOutputFileName());
+    out_fname = std::string("./" + run_params.getOutputFileName());
   }
 
-  std::cout << "\nOutput file pattern: " << sum_fname << ".*" << std::endl;
+  writeTimingReport(out_fname);
+
+  writeBaselineDifferenceReport(out_fname);
+
+  writeChecksumReport(out_fname);
   
   std::cout << "\nOutput data generation not impllemented yet!!!" << std::endl;
   std::cout.flush();
-
-  //
-  // (RDH: I have code to generate this info in LCALS -- just need to
-  //       pull it out and massage it into what we want)
-  //
-  // Generate output in appropriate format and write to file(s) in
-  // appropriate format for what we want (e.g., csv (for tools), 
-  // easy-to-read (for humans)), etc.: 
-  //   - execution timings (max/min/avg) for each kernel and variant
-  //     (note: if npasses == 1, these are the same so only report time)
-  //   - speedup for each kernel variant relative to baseline 
-  //     (or something else?)
-  //   - run samples and run size information for each kernel
-  //   - we should think about defining a FOM for the entire suite. 
-  //     I did this for LCALS since it was needed for CORAL. I debated this
-  //     with numerous folks and wasn't very satisfied what I came up with,
-  //     but it seemed like a reasonable way to generate a single number
-  //     with which to compare results of different configurations.
-  //
 }
+
+void Executor::processRunData()
+{
+}
+
+void Executor::writeTimingReport(const std::string& out_fname)
+{
+}
+
+void Executor::writeChecksumReport(const std::string& out_fname)
+{
+}
+
 
 }  // closing brace for rajaperf namespace

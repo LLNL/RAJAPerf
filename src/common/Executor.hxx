@@ -54,9 +54,15 @@ public:
 private:
   Executor() = delete;
 
+  void processRunData();
+  void writeTimingReport(const std::string& out_fname);
+  void writeChecksumReport(const std::string& out_fname);
+
   RunParams run_params;
   std::vector<KernelBase*> kernels;  
   std::vector<VariantID>   variants;
+
+  VariantID baseline_variant;
 
 };
 
