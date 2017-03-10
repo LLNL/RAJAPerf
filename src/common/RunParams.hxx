@@ -95,8 +95,8 @@ public:
   const std::vector<std::string>& getInvalidVariantInput() const
                                   { return invalid_variant_input; }
 
-  const std::string& getOutputDirName() const { return out_dir; }
-  const std::string& getOutputFileName() const { return out_file; }
+  const std::string& getOutputDirName() const { return outdir; }
+  const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
 //@}
 
@@ -138,8 +138,8 @@ private:
   std::vector<std::string> variant_input;
   std::vector<std::string> invalid_variant_input;
 
-  std::string out_dir;   /*!< Output directory name. */
-  std::string out_file;  /*!< Output data file name. */
+  std::string outdir;          /*!< Output directory name. */
+  std::string outfile_prefix;  /*!< Prefix for output data file names. */
 
 };
 

@@ -162,12 +162,14 @@ enum KernelID {
  */
 enum VariantID {
 
-  Baseline = 0,
-  RAJA_Serial,
+  Baseline_Seq = 0,
+  RAJA_Seq,
   Baseline_OpenMP,
   RAJA_OpenMP,
   Baseline_CUDA,
   RAJA_CUDA,
+  Baseline_OpenMP4x,
+  RAJA_OpenMP4x,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

@@ -55,8 +55,9 @@ private:
   Executor() = delete;
 
   void processRunData();
-  void writeTimingReport(const std::string& out_fname);
-  void writeChecksumReport(const std::string& out_fname);
+  void writeTimingReport(const std::string& out_fprefix);
+  void writeSpeedupReport(const std::string& out_fprefix);
+  void writeChecksumReport(const std::string& out_fprefix);
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;  

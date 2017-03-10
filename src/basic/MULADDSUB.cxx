@@ -70,8 +70,8 @@ void MULADDSUB::setUp(VariantID vid)
 {
   switch ( vid ) {
 
-    case Baseline : 
-    case RAJA_Serial : 
+    case Baseline_Seq : 
+    case RAJA_Seq : 
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to allocate data based on array length and type
@@ -113,7 +113,7 @@ void MULADDSUB::runKernel(VariantID vid)
 
   switch ( vid ) {
 
-    case Baseline : {
+    case Baseline_Seq : {
 
        KERNEL_DATA;
   
@@ -128,7 +128,7 @@ void MULADDSUB::runKernel(VariantID vid)
        break;
     } 
 
-    case RAJA_Serial : {
+    case RAJA_Seq : {
 
        KERNEL_DATA;
   
@@ -170,8 +170,8 @@ void MULADDSUB::tearDown(VariantID vid)
 {
   switch ( vid ) {
 
-    case Baseline :
-    case RAJA_Serial :
+    case Baseline_Seq :
+    case RAJA_Seq :
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to deallocate data

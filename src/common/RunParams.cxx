@@ -53,8 +53,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_kernel_input(),
    variant_input(),
    invalid_variant_input(),
-   out_dir(),
-   out_file("RAJAPerf")
+   outdir(),
+   outfile_prefix("RAJAPerf")
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -85,8 +85,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n sample_fraction = " << sample_fraction; 
   str << "\n size_fraction = " << size_fraction; 
   str << "\n reference_variant = " << reference_variant; 
-  str << "\n out_dir = " << out_dir; 
-  str << "\n out_file = " << out_file; 
+  str << "\n outdir = " << outdir; 
+  str << "\n outfile_prefix = " << outfile_prefix; 
 
   str << "\n kernel_input = "; 
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -219,7 +219,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          out_dir = std::string( argv[i] );
+          outdir = std::string( argv[i] );
         }
       }
 
@@ -232,7 +232,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          out_file = std::string( argv[i] );
+          outfile_prefix = std::string( argv[i] );
         }
       }
 
@@ -296,8 +296,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --outfile mydata (output data will be in files 'mydata.*')\n"
-      << "\t\t --ofile dat (output data will be in files 'dat.*')\n";
+      << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
+      << "\t\t --ofile dat (output data will be in files 'dat*')\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
@@ -310,12 +310,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Baseline RAJA_CUDA (run Baseline, RAJA_CUDA variants)\n";
+      << "\t\t -v Baseline_Seq RAJA_CUDA (run Baseline_Seq, RAJA_CUDA variants)\n";
 
   str << "\t --refvar, -rv <string> [Default is none]\n"
       << "\t      (reference variant for speedup calculation)\n";
   str << "\t\t Example...\n"
-      << "\t\t -refvar Baseline (speedups reported relative to Baseline variants)\n";
+      << "\t\t -refvar Baseline_Seq (speedups reported relative to Baseline_Seq variants)\n";
 
   str << "\t --dryrun (print summary of how suite will run without running)\n";
 

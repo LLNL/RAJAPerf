@@ -56,8 +56,8 @@ void TRAP_INT::setUp(VariantID vid)
 {
   switch ( vid ) {
 
-    case Baseline : 
-    case RAJA_Serial : 
+    case Baseline_Seq : 
+    case RAJA_Seq : 
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to allocate data based on array length and type
@@ -94,7 +94,7 @@ void TRAP_INT::runKernel(VariantID vid)
 
   switch ( vid ) {
 
-    case Baseline : {
+    case Baseline_Seq : {
 
        KERNEL_DATA;
   
@@ -109,7 +109,7 @@ void TRAP_INT::runKernel(VariantID vid)
        break;
     } 
 
-    case RAJA_Serial : {
+    case RAJA_Seq : {
 
        KERNEL_DATA;
   
@@ -148,8 +148,8 @@ void TRAP_INT::tearDown(VariantID vid)
 {
   switch ( vid ) {
 
-    case Baseline :
-    case RAJA_Serial :
+    case Baseline_Seq :
+    case RAJA_Seq :
     case Baseline_OpenMP :
     case RAJA_OpenMP : {
 // Overloaded methods in common to deallocate data

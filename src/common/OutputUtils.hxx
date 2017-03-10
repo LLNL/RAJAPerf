@@ -27,6 +27,10 @@
 #define OutputUtils_HXX
 
 #include <string>
+#include<iostream>
+#include<iomanip>
+#include<sstream>
+#include<fstream>
 
 namespace rajaperf
 {
@@ -38,6 +42,14 @@ namespace rajaperf
  * Return string name of directory if created successfully, else empty string.
  */
 std::string recursiveMkdir(const std::string& in_path);
+
+
+/*!
+ * \brief Open file with given name.
+ *
+ * Return file stream for accessing file, null if not created.
+ */
+std::ofstream openFile(const std::string& fname);
 
 }  // closing brace for rajaperf namespace
 

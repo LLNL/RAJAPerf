@@ -298,8 +298,8 @@ void Executor::reportRunSummary(std::ostream& str) const
     } else {
       ofiles = std::string(".");
     }
-    ofiles += std::string("/") + run_params.getOutputFileName() + 
-              std::string(".*");
+    ofiles += std::string("/") + run_params.getOutputFilePrefix() + 
+              std::string("*");
 
     str << "\nSuite will run with kernels and variants listed below.\n" 
         << "Output files will be named " << ofiles << std::endl;
@@ -349,34 +349,36 @@ void Executor::outputRunData()
   processRunData();
 
   std::string outdir = recursiveMkdir(run_params.getOutputDirName()); 
-  std::string out_fname;
+  std::string out_fprefix(outdir + "/" + run_params.getOutputFilePrefix());
+
   if ( !outdir.empty() ) {
     chdir(outdir.c_str());
-    out_fname = std::string(outdir + "/" + run_params.getOutputFileName());
-  } else {
-    out_fname = std::string("./" + run_params.getOutputFileName());
   }
 
-  writeTimingReport(out_fname);
+  writeTimingReport(out_fprefix);
 
-  writeBaselineDifferenceReport(out_fname);
+  writeSpeedupReport(out_fprefix);
 
-  writeChecksumReport(out_fname);
-  
-  std::cout << "\nOutput data generation not impllemented yet!!!" << std::endl;
-  std::cout.flush();
+  writeChecksumReport(out_fprefix);
 }
 
 void Executor::processRunData()
 {
 }
 
-void Executor::writeTimingReport(const std::string& out_fname)
+void Executor::writeTimingReport(const std::string& out_fprefix)
 {
+  std::string fname = out_fprefix + "-timing.txt";
 }
 
-void Executor::writeChecksumReport(const std::string& out_fname)
+void Executor::writeSpeedupReport(const std::string& out_fprefix)
 {
+  std::string fname = out_fprefix + "-speedup.txt";
+}
+
+void Executor::writeChecksumReport(const std::string& out_fprefix)
+{
+  std::string fname = out_fprefix + "-checksum.txt";
 }
 
 

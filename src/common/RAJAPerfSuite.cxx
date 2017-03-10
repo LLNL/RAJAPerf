@@ -162,12 +162,14 @@ static const std::string KernelNames [] =
 static const std::string VariantNames [] =
 {
 
-  std::string("Baseline"),
-  std::string("RAJA_Serial"),
+  std::string("Baseline_Seq"),
+  std::string("RAJA_Seq"),
   std::string("Baseline_OpenMP"),
   std::string("RAJA_OpenMP"),
   std::string("Baseline_CUDA"),
   std::string("RAJA_CUDA"),
+  std::string("Baseline_OpenMP4.x"),
+  std::string("RAJA_OpenMP4.x"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
