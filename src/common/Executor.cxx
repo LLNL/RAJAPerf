@@ -33,6 +33,8 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <string>
+
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -42,6 +44,8 @@
 
 
 namespace rajaperf {
+
+using namespace std;
 
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
@@ -66,11 +70,11 @@ void Executor::setupSuite()
     return;
   }
 
-  typedef std::list<std::string> Slist;
-  typedef std::vector<std::string> Svector;
-  typedef std::set<std::string> Sset;
-  typedef std::set<KernelID> KIDset;
-  typedef std::set<VariantID> VIDset;
+  typedef list<string> Slist;
+  typedef vector<string> Svector;
+  typedef set<string> Sset;
+  typedef set<KernelID> KIDset;
+  typedef set<VariantID> VIDset;
 
   //
   // Determine which kernels to execute from input.
@@ -106,7 +110,7 @@ void Executor::setupSuite()
     Svector groups2run;
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
       for (size_t ig = 0; ig < NumGroups; ++ig) {
-        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        const string& group_name = getGroupName(static_cast<GroupID>(ig));
         if ( group_name == *it ) {
           groups2run.push_back(group_name);
         }
@@ -118,11 +122,11 @@ void Executor::setupSuite()
     // to run and remove those group name(s) from input list.
     //
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
-      const std::string& gname(groups2run[ig]);
+      const string& gname(groups2run[ig]);
 
       for (size_t ik = 0; ik < NumKernels; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(gname) != std::string::npos ) {
+        if ( getFullKernelName(kid).find(gname) != string::npos ) {
           run_kern.insert(kid);
         }
       }
@@ -142,7 +146,7 @@ void Executor::setupSuite()
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(*it) != std::string::npos ) {
+        if ( getFullKernelName(kid).find(*it) != string::npos ) {
           run_kern.insert(kid);
           found_it = true;
         }
@@ -257,7 +261,7 @@ void Executor::setupSuite()
 }
 
 
-void Executor::reportRunSummary(std::ostream& str) const
+void Executor::reportRunSummary(ostream& str) const
 {
   RunParams::InputOpt in_state = run_params.getInputState();
 
@@ -269,7 +273,7 @@ void Executor::reportRunSummary(std::ostream& str) const
 
     str << "\n\nSuite will not be run now due to bad input."
         << "\n  See run parameters or option messages above.\n" 
-        << std::endl;
+        << endl;
 
   } else if ( in_state == RunParams::GoodToRun || 
               in_state == RunParams::DryRun ) {
@@ -277,7 +281,7 @@ void Executor::reportRunSummary(std::ostream& str) const
     if ( in_state == RunParams::DryRun ) {
 
       str << "\n\nRAJA performance suite dry run summary...."
-          <<   "\n--------------------------------------" << std::endl;
+          <<   "\n--------------------------------------" << endl;
  
       str << "\nRunParams state:";
       str << "\n----------------";
@@ -288,32 +292,32 @@ void Executor::reportRunSummary(std::ostream& str) const
     if ( in_state == RunParams::GoodToRun ) {
 
       str << "\n\nRAJA performance suite run summary...."
-          <<   "\n--------------------------------------" << std::endl;
+          <<   "\n--------------------------------------" << endl;
 
     }
 
-    std::string ofiles;
+    string ofiles;
     if ( !run_params.getOutputDirName().empty() ) {
       ofiles = run_params.getOutputDirName();
     } else {
-      ofiles = std::string(".");
+      ofiles = string(".");
     }
-    ofiles += std::string("/") + run_params.getOutputFilePrefix() + 
-              std::string("*");
+    ofiles += string("/") + run_params.getOutputFilePrefix() + 
+              string("*");
 
     str << "\nSuite will run with kernels and variants listed below.\n" 
-        << "Output files will be named " << ofiles << std::endl;
+        << "Output files will be named " << ofiles << endl;
 
     str << "\nVariants"
         << "\n--------\n";
     for (size_t iv = 0; iv < variants.size(); ++iv) {
-      str << getVariantName(variants[iv]) << std::endl;
+      str << getVariantName(variants[iv]) << endl;
     }
 
     str << "\nKernels"
         << "\n-------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      str << kernels[ik]->getName() << std::endl;
+      str << kernels[ik]->getName() << endl;
     }
 
   }
@@ -328,7 +332,7 @@ void Executor::runSuite()
     return;
   }
 
-  std::cout << "\n\nRunning specified kernels and variants!\n";
+  cout << "\n\nRunning specified kernels and variants!\n";
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -348,11 +352,16 @@ void Executor::outputRunData()
 
   processRunData();
 
-  std::string outdir = recursiveMkdir(run_params.getOutputDirName()); 
-  std::string out_fprefix(outdir + "/" + run_params.getOutputFilePrefix());
-
+  //
+  // Generate output file prefix (including directory path). 
+  //
+  string out_fprefix;
+  string outdir = recursiveMkdir(run_params.getOutputDirName()); 
   if ( !outdir.empty() ) {
+    out_fprefix = outdir + "/" + run_params.getOutputFilePrefix();
     chdir(outdir.c_str());
+  } else {
+    out_fprefix = "./" + run_params.getOutputFilePrefix();
   }
 
   writeTimingReport(out_fprefix);
@@ -366,19 +375,80 @@ void Executor::processRunData()
 {
 }
 
-void Executor::writeTimingReport(const std::string& out_fprefix)
+void Executor::writeTimingReport(const string& out_fprefix)
 {
-  std::string fname = out_fprefix + "-timing.txt";
+  string fname = out_fprefix + "-timing.txt";
+
+  ofstream file(fname.c_str(), ios::out | ios::trunc);
+  if ( !file ) {
+    cout << " ERROR: Can't open output file " << fname << endl;
+  }
+
+  if ( file ) {
+
+    //
+    // Set basic table formatting parameters.
+    //
+    const string kernel_col_name("Kernel  ");
+    const string sepchr(" , ");
+    unsigned prec = 12;
+
+    size_t max_kname_len = kernel_col_name.size();
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      max_kname_len = max(max_kname_len, 
+                          kernels[ik]->getName().size()); 
+    }
+
+    size_t max_vname_len = prec+2;
+    for (size_t iv = 0; iv < variants.size(); ++iv) {
+      max_vname_len = max(max_vname_len, 
+                          getVariantName(variants[iv]).size()); 
+    } 
+
+    //
+    // Print title line.
+    //
+    file << "Mean Run Times ";
+    for (size_t iv = 0; iv < variants.size(); ++iv) {
+      file << sepchr;
+    }
+    file << endl;
+
+    //
+    // Print column title column line.
+    //
+    file <<left<< setw(max_kname_len+1) << kernel_col_name;
+    for (size_t iv = 0; iv < variants.size(); ++iv) {
+      file << sepchr <<left<< setw(max_vname_len)
+           << getVariantName(variants[iv]);
+    }
+    file << endl;
+
+    //
+    // Print row of variant run times for each kernel.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      file <<left<< setw(max_kname_len+1) << kernels[ik]->getName();
+      for (size_t iv = 0; iv < variants.size(); ++iv) {
+        file << sepchr <<left<< setw(max_vname_len)
+             << setprecision(prec) << 0.0;
+      }
+      file << endl;
+    }
+
+    file.flush(); 
+
+  } // note file will be closed when file stream goes out of scope
 }
 
-void Executor::writeSpeedupReport(const std::string& out_fprefix)
+void Executor::writeSpeedupReport(const string& out_fprefix)
 {
-  std::string fname = out_fprefix + "-speedup.txt";
+  string fname = out_fprefix + "-speedup.txt";
 }
 
-void Executor::writeChecksumReport(const std::string& out_fprefix)
+void Executor::writeChecksumReport(const string& out_fprefix)
 {
-  std::string fname = out_fprefix + "-checksum.txt";
+  string fname = out_fprefix + "-checksum.txt";
 }
 
 

@@ -141,16 +141,4 @@ std::string recursiveMkdir(const std::string& in_path)
   return outpath;
 }
 
-
-/*
- * Open file with given name and return file stream for accessing file.
- */
-std::ofstream openFile(const std::string& fname)
-{
-  std::ofstream file(fname.c_str(), std::ios::out | std::ios::trunc);
-  if ( !file ) {
-     std::cout << " ERROR: Can't open output file " << fname << std::endl;
-  }
-}
-
 }  // closing brace for rajaperf namespace

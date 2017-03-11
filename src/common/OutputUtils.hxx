@@ -43,14 +43,6 @@ namespace rajaperf
  */
 std::string recursiveMkdir(const std::string& in_path);
 
-
-/*!
- * \brief Open file with given name.
- *
- * Return file stream for accessing file, null if not created.
- */
-std::ofstream openFile(const std::string& fname);
-
 }  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard

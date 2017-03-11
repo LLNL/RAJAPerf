@@ -32,7 +32,7 @@ namespace rajaperf {
 
 KernelBase::KernelBase(KernelID kid, const RunParams& params) 
   : kernel_id(kid),
-    name( getKernelName(kernel_id) ),
+    name( getFullKernelName(kernel_id) ),
     run_params(params),
     run_size(0),
     run_samples(0),
