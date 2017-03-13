@@ -49,7 +49,7 @@ using namespace std;
 
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
-    baseline_variant(NumVariants)
+    ref_vid(NumVariants)
 {
 }
 
@@ -186,6 +186,7 @@ void Executor::setupSuite()
       VariantID vid = static_cast<VariantID>(iv);
       if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
         run_var.insert(vid);
+        ref_vid = vid; 
       }
     }
 
@@ -244,7 +245,7 @@ void Executor::setupSuite()
 
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
-        variants.push_back( *vid );
+        variant_ids.push_back( *vid );
       }
 
       //
@@ -310,8 +311,8 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nVariants"
         << "\n--------\n";
-    for (size_t iv = 0; iv < variants.size(); ++iv) {
-      str << getVariantName(variants[iv]) << endl;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      str << getVariantName(variant_ids[iv]) << endl;
     }
 
     str << "\nKernels"
@@ -336,8 +337,8 @@ void Executor::runSuite()
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      for (size_t iv = 0; iv < variants.size(); ++iv) {
-         kernels[ik]->execute( variants[iv] );
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+         kernels[ik]->execute( variant_ids[iv] );
       } 
     }
   }
@@ -349,8 +350,6 @@ void Executor::outputRunData()
   if ( in_state != RunParams::GoodToRun ) {
     return;
   }
-
-  processRunData();
 
   //
   // Generate output file prefix (including directory path). 
@@ -364,24 +363,29 @@ void Executor::outputRunData()
     out_fprefix = "./" + run_params.getOutputFilePrefix();
   }
 
-  writeTimingReport(out_fprefix);
+  string filename = out_fprefix + "-timing.csv";
+  writeCSVReport(filename, CSVRepMode::Timing);
 
-  writeSpeedupReport(out_fprefix);
+  if ( ref_vid < NumVariants) { 
+    filename = out_fprefix + "-speedup.csv";
+    writeCSVReport(filename, CSVRepMode::Speedup);
+  }
 
-  writeChecksumReport(out_fprefix);
+#if 0
+  filename = out_fprefix + "-checksum.txt";
+  writeChecksumReport(filename);
+
+  filename = out_fprefix + "-fom.csv";
+  writeReport(filename, CSVRepMode::FOM);
+#endif
 }
 
-void Executor::processRunData()
-{
-}
 
-void Executor::writeTimingReport(const string& out_fprefix)
+void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
 {
-  string fname = out_fprefix + "-timing.txt";
-
-  ofstream file(fname.c_str(), ios::out | ios::trunc);
+  ofstream file(filename.c_str(), ios::out | ios::trunc);
   if ( !file ) {
-    cout << " ERROR: Can't open output file " << fname << endl;
+    cout << " ERROR: Can't open output file " << filename << endl;
   }
 
   if ( file ) {
@@ -391,36 +395,34 @@ void Executor::writeTimingReport(const string& out_fprefix)
     //
     const string kernel_col_name("Kernel  ");
     const string sepchr(" , ");
-    unsigned prec = 12;
+    size_t prec = 12;
 
-    size_t max_kname_len = kernel_col_name.size();
+    size_t kercol_width = kernel_col_name.size();
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      max_kname_len = max(max_kname_len, 
-                          kernels[ik]->getName().size()); 
+      kercol_width = max(kercol_width, kernels[ik]->getName().size()+1); 
     }
 
-    size_t max_vname_len = prec+2;
-    for (size_t iv = 0; iv < variants.size(); ++iv) {
-      max_vname_len = max(max_vname_len, 
-                          getVariantName(variants[iv]).size()); 
+    vector<size_t> varcol_width(variant_ids.size());
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      varcol_width[iv] = max(prec+2, getVariantName(variant_ids[iv]).size()); 
     } 
 
     //
     // Print title line.
     //
-    file << "Mean Run Times ";
-    for (size_t iv = 0; iv < variants.size(); ++iv) {
+    file << getReportTitle(mode) << endl;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
       file << sepchr;
     }
     file << endl;
 
     //
-    // Print column title column line.
+    // Print column title line.
     //
-    file <<left<< setw(max_kname_len+1) << kernel_col_name;
-    for (size_t iv = 0; iv < variants.size(); ++iv) {
-      file << sepchr <<left<< setw(max_vname_len)
-           << getVariantName(variants[iv]);
+    file <<left<< setw(kercol_width) << kernel_col_name;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      file << sepchr <<left<< setw(varcol_width[iv])
+           << getVariantName(variant_ids[iv]);
     }
     file << endl;
 
@@ -428,10 +430,11 @@ void Executor::writeTimingReport(const string& out_fprefix)
     // Print row of variant run times for each kernel.
     //
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      file <<left<< setw(max_kname_len+1) << kernels[ik]->getName();
-      for (size_t iv = 0; iv < variants.size(); ++iv) {
-        file << sepchr <<left<< setw(max_vname_len)
-             << setprecision(prec) << 0.0;
+      file <<left<< setw(kercol_width) << kernels[ik]->getName();
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = static_cast<VariantID>(iv);
+        file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
+             << getReportDataEntry(mode, kernels[ik], vid);
       }
       file << endl;
     }
@@ -441,15 +444,53 @@ void Executor::writeTimingReport(const string& out_fprefix)
   } // note file will be closed when file stream goes out of scope
 }
 
-void Executor::writeSpeedupReport(const string& out_fprefix)
+
+string Executor::getReportTitle(CSVRepMode mode)
 {
-  string fname = out_fprefix + "-speedup.txt";
+  string title;
+  switch ( mode ) {
+    case CSVRepMode::Timing : { 
+      title = string("Mean Runtime Report "); 
+      break; 
+    }
+    case CSVRepMode::Speedup : { 
+      title = string("Speedup Report (T_ref/T_var)"); 
+      if ( ref_vid < NumVariants ) {
+        title = title + string(", ref var = ") +
+                        getVariantName(ref_vid) + string(" ");
+      }
+      break; 
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  }; 
+  return title;
 }
 
-void Executor::writeChecksumReport(const string& out_fprefix)
+long double Executor::getReportDataEntry(CSVRepMode mode,
+                                         KernelBase* kern, 
+                                         VariantID vid)
 {
-  string fname = out_fprefix + "-checksum.txt";
+  long double retval = 0.0; 
+  switch ( mode ) {
+    case CSVRepMode::Timing : { 
+      retval = kern->getTotTime(vid) / run_params.getNumPasses();
+      break; 
+    }
+    case CSVRepMode::Speedup : { 
+      if ( ref_vid < NumVariants ) {
+        long double var_time = 
+          getReportDataEntry(CSVRepMode::Timing, kern, vid);
+        long double ref_time = 
+          getReportDataEntry(CSVRepMode::Timing, kern, ref_vid);
+        retval = ref_time / var_time;
+      }
+      break; 
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  }; 
+  return retval;
 }
+
 
 
 }  // closing brace for rajaperf namespace

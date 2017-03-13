@@ -54,16 +54,23 @@ public:
 private:
   Executor() = delete;
 
-  void processRunData();
-  void writeTimingReport(const std::string& out_fprefix);
-  void writeSpeedupReport(const std::string& out_fprefix);
-  void writeChecksumReport(const std::string& out_fprefix);
+  enum CSVRepMode {
+    Timing = 0,
+    Speedup,
+
+    NumRepModes // Keep this one last and DO NOT remove (!!)
+  };
+
+  void writeCSVReport(const std::string& filename, CSVRepMode mode);
+  std::string getReportTitle(CSVRepMode mode);
+  long double getReportDataEntry(CSVRepMode mode, 
+                                 KernelBase* kern, VariantID vid);
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;  
-  std::vector<VariantID>   variants;
+  std::vector<VariantID>   variant_ids;
 
-  VariantID baseline_variant;
+  VariantID ref_vid;
 
 };
 

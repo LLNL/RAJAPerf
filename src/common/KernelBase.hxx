@@ -64,6 +64,7 @@ public:
   double getMinTime(VariantID vid) { return min_time[vid]; }
   double getMaxTime(VariantID vid) { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
+  long double getChecksum(VariantID vid) { return checksum[vid]; }
 
   void setDefaultSize(int size); 
   void setDefaultSamples(int nsamp);
