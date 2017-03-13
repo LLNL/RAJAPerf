@@ -57,6 +57,7 @@ private:
   enum CSVRepMode {
     Timing = 0,
     Speedup,
+    FOM,
 
     NumRepModes // Keep this one last and DO NOT remove (!!)
   };
@@ -65,6 +66,8 @@ private:
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 
                                  KernelBase* kern, VariantID vid);
+  
+  void writeChecksumReport(const std::string& filename);  
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;  

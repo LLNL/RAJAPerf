@@ -39,6 +39,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 
 #include <unistd.h>
 
@@ -171,16 +172,28 @@ void Executor::setupSuite()
   if ( variant_input.empty() ) {
 
     //
-    // No variants specified in input options, run them all...
+    // No variants specified in input options, run them all.
+    // Also, set reference variant if specified.
     //
     for (size_t iv = 0; iv < NumVariants; ++iv) {
-      run_var.insert( static_cast<VariantID>(iv) );
+      VariantID vid = static_cast<VariantID>(iv);
+      run_var.insert( vid );
+      if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+        ref_vid = vid;
+      }
+    }
+
+    //
+    // Set reference variant if not specified.
+    //
+    if ( run_params.getReferenceVariant().empty() ) {
+      ref_vid = VariantID::Baseline_Seq;
     }
 
   } else {
 
     //
-    // Add reference variant to run variants if valid
+    // Add reference variant to run variants if specified
     //
     for (size_t iv = 0; iv < NumVariants; ++iv) {
       VariantID vid = static_cast<VariantID>(iv);
@@ -371,13 +384,11 @@ void Executor::outputRunData()
     writeCSVReport(filename, CSVRepMode::Speedup);
   }
 
-#if 0
   filename = out_fprefix + "-checksum.txt";
   writeChecksumReport(filename);
 
   filename = out_fprefix + "-fom.csv";
-  writeReport(filename, CSVRepMode::FOM);
-#endif
+  writeCSVReport(filename, CSVRepMode::FOM);
 }
 
 
@@ -399,8 +410,9 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
 
     size_t kercol_width = kernel_col_name.size();
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      kercol_width = max(kercol_width, kernels[ik]->getName().size()+1); 
+      kercol_width = max(kercol_width, kernels[ik]->getName().size()); 
     }
+    kercol_width++;
 
     vector<size_t> varcol_width(variant_ids.size());
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
@@ -410,33 +422,43 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     //
     // Print title line.
     //
-    file << getReportTitle(mode) << endl;
-    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      file << sepchr;
-    }
-    file << endl;
+    file << getReportTitle(mode);
 
-    //
-    // Print column title line.
-    //
-    file <<left<< setw(kercol_width) << kernel_col_name;
-    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      file << sepchr <<left<< setw(varcol_width[iv])
-           << getVariantName(variant_ids[iv]);
-    }
-    file << endl;
+    if ( mode == CSVRepMode::Timing ||
+         mode == CSVRepMode::Speedup ) {
 
-    //
-    // Print row of variant run times for each kernel.
-    //
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      file <<left<< setw(kercol_width) << kernels[ik]->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        VariantID vid = static_cast<VariantID>(iv);
-        file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
-             << getReportDataEntry(mode, kernels[ik], vid);
+        file << sepchr;
       }
       file << endl;
+
+      //
+      // Print column title line.
+      //
+      file <<left<< setw(kercol_width) << kernel_col_name;
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        file << sepchr <<left<< setw(varcol_width[iv])
+             << getVariantName(variant_ids[iv]);
+      }
+      file << endl;
+
+      //
+      // Print row of data for each kernel.
+      //
+      for (size_t ik = 0; ik < kernels.size(); ++ik) {
+        file <<left<< setw(kercol_width) << kernels[ik]->getName();
+        for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+          VariantID vid = static_cast<VariantID>(iv);
+          file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
+               << getReportDataEntry(mode, kernels[ik], vid);
+        }
+        file << endl;
+      }
+
+    } else if (mode == CSVRepMode::FOM ) {
+
+    } else {
+      cout << "\n Unknown CSV report mode = " << mode << endl;
     }
 
     file.flush(); 
@@ -456,10 +478,14 @@ string Executor::getReportTitle(CSVRepMode mode)
     case CSVRepMode::Speedup : { 
       title = string("Speedup Report (T_ref/T_var)"); 
       if ( ref_vid < NumVariants ) {
-        title = title + string(", ref var = ") +
+        title = title + string(": ref var = ") +
                         getVariantName(ref_vid) + string(" ");
       }
       break; 
+    }
+    case CSVRepMode::FOM : {
+      title = string("FOM Report (% diff - RAJA vs. baseline)");
+      break;
     }
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
   }; 
@@ -486,11 +512,96 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       }
       break; 
     }
+    case CSVRepMode::FOM : {
+      // empty case to quiet compiler warnings
+      break;
+    }
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
   }; 
   return retval;
 }
 
+
+void Executor::writeChecksumReport(const string& filename)
+{
+  ofstream file(filename.c_str(), ios::out | ios::trunc);
+  if ( !file ) {
+    cout << " ERROR: Can't open output file " << filename << endl;
+  }
+
+  if ( file ) {
+
+    //
+    // Set basic table formatting parameters.
+    //
+    const string equal_line("===================================================================================================");
+    const string dash_line("----------------------------------------------------------------------------------------------------");
+    const string dash_line_short("-------------------------------------------------------");
+    string dot_line("........................................................");
+
+    size_t prec = 24;
+    size_t checksum_width = prec + 4;
+
+    size_t namecol_width = 0;
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      namecol_width = max(namecol_width, kernels[ik]->getName().size()); 
+    }
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      namecol_width = max(namecol_width, 
+                          getVariantName(variant_ids[iv]).size()); 
+    }
+    namecol_width++;
+
+
+    //
+    // Print title.
+    //
+    file << equal_line << endl;
+    file << "Checksum Report " << endl;
+    file << equal_line << endl;
+
+    //
+    // Print column title line.
+    //
+    file <<left<< setw(namecol_width) << "Kernel  " << endl;
+    file << dot_line << endl;
+    file <<left<< setw(namecol_width) << "Variants  " 
+         <<left<< setw(checksum_width) << "Checksum  " 
+         <<left<< setw(checksum_width) << "Max Checksum Diff  " << endl; 
+    file << endl;
+    file << dash_line << endl;
+
+    //
+    // Print checksum and max diff for each kernel variant.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      file <<left<< setw(namecol_width) << kernels[ik]->getName() << endl;
+      file << dot_line << endl;
+
+      long double max_diff = 0.0;
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = static_cast<VariantID>(iv);
+        long double cksum_ref = kernels[ik]->getChecksum(vid);
+        for (size_t iv2 = 0; iv2 < variant_ids.size(); ++iv2) {
+          VariantID vid2 = static_cast<VariantID>(iv2);
+          max_diff = max(max_diff, 
+                         fabs(cksum_ref - kernels[ik]->getChecksum(vid2)) );
+        }
+
+        file <<left<< setw(namecol_width) << getVariantName(vid)
+             << showpoint << setprecision(prec) 
+             <<left<< setw(checksum_width) << cksum_ref
+             <<left<< setw(checksum_width) << max_diff << endl;
+      }
+
+      file << endl;
+      file << dash_line_short << endl;
+    }
+    
+    file.flush(); 
+
+  } // note file will be closed when file stream goes out of scope
+}
 
 
 }  // closing brace for rajaperf namespace
