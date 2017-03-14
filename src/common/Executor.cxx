@@ -31,7 +31,6 @@
 #include "common/OutputUtils.hxx"
 
 #include <list>
-#include <set>
 #include <vector>
 #include <string>
 
@@ -50,7 +49,7 @@ using namespace std;
 
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
-    ref_vid(NumVariants)
+    reference_vid(NumVariants)
 {
 }
 
@@ -179,7 +178,7 @@ void Executor::setupSuite()
       VariantID vid = static_cast<VariantID>(iv);
       run_var.insert( vid );
       if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-        ref_vid = vid;
+        reference_vid = vid;
       }
     }
 
@@ -187,7 +186,7 @@ void Executor::setupSuite()
     // Set reference variant if not specified.
     //
     if ( run_params.getReferenceVariant().empty() ) {
-      ref_vid = VariantID::Baseline_Seq;
+      reference_vid = VariantID::Baseline_Seq;
     }
 
   } else {
@@ -199,7 +198,7 @@ void Executor::setupSuite()
       VariantID vid = static_cast<VariantID>(iv);
       if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
         run_var.insert(vid);
-        ref_vid = vid; 
+        reference_vid = vid; 
       }
     }
 
@@ -379,7 +378,7 @@ void Executor::outputRunData()
   string filename = out_fprefix + "-timing.csv";
   writeCSVReport(filename, CSVRepMode::Timing);
 
-  if ( ref_vid < NumVariants) { 
+  if ( reference_vid < NumVariants) { 
     filename = out_fprefix + "-speedup.csv";
     writeCSVReport(filename, CSVRepMode::Speedup);
   }
@@ -394,6 +393,14 @@ void Executor::outputRunData()
 
 void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
 {
+  set<VIDpair> fom_pairs; 
+  if ( mode == CSVRepMode::FOM ) {
+    getFOMPairs(fom_pairs);
+    if (fom_pairs.empty() ) {
+      return;
+    }
+  }
+
   ofstream file(filename.c_str(), ios::out | ios::trunc);
   if ( !file ) {
     cout << " ERROR: Can't open output file " << filename << endl;
@@ -427,6 +434,10 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     if ( mode == CSVRepMode::Timing ||
          mode == CSVRepMode::Speedup ) {
 
+      //
+      // Wrtie CSV file contents for Timing or Speedup report.
+      // 
+
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         file << sepchr;
       }
@@ -443,7 +454,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
       file << endl;
 
       //
-      // Print row of data for each kernel.
+      // Print row of data for variants of each kernel.
       //
       for (size_t ik = 0; ik < kernels.size(); ++ik) {
         file <<left<< setw(kercol_width) << kernels[ik]->getName();
@@ -456,6 +467,135 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
       }
 
     } else if (mode == CSVRepMode::FOM ) {
+
+      //
+      // Write CSV file contents for FOM report.
+      // 
+
+      size_t fom_col_width = prec+8;
+      vector<double> col_min(fom_pairs.size(), numeric_limits<double>::max());
+      vector<double> col_max(fom_pairs.size(), -numeric_limits<double>::max());
+      vector<double> col_avg(fom_pairs.size(), 0.0);
+      vector<double> col_dev(fom_pairs.size(), 0.0);
+      vector< vector<double> > pct_diff(kernels.size());
+      for (size_t ik = 0; ik < kernels.size(); ++ik) {
+        pct_diff[ik] = vector<double>(fom_pairs.size(), 0.0);
+      }
+
+      for (size_t iv = 0; iv < fom_pairs.size(); ++iv) {
+        file << sepchr;
+      }
+      file << endl;
+
+      //
+      // Print column title line.
+      //
+      file <<left<< setw(kercol_width) << kernel_col_name;
+      for (set<VIDpair>::iterator p = fom_pairs.begin();
+           p != fom_pairs.end(); ++p) {
+
+        VariantID base_vid = (*p).first;
+
+        string base_vname = getVariantName(base_vid);
+        string::size_type pos = base_vname.find("-");
+        string pm(base_vname.substr(pos+1, string::npos));
+
+        file << sepchr <<left<< setw(fom_col_width) << pm;
+
+      }
+      file << endl;
+
+      //
+      // Print row of FOM data for each kernel.
+      //
+      for (size_t ik = 0; ik < kernels.size(); ++ik) {
+        file <<left<< setw(kercol_width) << kernels[ik]->getName();
+       
+        int col = 0;
+        for (set<VIDpair>::iterator p = fom_pairs.begin();
+             p != fom_pairs.end(); ++p) {
+
+          VariantID base_vid = (*p).first;
+          VariantID raja_vid = (*p).second;
+
+          KernelBase* kern = kernels[ik];          
+          pct_diff[ik][col] = 
+            (kern->getTotTime(raja_vid) - kern->getTotTime(base_vid)) /
+               kern->getTotTime(base_vid);
+
+          file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+               << pct_diff[ik][col];
+
+          //
+          // Gather data for column summaries. 
+          //  
+          col_min[col] = min( col_min[col], fabs(pct_diff[ik][col]) );
+          col_max[col] = max( col_max[col], fabs(pct_diff[ik][col]) );
+          col_avg[col] += fabs(pct_diff[ik][col]);
+
+          col++;
+        }
+        file << endl;
+
+      } // loop over kernels
+
+
+      // 
+      // Compute remaining column summary information.
+      // 
+
+      // Column average...
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        col_avg[col] /= kernels.size();
+      } 
+
+      // Column standard deviaation...
+      for (size_t ik = 0; ik < kernels.size(); ++ik) {
+        for (int col = 0; col < fom_pairs.size(); ++col) {
+          col_dev[col] += ( fabs(pct_diff[ik][col]) - col_avg[col] ) *
+                          ( fabs(pct_diff[ik][col]) - col_avg[col] );
+        }
+      }
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        col_dev[col] /= kernels.size();
+      }
+
+      // 
+      // Print column summaries.
+      // 
+      file << sepchr;
+      for (size_t iv = 0; iv < fom_pairs.size(); ++iv) {
+        file << sepchr;
+      }
+      file << endl;
+
+      file <<left<< setw(kercol_width) << "Col. Min";
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+             << col_min[col];
+      }
+      file << endl;
+
+      file <<left<< setw(kercol_width) << "Col. Max";
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+             << col_max[col];
+      }
+      file << endl;
+
+      file <<left<< setw(kercol_width) << "Col. Avg";
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+             << col_avg[col];
+      }
+      file << endl;
+
+      file <<left<< setw(kercol_width) << "Col. Stddev";
+      for (int col = 0; col < fom_pairs.size(); ++col) {
+        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+             << col_dev[col];
+      }
+      file << endl;
 
     } else {
       cout << "\n Unknown CSV report mode = " << mode << endl;
@@ -477,14 +617,14 @@ string Executor::getReportTitle(CSVRepMode mode)
     }
     case CSVRepMode::Speedup : { 
       title = string("Speedup Report (T_ref/T_var)"); 
-      if ( ref_vid < NumVariants ) {
+      if ( reference_vid < NumVariants ) {
         title = title + string(": ref var = ") +
-                        getVariantName(ref_vid) + string(" ");
+                        getVariantName(reference_vid) + string(" ");
       }
       break; 
     }
     case CSVRepMode::FOM : {
-      title = string("FOM Report (% diff - RAJA vs. baseline)");
+      title = string("FOM Report (% timing difference RAJA vs. baseline)");
       break;
     }
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
@@ -503,11 +643,11 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       break; 
     }
     case CSVRepMode::Speedup : { 
-      if ( ref_vid < NumVariants ) {
+      if ( reference_vid < NumVariants ) {
         long double var_time = 
           getReportDataEntry(CSVRepMode::Timing, kern, vid);
         long double ref_time = 
-          getReportDataEntry(CSVRepMode::Timing, kern, ref_vid);
+          getReportDataEntry(CSVRepMode::Timing, kern, reference_vid);
         retval = ref_time / var_time;
       }
       break; 
@@ -519,6 +659,33 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
   }; 
   return retval;
+}
+
+void Executor::getFOMPairs(set<VIDpair>& fom_pairs)
+{
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    VariantID vid = variant_ids[iv];
+    string vname = getVariantName(vid);
+
+    if ( vname.find("Baseline") != string::npos ) {
+      string::size_type pos = vname.find("_");
+      string pm(vname.substr(pos+1, string::npos));
+
+      size_t ivs = iv+1;
+      bool found_match = false;
+      while ( ivs < variant_ids.size() && !found_match ) {
+        VariantID vids = variant_ids[ivs];
+        if ( getVariantName(vids).find(pm) != string::npos ) {
+          found_match = true; 
+          VIDpair match(vid, vids);
+          fom_pairs.insert( match );
+        }
+        ivs++;
+      }
+
+    }  // if variant name contains 'Baseline'
+
+  }  // iterate over variant ids to run
 }
 
 

@@ -31,6 +31,8 @@
 #include "common/RunParams.hxx"
 
 #include <iosfwd>
+#include <utility>
+#include <set>
 
 namespace rajaperf {
 
@@ -62,10 +64,13 @@ private:
     NumRepModes // Keep this one last and DO NOT remove (!!)
   };
 
+  typedef std::pair<VariantID, VariantID> VIDpair;
+
   void writeCSVReport(const std::string& filename, CSVRepMode mode);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 
                                  KernelBase* kern, VariantID vid);
+  void getFOMPairs(std::set<VIDpair>& fom_pairs);
   
   void writeChecksumReport(const std::string& filename);  
 
@@ -73,7 +78,7 @@ private:
   std::vector<KernelBase*> kernels;  
   std::vector<VariantID>   variant_ids;
 
-  VariantID ref_vid;
+  VariantID reference_vid;
 
 };
 
