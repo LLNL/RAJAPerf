@@ -140,7 +140,7 @@ void IF_QUAD::runKernel(VariantID vid)
   }
 }
 
-void IF_QUAD::computeChecksum(VariantID vid)
+void IF_QUAD::updateChecksum(VariantID vid)
 {
   // Overloaded methods in common to update checksum based on type
 }

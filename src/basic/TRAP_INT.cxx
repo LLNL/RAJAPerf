@@ -139,7 +139,7 @@ void TRAP_INT::runKernel(VariantID vid)
   }
 }
 
-void TRAP_INT::computeChecksum(VariantID vid)
+void TRAP_INT::updateChecksum(VariantID vid)
 {
   // Overloaded methods in common to update checksum based on type
 }

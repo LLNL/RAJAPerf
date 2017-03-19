@@ -27,6 +27,7 @@
 #include "KernelBase.hxx"
 
 #include "RunParams.hxx"
+#include "DataUtils.hxx"
 
 namespace rajaperf {
 
@@ -70,11 +71,12 @@ void KernelBase::execute(VariantID vid)
 {
   running_variant = vid;
 
+  resetDataInitCount();
   this->setUp(vid);
   
   this->runKernel(vid); 
 
-  this->computeChecksum(vid); 
+  this->updateChecksum(vid); 
 
   this->tearDown(vid);
 

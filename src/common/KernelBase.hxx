@@ -78,7 +78,7 @@ public:
 
   virtual void setUp(VariantID vid) = 0;
   virtual void runKernel(VariantID vid) = 0;
-  virtual void computeChecksum(VariantID vid) = 0;
+  virtual void updateChecksum(VariantID vid) = 0;
   virtual void tearDown(VariantID vid) = 0;
 
 protected:

@@ -158,7 +158,7 @@ void MULADDSUB::runKernel(VariantID vid)
   }
 }
 
-void MULADDSUB::computeChecksum(VariantID vid)
+void MULADDSUB::updateChecksum(VariantID vid)
 {
   // Overloaded methods in common to update checksum based on type
   //updateChksum(checksum[vid], run_size, m_out1);

@@ -60,8 +60,8 @@ namespace apps
 PRESSURE_CALC::PRESSURE_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE_CALC, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(10000);
+  setDefaultSize(100000);
+  setDefaultSamples(10000);
 }
 
 PRESSURE_CALC::~PRESSURE_CALC() 
@@ -74,11 +74,11 @@ PRESSURE_CALC::~PRESSURE_CALC()
 //
 void PRESSURE_CALC::setUp(VariantID vid)
 {
-  allocAndInitAligned(m_compression, getRunSize(), vid);
-  allocAndInitAligned(m_bvc, getRunSize(), vid);
-  allocAndInitAligned(m_p_new, getRunSize(), vid);
-  allocAndInitAligned(m_e_old, getRunSize(), vid);
-  allocAndInitAligned(m_vnewc, getRunSize(), vid);
+  allocAndInitAligned(m_compression, getRunSize());
+  allocAndInitAligned(m_bvc, getRunSize());
+  allocAndInitAligned(m_p_new, getRunSize());
+  allocAndInitAligned(m_e_old, getRunSize());
+  allocAndInitAligned(m_vnewc, getRunSize());
   
   initData(m_cls);
   initData(m_p_cut);
@@ -104,6 +104,7 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         for (RAJA::Index_type i = 0; i < run_size; ++i ) {
           PRESSURE_CALC_BODY1(i);
         }
+
         for (RAJA::Index_type i = 0; i < run_size; ++i ) {
           PRESSURE_CALC_BODY2(i);
         }
@@ -234,12 +235,11 @@ void PRESSURE_CALC::runKernel(VariantID vid)
   }
 }
 
-void PRESSURE_CALC::computeChecksum(VariantID vid)
+void PRESSURE_CALC::updateChecksum(VariantID vid)
 {
-  // Overloaded methods in common to update checksum based on type
-  //updateChksum(checksum[vid], run_size, m_out1);
-  //updateChksum(checksum[vid], run_size, m_out2);
-  //updateChksum(checksum[vid], run_size, m_out3);
+#if 0
+  checksum[vid] += calcChecksum(m_p_new, getRunSize());
+#endif
 }
 
 void PRESSURE_CALC::tearDown(VariantID vid)

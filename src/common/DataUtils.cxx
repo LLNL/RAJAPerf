@@ -32,7 +32,16 @@ namespace rajaperf
 static int data_init_count = 0;
 
 /*
- * Allocate and initialize 1D data array.
+ * Reset counter for data initialization.
+ */
+void resetDataInitCount()
+{
+  data_init_count = 0;
+}
+
+
+/*
+ * Allocate and initialize data array.
  */
 void allocAndInitAligned(RAJA::Real_ptr ptr, int len, VariantID vid)
 {
@@ -44,7 +53,7 @@ void allocAndInitAligned(RAJA::Real_ptr ptr, int len, VariantID vid)
 
 
 /*
- * Initialize 1D data array.
+ * Initialize data array.
  */
 void initData(RAJA::Real_ptr ptr, int len, VariantID vid) 
 {
@@ -59,15 +68,31 @@ void initData(RAJA::Real_ptr ptr, int len, VariantID vid)
   data_init_count++;
 }
 
-/*!
- * \brief Initialize scalar data.
+/*
+ * Initialize scalar data.
  */
-void initData(RAJA::Real_type& d)
+void initData(RAJA::Real_type& d, VariantID vid)
 {
+  (void) vid;
+
   RAJA::Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
   d = factor*1.1/1.12345;
 
   data_init_count++;
 }
+
+
+/*
+ * Calculate and return checksum for data array.
+ */
+long double calcChecksum(RAJA::Real_ptr ptr, int len, 
+                        RAJA::Real_type scale_factor)
+{
+  long double tchk = 0.0;
+  for (RAJA::Index_type j = 0; j < len; ++j) {
+    tchk += (j+1)*ptr[j]*scale_factor;
+  }
+}
+
 
 }  // closing brace for rajaperf namespace

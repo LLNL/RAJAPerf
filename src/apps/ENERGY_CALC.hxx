@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Basic kernel MULADDSUB.
+ * \brief   Header file for kernel ENERGY_CALC.
  *
  ******************************************************************************
  */
@@ -24,26 +24,27 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_MULADDSUB_HXX
-#define RAJAPerf_Basic_MULADDSUB_HXX
+#ifndef RAJAPerf_Apps_ENERGY_CALC_HXX
+#define RAJAPerf_Apps_ENERGY_CALC_HXX
 
 #include "common/KernelBase.hxx"
+
 #include "RAJA/RAJA.hxx"
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace basic
+namespace apps
 {
 
-class MULADDSUB : public KernelBase
+class ENERGY_CALC : public KernelBase
 {
 public:
 
-  MULADDSUB(const RunParams& params);
+  ENERGY_CALC(const RunParams& params);
 
-  ~MULADDSUB();
+  ~ENERGY_CALC();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -51,14 +52,29 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  RAJA::Real_ptr m_out1;
-  RAJA::Real_ptr m_out2;
-  RAJA::Real_ptr m_out3;
-  RAJA::Real_ptr m_in1;
-  RAJA::Real_ptr m_in2; 
+  RAJA::Real_ptr m_e_new;
+  RAJA::Real_ptr m_e_old;
+  RAJA::Real_ptr m_delvc;
+  RAJA::Real_ptr m_p_new;
+  RAJA::Real_ptr m_p_old; 
+  RAJA::Real_ptr m_q_new; 
+  RAJA::Real_ptr m_q_old; 
+  RAJA::Real_ptr m_work; 
+  RAJA::Real_ptr m_compHalfStep; 
+  RAJA::Real_ptr m_pHalfStep; 
+  RAJA::Real_ptr m_bvc; 
+  RAJA::Real_ptr m_pbvc; 
+  RAJA::Real_ptr m_ql_old; 
+  RAJA::Real_ptr m_qq_old; 
+  RAJA::Real_ptr m_vnewc; 
+
+  RAJA::Real_type m_rho0;
+  RAJA::Real_type m_e_cut;
+  RAJA::Real_type m_emin;
+  RAJA::Real_type m_q_cut;
 };
 
-} // end namespace basic
+} // end namespace apps
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard
