@@ -59,21 +59,25 @@ private:
   enum CSVRepMode {
     Timing = 0,
     Speedup,
-    FOM,
 
     NumRepModes // Keep this one last and DO NOT remove (!!)
   };
 
-  typedef std::pair<VariantID, VariantID> VIDpair;
+  struct FOMGroup {
+    VariantID baseline;
+    std::vector<VariantID> variants;
+  }; 
 
   void writeCSVReport(const std::string& filename, CSVRepMode mode);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 
                                  KernelBase* kern, VariantID vid);
-  void getFOMPairs(std::set<VIDpair>& fom_pairs);
-  
+
   void writeChecksumReport(const std::string& filename);  
 
+  void writeFOMReport(const std::string& filename);
+  void getFOMGroups(std::vector<FOMGroup>& fom_groups);
+  
   RunParams run_params;
   std::vector<KernelBase*> kernels;  
   std::vector<VariantID>   variant_ids;

@@ -1,4 +1,5 @@
 add_library(common
+  DataUtils.cxx
   Executor.cxx
   KernelBase.cxx
   OutputUtils.cxx

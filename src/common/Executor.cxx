@@ -72,7 +72,6 @@ void Executor::setupSuite()
 
   typedef list<string> Slist;
   typedef vector<string> Svector;
-  typedef set<string> Sset;
   typedef set<KernelID> KIDset;
   typedef set<VariantID> VIDset;
 
@@ -387,20 +386,12 @@ void Executor::outputRunData()
   writeChecksumReport(filename);
 
   filename = out_fprefix + "-fom.csv";
-  writeCSVReport(filename, CSVRepMode::FOM);
+  writeFOMReport(filename);
 }
 
 
 void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
 {
-  set<VIDpair> fom_pairs; 
-  if ( mode == CSVRepMode::FOM ) {
-    getFOMPairs(fom_pairs);
-    if (fom_pairs.empty() ) {
-      return;
-    }
-  }
-
   ofstream file(filename.c_str(), ios::out | ios::trunc);
   if ( !file ) {
     cout << " ERROR: Can't open output file " << filename << endl;
@@ -431,174 +422,36 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     //
     file << getReportTitle(mode);
 
-    if ( mode == CSVRepMode::Timing ||
-         mode == CSVRepMode::Speedup ) {
+    //
+    // Wrtie CSV file contents for report.
+    // 
 
-      //
-      // Wrtie CSV file contents for Timing or Speedup report.
-      // 
-
-      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        file << sepchr;
-      }
-      file << endl;
-
-      //
-      // Print column title line.
-      //
-      file <<left<< setw(kercol_width) << kernel_col_name;
-      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        file << sepchr <<left<< setw(varcol_width[iv])
-             << getVariantName(variant_ids[iv]);
-      }
-      file << endl;
-
-      //
-      // Print row of data for variants of each kernel.
-      //
-      for (size_t ik = 0; ik < kernels.size(); ++ik) {
-        file <<left<< setw(kercol_width) << kernels[ik]->getName();
-        for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-          VariantID vid = static_cast<VariantID>(iv);
-          file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
-               << getReportDataEntry(mode, kernels[ik], vid);
-        }
-        file << endl;
-      }
-
-    } else if (mode == CSVRepMode::FOM ) {
-
-      //
-      // Write CSV file contents for FOM report.
-      // 
-
-      size_t fom_col_width = prec+8;
-      vector<double> col_min(fom_pairs.size(), numeric_limits<double>::max());
-      vector<double> col_max(fom_pairs.size(), -numeric_limits<double>::max());
-      vector<double> col_avg(fom_pairs.size(), 0.0);
-      vector<double> col_dev(fom_pairs.size(), 0.0);
-      vector< vector<double> > pct_diff(kernels.size());
-      for (size_t ik = 0; ik < kernels.size(); ++ik) {
-        pct_diff[ik] = vector<double>(fom_pairs.size(), 0.0);
-      }
-
-      for (size_t iv = 0; iv < fom_pairs.size(); ++iv) {
-        file << sepchr;
-      }
-      file << endl;
-
-      //
-      // Print column title line.
-      //
-      file <<left<< setw(kercol_width) << kernel_col_name;
-      for (set<VIDpair>::iterator p = fom_pairs.begin();
-           p != fom_pairs.end(); ++p) {
-
-        VariantID base_vid = (*p).first;
-
-        string base_vname = getVariantName(base_vid);
-        string::size_type pos = base_vname.find("-");
-        string pm(base_vname.substr(pos+1, string::npos));
-
-        file << sepchr <<left<< setw(fom_col_width) << pm;
-
-      }
-      file << endl;
-
-      //
-      // Print row of FOM data for each kernel.
-      //
-      for (size_t ik = 0; ik < kernels.size(); ++ik) {
-        file <<left<< setw(kercol_width) << kernels[ik]->getName();
-       
-        int col = 0;
-        for (set<VIDpair>::iterator p = fom_pairs.begin();
-             p != fom_pairs.end(); ++p) {
-
-          VariantID base_vid = (*p).first;
-          VariantID raja_vid = (*p).second;
-
-          KernelBase* kern = kernels[ik];          
-          pct_diff[ik][col] = 
-            (kern->getTotTime(raja_vid) - kern->getTotTime(base_vid)) /
-               kern->getTotTime(base_vid);
-
-          file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-               << pct_diff[ik][col];
-
-          //
-          // Gather data for column summaries. 
-          //  
-          col_min[col] = min( col_min[col], fabs(pct_diff[ik][col]) );
-          col_max[col] = max( col_max[col], fabs(pct_diff[ik][col]) );
-          col_avg[col] += fabs(pct_diff[ik][col]);
-
-          col++;
-        }
-        file << endl;
-
-      } // loop over kernels
-
-
-      // 
-      // Compute remaining column summary information.
-      // 
-
-      // Column average...
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        col_avg[col] /= kernels.size();
-      } 
-
-      // Column standard deviaation...
-      for (size_t ik = 0; ik < kernels.size(); ++ik) {
-        for (int col = 0; col < fom_pairs.size(); ++col) {
-          col_dev[col] += ( fabs(pct_diff[ik][col]) - col_avg[col] ) *
-                          ( fabs(pct_diff[ik][col]) - col_avg[col] );
-        }
-      }
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        col_dev[col] /= kernels.size();
-      }
-
-      // 
-      // Print column summaries.
-      // 
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
       file << sepchr;
-      for (size_t iv = 0; iv < fom_pairs.size(); ++iv) {
-        file << sepchr;
+    }
+    file << endl;
+
+    //
+    // Print column title line.
+    //
+    file <<left<< setw(kercol_width) << kernel_col_name;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      file << sepchr <<left<< setw(varcol_width[iv])
+           << getVariantName(variant_ids[iv]);
+    }
+    file << endl;
+
+    //
+    // Print row of data for variants of each kernel.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      file <<left<< setw(kercol_width) << kernels[ik]->getName();
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+        file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
+             << getReportDataEntry(mode, kernels[ik], vid);
       }
       file << endl;
-
-      file <<left<< setw(kercol_width) << "Col. Min";
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-             << col_min[col];
-      }
-      file << endl;
-
-      file <<left<< setw(kercol_width) << "Col. Max";
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-             << col_max[col];
-      }
-      file << endl;
-
-      file <<left<< setw(kercol_width) << "Col. Avg";
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-             << col_avg[col];
-      }
-      file << endl;
-
-      file <<left<< setw(kercol_width) << "Col. Stddev";
-      for (int col = 0; col < fom_pairs.size(); ++col) {
-        file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-             << col_dev[col];
-      }
-      file << endl;
-
-    } else {
-      cout << "\n Unknown CSV report mode = " << mode << endl;
     }
 
     file.flush(); 
@@ -607,85 +460,218 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
 }
 
 
-string Executor::getReportTitle(CSVRepMode mode)
+void Executor::writeFOMReport(const string& filename)
 {
-  string title;
-  switch ( mode ) {
-    case CSVRepMode::Timing : { 
-      title = string("Mean Runtime Report "); 
-      break; 
+  vector<FOMGroup> fom_groups; 
+  getFOMGroups(fom_groups);
+  if (fom_groups.empty() ) {
+    return;
+  }
+
+  ofstream file(filename.c_str(), ios::out | ios::trunc);
+  if ( !file ) {
+    cout << " ERROR: Can't open output file " << filename << endl;
+  }
+
+  if ( file ) {
+
+    //
+    // Set basic table formatting parameters.
+    //
+    const string kernel_col_name("Kernel  ");
+    const string sepchr(" , ");
+    size_t prec = 16;
+
+    size_t kercol_width = kernel_col_name.size();
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      kercol_width = max(kercol_width, kernels[ik]->getName().size()); 
     }
-    case CSVRepMode::Speedup : { 
-      title = string("Speedup Report (T_ref/T_var)"); 
-      if ( reference_vid < NumVariants ) {
-        title = title + string(": ref var = ") +
-                        getVariantName(reference_vid) + string(" ");
+    kercol_width++;
+
+    size_t fom_col_width = prec+8;
+
+    size_t ncols = 0;
+    for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+      const FOMGroup& group = fom_groups[ifg];
+      ncols += group.variants.size(); // num variants to compare 
+                                                // to each PM baseline
+    }
+
+    vector<int> col_exec_count(ncols, 0);
+    vector<double> col_min(ncols, numeric_limits<double>::max());
+    vector<double> col_max(ncols, -numeric_limits<double>::max());
+    vector<double> col_avg(ncols, 0.0);
+    vector<double> col_stddev(ncols, 0.0);
+    vector< vector<double> > pct_diff(kernels.size());
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      pct_diff[ik] = vector<double>(ncols, 0.0);
+    }
+
+    //
+    // Print title line.
+    //
+    file << "FOM Report (% timing diff: RAJA variant vs. PM baseline)";
+    for (size_t iv = 0; iv < ncols; ++iv) {
+      file << sepchr;
+    }
+    file << endl;
+
+    //
+    // Print column title line.
+    //
+    file <<left<< setw(kercol_width) << kernel_col_name;
+    for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+      const FOMGroup& group = fom_groups[ifg];
+      for (size_t gv = 0; gv < group.variants.size(); ++gv) {
+        string name = getVariantName(group.variants[gv]);
+        file << sepchr <<left<< setw(fom_col_width) << name; 
+      } 
+    }
+    file << endl;
+
+
+    //
+    // Write CSV file contents for FOM report.
+    // 
+
+    //
+    // Print row of FOM data for each kernel.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];          
+
+      file <<left<< setw(kercol_width) << kern->getName();
+     
+      int col = 0;
+      for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+        const FOMGroup& group = fom_groups[ifg];
+
+        VariantID base_vid = group.baseline;
+
+        for (size_t gv = 0; gv < group.variants.size(); ++gv) {
+          VariantID comp_vid = group.variants[gv];
+
+          //
+          // If kernel variant was run, generate data for it and
+          // print (signed) percentage difference from baseline.
+          // 
+          if ( kern->getTotTime(comp_vid) > 0.0 ) {
+            col_exec_count[col]++;
+
+            pct_diff[ik][col] = 100.0 * 
+              (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
+               kern->getTotTime(base_vid);
+
+            file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+                 << pct_diff[ik][col]; 
+
+            //
+            // Gather data for column summaries (unsigned).
+            //  
+            col_min[col] = min( col_min[col], fabs(pct_diff[ik][col]) );
+            col_max[col] = max( col_max[col], fabs(pct_diff[ik][col]) );
+            col_avg[col] += fabs(pct_diff[ik][col]);
+
+          } else {  // variant was not run, print a big fat goose egg...
+
+            file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+                 << 0.0;
+
+          }
+
+          col++;
+
+        }  // loop over group variants
+
+      }  // loop over fom_groups (i.e., columns)
+
+      file << endl;
+
+    } // loop over kernels
+
+
+    // 
+    // Compute column summary data.
+    // 
+
+    // Column average...
+    for (size_t col = 0; col < ncols; ++col) {
+      if ( col_exec_count[col] > 0 ) {
+        col_avg[col] /= col_exec_count[col];
+      } else {
+        col_avg[col] = 0.0;
       }
-      break; 
-    }
-    case CSVRepMode::FOM : {
-      title = string("FOM Report (% timing difference RAJA vs. baseline)");
-      break;
-    }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
-  }; 
-  return title;
-}
+    } 
 
-long double Executor::getReportDataEntry(CSVRepMode mode,
-                                         KernelBase* kern, 
-                                         VariantID vid)
-{
-  long double retval = 0.0; 
-  switch ( mode ) {
-    case CSVRepMode::Timing : { 
-      retval = kern->getTotTime(vid) / run_params.getNumPasses();
-      break; 
-    }
-    case CSVRepMode::Speedup : { 
-      if ( reference_vid < NumVariants ) {
-        long double var_time = 
-          getReportDataEntry(CSVRepMode::Timing, kern, vid);
-        long double ref_time = 
-          getReportDataEntry(CSVRepMode::Timing, kern, reference_vid);
-        retval = ref_time / var_time;
-      }
-      break; 
-    }
-    case CSVRepMode::FOM : {
-      // empty case to quiet compiler warnings
-      break;
-    }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
-  }; 
-  return retval;
-}
+    // Column standard deviaation...
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];          
 
-void Executor::getFOMPairs(set<VIDpair>& fom_pairs)
-{
-  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-    VariantID vid = variant_ids[iv];
-    string vname = getVariantName(vid);
+      int col = 0;
+      for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+        const FOMGroup& group = fom_groups[ifg];
 
-    if ( vname.find("Baseline") != string::npos ) {
-      string::size_type pos = vname.find("_");
-      string pm(vname.substr(pos+1, string::npos));
+        for (size_t gv = 0; gv < group.variants.size(); ++gv) {
+          VariantID comp_vid = group.variants[gv];
 
-      size_t ivs = iv+1;
-      bool found_match = false;
-      while ( ivs < variant_ids.size() && !found_match ) {
-        VariantID vids = variant_ids[ivs];
-        if ( getVariantName(vids).find(pm) != string::npos ) {
-          found_match = true; 
-          VIDpair match(vid, vids);
-          fom_pairs.insert( match );
+          if ( kern->getTotTime(comp_vid) > 0.0 ) {
+            col_stddev[col] += ( fabs(pct_diff[ik][col]) - col_avg[col] ) *
+                               ( fabs(pct_diff[ik][col]) - col_avg[col] );
+          } 
         }
-        ivs++;
+
+      }  // loop over group variants
+
+    }  // loop over kernels
+ 
+    for (size_t col = 0; col < ncols; ++col) {
+      if ( col_exec_count[col] > 0 ) {
+        col_stddev[col] /= col_exec_count[col];
+      } else {
+        col_stddev[col] = 0.0;
       }
+    }
 
-    }  // if variant name contains 'Baseline'
+    // 
+    // Print column summaries.
+    // 
+    file <<left<< setw(kercol_width) << " ";
+    for (size_t iv = 0; iv < ncols; ++iv) {
+      file << sepchr <<left<< setw(fom_col_width) << " ";
+    }
+    file << endl;
 
-  }  // iterate over variant ids to run
+    file <<left<< setw(kercol_width) << "Col Min";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+           << col_min[col];
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Max";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+           << col_max[col];
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Avg";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+           << col_avg[col];
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Std Dev";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
+           << col_stddev[col];
+    }
+    file << endl;
+
+    file.flush(); 
+
+  } // note file will be closed when file stream goes out of scope
 }
 
 
@@ -734,31 +720,41 @@ void Executor::writeChecksumReport(const string& filename)
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  " 
          <<left<< setw(checksum_width) << "Checksum  " 
-         <<left<< setw(checksum_width) << "Max Checksum Diff  " << endl; 
+         <<left<< setw(checksum_width) 
+         << "Checksum Diff (vs. first variant listed)"; 
     file << endl;
     file << dash_line << endl;
 
     //
-    // Print checksum and max diff for each kernel variant.
+    // Print checksum and diff against baseline for each kernel variant.
     //
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      file <<left<< setw(namecol_width) << kernels[ik]->getName() << endl;
+      KernelBase* kern = kernels[ik];
+
+      file <<left<< setw(namecol_width) << kern->getName() << endl;
       file << dot_line << endl;
 
-      long double max_diff = 0.0;
+      long double cksum_ref = 0.0;
+      size_t ivck = 0;
+      while ( ivck < variant_ids.size() && cksum_ref != 0.0 ) {
+        VariantID vid = variant_ids[ivck];
+        if ( kern->getTotTime(vid) > 0.0 ) {
+          cksum_ref = kern->getChecksum(vid);
+        }
+      }
+
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        VariantID vid = static_cast<VariantID>(iv);
-        long double cksum_ref = kernels[ik]->getChecksum(vid);
-        for (size_t iv2 = 0; iv2 < variant_ids.size(); ++iv2) {
-          VariantID vid2 = static_cast<VariantID>(iv2);
-          max_diff = max(max_diff, 
-                         fabs(cksum_ref - kernels[ik]->getChecksum(vid2)) );
+        VariantID vid = variant_ids[iv];
+ 
+        long double diff = 0.0;    
+        if ( kern->getTotTime(vid) > 0.0 ) {
+          diff = fabs( cksum_ref - kern->getChecksum(vid) );
         }
 
         file <<left<< setw(namecol_width) << getVariantName(vid)
              << showpoint << setprecision(prec) 
              <<left<< setw(checksum_width) << cksum_ref
-             <<left<< setw(checksum_width) << max_diff << endl;
+             <<left<< setw(checksum_width) << diff << endl;
       }
 
       file << endl;
@@ -769,6 +765,97 @@ void Executor::writeChecksumReport(const string& filename)
 
   } // note file will be closed when file stream goes out of scope
 }
+
+
+string Executor::getReportTitle(CSVRepMode mode)
+{
+  string title;
+  switch ( mode ) {
+    case CSVRepMode::Timing : { 
+      title = string("Mean Runtime Report "); 
+      break; 
+    }
+    case CSVRepMode::Speedup : { 
+      title = string("Speedup Report (T_ref/T_var)"); 
+      if ( reference_vid < NumVariants ) {
+        title = title + string(": ref var = ") +
+                        getVariantName(reference_vid) + string(" ");
+      }
+      break; 
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  }; 
+  return title;
+}
+
+long double Executor::getReportDataEntry(CSVRepMode mode,
+                                         KernelBase* kern, 
+                                         VariantID vid)
+{
+  long double retval = 0.0; 
+  switch ( mode ) {
+    case CSVRepMode::Timing : { 
+      retval = kern->getTotTime(vid) / run_params.getNumPasses();
+      break; 
+    }
+    case CSVRepMode::Speedup : { 
+      if ( reference_vid < NumVariants ) {
+        long double var_time = 
+          getReportDataEntry(CSVRepMode::Timing, kern, vid);
+        long double ref_time = 
+          getReportDataEntry(CSVRepMode::Timing, kern, reference_vid);
+        retval = ref_time / var_time;
+      }
+      break; 
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  }; 
+  return retval;
+}
+
+void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
+{
+  fom_groups.clear();
+
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    VariantID vid = variant_ids[iv];
+    string vname = getVariantName(vid);
+
+    if ( vname.find("Baseline") != string::npos ) {
+
+      FOMGroup group;
+      group.baseline = vid;
+ 
+      string::size_type pos = vname.find("_");
+      string pm(vname.substr(pos+1, string::npos));
+
+      for (size_t ivs = iv+1; ivs < variant_ids.size(); ++ivs) {
+        VariantID vids = variant_ids[ivs];
+        if ( getVariantName(vids).find(pm) != string::npos ) {
+          group.variants.push_back(vids);
+        }
+      }
+
+      if ( !group.variants.empty() ) {
+        fom_groups.push_back( group );
+      }
+
+    }  // if variant name contains 'Baseline'
+
+  }  // iterate over variant ids to run
+
+#if 0 // RDH for debugging...
+  cout << "\nFOMGroups..." << endl;
+  for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+    const FOMGroup& group = fom_groups[ifg];
+    cout << "\tBaseline : " << getVariantName(group.baseline) << endl;
+    for (size_t iv = 0; iv < group.variants.size(); ++iv) {
+      cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
+    }
+  }
+#endif
+}
+
 
 
 }  // closing brace for rajaperf namespace

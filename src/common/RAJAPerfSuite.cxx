@@ -37,7 +37,23 @@
 #include "basic/IF_QUAD.hxx"
 #include "basic/TRAP_INT.hxx"
 
-// include headers for other kernels HERE!!!
+//
+// Livloops kernels...
+//
+
+//
+// Polybench kernels...
+//
+
+//
+// Stream kernels...
+//
+
+//
+// Apps kernels...
+//
+#include "apps/PRESSURE_CALC.hxx"
+
 
 #include <iostream>
 
@@ -95,6 +111,7 @@ static const std::string KernelNames [] =
 //
 // Livloops kernels...
 //
+#if 0
   std::string("Livloops_HYDRO_1D"),
   std::string("Livloops_ICCG"),
   std::string("Livloops_INNER_PROD"),
@@ -115,6 +132,7 @@ static const std::string KernelNames [] =
   std::string("Livloops_PLANCKIAN"),
   std::string("Livloops_IMP_HYDRO_2D"),
   std::string("Livloops_FIND_FIRST_MIN"),
+#endif
 
 //
 // Polybench kernels...
@@ -133,8 +151,8 @@ static const std::string KernelNames [] =
 //
 // Apps kernels...
 //
-#if 0
   std::string("Apps_PRESSURE_CALC"),
+#if 0
   std::string("Apps_ENERGY_CALC"),
   std::string("Apps_VOL3D_CALC"),
   std::string("Apps_DEL_DOT_VEC_2D"),
@@ -165,11 +183,14 @@ static const std::string VariantNames [] =
   std::string("Baseline_Seq"),
   std::string("RAJA_Seq"),
   std::string("Baseline_OpenMP"),
+  std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
   std::string("Baseline_CUDA"),
   std::string("RAJA_CUDA"),
+#if 0
   std::string("Baseline_OpenMP4.x"),
   std::string("RAJA_OpenMP4.x"),
+#endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -306,8 +327,11 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Apps kernels...
 //
+    case Apps_PRESSURE_CALC : {
+       kernel = new apps::PRESSURE_CALC(run_params);
+       break;
+    }
 #if 0
-  Apps_PRESSURE_CALC,
   Apps_ENERGY_CALC,
   Apps_VOL3D_CALC,
   Apps_DEL_DOT_VEC_2D,

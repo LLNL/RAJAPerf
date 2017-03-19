@@ -1,6 +1,6 @@
-##add_library(apps
-##  Kernel.cxx)
+add_library(apps
+  PRESSURE_CALC.cxx)
 
-##target_link_libraries(apps
-##  common
-##  RAJA)
+target_link_libraries(apps
+  common
+  RAJA)

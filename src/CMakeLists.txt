@@ -1,22 +1,22 @@
 include_directories(.)
 
 add_subdirectory(common)
+add_subdirectory(apps)
 add_subdirectory(basic)
 #add_subdirectory(livloops)
 #add_subdirectory(polybench)
 #add_subdirectory(stream)
-#add_subdirectory(apps)
 
 add_executable(raja-perf.exe
   RAJAPerfSuiteDriver.cxx) 
 
 target_link_libraries(raja-perf.exe
   common
+  apps
   basic
 ##  livloops
 ##  polybench
 ##  stream
-##  apps
   )
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)

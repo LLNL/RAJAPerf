@@ -58,9 +58,11 @@ class RunParams;
 enum GroupID {
 
   Basic = 0,
+#if 0
   Livloops,
   Polybench,
   Stream,
+#endif
   Apps,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
@@ -134,8 +136,8 @@ enum KernelID {
 //
 // Apps kernels...
 //
-#if 0
   Apps_PRESSURE_CALC,
+#if 0
   Apps_ENERGY_CALC,
   Apps_VOL3D_CALC,
   Apps_DEL_DOT_VEC_2D,
@@ -165,11 +167,14 @@ enum VariantID {
   Baseline_Seq = 0,
   RAJA_Seq,
   Baseline_OpenMP,
+  RAJALike_OpenMP,
   RAJA_OpenMP,
   Baseline_CUDA,
   RAJA_CUDA,
+#if 0
   Baseline_OpenMP4x,
   RAJA_OpenMP4x,
+#endif
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

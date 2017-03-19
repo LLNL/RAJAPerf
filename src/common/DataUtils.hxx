@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for utility routines for output generation.
+ * \brief   Header file for utility routines for data management.
  *
  ******************************************************************************
  */
@@ -23,25 +23,32 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef OutputUtils_HXX
-#define OutputUtils_HXX
+#ifndef DataUtils_HXX
+#define DataUtils_HXX
 
-#include <string>
-#include<iostream>
-#include<iomanip>
-#include<sstream>
-#include<fstream>
+#include "RAJAPerfSuite.hxx"
+
+#include "RAJA/RAJA.hxx"
+
 
 namespace rajaperf
 {
 
 /*!
- * \brief Recursively construct directories based on a relative or 
- * absolute path name.  
- * 
- * Return string name of directory if created successfully, else empty string.
+ * \brief Allocate and initialize 1D data array.
  */
-std::string recursiveMkdir(const std::string& in_path);
+void allocAndInitAligned(RAJA::Real_ptr ptr, int len, VariantID vid);
+
+
+/*!
+ * \brief Initialize 1D data array.
+ */
+void initData(RAJA::Real_ptr ptr, int len, VariantID vid);
+
+/*!
+ * \brief Initialize scalar data.
+ */
+void initData(RAJA::Real_type& d);
 
 }  // closing brace for rajaperf namespace
 

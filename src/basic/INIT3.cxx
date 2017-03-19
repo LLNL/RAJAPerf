@@ -142,6 +142,7 @@ void INIT3::runKernel(VariantID vid)
 
 void INIT3::computeChecksum(VariantID vid)
 {
+  (void) vid;
   // Overloaded methods in common to update checksum based on type
 }
 
