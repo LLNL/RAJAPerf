@@ -26,6 +26,8 @@
 
 #include "IF_QUAD.hxx"
 
+#include "common/DataUtils.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -33,9 +35,9 @@ namespace rajaperf
 namespace basic
 {
 
-#define KERNEL_DATA 
+#define IF_QUAD_DATA 
 
-#define KERNEL_BODY(i) 
+#define IF_QUAD_BODY(i) 
 
 
 IF_QUAD::IF_QUAD(const RunParams& params)
@@ -49,39 +51,8 @@ IF_QUAD::~IF_QUAD()
 {
 }
 
-//
-// NOTE: Setup and execute methods are implemented using switch statements
-//       for now. We may want to break the variants out differently...
-//
 void IF_QUAD::setUp(VariantID vid)
 {
-  switch ( vid ) {
-
-    case Baseline_Seq : 
-    case RAJA_Seq : 
-    case Baseline_OpenMP :
-    case RAJA_OpenMP : {
-// Overloaded methods in common to allocate data based on array length and type
-      break;
-    }
-
-    case Baseline_CUDA : 
-    case RAJA_CUDA : {
-      // Allocate host and device memory here.
-      break;
-    }
-
-    default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
-  //
-  // Initialize data arrays based on VariantID...
-  // Use centralized methods...
-  //
-
 }
 
 void IF_QUAD::runKernel(VariantID vid)
@@ -89,60 +60,141 @@ void IF_QUAD::runKernel(VariantID vid)
   int run_size = getRunSize();
   int run_samples = getRunSamples();
 
-  std::cout << "\nIF_QUAD::runKernel, vid = " << vid << std::endl;
-  std::cout << "\trun_samples = " << run_samples << std::endl;
-  std::cout << "\trun_size = " << run_size << std::endl;
-
   switch ( vid ) {
 
     case Baseline_Seq : {
 
-       KERNEL_DATA;
-  
-       startTimer();
-       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-//       for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-//         KERNEL_BODY(i);
-//       }
-       }
-       stopTimer();
+      IF_QUAD_DATA;
 
-       break;
-    } 
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+          IF_QUAD_BODY(i);
+        }
+
+      }
+#endif
+      stopTimer();
+
+      break;
+    }
 
     case RAJA_Seq : {
 
-       KERNEL_DATA;
-  
-       startTimer();
-       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-//       RAJA::forall<RAJA::seq_exec>(0, 100, [=](int i) {
-//         KERNEL_BODY(i);
-//       }); 
-       }
-       stopTimer(); 
+      IF_QUAD_DATA;
 
-       break;
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
+          IF_QUAD_BODY(i);
+        });
+
+      }
+#endif
+      stopTimer();
+
+      break;
     }
 
-    case Baseline_OpenMP :
-    case RAJA_OpenMP : 
-    case Baseline_CUDA :
+    case Baseline_OpenMP : {
+
+      IF_QUAD_DATA;
+
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        #pragma omp for schedule(static)
+        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+          IF_QUAD_BODY(i);
+        }
+
+      }
+#endif
+      stopTimer();
+
+      break;
+    }
+
+    case RAJALike_OpenMP : {
+      // case is not defined...
+      break;
+    }
+
+    case RAJA_OpenMP : {
+
+      IF_QUAD_DATA;
+
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
+          IF_QUAD_BODY(i);
+        });
+
+      }
+#endif
+      stopTimer();
+
+      break;
+    }
+
+    case Baseline_CUDA : {
+
+      IF_QUAD_DATA;
+
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+      }
+#endif
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_CUDA : {
+
+      IF_QUAD_DATA;
+
+      startTimer();
+#if 0
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+      }
+#endif
+      stopTimer();
+
+      break;
+    }
+
+#if 0
+    case Baseline_OpenMP4x :
+    case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;
     }
+#endif
 
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;
     }
 
   }
+
 }
 
 void IF_QUAD::updateChecksum(VariantID vid)
 {
-  // Overloaded methods in common to update checksum based on type
+#if 0
+  checksum[vid] += calcChecksum(m_p_new, getRunSize());
+#endif
 }
 
 void IF_QUAD::tearDown(VariantID vid)
@@ -152,21 +204,29 @@ void IF_QUAD::tearDown(VariantID vid)
     case Baseline_Seq :
     case RAJA_Seq :
     case Baseline_OpenMP :
-    case RAJA_OpenMP : {
-// Overloaded methods in common to deallocate data
+    case RAJA_OpenMP :
+    case Baseline_CUDA :
+    case RAJA_CUDA : {
+      // De-allocate host memory here.
       break;
     }
 
-    case Baseline_CUDA :
-    case RAJA_CUDA : {
+#if 0
+    case Baseline_OpenMP4x :
+    case RAJA_OpenMP4x : {
       // De-allocate host and device memory here.
       break;
     }
+#endif
 
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;
     }
 
+  }
+
+  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
+    // De-allocate device memory here.
   }
 }
 

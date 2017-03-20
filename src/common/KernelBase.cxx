@@ -29,6 +29,8 @@
 #include "RunParams.hxx"
 #include "DataUtils.hxx"
 
+#include <cmath>
+
 namespace rajaperf {
 
 KernelBase::KernelBase(KernelID kid, const RunParams& params) 
@@ -42,8 +44,9 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     running_variant(NumVariants)
 {
   for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
-     min_time[ivar] = 0.0;
-     max_time[ivar] = 0.0;
+     num_exec[ivar] = 0;
+     min_time[ivar] = std::numeric_limits<double>::max();
+     max_time[ivar] = -std::numeric_limits<double>::max();
      tot_time[ivar] = 0.0;
      checksum[ivar] = 0.0;
   }
@@ -85,6 +88,8 @@ void KernelBase::execute(VariantID vid)
 
 void KernelBase::recordExecTime()
 {
+  num_exec[running_variant]++;
+
   RAJA::Timer::ElapsedType exec_time = timer.elapsed();
   min_time[running_variant] = std::min(min_time[running_variant], exec_time);
   max_time[running_variant] = std::max(min_time[running_variant], exec_time);
@@ -99,6 +104,10 @@ void KernelBase::print(std::ostream& os) const
      << run_size << "(" << default_size << ")" << std::endl;
   os << "\t\t\t run_samples(default_samples) = " 
      << run_samples << "(" << default_samples << ")" << std::endl;
+  os << "\t\t\t num_exec: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << num_exec[j] << std::endl; 
+  }
   os << "\t\t\t min_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << min_time[j] << std::endl; 

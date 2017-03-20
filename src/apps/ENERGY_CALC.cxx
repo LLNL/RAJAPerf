@@ -137,10 +137,6 @@ ENERGY_CALC::~ENERGY_CALC()
 {
 }
 
-//
-// NOTE: Setup and execute methods are implemented using switch statements
-//       for now. We may want to break the variants out differently...
-//
 void ENERGY_CALC::setUp(VariantID vid)
 {
   allocAndInitAligned(m_e_new, getRunSize());

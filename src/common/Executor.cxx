@@ -51,6 +51,7 @@ Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
+  cout << "\n\nReading command line input..." << endl;
 }
 
 
@@ -64,6 +65,7 @@ Executor::~Executor()
 
 void Executor::setupSuite()
 {
+  cout << "\nSetting up suite based on input..." << endl;
 
   RunParams::InputOpt in_state = run_params.getInputState();
   if ( in_state == RunParams::InfoRequest || in_state == RunParams::BadInput ) {
@@ -377,7 +379,7 @@ void Executor::outputRunData()
   string filename = out_fprefix + "-timing.csv";
   writeCSVReport(filename, CSVRepMode::Timing);
 
-  if ( reference_vid < NumVariants) { 
+  if ( haveReferenceVariant() ) { 
     filename = out_fprefix + "-speedup.csv";
     writeCSVReport(filename, CSVRepMode::Speedup);
   }
@@ -445,11 +447,12 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     // Print row of data for variants of each kernel.
     //
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      file <<left<< setw(kercol_width) << kernels[ik]->getName();
+      KernelBase* kern = kernels[ik];
+      file <<left<< setw(kercol_width) << kern->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
         file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
-             << getReportDataEntry(mode, kernels[ik], vid);
+             << getReportDataEntry(mode, kern, vid);
       }
       file << endl;
     }
@@ -502,15 +505,15 @@ void Executor::writeFOMReport(const string& filename)
     vector<double> col_max(ncols, -numeric_limits<double>::max());
     vector<double> col_avg(ncols, 0.0);
     vector<double> col_stddev(ncols, 0.0);
-    vector< vector<double> > pct_diff(kernels.size());
+    vector< vector<double> > rel_diff(kernels.size());
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      pct_diff[ik] = vector<double>(ncols, 0.0);
+      rel_diff[ik] = vector<double>(ncols, 0.0);
     }
 
     //
     // Print title line.
     //
-    file << "FOM Report (% timing diff: RAJA variant vs. PM baseline)";
+    file << "FOM Report (relative timing diff: (T_RAJA - T_baseline) / T_baseline)";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
@@ -555,22 +558,22 @@ void Executor::writeFOMReport(const string& filename)
           // If kernel variant was run, generate data for it and
           // print (signed) percentage difference from baseline.
           // 
-          if ( kern->getTotTime(comp_vid) > 0.0 ) {
+          if ( kern->wasVariantRun(comp_vid) ) {
             col_exec_count[col]++;
 
-            pct_diff[ik][col] = 100.0 * 
+            rel_diff[ik][col] = 
               (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
                kern->getTotTime(base_vid);
 
             file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
-                 << pct_diff[ik][col]; 
+                 << rel_diff[ik][col]; 
 
             //
             // Gather data for column summaries (unsigned).
             //  
-            col_min[col] = min( col_min[col], fabs(pct_diff[ik][col]) );
-            col_max[col] = max( col_max[col], fabs(pct_diff[ik][col]) );
-            col_avg[col] += fabs(pct_diff[ik][col]);
+            col_min[col] = min( col_min[col], rel_diff[ik][col] );
+            col_max[col] = max( col_max[col], rel_diff[ik][col] );
+            col_avg[col] += rel_diff[ik][col];
 
           } else {  // variant was not run, print a big fat goose egg...
 
@@ -614,13 +617,16 @@ void Executor::writeFOMReport(const string& filename)
         for (size_t gv = 0; gv < group.variants.size(); ++gv) {
           VariantID comp_vid = group.variants[gv];
 
-          if ( kern->getTotTime(comp_vid) > 0.0 ) {
-            col_stddev[col] += ( fabs(pct_diff[ik][col]) - col_avg[col] ) *
-                               ( fabs(pct_diff[ik][col]) - col_avg[col] );
+          if ( kern->wasVariantRun(comp_vid) ) {
+            col_stddev[col] += ( rel_diff[ik][col] - col_avg[col] ) *
+                               ( rel_diff[ik][col] - col_avg[col] );
           } 
-        }
 
-      }  // loop over group variants
+          col++;
+
+        } // loop over group variants
+
+      }  // loop over groups
 
     }  // loop over kernels
  
@@ -692,7 +698,7 @@ void Executor::writeChecksumReport(const string& filename)
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
-    size_t prec = 24;
+    size_t prec = 32;
     size_t checksum_width = prec + 4;
 
     size_t namecol_width = 0;
@@ -736,25 +742,26 @@ void Executor::writeChecksumReport(const string& filename)
 
       long double cksum_ref = 0.0;
       size_t ivck = 0;
-      while ( ivck < variant_ids.size() && cksum_ref != 0.0 ) {
+      while ( ivck < variant_ids.size() && cksum_ref == 0.0 ) {
         VariantID vid = variant_ids[ivck];
-        if ( kern->getTotTime(vid) > 0.0 ) {
+        if ( kern->wasVariantRun(vid) ) {
           cksum_ref = kern->getChecksum(vid);
         }
+        ++ivck;
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
  
         long double diff = 0.0;    
-        if ( kern->getTotTime(vid) > 0.0 ) {
-          diff = fabs( cksum_ref - kern->getChecksum(vid) );
-        }
+        if ( kern->wasVariantRun(vid) ) {
+          diff = cksum_ref - kern->getChecksum(vid);
 
-        file <<left<< setw(namecol_width) << getVariantName(vid)
-             << showpoint << setprecision(prec) 
-             <<left<< setw(checksum_width) << cksum_ref
-             <<left<< setw(checksum_width) << diff << endl;
+          file <<left<< setw(namecol_width) << getVariantName(vid)
+               << showpoint << setprecision(prec) 
+               <<left<< setw(checksum_width) << cksum_ref
+               <<left<< setw(checksum_width) << diff << endl;
+        }
       }
 
       file << endl;
@@ -776,10 +783,10 @@ string Executor::getReportTitle(CSVRepMode mode)
       break; 
     }
     case CSVRepMode::Speedup : { 
-      title = string("Speedup Report (T_ref/T_var)"); 
-      if ( reference_vid < NumVariants ) {
-        title = title + string(": ref var = ") +
-                        getVariantName(reference_vid) + string(" ");
+      if ( haveReferenceVariant() ) {
+        title = string("Speedup Report (T_ref/T_var)") +
+                string(": ref var = ") + getVariantName(reference_vid) + 
+                string(" ");
       }
       break; 
     }
@@ -799,12 +806,15 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       break; 
     }
     case CSVRepMode::Speedup : { 
-      if ( reference_vid < NumVariants ) {
-        long double var_time = 
-          getReportDataEntry(CSVRepMode::Timing, kern, vid);
-        long double ref_time = 
-          getReportDataEntry(CSVRepMode::Timing, kern, reference_vid);
-        retval = ref_time / var_time;
+      if ( haveReferenceVariant() ) {
+        retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+#if 0 // RDH DEBUG
+        cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
+        cout << "\tref_time, tot_time, retval = " 
+             << kern->getTotTime(reference_vid) << " , "
+             << kern->getTotTime(vid) << " , "
+             << retval << endl;
+#endif
       }
       break; 
     }

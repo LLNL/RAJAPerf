@@ -41,17 +41,22 @@ void resetDataInitCount();
 
 
 /*!
- * \brief Allocate and initialize data array.
+ * \brief Allocate and initialize aligned data array.
  */
-void allocAndInitAligned(RAJA::Real_ptr ptr, int len,
+void allocAndInitAligned(RAJA::Real_ptr& ptr, int len,
                          VariantID vid = NumVariants);
 
 /*!
- * \brief Initialize data array.
+ * \brief Free aligned data array.
  */
-void initData(RAJA::Real_ptr ptr, int len,
-              VariantID vid = NumVariants);
+void freeAligned(RAJA::Real_ptr& ptr);
 
+
+/*!
+ * \brief Initialize aligned data array.
+ */
+void initData(RAJA::Real_ptr& ptr, int len,
+              VariantID vid = NumVariants);
 
 /*!
  * \brief Initialize scalar data.
@@ -63,7 +68,7 @@ void initData(RAJA::Real_type& d,
 /*!
  * \brief Calculate and return checksum for data array.
  */
-long double calcChecksum(RAJA::Real_ptr d, int len, 
+long double calcChecksum(const RAJA::Real_ptr d, int len, 
                          RAJA::Real_type scale_factor = 1.0);
 
 

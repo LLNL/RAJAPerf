@@ -68,6 +68,8 @@ private:
     std::vector<VariantID> variants;
   }; 
 
+  bool haveReferenceVariant() { return reference_vid < NumVariants; }
+
   void writeCSVReport(const std::string& filename, CSVRepMode mode);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 

@@ -68,17 +68,13 @@ PRESSURE_CALC::~PRESSURE_CALC()
 {
 }
 
-//
-// NOTE: Setup and execute methods are implemented using switch statements
-//       for now. We may want to break the variants out differently...
-//
 void PRESSURE_CALC::setUp(VariantID vid)
 {
-  allocAndInitAligned(m_compression, getRunSize());
-  allocAndInitAligned(m_bvc, getRunSize());
-  allocAndInitAligned(m_p_new, getRunSize());
-  allocAndInitAligned(m_e_old, getRunSize());
-  allocAndInitAligned(m_vnewc, getRunSize());
+  allocAndInitAligned(m_compression, getRunSize(), vid);
+  allocAndInitAligned(m_bvc, getRunSize(), vid);
+  allocAndInitAligned(m_p_new, getRunSize(), vid);
+  allocAndInitAligned(m_e_old, getRunSize(), vid);
+  allocAndInitAligned(m_vnewc, getRunSize(), vid);
   
   initData(m_cls);
   initData(m_p_cut);
@@ -98,7 +94,6 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       PRESSURE_CALC_DATA;
   
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (RAJA::Index_type i = 0; i < run_size; ++i ) {
@@ -110,7 +105,6 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         }
 
       }
-#endif
       stopTimer();
 
       break;
@@ -237,39 +231,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 
 void PRESSURE_CALC::updateChecksum(VariantID vid)
 {
-#if 0
   checksum[vid] += calcChecksum(m_p_new, getRunSize());
-#endif
 }
 
 void PRESSURE_CALC::tearDown(VariantID vid)
 {
-  switch ( vid ) {
-
-    case Baseline_Seq :
-    case RAJA_Seq : 
-    case Baseline_OpenMP :
-    case RAJA_OpenMP : 
-    case Baseline_CUDA :
-    case RAJA_CUDA : {
-      // De-allocate host memory here.
-      break;
-    }
-
-#if 0
-    case Baseline_OpenMP4x :
-    case RAJA_OpenMP4x : {
-      // De-allocate host and device memory here.
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
+  freeAligned(m_compression);
+  freeAligned(m_bvc);
+  freeAligned(m_p_new);
+  freeAligned(m_e_old);
+  freeAligned(m_vnewc);
+  
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
     // De-allocate device memory here.
   }

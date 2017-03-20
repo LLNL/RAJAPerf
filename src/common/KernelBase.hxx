@@ -61,10 +61,13 @@ public:
   int getDefaultSize() const { return default_size; }
   int getDefaultSamples() const { return default_samples; }
 
-  double getMinTime(VariantID vid) { return min_time[vid]; }
-  double getMaxTime(VariantID vid) { return max_time[vid]; }
+  bool wasVariantRun(VariantID vid) const 
+    { return num_exec[vid] > 0; }
+
+  double getMinTime(VariantID vid) const { return min_time[vid]; }
+  double getMaxTime(VariantID vid) const { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
-  long double getChecksum(VariantID vid) { return checksum[vid]; }
+  long double getChecksum(VariantID vid) const { return checksum[vid]; }
 
   void setDefaultSize(int size); 
   void setDefaultSamples(int nsamp);
@@ -82,6 +85,8 @@ public:
   virtual void tearDown(VariantID vid) = 0;
 
 protected:
+  int num_exec[NumVariants];
+
   RAJA::Timer::ElapsedType min_time[NumVariants];
   RAJA::Timer::ElapsedType max_time[NumVariants];
   RAJA::Timer::ElapsedType tot_time[NumVariants];

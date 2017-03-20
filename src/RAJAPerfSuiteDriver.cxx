@@ -46,5 +46,6 @@ int main( int argc, char** argv )
   // STEP 5: Generate suite execution reports
   executor.outputRunData();
 
+  std::cout << "\n\nDONE!!!...." << std::endl; 
   return 0;
 }
