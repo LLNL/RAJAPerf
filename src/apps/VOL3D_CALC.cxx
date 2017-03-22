@@ -114,10 +114,13 @@ VOL3D_CALC::~VOL3D_CALC()
 
 void VOL3D_CALC::setUp(VariantID vid)
 {
-  allocAndInitAligned(m_x, getRunSize(), vid);
-  allocAndInitAligned(m_y, getRunSize(), vid);
-  allocAndInitAligned(m_x, getRunSize(), vid);
-  allocAndInitAligned(m_vol, getRunSize(), vid);
+  ADomain domain(getRunSize(), /* ndims = */ 3);
+  int max_loop_index = domain.lpn;
+
+  allocAndInitAligned(m_x, max_loop_index, vid);
+  allocAndInitAligned(m_y, max_loop_index, vid);
+  allocAndInitAligned(m_x, max_loop_index, vid);
+  allocAndInitAligned(m_vol, max_loop_index, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
