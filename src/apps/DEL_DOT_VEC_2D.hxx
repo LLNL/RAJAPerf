@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel VOL3D_CALC.
+ * \brief   Header file for kernel DEL_DOT_VEC_2D.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_VOL3D_CALC_HXX
-#define RAJAPerf_Apps_VOL3D_CALC_HXX
+#ifndef RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
+#define RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
 
 #include "common/KernelBase.hxx"
 
@@ -39,13 +39,13 @@ namespace apps
 {
 struct ADomain;
 
-class VOL3D_CALC : public KernelBase
+class DEL_DOT_VEC_2D : public KernelBase
 {
 public:
 
-  VOL3D_CALC(const RunParams& params);
+  DEL_DOT_VEC_2D(const RunParams& params);
 
-  ~VOL3D_CALC();
+  ~DEL_DOT_VEC_2D();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -55,10 +55,12 @@ public:
 private:
   RAJA::Real_ptr m_x;
   RAJA::Real_ptr m_y;
-  RAJA::Real_ptr m_z;
-  RAJA::Real_ptr m_vol;
+  RAJA::Real_ptr m_xdot;
+  RAJA::Real_ptr m_ydot;
+  RAJA::Real_ptr m_div;
 
-  RAJA::Real_type m_vnormq;
+  RAJA::Real_type m_ptiny;
+  RAJA::Real_type m_half;
 
   ADomain* m_domain;
 };

@@ -58,11 +58,9 @@ class RunParams;
 enum GroupID {
 
   Basic = 0,
-#if 0
   Livloops,
   Polybench,
   Stream,
-#endif
   Apps,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
@@ -139,8 +137,8 @@ enum KernelID {
   Apps_PRESSURE_CALC,
   Apps_ENERGY_CALC,
   Apps_VOL3D_CALC,
-#if 0
   Apps_DEL_DOT_VEC_2D,
+#if 0
   Apps_COUPLE,
   Apps_FIR,
 #endif

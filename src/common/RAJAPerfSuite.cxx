@@ -55,6 +55,7 @@
 #include "apps/PRESSURE_CALC.hxx"
 #include "apps/ENERGY_CALC.hxx"
 #include "apps/VOL3D_CALC.hxx"
+#include "apps/DEL_DOT_VEC_2D.hxx"
 
 
 #include <iostream>
@@ -156,8 +157,8 @@ static const std::string KernelNames [] =
   std::string("Apps_PRESSURE_CALC"),
   std::string("Apps_ENERGY_CALC"),
   std::string("Apps_VOL3D_CALC"),
-#if 0
   std::string("Apps_DEL_DOT_VEC_2D"),
+#if 0
   std::string("Apps_COUPLE"),
   std::string("Apps_FIR"),
 #endif
@@ -341,8 +342,11 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::ENERGY_CALC(run_params);
        break;
     }
+    case Apps_DEL_DOT_VEC_2D : {
+       kernel = new apps::DEL_DOT_VEC_2D(run_params);
+       break;
+    }
 #if 0
-  Apps_DEL_DOT_VEC_2D,
   Apps_COUPLE,
   Apps_FIR,
 #endif

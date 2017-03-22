@@ -37,7 +37,7 @@ namespace apps
 //
 // Some macros used in kernels to mimic real app code style.
 //
-#define NDPTRSET(v,v0,v1,v2,v3,v4,v5,v6,v7)  \
+#define NDPTRSET(domain,v,v0,v1,v2,v3,v4,v5,v6,v7)  \
    v0 = v ;   \
    v1 = v0 + 1 ;  \
    v2 = v0 + domain.jp ; \
@@ -47,7 +47,7 @@ namespace apps
    v6 = v2 + domain.kp ; \
    v7 = v3 + domain.kp ;
 
-#define NDSET2D(v,v1,v2,v3,v4)  \
+#define NDSET2D(domain,v,v1,v2,v3,v4)  \
    v4 = v ;   \
    v1 = v4 + 1 ;  \
    v2 = v1 + domain.jp ;  \

@@ -44,13 +44,13 @@ namespace apps
   const RAJA::Real_type cls = m_cls; \
   const RAJA::Real_type p_cut = m_p_cut; \
   const RAJA::Real_type pmin = m_pmin; \
-  const RAJA::Real_type eosvmax = m_eosvmax;
+  const RAJA::Real_type eosvmax = m_eosvmax; 
    
 
-#define PRESSURE_CALC_BODY1(i) \
+#define PRESSURE_CALC_BODY1 \
   bvc[i] = cls * (compression[i] + 1.0);
 
-#define PRESSURE_CALC_BODY2(i) \
+#define PRESSURE_CALC_BODY2 \
   p_new[i] = bvc[i] * e_old[i] ; \
   if ( fabs(p_new[i]) <  p_cut ) p_new[i] = 0.0 ; \
   if ( vnewc[i] >= eosvmax ) p_new[i] = 0.0 ; \
@@ -61,7 +61,7 @@ PRESSURE_CALC::PRESSURE_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE_CALC, params)
 {
   setDefaultSize(100000);
-  setDefaultSamples(10000);
+  setDefaultSamples(7000);
 }
 
 PRESSURE_CALC::~PRESSURE_CALC() 
@@ -84,8 +84,9 @@ void PRESSURE_CALC::setUp(VariantID vid)
 
 void PRESSURE_CALC::runKernel(VariantID vid)
 {
-  int run_size = getRunSize();
   int run_samples = getRunSamples();
+  const RAJA::Index_type lbegin = 0;
+  const RAJA::Index_type lend = getRunSize();
 
   switch ( vid ) {
 
@@ -96,12 +97,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          PRESSURE_CALC_BODY1(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          PRESSURE_CALC_BODY1;
         }
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          PRESSURE_CALC_BODY2(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          PRESSURE_CALC_BODY2;
         }
 
       }
@@ -117,12 +118,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          PRESSURE_CALC_BODY1(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          PRESSURE_CALC_BODY1;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          PRESSURE_CALC_BODY2(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          PRESSURE_CALC_BODY2;
         }); 
 
       }
@@ -136,18 +137,18 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       PRESSURE_CALC_DATA;
  
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = lbegin; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel
           {
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              PRESSURE_CALC_BODY1(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              PRESSURE_CALC_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              PRESSURE_CALC_BODY2(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              PRESSURE_CALC_BODY2;
             }
           } // omp parallel
 
@@ -165,13 +166,13 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          PRESSURE_CALC_BODY1(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          PRESSURE_CALC_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          PRESSURE_CALC_BODY2(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          PRESSURE_CALC_BODY2;
         }
 
       }
@@ -188,12 +189,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          PRESSURE_CALC_BODY1(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          PRESSURE_CALC_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          PRESSURE_CALC_BODY2(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          PRESSURE_CALC_BODY2;
         });
 
       }

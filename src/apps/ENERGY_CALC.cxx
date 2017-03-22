@@ -51,17 +51,17 @@ namespace apps
   RAJA::Real_ptr ql_old = m_ql_old; \
   RAJA::Real_ptr qq_old = m_qq_old; \
   RAJA::Real_ptr vnewc = m_vnewc; \
-  RAJA::Real_type rho0 = m_rho0; \
-  RAJA::Real_type e_cut = m_e_cut; \
-  RAJA::Real_type emin = m_emin; \
-  RAJA::Real_type q_cut = m_q_cut;
-   
+  const RAJA::Real_type rho0 = m_rho0; \
+  const RAJA::Real_type e_cut = m_e_cut; \
+  const RAJA::Real_type emin = m_emin; \
+  const RAJA::Real_type q_cut = m_q_cut;
 
-#define ENERGY_CALC_BODY1(i) \
+
+#define ENERGY_CALC_BODY1 \
   e_new[i] = e_old[i] - 0.5 * delvc[i] * \
              (p_old[i] + q_old[i]) + 0.5 * work[i];
 
-#define ENERGY_CALC_BODY2(i) \
+#define ENERGY_CALC_BODY2 \
   if ( delvc[i] > 0.0 ) { \
      q_new[i] = 0.0 ; \
   } \
@@ -77,17 +77,17 @@ namespace apps
      q_new[i] = (ssc*ql_old[i] + qq_old[i]) ; \
   }
 
-#define ENERGY_CALC_BODY3(i) \
+#define ENERGY_CALC_BODY3 \
   e_new[i] = e_new[i] + 0.5 * delvc[i] \
              * ( 3.0*(p_old[i] + q_old[i]) \
                  - 4.0*(pHalfStep[i] + q_new[i])) ;
 
-#define ENERGY_CALC_BODY4(i) \
+#define ENERGY_CALC_BODY4 \
   e_new[i] += 0.5 * work[i]; \
   if ( fabs(e_new[i]) < e_cut ) { e_new[i] = 0.0  ; } \
   if ( e_new[i]  < emin ) { e_new[i] = emin ; }
 
-#define ENERGY_CALC_BODY5(i) \
+#define ENERGY_CALC_BODY5 \
   RAJA::Real_type q_tilde ; \
   if (delvc[i] > 0.0) { \
      q_tilde = 0. ; \
@@ -112,7 +112,7 @@ namespace apps
      e_new[i] = emin ; \
   }
 
-#define ENERGY_CALC_BODY6(i) \
+#define ENERGY_CALC_BODY6 \
   if ( delvc[i] <= 0.0 ) { \
      RAJA::Real_type ssc = ( pbvc[i] * e_new[i] \
              + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0 ; \
@@ -130,7 +130,7 @@ ENERGY_CALC::ENERGY_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY_CALC, params)
 {
   setDefaultSize(100000);
-  setDefaultSamples(2000);
+  setDefaultSamples(1600);
 }
 
 ENERGY_CALC::~ENERGY_CALC() 
@@ -163,8 +163,9 @@ void ENERGY_CALC::setUp(VariantID vid)
 
 void ENERGY_CALC::runKernel(VariantID vid)
 {
-  int run_size = getRunSize();
   int run_samples = getRunSamples();
+  const RAJA::Index_type lbegin = 0;
+  const RAJA::Index_type lend = getRunSize();
 
   switch ( vid ) {
 
@@ -175,28 +176,28 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY1(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY1;
         }
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY2(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY2;
         }
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY3(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY3;
         }
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY4(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY4;
         }
   
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY5(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY5;
         }
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY6(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY6;
         }
 
       }
@@ -212,28 +213,28 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY1(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY1;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY2(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY2;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY3(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY3;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY4(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY4;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY5(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY5;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY6(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY6;
         }); 
 
       }
@@ -252,33 +253,33 @@ void ENERGY_CALC::runKernel(VariantID vid)
         #pragma omp parallel
           {
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY1(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY2(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY2;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY3(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY3;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY4(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY4;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY5(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY5;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-              ENERGY_CALC_BODY6(i);
+            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+              ENERGY_CALC_BODY6;
             }
           } // omp parallel
 
@@ -296,33 +297,33 @@ void ENERGY_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY1(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY2(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY2;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY3(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY3;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY4(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY4;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY5(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY5;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
-          ENERGY_CALC_BODY6(i);
+        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+          ENERGY_CALC_BODY6;
         }
 
       }
@@ -338,28 +339,28 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY1(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY2(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY2;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY3(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY3;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY4(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY4;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY5(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY5;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          ENERGY_CALC_BODY6(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          ENERGY_CALC_BODY6;
         });
 
       }

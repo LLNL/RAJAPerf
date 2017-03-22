@@ -46,10 +46,10 @@ namespace apps
   UnalignedReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   UnalignedReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
   UnalignedReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;  \
-  const RAJA::Real_type vnormq = m_vnormq; \
-  ADomain domain(run_size, /* ndims = */ 3);
+  const RAJA::Real_type vnormq = m_vnormq;
 
-#define VOL3D_CALC_BODY(i) \
+
+#define VOL3D_CALC_BODY \
   RAJA::Real_type x71 = x7[i] - x1[i] ; \
   RAJA::Real_type x72 = x7[i] - x2[i] ; \
   RAJA::Real_type x74 = x7[i] - x4[i] ; \
@@ -104,22 +104,24 @@ namespace apps
 VOL3D_CALC::VOL3D_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D_CALC, params)
 {
-  setDefaultSize(256);
+  setDefaultSize(64);  // See rzmax in ADomain struct
   setDefaultSamples(3200);
+
+  m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
 
 VOL3D_CALC::~VOL3D_CALC() 
 {
+  delete m_domain;
 }
 
 void VOL3D_CALC::setUp(VariantID vid)
 {
-  ADomain domain(getRunSize(), /* ndims = */ 3);
-  int max_loop_index = domain.lpn;
+  int max_loop_index = m_domain->lpn;
 
   allocAndInitAligned(m_x, max_loop_index, vid);
   allocAndInitAligned(m_y, max_loop_index, vid);
-  allocAndInitAligned(m_x, max_loop_index, vid);
+  allocAndInitAligned(m_z, max_loop_index, vid);
   allocAndInitAligned(m_vol, max_loop_index, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
@@ -127,8 +129,9 @@ void VOL3D_CALC::setUp(VariantID vid)
 
 void VOL3D_CALC::runKernel(VariantID vid)
 {
-  int run_size = getRunSize();
   int run_samples = getRunSamples();
+  RAJA::Index_type lbegin = m_domain->fpz;
+  RAJA::Index_type lend = m_domain->lpz+1;
 
   switch ( vid ) {
 
@@ -136,15 +139,15 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
       VOL3D_CALC_DATA;
 
-      NDPTRSET(x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET(y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET(z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = domain.fpz ; i <= domain.lpz ; i++ ) {
-          VOL3D_CALC_BODY(i);
+        for (RAJA::Index_type i = lbegin ; i < lend ; ++i ) {
+          VOL3D_CALC_BODY;
         }
 
       }
@@ -157,15 +160,15 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
       VOL3D_CALC_DATA;
 
-      NDPTRSET(x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET(y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET(z,z0,z1,z2,z3,z4,z5,z6,z7) ;
- 
+      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(domain.fpz, domain.lpz + 1, [=](int i) {
-          VOL3D_CALC_BODY(i);
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+          VOL3D_CALC_BODY;
         }); 
 
       }
@@ -178,16 +181,16 @@ void VOL3D_CALC::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       VOL3D_CALC_DATA;
 
-      NDPTRSET(x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET(y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET(z,z0,z1,z2,z3,z4,z5,z6,z7) ;
- 
+      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for 
-        for (RAJA::Index_type i = domain.fpz ; i <= domain.lpz ; i++ ) {
-          VOL3D_CALC_BODY(i);
+        for (RAJA::Index_type i = lbegin ; i < lend ; ++i ) {
+          VOL3D_CALC_BODY;
         }
 
       }
@@ -206,15 +209,15 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
       VOL3D_CALC_DATA;
 
-      NDPTRSET(x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET(y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET(z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          VOL3D_CALC_BODY(i);
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+          VOL3D_CALC_BODY;
         });
 
       }
@@ -253,7 +256,7 @@ void VOL3D_CALC::tearDown(VariantID vid)
 {
   freeAligned(m_x);
   freeAligned(m_y);
-  freeAligned(m_x);
+  freeAligned(m_z);
   freeAligned(m_vol);
   
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
