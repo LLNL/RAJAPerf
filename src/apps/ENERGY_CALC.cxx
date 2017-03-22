@@ -66,8 +66,8 @@ namespace apps
      q_new[i] = 0.0 ; \
   } \
   else { \
-     Real_type vhalf = 1.0 / (1.0 + compHalfStep[i]) ; \
-     Real_type ssc = ( pbvc[i] * e_new[i] \
+     RAJA::Real_type vhalf = 1.0 / (1.0 + compHalfStep[i]) ; \
+     RAJA::Real_type ssc = ( pbvc[i] * e_new[i] \
         + vhalf * vhalf * bvc[i] * pHalfStep[i] ) / rho0 ; \
      if ( ssc <= 0.1111111e-36 ) { \
         ssc = 0.3333333e-18 ; \
@@ -88,12 +88,12 @@ namespace apps
   if ( e_new[i]  < emin ) { e_new[i] = emin ; }
 
 #define ENERGY_CALC_BODY5(i) \
-  Real_type q_tilde ; \
+  RAJA::Real_type q_tilde ; \
   if (delvc[i] > 0.0) { \
      q_tilde = 0. ; \
   } \
   else { \
-     Real_type ssc = ( pbvc[i] * e_new[i] \
+     RAJA::Real_type ssc = ( pbvc[i] * e_new[i] \
          + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0 ; \
      if ( ssc <= 0.1111111e-36 ) { \
         ssc = 0.3333333e-18 ; \
@@ -114,7 +114,7 @@ namespace apps
 
 #define ENERGY_CALC_BODY6(i) \
   if ( delvc[i] <= 0.0 ) { \
-     Real_type ssc = ( pbvc[i] * e_new[i] \
+     RAJA::Real_type ssc = ( pbvc[i] * e_new[i] \
              + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0 ; \
      if ( ssc <= 0.1111111e-36 ) { \
         ssc = 0.3333333e-18 ; \
@@ -139,21 +139,21 @@ ENERGY_CALC::~ENERGY_CALC()
 
 void ENERGY_CALC::setUp(VariantID vid)
 {
-  allocAndInitAligned(m_e_new, getRunSize());
-  allocAndInitAligned(m_e_old, getRunSize());
-  allocAndInitAligned(m_delvc, getRunSize());
-  allocAndInitAligned(m_p_new, getRunSize());
-  allocAndInitAligned(m_p_old, getRunSize());
-  allocAndInitAligned(m_q_new, getRunSize());
-  allocAndInitAligned(m_q_old, getRunSize());
-  allocAndInitAligned(m_work, getRunSize());
-  allocAndInitAligned(m_compHalfStep, getRunSize());
-  allocAndInitAligned(m_pHalfStep, getRunSize());
-  allocAndInitAligned(m_bvc, getRunSize());
-  allocAndInitAligned(m_pbvc, getRunSize());
-  allocAndInitAligned(m_ql_old, getRunSize());
-  allocAndInitAligned(m_qq_old, getRunSize());
-  allocAndInitAligned(m_vnewc, getRunSize());
+  allocAndInitAligned(m_e_new, getRunSize(), vid);
+  allocAndInitAligned(m_e_old, getRunSize(), vid);
+  allocAndInitAligned(m_delvc, getRunSize(), vid);
+  allocAndInitAligned(m_p_new, getRunSize(), vid);
+  allocAndInitAligned(m_p_old, getRunSize(), vid);
+  allocAndInitAligned(m_q_new, getRunSize(), vid);
+  allocAndInitAligned(m_q_old, getRunSize(), vid);
+  allocAndInitAligned(m_work, getRunSize(), vid);
+  allocAndInitAligned(m_compHalfStep, getRunSize(), vid);
+  allocAndInitAligned(m_pHalfStep, getRunSize(), vid);
+  allocAndInitAligned(m_bvc, getRunSize(), vid);
+  allocAndInitAligned(m_pbvc, getRunSize(), vid);
+  allocAndInitAligned(m_ql_old, getRunSize(), vid);
+  allocAndInitAligned(m_qq_old, getRunSize(), vid);
+  allocAndInitAligned(m_vnewc, getRunSize(), vid);
   
   initData(m_rho0);
   initData(m_e_cut);
@@ -173,7 +173,6 @@ void ENERGY_CALC::runKernel(VariantID vid)
       ENERGY_CALC_DATA;
   
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (RAJA::Index_type i = 0; i < run_size; ++i ) {
@@ -201,7 +200,6 @@ void ENERGY_CALC::runKernel(VariantID vid)
         }
 
       }
-#endif
       stopTimer();
 
       break;
@@ -212,7 +210,6 @@ void ENERGY_CALC::runKernel(VariantID vid)
       ENERGY_CALC_DATA;
  
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
@@ -240,18 +237,16 @@ void ENERGY_CALC::runKernel(VariantID vid)
         }); 
 
       }
-#endif
       stopTimer(); 
 
       break;
     }
 
     case Baseline_OpenMP : {
-      
+#if defined(_OPENMP)      
       ENERGY_CALC_DATA;
  
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel
@@ -288,18 +283,16 @@ void ENERGY_CALC::runKernel(VariantID vid)
           } // omp parallel
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case RAJALike_OpenMP : {
-
+#if defined(_OPENMP)      
       ENERGY_CALC_DATA;
       
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
@@ -333,18 +326,16 @@ void ENERGY_CALC::runKernel(VariantID vid)
         }
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case RAJA_OpenMP : {
-
+#if defined(_OPENMP)      
       ENERGY_CALC_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
@@ -372,14 +363,14 @@ void ENERGY_CALC::runKernel(VariantID vid)
         });
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case Baseline_CUDA :
     case RAJA_CUDA : {
+      // Fill these in later...you get the idea...
       break;
     }
 
@@ -400,39 +391,27 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
 void ENERGY_CALC::updateChecksum(VariantID vid)
 {
-#if 0
   checksum[vid] += calcChecksum(m_e_new, getRunSize());
   checksum[vid] += calcChecksum(m_q_new, getRunSize());
-#endif
 }
 
 void ENERGY_CALC::tearDown(VariantID vid)
 {
-  switch ( vid ) {
-
-    case Baseline_Seq :
-    case RAJA_Seq : 
-    case Baseline_OpenMP :
-    case RAJA_OpenMP : 
-    case Baseline_CUDA :
-    case RAJA_CUDA : {
-      // De-allocate host memory here.
-      break;
-    }
-
-#if 0
-    case Baseline_OpenMP4x :
-    case RAJA_OpenMP4x : {
-      // De-allocate host and device memory here.
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
-    }
-
-  }
+  freeAligned(m_e_new);
+  freeAligned(m_e_old);
+  freeAligned(m_delvc);
+  freeAligned(m_p_new);
+  freeAligned(m_p_old);
+  freeAligned(m_q_new);
+  freeAligned(m_q_old);
+  freeAligned(m_work);
+  freeAligned(m_compHalfStep);
+  freeAligned(m_pHalfStep);
+  freeAligned(m_bvc);
+  freeAligned(m_pbvc);
+  freeAligned(m_ql_old);
+  freeAligned(m_qq_old);
+  freeAligned(m_vnewc);
 
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
     // De-allocate device memory here.

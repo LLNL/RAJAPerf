@@ -115,7 +115,6 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       PRESSURE_CALC_DATA;
  
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
@@ -127,18 +126,16 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         }); 
 
       }
-#endif
       stopTimer(); 
 
       break;
     }
 
     case Baseline_OpenMP : {
-      
+#if defined(_OPENMP)      
       PRESSURE_CALC_DATA;
  
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel
@@ -155,18 +152,16 @@ void PRESSURE_CALC::runKernel(VariantID vid)
           } // omp parallel
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case RAJALike_OpenMP : {
-
+#if defined(_OPENMP)      
       PRESSURE_CALC_DATA;
       
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
@@ -180,18 +175,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         }
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case RAJA_OpenMP : {
+#if defined(_OPENMP)      
 
       PRESSURE_CALC_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
@@ -203,14 +197,14 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         });
 
       }
-#endif
       stopTimer();
-
+#endif
       break;
     }
 
     case Baseline_CUDA :
     case RAJA_CUDA : {
+      // Fill these in later...you get the idea...
       break;
     }
 
