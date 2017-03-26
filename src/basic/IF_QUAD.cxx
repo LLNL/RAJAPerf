@@ -57,8 +57,8 @@ void IF_QUAD::setUp(VariantID vid)
 
 void IF_QUAD::runKernel(VariantID vid)
 {
-  int run_size = getRunSize();
-  int run_samples = getRunSamples();
+  Index_type run_size = getRunSize();
+  const Index_type run_samples = getRunSamples();
 
   switch ( vid ) {
 
@@ -70,7 +70,7 @@ void IF_QUAD::runKernel(VariantID vid)
 #if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+        for (Index_type i = 0; i < run_size; ++i ) {
           IF_QUAD_BODY(i);
         }
 
@@ -109,7 +109,7 @@ void IF_QUAD::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+        for (Index_type i = 0; i < run_size; ++i ) {
           IF_QUAD_BODY(i);
         }
 

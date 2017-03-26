@@ -28,7 +28,6 @@
 #define RAJAPerf_Basic_IF_QUAD_HXX
 
 #include "common/KernelBase.hxx"
-#include "RAJA/RAJA.hxx"
 
 namespace rajaperf 
 {

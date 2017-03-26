@@ -28,6 +28,7 @@
 #define RAJAPerf_Basic_MULADDSUB_HXX
 
 #include "common/KernelBase.hxx"
+
 #include "RAJA/RAJA.hxx"
 
 namespace rajaperf 
@@ -51,11 +52,11 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  RAJA::Real_ptr m_out1;
-  RAJA::Real_ptr m_out2;
-  RAJA::Real_ptr m_out3;
-  RAJA::Real_ptr m_in1;
-  RAJA::Real_ptr m_in2; 
+  Real_ptr m_out1;
+  Real_ptr m_out2;
+  Real_ptr m_out3;
+  Real_ptr m_in1;
+  Real_ptr m_in2; 
 };
 
 } // end namespace basic

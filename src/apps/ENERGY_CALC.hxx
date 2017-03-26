@@ -52,26 +52,26 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  RAJA::Real_ptr m_e_new;
-  RAJA::Real_ptr m_e_old;
-  RAJA::Real_ptr m_delvc;
-  RAJA::Real_ptr m_p_new;
-  RAJA::Real_ptr m_p_old; 
-  RAJA::Real_ptr m_q_new; 
-  RAJA::Real_ptr m_q_old; 
-  RAJA::Real_ptr m_work; 
-  RAJA::Real_ptr m_compHalfStep; 
-  RAJA::Real_ptr m_pHalfStep; 
-  RAJA::Real_ptr m_bvc; 
-  RAJA::Real_ptr m_pbvc; 
-  RAJA::Real_ptr m_ql_old; 
-  RAJA::Real_ptr m_qq_old; 
-  RAJA::Real_ptr m_vnewc; 
+  Real_ptr m_e_new;
+  Real_ptr m_e_old;
+  Real_ptr m_delvc;
+  Real_ptr m_p_new;
+  Real_ptr m_p_old; 
+  Real_ptr m_q_new; 
+  Real_ptr m_q_old; 
+  Real_ptr m_work; 
+  Real_ptr m_compHalfStep; 
+  Real_ptr m_pHalfStep; 
+  Real_ptr m_bvc; 
+  Real_ptr m_pbvc; 
+  Real_ptr m_ql_old; 
+  Real_ptr m_qq_old; 
+  Real_ptr m_vnewc; 
 
-  RAJA::Real_type m_rho0;
-  RAJA::Real_type m_e_cut;
-  RAJA::Real_type m_emin;
-  RAJA::Real_type m_q_cut;
+  Real_type m_rho0;
+  Real_type m_e_cut;
+  Real_type m_emin;
+  Real_type m_q_cut;
 };
 
 } // end namespace apps

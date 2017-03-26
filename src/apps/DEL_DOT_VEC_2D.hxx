@@ -53,14 +53,14 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  RAJA::Real_ptr m_x;
-  RAJA::Real_ptr m_y;
-  RAJA::Real_ptr m_xdot;
-  RAJA::Real_ptr m_ydot;
-  RAJA::Real_ptr m_div;
+  Real_ptr m_x;
+  Real_ptr m_y;
+  Real_ptr m_xdot;
+  Real_ptr m_ydot;
+  Real_ptr m_div;
 
-  RAJA::Real_type m_ptiny;
-  RAJA::Real_type m_half;
+  Real_type m_ptiny;
+  Real_type m_half;
 
   ADomain* m_domain;
 };

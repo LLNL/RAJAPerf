@@ -57,8 +57,8 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-  int run_size = getRunSize();
-  int run_samples = getRunSamples();
+  Index_type run_size = getRunSize();
+  const Index_type run_samples = getRunSamples();
 
   switch ( vid ) {
 
@@ -70,7 +70,7 @@ void TRAP_INT::runKernel(VariantID vid)
 #if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+        for (Index_type i = 0; i < run_size; ++i ) {
           TRAP_INT_BODY(i);
         }
 
@@ -109,7 +109,7 @@ void TRAP_INT::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp for schedule(static)
-        for (RAJA::Index_type i = 0; i < run_size; ++i ) {
+        for (Index_type i = 0; i < run_size; ++i ) {
           TRAP_INT_BODY(i);
         }
 

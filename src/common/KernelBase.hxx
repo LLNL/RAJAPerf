@@ -29,6 +29,7 @@
 #define RAJAPerf_KernelBase_HXX
 
 #include "common/RAJAPerfSuite.hxx"
+#include "common/RPTypes.hxx"
 
 #include "RAJA/Timer.hxx"
 
@@ -36,12 +37,6 @@
 #include <iostream>
 
 namespace rajaperf {
-
-//
-// Volatile index type for kernel sampling loops. If this is not used, 
-// some kernels may be optimized away.
-//
-typedef volatile int SampIndex_type;
 
 
 class KernelBase
@@ -55,11 +50,11 @@ public:
   KernelID     getKernelID() const { return kernel_id; }
   const std::string& getName() const { return name; }
 
-  int getRunSize() const { return run_size; }
-  int getRunSamples() const { return run_samples; }
+  Index_type getRunSize() const { return run_size; }
+  SampIndex_type getRunSamples() const { return run_samples; }
 
-  int getDefaultSize() const { return default_size; }
-  int getDefaultSamples() const { return default_samples; }
+  Index_type getDefaultSize() const { return default_size; }
+  SampIndex_type getDefaultSamples() const { return default_samples; }
 
   bool wasVariantRun(VariantID vid) const 
     { return num_exec[vid] > 0; }
@@ -67,10 +62,10 @@ public:
   double getMinTime(VariantID vid) const { return min_time[vid]; }
   double getMaxTime(VariantID vid) const { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
-  long double getChecksum(VariantID vid) const { return checksum[vid]; }
+  Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
-  void setDefaultSize(int size); 
-  void setDefaultSamples(int nsamp);
+  void setDefaultSize(Index_type size); 
+  void setDefaultSamples(SampIndex_type nsamp);
 
   void execute(VariantID vid);
   void startTimer() { timer.start(); }
@@ -91,7 +86,7 @@ protected:
   RAJA::Timer::ElapsedType max_time[NumVariants];
   RAJA::Timer::ElapsedType tot_time[NumVariants];
 
-  long double checksum[NumVariants];
+  Checksum_type checksum[NumVariants];
 
 private:
   KernelBase() = delete;
@@ -105,11 +100,11 @@ private:
 
   const RunParams& run_params;
 
-  int run_size;
-  int run_samples;
+  Index_type run_size;
+  SampIndex_type run_samples;
 
-  int default_size;
-  int default_samples;
+  Index_type default_size;
+  SampIndex_type default_samples;
 
   VariantID running_variant; 
 };

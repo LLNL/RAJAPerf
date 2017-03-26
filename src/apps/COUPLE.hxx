@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel VOL3D_CALC.
+ * \brief   Header file for kernel COUPLE.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_VOL3D_CALC_HXX
-#define RAJAPerf_Apps_VOL3D_CALC_HXX
+#ifndef RAJAPerf_Apps_COUPLE_HXX
+#define RAJAPerf_Apps_COUPLE_HXX
 
 #include "common/KernelBase.hxx"
 
@@ -39,13 +39,13 @@ namespace apps
 {
 struct ADomain;
 
-class VOL3D_CALC : public KernelBase
+class COUPLE : public KernelBase
 {
 public:
 
-  VOL3D_CALC(const RunParams& params);
+  COUPLE(const RunParams& params);
 
-  ~VOL3D_CALC();
+  ~COUPLE();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -53,12 +53,29 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-  Real_ptr m_z;
-  Real_ptr m_vol;
+  Complex_ptr m_t0;
+  Complex_ptr m_t1;
+  Complex_ptr m_t2;
+  Complex_ptr m_denac;
+  Complex_ptr m_denlw;
 
-  Real_type m_vnormq;
+  Real_type m_clight;
+  Real_type m_csound;
+  Real_type m_omega0;
+  Real_type m_omegar;
+  Real_type m_dt;
+  Real_type m_c10;
+  Real_type m_fratio;
+  Real_type m_r_fratio;
+  Real_type m_c20;
+  Complex_type m_ireal;
+
+  Index_type m_imin;
+  Index_type m_imax;
+  Index_type m_jmin;
+  Index_type m_jmax;
+  Index_type m_kmin;
+  Index_type m_kmax;
 
   ADomain* m_domain;
 };

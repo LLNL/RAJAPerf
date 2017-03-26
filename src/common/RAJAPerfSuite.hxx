@@ -138,8 +138,8 @@ enum KernelID {
   Apps_ENERGY_CALC,
   Apps_VOL3D_CALC,
   Apps_DEL_DOT_VEC_2D,
-#if 0
   Apps_COUPLE,
+#if 0
   Apps_FIR,
 #endif
 

@@ -36,45 +36,43 @@ namespace rajaperf
 namespace apps
 {
 
-  typedef RAJA::Real_type* __restrict__ UnalignedReal_ptr;
-
 #define DEL_DOT_VEC_2D_DATA \
-  RAJA::Real_ptr x = m_x; \
-  RAJA::Real_ptr y = m_y; \
-  RAJA::Real_ptr xdot = m_xdot; \
-  RAJA::Real_ptr ydot = m_ydot; \
-  RAJA::Real_ptr div = m_div; \
-  UnalignedReal_ptr x1,x2,x3,x4 ; \
-  UnalignedReal_ptr y1,y2,y3,y4 ; \
-  UnalignedReal_ptr fx1,fx2,fx3,fx4 ; \
-  UnalignedReal_ptr fy1,fy2,fy3,fy4 ; \
-  const RAJA::Real_type ptiny = m_ptiny; \
-  const RAJA::Real_type half = m_half;
+  ResReal_ptr x = m_x; \
+  ResReal_ptr y = m_y; \
+  ResReal_ptr xdot = m_xdot; \
+  ResReal_ptr ydot = m_ydot; \
+  ResReal_ptr div = m_div; \
+  ResReal_ptr x1,x2,x3,x4 ; \
+  ResReal_ptr y1,y2,y3,y4 ; \
+  ResReal_ptr fx1,fx2,fx3,fx4 ; \
+  ResReal_ptr fy1,fy2,fy3,fy4 ; \
+  const Real_type ptiny = m_ptiny; \
+  const Real_type half = m_half;
 
 
 #define DEL_DOT_VEC_2D_INDEX_BODY \
-  RAJA::Index_type i  = m_domain->real_zones[ii] ;
+  Index_type i  = m_domain->real_zones[ii] ;
 
 #define DEL_DOT_VEC_2D_BODY \
-  RAJA::Real_type xi  = half * ( x1[i]  + x2[i]  - x3[i]  - x4[i]  ) ; \
-  RAJA::Real_type xj  = half * ( x2[i]  + x3[i]  - x4[i]  - x1[i]  ) ; \
+  Real_type xi  = half * ( x1[i]  + x2[i]  - x3[i]  - x4[i]  ) ; \
+  Real_type xj  = half * ( x2[i]  + x3[i]  - x4[i]  - x1[i]  ) ; \
  \
-  RAJA::Real_type yi  = half * ( y1[i]  + y2[i]  - y3[i]  - y4[i]  ) ; \
-  RAJA::Real_type yj  = half * ( y2[i]  + y3[i]  - y4[i]  - y1[i]  ) ; \
+  Real_type yi  = half * ( y1[i]  + y2[i]  - y3[i]  - y4[i]  ) ; \
+  Real_type yj  = half * ( y2[i]  + y3[i]  - y4[i]  - y1[i]  ) ; \
  \
-  RAJA::Real_type fxi = half * ( fx1[i] + fx2[i] - fx3[i] - fx4[i] ) ; \
-  RAJA::Real_type fxj = half * ( fx2[i] + fx3[i] - fx4[i] - fx1[i] ) ; \
+  Real_type fxi = half * ( fx1[i] + fx2[i] - fx3[i] - fx4[i] ) ; \
+  Real_type fxj = half * ( fx2[i] + fx3[i] - fx4[i] - fx1[i] ) ; \
  \
-  RAJA::Real_type fyi = half * ( fy1[i] + fy2[i] - fy3[i] - fy4[i] ) ; \
-  RAJA::Real_type fyj = half * ( fy2[i] + fy3[i] - fy4[i] - fy1[i] ) ; \
+  Real_type fyi = half * ( fy1[i] + fy2[i] - fy3[i] - fy4[i] ) ; \
+  Real_type fyj = half * ( fy2[i] + fy3[i] - fy4[i] - fy1[i] ) ; \
  \
-  RAJA::Real_type rarea  = 1.0 / ( xi * yj - xj * yi + ptiny ) ; \
+  Real_type rarea  = 1.0 / ( xi * yj - xj * yi + ptiny ) ; \
  \
-  RAJA::Real_type dfxdx  = rarea * ( fxi * yj - fxj * yi ) ; \
+  Real_type dfxdx  = rarea * ( fxi * yj - fxj * yi ) ; \
  \
-  RAJA::Real_type dfydy  = rarea * ( fyj * xi - fyi * xj ) ; \
+  Real_type dfydy  = rarea * ( fyj * xi - fyi * xj ) ; \
  \
-  RAJA::Real_type affine = ( fy1[i] + fy2[i] + fy3[i] + fy4[i] ) / \
+  Real_type affine = ( fy1[i] + fy2[i] + fy3[i] + fy4[i] ) / \
                      ( y1[i]  + y2[i]  + y3[i]  + y4[i]  ) ; \
  \
   div[i] = dfxdx + dfydy + affine ;
@@ -98,11 +96,11 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lrn;
 
-  allocAndInitAligned(m_x, max_loop_index, vid);
-  allocAndInitAligned(m_y, max_loop_index, vid);
-  allocAndInitAligned(m_xdot, max_loop_index, vid);
-  allocAndInitAligned(m_ydot, max_loop_index, vid);
-  allocAndInitAligned(m_div, max_loop_index, vid);
+  allocAndInit(m_x, max_loop_index, vid);
+  allocAndInit(m_y, max_loop_index, vid);
+  allocAndInit(m_xdot, max_loop_index, vid);
+  allocAndInit(m_ydot, max_loop_index, vid);
+  allocAndInit(m_div, max_loop_index, vid);
 
   m_ptiny = 1.0e-20;
   m_half = 0.5;
@@ -110,9 +108,9 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
 
 void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 {
-  int run_samples = getRunSamples();
-  RAJA::Index_type lbegin = 0;
-  RAJA::Index_type lend = m_domain->n_real_zones;
+  const Index_type run_samples = getRunSamples();
+  const Index_type lbegin = 0;
+  const Index_type lend = m_domain->n_real_zones;
 
   switch ( vid ) {
 
@@ -128,7 +126,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type ii = lbegin ; ii < lend ; ++ii ) {
+        for (Index_type ii = lbegin ; ii < lend ; ++ii ) {
           DEL_DOT_VEC_2D_INDEX_BODY;
           DEL_DOT_VEC_2D_BODY;
         }
@@ -174,7 +172,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for 
-        for (RAJA::Index_type ii = lbegin ; ii < lend ; ++ii ) {
+        for (Index_type ii = lbegin ; ii < lend ; ++ii ) {
           DEL_DOT_VEC_2D_INDEX_BODY;
           DEL_DOT_VEC_2D_BODY;
         }
@@ -242,11 +240,11 @@ void DEL_DOT_VEC_2D::updateChecksum(VariantID vid)
 
 void DEL_DOT_VEC_2D::tearDown(VariantID vid)
 {
-  freeAligned(m_x);
-  freeAligned(m_y);
-  freeAligned(m_xdot);
-  freeAligned(m_ydot);
-  freeAligned(m_div);
+  dealloc(m_x);
+  dealloc(m_y);
+  dealloc(m_xdot);
+  dealloc(m_ydot);
+  dealloc(m_div);
   
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
     // De-allocate device memory here.

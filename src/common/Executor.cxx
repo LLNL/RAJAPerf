@@ -740,7 +740,7 @@ void Executor::writeChecksumReport(const string& filename)
       file <<left<< setw(namecol_width) << kern->getName() << endl;
       file << dot_line << endl;
 
-      long double cksum_ref = 0.0;
+      Checksum_type cksum_ref = 0.0;
       size_t ivck = 0;
       while ( ivck < variant_ids.size() && cksum_ref == 0.0 ) {
         VariantID vid = variant_ids[ivck];
@@ -753,7 +753,7 @@ void Executor::writeChecksumReport(const string& filename)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
  
-        long double diff = 0.0;    
+        Checksum_type diff = 0.0;    
         if ( kern->wasVariantRun(vid) ) {
           diff = cksum_ref - kern->getChecksum(vid);
 

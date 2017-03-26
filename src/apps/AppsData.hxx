@@ -61,7 +61,7 @@ namespace apps
 //
 struct ADomain
 {
-   ADomain( RAJA::Index_type rzmax, RAJA::Index_type ndims ) 
+   ADomain( Index_type rzmax, Index_type ndims ) 
       : ndims(ndims), NPNL(2), NPNR(1)
    {
       imin = NPNL;
@@ -90,18 +90,18 @@ struct ADomain
       fpz = frn - jp - kp - 1;
       lpz = lrn;
 
-      real_zones = new RAJA::Index_type[nnalls];
-      for (RAJA::Index_type i = 0; i < nnalls; ++i) real_zones[i] = -1;
+      real_zones = new Index_type[nnalls];
+      for (Index_type i = 0; i < nnalls; ++i) real_zones[i] = -1;
 
       n_real_zones = 0;
 
       if ( ndims == 2 ) {
 
-         for (RAJA::Index_type j = jmin; j < jmax; j++) {
-            for (RAJA::Index_type i = imin; i < imax; i++) {
-               RAJA::Index_type ip = i + j*jp ;
+         for (Index_type j = jmin; j < jmax; j++) {
+            for (Index_type i = imin; i < imax; i++) {
+               Index_type ip = i + j*jp ;
 
-               RAJA::Index_type id = n_real_zones;
+               Index_type id = n_real_zones;
                real_zones[id] = ip;
                n_real_zones++;
             }
@@ -109,12 +109,12 @@ struct ADomain
 
       } else if ( ndims == 3 ) {
 
-         for (RAJA::Index_type k = kmin; k < kmax; k++) { 
-            for (RAJA::Index_type j = jmin; j < jmax; j++) {
-               for (RAJA::Index_type i = imin; i < imax; i++) {
-                  RAJA::Index_type ip = i + j*jp + kp*k ;
+         for (Index_type k = kmin; k < kmax; k++) { 
+            for (Index_type j = jmin; j < jmax; j++) {
+               for (Index_type i = imin; i < imax; i++) {
+                  Index_type ip = i + j*jp + kp*k ;
 
-                  RAJA::Index_type id = n_real_zones;
+                  Index_type id = n_real_zones;
                   real_zones[id] = ip;
                   n_real_zones++;
                }
@@ -130,31 +130,31 @@ struct ADomain
       if (real_zones) delete [] real_zones; 
    }
 
-   RAJA::Index_type ndims;
-   RAJA::Index_type NPNL;
-   RAJA::Index_type NPNR;
+   Index_type ndims;
+   Index_type NPNL;
+   Index_type NPNR;
 
-   RAJA::Index_type imin;
-   RAJA::Index_type jmin;
-   RAJA::Index_type kmin;
-   RAJA::Index_type imax;
-   RAJA::Index_type jmax;
-   RAJA::Index_type kmax;
+   Index_type imin;
+   Index_type jmin;
+   Index_type kmin;
+   Index_type imax;
+   Index_type jmax;
+   Index_type kmax;
 
-   RAJA::Index_type jp;
-   RAJA::Index_type kp;
-   RAJA::Index_type nnalls;
+   Index_type jp;
+   Index_type kp;
+   Index_type nnalls;
 
-   RAJA::Index_type fpn;
-   RAJA::Index_type lpn;
-   RAJA::Index_type frn;
-   RAJA::Index_type lrn;
+   Index_type fpn;
+   Index_type lpn;
+   Index_type frn;
+   Index_type lrn;
 
-   RAJA::Index_type fpz;
-   RAJA::Index_type lpz;
+   Index_type fpz;
+   Index_type lpz;
 
-   RAJA::Index_type* real_zones;
-   RAJA::Index_type  n_real_zones;
+   Index_type* real_zones;
+   Index_type  n_real_zones;
 };
 
 } // end namespace apps

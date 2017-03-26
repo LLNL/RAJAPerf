@@ -36,15 +36,15 @@ namespace apps
 {
 
 #define PRESSURE_CALC_DATA \
-  RAJA::Real_ptr compression = m_compression; \
-  RAJA::Real_ptr bvc = m_bvc; \
-  RAJA::Real_ptr p_new = m_p_new; \
-  RAJA::Real_ptr e_old  = m_e_old; \
-  RAJA::Real_ptr vnewc  = m_vnewc; \
-  const RAJA::Real_type cls = m_cls; \
-  const RAJA::Real_type p_cut = m_p_cut; \
-  const RAJA::Real_type pmin = m_pmin; \
-  const RAJA::Real_type eosvmax = m_eosvmax; 
+  ResReal_ptr compression = m_compression; \
+  ResReal_ptr bvc = m_bvc; \
+  ResReal_ptr p_new = m_p_new; \
+  ResReal_ptr e_old  = m_e_old; \
+  ResReal_ptr vnewc  = m_vnewc; \
+  const Real_type cls = m_cls; \
+  const Real_type p_cut = m_p_cut; \
+  const Real_type pmin = m_pmin; \
+  const Real_type eosvmax = m_eosvmax; 
    
 
 #define PRESSURE_CALC_BODY1 \
@@ -70,11 +70,11 @@ PRESSURE_CALC::~PRESSURE_CALC()
 
 void PRESSURE_CALC::setUp(VariantID vid)
 {
-  allocAndInitAligned(m_compression, getRunSize(), vid);
-  allocAndInitAligned(m_bvc, getRunSize(), vid);
-  allocAndInitAligned(m_p_new, getRunSize(), vid);
-  allocAndInitAligned(m_e_old, getRunSize(), vid);
-  allocAndInitAligned(m_vnewc, getRunSize(), vid);
+  allocAndInit(m_compression, getRunSize(), vid);
+  allocAndInit(m_bvc, getRunSize(), vid);
+  allocAndInit(m_p_new, getRunSize(), vid);
+  allocAndInit(m_e_old, getRunSize(), vid);
+  allocAndInit(m_vnewc, getRunSize(), vid);
   
   initData(m_cls);
   initData(m_p_cut);
@@ -84,9 +84,9 @@ void PRESSURE_CALC::setUp(VariantID vid)
 
 void PRESSURE_CALC::runKernel(VariantID vid)
 {
-  int run_samples = getRunSamples();
-  const RAJA::Index_type lbegin = 0;
-  const RAJA::Index_type lend = getRunSize();
+  const Index_type run_samples = getRunSamples();
+  const Index_type lbegin = 0;
+  const Index_type lend = getRunSize();
 
   switch ( vid ) {
 
@@ -97,11 +97,11 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = lbegin; i < lend; ++i ) {
           PRESSURE_CALC_BODY1;
         }
 
-        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = lbegin; i < lend; ++i ) {
           PRESSURE_CALC_BODY2;
         }
 
@@ -142,12 +142,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
         #pragma omp parallel
           {
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = lbegin; i < lend; ++i ) {
               PRESSURE_CALC_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
-            for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = lbegin; i < lend; ++i ) {
               PRESSURE_CALC_BODY2;
             }
           } // omp parallel
@@ -166,12 +166,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = lbegin; i < lend; ++i ) {
           PRESSURE_CALC_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
-        for (RAJA::Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = lbegin; i < lend; ++i ) {
           PRESSURE_CALC_BODY2;
         }
 
@@ -231,11 +231,11 @@ void PRESSURE_CALC::updateChecksum(VariantID vid)
 
 void PRESSURE_CALC::tearDown(VariantID vid)
 {
-  freeAligned(m_compression);
-  freeAligned(m_bvc);
-  freeAligned(m_p_new);
-  freeAligned(m_e_old);
-  freeAligned(m_vnewc);
+  dealloc(m_compression);
+  dealloc(m_bvc);
+  dealloc(m_p_new);
+  dealloc(m_e_old);
+  dealloc(m_vnewc);
   
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
     // De-allocate device memory here.

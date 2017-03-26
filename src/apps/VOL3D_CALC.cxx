@@ -36,48 +36,46 @@ namespace rajaperf
 namespace apps
 {
 
-  typedef RAJA::Real_type* __restrict__ UnalignedReal_ptr;
-
 #define VOL3D_CALC_DATA \
-  RAJA::Real_ptr x = m_x; \
-  RAJA::Real_ptr y = m_y; \
-  RAJA::Real_ptr z = m_z; \
-  RAJA::Real_ptr vol = m_vol; \
-  UnalignedReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
-  UnalignedReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  UnalignedReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;  \
-  const RAJA::Real_type vnormq = m_vnormq;
+  ResReal_ptr x = m_x; \
+  ResReal_ptr y = m_y; \
+  ResReal_ptr z = m_z; \
+  ResReal_ptr vol = m_vol; \
+  ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
+  ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
+  ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;  \
+  const Real_type vnormq = m_vnormq;
 
 
 #define VOL3D_CALC_BODY \
-  RAJA::Real_type x71 = x7[i] - x1[i] ; \
-  RAJA::Real_type x72 = x7[i] - x2[i] ; \
-  RAJA::Real_type x74 = x7[i] - x4[i] ; \
-  RAJA::Real_type x30 = x3[i] - x0[i] ; \
-  RAJA::Real_type x50 = x5[i] - x0[i] ; \
-  RAJA::Real_type x60 = x6[i] - x0[i] ; \
+  Real_type x71 = x7[i] - x1[i] ; \
+  Real_type x72 = x7[i] - x2[i] ; \
+  Real_type x74 = x7[i] - x4[i] ; \
+  Real_type x30 = x3[i] - x0[i] ; \
+  Real_type x50 = x5[i] - x0[i] ; \
+  Real_type x60 = x6[i] - x0[i] ; \
  \
-  RAJA::Real_type y71 = y7[i] - y1[i] ; \
-  RAJA::Real_type y72 = y7[i] - y2[i] ; \
-  RAJA::Real_type y74 = y7[i] - y4[i] ; \
-  RAJA::Real_type y30 = y3[i] - y0[i] ; \
-  RAJA::Real_type y50 = y5[i] - y0[i] ; \
-  RAJA::Real_type y60 = y6[i] - y0[i] ; \
+  Real_type y71 = y7[i] - y1[i] ; \
+  Real_type y72 = y7[i] - y2[i] ; \
+  Real_type y74 = y7[i] - y4[i] ; \
+  Real_type y30 = y3[i] - y0[i] ; \
+  Real_type y50 = y5[i] - y0[i] ; \
+  Real_type y60 = y6[i] - y0[i] ; \
  \
-  RAJA::Real_type z71 = z7[i] - z1[i] ; \
-  RAJA::Real_type z72 = z7[i] - z2[i] ; \
-  RAJA::Real_type z74 = z7[i] - z4[i] ; \
-  RAJA::Real_type z30 = z3[i] - z0[i] ; \
-  RAJA::Real_type z50 = z5[i] - z0[i] ; \
-  RAJA::Real_type z60 = z6[i] - z0[i] ; \
+  Real_type z71 = z7[i] - z1[i] ; \
+  Real_type z72 = z7[i] - z2[i] ; \
+  Real_type z74 = z7[i] - z4[i] ; \
+  Real_type z30 = z3[i] - z0[i] ; \
+  Real_type z50 = z5[i] - z0[i] ; \
+  Real_type z60 = z6[i] - z0[i] ; \
  \
-  RAJA::Real_type xps = x71 + x60 ; \
-  RAJA::Real_type yps = y71 + y60 ; \
-  RAJA::Real_type zps = z71 + z60 ; \
+  Real_type xps = x71 + x60 ; \
+  Real_type yps = y71 + y60 ; \
+  Real_type zps = z71 + z60 ; \
  \
-  RAJA::Real_type cyz = y72 * z30 - z72 * y30 ; \
-  RAJA::Real_type czx = z72 * x30 - x72 * z30 ; \
-  RAJA::Real_type cxy = x72 * y30 - y72 * x30 ; \
+  Real_type cyz = y72 * z30 - z72 * y30 ; \
+  Real_type czx = z72 * x30 - x72 * z30 ; \
+  Real_type cxy = x72 * y30 - y72 * x30 ; \
   vol[i] = xps * cyz + yps * czx + zps * cxy ; \
  \
   xps = x72 + x50 ; \
@@ -119,19 +117,19 @@ void VOL3D_CALC::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lpn;
 
-  allocAndInitAligned(m_x, max_loop_index, vid);
-  allocAndInitAligned(m_y, max_loop_index, vid);
-  allocAndInitAligned(m_z, max_loop_index, vid);
-  allocAndInitAligned(m_vol, max_loop_index, vid);
+  allocAndInit(m_x, max_loop_index, vid);
+  allocAndInit(m_y, max_loop_index, vid);
+  allocAndInit(m_z, max_loop_index, vid);
+  allocAndInit(m_vol, max_loop_index, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
 
 void VOL3D_CALC::runKernel(VariantID vid)
 {
-  int run_samples = getRunSamples();
-  RAJA::Index_type lbegin = m_domain->fpz;
-  RAJA::Index_type lend = m_domain->lpz+1;
+  const Index_type run_samples = getRunSamples();
+  const Index_type lbegin = m_domain->fpz;
+  const Index_type lend = m_domain->lpz+1;
 
   switch ( vid ) {
 
@@ -146,7 +144,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (RAJA::Index_type i = lbegin ; i < lend ; ++i ) {
+        for (Index_type i = lbegin ; i < lend ; ++i ) {
           VOL3D_CALC_BODY;
         }
 
@@ -189,7 +187,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for 
-        for (RAJA::Index_type i = lbegin ; i < lend ; ++i ) {
+        for (Index_type i = lbegin ; i < lend ; ++i ) {
           VOL3D_CALC_BODY;
         }
 
@@ -254,10 +252,10 @@ void VOL3D_CALC::updateChecksum(VariantID vid)
 
 void VOL3D_CALC::tearDown(VariantID vid)
 {
-  freeAligned(m_x);
-  freeAligned(m_y);
-  freeAligned(m_z);
-  freeAligned(m_vol);
+  dealloc(m_x);
+  dealloc(m_y);
+  dealloc(m_z);
+  dealloc(m_vol);
   
   if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
     // De-allocate device memory here.

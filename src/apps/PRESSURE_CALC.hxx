@@ -52,16 +52,16 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  RAJA::Real_ptr m_compression;
-  RAJA::Real_ptr m_bvc;
-  RAJA::Real_ptr m_p_new;
-  RAJA::Real_ptr m_e_old;
-  RAJA::Real_ptr m_vnewc; 
+  Real_ptr m_compression;
+  Real_ptr m_bvc;
+  Real_ptr m_p_new;
+  Real_ptr m_e_old;
+  Real_ptr m_vnewc; 
 
-  RAJA::Real_type m_cls;
-  RAJA::Real_type m_p_cut;
-  RAJA::Real_type m_pmin;
-  RAJA::Real_type m_eosvmax;
+  Real_type m_cls;
+  Real_type m_p_cut;
+  Real_type m_pmin;
+  Real_type m_eosvmax;
 };
 
 } // end namespace apps

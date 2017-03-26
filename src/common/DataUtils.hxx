@@ -27,8 +27,7 @@
 #define DataUtils_HXX
 
 #include "RAJAPerfSuite.hxx"
-
-#include "RAJA/RAJA.hxx"
+#include "RPTypes.hxx"
 
 
 namespace rajaperf
@@ -41,35 +40,46 @@ void resetDataInitCount();
 
 
 /*!
- * \brief Allocate and initialize aligned data array.
+ * \brief Allocate and initialize aligned data arrays.
  */
-void allocAndInitAligned(RAJA::Real_ptr& ptr, int len,
-                         VariantID vid = NumVariants);
+void allocAndInit(Real_ptr& ptr, int len,
+                  VariantID vid = NumVariants);
+///
+void allocAndInit(Complex_ptr& ptr, int len,
+                  VariantID vid = NumVariants);
 
 /*!
- * \brief Free aligned data array.
+ * \brief Free data arrays.
  */
-void freeAligned(RAJA::Real_ptr& ptr);
+void dealloc(Real_ptr& ptr);
+///
+void dealloc(Complex_ptr& ptr);
 
 
 /*!
- * \brief Initialize aligned data array.
+ * \brief Initialize aligned data arrays.
  */
-void initData(RAJA::Real_ptr& ptr, int len,
+void initData(Real_ptr& ptr, int len,
+              VariantID vid = NumVariants);
+///
+void initData(Complex_ptr& ptr, int len,
               VariantID vid = NumVariants);
 
 /*!
  * \brief Initialize scalar data.
  */
-void initData(RAJA::Real_type& d,
+void initData(Real_type& d,
               VariantID vid = NumVariants);
 
 
 /*!
- * \brief Calculate and return checksum for data array.
+ * \brief Calculate and return checksum for data arrays.
  */
-long double calcChecksum(const RAJA::Real_ptr d, int len, 
-                         RAJA::Real_type scale_factor = 1.0);
+long double calcChecksum(Real_ptr d, int len, 
+                         Real_type scale_factor = 1.0);
+///
+long double calcChecksum(Complex_ptr d, int len, 
+                         Real_type scale_factor = 1.0);
 
 
 }  // closing brace for rajaperf namespace

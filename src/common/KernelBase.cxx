@@ -58,16 +58,18 @@ KernelBase::~KernelBase()
 }
 
 
-void KernelBase::setDefaultSize(int size)
+void KernelBase::setDefaultSize(Index_type size)
 {
   default_size = size;
-  run_size = static_cast<int>( size*run_params.getSizeFraction() );
+  run_size = 
+    static_cast<Index_type>( size*run_params.getSizeFraction() );
 }
 
-void KernelBase::setDefaultSamples(int nsamp)
+void KernelBase::setDefaultSamples(SampIndex_type nsamp)
 {
   default_samples = nsamp;
-  run_samples = static_cast<int>( nsamp*run_params.getSampleFraction() );
+  run_samples = 
+    static_cast<SampIndex_type>( nsamp*run_params.getSampleFraction() );
 }
 
 void KernelBase::execute(VariantID vid) 
