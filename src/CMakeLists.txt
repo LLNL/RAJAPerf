@@ -7,10 +7,10 @@ add_subdirectory(basic)
 #add_subdirectory(polybench)
 #add_subdirectory(stream)
 
-add_executable(raja-perf.exe
-  RAJAPerfSuiteDriver.cxx) 
-
-target_link_libraries(raja-perf.exe
+raja_add_executable(
+  NAME raja-perf.exe
+  SOURCES RAJAPerfSuiteDriver.cxx
+  DEPENDS_ON 
   RAJA
   common
   apps
