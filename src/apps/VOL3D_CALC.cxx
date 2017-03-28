@@ -29,6 +29,8 @@
 #include "AppsData.hxx"
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -117,10 +119,10 @@ void VOL3D_CALC::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lpn;
 
-  allocAndInit(m_x, max_loop_index, vid);
-  allocAndInit(m_y, max_loop_index, vid);
-  allocAndInit(m_z, max_loop_index, vid);
-  allocAndInit(m_vol, max_loop_index, vid);
+  allocAndInitData(m_x, max_loop_index, vid);
+  allocAndInitData(m_y, max_loop_index, vid);
+  allocAndInitData(m_z, max_loop_index, vid);
+  allocAndInitData(m_vol, max_loop_index, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
@@ -252,14 +254,12 @@ void VOL3D_CALC::updateChecksum(VariantID vid)
 
 void VOL3D_CALC::tearDown(VariantID vid)
 {
-  dealloc(m_x);
-  dealloc(m_y);
-  dealloc(m_z);
-  dealloc(m_vol);
-  
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
+
+  deallocData(m_x);
+  deallocData(m_y);
+  deallocData(m_z);
+  deallocData(m_vol);
 }
 
 } // end namespace apps

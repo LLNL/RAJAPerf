@@ -29,6 +29,8 @@
 #include "AppsData.hxx"
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -96,11 +98,11 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lrn;
 
-  allocAndInit(m_x, max_loop_index, vid);
-  allocAndInit(m_y, max_loop_index, vid);
-  allocAndInit(m_xdot, max_loop_index, vid);
-  allocAndInit(m_ydot, max_loop_index, vid);
-  allocAndInit(m_div, max_loop_index, vid);
+  allocAndInitData(m_x, max_loop_index, vid);
+  allocAndInitData(m_y, max_loop_index, vid);
+  allocAndInitData(m_xdot, max_loop_index, vid);
+  allocAndInitData(m_ydot, max_loop_index, vid);
+  allocAndInitData(m_div, max_loop_index, vid);
 
   m_ptiny = 1.0e-20;
   m_half = 0.5;
@@ -240,15 +242,13 @@ void DEL_DOT_VEC_2D::updateChecksum(VariantID vid)
 
 void DEL_DOT_VEC_2D::tearDown(VariantID vid)
 {
-  dealloc(m_x);
-  dealloc(m_y);
-  dealloc(m_xdot);
-  dealloc(m_ydot);
-  dealloc(m_div);
-  
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
+
+  deallocData(m_x);
+  deallocData(m_y);
+  deallocData(m_xdot);
+  deallocData(m_ydot);
+  deallocData(m_div);
 }
 
 } // end namespace apps

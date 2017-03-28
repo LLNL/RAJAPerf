@@ -1,9 +1,4 @@
-add_library(basic
-  INIT3.cxx
-  MULADDSUB.cxx
-  IF_QUAD.cxx
-  TRAP_INT.cxx)
-
-target_link_libraries(basic
-  common
-  RAJA)
+raja_add_library(
+  NAME basic
+  SOURCES MULADDSUB.cxx IF_QUAD.cxx TRAP_INT.cxx
+  DEPENDS_ON basic common RAJA)

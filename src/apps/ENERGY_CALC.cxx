@@ -28,6 +28,8 @@
 
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -139,21 +141,21 @@ ENERGY_CALC::~ENERGY_CALC()
 
 void ENERGY_CALC::setUp(VariantID vid)
 {
-  allocAndInit(m_e_new, getRunSize(), vid);
-  allocAndInit(m_e_old, getRunSize(), vid);
-  allocAndInit(m_delvc, getRunSize(), vid);
-  allocAndInit(m_p_new, getRunSize(), vid);
-  allocAndInit(m_p_old, getRunSize(), vid);
-  allocAndInit(m_q_new, getRunSize(), vid);
-  allocAndInit(m_q_old, getRunSize(), vid);
-  allocAndInit(m_work, getRunSize(), vid);
-  allocAndInit(m_compHalfStep, getRunSize(), vid);
-  allocAndInit(m_pHalfStep, getRunSize(), vid);
-  allocAndInit(m_bvc, getRunSize(), vid);
-  allocAndInit(m_pbvc, getRunSize(), vid);
-  allocAndInit(m_ql_old, getRunSize(), vid);
-  allocAndInit(m_qq_old, getRunSize(), vid);
-  allocAndInit(m_vnewc, getRunSize(), vid);
+  allocAndInitData(m_e_new, getRunSize(), vid);
+  allocAndInitData(m_e_old, getRunSize(), vid);
+  allocAndInitData(m_delvc, getRunSize(), vid);
+  allocAndInitData(m_p_new, getRunSize(), vid);
+  allocAndInitData(m_p_old, getRunSize(), vid);
+  allocAndInitData(m_q_new, getRunSize(), vid);
+  allocAndInitData(m_q_old, getRunSize(), vid);
+  allocAndInitData(m_work, getRunSize(), vid);
+  allocAndInitData(m_compHalfStep, getRunSize(), vid);
+  allocAndInitData(m_pHalfStep, getRunSize(), vid);
+  allocAndInitData(m_bvc, getRunSize(), vid);
+  allocAndInitData(m_pbvc, getRunSize(), vid);
+  allocAndInitData(m_ql_old, getRunSize(), vid);
+  allocAndInitData(m_qq_old, getRunSize(), vid);
+  allocAndInitData(m_vnewc, getRunSize(), vid);
   
   initData(m_rho0);
   initData(m_e_cut);
@@ -398,25 +400,23 @@ void ENERGY_CALC::updateChecksum(VariantID vid)
 
 void ENERGY_CALC::tearDown(VariantID vid)
 {
-  dealloc(m_e_new);
-  dealloc(m_e_old);
-  dealloc(m_delvc);
-  dealloc(m_p_new);
-  dealloc(m_p_old);
-  dealloc(m_q_new);
-  dealloc(m_q_old);
-  dealloc(m_work);
-  dealloc(m_compHalfStep);
-  dealloc(m_pHalfStep);
-  dealloc(m_bvc);
-  dealloc(m_pbvc);
-  dealloc(m_ql_old);
-  dealloc(m_qq_old);
-  dealloc(m_vnewc);
+  (void) vid;
 
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  deallocData(m_e_new);
+  deallocData(m_e_old);
+  deallocData(m_delvc);
+  deallocData(m_p_new);
+  deallocData(m_p_old);
+  deallocData(m_q_new);
+  deallocData(m_q_old);
+  deallocData(m_work);
+  deallocData(m_compHalfStep);
+  deallocData(m_pHalfStep);
+  deallocData(m_bvc);
+  deallocData(m_pbvc);
+  deallocData(m_ql_old);
+  deallocData(m_qq_old);
+  deallocData(m_vnewc);
 }
 
 } // end namespace apps

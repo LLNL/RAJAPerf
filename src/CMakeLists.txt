@@ -11,6 +11,7 @@ add_executable(raja-perf.exe
   RAJAPerfSuiteDriver.cxx) 
 
 target_link_libraries(raja-perf.exe
+  RAJA
   common
   apps
   basic

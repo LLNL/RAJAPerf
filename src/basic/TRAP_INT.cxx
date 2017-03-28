@@ -37,7 +37,7 @@ namespace basic
 
 #define TRAP_INT_DATA 
 
-#define TRAP_INT_BODY(i) 
+#define TRAP_INT_BODY
 
 
 TRAP_INT::TRAP_INT(const RunParams& params)
@@ -53,11 +53,14 @@ TRAP_INT::~TRAP_INT()
 
 void TRAP_INT::setUp(VariantID vid)
 {
+  (void) vid;
 }
 
 void TRAP_INT::runKernel(VariantID vid)
 {
+#if 0
   Index_type run_size = getRunSize();
+#endif
   const Index_type run_samples = getRunSamples();
 
   switch ( vid ) {
@@ -67,15 +70,14 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         for (Index_type i = 0; i < run_size; ++i ) {
-          TRAP_INT_BODY(i);
+          TRAP_INT_BODY;
         }
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -86,15 +88,14 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          TRAP_INT_BODY(i);
+          TRAP_INT_BODY;
         });
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -105,16 +106,15 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         #pragma omp for schedule(static)
         for (Index_type i = 0; i < run_size; ++i ) {
-          TRAP_INT_BODY(i);
+          TRAP_INT_BODY;
         }
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -130,15 +130,14 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          TRAP_INT_BODY(i);
+          TRAP_INT_BODY;
         });
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -149,11 +148,10 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
-      }
+#if 0
 #endif
+      }
       stopTimer();
 
       break;
@@ -164,11 +162,10 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
-      }
+#if 0
 #endif
+      }
       stopTimer();
 
       break;
@@ -192,6 +189,7 @@ void TRAP_INT::runKernel(VariantID vid)
 
 void TRAP_INT::updateChecksum(VariantID vid)
 {
+  (void) vid;
 #if 0
   checksum[vid] += calcChecksum(m_p_new, getRunSize());
 #endif
@@ -199,35 +197,7 @@ void TRAP_INT::updateChecksum(VariantID vid)
 
 void TRAP_INT::tearDown(VariantID vid)
 {
-  switch ( vid ) {
-
-    case Baseline_Seq :
-    case RAJA_Seq :
-    case Baseline_OpenMP :
-    case RAJA_OpenMP :
-    case Baseline_CUDA :
-    case RAJA_CUDA : {
-      // De-allocate host memory here.
-      break;
-    }
-
-#if 0
-    case Baseline_OpenMP4x :
-    case RAJA_OpenMP4x : {
-      // De-allocate host and device memory here.
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
 }
 
 } // end namespace basic

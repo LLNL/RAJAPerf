@@ -51,10 +51,10 @@ public:
   const std::string& getName() const { return name; }
 
   Index_type getRunSize() const { return run_size; }
-  SampIndex_type getRunSamples() const { return run_samples; }
+  Index_type getRunSamples() const { return run_samples; }
 
   Index_type getDefaultSize() const { return default_size; }
-  SampIndex_type getDefaultSamples() const { return default_samples; }
+  Index_type getDefaultSamples() const { return default_samples; }
 
   bool wasVariantRun(VariantID vid) const 
     { return num_exec[vid] > 0; }
@@ -65,7 +65,7 @@ public:
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
   void setDefaultSize(Index_type size); 
-  void setDefaultSamples(SampIndex_type nsamp);
+  void setDefaultSamples(Index_type nsamp);
 
   void execute(VariantID vid);
   void startTimer() { timer.start(); }
@@ -101,10 +101,10 @@ private:
   const RunParams& run_params;
 
   Index_type run_size;
-  SampIndex_type run_samples;
+  Index_type run_samples;
 
   Index_type default_size;
-  SampIndex_type default_samples;
+  Index_type default_samples;
 
   VariantID running_variant; 
 };

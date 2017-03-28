@@ -65,11 +65,10 @@ void KernelBase::setDefaultSize(Index_type size)
     static_cast<Index_type>( size*run_params.getSizeFraction() );
 }
 
-void KernelBase::setDefaultSamples(SampIndex_type nsamp)
+void KernelBase::setDefaultSamples(Index_type nsamp)
 {
   default_samples = nsamp;
-  run_samples = 
-    static_cast<SampIndex_type>( nsamp*run_params.getSampleFraction() );
+  run_samples = static_cast<Index_type>( nsamp*run_params.getSampleFraction() );
 }
 
 void KernelBase::execute(VariantID vid) 

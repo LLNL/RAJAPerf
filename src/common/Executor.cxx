@@ -26,7 +26,6 @@
 
 #include "Executor.hxx"
 
-#include "common/RAJAPerfSuite.hxx"
 #include "common/KernelBase.hxx"
 #include "common/OutputUtils.hxx"
 
@@ -346,7 +345,7 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRunning specified kernels and variants!\n";
+  cout << "\n\nRunning specified kernels and variants...\n";
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -561,9 +560,14 @@ void Executor::writeFOMReport(const string& filename)
           if ( kern->wasVariantRun(comp_vid) ) {
             col_exec_count[col]++;
 
+#if 0 // RDH RETHINK
             rel_diff[ik][col] = 
               (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
                kern->getTotTime(base_vid);
+#else
+            rel_diff[ik][col] = 
+              kern->getTotTime(comp_vid) / kern->getTotTime(base_vid);
+#endif
 
             file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
                  << rel_diff[ik][col]; 

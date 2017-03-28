@@ -42,18 +42,35 @@ void resetDataInitCount();
 /*!
  * \brief Allocate and initialize aligned data arrays.
  */
-void allocAndInit(Real_ptr& ptr, int len,
-                  VariantID vid = NumVariants);
+void allocAndInitData(Real_ptr& ptr, int len,
+                      VariantID vid = NumVariants);
 ///
-void allocAndInit(Complex_ptr& ptr, int len,
-                  VariantID vid = NumVariants);
+void allocAndInitData(Complex_ptr& ptr, int len,
+                      VariantID vid = NumVariants);
+///
+#if defined(RAJA_ENABLE_CUDA)
+void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
+#endif
+
+
+/*!
+ * \brief Copy CUDA device data array back to host.
+ */
+#if defined(RAJA_ENABLE_CUDA)
+void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len);
+#endif
+
 
 /*!
  * \brief Free data arrays.
  */
-void dealloc(Real_ptr& ptr);
+void deallocData(Real_ptr& ptr);
 ///
-void dealloc(Complex_ptr& ptr);
+void deallocData(Complex_ptr& ptr);
+///
+#if defined(RAJA_ENABLE_CUDA)
+void deallocCudaDeviceData(Real_ptr& dptr);
+#endif
 
 
 /*!

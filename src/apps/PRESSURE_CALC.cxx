@@ -28,6 +28,8 @@
 
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -70,11 +72,11 @@ PRESSURE_CALC::~PRESSURE_CALC()
 
 void PRESSURE_CALC::setUp(VariantID vid)
 {
-  allocAndInit(m_compression, getRunSize(), vid);
-  allocAndInit(m_bvc, getRunSize(), vid);
-  allocAndInit(m_p_new, getRunSize(), vid);
-  allocAndInit(m_e_old, getRunSize(), vid);
-  allocAndInit(m_vnewc, getRunSize(), vid);
+  allocAndInitData(m_compression, getRunSize(), vid);
+  allocAndInitData(m_bvc, getRunSize(), vid);
+  allocAndInitData(m_p_new, getRunSize(), vid);
+  allocAndInitData(m_e_old, getRunSize(), vid);
+  allocAndInitData(m_vnewc, getRunSize(), vid);
   
   initData(m_cls);
   initData(m_p_cut);
@@ -231,15 +233,13 @@ void PRESSURE_CALC::updateChecksum(VariantID vid)
 
 void PRESSURE_CALC::tearDown(VariantID vid)
 {
-  dealloc(m_compression);
-  dealloc(m_bvc);
-  dealloc(m_p_new);
-  dealloc(m_e_old);
-  dealloc(m_vnewc);
-  
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
+ 
+  deallocData(m_compression);
+  deallocData(m_bvc);
+  deallocData(m_p_new);
+  deallocData(m_e_old);
+  deallocData(m_vnewc);
 }
 
 } // end namespace apps

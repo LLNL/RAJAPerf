@@ -29,11 +29,13 @@
 
 #include <string>
 
+#if 0
 #ifdef _OPENMP
   #include <omp.h>
 #else
   #define omp_get_thread_num() 0
   #define omp_get_num_threads() 1
+#endif
 #endif
 
 namespace rajaperf
@@ -86,8 +88,7 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_INIT3 = 0,
-  Basic_MULADDSUB,
+  Basic_MULADDSUB = 0,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
 

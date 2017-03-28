@@ -29,6 +29,8 @@
 #include "AppsData.hxx"
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -42,10 +44,6 @@ namespace apps
   ResComplex_ptr t2 = m_t2; \
   ResComplex_ptr denac = m_denac; \
   ResComplex_ptr denlw = m_denlw; \
-  const Real_type clight = m_clight; \
-  const Real_type csound = m_csound; \
-  const Real_type omega0 = m_omega0; \
-  const Real_type omegar = m_omegar; \
   const Real_type dt = m_dt; \
   const Real_type c10 = m_c10; \
   const Real_type fratio = m_fratio; \
@@ -134,11 +132,11 @@ void COUPLE::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lrn;
 
-  allocAndInit(m_t0, max_loop_index, vid);
-  allocAndInit(m_t1, max_loop_index, vid);
-  allocAndInit(m_t2, max_loop_index, vid);
-  allocAndInit(m_denac, max_loop_index, vid);
-  allocAndInit(m_denlw, max_loop_index, vid);
+  allocAndInitData(m_t0, max_loop_index, vid);
+  allocAndInitData(m_t1, max_loop_index, vid);
+  allocAndInitData(m_t2, max_loop_index, vid);
+  allocAndInitData(m_denac, max_loop_index, vid);
+  allocAndInitData(m_denlw, max_loop_index, vid);
 
   m_imin = m_domain->imin;
   m_imax = m_domain->imax;
@@ -162,8 +160,6 @@ void COUPLE::setUp(VariantID vid)
 void COUPLE::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-  const Index_type kbegin = m_domain->kmin;
-  const Index_type kend = m_domain->kmax;
 
 //
 // RDH: Should we use forallN for this kernel???
@@ -178,7 +174,7 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (Index_type k = kbegin ; k < kend ; ++k ) {
+        for (Index_type k = kmin ; k < kmax ; ++k ) {
           COUPLE_BODY;
         }
 
@@ -195,7 +191,7 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::seq_exec>(kbegin, kend, [=](int k) {
+        RAJA::forall<RAJA::seq_exec>(kmin, kmax, [=](int k) {
           COUPLE_BODY;
         }); 
 
@@ -213,7 +209,7 @@ void COUPLE::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for 
-        for (Index_type k = kbegin ; k < kend ; ++k ) {
+        for (Index_type k = kmin ; k < kmax ; ++k ) {
           COUPLE_BODY;
         }
 
@@ -236,7 +232,7 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(kbegin, kend, [=](int k) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(kmin, kmax, [=](int k) {
           COUPLE_BODY;
         }); 
 
@@ -278,15 +274,13 @@ void COUPLE::updateChecksum(VariantID vid)
 
 void COUPLE::tearDown(VariantID vid)
 {
-  dealloc(m_t0);
-  dealloc(m_t1);
-  dealloc(m_t2);
-  dealloc(m_denac);
-  dealloc(m_denlw);
-  
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
+ 
+  deallocData(m_t0);
+  deallocData(m_t1);
+  deallocData(m_t2);
+  deallocData(m_denac);
+  deallocData(m_denlw);
 }
 
 } // end namespace apps

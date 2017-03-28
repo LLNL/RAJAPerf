@@ -29,7 +29,6 @@
 
 #include "common/KernelBase.hxx"
 
-#include "RAJA/RAJA.hxx"
 
 namespace rajaperf 
 {

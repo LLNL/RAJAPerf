@@ -37,7 +37,7 @@ namespace basic
 
 #define IF_QUAD_DATA 
 
-#define IF_QUAD_BODY(i) 
+#define IF_QUAD_BODY
 
 
 IF_QUAD::IF_QUAD(const RunParams& params)
@@ -53,11 +53,14 @@ IF_QUAD::~IF_QUAD()
 
 void IF_QUAD::setUp(VariantID vid)
 {
+  (void) vid;
 }
 
 void IF_QUAD::runKernel(VariantID vid)
 {
+#if 0
   Index_type run_size = getRunSize();
+#endif
   const Index_type run_samples = getRunSamples();
 
   switch ( vid ) {
@@ -67,15 +70,14 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         for (Index_type i = 0; i < run_size; ++i ) {
-          IF_QUAD_BODY(i);
+          IF_QUAD_BODY;
         }
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -86,15 +88,14 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          IF_QUAD_BODY(i);
+          IF_QUAD_BODY;
         });
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -105,16 +106,15 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         #pragma omp for schedule(static)
         for (Index_type i = 0; i < run_size; ++i ) {
-          IF_QUAD_BODY(i);
+          IF_QUAD_BODY;
         }
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -130,15 +130,14 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
+#if 0
         RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          IF_QUAD_BODY(i);
+          IF_QUAD_BODY;
         });
+#endif
 
       }
-#endif
       stopTimer();
 
       break;
@@ -149,11 +148,10 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
-      }
+#if 0
 #endif
+      }
       stopTimer();
 
       break;
@@ -164,11 +162,10 @@ void IF_QUAD::runKernel(VariantID vid)
       IF_QUAD_DATA;
 
       startTimer();
-#if 0
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-
-      }
+#if 0
 #endif
+      }
       stopTimer();
 
       break;
@@ -192,6 +189,7 @@ void IF_QUAD::runKernel(VariantID vid)
 
 void IF_QUAD::updateChecksum(VariantID vid)
 {
+  (void) vid;
 #if 0
   checksum[vid] += calcChecksum(m_p_new, getRunSize());
 #endif
@@ -199,35 +197,7 @@ void IF_QUAD::updateChecksum(VariantID vid)
 
 void IF_QUAD::tearDown(VariantID vid)
 {
-  switch ( vid ) {
-
-    case Baseline_Seq :
-    case RAJA_Seq :
-    case Baseline_OpenMP :
-    case RAJA_OpenMP :
-    case Baseline_CUDA :
-    case RAJA_CUDA : {
-      // De-allocate host memory here.
-      break;
-    }
-
-#if 0
-    case Baseline_OpenMP4x :
-    case RAJA_OpenMP4x : {
-      // De-allocate host and device memory here.
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
-  if (vid == Baseline_CUDA || vid == RAJA_CUDA) {
-    // De-allocate device memory here.
-  }
+  (void) vid;
 }
 
 } // end namespace basic

@@ -25,7 +25,9 @@
 
 #include "DataUtils.hxx"
 
-#include "RAJA/RAJA.hxx"
+#include "RAJA/internal/MemUtils_CPU.hxx"
+#include "RAJA/internal/exec-cuda/raja_cudaerrchk.hxx"
+
 
 namespace rajaperf
 {
@@ -44,37 +46,73 @@ void resetDataInitCount()
 /*
  * Allocate and initialize aligned data arrays.
  */
-void allocAndInit(Real_ptr& ptr, int len, VariantID vid)
+void allocAndInitData(Real_ptr& ptr, int len, VariantID vid)
 {
   ptr = 
-    RAJA::allocate_aligned_type<RAJA::Real_type>(RAJA::DATA_ALIGN, 
-                                                 len*sizeof(Real_type));
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN, 
+                                           len*sizeof(Real_type));
   initData(ptr, len, vid);
 }
 
-void allocAndInit(Complex_ptr& ptr, int len, VariantID vid)
+void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 {
   // Should we do this differently for alignment??
   ptr = new Complex_type[len];
   initData(ptr, len, vid);
 }
 
+#if defined(RAJA_ENABLE_CUDA)
+/*
+ * Allocate and initialize CUDA device data arrays.
+ */
+void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Real_type) ) );
+
+  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Real_type), 
+              cudaMemcpyHostToDevice ) );
+
+  data_init_count++;
+}
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+/*
+ * Copy CUDA device data arrays back to host.
+ */
+void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len)
+{
+  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(Real_type), 
+                          cudaMemcpyDeviceToHost ) );
+}
+#endif
+
 
 /*
  * Free data arrays.
  */
-void dealloc(Real_ptr& ptr)
+void deallocData(Real_ptr& ptr)
 {
   RAJA::free_aligned(ptr);
   ptr = 0;
 }
 
-void dealloc(Complex_ptr& ptr)
+void deallocData(Complex_ptr& ptr)
 {
   delete [] ptr;
   ptr = 0;
 }
 
+#if defined(RAJA_ENABLE_CUDA)
+/*
+ * Free CUDA device data arrays.
+ */
+void deallocCudaDeviceData(Real_ptr& dptr) 
+{
+  cudaErrchk( cudaFree( dptr ) );
+  dptr = 0; 
+}
+#endif
 
 /*
  * Initialize data arrays.
@@ -88,9 +126,12 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
   if ( vid == Baseline_OpenMP || 
        vid == RAJALike_OpenMP || 
        vid == RAJA_OpenMP ) {
-    RAJA::forall<RAJA::omp_parallel_for_exec>(0, len, [=](Index_type i) {
+#if defined(_OPENMP)
+    #pragma omp parallel for
+#endif
+    for (int i = 0; i < len; ++i) { 
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    });
+    };
   } else {
     for (int i = 0; i < len; ++i) {
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
@@ -110,9 +151,12 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
   if ( vid == Baseline_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
-    RAJA::forall<RAJA::omp_parallel_for_exec>(0, len, [=](Index_type i) {
+#if defined(_OPENMP)
+    #pragma omp parallel for
+#endif
+    for (int i = 0; i < len; ++i) { 
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    });
+    };
   } else {
     for (int i = 0; i < len; ++i) {
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
