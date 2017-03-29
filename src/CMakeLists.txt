@@ -11,10 +11,10 @@ raja_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cxx
   DEPENDS_ON 
-  RAJA
   common
   apps
   basic
+  RAJA
 ##  livloops
 ##  polybench
 ##  stream

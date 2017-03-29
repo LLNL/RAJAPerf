@@ -82,11 +82,11 @@ namespace basic
   deallocCudaDeviceData(in2);
 
 __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
-                          Real_prt in1, Real_ptr in2, 
+                          Real_ptr in1, Real_ptr in2, 
                           Index_type lend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (tid < lend) {
+   if (i < lend) {
      MULADDSUB_BODY; 
    }
 }
@@ -208,7 +208,8 @@ void MULADDSUB::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(lend, block_size);
-         muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2 ); 
+         muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
+                                               lend ); 
 
       }
       stopTimer();
