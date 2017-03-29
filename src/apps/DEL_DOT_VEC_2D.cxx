@@ -84,7 +84,7 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
   setDefaultSize(312);  // See rzmax in ADomain struct
-  setDefaultSamples(2000);
+  setDefaultSamples(1200);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
 }

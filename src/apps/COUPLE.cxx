@@ -118,7 +118,7 @@ COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultSamples(1000);
+  setDefaultSamples(60);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }

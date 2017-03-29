@@ -105,7 +105,7 @@ VOL3D_CALC::VOL3D_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D_CALC, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultSamples(3200);
+  setDefaultSamples(320);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
@@ -130,8 +130,8 @@ void VOL3D_CALC::setUp(VariantID vid)
 void VOL3D_CALC::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-  const Index_type lbegin = m_domain->fpz;
-  const Index_type lend = m_domain->lpz+1;
+  const Index_type ibegin = m_domain->fpz;
+  const Index_type iend = m_domain->lpz+1;
 
   switch ( vid ) {
 
@@ -146,7 +146,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (Index_type i = lbegin ; i < lend ; ++i ) {
+        for (Index_type i = ibegin ; i < iend ; ++i ) {
           VOL3D_CALC_BODY;
         }
 
@@ -167,7 +167,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           VOL3D_CALC_BODY;
         }); 
 
@@ -189,7 +189,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for 
-        for (Index_type i = lbegin ; i < lend ; ++i ) {
+        for (Index_type i = ibegin ; i < iend ; ++i ) {
           VOL3D_CALC_BODY;
         }
 
@@ -216,7 +216,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           VOL3D_CALC_BODY;
         });
 

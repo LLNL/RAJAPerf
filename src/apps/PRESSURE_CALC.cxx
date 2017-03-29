@@ -87,8 +87,8 @@ void PRESSURE_CALC::setUp(VariantID vid)
 void PRESSURE_CALC::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-  const Index_type lbegin = 0;
-  const Index_type lend = getRunSize();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
@@ -99,11 +99,11 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_CALC_BODY1;
         }
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_CALC_BODY2;
         }
 
@@ -120,11 +120,11 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           PRESSURE_CALC_BODY1;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           PRESSURE_CALC_BODY2;
         }); 
 
@@ -139,17 +139,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       PRESSURE_CALC_DATA;
  
       startTimer();
-      for (SampIndex_type isamp = lbegin; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = ibegin; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel
           {
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               PRESSURE_CALC_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               PRESSURE_CALC_BODY2;
             }
           } // omp parallel
@@ -168,12 +168,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_CALC_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_CALC_BODY2;
         }
 
@@ -191,11 +191,11 @@ void PRESSURE_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           PRESSURE_CALC_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           PRESSURE_CALC_BODY2;
         });
 

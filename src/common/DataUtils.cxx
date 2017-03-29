@@ -92,15 +92,19 @@ void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len)
  * Free data arrays.
  */
 void deallocData(Real_ptr& ptr)
-{
-  RAJA::free_aligned(ptr);
-  ptr = 0;
+{ 
+  if (ptr) {
+    RAJA::free_aligned(ptr);
+    ptr = 0;
+  }
 }
 
 void deallocData(Complex_ptr& ptr)
 {
-  delete [] ptr;
-  ptr = 0;
+  if (ptr) { 
+    delete [] ptr;
+    ptr = 0;
+  }
 }
 
 #if defined(RAJA_ENABLE_CUDA)

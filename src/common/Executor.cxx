@@ -786,7 +786,7 @@ string Executor::getReportTitle(CSVRepMode mode)
   string title;
   switch ( mode ) {
     case CSVRepMode::Timing : { 
-      title = string("Mean Runtime Report "); 
+      title = string("Mean Runtime Report (sec.) "); 
       break; 
     }
     case CSVRepMode::Speedup : { 

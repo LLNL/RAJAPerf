@@ -334,7 +334,7 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
     case Apps_VOL3D_CALC : {
-       kernel = new apps::ENERGY_CALC(run_params);
+       kernel = new apps::VOL3D_CALC(run_params);
        break;
     }
     case Apps_DEL_DOT_VEC_2D : {

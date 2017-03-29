@@ -132,7 +132,7 @@ ENERGY_CALC::ENERGY_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY_CALC, params)
 {
   setDefaultSize(100000);
-  setDefaultSamples(1600);
+  setDefaultSamples(1300);
 }
 
 ENERGY_CALC::~ENERGY_CALC() 
@@ -166,8 +166,8 @@ void ENERGY_CALC::setUp(VariantID vid)
 void ENERGY_CALC::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-  const Index_type lbegin = 0;
-  const Index_type lend = getRunSize();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
@@ -178,27 +178,27 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY1;
         }
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY2;
         }
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY3;
         }
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY4;
         }
   
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY5;
         }
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY6;
         }
 
@@ -215,27 +215,27 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY1;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY2;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY3;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY4;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY5;
         }); 
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY6;
         }); 
 
@@ -255,32 +255,32 @@ void ENERGY_CALC::runKernel(VariantID vid)
         #pragma omp parallel
           {
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY2;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY3;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY4;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY5;
             }
 
             #pragma omp for nowait schedule(static)
-            for (Index_type i = lbegin; i < lend; ++i ) {
+            for (Index_type i = ibegin; i < iend; ++i ) {
               ENERGY_CALC_BODY6;
             }
           } // omp parallel
@@ -299,32 +299,32 @@ void ENERGY_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY2;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY3;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY4;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY5;
         }
 
         #pragma omp parallel for schedule(static)
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_CALC_BODY6;
         }
 
@@ -341,27 +341,27 @@ void ENERGY_CALC::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY2;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY3;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY4;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY5;
         });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           ENERGY_CALC_BODY6;
         });
 

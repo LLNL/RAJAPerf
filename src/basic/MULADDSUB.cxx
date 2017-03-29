@@ -65,16 +65,16 @@ namespace basic
   Real_ptr in1; \
   Real_ptr in2; \
 \
-  allocAndInitCudaDeviceData(out1, m_out1, lend); \
-  allocAndInitCudaDeviceData(out2, m_out2, lend); \
-  allocAndInitCudaDeviceData(out3, m_out3, lend); \
-  allocAndInitCudaDeviceData(in1, m_in1, lend); \
-  allocAndInitCudaDeviceData(in2, m_in2, lend);
+  allocAndInitCudaDeviceData(out1, m_out1, iend); \
+  allocAndInitCudaDeviceData(out2, m_out2, iend); \
+  allocAndInitCudaDeviceData(out3, m_out3, iend); \
+  allocAndInitCudaDeviceData(in1, m_in1, iend); \
+  allocAndInitCudaDeviceData(in2, m_in2, iend);
 
 #define MULADDSUB_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, lend); \
-  getCudaDeviceData(m_out2, out2, lend); \
-  getCudaDeviceData(m_out3, out3, lend); \
+  getCudaDeviceData(m_out1, out1, iend); \
+  getCudaDeviceData(m_out2, out2, iend); \
+  getCudaDeviceData(m_out3, out3, iend); \
   deallocCudaDeviceData(out1); \
   deallocCudaDeviceData(out2); \
   deallocCudaDeviceData(out3); \
@@ -83,10 +83,10 @@ namespace basic
 
 __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
                           Real_ptr in1, Real_ptr in2, 
-                          Index_type lend) 
+                          Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < lend) {
+   if (i < iend) {
      MULADDSUB_BODY; 
    }
 }
@@ -98,7 +98,7 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(6000);
+   setDefaultSamples(4500);
 }
 
 MULADDSUB::~MULADDSUB() 
@@ -117,8 +117,8 @@ void MULADDSUB::setUp(VariantID vid)
 void MULADDSUB::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-  const Index_type lbegin = 0;
-  const Index_type lend = getRunSize();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
@@ -129,7 +129,7 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           MULADDSUB_BODY;
         }
 
@@ -146,7 +146,7 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](Index_type i) {
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           MULADDSUB_BODY;
         });
 
@@ -165,7 +165,7 @@ void MULADDSUB::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for
-        for (Index_type i = lbegin; i < lend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           MULADDSUB_BODY;
         }
 
@@ -188,7 +188,7 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, 
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
           MULADDSUB_BODY;
         });
@@ -207,9 +207,9 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(lend, block_size);
+         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
          muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
-                                               lend ); 
+                                               iend ); 
 
       }
       stopTimer();
@@ -227,7 +227,7 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size> >(0, lend, 
+         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend, 
            [=] __device__ (Index_type i) {
            MULADDSUB_BODY;
          });

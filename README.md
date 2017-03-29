@@ -1,19 +1,21 @@
 RAJA Performance Suite
 ======================
 
-The RAJA performance suite is used to explore performance of loop-based 
-computational kernels of the sort found in HPC applications. Each kernel 
-appears in multiple variants that enable experiments to evaluate and 
-compare runtime performance achieved by RAJA and non-RAJA variants, using 
-different parallel programming models (e.g., OpenMP, CUDA, etc.), compiler 
-optimizations (e.g., SIMD vectorization), etc.
+The RAJA performance suite is designed to explore performance of loop-based 
+computational kernels of the sort found in HPC applications. In particular, it
+is used to assess, monitor, and compare runtime performance of kernels 
+implemented using RAJA and variants implemented using standard or 
+vendor-supported parallel programming models directly. Each kernel in the 
+suite appears in multiple RAJA and non-RAJA variants using parallel 
+programming models such as OpenMP and CUDA.
 
-The kernels are borrowed from a variety of sources, such as benchmark 
-suites and applications. Kernels are partitioned into "groups", which indicates 
-the origin of the kernels, algorithm patterns they represent, etc. For 
-example, the "Apps" group contains a collection of kernels extracted from 
-real scientific computing applications, kernels in the "Basic" group are 
-small and simple, but exhibit challenges for compiler optimizations, etc.
+The kernels are borrowed from a variety of sources, such as HPC benchmark 
+suites and applications. Kernels are partitioned into "groups" --  each group
+indicates the origin of its kernels, the algorithm patterns they represent, 
+etc. For example, the "Apps" group contains a collection of kernels extracted 
+from real scientific computing applications, kernels in the "Basic" group are 
+small and simple, but exhibit challenges for compiler optimizations, and so 
+forth.
 
 * * *
 
@@ -29,7 +31,7 @@ Table of Contents
 
 # Building the suite
 
-Before building the suite, you must get a copy of the code by cloning the
+To build the suite, you must obtain a copy of the code by cloning the
 necessary source repositories.
 
 First, clone the RAJA repo into a directory of your choice; e.g.
@@ -49,8 +51,7 @@ the RAJA source tree. Starting after the last step above:
 ```
 
 The process of cloning the performance suite repo into the RAJA code in this 
-way is temporary. It will change when the performance suite is moved to a 
-project on GitHub.
+way will change when the performance suite is moved to a project on GitHub.
 
 Finally, use [CMake] to build the code. The simplest way to build the code is 
 to create a build directory in the top-level RAJA directory (in-source builds 
@@ -62,7 +63,7 @@ are not allowed!) and run CMake from there; i.e., :
 > make raja-perf.exe
 ```
 
-RAJA and the Performance Suite are built together using the CMake 
+RAJA and the Performance Suite are built together using the same CMake 
 configuration. Please see the RAJA Quickstart Guide (add link) for details 
 on building RAJA, configuration options, etc.
 
@@ -70,7 +71,7 @@ on building RAJA, configuration options, etc.
 
 # Running the suite
 
-The suite is executed by running the executable in the top-level performance 
+The suite is run by invoking the executable in the top-level performance 
 suite 'src' directory in the build space. For example, giving it no options:
 ```
 > ./extra/performance/src/raja-perf.exe
@@ -78,39 +79,68 @@ suite 'src' directory in the build space. For example, giving it no options:
 will run the entire suite (all kernels and variants) in their default 
 configurations.
 
-The suite can be run in a variety of ways (e.g., specified subsets of kernels, 
-variants, groups) by passing appropriate options to the executable. To see 
-available options along with a brief description, pass the '--help' or '-h'
-option:
+The suite can be run in a variety of ways by passing options to the executable.
+For example, you can run subsets of kernels by specifying variants, group, or
+listing them explicitly. Other configuration options to set problem sizes, 
+number of kernel sampling passes, etc. can also be provided. The goal is to
+build the code once and use scripts or other mechanisms to run the suite
+in different ways.
+
+Note: most options appear in a long or short form for ease of use.
+
+To see available options along with a brief description of each, pass the 
+'--help' or '-h' option:
 ```
 > ./extra/performance/src/raja-perf.exe --help
 ```
+or
+```
+> ./extra/performance/src/raja-perf.exe -h
+```
+
+Lastly, the program will emit a summary of provided input if it is given 
+something that it does not understand. Hopefully, this will make it easy for
+users to understand and correct erroneous usage.
 
 * * *
 
 # Generated output
 
-Fill this in when we have a basic implementation... 
+Running the suite will generate several output files whose name starts with
+the specified file prefix in the specified  out put directory. If no such
+preferences are provided, files will be located in the current directory
+and be named `RAJAPerf*`.
+
+Currently, there are up to four files generated:
+
+1. Timing -- execution time (sec.) of each loop kernel and variant
+2. Checksum -- checksum value from results of each loop kernel and variant
+3. Speedup -- runtime speedup of each loop kernel and variant with respect to some reference variant
+4 Figure of Merit (FOM) -- basic statistics generated from speedup of RAJA variant vs. baseline for each programming model -- this is a work in progress...
+
+The name of each file will indicate its contents. All files are text files. 
+Other than the checksum file, all are in 'csv' format for easy processing 
+by various tools.
 
 * * *
 
-# Adding loop kernels and variants
+# Adding kernels and variants
 
-The following describes how to add new kernels and/or kernel variants to the
-RAJA Performance Suite. Group modifications are implicit and do not require
-any significant additional steps. The information in this section also
-provides insight into how the performance suite operates.
+This section describes how to add new kernels and/or kernel variants to the
+RAJA Performance Suite. Group modifications are not required unless a new
+group is added. The information in this section also provides insight into 
+how the performance suite operates.
 
 It is essential that the appropriate targets are updated in the appropriate
-'CMakeLists.txt' files when loop kernels are added.
+`CMakeLists.txt` files when files are added to the suite.
 
 ## Adding a kernel
 
-Adding a new kernel to the suite involves several steps:
+Adding a new kernel to the suite involves three main steps:
 
 1. Add unique kernel ID and unique name to the suite. 
-2. If the kernel is part of a new kernel group, add the group ID and name.
-3. Implement the kernel class which contains all operations needed to run it.
+2. If the kernel is part of a new kernel group, also add a unique group ID and name for the group.
+3. Implement a kernel class that contains all operations needed to run it.
 
 These steps are described in the following sections.
 
@@ -133,7 +163,7 @@ enum KernelID {
 };
 ```
 
-Note that the enumeration value for the kernel is the group name followed
+Note: the enumeration value for the kernel is the group name followed
 by the kernel name, separated by an underscore. It is important to follow
 this convention so that the kernel works with existing performance
 suite machinery. 
@@ -150,7 +180,7 @@ static const std::string KernelNames [] =
 };
 ```
 
-Note that the kernel string name is just a string version of the kernel ID.
+Note: the kernel string name is just a string version of the kernel ID.
 This convention must be followed so that the kernel works with existing 
 performance suite machinery. Also, the values in the KernelID enum and the
 strings in the KernelNames array must be kept consistent (i.e., same order
@@ -162,23 +192,23 @@ and matching one-to-one).
 If a kernel is added as part of a new group of kernels in the suite, a
 new value must be added to the 'GroupID' enum in the header file 
 `RAJAPerfSuite.hxx` and an associated group string name must be added to
-the array of strings 'GroupNames' in the file `RAJAPerfSuite.cxx`. Again,
+the 'GroupNames' array of strings in the file `RAJAPerfSuite.cxx`. Again,
 the enumeration values and items in the string array must be kept
 consistent.
 
 
 ### Add the kernel class
 
-Each kernel in the RAJA Performance Suite is implemented in a class whose
-header and implementation files live in the directory named for the group
+Each kernel in the suite is implemented in a class whose header and 
+implementation files live in the directory named for the group
 in which the kernel lives. The kernel class is responsible for implementing
 all operations needed to execute and record execution timing and result 
 checksum information for each variant of the kernel. 
 
 Continuing with our example, we add 'Foo' class header and implementation 
-files 'Foo.hxx' and 'Foo.cxx' to the 'src/bar' directory. The class must 
-inherit from the 'KernelBase' base class that defined the interface for 
-kernels in the suite. 
+files 'Foo.hxx' and 'Foo.cxx', respectively, to the 'src/bar' directory. 
+The class must inherit from the 'KernelBase' base class that defines the 
+interface for kernels in the suite. 
 
 #### Kernel class header
 
@@ -189,13 +219,12 @@ Here is what the header file for the Foo kernel object may look like:
 #define RAJAPerf_Bar_Foo_HXX
 
 #include "common/KernelBase.hxx"
-#include "RAJA/RAJA.hxx"
 
-namespace rajaperf  // RAJA Performance Suite namespeace
+namespace rajaperf  
 {
 class RunParams; // Forward declaration for ctor arg.
 
-namespace bar   // Kernel group namespace
+namespace bar   
 {
 
 class Foo : public KernelBase
@@ -208,11 +237,11 @@ public:
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid);
-  void computeChecksum(VariantID vid);
+  void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
 private:
-  // Kernel-specific data (pointers, scalares, etc.) used in kernel...
+  // Kernel-specific data (pointers, scalars, etc.) used in kernel...
 };
 
 } // end namespace bar
@@ -232,25 +261,34 @@ next.
 
 #### Kernel class implementation
 
-Providing the Foo class implementation is straightforward. However, several
-steps and conventions that we describe here must be followed:
+All kernels in the suite follow a similar implementation pattern for 
+consistency and ease of understanding. Here we describe several steps and 
+conventions that must be followed to ensure that all kernels interact with
+the performance suite machinery in the same way:
 
-1. Initialize the 'KernelBase' class object with KernelID, default size, and sample count in the `class constructor`.
+1. Initialize the 'KernelBase' class object with KernelID, default size, and default sample count in the `class constructor`.
 2. Implement data allocation and initialization operation for each kernel variant in the `setUp` method.
 3. Implement kernel execution for each variant in the `RunKernel` method.
-4. Compute the checksum for each variant in the `computeChecksum` method.
+4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
 
 
 ##### Constructor and destructor
 
+It is important to note that there will only be one instance of each kernel
+class created by the program. Thus, each kernel class constructor and 
+destructor must only perform operations that are non-specific to any kernel 
+variant.
+
 The constructor must pass the kernel ID and RunParams object to the base
 class 'KernelBase' constructor. The body of the constructor must also call
 base class methods to set the default size for the iteration space of the 
-kernel (e.g., the number of loop iterations) and the number of samples to 
-execute the kernel with each pass through the suite. These values will be 
-modified based on input parameters to define the size and number of samples 
-actually executed when the suite is run. Here is how this might look:
+kernel (e.g., typically the number of loop iterations, but can be 
+kernel-dependent) and the number of times to sample (i.e., execute) the kernel 
+with each pass through the suite to generate adequate timing information. 
+These values will be modified based on input parameters to define the actual 
+size and number of samples applied when the suite is run. Here is how this 
+typically looks:
 
 ```cpp
 Foo::Foo(const RunParams& params)
@@ -258,37 +296,38 @@ Foo::Foo(const RunParams& params)
     // default initialization of class members
 {
    setDefaultSize(100000);
-   setDefaultSamples(10000);
+   setDefaultSamples(1000);
 }
 ```
 
 The class destructor doesn't have any requirements beyond freeing memory
-owned by the class object.
+owned by the class object as needed.
 
 ##### setUp() method
 
 The 'setUp()' method is responsible for allocating and initializing data 
-necessary to run the kernel for the variant defined by the method's variant ID 
+necessary to run the kernel for the variant specified by its variant ID 
 argument. For example, a baseline variant may have aligned data allocation
 to help enable SIMD optimizations, an OpenMP variant may initialize arrays
 following a pattern of "first touch" based on how memory and threads are 
-mapped to CPU cores, a CUDA variant may initialize data on a host and copy
-it into device memory, etc.
+mapped to CPU cores, a CUDA variant may initialize data in host memory and 
+copy it into device memory, etc.
 
 It is important to use the same data allocation and initialization operations
 for RAJA and non-RAJA variants that are related. Also, the state of all 
 input data for the kernel should be the same for all variants so that 
 checksums can be compared at the end of a run.
 
-Note: there are some utilities to data allocation and initialization
-in the 'common' directory that can be shared by different kernels.
+Note: to simplify these operations and help ensure consistency, there exist 
+utility methods to allocate, initialize, deallocate, and copy data, and compute
+checksums defined in the `DataUtils.hxx` header file in the 'common' directory.
 
 ##### runKernel() method
 
 The 'runKernel()' method executes the kernel for the variant defined by the 
-method's variant ID argument. The method is also responsible for calling
-base class methods to start and stop execution timers for the loop variant.
-A typical kernel execution code section may look like:
+variant ID argument. The method is also responsible for calling base class 
+methods to start and stop execution timers for the loop variant. A typical 
+kernel execution code section may look like:
 
 ```cpp
 void Foo::runKernel(VariantID vid)
@@ -296,9 +335,12 @@ void Foo::runKernel(VariantID vid)
   // ...
 
   // Execute vid variant of kernel
+
+  // Declare data for vid variant of kernel...
+
   startTimer();
   for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-     // Kernel implementation for vid variant
+     // Implementation of vid variant of kernel...
   }
   stopTimer();
 
@@ -306,35 +348,42 @@ void Foo::runKernel(VariantID vid)
 }
 ```
 
-##### computeChecksum() method
+Note: for convenience, we make heavy use of macros to define data 
+declarations and kernel bodies in the suite. This significantly reduces
+the amount of redundant code required to implement multiple variants
+of each kernel. The kernel class implementation files in the suite 
+provide many examples of the basic pattern we use.
 
-The 'computeChecksum()' method is responsible for updating the checksum 
-value for the variant of the kernel just executed, which is held in the
-KernelBase base class. The checksum is based on data that the kernel
-computes; e.g., if the kernel computes an array of values, a reasonable
-checksum could be a weighted sum of the elements of the array.
+##### updateChecksum() method
+
+The 'updateChecksum()' method is responsible for adding the checksum
+for the current kernel (based on the data the kernel computes) to the 
+checksum value for the variant of the kernel just executed, which is held 
+in the KernelBase base class object. 
 
 It is important that the checksum be computed in the same way for
 each variant of the kernel so that checksums for different variants can be 
 compared to help identify differences, and potentially errors, in 
 implementations, compiler optimizations, programming model execution, etc.
 
-Note: there are some utilities to update checksums in the 'common' directory 
-that can be shared by different kernels.
+Note: to simplify checksum computations and help ensure consistency, there 
+are methods to compute checksums defined in the `DataUtils.hxx` header file 
+in the 'common' directory.
 
 ##### tearDown() method
 
-The 'tearDown()' method must free and/or reset all kernel data that is
-allocated and/or initialized in the 'setUp' method execution for other
-kernel variants run subsequently.
+The 'tearDown()' method free and/or reset all kernel data that is
+allocated and/or initialized in the 'setUp' method execution to prepare for 
+other kernel variants run subsequently.
 
 
 ### Add object construction operation
 
-The 'Executor' class creates objects representing kernels to be run
-based on the suite run parameters. To make sure the object for a new kernel
-is created properly, add a call to its class constructor in the 
-'getKernelObject()' method in the 'RAJAPerfSuite.cxx' file.
+The 'Executor' class object is responsible for creating kernel objects 
+for the kernels to be run based on the suite input options. To ensure a new
+kernel object will be created properly, add a call to its class constructor 
+based on its 'KernelID' in the 'getKernelObject()' method in the 
+`RAJAPerfSuite.cxx` file.
 
   
 ## Adding a variant
@@ -380,7 +429,7 @@ and matching one-to-one).
 In the classes containing kernels to which the new variant applies, 
 add implementations for the variant in the setup, kernel execution, 
 checksum computation, and teardown methods. These operations are described
-in the sections for adding a new kernel above.
+in earlier sections for adding a new kernel above.
 
 
 * * *
