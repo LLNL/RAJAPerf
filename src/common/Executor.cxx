@@ -64,12 +64,12 @@ Executor::~Executor()
 
 void Executor::setupSuite()
 {
-  cout << "\nSetting up suite based on input..." << endl;
-
   RunParams::InputOpt in_state = run_params.getInputState();
   if ( in_state == RunParams::InfoRequest || in_state == RunParams::BadInput ) {
     return;
   }
+
+  cout << "\nSetting up suite based on input..." << endl;
 
   typedef list<string> Slist;
   typedef vector<string> Svector;
@@ -346,6 +346,7 @@ void Executor::runSuite()
   }
 
   cout << "\n\nRunning specified kernels and variants...\n";
+
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -362,6 +363,8 @@ void Executor::outputRunData()
   if ( in_state != RunParams::GoodToRun ) {
     return;
   }
+
+  cout << "\n\nGenerate run report files...\n";
 
   //
   // Generate output file prefix (including directory path). 
@@ -512,7 +515,7 @@ void Executor::writeFOMReport(const string& filename)
     //
     // Print title line.
     //
-    file << "FOM Report (relative timing diff: (T_RAJA - T_baseline) / T_baseline)";
+    file << "FOM Report (RAJA variant speedup for each programming model: T_RAJA / T_baseline)";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
