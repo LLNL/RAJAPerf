@@ -507,15 +507,15 @@ void Executor::writeFOMReport(const string& filename)
     vector<double> col_max(ncols, -numeric_limits<double>::max());
     vector<double> col_avg(ncols, 0.0);
     vector<double> col_stddev(ncols, 0.0);
-    vector< vector<double> > rel_diff(kernels.size());
+    vector< vector<double> > pct_diff(kernels.size());
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      rel_diff[ik] = vector<double>(ncols, 0.0);
+      pct_diff[ik] = vector<double>(ncols, 0.0);
     }
 
     //
     // Print title line.
     //
-    file << "FOM Report (RAJA variant speedup for each programming model: T_RAJA / T_baseline)";
+    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_baseline) / T_baseline )";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
@@ -563,24 +563,19 @@ void Executor::writeFOMReport(const string& filename)
           if ( kern->wasVariantRun(comp_vid) ) {
             col_exec_count[col]++;
 
-#if 0 // RDH RETHINK
-            rel_diff[ik][col] = 
+            pct_diff[ik][col] = 100.0 *
               (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
                kern->getTotTime(base_vid);
-#else
-            rel_diff[ik][col] = 
-              kern->getTotTime(comp_vid) / kern->getTotTime(base_vid);
-#endif
 
             file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
-                 << rel_diff[ik][col]; 
+                 << pct_diff[ik][col]; 
 
             //
             // Gather data for column summaries (unsigned).
             //  
-            col_min[col] = min( col_min[col], rel_diff[ik][col] );
-            col_max[col] = max( col_max[col], rel_diff[ik][col] );
-            col_avg[col] += rel_diff[ik][col];
+            col_min[col] = min( col_min[col], pct_diff[ik][col] );
+            col_max[col] = max( col_max[col], pct_diff[ik][col] );
+            col_avg[col] += pct_diff[ik][col];
 
           } else {  // variant was not run, print a big fat goose egg...
 
@@ -625,8 +620,8 @@ void Executor::writeFOMReport(const string& filename)
           VariantID comp_vid = group.variants[gv];
 
           if ( kern->wasVariantRun(comp_vid) ) {
-            col_stddev[col] += ( rel_diff[ik][col] - col_avg[col] ) *
-                               ( rel_diff[ik][col] - col_avg[col] );
+            col_stddev[col] += ( pct_diff[ik][col] - col_avg[col] ) *
+                               ( pct_diff[ik][col] - col_avg[col] );
           } 
 
           col++;
