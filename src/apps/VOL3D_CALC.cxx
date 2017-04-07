@@ -177,8 +177,9 @@ void VOL3D_CALC::runKernel(VariantID vid)
       break;
     }
 
-    case Baseline_OpenMP : {
 #if defined(_OPENMP)      
+    case Baseline_OpenMP : {
+
       VOL3D_CALC_DATA;
 
       NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
@@ -195,7 +196,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
 
@@ -205,7 +206,6 @@ void VOL3D_CALC::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
 
       VOL3D_CALC_DATA;
 
@@ -222,15 +222,18 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
+#endif
 
+#if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...
       break;
     }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :

@@ -28,6 +28,8 @@
 
 #include "common/DataUtils.hxx"
 
+#include "RAJA/RAJA.hxx"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -37,14 +39,36 @@ namespace basic
 
 #define TRAP_INT_DATA 
 
-#define TRAP_INT_BODY
+#define TRAP_INT_BODY 
+
+#if defined(RAJA_ENABLE_CUDA)
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define TRAP_INT_DATA_SETUP_CUDA
+
+#define TRAP_INT_DATA_TEARDOWN_CUDA
+
+__global__ void trapint(Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     TRAP_INT_BODY;
+   }
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(10000);
+   setDefaultSamples(1500);
 }
 
 TRAP_INT::~TRAP_INT() 
@@ -58,10 +82,9 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-#if 0
-  Index_type run_size = getRunSize();
-#endif
   const Index_type run_samples = getRunSamples();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
@@ -71,11 +94,10 @@ void TRAP_INT::runKernel(VariantID vid)
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        for (Index_type i = 0; i < run_size; ++i ) {
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
-#endif
 
       }
       stopTimer();
@@ -89,11 +111,10 @@ void TRAP_INT::runKernel(VariantID vid)
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
+
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           TRAP_INT_BODY;
         });
-#endif
 
       }
       stopTimer();
@@ -101,18 +122,18 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
+#if defined(_OPENMP)
     case Baseline_OpenMP : {
 
       TRAP_INT_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
+
         #pragma omp for schedule(static)
-        for (Index_type i = 0; i < run_size; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
-#endif
 
       }
       stopTimer();
@@ -131,45 +152,59 @@ void TRAP_INT::runKernel(VariantID vid)
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
+
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
+          [=](Index_type i) {
           TRAP_INT_BODY;
         });
-#endif
+
 
       }
       stopTimer();
 
       break;
     }
+#endif
 
+#if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      TRAP_INT_DATA;
+      TRAP_INT_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-#endif
+
+         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+         trapint<<<grid_size, block_size>>>( iend );
+
       }
       stopTimer();
+
+      TRAP_INT_DATA_TEARDOWN_CUDA;
 
       break;
     }
 
     case RAJA_CUDA : {
 
-      TRAP_INT_DATA;
+      TRAP_INT_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-#endif
+
+         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend,
+           [=] __device__ (Index_type i) {
+           TRAP_INT_BODY;
+         });
+
       }
       stopTimer();
 
+      TRAP_INT_DATA_TEARDOWN_CUDA;
+
       break;
-    } 
+    }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :
@@ -190,9 +225,6 @@ void TRAP_INT::runKernel(VariantID vid)
 void TRAP_INT::updateChecksum(VariantID vid)
 {
   (void) vid;
-#if 0
-  checksum[vid] += calcChecksum(m_p_new, getRunSize());
-#endif
 }
 
 void TRAP_INT::tearDown(VariantID vid)

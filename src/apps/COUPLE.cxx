@@ -201,8 +201,8 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-    case Baseline_OpenMP : {
 #if defined(_OPENMP)      
+    case Baseline_OpenMP : {
       COUPLE_DATA;
 
       startTimer();
@@ -215,7 +215,6 @@ void COUPLE::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
       break;
     }
 
@@ -225,7 +224,6 @@ void COUPLE::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
 
       COUPLE_DATA;
 
@@ -238,15 +236,18 @@ void COUPLE::runKernel(VariantID vid)
 
       }
       stopTimer(); 
-#endif
+
       break;
     }
+#endif
 
+#if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...
       break;
     }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :

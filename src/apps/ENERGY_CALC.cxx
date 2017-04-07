@@ -245,8 +245,9 @@ void ENERGY_CALC::runKernel(VariantID vid)
       break;
     }
 
-    case Baseline_OpenMP : {
 #if defined(_OPENMP)      
+    case Baseline_OpenMP : {
+
       ENERGY_CALC_DATA;
  
       startTimer();
@@ -287,12 +288,12 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
 
     case RAJALike_OpenMP : {
-#if defined(_OPENMP)      
+
       ENERGY_CALC_DATA;
       
       startTimer();
@@ -330,12 +331,12 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
+
       ENERGY_CALC_DATA;
 
       startTimer();
@@ -367,15 +368,17 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
       break;
     }
+#endif
 
+#if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...
       break;
     }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :

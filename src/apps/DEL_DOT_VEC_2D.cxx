@@ -161,8 +161,8 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       break;
     }
 
-    case Baseline_OpenMP : {
 #if defined(_OPENMP)      
+    case Baseline_OpenMP : {
       DEL_DOT_VEC_2D_DATA;
 
       NDSET2D((*m_domain), x,x1,x2,x3,x4) ;
@@ -181,7 +181,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
 
@@ -191,7 +191,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
 
       DEL_DOT_VEC_2D_DATA;
 
@@ -210,15 +209,18 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
+#endif
 
+#if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...
       break;
     }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :

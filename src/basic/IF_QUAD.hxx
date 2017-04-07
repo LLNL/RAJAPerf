@@ -50,7 +50,11 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  // Data not defined yet
+  Real_ptr m_a;
+  Real_ptr m_b;
+  Real_ptr m_c;
+  Real_ptr m_x1;
+  Real_ptr m_x2;
 };
 
 } // end namespace basic

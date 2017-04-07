@@ -156,8 +156,8 @@ void MULADDSUB::runKernel(VariantID vid)
       break;
     }
 
-    case Baseline_OpenMP : {
 #if defined(_OPENMP)
+    case Baseline_OpenMP : {
 
       MULADDSUB_DATA;
 
@@ -172,7 +172,6 @@ void MULADDSUB::runKernel(VariantID vid)
       }
       stopTimer();
 
-#endif
       break;
     }
 
@@ -198,9 +197,10 @@ void MULADDSUB::runKernel(VariantID vid)
 
       break;
     }
+#endif
 
-    case Baseline_CUDA : {
 #if defined(RAJA_ENABLE_CUDA)
+    case Baseline_CUDA : {
 
       MULADDSUB_DATA_SETUP_CUDA;
 
@@ -215,12 +215,11 @@ void MULADDSUB::runKernel(VariantID vid)
       stopTimer();
 
       MULADDSUB_DATA_TEARDOWN_CUDA;
-#endif
+
       break; 
     }
 
     case RAJA_CUDA : {
-#if defined(RAJA_ENABLE_CUDA)
 
       MULADDSUB_DATA_SETUP_CUDA;
 
@@ -236,9 +235,10 @@ void MULADDSUB::runKernel(VariantID vid)
       stopTimer();
 
       MULADDSUB_DATA_TEARDOWN_CUDA;
-#endif
+
       break;
     }
+#endif
 
 #if 0
     case Baseline_OpenMP4x :

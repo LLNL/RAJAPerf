@@ -50,7 +50,6 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  // Data not defined yet
 };
 
 } // end namespace basic
