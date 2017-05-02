@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef RP_Types_HXX
-#define RP_Types_HXX
+#ifndef RP_Types_HPP
+#define RP_Types_HPP
 
 #include "RAJA/util/types.hpp"
 

@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef OutputUtils_HXX
-#define OutputUtils_HXX
+#ifndef OutputUtils_HPP
+#define OutputUtils_HPP
 
 #include <string>
 #include<iostream>

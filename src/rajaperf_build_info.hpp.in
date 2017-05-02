@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef RAJAPerf_build_info_HXX
-#define RAJAPerf_build_info_HXX
+#ifndef RAJAPerf_build_info_HPP
+#define RAJAPerf_build_info_HPP
 
 #include <string>
 

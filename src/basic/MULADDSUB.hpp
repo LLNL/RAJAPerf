@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_MULADDSUB_HXX
-#define RAJAPerf_Basic_MULADDSUB_HXX
+#ifndef RAJAPerf_Basic_MULADDSUB_HPP
+#define RAJAPerf_Basic_MULADDSUB_HPP
 
 #include "common/KernelBase.hpp"
 

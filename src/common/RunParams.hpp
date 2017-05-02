@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef RAJAPerf_RunParams_HXX
-#define RAJAPerf_RunParams_HXX
+#ifndef RAJAPerf_RunParams_HPP
+#define RAJAPerf_RunParams_HPP
 
 #include <string>
 #include <vector>

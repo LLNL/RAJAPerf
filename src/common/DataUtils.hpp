@@ -23,8 +23,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef DataUtils_HXX
-#define DataUtils_HXX
+#ifndef DataUtils_HPP
+#define DataUtils_HPP
 
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"

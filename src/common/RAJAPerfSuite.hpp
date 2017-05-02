@@ -24,8 +24,8 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef RAJAPerfSuite_HXX
-#define RAJAPerfSuite_HXX
+#ifndef RAJAPerfSuite_HPP
+#define RAJAPerfSuite_HPP
 
 #include <string>
 

@@ -25,8 +25,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_KernelBase_HXX
-#define RAJAPerf_KernelBase_HXX
+#ifndef RAJAPerf_KernelBase_HPP
+#define RAJAPerf_KernelBase_HPP
 
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RPTypes.hpp"

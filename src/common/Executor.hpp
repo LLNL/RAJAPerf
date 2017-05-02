@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Executor_HXX
-#define RAJAPerf_Executor_HXX
+#ifndef RAJAPerf_Executor_HPP
+#define RAJAPerf_Executor_HPP
 
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"

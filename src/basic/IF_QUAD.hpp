@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_IF_QUAD_HXX
-#define RAJAPerf_Basic_IF_QUAD_HXX
+#ifndef RAJAPerf_Basic_IF_QUAD_HPP
+#define RAJAPerf_Basic_IF_QUAD_HPP
 
 #include "common/KernelBase.hpp"
 

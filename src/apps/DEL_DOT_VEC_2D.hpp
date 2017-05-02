@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
-#define RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
+#ifndef RAJAPerf_Apps_DEL_DOT_VEC_2D_HPP
+#define RAJAPerf_Apps_DEL_DOT_VEC_2D_HPP
 
 #include "common/KernelBase.hpp"
 

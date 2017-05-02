@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_VOL3D_CALC_HXX
-#define RAJAPerf_Apps_VOL3D_CALC_HXX
+#ifndef RAJAPerf_Apps_VOL3D_CALC_HPP
+#define RAJAPerf_Apps_VOL3D_CALC_HPP
 
 #include "common/KernelBase.hpp"
 

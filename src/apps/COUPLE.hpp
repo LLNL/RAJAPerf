@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_COUPLE_HXX
-#define RAJAPerf_Apps_COUPLE_HXX
+#ifndef RAJAPerf_Apps_COUPLE_HPP
+#define RAJAPerf_Apps_COUPLE_HPP
 
 #include "common/KernelBase.hpp"
 

@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_TRAP_INT_HXX
-#define RAJAPerf_Basic_TRAP_INT_HXX
+#ifndef RAJAPerf_Basic_TRAP_INT_HPP
+#define RAJAPerf_Basic_TRAP_INT_HPP
 
 #include "common/KernelBase.hpp"
 
