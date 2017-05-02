@@ -25,8 +25,8 @@
 
 #include "DataUtils.hxx"
 
-#include "RAJA/internal/MemUtils_CPU.hxx"
-#include "RAJA/internal/exec-cuda/raja_cudaerrchk.hxx"
+#include "RAJA/internal/MemUtils_CPU.hpp"
+#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 
 namespace rajaperf

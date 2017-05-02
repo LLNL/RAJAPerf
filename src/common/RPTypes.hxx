@@ -26,7 +26,7 @@
 #ifndef RP_Types_HXX
 #define RP_Types_HXX
 
-#include "RAJA/Types.hxx"
+#include "RAJA/util/types.hpp"
 
 //
 // Only one of the following (double or float) should be defined.

@@ -31,7 +31,7 @@
 #include "common/RAJAPerfSuite.hxx"
 #include "common/RPTypes.hxx"
 
-#include "RAJA/Timer.hxx"
+#include "RAJA/util/Timer.hpp"
 
 #include <string>
 #include <iostream>

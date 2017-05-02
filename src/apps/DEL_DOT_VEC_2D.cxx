@@ -29,7 +29,7 @@
 #include "AppsData.hxx"
 #include "common/DataUtils.hxx"
 
-#include "RAJA/RAJA.hxx"
+#include "RAJA/RAJA.hpp"
 
 #include <iostream>
 
