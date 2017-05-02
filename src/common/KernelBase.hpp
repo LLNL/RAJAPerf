@@ -28,8 +28,8 @@
 #ifndef RAJAPerf_KernelBase_HXX
 #define RAJAPerf_KernelBase_HXX
 
-#include "common/RAJAPerfSuite.hxx"
-#include "common/RPTypes.hxx"
+#include "common/RAJAPerfSuite.hpp"
+#include "common/RPTypes.hpp"
 
 #include "RAJA/util/Timer.hpp"
 

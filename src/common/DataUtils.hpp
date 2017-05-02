@@ -26,8 +26,8 @@
 #ifndef DataUtils_HXX
 #define DataUtils_HXX
 
-#include "RAJAPerfSuite.hxx"
-#include "RPTypes.hxx"
+#include "RAJAPerfSuite.hpp"
+#include "RPTypes.hpp"
 
 
 namespace rajaperf

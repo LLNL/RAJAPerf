@@ -24,10 +24,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "DEL_DOT_VEC_2D.hxx"
+#include "DEL_DOT_VEC_2D.hpp"
 
-#include "AppsData.hxx"
-#include "common/DataUtils.hxx"
+#include "AppsData.hpp"
+#include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
 

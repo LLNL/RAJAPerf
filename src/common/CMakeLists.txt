@@ -1,9 +1,9 @@
 raja_add_library(
   NAME common
-  SOURCES DataUtils.cxx 
-          Executor.cxx 
-          KernelBase.cxx 
-          OutputUtils.cxx 
-          RAJAPerfSuite.cxx 
-          RunParams.cxx
+  SOURCES DataUtils.cpp 
+          Executor.cpp 
+          KernelBase.cpp 
+          OutputUtils.cpp 
+          RAJAPerfSuite.cpp 
+          RunParams.cpp
   DEPENDS_ON RAJA)

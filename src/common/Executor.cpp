@@ -24,10 +24,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "Executor.hxx"
+#include "Executor.hpp"
 
-#include "common/KernelBase.hxx"
-#include "common/OutputUtils.hxx"
+#include "common/KernelBase.hpp"
+#include "common/OutputUtils.hpp"
 
 #include <list>
 #include <vector>

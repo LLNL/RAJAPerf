@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel PRESSURE_CALC.
+ * \brief   Header file for kernel ENERGY_CALC.
  *
  ******************************************************************************
  */
@@ -24,10 +24,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_PRESSURE_CALC_HXX
-#define RAJAPerf_Apps_PRESSURE_CALC_HXX
+#ifndef RAJAPerf_Apps_ENERGY_CALC_HXX
+#define RAJAPerf_Apps_ENERGY_CALC_HXX
 
-#include "common/KernelBase.hxx"
+#include "common/KernelBase.hpp"
 
 
 namespace rajaperf 
@@ -37,13 +37,13 @@ class RunParams;
 namespace apps
 {
 
-class PRESSURE_CALC : public KernelBase
+class ENERGY_CALC : public KernelBase
 {
 public:
 
-  PRESSURE_CALC(const RunParams& params);
+  ENERGY_CALC(const RunParams& params);
 
-  ~PRESSURE_CALC();
+  ~ENERGY_CALC();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -51,16 +51,26 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_compression;
-  Real_ptr m_bvc;
-  Real_ptr m_p_new;
+  Real_ptr m_e_new;
   Real_ptr m_e_old;
+  Real_ptr m_delvc;
+  Real_ptr m_p_new;
+  Real_ptr m_p_old; 
+  Real_ptr m_q_new; 
+  Real_ptr m_q_old; 
+  Real_ptr m_work; 
+  Real_ptr m_compHalfStep; 
+  Real_ptr m_pHalfStep; 
+  Real_ptr m_bvc; 
+  Real_ptr m_pbvc; 
+  Real_ptr m_ql_old; 
+  Real_ptr m_qq_old; 
   Real_ptr m_vnewc; 
 
-  Real_type m_cls;
-  Real_type m_p_cut;
-  Real_type m_pmin;
-  Real_type m_eosvmax;
+  Real_type m_rho0;
+  Real_type m_e_cut;
+  Real_type m_emin;
+  Real_type m_q_cut;
 };
 
 } // end namespace apps

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Basic kernel TRAP_INT.
+ * \brief   Implementation file for Basic kernel MULADDSUB.
  *
  ******************************************************************************
  */
@@ -24,9 +24,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "TRAP_INT.hxx"
+#include "MULADDSUB.hpp"
 
-#include "common/DataUtils.hxx"
+#include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -37,9 +37,18 @@ namespace rajaperf
 namespace basic
 {
 
-#define TRAP_INT_DATA 
+#define MULADDSUB_DATA \
+  ResReal_ptr out1 = m_out1; \
+  ResReal_ptr out2 = m_out2; \
+  ResReal_ptr out3 = m_out3; \
+  ResReal_ptr in1 = m_in1; \
+  ResReal_ptr in2 = m_in2;
 
-#define TRAP_INT_BODY 
+#define MULADDSUB_BODY  \
+  out1[i] = in1[i] * in2[i] ; \
+  out2[i] = in1[i] + in2[i] ; \
+  out3[i] = in1[i] - in2[i] ;
+
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -49,38 +58,63 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define TRAP_INT_DATA_SETUP_CUDA
+#define MULADDSUB_DATA_SETUP_CUDA \
+  Real_ptr out1; \
+  Real_ptr out2; \
+  Real_ptr out3; \
+  Real_ptr in1; \
+  Real_ptr in2; \
+\
+  allocAndInitCudaDeviceData(out1, m_out1, iend); \
+  allocAndInitCudaDeviceData(out2, m_out2, iend); \
+  allocAndInitCudaDeviceData(out3, m_out3, iend); \
+  allocAndInitCudaDeviceData(in1, m_in1, iend); \
+  allocAndInitCudaDeviceData(in2, m_in2, iend);
 
-#define TRAP_INT_DATA_TEARDOWN_CUDA
+#define MULADDSUB_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_out1, out1, iend); \
+  getCudaDeviceData(m_out2, out2, iend); \
+  getCudaDeviceData(m_out3, out3, iend); \
+  deallocCudaDeviceData(out1); \
+  deallocCudaDeviceData(out2); \
+  deallocCudaDeviceData(out3); \
+  deallocCudaDeviceData(in1); \
+  deallocCudaDeviceData(in2);
 
-__global__ void trapint(Index_type iend)
+__global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
+                          Real_ptr in1, Real_ptr in2, 
+                          Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     TRAP_INT_BODY;
+     MULADDSUB_BODY; 
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-TRAP_INT::TRAP_INT(const RunParams& params)
-  : KernelBase(rajaperf::Basic_TRAP_INT, params)
+MULADDSUB::MULADDSUB(const RunParams& params)
+  : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1500);
+   setDefaultSamples(4500);
 }
 
-TRAP_INT::~TRAP_INT() 
+MULADDSUB::~MULADDSUB() 
 {
 }
 
-void TRAP_INT::setUp(VariantID vid)
+void MULADDSUB::setUp(VariantID vid)
 {
-  (void) vid;
+  allocAndInitData(m_out1, getRunSize(), vid);
+  allocAndInitData(m_out2, getRunSize(), vid);
+  allocAndInitData(m_out3, getRunSize(), vid);
+  allocAndInitData(m_in1, getRunSize(), vid);
+  allocAndInitData(m_in2, getRunSize(), vid);
 }
 
-void TRAP_INT::runKernel(VariantID vid)
+void MULADDSUB::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -90,13 +124,13 @@ void TRAP_INT::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      TRAP_INT_DATA;
+      MULADDSUB_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          TRAP_INT_BODY;
+          MULADDSUB_BODY;
         }
 
       }
@@ -107,13 +141,13 @@ void TRAP_INT::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      TRAP_INT_DATA;
+      MULADDSUB_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          TRAP_INT_BODY;
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+          MULADDSUB_BODY;
         });
 
       }
@@ -125,14 +159,14 @@ void TRAP_INT::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Baseline_OpenMP : {
 
-      TRAP_INT_DATA;
+      MULADDSUB_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        #pragma omp for schedule(static)
+        #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          TRAP_INT_BODY;
+          MULADDSUB_BODY;
         }
 
       }
@@ -148,16 +182,15 @@ void TRAP_INT::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      TRAP_INT_DATA;
+      MULADDSUB_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
-          TRAP_INT_BODY;
+          MULADDSUB_BODY;
         });
-
 
       }
       stopTimer();
@@ -169,38 +202,39 @@ void TRAP_INT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      TRAP_INT_DATA_SETUP_CUDA;
+      MULADDSUB_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         trapint<<<grid_size, block_size>>>( iend );
+         muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
+                                               iend ); 
 
       }
       stopTimer();
 
-      TRAP_INT_DATA_TEARDOWN_CUDA;
+      MULADDSUB_DATA_TEARDOWN_CUDA;
 
-      break;
+      break; 
     }
 
     case RAJA_CUDA : {
 
-      TRAP_INT_DATA_SETUP_CUDA;
+      MULADDSUB_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend,
+         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend, 
            [=] __device__ (Index_type i) {
-           TRAP_INT_BODY;
+           MULADDSUB_BODY;
          });
 
       }
       stopTimer();
 
-      TRAP_INT_DATA_TEARDOWN_CUDA;
+      MULADDSUB_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -222,14 +256,21 @@ void TRAP_INT::runKernel(VariantID vid)
 
 }
 
-void TRAP_INT::updateChecksum(VariantID vid)
+void MULADDSUB::updateChecksum(VariantID vid)
 {
-  (void) vid;
+  checksum[vid] += calcChecksum(m_out1, getRunSize());
+  checksum[vid] += calcChecksum(m_out2, getRunSize());
+  checksum[vid] += calcChecksum(m_out3, getRunSize());
 }
 
-void TRAP_INT::tearDown(VariantID vid)
+void MULADDSUB::tearDown(VariantID vid)
 {
   (void) vid;
+  deallocData(m_out1);
+  deallocData(m_out2);
+  deallocData(m_out3);
+  deallocData(m_in1);
+  deallocData(m_in2);
 }
 
 } // end namespace basic

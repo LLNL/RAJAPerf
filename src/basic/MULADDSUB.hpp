@@ -27,7 +27,7 @@
 #ifndef RAJAPerf_Basic_MULADDSUB_HXX
 #define RAJAPerf_Basic_MULADDSUB_HXX
 
-#include "common/KernelBase.hxx"
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {

@@ -25,16 +25,16 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "RAJAPerfSuite.hxx"
+#include "RAJAPerfSuite.hpp"
 
-#include "RunParams.hxx"
+#include "RunParams.hpp"
 
 //
 // Basic kernels...
 //
-#include "basic/MULADDSUB.hxx"
-#include "basic/IF_QUAD.hxx"
-#include "basic/TRAP_INT.hxx"
+#include "basic/MULADDSUB.hpp"
+#include "basic/IF_QUAD.hpp"
+#include "basic/TRAP_INT.hpp"
 
 //
 // Livloops kernels...
@@ -51,11 +51,11 @@
 //
 // Apps kernels...
 //
-#include "apps/PRESSURE_CALC.hxx"
-#include "apps/ENERGY_CALC.hxx"
-#include "apps/VOL3D_CALC.hxx"
-#include "apps/DEL_DOT_VEC_2D.hxx"
-#include "apps/COUPLE.hxx"
+#include "apps/PRESSURE_CALC.hpp"
+#include "apps/ENERGY_CALC.hpp"
+#include "apps/VOL3D_CALC.hpp"
+#include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/COUPLE.hpp"
 
 
 #include <iostream>

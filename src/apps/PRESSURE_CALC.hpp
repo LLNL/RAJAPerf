@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel VOL3D_CALC.
+ * \brief   Header file for kernel PRESSURE_CALC.
  *
  ******************************************************************************
  */
@@ -24,10 +24,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_VOL3D_CALC_HXX
-#define RAJAPerf_Apps_VOL3D_CALC_HXX
+#ifndef RAJAPerf_Apps_PRESSURE_CALC_HXX
+#define RAJAPerf_Apps_PRESSURE_CALC_HXX
 
-#include "common/KernelBase.hxx"
+#include "common/KernelBase.hpp"
 
 
 namespace rajaperf 
@@ -36,15 +36,14 @@ class RunParams;
 
 namespace apps
 {
-struct ADomain;
 
-class VOL3D_CALC : public KernelBase
+class PRESSURE_CALC : public KernelBase
 {
 public:
 
-  VOL3D_CALC(const RunParams& params);
+  PRESSURE_CALC(const RunParams& params);
 
-  ~VOL3D_CALC();
+  ~PRESSURE_CALC();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -52,14 +51,16 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-  Real_ptr m_z;
-  Real_ptr m_vol;
+  Real_ptr m_compression;
+  Real_ptr m_bvc;
+  Real_ptr m_p_new;
+  Real_ptr m_e_old;
+  Real_ptr m_vnewc; 
 
-  Real_type m_vnormq;
-
-  ADomain* m_domain;
+  Real_type m_cls;
+  Real_type m_p_cut;
+  Real_type m_pmin;
+  Real_type m_eosvmax;
 };
 
 } // end namespace apps

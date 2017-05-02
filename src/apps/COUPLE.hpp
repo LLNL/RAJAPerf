@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Basic kernel IF_QUAD.
+ * \brief   Header file for kernel COUPLE.
  *
  ******************************************************************************
  */
@@ -24,25 +24,27 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_IF_QUAD_HXX
-#define RAJAPerf_Basic_IF_QUAD_HXX
+#ifndef RAJAPerf_Apps_COUPLE_HXX
+#define RAJAPerf_Apps_COUPLE_HXX
 
-#include "common/KernelBase.hxx"
+#include "common/KernelBase.hpp"
+
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace basic
+namespace apps
 {
+struct ADomain;
 
-class IF_QUAD : public KernelBase
+class COUPLE : public KernelBase
 {
 public:
 
-  IF_QUAD(const RunParams& params);
+  COUPLE(const RunParams& params);
 
-  ~IF_QUAD();
+  ~COUPLE();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,14 +52,34 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_a;
-  Real_ptr m_b;
-  Real_ptr m_c;
-  Real_ptr m_x1;
-  Real_ptr m_x2;
+  Complex_ptr m_t0;
+  Complex_ptr m_t1;
+  Complex_ptr m_t2;
+  Complex_ptr m_denac;
+  Complex_ptr m_denlw;
+
+  Real_type m_clight;
+  Real_type m_csound;
+  Real_type m_omega0;
+  Real_type m_omegar;
+  Real_type m_dt;
+  Real_type m_c10;
+  Real_type m_fratio;
+  Real_type m_r_fratio;
+  Real_type m_c20;
+  Complex_type m_ireal;
+
+  Index_type m_imin;
+  Index_type m_imax;
+  Index_type m_jmin;
+  Index_type m_jmax;
+  Index_type m_kmin;
+  Index_type m_kmax;
+
+  ADomain* m_domain;
 };
 
-} // end namespace basic
+} // end namespace apps
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

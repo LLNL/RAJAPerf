@@ -27,8 +27,8 @@
 #ifndef RAJAPerf_Executor_HXX
 #define RAJAPerf_Executor_HXX
 
-#include "common/RAJAPerfSuite.hxx"
-#include "common/RunParams.hxx"
+#include "common/RAJAPerfSuite.hpp"
+#include "common/RunParams.hpp"
 
 #include <iosfwd>
 #include <utility>

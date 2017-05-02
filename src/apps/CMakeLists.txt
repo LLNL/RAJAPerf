@@ -1,8 +1,8 @@
 raja_add_library(
   NAME apps
-  SOURCES PRESSURE_CALC.cxx 
-          ENERGY_CALC.cxx 
-          VOL3D_CALC.cxx 
-          DEL_DOT_VEC_2D.cxx 
-          COUPLE.cxx
+  SOURCES PRESSURE_CALC.cpp 
+          ENERGY_CALC.cpp 
+          VOL3D_CALC.cpp 
+          DEL_DOT_VEC_2D.cpp 
+          COUPLE.cpp
   DEPENDS_ON common RAJA)

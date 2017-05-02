@@ -23,7 +23,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "DataUtils.hxx"
+#include "DataUtils.hpp"
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"

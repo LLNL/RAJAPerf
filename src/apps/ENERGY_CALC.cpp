@@ -24,9 +24,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "ENERGY_CALC.hxx"
+#include "ENERGY_CALC.hpp"
 
-#include "common/DataUtils.hxx"
+#include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
 

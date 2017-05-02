@@ -23,7 +23,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "OutputUtils.hxx"
+#include "OutputUtils.hpp"
 
 #include<cstdlib>
 #include<iostream>

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel DEL_DOT_VEC_2D.
+ * \brief   Header file for Basic kernel IF_QUAD.
  *
  ******************************************************************************
  */
@@ -24,27 +24,25 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
-#define RAJAPerf_Apps_DEL_DOT_VEC_2D_HXX
+#ifndef RAJAPerf_Basic_IF_QUAD_HXX
+#define RAJAPerf_Basic_IF_QUAD_HXX
 
-#include "common/KernelBase.hxx"
-
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace apps
+namespace basic
 {
-struct ADomain;
 
-class DEL_DOT_VEC_2D : public KernelBase
+class IF_QUAD : public KernelBase
 {
 public:
 
-  DEL_DOT_VEC_2D(const RunParams& params);
+  IF_QUAD(const RunParams& params);
 
-  ~DEL_DOT_VEC_2D();
+  ~IF_QUAD();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -52,19 +50,14 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-  Real_ptr m_xdot;
-  Real_ptr m_ydot;
-  Real_ptr m_div;
-
-  Real_type m_ptiny;
-  Real_type m_half;
-
-  ADomain* m_domain;
+  Real_ptr m_a;
+  Real_ptr m_b;
+  Real_ptr m_c;
+  Real_ptr m_x1;
+  Real_ptr m_x2;
 };
 
-} // end namespace apps
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

@@ -24,10 +24,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "KernelBase.hxx"
+#include "KernelBase.hpp"
 
-#include "RunParams.hxx"
-#include "DataUtils.hxx"
+#include "RunParams.hpp"
+#include "DataUtils.hpp"
 
 #include <cmath>
 

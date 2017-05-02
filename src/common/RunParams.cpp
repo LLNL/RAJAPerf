@@ -24,9 +24,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "RunParams.hxx"
+#include "RunParams.hpp"
 
-#include "RAJAPerfSuite.hxx"
+#include "RAJAPerfSuite.hpp"
 
 #include <cstdlib>
 #include <cstdio>

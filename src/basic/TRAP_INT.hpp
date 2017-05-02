@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel ENERGY_CALC.
+ * \brief   Header file for Basic kernel TRAP_INT.
  *
  ******************************************************************************
  */
@@ -24,26 +24,25 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_ENERGY_CALC_HXX
-#define RAJAPerf_Apps_ENERGY_CALC_HXX
+#ifndef RAJAPerf_Basic_TRAP_INT_HXX
+#define RAJAPerf_Basic_TRAP_INT_HXX
 
-#include "common/KernelBase.hxx"
-
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace apps
+namespace basic
 {
 
-class ENERGY_CALC : public KernelBase
+class TRAP_INT : public KernelBase
 {
 public:
 
-  ENERGY_CALC(const RunParams& params);
+  TRAP_INT(const RunParams& params);
 
-  ~ENERGY_CALC();
+  ~TRAP_INT();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -51,29 +50,9 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_e_new;
-  Real_ptr m_e_old;
-  Real_ptr m_delvc;
-  Real_ptr m_p_new;
-  Real_ptr m_p_old; 
-  Real_ptr m_q_new; 
-  Real_ptr m_q_old; 
-  Real_ptr m_work; 
-  Real_ptr m_compHalfStep; 
-  Real_ptr m_pHalfStep; 
-  Real_ptr m_bvc; 
-  Real_ptr m_pbvc; 
-  Real_ptr m_ql_old; 
-  Real_ptr m_qq_old; 
-  Real_ptr m_vnewc; 
-
-  Real_type m_rho0;
-  Real_type m_e_cut;
-  Real_type m_emin;
-  Real_type m_q_cut;
 };
 
-} // end namespace apps
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

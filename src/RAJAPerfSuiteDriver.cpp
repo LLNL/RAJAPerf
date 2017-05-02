@@ -23,7 +23,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "common/Executor.hxx"
+#include "common/Executor.hpp"
 
 #include <iostream>
 

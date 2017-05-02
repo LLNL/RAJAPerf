@@ -24,9 +24,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "PRESSURE_CALC.hxx"
+#include "PRESSURE_CALC.hpp"
 
-#include "common/DataUtils.hxx"
+#include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
 
