@@ -1,6 +1,5 @@
-##add_library(polybench
-##  Kernel.cxx)
+raja_add_library(
+  NAME polybench
+  SOURCES POLYBENCH_2MM.cxx 
+  DEPENDS_ON common RAJA)
 
-##target_link_libraries(polybench
-##  common
-##  RAJA)

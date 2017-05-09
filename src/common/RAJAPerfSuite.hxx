@@ -121,8 +121,8 @@ enum KernelID {
 //
 // Polybench kernels...
 //
-#if 0
-  Polybench_***
+#if 1
+  Polybench_2MM,
 #endif
 
 //

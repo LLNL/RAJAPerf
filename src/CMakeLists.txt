@@ -4,7 +4,7 @@ add_subdirectory(common)
 add_subdirectory(apps)
 add_subdirectory(basic)
 #add_subdirectory(livloops)
-#add_subdirectory(polybench)
+add_subdirectory(polybench)
 #add_subdirectory(stream)
 
 raja_add_executable(
@@ -16,7 +16,7 @@ raja_add_executable(
   basic
   RAJA
 ##  livloops
-##  polybench
+  polybench
 ##  stream
   )
 

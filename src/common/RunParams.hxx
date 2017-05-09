@@ -57,6 +57,16 @@ public:
     Undefined     /*!< input not defined (yet) */
   };
 
+  enum SizeSpec {
+    Mini,
+    Small,
+    Medium,
+    Large,
+    Extralarge,
+    SpecUndefined
+  };
+
+
 //@{
 //! @name Methods to get/set input state
 
@@ -78,6 +88,12 @@ public:
   double getSampleFraction() const { return sample_fraction; }
 
   double getSizeFraction() const { return size_fraction; }
+
+  SizeSpec  getSizeSpec() const { return size_spec; }
+
+  void  setSizeSpec(std::string inputString);
+
+  const std::string& getSizeSpecString();
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
@@ -125,6 +141,11 @@ private:
   double sample_fraction;          /*!< Frac of default kernel samples to run */
   double size_fraction;            /*!< Frac of default kernel iteration space
                                         to run */
+
+  SizeSpec size_spec;          /* if provided use/parse polybench spec file for size data: one of
+                                    MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
+
+  std::string size_spec_string;
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

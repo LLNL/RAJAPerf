@@ -48,6 +48,8 @@ RunParams::RunParams(int argc, char** argv)
    npasses(1),
    sample_fraction(1.0),
    size_fraction(1.0),
+   size_spec(SpecUndefined),
+   size_spec_string("SPECUNDEFINED"),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -174,6 +176,17 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         std::cout << "\nBad input:"
                   << " must give --sizefrac a value for size fraction (double)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if (opt == std::string("--sizespec") ) {
+      i++;
+      if ( i < argc ) {
+        setSizeSpec(argv[i]);
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --sizespec a value for size specification: one of  MINI,SMALL,MEDIUM,LARGE,EXTRALARGE (string : any case)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -365,6 +378,48 @@ void RunParams::printGroupNames(std::ostream& str) const
     str << getGroupName(static_cast<GroupID>(is)) << std::endl;
   }
   str.flush();
+}
+
+const std::string& RunParams::getSizeSpecString()
+{
+  switch(size_spec) {
+    case Mini:
+      size_spec_string = "MINI";
+      break;
+    case Small:
+      size_spec_string = "SMALL";
+      break;
+    case Medium:
+      size_spec_string = "MEDIUM";
+      break;
+    case Large:
+      size_spec_string = "LARGE";
+      break;
+    case Extralarge:
+      size_spec_string = "EXTRALARGE";
+      break;
+    default:
+      size_spec_string = "SPECUNDEFINED";
+  }
+  return size_spec_string;
+}
+
+void RunParams::setSizeSpec(std::string inputString)
+{
+  for (auto & c: inputString) c = std::toupper(c);
+  if(inputString == "MINI")
+    size_spec = Mini;
+  else if(inputString == "SMALL")
+    size_spec = Small;
+  else if(inputString == "MEDIUM")
+    size_spec = Medium;
+  else if(inputString == "LARGE")
+    size_spec = Large;
+  else if(inputString == "EXTRALARGE")
+    size_spec = Extralarge;
+  else
+    size_spec = SpecUndefined;
+  std::cout << "Size Specification : " << getSizeSpecString() << std::endl;
 }
 
 }  // closing brace for rajaperf namespace
