@@ -31,6 +31,7 @@
 
 namespace rajaperf 
 {
+
 class RunParams;
 
 namespace polybench
@@ -51,7 +52,18 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  // Data not defined yet
+  Index_type m_ni;
+  Index_type m_nj;
+  Index_type m_nk;
+  Index_type m_nl;
+  Real_type m_alpha;
+  Real_type m_beta;
+  Real_ptr m_tmp;
+  Real_ptr m_A;
+  Real_ptr m_B;
+  Real_ptr m_C;
+  Real_ptr m_D; 
+
 };
 
 } // end namespace polybench

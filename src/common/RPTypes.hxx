@@ -114,6 +114,8 @@ typedef Complex_type* RAJA_RESTRICT ResComplex_ptr;
 #endif
 
 
+
+
 }  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard

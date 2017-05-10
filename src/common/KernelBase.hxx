@@ -30,6 +30,7 @@
 
 #include "common/RAJAPerfSuite.hxx"
 #include "common/RPTypes.hxx"
+#include "common/DataUtils.hxx"
 
 #include "RAJA/Timer.hxx"
 
@@ -55,6 +56,8 @@ public:
 
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultSamples() const { return default_samples; }
+
+  SizeSpec_T getSizeSpec();
 
   bool wasVariantRun(VariantID vid) const 
     { return num_exec[vid] > 0; }
@@ -88,6 +91,8 @@ protected:
 
   Checksum_type checksum[NumVariants];
 
+  const RunParams& run_params;
+
 private:
   KernelBase() = delete;
 
@@ -98,7 +103,7 @@ private:
 
   RAJA::Timer timer;
 
-  const RunParams& run_params;
+  //const RunParams& run_params;
 
   Index_type run_size;
   Index_type run_samples;

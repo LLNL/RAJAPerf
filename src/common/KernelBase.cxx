@@ -71,6 +71,11 @@ void KernelBase::setDefaultSamples(Index_type nsamp)
   run_samples = static_cast<Index_type>( nsamp*run_params.getSampleFraction() );
 }
 
+SizeSpec_T KernelBase::getSizeSpec()
+{
+  return run_params.getSizeSpec();
+}
+
 void KernelBase::execute(VariantID vid) 
 {
   running_variant = vid;

@@ -30,6 +30,9 @@
 #include <vector>
 #include <iosfwd>
 
+
+#include "common/DataUtils.hxx"
+
 namespace rajaperf
 {
 
@@ -56,7 +59,7 @@ public:
     BadInput,     /*!< erroneous input given */ 
     Undefined     /*!< input not defined (yet) */
   };
-
+#if 0
   enum SizeSpec {
     Mini,
     Small,
@@ -65,7 +68,7 @@ public:
     Extralarge,
     SpecUndefined
   };
-
+#endif
 
 //@{
 //! @name Methods to get/set input state
@@ -89,7 +92,7 @@ public:
 
   double getSizeFraction() const { return size_fraction; }
 
-  SizeSpec  getSizeSpec() const { return size_spec; }
+  SizeSpec_T  getSizeSpec() const { return size_spec; }
 
   void  setSizeSpec(std::string inputString);
 
@@ -142,7 +145,7 @@ private:
   double size_fraction;            /*!< Frac of default kernel iteration space
                                         to run */
 
-  SizeSpec size_spec;          /* if provided use/parse polybench spec file for size data: one of
+  SizeSpec_T size_spec;          /* if provided use/parse polybench spec file for size data: one of
                                     MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
 
   std::string size_spec_string;

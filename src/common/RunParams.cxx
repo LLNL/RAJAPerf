@@ -48,7 +48,7 @@ RunParams::RunParams(int argc, char** argv)
    npasses(1),
    sample_fraction(1.0),
    size_fraction(1.0),
-   size_spec(SpecUndefined),
+   size_spec(Specundefined),
    size_spec_string("SPECUNDEFINED"),
    reference_variant(),
    kernel_input(),
@@ -418,7 +418,7 @@ void RunParams::setSizeSpec(std::string inputString)
   else if(inputString == "EXTRALARGE")
     size_spec = Extralarge;
   else
-    size_spec = SpecUndefined;
+    size_spec = Specundefined;
   std::cout << "Size Specification : " << getSizeSpecString() << std::endl;
 }
 

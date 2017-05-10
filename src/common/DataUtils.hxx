@@ -33,6 +33,7 @@
 namespace rajaperf
 {
 
+typedef enum SizeSpec {Mini,Small,Medium,Large,Extralarge,Specundefined} SizeSpec_T;
 /*!
  * Reset counter for data initialization.
  */
