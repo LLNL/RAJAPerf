@@ -44,8 +44,15 @@ namespace polybench
   ResReal_ptr B = m_B; \
   ResReal_ptr C = m_C; \
   ResReal_ptr D = m_D; \
-  const Real_type alpha = m_alpha; \
-  const Real_type beta = m_beta; 
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+  alpha = 1.5; \
+  beta = 1.2; \
+  int i, j; \
+  for(i=0; i < m_ni; ++i) \
+    for(j=0; j < m_nl; ++j) \
+      *(D + i * m_nj + j) = (Real_type) (i * (j+2) % m_nk) / m_nk;
+
 
 // The following 2MM_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
 // It's just for illustrative purposes
@@ -72,10 +79,10 @@ namespace polybench
   *(tmp + i * nj + j) += alpha * *(A + i * nk + k) * *(B + k * nj + j);
 
 #define POLYBENCH_2MM_BODY3 \
-  *(D + i * nj + j) *= beta;
+  *(D + i * nl + l) *= beta;
 
 #define POLYBENCH_2MM_BODY4 \
-  *(D + i * nj + j) += *(tmp + i * nk + k) * *(C + k * nj + j);
+  *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
 
 
 
@@ -85,7 +92,7 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  setDefaultSamples(10);
+  setDefaultSamples(1);
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM() 
@@ -123,6 +130,23 @@ void POLYBENCH_2MM::setUp(VariantID vid)
   allocAndInitData(m_B, m_nk * m_nj, vid);
   allocAndInitData(m_C, m_nj * m_nl, vid);
   allocAndInitData(m_D, m_ni * m_nl, vid);
+  // Redo the initialization polybench style
+  int i,j ;
+  for(i=0; i < m_ni; i++) 
+    for(j=0; j < m_nj; j++) 
+      *(m_A + i * m_nj + j) = (Real_type) (i*j % m_ni) / m_ni; 
+  for(i=0; i < m_nk ; i++) 
+    for(j=0; j < m_nj; j++) 
+      *(m_B + i * m_nj + j) = (Real_type) (i * (j+1) % m_nj) / m_nj; 
+  for(i=0; i < m_nj; i++) 
+    for(j=0; j < m_nl; j++) 
+      *(m_C + i * m_nj + j) = (Real_type) (i * (j+3) % m_nl) / m_nl; 
+
+  // D's initialization also gets redone in the data macro prior to each kernel variant      
+  for(i=0; i < m_ni; i++) \
+    for(j=0; j < m_nl; j++) \
+      *(m_D + i * m_nl + j) = (Real_type) (i * (j+2) % m_nk) / m_nk;
+
 }
 
 void POLYBENCH_2MM::runKernel(VariantID vid)
@@ -144,16 +168,17 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 #if 1
-        for (Index_type i = 0; i < ni; ++i ) 
-          for(Index_type j = 0; j < nj; ++j) {
+        for (Index_type i = 0; i < ni; i++ ) 
+          for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
-            for(Index_type k = 0; k < nk; ++k)
+            for(Index_type k = 0; k < nk; k++)
               POLYBENCH_2MM_BODY2;
           }
-        for(Index_type i = 0; i < ni; ++i)
-          for(Index_type j = 0; j < nl; ++j) {
+
+        for(Index_type i = 0; i < ni; i++)
+          for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
-            for(Index_type k = 0; k < nj; ++k)
+            for(Index_type j = 0; j < nj; j++)
               POLYBENCH_2MM_BODY4;
           }  
         
@@ -171,11 +196,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        RAJA::forall<RAJA::simd_exec>(0, run_size, [=](int i) {
-          POLYBENCH_2MM_BODY;
-        });
-#endif
+
+#if 0 
+        // The following kernel  generates a small checksum error : Will's variant using reductions
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> t(0);
           RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
@@ -183,13 +206,35 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           });
           *(tmp + i * nj + j) = t;
         });
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int j) {
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
           RAJA::ReduceSum<RAJA::seq_reduce, Real_type> d(0);
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int k) {
-            d += *(tmp + i * nk + k) * *(C + k * nj + j);
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+            d += *(tmp + i * nj + j) * *(C + j * nl + l);
           });
-          *(D + i * nj + j) = *(D + i * nj + j) * beta + d;;
+          *(D + i * nl + l) = *(D + i * nl + l) * beta + d;
         });
+
+#endif
+
+#if  1       
+
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
+          POLYBENCH_2MM_BODY1;
+
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
+            POLYBENCH_2MM_BODY2; 
+          });
+        });
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+          POLYBENCH_2MM_BODY3;
+
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+            POLYBENCH_2MM_BODY4;
+          });
+        });
+
+#endif
+
       }
       stopTimer();
 
