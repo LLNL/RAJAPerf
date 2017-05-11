@@ -91,7 +91,6 @@ protected:
 
   Checksum_type checksum[NumVariants];
 
-  const RunParams& run_params;
 
 private:
   KernelBase() = delete;
@@ -103,7 +102,7 @@ private:
 
   RAJA::Timer timer;
 
-  //const RunParams& run_params;
+  const RunParams& run_params;
 
   Index_type run_size;
   Index_type run_samples;

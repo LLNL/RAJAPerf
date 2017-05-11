@@ -300,6 +300,9 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --sizefrac <double> [default is 1.0]\n"
       << "\t      (fraction of default kernel iteration space size to run)\n";
 
+  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase)]\n"
+      << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n"; 
+
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"

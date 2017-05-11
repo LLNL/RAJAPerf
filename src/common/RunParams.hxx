@@ -59,16 +59,6 @@ public:
     BadInput,     /*!< erroneous input given */ 
     Undefined     /*!< input not defined (yet) */
   };
-#if 0
-  enum SizeSpec {
-    Mini,
-    Small,
-    Medium,
-    Large,
-    Extralarge,
-    SpecUndefined
-  };
-#endif
 
 //@{
 //! @name Methods to get/set input state

@@ -27,6 +27,9 @@
 #include "POLYBENCH_2MM.hxx"
 
 #include "common/DataUtils.hxx"
+#include <RAJA/RAJA.hxx>
+#include "RAJA/forallN.hxx"
+
 
 #include <iostream>
 
@@ -95,7 +98,6 @@ void POLYBENCH_2MM::setUp(VariantID vid)
   m_alpha = 1.5;
   m_beta = 1.2;
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
-   
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
@@ -130,6 +132,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
   const Index_type nj = m_nj;
   const Index_type nk = m_nk;
   const Index_type nl = m_nl;
+
+  fprintf(stderr,"Polybench_2MM Current Dimensions: ni %d, nj %d, nk %d, nl %d\n",ni,nj,nk,nl);
 
   switch ( vid ) {
 
@@ -172,7 +176,20 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           POLYBENCH_2MM_BODY;
         });
 #endif
-
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
+          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> t(0);
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
+            t += alpha * *(A + i *nk + k) * *(B + k * nj + j);
+          });
+          *(tmp + i * nj + j) = t;
+        });
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int j) {
+          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> d(0);
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int k) {
+            d += *(tmp + i * nk + k) * *(C + k * nj + j);
+          });
+          *(D + i * nj + j) = *(D + i * nj + j) * beta + d;;
+        });
       }
       stopTimer();
 
@@ -267,10 +284,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 void POLYBENCH_2MM::updateChecksum(VariantID vid)
 {
-  (void) vid;
-#if 0
-  checksum[vid] += calcChecksum(m_p_new, getRunSize());
-#endif
+  checksum[vid] += calcChecksum(m_D, m_ni * m_nl);
 }
 
 void POLYBENCH_2MM::tearDown(VariantID vid)
