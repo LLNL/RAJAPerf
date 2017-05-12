@@ -84,6 +84,61 @@ namespace polybench
   *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
 
 
+#if defined(RAJA_ENABLE_CUDA)
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define POLYBENCH_2MM_DATA_SETUP_CUDA \
+  Real_ptr tmp = m_tmp; \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C; \
+  Real_ptr D = m_D; \
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+  alpha = 1.5; \
+  beta = 1.2; \
+  int i, j; \
+  for(i=0; i < m_ni; ++i) \
+    for(j=0; j < m_nl; ++j) \
+      *(D + i * m_nj + j) = (Real_type) (i * (j+2) % m_nk) / m_nk; \
+\
+  allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
+  allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
+  allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
+  allocAndInitCudaDeviceData(C, m_C, m_nj * m_nl); \
+  allocAndInitCudaDeviceData(D, m_D, m_ni * m_nl); 
+
+
+#define POLYBENCH_2MM_TEARDOWN_CUDA \
+  getCudaDeviceData(m_D, D, m_ni * m_nl); \
+  deallocCudaDeviceData(tmp); \
+  deallocCudaDeviceData(A); \
+  deallocCudaDeviceData(B); \
+  deallocCudaDeviceData(C); \
+  deallocCudaDeviceData(D);
+
+__global__ void polybench_2mm_cuda(Real_ptr tmp, Real_ptr A,
+                       Real_ptr B, Real_ptr C, Real_ptr D,
+                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
+                       Index_type nk, Index_type nl)
+{
+   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   if (ii < ni * nj) {
+     *(tmp + ii) = 0.0;
+   }
+
+
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
+  
+
+
 
   
 
@@ -277,31 +332,44 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
+#if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        RAJA::forall<RAJA::omp_parallel_for_exec>(0, run_size, [=](int i) {
-          POLYBENCH_2MM_BODY;
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
+          POLYBENCH_2MM_BODY1;
+
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
+            POLYBENCH_2MM_BODY2; 
+          });
         });
-#endif
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+          POLYBENCH_2MM_BODY3;
+
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+            POLYBENCH_2MM_BODY4;
+          });
+        });
+
 
       }
       stopTimer();
-
+#endif
       break;
     }
 
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      POLYBENCH_2MM_DATA;
+      //POLYBENCH_2MM_DATA;
+      POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
+        polybench_2mm_cuda<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
       }
       stopTimer();
-
+      POLYBENCH_2MM_TEARDOWN_CUDA;
       break;
     }
 
