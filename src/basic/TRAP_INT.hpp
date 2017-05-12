@@ -50,6 +50,14 @@ public:
   void tearDown(VariantID vid);
 
 private:
+  Real_type m_x0;
+  Real_type m_xp;
+  Real_type m_y;
+  Real_type m_yp;
+  Real_type m_h;
+  Real_type m_sumx_init;
+
+  Real_type m_val;
 };
 
 } // end namespace basic

@@ -76,7 +76,7 @@ namespace basic
   allocAndInitCudaDeviceData(x1, m_x1, iend); \
   allocAndInitCudaDeviceData(x2, m_x2, iend);
 
-#define MULADDSUB_DATA_TEARDOWN_CUDA \
+#define IF_QUAD_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_x1, x1, iend); \
   getCudaDeviceData(m_x2, x2, iend); \
   deallocCudaDeviceData(x1); \
@@ -102,7 +102,7 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1500);
+   setDefaultSamples(6000);
 }
 
 IF_QUAD::~IF_QUAD() 
@@ -111,7 +111,7 @@ IF_QUAD::~IF_QUAD()
 
 void IF_QUAD::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataRandSign(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
   allocAndInitData(m_x1, getRunSize(), vid);
@@ -168,7 +168,7 @@ void IF_QUAD::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        #pragma omp for schedule(static)
+        #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           IF_QUAD_BODY;
         }
@@ -212,8 +212,8 @@ void IF_QUAD::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         muladdsub<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                               iend );
+         ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
+                                            iend );
 
       }
       stopTimer();
@@ -228,7 +228,8 @@ void IF_QUAD::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend,
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
            [=] __device__ (Index_type i) {
            IF_QUAD_BODY;
          });

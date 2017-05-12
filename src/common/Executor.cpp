@@ -744,10 +744,12 @@ void Executor::writeChecksumReport(const string& filename)
 
       Checksum_type cksum_ref = 0.0;
       size_t ivck = 0;
-      while ( ivck < variant_ids.size() && cksum_ref == 0.0 ) {
+      bool found_ref = false;
+      while ( ivck < variant_ids.size() && !found_ref ) {
         VariantID vid = variant_ids[ivck];
         if ( kern->wasVariantRun(vid) ) {
           cksum_ref = kern->getChecksum(vid);
+          found_ref = true;
         }
         ++ivck;
       }
@@ -755,13 +757,13 @@ void Executor::writeChecksumReport(const string& filename)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
  
-        Checksum_type diff = 0.0;    
         if ( kern->wasVariantRun(vid) ) {
-          diff = cksum_ref - kern->getChecksum(vid);
+          Checksum_type vcheck_sum = kern->getChecksum(vid);
+          Checksum_type diff = cksum_ref - kern->getChecksum(vid);
 
           file <<left<< setw(namecol_width) << getVariantName(vid)
                << showpoint << setprecision(prec) 
-               <<left<< setw(checksum_width) << cksum_ref
+               <<left<< setw(checksum_width) << vcheck_sum
                <<left<< setw(checksum_width) << diff << endl;
         }
       }

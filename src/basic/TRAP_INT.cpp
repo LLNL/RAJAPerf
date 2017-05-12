@@ -37,9 +37,32 @@ namespace rajaperf
 namespace basic
 {
 
-#define TRAP_INT_DATA 
+//
+// Function used in TRAP_INT loop.
+//
+RAJA_INLINE
+RAJA_HOST_DEVICE
+Real_type trap_int_func(Real_type x,
+                        Real_type y,
+                        Real_type xp,
+                        Real_type yp)
+{
+   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
+   denom = 1.0/sqrt(denom);
+   return denom;
+}
 
-#define TRAP_INT_BODY 
+
+#define TRAP_INT_DATA \
+  Real_type x0 = m_x0; \
+  Real_type xp = m_xp; \
+  Real_type y = m_y; \
+  Real_type yp = m_yp; \
+  Real_type h = m_h;
+
+#define TRAP_INT_BODY \
+  Real_type x = x0 + i*h; \
+  sumx += trap_int_func(x, y, xp, yp);
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -49,10 +72,11 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define TRAP_INT_DATA_SETUP_CUDA
+#define TRAP_INT_DATA_SETUP_CUDA // nothing to do here...
 
-#define TRAP_INT_DATA_TEARDOWN_CUDA
+#define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
+#if 0
 __global__ void trapint(Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -60,6 +84,7 @@ __global__ void trapint(Index_type iend)
      TRAP_INT_BODY;
    }
 }
+#endif
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
@@ -68,7 +93,7 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1500);
+   setDefaultSamples(1200);
 }
 
 TRAP_INT::~TRAP_INT() 
@@ -77,7 +102,20 @@ TRAP_INT::~TRAP_INT()
 
 void TRAP_INT::setUp(VariantID vid)
 {
-  (void) vid;
+  Real_type xn; 
+  initData(xn, vid);
+
+  initData(m_x0, vid);
+  initData(m_xp, vid);
+  initData(m_y,  vid);
+  initData(m_yp, vid);
+
+  m_h = xn - m_x0;
+
+  m_sumx_init = 0.5*( trap_int_func(m_x0, m_y, m_xp, m_yp) +
+                      trap_int_func(xn, m_y, m_xp, m_yp) );  
+
+  m_val = 0;
 }
 
 void TRAP_INT::runKernel(VariantID vid)
@@ -92,12 +130,16 @@ void TRAP_INT::runKernel(VariantID vid)
 
       TRAP_INT_DATA;
 
+      Real_type sumx = m_sumx_init;
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
+
+        m_val = sumx * h;
 
       }
       stopTimer();
@@ -109,12 +151,16 @@ void TRAP_INT::runKernel(VariantID vid)
 
       TRAP_INT_DATA;
 
+      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
+        RAJA::forall<RAJA::seq_exec>(ibegin, iend, [=](int i) {
           TRAP_INT_BODY;
         });
+
+        m_val = static_cast<Real_type>(sumx.get()) * h;
 
       }
       stopTimer();
@@ -127,13 +173,17 @@ void TRAP_INT::runKernel(VariantID vid)
 
       TRAP_INT_DATA;
 
+      Real_type sumx = m_sumx_init;
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        #pragma omp for schedule(static)
+        #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
+
+        m_val = sumx * h;
 
       }
       stopTimer();
@@ -150,6 +200,8 @@ void TRAP_INT::runKernel(VariantID vid)
 
       TRAP_INT_DATA;
 
+      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -158,6 +210,7 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         });
 
+        m_val = static_cast<Real_type>(sumx.get()) * h;
 
       }
       stopTimer();
@@ -169,6 +222,7 @@ void TRAP_INT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
+#if 0
       TRAP_INT_DATA_SETUP_CUDA;
 
       startTimer();
@@ -181,21 +235,27 @@ void TRAP_INT::runKernel(VariantID vid)
       stopTimer();
 
       TRAP_INT_DATA_TEARDOWN_CUDA;
+#endif
 
       break;
     }
 
     case RAJA_CUDA : {
 
-      TRAP_INT_DATA_SETUP_CUDA;
+      TRAP_INT_DATA;
+
+      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend,
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
            [=] __device__ (Index_type i) {
            TRAP_INT_BODY;
          });
+
+        m_val = static_cast<Real_type>(sumx.get()) * h;
 
       }
       stopTimer();
@@ -224,7 +284,7 @@ void TRAP_INT::runKernel(VariantID vid)
 
 void TRAP_INT::updateChecksum(VariantID vid)
 {
-  (void) vid;
+  checksum[vid] += (m_val + 0.00123) / (m_val - 0.00123);
 }
 
 void TRAP_INT::tearDown(VariantID vid)

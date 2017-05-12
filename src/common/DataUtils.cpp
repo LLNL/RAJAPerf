@@ -28,6 +28,7 @@
 #include "RAJA/internal/MemUtils_CPU.hpp"
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
+#include <cstdlib>
 
 namespace rajaperf
 {
@@ -52,6 +53,14 @@ void allocAndInitData(Real_ptr& ptr, int len, VariantID vid)
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN, 
                                            len*sizeof(Real_type));
   initData(ptr, len, vid);
+}
+
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+{
+  ptr =
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
+                                           len*sizeof(Real_type));
+  initDataRandSign(ptr, len, vid);
 }
 
 void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
@@ -141,6 +150,34 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
     } 
   }
+
+  data_init_count++;
+}
+
+void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+{
+  (void) vid;
+
+  if ( vid == Baseline_OpenMP ||
+       vid == RAJALike_OpenMP ||
+       vid == RAJA_OpenMP ) {
+#if defined(_OPENMP)
+    #pragma omp parallel for
+#endif
+    for (int i = 0; i < len; ++i) {
+      ptr[i] = 0.0;
+    };
+  }
+
+  Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
+
+  srand(4793);
+
+  for (int i = 0; i < len; ++i) {
+    Real_type signfact = Real_type(rand())/RAND_MAX;
+    signfact = ( signfact < 0.5 ? -1.0 : 1.0 );
+    ptr[i] = signfact*factor*(i + 1.1)/(i + 1.12345);
+  };
 
   data_init_count++;
 }

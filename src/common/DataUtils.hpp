@@ -45,6 +45,9 @@ void resetDataInitCount();
 void allocAndInitData(Real_ptr& ptr, int len,
                       VariantID vid = NumVariants);
 ///
+void allocAndInitDataRandSign(Real_ptr& ptr, int len,
+                              VariantID vid = NumVariants);
+///
 void allocAndInitData(Complex_ptr& ptr, int len,
                       VariantID vid = NumVariants);
 ///
@@ -78,6 +81,9 @@ void deallocCudaDeviceData(Real_ptr& dptr);
  */
 void initData(Real_ptr& ptr, int len,
               VariantID vid = NumVariants);
+///
+void initDataRandSign(Real_ptr& ptr, int len,
+                      VariantID vid = NumVariants);
 ///
 void initData(Complex_ptr& ptr, int len,
               VariantID vid = NumVariants);

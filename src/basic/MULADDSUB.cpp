@@ -29,6 +29,7 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/internal/type_traits.hpp"
 
 #include <iostream>
 
@@ -98,7 +99,7 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(4500);
+   setDefaultSamples(4000);
 }
 
 MULADDSUB::~MULADDSUB() 
@@ -226,7 +227,8 @@ void MULADDSUB::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size> >(ibegin, iend, 
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend, 
            [=] __device__ (Index_type i) {
            MULADDSUB_BODY;
          });
