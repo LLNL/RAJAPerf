@@ -164,7 +164,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case Baseline_Seq : {
 
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 #if 1
@@ -193,7 +193,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case RAJA_Seq : {
 
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -242,21 +242,35 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case Baseline_OpenMP : {
-
+#if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-#if 0
-        #pragma omp for schedule(static)
-        for (Index_type i = 0; i < run_size; ++i ) {
-          POLYBENCH_2MM_BODY;
-        }
-#endif
+        #pragma omp parallel for  
+        for (Index_type i = 0; i < ni; i++ ) 
+          for(Index_type j = 0; j < nj; j++) {
+            //if(j == 0) printf("Thread : %d\n",omp_get_thread_num());
+            POLYBENCH_2MM_BODY1;
+            for(Index_type k = 0; k < nk; k++) {
+
+              POLYBENCH_2MM_BODY2;
+            }
+          }
+
+
+        #pragma omp parallel for  
+        for(Index_type i = 0; i < ni; i++)
+          for(Index_type l = 0; l < nl; l++) {
+            //if(l == 0) printf("Thread : %d\n",omp_get_thread_num());
+            POLYBENCH_2MM_BODY3;
+            for(Index_type j = 0; j < nj; j++)
+              POLYBENCH_2MM_BODY4;
+          }  
 
       }
       stopTimer();
-
+#endif
       break;
     }
 
@@ -268,7 +282,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case RAJA_OpenMP : {
 
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 #if 0
@@ -286,7 +300,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case Baseline_CUDA : {
 
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 #if 0
@@ -300,7 +314,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case RAJA_CUDA : {
 
       POLYBENCH_2MM_DATA;
-
+      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 #if 0
