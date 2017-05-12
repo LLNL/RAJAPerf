@@ -9,7 +9,7 @@ add_subdirectory(polybench)
 
 raja_add_executable(
   NAME raja-perf.exe
-  SOURCES RAJAPerfSuiteDriver.cxx
+  SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON 
   common
   apps
@@ -31,5 +31,5 @@ list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 
 ##set(RAJAPERF_SYSTYPE $ENV{SYS_TYPE})
 
-configure_file(${CMAKE_SOURCE_DIR}/extra/performance/src/rajaperf_build_info.hxx.in
-  ${CMAKE_CURRENT_BINARY_DIR}/rajaperf_build_info.hxx)
+configure_file(${CMAKE_SOURCE_DIR}/extra/performance/src/rajaperf_build_info.hpp.in
+  ${CMAKE_CURRENT_BINARY_DIR}/rajaperf_build_info.hpp)
