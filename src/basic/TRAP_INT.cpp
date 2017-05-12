@@ -77,11 +77,28 @@ Real_type trap_int_func(Real_type x,
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
 #if 0
-__global__ void trapint(Index_type iend)
+__global__ void trapint(Real_type x0, Real_type xp,
+                        Real_type y, Real_type yp, 
+                        Real_type h, 
+                        Real_ptr sumx,
+                        Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     TRAP_INT_BODY;
+     Index_type tid = threadIdx.x;
+     Real_type x = x0 + i*h;
+     Real_type tval = trap_int_func(x, y, xp, yp);
+
+     __shared__ Real_type tsumx[blockDim.x];
+     tsumx[tid] = tval;
+     __syncthreads();
+
+     for (Index_type s = blockDim.x/2; s > 0; s /= 2) {
+       if (tid < s) tsumx[tid] += tsumx[tid+s];
+       __syncthreads();
+     }
+
+     if (tid == 0) atomcAdd(*sumx, tsumx[tid]);  // Need "atomicAdd for reals
    }
 }
 #endif
@@ -139,10 +156,10 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         }
 
-        m_val = sumx * h;
-
       }
       stopTimer();
+
+      m_val = sumx * h;
 
       break;
     }
@@ -160,10 +177,10 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         });
 
-        m_val = static_cast<Real_type>(sumx.get()) * h;
-
       }
       stopTimer();
+
+      m_val = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
@@ -183,10 +200,10 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         }
 
-        m_val = sumx * h;
-
       }
       stopTimer();
+
+      m_val = sumx * h;
 
       break;
     }
@@ -210,10 +227,10 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         });
 
-        m_val = static_cast<Real_type>(sumx.get()) * h;
-
       }
       stopTimer();
+
+      m_val = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
@@ -255,12 +272,10 @@ void TRAP_INT::runKernel(VariantID vid)
            TRAP_INT_BODY;
          });
 
-        m_val = static_cast<Real_type>(sumx.get()) * h;
-
       }
       stopTimer();
 
-      TRAP_INT_DATA_TEARDOWN_CUDA;
+      m_val = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }

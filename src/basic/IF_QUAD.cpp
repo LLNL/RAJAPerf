@@ -79,11 +79,11 @@ namespace basic
 #define IF_QUAD_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_x1, x1, iend); \
   getCudaDeviceData(m_x2, x2, iend); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2); \
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
+  deallocCudaDeviceData(c); \
+  deallocCudaDeviceData(x1); \
+  deallocCudaDeviceData(x2);
 
 __global__ void ifquad(Real_ptr x1, Real_ptr x2,
                        Real_ptr a, Real_ptr b, Real_ptr c,
@@ -206,7 +206,7 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      IF_QUAD_DATA;
+      IF_QUAD_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -217,6 +217,8 @@ void IF_QUAD::runKernel(VariantID vid)
 
       }
       stopTimer();
+
+      IF_QUAD_DATA_TEARDOWN_CUDA;
 
       break;
     }
