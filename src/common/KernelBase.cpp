@@ -75,6 +75,8 @@ void KernelBase::execute(VariantID vid)
 {
   running_variant = vid;
 
+  resetTimer();
+
   resetDataInitCount();
   this->setUp(vid);
   

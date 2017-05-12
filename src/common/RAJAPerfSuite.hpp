@@ -27,6 +27,8 @@
 #ifndef RAJAPerfSuite_HPP
 #define RAJAPerfSuite_HPP
 
+#include "RAJA/config.hpp"
+
 #include <string>
 
 #if 0
