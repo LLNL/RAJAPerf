@@ -83,13 +83,14 @@ __global__ void trapint(Real_type x0, Real_type xp,
                         Real_ptr sumx,
                         Index_type iend)
 {
+   extern __shared__ Real_type tsumx[];
+
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
      Index_type tid = threadIdx.x;
      Real_type x = x0 + i*h;
      Real_type tval = trap_int_func(x, y, xp, yp);
 
-     __shared__ Real_type tsumx[blockDim.x];
      tsumx[tid] = tval;
      __syncthreads();
 

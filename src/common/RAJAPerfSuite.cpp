@@ -47,6 +47,11 @@
 //
 // Stream kernels...
 //
+#include "stream/COPY.hpp"
+#include "stream/MUL.hpp"
+#include "stream/ADD.hpp"
+#include "stream/TRIAD.hpp"
+//#include "stream/DOT.hpp"
 
 //
 // Apps kernels...
@@ -146,8 +151,12 @@ static const std::string KernelNames [] =
 //
 // Stream kernels...
 //
+  std::string("Stream_COPY"),
+  std::string("Stream_MUL"),
+  std::string("Stream_ADD"),
+  std::string("Stream_TRIAD"),
 #if 0
-  std::string("Stream_***");
+  std::string("Stream_DOT"),
 #endif
 
 //
@@ -219,7 +228,7 @@ const std::string& getGroupName(GroupID sid)
 /*
  *******************************************************************************
  *
- * \brief Return full kernel name associated with KernelID enum value.
+ * \brief Return kernel name associated with KernelID enum value.
  *
  *******************************************************************************
  */
@@ -322,8 +331,27 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Stream kernels...
 //
+    case Stream_COPY : {
+       kernel = new stream::COPY(run_params);
+       break;
+    }
+    case Stream_MUL : {
+       kernel = new stream::MUL(run_params);
+       break;
+    }
+    case Stream_ADD : {
+       kernel = new stream::ADD(run_params);
+       break;
+    }
+    case Stream_TRIAD : {
+       kernel = new stream::TRIAD(run_params);
+       break;
+    }
 #if 0
-  Stream_***
+    case Stream_DOT : {
+       kernel = new stream::DOT(run_params);
+       break;
+    }
 #endif
 
 //
@@ -350,7 +378,10 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 #if 0
-  Apps_FIR,
+    case Apps_FIR : {
+       kernel = new apps::FIR(run_params);
+       break;
+    }
 #endif
 
     default: {

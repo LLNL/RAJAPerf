@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Basic kernel MULADDSUB.
+ * \brief   Implementation file for Stream kernel COPY.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "MULADDSUB.hpp"
+#include "COPY.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -34,20 +34,15 @@
 
 namespace rajaperf 
 {
-namespace basic
+namespace stream
 {
 
-#define MULADDSUB_DATA \
-  ResReal_ptr out1 = m_out1; \
-  ResReal_ptr out2 = m_out2; \
-  ResReal_ptr out3 = m_out3; \
-  ResReal_ptr in1 = m_in1; \
-  ResReal_ptr in2 = m_in2;
+#define COPY_DATA \
+  ResReal_ptr a = m_a; \
+  ResReal_ptr c = m_c;
 
-#define MULADDSUB_BODY  \
-  out1[i] = in1[i] * in2[i] ; \
-  out2[i] = in1[i] + in2[i] ; \
-  out3[i] = in1[i] - in2[i] ;
+#define COPY_BODY  \
+  c[i] = a[i] ;
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -58,63 +53,48 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define MULADDSUB_DATA_SETUP_CUDA \
-  Real_ptr out1; \
-  Real_ptr out2; \
-  Real_ptr out3; \
-  Real_ptr in1; \
-  Real_ptr in2; \
+#define COPY_DATA_SETUP_CUDA \
+  Real_ptr a; \
+  Real_ptr c; \
 \
-  allocAndInitCudaDeviceData(out1, m_out1, iend); \
-  allocAndInitCudaDeviceData(out2, m_out2, iend); \
-  allocAndInitCudaDeviceData(out3, m_out3, iend); \
-  allocAndInitCudaDeviceData(in1, m_in1, iend); \
-  allocAndInitCudaDeviceData(in2, m_in2, iend);
+  allocAndInitCudaDeviceData(a, m_a, iend); \
+  allocAndInitCudaDeviceData(c, m_c, iend);
 
-#define MULADDSUB_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, iend); \
-  getCudaDeviceData(m_out2, out2, iend); \
-  getCudaDeviceData(m_out3, out3, iend); \
-  deallocCudaDeviceData(out1); \
-  deallocCudaDeviceData(out2); \
-  deallocCudaDeviceData(out3); \
-  deallocCudaDeviceData(in1); \
-  deallocCudaDeviceData(in2);
+#define COPY_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_c, c, iend); \
+  deallocCudaDeviceData(a); \
+  deallocCudaDeviceData(c)
 
-__global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
-                          Real_ptr in1, Real_ptr in2, 
-                          Index_type iend) 
+__global__ void copy(Real_ptr c, Real_ptr a,
+                     Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     MULADDSUB_BODY; 
+     COPY_BODY; 
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-MULADDSUB::MULADDSUB(const RunParams& params)
-  : KernelBase(rajaperf::Basic_MULADDSUB, params)
+COPY::COPY(const RunParams& params)
+  : KernelBase(rajaperf::Stream_COPY, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(4000);
+   setDefaultSamples(5000);
 }
 
-MULADDSUB::~MULADDSUB() 
+COPY::~COPY() 
 {
 }
 
-void MULADDSUB::setUp(VariantID vid)
+void COPY::setUp(VariantID vid)
 {
-  allocAndInitData(m_out1, getRunSize(), vid);
-  allocAndInitData(m_out2, getRunSize(), vid);
-  allocAndInitData(m_out3, getRunSize(), vid);
-  allocAndInitData(m_in1, getRunSize(), vid);
-  allocAndInitData(m_in2, getRunSize(), vid);
+  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitData(m_c, getRunSize(), vid);
 }
 
-void MULADDSUB::runKernel(VariantID vid)
+void COPY::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -124,13 +104,13 @@ void MULADDSUB::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      MULADDSUB_DATA;
+      COPY_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          MULADDSUB_BODY;
+          COPY_BODY;
         }
 
       }
@@ -141,13 +121,13 @@ void MULADDSUB::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      MULADDSUB_DATA;
+      COPY_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
-          MULADDSUB_BODY;
+          COPY_BODY;
         });
 
       }
@@ -159,14 +139,14 @@ void MULADDSUB::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Baseline_OpenMP : {
 
-      MULADDSUB_DATA;
+      COPY_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          MULADDSUB_BODY;
+          COPY_BODY;
         }
 
       }
@@ -182,14 +162,14 @@ void MULADDSUB::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      MULADDSUB_DATA;
+      COPY_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
-          MULADDSUB_BODY;
+          COPY_BODY;
         });
 
       }
@@ -202,26 +182,26 @@ void MULADDSUB::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      MULADDSUB_DATA_SETUP_CUDA;
+      COPY_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
-                                               iend ); 
+         copy<<<grid_size, block_size>>>( c, a,
+                                          iend ); 
 
       }
       stopTimer();
 
-      MULADDSUB_DATA_TEARDOWN_CUDA;
+      COPY_DATA_TEARDOWN_CUDA;
 
       break; 
     }
 
     case RAJA_CUDA : {
 
-      MULADDSUB_DATA_SETUP_CUDA;
+      COPY_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -229,13 +209,13 @@ void MULADDSUB::runKernel(VariantID vid)
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 
            [=] __device__ (Index_type i) {
-           MULADDSUB_BODY;
+           COPY_BODY;
          });
 
       }
       stopTimer();
 
-      MULADDSUB_DATA_TEARDOWN_CUDA;
+      COPY_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -257,22 +237,17 @@ void MULADDSUB::runKernel(VariantID vid)
 
 }
 
-void MULADDSUB::updateChecksum(VariantID vid)
+void COPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out1, getRunSize());
-  checksum[vid] += calcChecksum(m_out2, getRunSize());
-  checksum[vid] += calcChecksum(m_out3, getRunSize());
+  checksum[vid] += calcChecksum(m_c, getRunSize());
 }
 
-void MULADDSUB::tearDown(VariantID vid)
+void COPY::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_out1);
-  deallocData(m_out2);
-  deallocData(m_out3);
-  deallocData(m_in1);
-  deallocData(m_in2);
+  deallocData(m_a);
+  deallocData(m_c);
 }
 
-} // end namespace basic
+} // end namespace stream
 } // end namespace rajaperf

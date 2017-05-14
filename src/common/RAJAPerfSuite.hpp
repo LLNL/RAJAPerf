@@ -130,9 +130,11 @@ enum KernelID {
 //
 // Stream kernels...
 //
-#if 0
-  Stream_***
-#endif
+  Stream_COPY,
+  Stream_MUL,
+  Stream_ADD,
+  Stream_TRIAD,
+//Stream_Dot,
 
 //
 // Apps kernels...

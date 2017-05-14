@@ -5,7 +5,7 @@ add_subdirectory(apps)
 add_subdirectory(basic)
 #add_subdirectory(livloops)
 #add_subdirectory(polybench)
-#add_subdirectory(stream)
+add_subdirectory(stream)
 
 raja_add_executable(
   NAME raja-perf.exe
@@ -14,10 +14,10 @@ raja_add_executable(
   common
   apps
   basic
+  stream
   RAJA
 ##  livloops
 ##  polybench
-##  stream
   )
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
