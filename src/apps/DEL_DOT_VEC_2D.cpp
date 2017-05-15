@@ -44,18 +44,20 @@ namespace apps
   ResReal_ptr xdot = m_xdot; \
   ResReal_ptr ydot = m_ydot; \
   ResReal_ptr div = m_div; \
-  ResReal_ptr x1,x2,x3,x4 ; \
-  ResReal_ptr y1,y2,y3,y4 ; \
-  ResReal_ptr fx1,fx2,fx3,fx4 ; \
-  ResReal_ptr fy1,fy2,fy3,fy4 ; \
+  Index_type* real_zones = m_domain->real_zones; \
+\
   const Real_type ptiny = m_ptiny; \
   const Real_type half = m_half;
 
-
-#define DEL_DOT_VEC_2D_INDEX_BODY \
-  Index_type i  = m_domain->real_zones[ii] ;
+#define DEL_DOT_VEC_2D_DATA_OFFSET \
+  ResReal_ptr x1,x2,x3,x4 ; \
+  ResReal_ptr y1,y2,y3,y4 ; \
+  ResReal_ptr fx1,fx2,fx3,fx4 ; \
+  ResReal_ptr fy1,fy2,fy3,fy4 ;
 
 #define DEL_DOT_VEC_2D_BODY \
+  Index_type i = real_zones[ii]; \
+\
   Real_type xi  = half * ( x1[i]  + x2[i]  - x3[i]  - x4[i]  ) ; \
   Real_type xj  = half * ( x2[i]  + x3[i]  - x4[i]  - x1[i]  ) ; \
  \
@@ -78,6 +80,53 @@ namespace apps
                      ( y1[i]  + y2[i]  + y3[i]  + y4[i]  ) ; \
  \
   div[i] = dfxdx + dfydy + affine ;
+
+
+#if defined(RAJA_ENABLE_CUDA) && 0
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr xdot = m_xdot; \
+  Real_ptr ydot = m_ydot; \
+  Real_ptr div = m_div; \
+  Real_ptr x1,x2,x3,x4 ; \
+  Real_ptr y1,y2,y3,y4 ; \
+  Real_ptr fx1,fx2,fx3,fx4 ; \
+  Real_ptr fy1,fy2,fy3,fy4 ; \
+  const Real_type ptiny = m_ptiny; \
+  const Real_type half = m_half; \
+\
+  allocAndInitCudaDeviceData(x, m_x, iend); \
+  allocAndInitCudaDeviceData(y, m_y, iend); \
+  allocAndInitCudaDeviceData(xdot, m_xdot, iend); \
+  allocAndInitCudaDeviceData(ydot, m_ydot, iend); \
+  allocAndInitCudaDeviceData(div, m_div, iend);
+
+#define PRESSURE_CALC_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_div, div, iend); \
+  deallocCudaDeviceData(x); \
+  deallocCudaDeviceData(y); \
+  deallocCudaDeviceData(xdot); \
+  deallocCudaDeviceData(ydot); \
+  deallocCudaDeviceData(div);
+
+__global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
+                              const Real_type cls,
+                              Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+   }
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
@@ -120,6 +169,8 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA;
 
+      DEL_DOT_VEC_2D_DATA_OFFSET;
+
       NDSET2D((*m_domain), x,x1,x2,x3,x4) ;
       NDSET2D((*m_domain), y,y1,y2,y3,y4) ;
       NDSET2D((*m_domain), xdot,fx1,fx2,fx3,fx4) ;
@@ -129,7 +180,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type ii = lbegin ; ii < lend ; ++ii ) {
-          DEL_DOT_VEC_2D_INDEX_BODY;
           DEL_DOT_VEC_2D_BODY;
         }
 
@@ -143,6 +193,8 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA;
 
+      DEL_DOT_VEC_2D_DATA_OFFSET;
+
       NDSET2D((*m_domain), x,x1,x2,x3,x4) ;
       NDSET2D((*m_domain), y,y1,y2,y3,y4) ;
       NDSET2D((*m_domain), xdot,fx1,fx2,fx3,fx4) ;
@@ -151,7 +203,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(m_domain->real_zones, lend, [=](int i) {
+        RAJA::forall<RAJA::simd_exec>(lbegin, lend, [=](int ii) {
           DEL_DOT_VEC_2D_BODY;
         }); 
 
@@ -163,7 +215,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
 #if defined(_OPENMP)      
     case Baseline_OpenMP : {
+
       DEL_DOT_VEC_2D_DATA;
+
+      DEL_DOT_VEC_2D_DATA_OFFSET;
 
       NDSET2D((*m_domain), x,x1,x2,x3,x4) ;
       NDSET2D((*m_domain), y,y1,y2,y3,y4) ;
@@ -175,7 +230,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
         #pragma omp parallel for 
         for (Index_type ii = lbegin ; ii < lend ; ++ii ) {
-          DEL_DOT_VEC_2D_INDEX_BODY;
           DEL_DOT_VEC_2D_BODY;
         }
 
@@ -194,6 +248,8 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA;
 
+      DEL_DOT_VEC_2D_DATA_OFFSET;
+
       NDSET2D((*m_domain), x,x1,x2,x3,x4) ;
       NDSET2D((*m_domain), y,y1,y2,y3,y4) ;
       NDSET2D((*m_domain), xdot,fx1,fx2,fx3,fx4) ;
@@ -202,8 +258,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(m_domain->real_zones, lend, 
-        [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(lbegin, lend, [=](int ii) {
           DEL_DOT_VEC_2D_BODY;
         });
 
