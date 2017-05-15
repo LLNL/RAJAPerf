@@ -127,6 +127,145 @@ namespace apps
      if (fabs(q_new[i]) < q_cut) q_new[i] = 0.0 ; \
   }
 
+#if defined(RAJA_ENABLE_CUDA)
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define ENERGY_CALC_DATA_SETUP_CUDA \
+  Real_ptr e_new; \
+  Real_ptr e_old; \
+  Real_ptr delvc; \
+  Real_ptr p_new; \
+  Real_ptr p_old; \
+  Real_ptr q_new; \
+  Real_ptr q_old; \
+  Real_ptr work; \
+  Real_ptr compHalfStep; \
+  Real_ptr pHalfStep; \
+  Real_ptr bvc; \
+  Real_ptr pbvc; \
+  Real_ptr ql_old; \
+  Real_ptr qq_old; \
+  Real_ptr vnewc; \
+  const Real_type rho0 = m_rho0; \
+  const Real_type e_cut = m_e_cut; \
+  const Real_type emin = m_emin; \
+  const Real_type q_cut = m_q_cut; \
+\
+  allocAndInitCudaDeviceData(e_new, m_e_new, iend); \
+  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
+  allocAndInitCudaDeviceData(delvc, m_delvc, iend); \
+  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
+  allocAndInitCudaDeviceData(p_old, m_p_old, iend); \
+  allocAndInitCudaDeviceData(q_new, m_q_new, iend); \
+  allocAndInitCudaDeviceData(q_old, m_q_old, iend); \
+  allocAndInitCudaDeviceData(work, m_work, iend); \
+  allocAndInitCudaDeviceData(compHalfStep, m_compHalfStep, iend); \
+  allocAndInitCudaDeviceData(pHalfStep, m_pHalfStep, iend); \
+  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
+  allocAndInitCudaDeviceData(pbvc, m_pbvc, iend); \
+  allocAndInitCudaDeviceData(ql_old, m_ql_old, iend); \
+  allocAndInitCudaDeviceData(qq_old, m_qq_old, iend); \
+  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
+
+#define ENERGY_CALC_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_e_new, e_new, iend); \
+  getCudaDeviceData(m_q_new, q_new, iend); \
+  deallocCudaDeviceData(e_new); \
+  deallocCudaDeviceData(e_old); \
+  deallocCudaDeviceData(delvc); \
+  deallocCudaDeviceData(p_new); \
+  deallocCudaDeviceData(p_old); \
+  deallocCudaDeviceData(q_new); \
+  deallocCudaDeviceData(q_old); \
+  deallocCudaDeviceData(work); \
+  deallocCudaDeviceData(compHalfStep); \
+  deallocCudaDeviceData(pHalfStep); \
+  deallocCudaDeviceData(bvc); \
+  deallocCudaDeviceData(pbvc); \
+  deallocCudaDeviceData(ql_old); \
+  deallocCudaDeviceData(qq_old); \
+  deallocCudaDeviceData(vnewc);
+
+__global__ void energycalc1(Real_ptr e_new, Real_ptr e_old, Real_ptr delvc,
+                            Real_ptr p_old, Real_ptr q_old, Real_ptr work,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY1;
+   }
+}
+
+__global__ void energycalc2(Real_ptr delvc, Real_ptr q_new,
+                            Real_ptr compHalfStep, Real_ptr pHalfStep,
+                            Real_ptr e_new, Real_ptr bvc, Real_ptr pbvc,
+                            Real_ptr ql_old, Real_ptr qq_old,
+                            Real_type rho0,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY2;
+   }
+}
+
+__global__ void energycalc3(Real_ptr e_new, Real_ptr delvc,
+                            Real_ptr p_old, Real_ptr q_old, 
+                            Real_ptr pHalfStep, Real_ptr q_new,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY3;
+   }
+}
+
+__global__ void energycalc4(Real_ptr e_new, Real_ptr work,
+                            Real_type e_cut, Real_type emin,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY4;
+   }
+}
+
+__global__ void energycalc5(Real_ptr delvc,
+                            Real_ptr pbvc, Real_ptr e_new, Real_ptr vnewc,
+                            Real_ptr bvc, Real_ptr p_new,
+                            Real_ptr ql_old, Real_ptr qq_old,
+                            Real_ptr p_old, Real_ptr q_old,
+                            Real_ptr pHalfStep, Real_ptr q_new,
+                            Real_type rho0, Real_type e_cut, Real_type emin,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY5;
+   }
+}
+
+__global__ void energycalc6(Real_ptr delvc,
+                            Real_ptr pbvc, Real_ptr e_new, Real_ptr vnewc,
+                            Real_ptr bvc, Real_ptr p_new,
+                            Real_ptr q_new,
+                            Real_ptr ql_old, Real_ptr qq_old,
+                            Real_type rho0, Real_type q_cut,
+                            Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     ENERGY_CALC_BODY6;
+   }
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
+
 
 ENERGY_CALC::ENERGY_CALC(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY_CALC, params)
@@ -373,9 +512,107 @@ void ENERGY_CALC::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA :
+    case Baseline_CUDA : {
+    
+      ENERGY_CALC_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+         energycalc1<<<grid_size, block_size>>>( e_new, e_old, delvc,
+                                                 p_old, q_old, work,
+                                                 iend );
+
+         energycalc2<<<grid_size, block_size>>>( delvc, q_new,
+                                                 compHalfStep, pHalfStep,
+                                                 e_new, bvc, pbvc,
+                                                 ql_old, qq_old,
+                                                 rho0,
+                                                 iend );
+
+         energycalc3<<<grid_size, block_size>>>( e_new, delvc,
+                                                 p_old, q_old,
+                                                 pHalfStep, q_new,
+                                                 iend );
+
+         energycalc4<<<grid_size, block_size>>>( e_new, work,
+                                                 e_cut, emin,
+                                                 iend );
+
+         energycalc5<<<grid_size, block_size>>>( delvc,
+                                                 pbvc, e_new, vnewc,
+                                                 bvc, p_new,
+                                                 ql_old, qq_old,
+                                                 p_old, q_old,
+                                                 pHalfStep, q_new,
+                                                 rho0, e_cut, emin,
+                                                 iend );
+
+         energycalc6<<<grid_size, block_size>>>( delvc,
+                                                 pbvc, e_new, vnewc,
+                                                 bvc, p_new,
+                                                 q_new,
+                                                 ql_old, qq_old,
+                                                 rho0, q_cut,
+                                                 iend );
+
+      }
+      stopTimer();
+
+      ENERGY_CALC_DATA_TEARDOWN_CUDA;
+
+    }
+
     case RAJA_CUDA : {
-      // Fill these in later...you get the idea...
+
+      ENERGY_CALC_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY1;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY2;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY3;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY4;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY5;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           ENERGY_CALC_BODY6;
+         });
+
+      }
+      stopTimer();
+
+      ENERGY_CALC_DATA_TEARDOWN_CUDA;
+
       break;
     }
 #endif
