@@ -4,5 +4,5 @@ raja_add_library(
           MUL.cpp 
           ADD.cpp 
           TRIAD.cpp 
-##          DOT.cpp 
+          DOT.cpp 
   DEPENDS_ON common RAJA)

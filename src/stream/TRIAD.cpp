@@ -61,7 +61,7 @@ namespace stream
   Real_ptr c; \
   Real_type alpha = m_alpha; \
 \
-  allocAndInitCudaDeviceData(b, m_a, iend); \
+  allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
   allocAndInitCudaDeviceData(c, m_c, iend);
 

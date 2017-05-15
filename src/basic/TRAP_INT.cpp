@@ -31,6 +31,9 @@
 #include "RAJA/RAJA.hpp"
 
 #include <iostream>
+#if 0
+#include <iomanip>
+#endif
 
 namespace rajaperf 
 {
@@ -64,6 +67,7 @@ Real_type trap_int_func(Real_type x,
   Real_type x = x0 + i*h; \
   sumx += trap_int_func(x, y, xp, yp);
 
+
 #if defined(RAJA_ENABLE_CUDA)
 
   //
@@ -89,9 +93,9 @@ __global__ void trapint(Real_type x0, Real_type xp,
    if (i < iend) {
      Index_type tid = threadIdx.x;
      Real_type x = x0 + i*h;
-     Real_type tval = trap_int_func(x, y, xp, yp);
+     Real_type tsumx = trap_int_func(x, y, xp, yp);
 
-     tsumx[tid] = tval;
+     tsumx[tid] = tsumx;
      __syncthreads();
 
      for (Index_type s = blockDim.x/2; s > 0; s /= 2) {
@@ -133,11 +137,15 @@ void TRAP_INT::setUp(VariantID vid)
   m_sumx_init = 0.5*( trap_int_func(m_x0, m_y, m_xp, m_yp) +
                       trap_int_func(xn, m_y, m_xp, m_yp) );  
 
-  m_val = 0;
+  m_sumx = 0;
 }
 
 void TRAP_INT::runKernel(VariantID vid)
 {
+#if 0
+std::cout << "\tTRAP(" << vid << ") : sumx = " 
+          << std::setprecision(20) << m_sumx_init << std::endl; 
+#endif
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
@@ -160,7 +168,7 @@ void TRAP_INT::runKernel(VariantID vid)
       }
       stopTimer();
 
-      m_val = sumx * h;
+      m_sumx = sumx * h;
 
       break;
     }
@@ -181,7 +189,7 @@ void TRAP_INT::runKernel(VariantID vid)
       }
       stopTimer();
 
-      m_val = static_cast<Real_type>(sumx.get()) * h;
+      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
@@ -204,7 +212,7 @@ void TRAP_INT::runKernel(VariantID vid)
       }
       stopTimer();
 
-      m_val = sumx * h;
+      m_sumx = sumx * h;
 
       break;
     }
@@ -231,7 +239,7 @@ void TRAP_INT::runKernel(VariantID vid)
       }
       stopTimer();
 
-      m_val = static_cast<Real_type>(sumx.get()) * h;
+      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
@@ -276,7 +284,7 @@ void TRAP_INT::runKernel(VariantID vid)
       }
       stopTimer();
 
-      m_val = static_cast<Real_type>(sumx.get()) * h;
+      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
@@ -296,11 +304,19 @@ void TRAP_INT::runKernel(VariantID vid)
 
   }
 
+#if 0
+std::cout << "\t\t sumx = "
+          << std::setprecision(20) << m_sumx << std::endl; 
+#endif
 }
 
 void TRAP_INT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += (m_val + 0.00123) / (m_val - 0.00123);
+#if 1
+  checksum[vid] += (m_sumx + 0.00123) / (m_sumx - 0.00123);
+#else
+  checksum[vid] += m_sumx;
+#endif
 }
 
 void TRAP_INT::tearDown(VariantID vid)

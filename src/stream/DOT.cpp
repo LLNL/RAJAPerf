@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Stream kernel ADD.
+ * \brief   Implementation file for Stream kernel DOT.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "ADD.hpp"
+#include "DOT.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -37,13 +37,12 @@ namespace rajaperf
 namespace stream
 {
 
-#define ADD_DATA \
+#define DOT_DATA \
   ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c;
+  ResReal_ptr b = m_b;
 
-#define ADD_BODY  \
-  c[i] = a[i] + b[i];
+#define DOT_BODY  \
+  dot += a[i] * b[i] ;
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -54,52 +53,48 @@ namespace stream
   const size_t block_size = 256;
 
 
-#define ADD_DATA_SETUP_CUDA \
+#define DOT_DATA_SETUP_CUDA \
   Real_ptr a; \
   Real_ptr b; \
-  Real_ptr c; \
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
+  allocAndInitCudaDeviceData(b, m_b, iend);
 
-#define ADD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_c, c, iend); \
+#define DOT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
+  deallocCudaDeviceData(b);
 
-__global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
-                     Index_type iend) 
+#if 0
+__global__ void dot(Real_ptr a, Real_ptr b,
+                    Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ADD_BODY; 
    }
 }
+#endif
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-ADD::ADD(const RunParams& params)
-  : KernelBase(rajaperf::Stream_ADD, params)
+DOT::DOT(const RunParams& params)
+  : KernelBase(rajaperf::Stream_DOT, params)
 {
    setDefaultSize(100000);
    setDefaultSamples(5000);
 }
 
-ADD::~ADD() 
+DOT::~DOT() 
 {
 }
 
-void ADD::setUp(VariantID vid)
+void DOT::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
 }
 
-void ADD::runKernel(VariantID vid)
+void DOT::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -109,34 +104,42 @@ void ADD::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      ADD_DATA;
+      DOT_DATA;
+
+      Real_type dot = 0.0;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ADD_BODY;
+          DOT_BODY;
         }
 
       }
       stopTimer();
+
+      m_dot = dot;
 
       break;
     }
 
     case RAJA_Seq : {
 
-      ADD_DATA;
+      DOT_DATA;
+
+      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(0.0);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
-          ADD_BODY;
+          DOT_BODY;
         });
 
       }
       stopTimer();
+
+      m_dot = static_cast<Real_type>(dot.get());
 
       break;
     }
@@ -144,18 +147,22 @@ void ADD::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Baseline_OpenMP : {
 
-      ADD_DATA;
+      DOT_DATA;
+
+      Real_type dot = 0.0;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        #pragma omp parallel for
+        #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ADD_BODY;
+          DOT_BODY;
         }
 
       }
       stopTimer();
+
+      m_dot = dot;
 
       break;
     }
@@ -167,18 +174,22 @@ void ADD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      ADD_DATA;
+      DOT_DATA;
+
+      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(0.0);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
-          ADD_BODY;
+          DOT_BODY;
         });
 
       }
       stopTimer();
+
+      m_dot = static_cast<Real_type>(dot.get());
 
       break;
     }
@@ -187,26 +198,30 @@ void ADD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      ADD_DATA_SETUP_CUDA;
+#if 0
+      DOT_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         add<<<grid_size, block_size>>>( c, a, b,
+         dot<<<grid_size, block_size>>>( a, b, 
                                          iend ); 
 
       }
       stopTimer();
 
-      ADD_DATA_TEARDOWN_CUDA;
+      DOT_DATA_TEARDOWN_CUDA;
+#endif
 
       break; 
     }
 
     case RAJA_CUDA : {
 
-      ADD_DATA_SETUP_CUDA;
+      DOT_DATA_SETUP_CUDA;
+
+      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(0.0);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -214,13 +229,15 @@ void ADD::runKernel(VariantID vid)
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 
            [=] __device__ (Index_type i) {
-           ADD_BODY;
+           DOT_BODY;
          });
 
       }
       stopTimer();
 
-      ADD_DATA_TEARDOWN_CUDA;
+      m_dot = static_cast<Real_type>(dot.get());
+
+      DOT_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -242,17 +259,16 @@ void ADD::runKernel(VariantID vid)
 
 }
 
-void ADD::updateChecksum(VariantID vid)
+void DOT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_c, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getRunSize());
 }
 
-void ADD::tearDown(VariantID vid)
+void DOT::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_a);
   deallocData(m_b);
-  deallocData(m_c);
 }
 
 } // end namespace stream
