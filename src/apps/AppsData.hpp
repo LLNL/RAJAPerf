@@ -53,6 +53,22 @@ namespace apps
    v2 = v1 + domain.jp ;  \
    v3 = v4 + domain.jp ;
 
+#define NDPTRSET_2(jp, kp,v,v0,v1,v2,v3,v4,v5,v6,v7)  \
+   v0 = v ;   \
+   v1 = v0 + 1 ;  \
+   v2 = v0 + jp ; \
+   v3 = v1 + jp ; \
+   v4 = v0 + kp ; \
+   v5 = v1 + kp ; \
+   v6 = v2 + kp ; \
+   v7 = v3 + kp ;
+
+#define NDSET2D_2(jp,v,v1,v2,v3,v4)  \
+   v4 = v ;   \
+   v1 = v4 + 1 ;  \
+   v2 = v1 + jp ;  \
+   v3 = v4 + jp ;
+
 #define zabs2(z)    ( real(z)*real(z)+imag(z)*imag(z) )
 
 
