@@ -43,10 +43,13 @@ namespace apps
   ResReal_ptr y = m_y; \
   ResReal_ptr z = m_z; \
   ResReal_ptr vol = m_vol; \
+\
+  const Real_type vnormq = m_vnormq;
+
+#define VOL3D_DATA_OFFSET \
   ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;  \
-  const Real_type vnormq = m_vnormq;
+  ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
 
 
 #define VOL3D_BODY \
@@ -139,9 +142,11 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      VOL3D_DATA_OFFSET; 
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -160,9 +165,11 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      VOL3D_DATA_OFFSET; 
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -182,9 +189,11 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      VOL3D_DATA_OFFSET; 
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -209,9 +218,11 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-      NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-      NDPTRSET((*m_domain), z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+      VOL3D_DATA_OFFSET; 
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -228,7 +239,11 @@ void VOL3D::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA :
+    case Baseline_CUDA : {
+      // Fill these in later...you get the idea...
+      break;
+    }
+
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...
       break;

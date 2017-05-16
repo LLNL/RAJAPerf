@@ -180,10 +180,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -204,10 +204,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -229,10 +229,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -259,10 +259,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -285,10 +285,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -318,10 +318,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_OFFSET;
 
-      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
