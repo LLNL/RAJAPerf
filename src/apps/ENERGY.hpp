@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel ENERGY_CALC.
+ * \brief   Header file for kernel ENERGY.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_ENERGY_CALC_HPP
-#define RAJAPerf_Apps_ENERGY_CALC_HPP
+#ifndef RAJAPerf_Apps_ENERGY_HPP
+#define RAJAPerf_Apps_ENERGY_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -37,13 +37,13 @@ class RunParams;
 namespace apps
 {
 
-class ENERGY_CALC : public KernelBase
+class ENERGY : public KernelBase
 {
 public:
 
-  ENERGY_CALC(const RunParams& params);
+  ENERGY(const RunParams& params);
 
-  ~ENERGY_CALC();
+  ~ENERGY();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 

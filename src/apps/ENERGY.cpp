@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for kernel ENERGY_CALC.
+ * \brief   Implementation file for kernel ENERGY.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "ENERGY_CALC.hpp"
+#include "ENERGY.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -37,7 +37,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define ENERGY_CALC_DATA \
+#define ENERGY_DATA \
   ResReal_ptr e_new = m_e_new; \
   ResReal_ptr e_old = m_e_old; \
   ResReal_ptr delvc = m_delvc; \
@@ -59,11 +59,11 @@ namespace apps
   const Real_type q_cut = m_q_cut;
 
 
-#define ENERGY_CALC_BODY1 \
+#define ENERGY_BODY1 \
   e_new[i] = e_old[i] - 0.5 * delvc[i] * \
              (p_old[i] + q_old[i]) + 0.5 * work[i];
 
-#define ENERGY_CALC_BODY2 \
+#define ENERGY_BODY2 \
   if ( delvc[i] > 0.0 ) { \
      q_new[i] = 0.0 ; \
   } \
@@ -79,17 +79,17 @@ namespace apps
      q_new[i] = (ssc*ql_old[i] + qq_old[i]) ; \
   }
 
-#define ENERGY_CALC_BODY3 \
+#define ENERGY_BODY3 \
   e_new[i] = e_new[i] + 0.5 * delvc[i] \
              * ( 3.0*(p_old[i] + q_old[i]) \
                  - 4.0*(pHalfStep[i] + q_new[i])) ;
 
-#define ENERGY_CALC_BODY4 \
+#define ENERGY_BODY4 \
   e_new[i] += 0.5 * work[i]; \
   if ( fabs(e_new[i]) < e_cut ) { e_new[i] = 0.0  ; } \
   if ( e_new[i]  < emin ) { e_new[i] = emin ; }
 
-#define ENERGY_CALC_BODY5 \
+#define ENERGY_BODY5 \
   Real_type q_tilde ; \
   if (delvc[i] > 0.0) { \
      q_tilde = 0. ; \
@@ -114,7 +114,7 @@ namespace apps
      e_new[i] = emin ; \
   }
 
-#define ENERGY_CALC_BODY6 \
+#define ENERGY_BODY6 \
   if ( delvc[i] <= 0.0 ) { \
      Real_type ssc = ( pbvc[i] * e_new[i] \
              + vnewc[i] * vnewc[i] * bvc[i] * p_new[i] ) / rho0 ; \
@@ -135,7 +135,7 @@ namespace apps
   const size_t block_size = 256;
 
 
-#define ENERGY_CALC_DATA_SETUP_CUDA \
+#define ENERGY_DATA_SETUP_CUDA \
   Real_ptr e_new; \
   Real_ptr e_old; \
   Real_ptr delvc; \
@@ -172,7 +172,7 @@ namespace apps
   allocAndInitCudaDeviceData(qq_old, m_qq_old, iend); \
   allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
 
-#define ENERGY_CALC_DATA_TEARDOWN_CUDA \
+#define ENERGY_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_e_new, e_new, iend); \
   getCudaDeviceData(m_q_new, q_new, iend); \
   deallocCudaDeviceData(e_new); \
@@ -197,7 +197,7 @@ __global__ void energycalc1(Real_ptr e_new, Real_ptr e_old, Real_ptr delvc,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY1;
+     ENERGY_BODY1;
    }
 }
 
@@ -210,7 +210,7 @@ __global__ void energycalc2(Real_ptr delvc, Real_ptr q_new,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY2;
+     ENERGY_BODY2;
    }
 }
 
@@ -221,7 +221,7 @@ __global__ void energycalc3(Real_ptr e_new, Real_ptr delvc,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY3;
+     ENERGY_BODY3;
    }
 }
 
@@ -231,7 +231,7 @@ __global__ void energycalc4(Real_ptr e_new, Real_ptr work,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY4;
+     ENERGY_BODY4;
    }
 }
 
@@ -246,7 +246,7 @@ __global__ void energycalc5(Real_ptr delvc,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY5;
+     ENERGY_BODY5;
    }
 }
 
@@ -260,25 +260,25 @@ __global__ void energycalc6(Real_ptr delvc,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     ENERGY_CALC_BODY6;
+     ENERGY_BODY6;
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-ENERGY_CALC::ENERGY_CALC(const RunParams& params)
-  : KernelBase(rajaperf::Apps_ENERGY_CALC, params)
+ENERGY::ENERGY(const RunParams& params)
+  : KernelBase(rajaperf::Apps_ENERGY, params)
 {
   setDefaultSize(100000);
   setDefaultSamples(1300);
 }
 
-ENERGY_CALC::~ENERGY_CALC() 
+ENERGY::~ENERGY() 
 {
 }
 
-void ENERGY_CALC::setUp(VariantID vid)
+void ENERGY::setUp(VariantID vid)
 {
   allocAndInitData(m_e_new, getRunSize(), vid);
   allocAndInitData(m_e_old, getRunSize(), vid);
@@ -302,7 +302,7 @@ void ENERGY_CALC::setUp(VariantID vid)
   initData(m_q_cut);
 }
 
-void ENERGY_CALC::runKernel(VariantID vid)
+void ENERGY::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -312,33 +312,33 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      ENERGY_CALC_DATA;
+      ENERGY_DATA;
   
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY1;
+          ENERGY_BODY1;
         }
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY2;
+          ENERGY_BODY2;
         }
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY3;
+          ENERGY_BODY3;
         }
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY4;
+          ENERGY_BODY4;
         }
   
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY5;
+          ENERGY_BODY5;
         }
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY6;
+          ENERGY_BODY6;
         }
 
       }
@@ -349,33 +349,33 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      ENERGY_CALC_DATA;
+      ENERGY_DATA;
  
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY1;
+          ENERGY_BODY1;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY2;
+          ENERGY_BODY2;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY3;
+          ENERGY_BODY3;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY4;
+          ENERGY_BODY4;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY5;
+          ENERGY_BODY5;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY6;
+          ENERGY_BODY6;
         }); 
 
       }
@@ -387,7 +387,7 @@ void ENERGY_CALC::runKernel(VariantID vid)
 #if defined(_OPENMP)      
     case Baseline_OpenMP : {
 
-      ENERGY_CALC_DATA;
+      ENERGY_DATA;
  
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -396,32 +396,32 @@ void ENERGY_CALC::runKernel(VariantID vid)
           {
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY1;
+              ENERGY_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY2;
+              ENERGY_BODY2;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY3;
+              ENERGY_BODY3;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY4;
+              ENERGY_BODY4;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY5;
+              ENERGY_BODY5;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              ENERGY_CALC_BODY6;
+              ENERGY_BODY6;
             }
           } // omp parallel
 
@@ -433,39 +433,39 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
     case RAJALike_OpenMP : {
 
-      ENERGY_CALC_DATA;
+      ENERGY_DATA;
       
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY1;
+          ENERGY_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY2;
+          ENERGY_BODY2;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY3;
+          ENERGY_BODY3;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY4;
+          ENERGY_BODY4;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY5;
+          ENERGY_BODY5;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_CALC_BODY6;
+          ENERGY_BODY6;
         }
 
       }
@@ -476,33 +476,33 @@ void ENERGY_CALC::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      ENERGY_CALC_DATA;
+      ENERGY_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY1;
+          ENERGY_BODY1;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY2;
+          ENERGY_BODY2;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY3;
+          ENERGY_BODY3;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY4;
+          ENERGY_BODY4;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY5;
+          ENERGY_BODY5;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          ENERGY_CALC_BODY6;
+          ENERGY_BODY6;
         });
 
       }
@@ -514,7 +514,7 @@ void ENERGY_CALC::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
     
-      ENERGY_CALC_DATA_SETUP_CUDA;
+      ENERGY_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -561,13 +561,13 @@ void ENERGY_CALC::runKernel(VariantID vid)
       }
       stopTimer();
 
-      ENERGY_CALC_DATA_TEARDOWN_CUDA;
+      ENERGY_DATA_TEARDOWN_CUDA;
 
     }
 
     case RAJA_CUDA : {
 
-      ENERGY_CALC_DATA_SETUP_CUDA;
+      ENERGY_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -575,43 +575,43 @@ void ENERGY_CALC::runKernel(VariantID vid)
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY1;
+           ENERGY_BODY1;
          });
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY2;
+           ENERGY_BODY2;
          });
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY3;
+           ENERGY_BODY3;
          });
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY4;
+           ENERGY_BODY4;
          });
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY5;
+           ENERGY_BODY5;
          });
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
            [=] __device__ (Index_type i) {
-           ENERGY_CALC_BODY6;
+           ENERGY_BODY6;
          });
 
       }
       stopTimer();
 
-      ENERGY_CALC_DATA_TEARDOWN_CUDA;
+      ENERGY_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -632,13 +632,13 @@ void ENERGY_CALC::runKernel(VariantID vid)
   }
 }
 
-void ENERGY_CALC::updateChecksum(VariantID vid)
+void ENERGY::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_e_new, getRunSize());
   checksum[vid] += calcChecksum(m_q_new, getRunSize());
 }
 
-void ENERGY_CALC::tearDown(VariantID vid)
+void ENERGY::tearDown(VariantID vid)
 {
   (void) vid;
 

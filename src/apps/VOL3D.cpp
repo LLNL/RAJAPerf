@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for kernel VOL3D_CALC.
+ * \brief   Implementation file for kernel VOL3D.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "VOL3D_CALC.hpp"
+#include "VOL3D.hpp"
 
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
@@ -38,7 +38,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define VOL3D_CALC_DATA \
+#define VOL3D_DATA \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y; \
   ResReal_ptr z = m_z; \
@@ -49,7 +49,7 @@ namespace apps
   const Real_type vnormq = m_vnormq;
 
 
-#define VOL3D_CALC_BODY \
+#define VOL3D_BODY \
   Real_type x71 = x7[i] - x1[i] ; \
   Real_type x72 = x7[i] - x2[i] ; \
   Real_type x74 = x7[i] - x4[i] ; \
@@ -101,8 +101,8 @@ namespace apps
   vol[i] *= vnormq ;
 
 
-VOL3D_CALC::VOL3D_CALC(const RunParams& params)
-  : KernelBase(rajaperf::Apps_VOL3D_CALC, params)
+VOL3D::VOL3D(const RunParams& params)
+  : KernelBase(rajaperf::Apps_VOL3D, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
   setDefaultSamples(320);
@@ -110,12 +110,12 @@ VOL3D_CALC::VOL3D_CALC(const RunParams& params)
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
 
-VOL3D_CALC::~VOL3D_CALC() 
+VOL3D::~VOL3D() 
 {
   delete m_domain;
 }
 
-void VOL3D_CALC::setUp(VariantID vid)
+void VOL3D::setUp(VariantID vid)
 {
   int max_loop_index = m_domain->lpn;
 
@@ -127,7 +127,7 @@ void VOL3D_CALC::setUp(VariantID vid)
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
 
-void VOL3D_CALC::runKernel(VariantID vid)
+void VOL3D::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = m_domain->fpz;
@@ -137,7 +137,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      VOL3D_CALC_DATA;
+      VOL3D_DATA;
 
       NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -147,7 +147,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
-          VOL3D_CALC_BODY;
+          VOL3D_BODY;
         }
 
       }
@@ -158,7 +158,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      VOL3D_CALC_DATA;
+      VOL3D_DATA;
 
       NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -168,7 +168,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          VOL3D_CALC_BODY;
+          VOL3D_BODY;
         }); 
 
       }
@@ -180,7 +180,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 #if defined(_OPENMP)      
     case Baseline_OpenMP : {
 
-      VOL3D_CALC_DATA;
+      VOL3D_DATA;
 
       NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -191,7 +191,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
         #pragma omp parallel for 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
-          VOL3D_CALC_BODY;
+          VOL3D_BODY;
         }
 
       }
@@ -207,7 +207,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      VOL3D_CALC_DATA;
+      VOL3D_DATA;
 
       NDPTRSET((*m_domain), x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET((*m_domain), y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -217,7 +217,7 @@ void VOL3D_CALC::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          VOL3D_CALC_BODY;
+          VOL3D_BODY;
         });
 
       }
@@ -250,12 +250,12 @@ void VOL3D_CALC::runKernel(VariantID vid)
   }
 }
 
-void VOL3D_CALC::updateChecksum(VariantID vid)
+void VOL3D::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_vol, getRunSize());
 }
 
-void VOL3D_CALC::tearDown(VariantID vid)
+void VOL3D::tearDown(VariantID vid)
 {
   (void) vid;
 

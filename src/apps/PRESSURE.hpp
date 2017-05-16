@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel PRESSURE_CALC.
+ * \brief   Header file for kernel PRESSURE.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_PRESSURE_CALC_HPP
-#define RAJAPerf_Apps_PRESSURE_CALC_HPP
+#ifndef RAJAPerf_Apps_PRESSURE_HPP
+#define RAJAPerf_Apps_PRESSURE_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -37,13 +37,13 @@ class RunParams;
 namespace apps
 {
 
-class PRESSURE_CALC : public KernelBase
+class PRESSURE : public KernelBase
 {
 public:
 
-  PRESSURE_CALC(const RunParams& params);
+  PRESSURE(const RunParams& params);
 
-  ~PRESSURE_CALC();
+  ~PRESSURE();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 

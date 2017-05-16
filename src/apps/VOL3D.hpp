@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for kernel VOL3D_CALC.
+ * \brief   Header file for kernel VOL3D.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Apps_VOL3D_CALC_HPP
-#define RAJAPerf_Apps_VOL3D_CALC_HPP
+#ifndef RAJAPerf_Apps_VOL3D_HPP
+#define RAJAPerf_Apps_VOL3D_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -38,13 +38,13 @@ namespace apps
 {
 struct ADomain;
 
-class VOL3D_CALC : public KernelBase
+class VOL3D : public KernelBase
 {
 public:
 
-  VOL3D_CALC(const RunParams& params);
+  VOL3D(const RunParams& params);
 
-  ~VOL3D_CALC();
+  ~VOL3D();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
