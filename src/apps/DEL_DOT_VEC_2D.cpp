@@ -47,13 +47,13 @@ namespace apps
   Index_type* real_zones = m_domain->real_zones; \
 \
   const Real_type ptiny = m_ptiny; \
-  const Real_type half = m_half;
-
-#define DEL_DOT_VEC_2D_DATA_OFFSET \
+  const Real_type half = m_half; \
+\
   ResReal_ptr x1,x2,x3,x4 ; \
   ResReal_ptr y1,y2,y3,y4 ; \
   ResReal_ptr fx1,fx2,fx3,fx4 ; \
   ResReal_ptr fy1,fy2,fy3,fy4 ;
+
 
 #define DEL_DOT_VEC_2D_BODY \
   Index_type i = real_zones[ii]; \
@@ -100,6 +100,11 @@ namespace apps
 \
   const Real_type ptiny = m_ptiny; \
   const Real_type half = m_half; \
+\
+  Real_ptr x1,x2,x3,x4 ; \
+  Real_ptr y1,y2,y3,y4 ; \
+  Real_ptr fx1,fx2,fx3,fx4 ; \
+  Real_ptr fy1,fy2,fy3,fy4 ; \
 \
   allocAndInitCudaDeviceData(x, m_x, iend); \
   allocAndInitCudaDeviceData(y, m_y, iend); \
@@ -178,8 +183,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA;
 
-      DEL_DOT_VEC_2D_DATA_OFFSET;
-
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
       NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -201,8 +204,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     case RAJA_Seq : {
 
       DEL_DOT_VEC_2D_DATA;
-
-      DEL_DOT_VEC_2D_DATA_OFFSET;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -226,8 +227,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     case Baseline_OpenMP : {
 
       DEL_DOT_VEC_2D_DATA;
-
-      DEL_DOT_VEC_2D_DATA_OFFSET;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -257,8 +256,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA;
 
-      DEL_DOT_VEC_2D_DATA_OFFSET;
-
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
       NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -282,8 +279,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     case Baseline_CUDA : {
 
       DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
-
-      DEL_DOT_VEC_2D_DATA_OFFSET;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -315,8 +310,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     case RAJA_CUDA : {
 
       DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
-
-      DEL_DOT_VEC_2D_DATA_OFFSET;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;

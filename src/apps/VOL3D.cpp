@@ -45,8 +45,7 @@ namespace apps
   ResReal_ptr vol = m_vol; \
 \
   const Real_type vnormq = m_vnormq;
-
-#define VOL3D_DATA_OFFSET \
+\
   ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
   ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
@@ -104,6 +103,64 @@ namespace apps
   vol[i] *= vnormq ;
 
 
+#if defined(RAJA_ENABLE_CUDA)
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define VOL3D_DATA_SETUP_CUDA \
+  Real_ptr x; \
+  Real_ptr y; \
+  Real_ptr z; \
+  Real_ptr vol; \
+\
+  const Real_type vnormq = m_vnormq; \
+\
+  Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
+  Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ; \
+\
+  allocAndInitCudaDeviceData(x, m_x, iend); \
+  allocAndInitCudaDeviceData(y, m_y, iend); \
+  allocAndInitCudaDeviceData(z, m_z, iend); \
+  allocAndInitCudaDeviceData(vol, m_vol, iend);
+
+#define VOL3D_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_vol, vol, iend); \
+  deallocCudaDeviceData(x); \
+  deallocCudaDeviceData(y); \
+  deallocCudaDeviceData(z); \
+  deallocCudaDeviceData(vol);
+
+__global__ void vol3d(Real_ptr vol,
+                      const Real_ptr x0, const Real_ptr x1,
+                      const Real_ptr x2, const Real_ptr x3,
+                      const Real_ptr x4, const Real_ptr x5,
+                      const Real_ptr x6, const Real_ptr x7,
+                      const Real_ptr y0, const Real_ptr y1,
+                      const Real_ptr y2, const Real_ptr y3,
+                      const Real_ptr y4, const Real_ptr y5,
+                      const Real_ptr y6, const Real_ptr y7,
+                      const Real_ptr z0, const Real_ptr z1,
+                      const Real_ptr z2, const Real_ptr z3,
+                      const Real_ptr z4, const Real_ptr z5,
+                      const Real_ptr z6, const Real_ptr z7,
+                      const Real_type vnormq,
+                      Index_type ibegin, Index_type ilen)
+{
+   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   if (ii < ilen) {
+     Index_type i = ii + ibegin; 
+     VOL3D_BODY;
+   }
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
+
+
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
@@ -142,8 +199,6 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      VOL3D_DATA_OFFSET; 
-
       NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
@@ -164,8 +219,6 @@ void VOL3D::runKernel(VariantID vid)
     case RAJA_Seq : {
 
       VOL3D_DATA;
-
-      VOL3D_DATA_OFFSET; 
 
       NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -188,8 +241,6 @@ void VOL3D::runKernel(VariantID vid)
     case Baseline_OpenMP : {
 
       VOL3D_DATA;
-
-      VOL3D_DATA_OFFSET; 
 
       NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
@@ -218,8 +269,6 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      VOL3D_DATA_OFFSET; 
-
       NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
@@ -240,12 +289,58 @@ void VOL3D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
-      // Fill these in later...you get the idea...
+
+      VOL3D_DATA_SETUP_CUDA;
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+
+      const Index_type ibegin = m_domain->fpz;
+      const Index_type ilen = m_domain->lpz+1 - ibegin;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+        vol3d<<<grid_size, block_size>>>(vol,
+                                         x0, x1, x2, x3, x4, x5, x6, x7,
+                                         y0, y1, y2, y3, y4, y5, y6, y7,
+                                         z0, z1, z2, z3, z4, z5, z6, z7,
+                                         vnormq,
+                                         ibegin, ilen);
+
+      }
+      stopTimer();
+
+      VOL3D_DATA_TEARDOWN_CUDA;
+
       break;
     }
 
     case RAJA_CUDA : {
-      // Fill these in later...you get the idea...
+
+      VOL3D_DATA_SETUP_CUDA;
+
+      NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           VOL3D_BODY;
+        });
+
+      }
+      stopTimer();
+
+      VOL3D_DATA_TEARDOWN_CUDA;
+
       break;
     }
 #endif
