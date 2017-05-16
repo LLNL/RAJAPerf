@@ -116,16 +116,24 @@ namespace apps
   deallocCudaDeviceData(ydot); \
   deallocCudaDeviceData(div);
 
-#if 0
-__global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
-                              const Real_type cls,
-                              Index_type iend)
+__global__ void deldotvec2d(Real_ptr div, 
+                            const Real_ptr x1, const Real_ptr x2,
+                            const Real_ptr x3, const Real_ptr x4,
+                            const Real_ptr y1, const Real_ptr y2,
+                            const Real_ptr y3, const Real_ptr y4,
+                            const Real_ptr fx1, const Real_ptr fx2,
+                            const Real_ptr fx3, const Real_ptr fx4,
+                            const Real_ptr fy1, const Real_ptr fy2,
+                            const Real_ptr fy3, const Real_ptr fy4,
+                            const Index_type* real_zones,
+                            const Real_type half, const Real_type ptiny,
+                            Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
+   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   if (ii < iend) {
+     DEL_DOT_VEC_2D_BODY;
    }
 }
-#endif
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
@@ -272,6 +280,35 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
+
+      DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
+
+      DEL_DOT_VEC_2D_DATA_OFFSET;
+
+      NDSET2D_2(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D_2(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D_2(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D_2(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+        deldotvec2d<<<grid_size, block_size>>>(div, 
+                                               x1, x2, x3, x4,
+                                               y1, y2, y3, y4,
+                                               fx1, fx2, fx3, fx4,
+                                               fy1, fy2, fy3, fy4,
+                                               real_zones,
+                                               half, ptiny,
+                                               iend);
+
+      }
+      stopTimer();
+
+      DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
+
       break;
     }
 
