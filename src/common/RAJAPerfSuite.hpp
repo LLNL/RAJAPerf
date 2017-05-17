@@ -93,6 +93,7 @@ enum KernelID {
   Basic_MULADDSUB = 0,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
+  Basic_INIT3,
 
 //
 // Livloops kernels...

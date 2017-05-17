@@ -35,6 +35,7 @@
 #include "basic/MULADDSUB.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/TRAP_INT.hpp"
+#include "basic/INIT3.hpp"
 
 //
 // Livloops kernels...
@@ -115,6 +116,7 @@ static const std::string KernelNames [] =
   std::string("Basic_MULADDSUB"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_TRAP_INT"),
+  std::string("Basic_INIT3"),
 
 //
 // Livloops kernels...
@@ -289,6 +291,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
+       break;
+    }
+    case Basic_INIT3 : {
+       kernel = new basic::INIT3(run_params);
        break;
     }
 
