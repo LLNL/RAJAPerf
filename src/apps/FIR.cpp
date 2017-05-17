@@ -38,8 +38,8 @@ namespace rajaperf
 namespace apps
 {
 
-//#define USE_CONSTANT_MEMORY
-#undef USE_CONSTANT_MEMORY
+#define USE_CONSTANT_MEMORY
+//#undef USE_CONSTANT_MEMORY
 
 #define COEFFLEN (16)
 
@@ -88,7 +88,7 @@ __constant__ Real_type coeff[COEFFLEN];
 \
   allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
   allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
-  cudaMemcpyToSymbol(coeff, coeff_array, COEFFLEN);
+  cudaMemcpyToSymbol(coeff, coeff_array, COEFFLEN * sizeof(Real_type));
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
