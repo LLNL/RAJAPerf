@@ -38,6 +38,9 @@ namespace rajaperf
 namespace apps
 {
 
+//#define USE_CONSTANT_MEMORY
+#undef USE_CONSTANT_MEMORY
+
 #define COEFFLEN (16)
 
 #define FIR_COEFF \
@@ -45,6 +48,7 @@ namespace apps
                                       -1.0, 3.0, -1.0, -1.0, \
                                       -1.0, -1.0, 3.0, -1.0, \
                                       -1.0, -1.0, -1.0, 3.0 };
+
 
 #define FIR_DATA \
   ResReal_ptr in = m_in; \
@@ -66,12 +70,43 @@ namespace apps
 
 
 #if defined(RAJA_ENABLE_CUDA)
-
   //
   // Define thread block size for CUDA execution
   //
   const size_t block_size = 256;
 
+
+#if defined(USE_CONSTANT_MEMORY)
+
+__constant__ Real_type coeff[COEFFLEN];
+
+#define FIR_DATA_SETUP_CUDA \
+  Real_ptr in; \
+  Real_ptr out; \
+\
+  const Index_type coefflen = m_coefflen; \
+\
+  allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
+  allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
+  cudaMemcpyToSymbol(coeff, coeff_array, COEFFLEN);
+
+
+#define FIR_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_out, out, getRunSize()); \
+  deallocCudaDeviceData(in); \
+  deallocCudaDeviceData(out);
+
+__global__ void fir(Real_ptr out, Real_ptr in,
+                    const Index_type coefflen,
+                    Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     FIR_BODY;
+   }
+}
+
+#else  // use global memry for coefficients 
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr in; \
@@ -102,6 +137,8 @@ __global__ void fir(Real_ptr out, Real_ptr in,
      FIR_BODY;
    }
 }
+
+#endif 
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
@@ -229,10 +266,16 @@ void FIR::runKernel(VariantID vid)
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
+#if defined(USE_CONSTANT_MEMORY)
+         fir<<<grid_size, block_size>>>( out, in,
+                                         coefflen,
+                                         iend );
+#else
          fir<<<grid_size, block_size>>>( out, in,
                                          coeff,
                                          coefflen,
                                          iend );
+#endif
 
       }
       stopTimer();
