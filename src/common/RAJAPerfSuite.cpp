@@ -61,6 +61,7 @@
 #include "apps/VOL3D.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/COUPLE.hpp"
+#include "apps/FIR.hpp"
 
 
 #include <iostream>
@@ -165,9 +166,7 @@ static const std::string KernelNames [] =
   std::string("Apps_VOL3D"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_COUPLE"),
-#if 0
   std::string("Apps_FIR"),
-#endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -373,12 +372,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::COUPLE(run_params);
        break;
     }
-#if 0
     case Apps_FIR : {
        kernel = new apps::FIR(run_params);
        break;
     }
-#endif
 
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;

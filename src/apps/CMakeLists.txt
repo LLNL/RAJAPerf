@@ -5,4 +5,5 @@ raja_add_library(
           VOL3D.cpp 
           DEL_DOT_VEC_2D.cpp 
           COUPLE.cpp
+          FIR.cpp
   DEPENDS_ON common RAJA)

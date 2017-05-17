@@ -144,9 +144,7 @@ enum KernelID {
   Apps_VOL3D,
   Apps_DEL_DOT_VEC_2D,
   Apps_COUPLE,
-#if 0
   Apps_FIR,
-#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
