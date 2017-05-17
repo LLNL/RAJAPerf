@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Basic kernel TRAP_INT.
+ * \brief   Header file for kernel VOL3D.
  *
  ******************************************************************************
  */
@@ -24,25 +24,27 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_TRAP_INT_HPP
-#define RAJAPerf_Basic_TRAP_INT_HPP
+#ifndef RAJAPerf_Apps_VOL3D_HPP
+#define RAJAPerf_Apps_VOL3D_HPP
 
 #include "common/KernelBase.hpp"
+
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace basic
+namespace apps
 {
+struct ADomain;
 
-class TRAP_INT : public KernelBase
+class VOL3D : public KernelBase
 {
 public:
 
-  TRAP_INT(const RunParams& params);
+  VOL3D(const RunParams& params);
 
-  ~TRAP_INT();
+  ~VOL3D();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,17 +52,17 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_type m_x0;
-  Real_type m_xp;
-  Real_type m_y;
-  Real_type m_yp;
-  Real_type m_h;
-  Real_type m_sumx_init;
+  Real_ptr m_x;
+  Real_ptr m_y;
+  Real_ptr m_z;
+  Real_ptr m_vol;
 
-  Real_type m_sumx;
+  Real_type m_vnormq;
+
+  ADomain* m_domain;
 };
 
-} // end namespace basic
+} // end namespace apps
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

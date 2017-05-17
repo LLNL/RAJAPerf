@@ -29,7 +29,6 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "RAJA/internal/type_traits.hpp"
 
 #include <iostream>
 

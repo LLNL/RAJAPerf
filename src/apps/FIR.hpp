@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Basic kernel TRAP_INT.
+ * \brief   Header file for kernel FIR.
  *
  ******************************************************************************
  */
@@ -24,25 +24,26 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_TRAP_INT_HPP
-#define RAJAPerf_Basic_TRAP_INT_HPP
+#ifndef RAJAPerf_Apps_FIR_HPP
+#define RAJAPerf_Apps_FIR_HPP
 
 #include "common/KernelBase.hpp"
+
 
 namespace rajaperf 
 {
 class RunParams;
 
-namespace basic
+namespace apps
 {
 
-class TRAP_INT : public KernelBase
+class FIR : public KernelBase
 {
 public:
 
-  TRAP_INT(const RunParams& params);
+  FIR(const RunParams& params);
 
-  ~TRAP_INT();
+  ~FIR();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,17 +51,13 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_type m_x0;
-  Real_type m_xp;
-  Real_type m_y;
-  Real_type m_yp;
-  Real_type m_h;
-  Real_type m_sumx_init;
+  Real_ptr m_in;
+  Real_ptr m_out;
 
-  Real_type m_sumx;
+  Index_type m_coefflen;
 };
 
-} // end namespace basic
+} // end namespace apps
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

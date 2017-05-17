@@ -39,30 +39,29 @@ typedef enum SizeSpec {Mini,Small,Medium,Large,Extralarge,Specundefined} SizeSpe
  */
 void resetDataInitCount();
 
+/*!
+ * Increment counter for data initialization.
+ */
+void incDataInitCount();
+
 
 /*!
- * \brief Allocate and initialize aligned data arrays.
+ * \brief Allocate and initialize aligned Real_type data array.
  */
 void allocAndInitData(Real_ptr& ptr, int len,
                       VariantID vid = NumVariants);
-///
-void allocAndInitDataRandSign(Real_ptr& ptr, int len,
-                              VariantID vid = NumVariants);
-///
-void allocAndInitData(Complex_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
-///
-#if defined(RAJA_ENABLE_CUDA)
-void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
-#endif
-
 
 /*!
- * \brief Copy CUDA device data array back to host.
+ * \brief Allocate and initialize aligned Real_type data array with random sign.
  */
-#if defined(RAJA_ENABLE_CUDA)
-void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len);
-#endif
+void allocAndInitDataRandSign(Real_ptr& ptr, int len,
+                              VariantID vid = NumVariants);
+
+/*!
+ * \brief Allocate and initialize aligned Complex_type data array.
+ */
+void allocAndInitData(Complex_ptr& ptr, int len,
+                      VariantID vid = NumVariants);
 
 
 /*!
@@ -71,29 +70,67 @@ void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len);
 void deallocData(Real_ptr& ptr);
 ///
 void deallocData(Complex_ptr& ptr);
-///
-#if defined(RAJA_ENABLE_CUDA)
-void deallocCudaDeviceData(Real_ptr& dptr);
-#endif
 
 
 /*!
- * \brief Initialize aligned data arrays.
+ * \brief Initialize Real_type data array.
  */
 void initData(Real_ptr& ptr, int len,
               VariantID vid = NumVariants);
-///
+
+/*!
+ * \brief Initialize Real_type data array with random sign.
+ */
 void initDataRandSign(Real_ptr& ptr, int len,
                       VariantID vid = NumVariants);
-///
+
+/*!
+ * \brief Initialize Complex_type data array.
+ */
 void initData(Complex_ptr& ptr, int len,
               VariantID vid = NumVariants);
 
 /*!
- * \brief Initialize scalar data.
+ * \brief Initialize Real_type scalar data.
  */
 void initData(Real_type& d,
               VariantID vid = NumVariants);
+
+
+#if defined(RAJA_ENABLE_CUDA)
+
+/*!
+ * \brief Allocate CUDA device Real_type array and copy from host to device.
+ */
+void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
+
+/*!
+ * \brief Copy host data Real_type array to CUDA device.
+ */
+void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
+
+/*!
+ * \brief Allocate CUDA device Index_type array and copy from host to device.
+ */
+void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr,
+                                int len);
+
+/*!
+ * \brief Copy host data Index_type array to CUDA device.
+ */
+void initCudaDeviceData(Index_type*& dptr, const Index_type* hptr, int len);
+
+/*!
+ * \brief Copy CUDA device data array back to host.
+ */
+void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len);
+
+/*!
+ * \brief Deallocate CUDA device data.
+ */
+void deallocCudaDeviceData(Real_ptr& dptr);
+
+#endif
 
 
 /*!

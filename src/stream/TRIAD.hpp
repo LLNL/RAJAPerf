@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Basic kernel TRAP_INT.
+ * \brief   Header file for Stream kernel TRIAD.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_TRAP_INT_HPP
-#define RAJAPerf_Basic_TRAP_INT_HPP
+#ifndef RAJAPerf_Stream_TRIAD_HPP
+#define RAJAPerf_Stream_TRIAD_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -33,16 +33,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace basic
+namespace stream
 {
 
-class TRAP_INT : public KernelBase
+class TRIAD : public KernelBase
 {
 public:
 
-  TRAP_INT(const RunParams& params);
+  TRIAD(const RunParams& params);
 
-  ~TRAP_INT();
+  ~TRIAD();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,17 +50,13 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_type m_x0;
-  Real_type m_xp;
-  Real_type m_y;
-  Real_type m_yp;
-  Real_type m_h;
-  Real_type m_sumx_init;
-
-  Real_type m_sumx;
+  Real_ptr m_a;
+  Real_ptr m_b;
+  Real_ptr m_c;
+  Real_type m_alpha;
 };
 
-} // end namespace basic
+} // end namespace stream
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

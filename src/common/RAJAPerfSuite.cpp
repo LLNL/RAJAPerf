@@ -48,15 +48,21 @@
 //
 // Stream kernels...
 //
+#include "stream/COPY.hpp"
+#include "stream/MUL.hpp"
+#include "stream/ADD.hpp"
+#include "stream/TRIAD.hpp"
+#include "stream/DOT.hpp"
 
 //
 // Apps kernels...
 //
-#include "apps/PRESSURE_CALC.hpp"
-#include "apps/ENERGY_CALC.hpp"
-#include "apps/VOL3D_CALC.hpp"
+#include "apps/PRESSURE.hpp"
+#include "apps/ENERGY.hpp"
+#include "apps/VOL3D.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/COUPLE.hpp"
+#include "apps/FIR.hpp"
 
 
 #include <iostream>
@@ -147,21 +153,21 @@ static const std::string KernelNames [] =
 //
 // Stream kernels...
 //
-#if 0
-  std::string("Stream_***");
-#endif
+  std::string("Stream_COPY"),
+  std::string("Stream_MUL"),
+  std::string("Stream_ADD"),
+  std::string("Stream_TRIAD"),
+  std::string("Stream_DOT"),
 
 //
 // Apps kernels...
 //
-  std::string("Apps_PRESSURE_CALC"),
-  std::string("Apps_ENERGY_CALC"),
-  std::string("Apps_VOL3D_CALC"),
+  std::string("Apps_PRESSURE"),
+  std::string("Apps_ENERGY"),
+  std::string("Apps_VOL3D"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_COUPLE"),
-#if 0
   std::string("Apps_FIR"),
-#endif
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -220,7 +226,7 @@ const std::string& getGroupName(GroupID sid)
 /*
  *******************************************************************************
  *
- * \brief Return full kernel name associated with KernelID enum value.
+ * \brief Return kernel name associated with KernelID enum value.
  *
  *******************************************************************************
  */
@@ -326,23 +332,40 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Stream kernels...
 //
-#if 0
-  Stream_***
-#endif
+    case Stream_COPY : {
+       kernel = new stream::COPY(run_params);
+       break;
+    }
+    case Stream_MUL : {
+       kernel = new stream::MUL(run_params);
+       break;
+    }
+    case Stream_ADD : {
+       kernel = new stream::ADD(run_params);
+       break;
+    }
+    case Stream_TRIAD : {
+       kernel = new stream::TRIAD(run_params);
+       break;
+    }
+    case Stream_DOT : {
+       kernel = new stream::DOT(run_params);
+       break;
+    }
 
 //
 // Apps kernels...
 //
-    case Apps_PRESSURE_CALC : {
-       kernel = new apps::PRESSURE_CALC(run_params);
+    case Apps_PRESSURE : {
+       kernel = new apps::PRESSURE(run_params);
        break;
     }
-    case Apps_ENERGY_CALC : {
-       kernel = new apps::ENERGY_CALC(run_params);
+    case Apps_ENERGY : {
+       kernel = new apps::ENERGY(run_params);
        break;
     }
-    case Apps_VOL3D_CALC : {
-       kernel = new apps::VOL3D_CALC(run_params);
+    case Apps_VOL3D : {
+       kernel = new apps::VOL3D(run_params);
        break;
     }
     case Apps_DEL_DOT_VEC_2D : {
@@ -353,9 +376,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::COUPLE(run_params);
        break;
     }
-#if 0
-  Apps_FIR,
-#endif
+    case Apps_FIR : {
+       kernel = new apps::FIR(run_params);
+       break;
+    }
 
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;

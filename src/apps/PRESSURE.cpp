@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for kernel PRESSURE_CALC.
+ * \brief   Implementation file for kernel PRESSURE.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "PRESSURE_CALC.hpp"
+#include "PRESSURE.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -37,7 +37,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_CALC_DATA \
+#define PRESSURE_DATA \
   ResReal_ptr compression = m_compression; \
   ResReal_ptr bvc = m_bvc; \
   ResReal_ptr p_new = m_p_new; \
@@ -49,28 +49,86 @@ namespace apps
   const Real_type eosvmax = m_eosvmax; 
    
 
-#define PRESSURE_CALC_BODY1 \
+#define PRESSURE_BODY1 \
   bvc[i] = cls * (compression[i] + 1.0);
 
-#define PRESSURE_CALC_BODY2 \
+#define PRESSURE_BODY2 \
   p_new[i] = bvc[i] * e_old[i] ; \
   if ( fabs(p_new[i]) <  p_cut ) p_new[i] = 0.0 ; \
   if ( vnewc[i] >= eosvmax ) p_new[i] = 0.0 ; \
   if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
 
 
-PRESSURE_CALC::PRESSURE_CALC(const RunParams& params)
-  : KernelBase(rajaperf::Apps_PRESSURE_CALC, params)
+#if defined(RAJA_ENABLE_CUDA)
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  const size_t block_size = 256;
+
+
+#define PRESSURE_DATA_SETUP_CUDA \
+  Real_ptr compression; \
+  Real_ptr bvc; \
+  Real_ptr p_new; \
+  Real_ptr e_old; \
+  Real_ptr vnewc; \
+  const Real_type cls = m_cls; \
+  const Real_type p_cut = m_p_cut; \
+  const Real_type pmin = m_pmin; \
+  const Real_type eosvmax = m_eosvmax; \
+\
+  allocAndInitCudaDeviceData(compression, m_compression, iend); \
+  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
+  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
+  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
+  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
+
+#define PRESSURE_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_p_new, p_new, iend); \
+  deallocCudaDeviceData(compression); \
+  deallocCudaDeviceData(bvc); \
+  deallocCudaDeviceData(p_new); \
+  deallocCudaDeviceData(e_old); \
+  deallocCudaDeviceData(vnewc);
+
+__global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
+                              const Real_type cls,
+                              Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     PRESSURE_BODY1;
+   }
+}
+
+__global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
+                              Real_ptr vnewc,
+                              const Real_type p_cut, const Real_type eosvmax,
+                              const Real_type pmin,
+                              Index_type iend)
+{
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i < iend) {
+     PRESSURE_BODY2;
+   }
+}
+
+#endif // if defined(RAJA_ENABLE_CUDA)
+
+
+PRESSURE::PRESSURE(const RunParams& params)
+  : KernelBase(rajaperf::Apps_PRESSURE, params)
 {
   setDefaultSize(100000);
   setDefaultSamples(7000);
 }
 
-PRESSURE_CALC::~PRESSURE_CALC() 
+PRESSURE::~PRESSURE() 
 {
 }
 
-void PRESSURE_CALC::setUp(VariantID vid)
+void PRESSURE::setUp(VariantID vid)
 {
   allocAndInitData(m_compression, getRunSize(), vid);
   allocAndInitData(m_bvc, getRunSize(), vid);
@@ -84,7 +142,7 @@ void PRESSURE_CALC::setUp(VariantID vid)
   initData(m_eosvmax);
 }
 
-void PRESSURE_CALC::runKernel(VariantID vid)
+void PRESSURE::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -94,17 +152,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      PRESSURE_CALC_DATA;
+      PRESSURE_DATA;
   
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_CALC_BODY1;
+          PRESSURE_BODY1;
         }
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_CALC_BODY2;
+          PRESSURE_BODY2;
         }
 
       }
@@ -115,17 +173,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      PRESSURE_CALC_DATA;
+      PRESSURE_DATA;
  
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          PRESSURE_CALC_BODY1;
+          PRESSURE_BODY1;
         }); 
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          PRESSURE_CALC_BODY2;
+          PRESSURE_BODY2;
         }); 
 
       }
@@ -137,7 +195,7 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 #if defined(_OPENMP)      
     case Baseline_OpenMP : {
 
-      PRESSURE_CALC_DATA;
+      PRESSURE_DATA;
  
       startTimer();
       for (SampIndex_type isamp = ibegin; isamp < run_samples; ++isamp) {
@@ -146,12 +204,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
           {
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              PRESSURE_CALC_BODY1;
+              PRESSURE_BODY1;
             }
 
             #pragma omp for nowait schedule(static)
             for (Index_type i = ibegin; i < iend; ++i ) {
-              PRESSURE_CALC_BODY2;
+              PRESSURE_BODY2;
             }
           } // omp parallel
 
@@ -163,19 +221,19 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 
     case RAJALike_OpenMP : {
 
-      PRESSURE_CALC_DATA;
+      PRESSURE_DATA;
       
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
     
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_CALC_BODY1;
+          PRESSURE_BODY1;
         }
 
         #pragma omp parallel for schedule(static)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_CALC_BODY2;
+          PRESSURE_BODY2;
         }
 
       }
@@ -186,17 +244,17 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      PRESSURE_CALC_DATA;
+      PRESSURE_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          PRESSURE_CALC_BODY1;
+          PRESSURE_BODY1;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          PRESSURE_CALC_BODY2;
+          PRESSURE_BODY2;
         });
 
       }
@@ -207,9 +265,56 @@ void PRESSURE_CALC::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA :
+    case Baseline_CUDA : {
+
+      PRESSURE_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+         pressurecalc1<<<grid_size, block_size>>>( bvc, compression,
+                                                   cls,
+                                                   iend );
+
+         pressurecalc2<<<grid_size, block_size>>>( p_new, bvc, e_old,
+                                                   vnewc,
+                                                   p_cut, eosvmax, pmin,
+                                                   iend );
+
+      }
+      stopTimer();
+
+      PRESSURE_DATA_TEARDOWN_CUDA;
+
+      break;
+    }
+
     case RAJA_CUDA : {
-      // Fill these in later...you get the idea...
+
+      PRESSURE_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           PRESSURE_BODY1;
+         });
+
+         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+           ibegin, iend,
+           [=] __device__ (Index_type i) {
+           PRESSURE_BODY2;
+         });
+
+      }
+      stopTimer();
+
+      PRESSURE_DATA_TEARDOWN_CUDA;
+
       break;
     }
 #endif
@@ -229,12 +334,12 @@ void PRESSURE_CALC::runKernel(VariantID vid)
   }
 }
 
-void PRESSURE_CALC::updateChecksum(VariantID vid)
+void PRESSURE::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_p_new, getRunSize());
 }
 
-void PRESSURE_CALC::tearDown(VariantID vid)
+void PRESSURE::tearDown(VariantID vid)
 {
   (void) vid;
  

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Basic kernel IF_QUAD.
+ * \brief   Implementation file for Stream kernel ADD.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "IF_QUAD.hpp"
+#include "ADD.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -34,26 +34,17 @@
 
 namespace rajaperf 
 {
-namespace basic
+namespace stream
 {
 
-#define IF_QUAD_DATA \
+#define ADD_DATA \
   ResReal_ptr a = m_a; \
   ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  ResReal_ptr x1 = m_x1; \
-  ResReal_ptr x2 = m_x2;
+  ResReal_ptr c = m_c;
 
-#define IF_QUAD_BODY  \
-  Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
-  if ( s >= 0 ) { \
-    s = sqrt(s); \
-    x2[i] = (-b[i]+s)/(2.0*a[i]); \
-    x1[i] = (-b[i]-s)/(2.0*a[i]); \
-  } else { \
-    x2[i] = 0.0; \
-    x1[i] = 0.0; \
-  }
+#define ADD_BODY  \
+  c[i] = a[i] + b[i];
+
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -63,62 +54,52 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define IF_QUAD_DATA_SETUP_CUDA \
+#define ADD_DATA_SETUP_CUDA \
   Real_ptr a; \
   Real_ptr b; \
   Real_ptr c; \
-  Real_ptr x1; \
-  Real_ptr x2; \
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend); \
-  allocAndInitCudaDeviceData(x1, m_x1, iend); \
-  allocAndInitCudaDeviceData(x2, m_x2, iend);
+  allocAndInitCudaDeviceData(c, m_c, iend);
 
-#define IF_QUAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, iend); \
-  getCudaDeviceData(m_x2, x2, iend); \
+#define ADD_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_c, c, iend); \
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2);
+  deallocCudaDeviceData(c)
 
-__global__ void ifquad(Real_ptr x1, Real_ptr x2,
-                       Real_ptr a, Real_ptr b, Real_ptr c,
-                       Index_type iend)
+__global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
+                     Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     IF_QUAD_BODY;
+     ADD_BODY; 
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-IF_QUAD::IF_QUAD(const RunParams& params)
-  : KernelBase(rajaperf::Basic_IF_QUAD, params)
+ADD::ADD(const RunParams& params)
+  : KernelBase(rajaperf::Stream_ADD, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(6000);
+   setDefaultSamples(5000);
 }
 
-IF_QUAD::~IF_QUAD() 
+ADD::~ADD() 
 {
 }
 
-void IF_QUAD::setUp(VariantID vid)
+void ADD::setUp(VariantID vid)
 {
-  allocAndInitDataRandSign(m_a, getRunSize(), vid);
+  allocAndInitData(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
-  allocAndInitData(m_x1, getRunSize(), vid);
-  allocAndInitData(m_x2, getRunSize(), vid);
 }
 
-void IF_QUAD::runKernel(VariantID vid)
+void ADD::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
@@ -128,13 +109,13 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case Baseline_Seq : {
 
-      IF_QUAD_DATA;
+      ADD_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          IF_QUAD_BODY;
+          ADD_BODY;
         }
 
       }
@@ -145,13 +126,13 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      IF_QUAD_DATA;
+      ADD_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          IF_QUAD_BODY;
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+          ADD_BODY;
         });
 
       }
@@ -163,14 +144,14 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Baseline_OpenMP : {
 
-      IF_QUAD_DATA;
+      ADD_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          IF_QUAD_BODY;
+          ADD_BODY;
         }
 
       }
@@ -186,15 +167,15 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      IF_QUAD_DATA;
+      ADD_DATA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          IF_QUAD_BODY;
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
+          [=](Index_type i) {
+          ADD_BODY;
         });
-
 
       }
       stopTimer();
@@ -206,40 +187,40 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      IF_QUAD_DATA_SETUP_CUDA;
+      ADD_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                            iend );
+         add<<<grid_size, block_size>>>( c, a, b,
+                                         iend ); 
 
       }
       stopTimer();
 
-      IF_QUAD_DATA_TEARDOWN_CUDA;
+      ADD_DATA_TEARDOWN_CUDA;
 
-      break;
+      break; 
     }
 
     case RAJA_CUDA : {
 
-      IF_QUAD_DATA_SETUP_CUDA;
+      ADD_DATA_SETUP_CUDA;
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend,
+           ibegin, iend, 
            [=] __device__ (Index_type i) {
-           IF_QUAD_BODY;
+           ADD_BODY;
          });
 
       }
       stopTimer();
 
-      IF_QUAD_DATA_TEARDOWN_CUDA;
+      ADD_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -261,21 +242,18 @@ void IF_QUAD::runKernel(VariantID vid)
 
 }
 
-void IF_QUAD::updateChecksum(VariantID vid)
+void ADD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x1, getRunSize());
-  checksum[vid] += calcChecksum(m_x2, getRunSize());
+  checksum[vid] += calcChecksum(m_c, getRunSize());
 }
 
-void IF_QUAD::tearDown(VariantID vid)
+void ADD::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_a);
   deallocData(m_b);
   deallocData(m_c);
-  deallocData(m_x1);
-  deallocData(m_x2);
 }
 
-} // end namespace basic
+} // end namespace stream
 } // end namespace rajaperf

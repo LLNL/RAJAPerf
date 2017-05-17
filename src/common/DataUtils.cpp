@@ -43,6 +43,14 @@ void resetDataInitCount()
   data_init_count = 0;
 }
 
+/*
+ * Increment counter for data initialization.
+ */
+void incDataInitCount()
+{
+  data_init_count++;
+}
+
 
 /*
  * Allocate and initialize aligned data arrays.
@@ -70,32 +78,6 @@ void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
   initData(ptr, len, vid);
 }
 
-#if defined(RAJA_ENABLE_CUDA)
-/*
- * Allocate and initialize CUDA device data arrays.
- */
-void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len) 
-{
-  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Real_type) ) );
-
-  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Real_type), 
-              cudaMemcpyHostToDevice ) );
-
-  data_init_count++;
-}
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-/*
- * Copy CUDA device data arrays back to host.
- */
-void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len)
-{
-  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(Real_type), 
-                          cudaMemcpyDeviceToHost ) );
-}
-#endif
-
 
 /*
  * Free data arrays.
@@ -116,19 +98,8 @@ void deallocData(Complex_ptr& ptr)
   }
 }
 
-#if defined(RAJA_ENABLE_CUDA)
 /*
- * Free CUDA device data arrays.
- */
-void deallocCudaDeviceData(Real_ptr& dptr) 
-{
-  cudaErrchk( cudaFree( dptr ) );
-  dptr = 0; 
-}
-#endif
-
-/*
- * Initialize data arrays.
+ * Initialize Real_type data array.
  */
 void initData(Real_ptr& ptr, int len, VariantID vid) 
 {
@@ -154,6 +125,9 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
   data_init_count++;
 }
 
+/*
+ * Initialize Real_type data array with random sign.
+ */
 void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
   (void) vid;
@@ -182,6 +156,9 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
   data_init_count++;
 }
 
+/*
+ * Initialize Complex_type data array.
+ */
 void initData(Complex_ptr& ptr, int len, VariantID vid)
 {
   (void) vid;
@@ -207,8 +184,6 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
   data_init_count++;
 }
 
-
-
 /*
  * Initialize scalar data.
  */
@@ -221,6 +196,72 @@ void initData(Real_type& d, VariantID vid)
 
   data_init_count++;
 }
+
+
+#if defined(RAJA_ENABLE_CUDA)
+
+/*
+ * Allocate and initialize CUDA device Real_type data arrays.
+ */
+void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Real_type) ) );
+
+  initCudaDeviceData(dptr, hptr, len); 
+}
+
+/*
+ * Copy host Real_type data array to CUDA device.
+ */
+void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Real_type), 
+              cudaMemcpyHostToDevice ) );
+
+  data_init_count++;
+}
+
+/*
+ * Allocate and initialize CUDA device Index_type data arrays.
+ */
+void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr, 
+                                int len) 
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Index_type) ) );
+
+  initCudaDeviceData(dptr, hptr, len); 
+}
+
+/*
+ * Copy host Index_type data array to CUDA device.
+ */
+void initCudaDeviceData(Index_type*& dptr, const Index_type* hptr, int len) 
+{
+  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Index_type), 
+              cudaMemcpyHostToDevice ) );
+
+  data_init_count++;
+}
+
+/*
+ * Copy CUDA device Real_type data arrays back to host.
+ */
+void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len)
+{
+  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(Real_type), 
+                          cudaMemcpyDeviceToHost ) );
+}
+
+/*
+ * Free CUDA device Real_type data arrays.
+ */
+void deallocCudaDeviceData(Real_ptr& dptr) 
+{
+  cudaErrchk( cudaFree( dptr ) );
+  dptr = 0; 
+}
+
+#endif  // if defined(RAJA_ENABLE_CUDA)
 
 
 /*
@@ -255,6 +296,7 @@ long double calcChecksum(const Complex_ptr ptr, int len,
   }
   return tchk;
 }
+
 
 
 }  // closing brace for rajaperf namespace

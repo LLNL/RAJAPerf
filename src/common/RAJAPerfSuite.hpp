@@ -130,21 +130,21 @@ enum KernelID {
 //
 // Stream kernels...
 //
-#if 0
-  Stream_***
-#endif
+  Stream_COPY,
+  Stream_MUL,
+  Stream_ADD,
+  Stream_TRIAD,
+  Stream_DOT,
 
 //
 // Apps kernels...
 //
-  Apps_PRESSURE_CALC,
-  Apps_ENERGY_CALC,
-  Apps_VOL3D_CALC,
+  Apps_PRESSURE,
+  Apps_ENERGY,
+  Apps_VOL3D,
   Apps_DEL_DOT_VEC_2D,
   Apps_COUPLE,
-#if 0
   Apps_FIR,
-#endif
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
