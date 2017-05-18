@@ -184,21 +184,27 @@ void POLYBENCH_2MM::setUp(VariantID vid)
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
+      m_run_samples = 100000;
       break;
     case Small:
       m_ni=40; m_nj=50; m_nk=70; m_nl=80;
+      m_run_samples = 10000;
       break;
     case Medium:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
+      m_run_samples = 100;
       break;
     case Large:
       m_ni=800; m_nj=900; m_nk=1100; m_nl=1200;
+      m_run_samples = 1;
       break;
     case Extralarge:
       m_ni=1600; m_nj=1800; m_nk=2200; m_nl=2400;
+      m_run_samples = 1;
       break;
     default:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
+      m_run_samples = 100;
       break;
   }
   allocAndInitData(m_tmp, m_ni * m_nj, vid);
@@ -241,7 +247,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
 #if 1
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
@@ -270,7 +276,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       POLYBENCH_2MM_DATA;
       resetTimer();
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
 
 #if 0 
         // The following kernel  generates a small checksum error : Will's variant using reductions
@@ -320,7 +326,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
@@ -357,7 +363,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_2MM_BODY1;
 
@@ -385,7 +391,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
         polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
 
@@ -401,7 +407,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
        
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
           Index_type i,j,k;
