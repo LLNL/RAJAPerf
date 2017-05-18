@@ -398,6 +398,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
         polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
       }
+      cudaDeviceSynchronize();
       stopTimer();
       POLYBENCH_2MM_TEARDOWN_CUDA;
       break;
