@@ -44,7 +44,7 @@ namespace apps
   ResReal_ptr xdot = m_xdot; \
   ResReal_ptr ydot = m_ydot; \
   ResReal_ptr div = m_div; \
-  Index_type* real_zones = m_domain->real_zones; \
+  Index_ptr real_zones = m_domain->real_zones; \
 \
   const Real_type ptiny = m_ptiny; \
   const Real_type half = m_half; \
@@ -96,7 +96,7 @@ namespace apps
   Real_ptr xdot; \
   Real_ptr ydot; \
   Real_ptr div; \
-  Index_type* real_zones; \
+  Index_ptr real_zones; \
 \
   const Real_type ptiny = m_ptiny; \
   const Real_type half = m_half; \
@@ -130,7 +130,7 @@ __global__ void deldotvec2d(Real_ptr div,
                             const Real_ptr fx3, const Real_ptr fx4,
                             const Real_ptr fy1, const Real_ptr fy2,
                             const Real_ptr fy3, const Real_ptr fy4,
-                            const Index_type* real_zones,
+                            const Index_ptr real_zones,
                             const Real_type half, const Real_type ptiny,
                             Index_type iend)
 {

@@ -224,7 +224,7 @@ void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len)
 /*
  * Allocate and initialize CUDA device Index_type data arrays.
  */
-void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr, 
+void allocAndInitCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, 
                                 int len) 
 {
   cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Index_type) ) );
@@ -235,7 +235,7 @@ void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr,
 /*
  * Copy host Index_type data array to CUDA device.
  */
-void initCudaDeviceData(Index_type*& dptr, const Index_type* hptr, int len) 
+void initCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, int len) 
 {
   cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Index_type), 
               cudaMemcpyHostToDevice ) );

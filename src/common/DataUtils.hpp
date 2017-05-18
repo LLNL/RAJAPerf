@@ -111,13 +111,13 @@ void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
 /*!
  * \brief Allocate CUDA device Index_type array and copy from host to device.
  */
-void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr,
+void allocAndInitCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr,
                                 int len);
 
 /*!
  * \brief Copy host data Index_type array to CUDA device.
  */
-void initCudaDeviceData(Index_type*& dptr, const Index_type* hptr, int len);
+void initCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, int len);
 
 /*!
  * \brief Copy CUDA device data array back to host.

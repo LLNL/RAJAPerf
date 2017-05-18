@@ -64,11 +64,25 @@ typedef volatile int SampIndex_type;
 /*!
  ******************************************************************************
  *
- * \brief Type used for all kernel loop indexing.
+ * \brief Types used for all kernel loop indexing.
  *
  ******************************************************************************
  */
 typedef RAJA::Index_type Index_type;
+///
+typedef Index_type* Index_ptr;
+
+
+/*!
+ ******************************************************************************
+ *
+ * \brief Integer types used in kernels.
+ *
+ ******************************************************************************
+ */
+typedef int Int_type;
+///
+typedef Int_type* Int_ptr;
 
 
 /*!
