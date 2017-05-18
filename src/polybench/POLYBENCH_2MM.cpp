@@ -122,18 +122,40 @@ namespace polybench
   deallocCudaDeviceData(C); \
   deallocCudaDeviceData(D);
 
-__global__ void polybench_2mm_cuda(Real_ptr tmp, Real_ptr A,
+__global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
                        Real_ptr B, Real_ptr C, Real_ptr D,
                        Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
                        Index_type nk, Index_type nl)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i,j,k;
    if (ii < ni * nj) {
      *(tmp + ii) = 0.0;
+     i = ii/nj; j = ii % nj;
+     for(k=0; k < nk; k++) {
+       POLYBENCH_2MM_BODY2;              
+     }
    }
 
 
 }
+
+__global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
+                       Real_ptr B, Real_ptr C, Real_ptr D,
+                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
+                       Index_type nk, Index_type nl)
+{
+   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i,l,j;
+   if (ii < ni * nl) {
+     *(D + ii) *= beta;
+     i = ii/nl; l = ii % nl;
+     for(j=0; j < nj; j++) {
+       POLYBENCH_2MM_BODY4;              
+     }
+   }
+}
+
 
 #endif // if defined(RAJA_ENABLE_CUDA)
   
@@ -361,12 +383,14 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-      //POLYBENCH_2MM_DATA;
       POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
-        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
-        polybench_2mm_cuda<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
+        size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
+        polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
+
+        grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
+        polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
       }
       stopTimer();
       POLYBENCH_2MM_TEARDOWN_CUDA;
@@ -375,12 +399,32 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
     case RAJA_CUDA : {
 
-      POLYBENCH_2MM_DATA;
+      POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+       
+        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
+          Index_type i,j,k;
+          *(tmp + ii) = 0.0;
+          i = ii/nj; j = ii % nj;
+          for(k=0;k<nk;k++) {
+            POLYBENCH_2MM_BODY2; 
+          }
+        });
+
+
+        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nl}, [=] __device__ (int ii) {
+          *(D + ii) *= beta;
+          Index_type i,l,j;
+          i = ii/nl; l = ii % nl;
+          for(j=0;j<nj;j++) {
+            POLYBENCH_2MM_BODY4;
+          }  
+        });
+
       }
       stopTimer();
-
+      POLYBENCH_2MM_TEARDOWN_CUDA;
       break;
     }
 
