@@ -53,6 +53,7 @@ private:
   Real_ptr m_a;
   Real_ptr m_b;
   Real_type m_dot;
+  Real_type m_dot_init;
 };
 
 } // end namespace stream

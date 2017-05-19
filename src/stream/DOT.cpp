@@ -97,6 +97,7 @@ void DOT::setUp(VariantID vid)
   allocAndInitData(m_b, getRunSize(), vid);
 
   m_dot = 0.0;
+  m_dot_init = 0.0;
 }
 
 void DOT::runKernel(VariantID vid)
@@ -114,7 +115,7 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        Real_type dot = 0.0;
+        Real_type dot = m_dot_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
@@ -135,7 +136,7 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(0.0);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           DOT_BODY;
@@ -157,7 +158,7 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        Real_type dot = 0.0;
+        Real_type dot = m_dot_init;
 
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -184,7 +185,7 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(0.0);
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
@@ -229,7 +230,7 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(0.0);
+         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot_init);
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 
