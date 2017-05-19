@@ -30,7 +30,13 @@
 
 #include "RAJA/RAJA.hpp"
 
+//#define DEBUG_ME
+#undef DEBUG_ME
+
 #include <iostream>
+#if defined(DEBUG_ME)
+#include <iomanip>
+#endif
 
 namespace rajaperf 
 {
@@ -98,9 +104,17 @@ void DOT::setUp(VariantID vid)
 
 void DOT::runKernel(VariantID vid)
 {
+#if defined(DEBUG_ME)
+  const Index_type run_samples = 2;
+#else
   const Index_type run_samples = getRunSamples();
+#endif
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+#if defined(DEBUG_ME)
+std::cout << std::showpoint << std::setprecision(32) << std::endl;
+#endif
 
   switch ( vid ) {
 
@@ -110,6 +124,10 @@ void DOT::runKernel(VariantID vid)
 
       Real_type dot = m_dot;
 
+#if defined(DEBUG_ME)
+std::cout << "vid, dot = " << vid << " , " << dot << std::endl;
+#endif
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -117,10 +135,15 @@ void DOT::runKernel(VariantID vid)
           DOT_BODY;
         }
 
+#if defined(DEBUG_ME)
+std::cout << "\t\t dot = " << dot << std::endl;
+#endif
+
       }
-      stopTimer();
 
       m_dot = dot;
+
+      stopTimer();
 
       break;
     }
@@ -131,6 +154,10 @@ void DOT::runKernel(VariantID vid)
 
       RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot);
 
+#if defined(DEBUG_ME)
+std::cout << "vid, dot = " << vid << " , " << static_cast<Real_type>(dot.get()) << std::endl;
+#endif
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -138,10 +165,15 @@ void DOT::runKernel(VariantID vid)
           DOT_BODY;
         });
 
+#if defined(DEBUG_ME)
+std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
+#endif
+
       }
-      stopTimer();
 
       m_dot = static_cast<Real_type>(dot.get());
+
+      stopTimer();
 
       break;
     }
@@ -153,6 +185,10 @@ void DOT::runKernel(VariantID vid)
 
       Real_type dot = m_dot;
 
+#if defined(DEBUG_ME)
+std::cout << "vid, dot = " << vid << " , " << dot << std::endl;
+#endif
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -161,10 +197,15 @@ void DOT::runKernel(VariantID vid)
           DOT_BODY;
         }
 
+#if defined(DEBUG_ME)
+std::cout << "\t\t dot = " << dot << std::endl;
+#endif
+
       }
-      stopTimer();
 
       m_dot = dot;
+
+      stopTimer();
 
       break;
     }
@@ -180,6 +221,10 @@ void DOT::runKernel(VariantID vid)
 
       RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot);
 
+#if defined(DEBUG_ME)
+std::cout << "vid, dot = " << vid << " , " << static_cast<Real_type>(dot.get()) << std::endl;
+#endif
+
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
@@ -188,10 +233,15 @@ void DOT::runKernel(VariantID vid)
           DOT_BODY;
         });
 
+#if defined(DEBUG_ME)
+std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
+#endif
+
       }
-      stopTimer();
 
       m_dot = static_cast<Real_type>(dot.get());
+
+      stopTimer();
 
       break;
     }
@@ -235,9 +285,10 @@ void DOT::runKernel(VariantID vid)
          });
 
       }
-      stopTimer();
 
       m_dot = static_cast<Real_type>(dot.get());
+
+      stopTimer();
 
       DOT_DATA_TEARDOWN_CUDA;
 
@@ -263,7 +314,7 @@ void DOT::runKernel(VariantID vid)
 
 void DOT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += m_dot;
 }
 
 void DOT::tearDown(VariantID vid)

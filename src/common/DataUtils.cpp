@@ -26,7 +26,6 @@
 #include "DataUtils.hpp"
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
-#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 #include <cstdlib>
 
@@ -53,6 +52,16 @@ void incDataInitCount()
 
 
 /*
+ * Allocate and initialize aligned integer data arrays.
+ */
+void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
+{
+  // Should we do this differently for alignment?? If so, change dealloc()
+  ptr = new Int_type[len];
+  initData(ptr, len, vid);
+}
+
+/*
  * Allocate and initialize aligned data arrays.
  */
 void allocAndInitData(Real_ptr& ptr, int len, VariantID vid)
@@ -73,7 +82,7 @@ void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 
 void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 {
-  // Should we do this differently for alignment??
+  // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Complex_type[len];
   initData(ptr, len, vid);
 }
@@ -82,6 +91,14 @@ void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 /*
  * Free data arrays.
  */
+void deallocData(Int_ptr& ptr)
+{ 
+  if (ptr) {
+    delete [] ptr;
+    ptr = 0;
+  }
+}
+
 void deallocData(Real_ptr& ptr)
 { 
   if (ptr) {
@@ -96,6 +113,45 @@ void deallocData(Complex_ptr& ptr)
     delete [] ptr;
     ptr = 0;
   }
+}
+
+
+/*
+ * \brief Initialize Int_type data array.
+ */
+void initData(Int_ptr& ptr, int len, VariantID vid)
+{
+  (void) vid;
+
+  if ( vid == Baseline_OpenMP ||
+       vid == RAJALike_OpenMP ||
+       vid == RAJA_OpenMP ) {
+#if defined(_OPENMP)
+    #pragma omp parallel for
+#endif
+    for (int i = 0; i < len; ++i) {
+      ptr[i] = 0;
+    };
+  }
+
+  srand(4793);
+
+  Real_type signfact = 0.0;
+
+  for (int i = 0; i < len; ++i) {
+    signfact = Real_type(rand())/RAND_MAX;
+    ptr[i] = ( signfact < 0.5 ? -1 : 1 );
+  };
+
+  signfact = Real_type(rand())/RAND_MAX; 
+  Int_type ilo = len * signfact;
+  ptr[ilo] = -58;
+
+  signfact = Real_type(rand())/RAND_MAX; 
+  Int_type ihi = len * signfact;
+  ptr[ihi] = 19;
+
+  incDataInitCount();
 }
 
 /*
@@ -122,7 +178,7 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
     } 
   }
 
-  data_init_count++;
+  incDataInitCount();
 }
 
 /*
@@ -153,7 +209,7 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
     ptr[i] = signfact*factor*(i + 1.1)/(i + 1.12345);
   };
 
-  data_init_count++;
+  incDataInitCount();
 }
 
 /*
@@ -181,7 +237,7 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
     }
   }
 
-  data_init_count++;
+  incDataInitCount();
 }
 
 /*
@@ -194,20 +250,56 @@ void initData(Real_type& d, VariantID vid)
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
   d = factor*1.1/1.12345;
 
-  data_init_count++;
+  incDataInitCount();
 }
 
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#if 1
 /*
- * Allocate and initialize CUDA device Real_type data arrays.
+ * Allocate and initialize CUDA device Int_type data array.
+ */
+void allocAndInitCudaDeviceData(Int_ptr& dptr, const Int_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Int_type) ) );
+
+  initCudaDeviceData(dptr, hptr, len); 
+}
+
+/*
+ * Allocate and initialize CUDA device Real_type data array.
  */
 void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len) 
 {
   cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Real_type) ) );
 
   initCudaDeviceData(dptr, hptr, len); 
+}
+
+#if 0 // Index_type
+/*
+ * Allocate and initialize CUDA device Index_type data array.
+ */
+void allocAndInitCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Index_type) ) );
+
+  initCudaDeviceData(dptr, hptr, len); 
+}
+#endif
+
+//-----------------------------------------------------------------------------
+
+/*
+ * Copy host Int_type data array to CUDA device.
+ */
+void initCudaDeviceData(Int_ptr& dptr, const Int_ptr hptr, int len) 
+{
+  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(Int_type), 
+              cudaMemcpyHostToDevice ) );
+
+  data_init_count++;
 }
 
 /*
@@ -221,17 +313,7 @@ void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len)
   data_init_count++;
 }
 
-/*
- * Allocate and initialize CUDA device Index_type data arrays.
- */
-void allocAndInitCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, 
-                                int len) 
-{
-  cudaErrchk( cudaMalloc( (void**)&dptr, len * sizeof(Index_type) ) );
-
-  initCudaDeviceData(dptr, hptr, len); 
-}
-
+#if 0 // Index_type
 /*
  * Copy host Index_type data array to CUDA device.
  */
@@ -242,14 +324,37 @@ void initCudaDeviceData(Index_ptr& dptr, const Index_ptr hptr, int len)
 
   data_init_count++;
 }
+#endif
+
+//-----------------------------------------------------------------------------
 
 /*
- * Copy CUDA device Real_type data arrays back to host.
+ * Copy CUDA device Real_type data array back to host.
+ */
+void getCudaDeviceData(Int_ptr& hptr, const Int_ptr dptr, int len)
+{
+  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(Int_type), 
+                          cudaMemcpyDeviceToHost ) );
+}
+
+/*
+ * Copy CUDA device Real_type data array back to host.
  */
 void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len)
 {
   cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(Real_type), 
                           cudaMemcpyDeviceToHost ) );
+}
+
+//-----------------------------------------------------------------------------
+
+/*
+ * Free CUDA device Int_type data arrays.
+ */
+void deallocCudaDeviceData(Int_ptr& dptr) 
+{
+  cudaErrchk( cudaFree( dptr ) );
+  dptr = 0; 
 }
 
 /*
@@ -260,6 +365,19 @@ void deallocCudaDeviceData(Real_ptr& dptr)
   cudaErrchk( cudaFree( dptr ) );
   dptr = 0; 
 }
+
+#if 0 // Index_type
+/*
+ * Free CUDA device Index_type data arrays.
+ */
+void deallocCudaDeviceData(Index_ptr& dptr) 
+{
+  cudaErrchk( cudaFree( dptr ) );
+  dptr = 0; 
+}
+#endif 
+
+#endif
 
 #endif  // if defined(RAJA_ENABLE_CUDA)
 

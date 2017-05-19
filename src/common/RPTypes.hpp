@@ -68,7 +68,11 @@ typedef volatile int SampIndex_type;
  *
  ******************************************************************************
  */
+#if 0 // Index_type
 typedef RAJA::Index_type Index_type;
+#else
+typedef int Index_type;
+#endif
 ///
 typedef Index_type* Index_ptr;
 

@@ -36,6 +36,7 @@
 #include "basic/IF_QUAD.hpp"
 #include "basic/TRAP_INT.hpp"
 #include "basic/INIT3.hpp"
+#include "basic/REDUCE3_INT.hpp"
 
 //
 // Livloops kernels...
@@ -117,6 +118,7 @@ static const std::string KernelNames [] =
   std::string("Basic_IF_QUAD"),
   std::string("Basic_TRAP_INT"),
   std::string("Basic_INIT3"),
+  std::string("Basic_REDUCE3_INT"),
 
 //
 // Livloops kernels...
@@ -295,6 +297,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
+       break;
+    }
+    case Basic_REDUCE3_INT : {
+       kernel = new basic::REDUCE3_INT(run_params);
        break;
     }
 

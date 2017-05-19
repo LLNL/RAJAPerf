@@ -166,9 +166,10 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
         }
 
       }
-      stopTimer();
 
       m_sumx = sumx * h;
+
+      stopTimer();
 
       break;
     }
@@ -187,9 +188,10 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
         });
 
       }
-      stopTimer();
 
       m_sumx = static_cast<Real_type>(sumx.get()) * h;
+
+      stopTimer();
 
       break;
     }
@@ -210,9 +212,10 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
         }
 
       }
-      stopTimer();
 
       m_sumx = sumx * h;
+
+      stopTimer();
 
       break;
     }
@@ -237,9 +240,10 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
         });
 
       }
-      stopTimer();
 
       m_sumx = static_cast<Real_type>(sumx.get()) * h;
+
+      stopTimer();
 
       break;
     }
@@ -282,9 +286,10 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
          });
 
       }
-      stopTimer();
 
       m_sumx = static_cast<Real_type>(sumx.get()) * h;
+
+      stopTimer();
 
       break;
     }

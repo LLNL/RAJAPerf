@@ -4,4 +4,5 @@ raja_add_library(
           IF_QUAD.cpp 
           TRAP_INT.cpp 
           INIT3.cpp
+          REDUCE3_INT.cpp
   DEPENDS_ON common RAJA)
