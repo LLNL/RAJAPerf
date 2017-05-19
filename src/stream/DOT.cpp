@@ -30,13 +30,10 @@
 
 #include "RAJA/RAJA.hpp"
 
-//#define DEBUG_ME
-#undef DEBUG_ME
+#define DEBUG_ME
+//#undef DEBUG_ME
 
 #include <iostream>
-#if defined(DEBUG_ME)
-#include <iomanip>
-#endif
 
 namespace rajaperf 
 {
@@ -86,8 +83,8 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultSamples(500);
 }
 
 DOT::~DOT() 
@@ -104,17 +101,9 @@ void DOT::setUp(VariantID vid)
 
 void DOT::runKernel(VariantID vid)
 {
-#if defined(DEBUG_ME)
-  const Index_type run_samples = 2;
-#else
   const Index_type run_samples = getRunSamples();
-#endif
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
-
-#if defined(DEBUG_ME)
-std::cout << std::showpoint << std::setprecision(32) << std::endl;
-#endif
 
   switch ( vid ) {
 
@@ -122,27 +111,18 @@ std::cout << std::showpoint << std::setprecision(32) << std::endl;
 
       DOT_DATA;
 
-      Real_type dot = m_dot;
-
-#if defined(DEBUG_ME)
-std::cout << "vid, dot = " << vid << " , " << dot << std::endl;
-#endif
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        Real_type dot = 0.0;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
 
-#if defined(DEBUG_ME)
-std::cout << "\t\t dot = " << dot << std::endl;
-#endif
+         m_dot += dot;
 
       }
-
-      m_dot = dot;
-
       stopTimer();
 
       break;
@@ -152,27 +132,18 @@ std::cout << "\t\t dot = " << dot << std::endl;
 
       DOT_DATA;
 
-      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot);
-
-#if defined(DEBUG_ME)
-std::cout << "vid, dot = " << vid << " , " << static_cast<Real_type>(dot.get()) << std::endl;
-#endif
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(0.0);
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           DOT_BODY;
         });
 
-#if defined(DEBUG_ME)
-std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
-#endif
+        m_dot += static_cast<Real_type>(dot.get());
 
       }
-
-      m_dot = static_cast<Real_type>(dot.get());
-
       stopTimer();
 
       break;
@@ -183,28 +154,19 @@ std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
 
       DOT_DATA;
 
-      Real_type dot = m_dot;
-
-#if defined(DEBUG_ME)
-std::cout << "vid, dot = " << vid << " , " << dot << std::endl;
-#endif
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        Real_type dot = 0.0;
 
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
 
-#if defined(DEBUG_ME)
-std::cout << "\t\t dot = " << dot << std::endl;
-#endif
+        m_dot += dot;
 
       }
-
-      m_dot = dot;
-
       stopTimer();
 
       break;
@@ -219,28 +181,19 @@ std::cout << "\t\t dot = " << dot << std::endl;
 
       DOT_DATA;
 
-      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot);
-
-#if defined(DEBUG_ME)
-std::cout << "vid, dot = " << vid << " , " << static_cast<Real_type>(dot.get()) << std::endl;
-#endif
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(0.0);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
           DOT_BODY;
         });
 
-#if defined(DEBUG_ME)
-std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
-#endif
+        m_dot += static_cast<Real_type>(dot.get());
 
       }
-
-      m_dot = static_cast<Real_type>(dot.get());
-
       stopTimer();
 
       break;
@@ -273,10 +226,10 @@ std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
 
       DOT_DATA_SETUP_CUDA;
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot);
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(0.0);
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 
@@ -284,10 +237,9 @@ std::cout << "\t\t dot = " << static_cast<Real_type>(dot.get()) << std::endl;
            DOT_BODY;
          });
 
+         m_dot += static_cast<Real_type>(dot.get());
+
       }
-
-      m_dot = static_cast<Real_type>(dot.get());
-
       stopTimer();
 
       DOT_DATA_TEARDOWN_CUDA;

@@ -31,9 +31,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include <iostream>
-#if 0
-#include <iomanip>
-#endif
 
 namespace rajaperf 
 {
@@ -142,10 +139,6 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-#if 0
-std::cout << "\tTRAP(" << vid << ") : sumx = " 
-          << std::setprecision(20) << m_sumx_init << std::endl; 
-#endif
   const Index_type run_samples = getRunSamples();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
@@ -156,19 +149,18 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      Real_type sumx = m_sumx_init;
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        Real_type sumx = m_sumx_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
 
+        m_sumx += sumx * h;
+
       }
-
-      m_sumx = sumx * h;
-
       stopTimer();
 
       break;
@@ -178,19 +170,18 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::seq_exec>(ibegin, iend, [=](int i) {
           TRAP_INT_BODY;
         });
 
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
       }
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
-
       stopTimer();
 
       break;
@@ -201,20 +192,19 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      Real_type sumx = m_sumx_init;
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        Real_type sumx = m_sumx_init;
 
         #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
 
+        m_sumx += sumx * h;
+
       }
-
-      m_sumx = sumx * h;
-
       stopTimer();
 
       break;
@@ -229,20 +219,19 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
           TRAP_INT_BODY;
         });
 
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
       }
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
-
       stopTimer();
 
       break;
@@ -274,21 +263,20 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
-
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend,
-           [=] __device__ (Index_type i) {
-           TRAP_INT_BODY;
-         });
+        RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
+
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+          ibegin, iend,
+          [=] __device__ (Index_type i) {
+          TRAP_INT_BODY;
+        });
+
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
       }
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
-
       stopTimer();
 
       break;

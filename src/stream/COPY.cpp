@@ -80,8 +80,8 @@ __global__ void copy(Real_ptr c, Real_ptr a,
 COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultSamples(500);
 }
 
 COPY::~COPY() 

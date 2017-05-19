@@ -84,8 +84,8 @@ __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
 ADD::ADD(const RunParams& params)
   : KernelBase(rajaperf::Stream_ADD, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultSamples(500);
 }
 
 ADD::~ADD() 

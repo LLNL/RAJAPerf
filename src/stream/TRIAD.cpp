@@ -86,8 +86,8 @@ __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultSamples(500);
 }
 
 TRIAD::~TRIAD() 

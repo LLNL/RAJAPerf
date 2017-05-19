@@ -82,8 +82,8 @@ __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
 MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultSamples(500);
 }
 
 MUL::~MUL() 
