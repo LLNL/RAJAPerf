@@ -52,8 +52,11 @@ public:
 private:
   Int_ptr m_vec;
   Int_type m_vsum;
+  Int_type m_vsum_init;
   Int_type m_vmax;
+  Int_type m_vmax_init;
   Int_type m_vmin;
+  Int_type m_vmin_init;
 };
 
 } // end namespace basic

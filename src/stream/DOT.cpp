@@ -30,9 +30,6 @@
 
 #include "RAJA/RAJA.hpp"
 
-#define DEBUG_ME
-//#undef DEBUG_ME
-
 #include <iostream>
 
 namespace rajaperf 
