@@ -41,7 +41,7 @@ namespace basic
 #define REDUCE3_INT_DATA \
   Int_ptr vec = m_vec; \
 
-#if 0
+
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \
   vmin = RAJA_MIN(vmin, vec[i]) ; \
@@ -51,15 +51,6 @@ namespace basic
   vsum += vec[i] ; \
   vmin.min(vec[i]) ; \
   vmax.max(vec[i]) ;
-#else
-
-#define REDUCE3_INT_BODY  \
-  vsum += vec[i] ;
-
-#define REDUCE3_INT_BODY_RAJA  \
-  vsum += vec[i] ;
-
-#endif
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -83,43 +74,48 @@ namespace basic
 
 __global__ void reduce3int(Int_ptr vec,
                            Int_ptr vsum, Int_type vsum_init,
+                           Int_ptr vmin, Int_type vmin_init,
+                           Int_ptr vmax, Int_type vmax_init,
                            Index_type iend) 
 {
-  __shared__ Int_type psum[ BLOCK_SIZE ];
+  __shared__ Int_type psum[ 3 * BLOCK_SIZE ];
+  Int_type* pmin = (Int_type*)&psum[ 1 * BLOCK_SIZE ];
+  Int_type* pmax = (Int_type*)&psum[ 2 * BLOCK_SIZE ];
 
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
   psum[ threadIdx.x ] = vsum_init;
-#if 0
-  while ( i < iend ) {
-    psum[ threadIdx.x ] += vec[ i ];
-    i += gridDim.x * blockDim.x;
-  }
-#else
+  pmin[ threadIdx.x ] = vmin_init;
+  pmax[ threadIdx.x ] = vmax_init;
+
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
     psum[ threadIdx.x ] += vec[ i ];
+    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
+    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
   }
-#endif
   __syncthreads();
 
-#if 0
-  i = BLOCK_SIZE / 2;
-  while ( i > 0 ) {
-    if ( threadIdx.x < i ) psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-     __syncthreads();
-    i /= 2;
-  }
-#else
   for ( i = BLOCK_SIZE / 2; i > 0; i /= 2 ) { 
-    if ( threadIdx.x < i ) psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
+    if ( threadIdx.x < i ) { 
+      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
+      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
+      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
+    }
      __syncthreads();
   }
-#endif
 
 #if 1 // serialized access to shared data;
-  if( threadIdx.x == 0 ) atomicAdd( vsum, psum[ 0 ] );
-#else
-  if( threadIdx.x == 0 ) *vsum += psum[ 0 ];
+  if( threadIdx.x == 0 ) {
+    atomicAdd( vsum, psum[ 0 ] );
+    atomicMin( vmin, pmin[ 0 ] );
+    atomicMax( vmax, pmax[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *vsum += psum[ 0 ];
+    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
+    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
+  }
 #endif
 }
 
@@ -152,7 +148,6 @@ void REDUCE3_INT::setUp(VariantID vid)
 void REDUCE3_INT::runKernel(VariantID vid)
 {
   const Index_type run_samples = getRunSamples();
-//const Index_type run_samples = 1;
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -275,6 +270,10 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA_SETUP_CUDA;
       Int_ptr vsum;
       allocAndInitCudaDeviceData(vsum, &m_vsum_init, 1);
+      Int_ptr vmin;
+      allocAndInitCudaDeviceData(vmin, &m_vmin_init, 1);
+      Int_ptr vmax;
+      allocAndInitCudaDeviceData(vmax, &m_vmax_init, 1);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
@@ -284,13 +283,24 @@ void REDUCE3_INT::runKernel(VariantID vid)
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
         reduce3int<<<grid_size, block_size>>>(vec, 
                                               vsum, m_vsum_init,
+                                              vmin, m_vmin_init,
+                                              vmax, m_vmax_init,
                                               iend ); 
 
         Int_type lsum;
         Int_ptr plsum = &lsum;
         getCudaDeviceData(plsum, vsum, 1);
-       
         m_vsum += lsum;
+
+        Int_type lmin;
+        Int_ptr plmin = &lmin;
+        getCudaDeviceData(plmin, vmin, 1);
+        m_vmin = RAJA_MIN(m_vmin, lmin);
+
+        Int_type lmax;
+        Int_ptr plmax = &lmax;
+        getCudaDeviceData(plmax, vmax, 1);
+        m_vmax = RAJA_MAX(m_vmax, lmax);
 
       }
       stopTimer();
@@ -350,8 +360,8 @@ void REDUCE3_INT::runKernel(VariantID vid)
 void REDUCE3_INT::updateChecksum(VariantID vid)
 {
   checksum[vid] += m_vsum;
-//checksum[vid] += m_vmin;
-//checksum[vid] += m_vmax;
+  checksum[vid] += m_vmin;
+  checksum[vid] += m_vmax;
 }
 
 void REDUCE3_INT::tearDown(VariantID vid)
