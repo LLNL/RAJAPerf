@@ -46,11 +46,7 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
   alpha = 1.5; \
-  beta = 1.2; \
-  int i, j; \
-  for(i=0; i < m_ni; ++i) \
-    for(j=0; j < m_nl; ++j) \
-      *(D + i * m_nj + j) = (Real_type) (i * (j+2) % m_nk) / m_nk;
+  beta = 1.2; 
 
 
 // The following 2MM_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
@@ -102,11 +98,8 @@ namespace polybench
   Real_type beta = m_beta; \
   alpha = 1.5; \
   beta = 1.2; \
-  int i, j; \
-  for(i=0; i < m_ni; ++i) \
-    for(j=0; j < m_nl; ++j) \
-      *(D + i * m_nj + j) = (Real_type) (i * (j+2) % m_nk) / m_nk; \
 \
+  memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -159,25 +152,10 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
 
 #endif // if defined(RAJA_ENABLE_CUDA)
   
-
-
-
-  
-
-
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
   setDefaultSamples(1);
-}
-
-POLYBENCH_2MM::~POLYBENCH_2MM() 
-{
-}
-
-void POLYBENCH_2MM::setUp(VariantID vid)
-{
-
   m_alpha = 1.5;
   m_beta = 1.2;
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
@@ -207,27 +185,27 @@ void POLYBENCH_2MM::setUp(VariantID vid)
       m_run_samples = 100;
       break;
   }
-  allocAndInitData(m_tmp, m_ni * m_nj, vid);
-  allocAndInitData(m_A, m_ni * m_nk, vid);
-  allocAndInitData(m_B, m_nk * m_nj, vid);
-  allocAndInitData(m_C, m_nj * m_nl, vid);
-  allocAndInitData(m_D, m_ni * m_nl, vid);
-  // Redo the initialization polybench style
-  int i,j ;
-  for(i=0; i < m_ni; i++) 
-    for(j=0; j < m_nj; j++) 
-      *(m_A + i * m_nj + j) = (Real_type) (i*j % m_ni) / m_ni; 
-  for(i=0; i < m_nk ; i++) 
-    for(j=0; j < m_nj; j++) 
-      *(m_B + i * m_nj + j) = (Real_type) (i * (j+1) % m_nj) / m_nj; 
-  for(i=0; i < m_nj; i++) 
-    for(j=0; j < m_nl; j++) 
-      *(m_C + i * m_nj + j) = (Real_type) (i * (j+3) % m_nl) / m_nl; 
+  allocAndInitData(m_tmp, m_ni * m_nj);
+  allocAndInitData(m_A, m_ni * m_nk);
+  allocAndInitData(m_B, m_nk * m_nj);
+  allocAndInitData(m_C, m_nj * m_nl);
+  allocAndInitData(m_D, m_ni * m_nl);
+  allocAndInitData(m_DD, m_ni * m_nl);
 
-  // D's initialization also gets redone in the data macro prior to each kernel variant      
-  for(i=0; i < m_ni; i++) \
-    for(j=0; j < m_nl; j++) \
-      *(m_D + i * m_nl + j) = (Real_type) (i * (j+2) % m_nk) / m_nk;
+}
+
+POLYBENCH_2MM::~POLYBENCH_2MM() 
+{
+  deallocData(m_tmp);
+  deallocData(m_A);
+  deallocData(m_B);
+  deallocData(m_C);
+  deallocData(m_D);
+  deallocData(m_DD);
+}
+
+void POLYBENCH_2MM::setUp(VariantID vid)
+{
 
 }
 
@@ -239,8 +217,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
   const Index_type nk = m_nk;
   const Index_type nl = m_nl;
 
-  fprintf(stderr,"Polybench_2MM Current Dimensions: ni %d, nj %d, nk %d, nl %d\n",ni,nj,nk,nl);
-
   switch ( vid ) {
 
     case Baseline_Seq : {
@@ -248,23 +224,19 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       POLYBENCH_2MM_DATA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-#if 1
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
             for(Index_type k = 0; k < nk; k++)
               POLYBENCH_2MM_BODY2;
           }
-
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         for(Index_type i = 0; i < ni; i++)
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
             for(Index_type j = 0; j < nj; j++)
               POLYBENCH_2MM_BODY4;
-          }  
-        
-#endif
-
+          }
       }
       stopTimer();
 
@@ -306,6 +278,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             POLYBENCH_2MM_BODY2; 
           });
         });
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
           POLYBENCH_2MM_BODY3;
 
@@ -339,6 +312,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
 
 
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         #pragma omp parallel for   
         for(Index_type i = 0; i < ni; i++)
           for(Index_type l = 0; l < nl; l++) {
@@ -371,6 +345,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             POLYBENCH_2MM_BODY2; 
           });
         });
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
           POLYBENCH_2MM_BODY3;
 
@@ -394,6 +369,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
         polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
+
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        initCudaDeviceData(D,m_D,m_ni * m_nl ); 
 
         grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
         polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
@@ -419,6 +397,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         });
 
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        initCudaDeviceData(D,m_D,m_ni * m_nl ); 
 
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nl}, [=] __device__ (int ii) {
           *(D + ii) *= beta;
@@ -455,17 +435,13 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 void POLYBENCH_2MM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_D, m_ni * m_nl);
+  checksum[vid] += calcChecksum(m_D, m_ni * m_nl,1.0/m_run_samples);
 }
 
 void POLYBENCH_2MM::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_tmp);
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
+
 }
 
 } // end namespace basic

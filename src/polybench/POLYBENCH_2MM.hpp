@@ -64,7 +64,7 @@ private:
   Real_ptr m_B;
   Real_ptr m_C;
   Real_ptr m_D; 
-
+  Real_ptr m_DD;
 };
 
 } // end namespace polybench
