@@ -85,7 +85,7 @@ ADD::ADD(const RunParams& params)
   : KernelBase(rajaperf::Stream_ADD, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(500);
+   setDefaultSamples(800);
 }
 
 ADD::~ADD() 

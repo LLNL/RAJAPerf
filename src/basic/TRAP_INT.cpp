@@ -29,6 +29,7 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/policy/cuda/policy.hpp"
 
 #include <iostream>
 
@@ -67,43 +68,54 @@ Real_type trap_int_func(Real_type x,
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#define BLOCK_SIZE 256
+
   //
   // Define thread block size for CUDA execution
   //
-  const size_t block_size = 256;
+  const size_t block_size = BLOCK_SIZE;
 
 
 #define TRAP_INT_DATA_SETUP_CUDA // nothing to do here...
 
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
-#if 0
 __global__ void trapint(Real_type x0, Real_type xp,
                         Real_type y, Real_type yp, 
                         Real_type h, 
                         Real_ptr sumx,
                         Index_type iend)
 {
-   extern __shared__ Real_type tsumx[];
+  __shared__ Real_type psumx[ BLOCK_SIZE ];
 
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     Index_type tid = threadIdx.x;
-     Real_type x = x0 + i*h;
-     Real_type tsumx = trap_int_func(x, y, xp, yp);
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
-     tsumx[tid] = tsumx;
+  psumx[ threadIdx.x ] = 0.0;
+  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+    Real_type x = x0 + i*h;
+    Real_type val = trap_int_func(x, y, xp, yp);
+    psumx[ threadIdx.x ] += val;
+  }
+  __syncthreads();
+
+  for ( i = BLOCK_SIZE / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
+    }
      __syncthreads();
+  }
 
-     for (Index_type s = blockDim.x/2; s > 0; s /= 2) {
-       if (tid < s) tsumx[tid] += tsumx[tid+s];
-       __syncthreads();
-     }
-
-     if (tid == 0) atomcAdd(*sumx, tsumx[tid]);  // Need "atomicAdd for reals
-   }
-}
+#if 1 // serialized access to shared data;
+  if ( threadIdx.x == 0 ) {
+    RAJA::_atomicAdd( sumx, psumx[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *sumx += psumx[ 0 ];
+  }
 #endif
+
+}
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
@@ -112,7 +124,7 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1200);
+   setDefaultSamples(1000);
 }
 
 TRAP_INT::~TRAP_INT() 
@@ -241,20 +253,31 @@ void TRAP_INT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-#if 0
-      TRAP_INT_DATA_SETUP_CUDA;
+      TRAP_INT_DATA;
+      Real_ptr sumx;
+      allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         trapint<<<grid_size, block_size>>>( iend );
+        initCudaDeviceData(sumx, &m_sumx_init, 1); 
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+        trapint<<<grid_size, block_size>>>(x0, xp,
+                                           y, yp,
+                                           h,
+                                           sumx,
+                                           iend);
+
+        Real_type lsumx;
+        Real_ptr plsumx = &lsumx;
+        getCudaDeviceData(plsumx, sumx, 1);
+        m_sumx += lsumx;
 
       }
       stopTimer();
 
-      TRAP_INT_DATA_TEARDOWN_CUDA;
-#endif
+      deallocCudaDeviceData(sumx);
 
       break;
     }

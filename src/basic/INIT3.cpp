@@ -96,7 +96,7 @@ INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(6000);
+   setDefaultSamples(5000);
 }
 
 INIT3::~INIT3() 

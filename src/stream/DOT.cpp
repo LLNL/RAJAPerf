@@ -117,7 +117,7 @@ DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(500);
+   setDefaultSamples(1000);
 }
 
 DOT::~DOT() 

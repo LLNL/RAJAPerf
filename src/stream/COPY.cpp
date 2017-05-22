@@ -81,7 +81,7 @@ COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(500);
+   setDefaultSamples(1500);
 }
 
 COPY::~COPY() 

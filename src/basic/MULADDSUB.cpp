@@ -98,7 +98,7 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(4000);
+   setDefaultSamples(1200);
 }
 
 MULADDSUB::~MULADDSUB() 

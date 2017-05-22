@@ -83,7 +83,7 @@ MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(500);
+   setDefaultSamples(1500);
 }
 
 MUL::~MUL() 

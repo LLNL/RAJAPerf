@@ -126,7 +126,7 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(500);
+   setDefaultSamples(1000);
 }
 
 REDUCE3_INT::~REDUCE3_INT() 
