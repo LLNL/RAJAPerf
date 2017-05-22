@@ -239,14 +239,14 @@ void DOT::runKernel(VariantID vid)
 
 #if defined(USE_THRUST)
 
-      thrust::device_vector<Real_type> a(m_a, m_a+iend);
-      thrust::device_vector<Real_type> b(m_b, m_b+iend);
+      thrust::device_vector<Real_type> va(m_a, m_a+iend);
+      thrust::device_vector<Real_type> vb(m_b, m_b+iend);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-        Real_type dprod = thrust::inner_product(a.begin(), a.end(), 
-                                                b.begin(), m_dot_init);
+        Real_type dprod = thrust::inner_product(va.begin(), va.end(), 
+                                                vb.begin(), m_dot_init);
 
         m_dot += dprod;
 
