@@ -105,7 +105,7 @@ __global__ void reduce3int(Int_ptr vec,
   }
 
 #if 1 // serialized access to shared data;
-  if( threadIdx.x == 0 ) {
+  if ( threadIdx.x == 0 ) {
     atomicAdd( vsum, psum[ 0 ] );
     atomicMin( vmin, pmin[ 0 ] );
     atomicMax( vmax, pmax[ 0 ] );

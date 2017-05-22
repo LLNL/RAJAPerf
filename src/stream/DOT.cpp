@@ -29,8 +29,17 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/policy/cuda/policy.hpp"
 
 #include <iostream>
+
+//#define USE_THRUST
+#undef USE_THRUST
+
+#if defined(USE_THRUST)
+#include <thrust/device_vector.h>
+#include <thrust/inner_product.h>
+#endif
 
 namespace rajaperf 
 {
@@ -47,10 +56,12 @@ namespace stream
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#define BLOCK_SIZE 256
+
   //
   // Define thread block size for CUDA execution
   //
-  const size_t block_size = 256;
+  const size_t block_size = BLOCK_SIZE;
 
 
 #define DOT_DATA_SETUP_CUDA \
@@ -64,13 +75,38 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
-#if 0
+#if !defined(USE_THRUST)
 __global__ void dot(Real_ptr a, Real_ptr b,
+                    Real_ptr dprod, Real_type dprod_init,
                     Index_type iend) 
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-   }
+  __shared__ Real_type pdot[ BLOCK_SIZE ];
+
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  pdot[ threadIdx.x ] = dprod_init; 
+  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+    pdot[ threadIdx.x ] += a[ i ] * b[i];
+  }
+  __syncthreads();
+
+  for ( i = BLOCK_SIZE / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
+    }
+     __syncthreads();
+  }
+
+#if 1 // serialized access to shared data;
+  if ( threadIdx.x == 0 ) {
+    RAJA::_atomicAdd( dprod, pdot[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *dprod += pdot[ 0 ];
+  }
+#endif
+
 }
 #endif
 
@@ -201,20 +237,47 @@ void DOT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
-#if 0
-      DOT_DATA_SETUP_CUDA;
+#if defined(USE_THRUST)
+
+      thrust::device_vector<Real_type> a(m_a, m_a+iend);
+      thrust::device_vector<Real_type> b(m_b, m_b+iend);
 
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         dot<<<grid_size, block_size>>>( a, b, 
-                                         iend ); 
+        Real_type dprod = thrust::inner_product(a.begin(), a.end(), 
+                                                b.begin(), m_dot_init);
+
+        m_dot += dprod;
+
+      }
+      stopTimer();
+      
+#else
+      DOT_DATA_SETUP_CUDA;
+      Real_ptr dprod;
+      allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        initCudaDeviceData(dprod, &m_dot_init, 1);
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+        dot<<<grid_size, block_size>>>( a, b, 
+                                        dprod, m_dot_init,
+                                        iend ); 
+
+        Real_type lprod;
+        Real_ptr plprod = &lprod;
+        getCudaDeviceData(plprod, dprod, 1);
+        m_dot += lprod;  
 
       }
       stopTimer();
 
       DOT_DATA_TEARDOWN_CUDA;
+      deallocCudaDeviceData(dprod);
 #endif
 
       break; 
