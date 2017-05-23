@@ -179,7 +179,7 @@ __global__ void polybench_3mm_cuda_3(Real_ptr A,
    Index_type i,l,j;
    if (ii < ni * nl) {
      *(G + ii) = 0.0;
-     i = ii/nl; j = ii % nl;
+     i = ii/nl; l = ii % nl;
      for(j=0; j < nj; j++) {
        POLYBENCH_3MM_BODY6;              
      }
@@ -288,7 +288,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_Seq : {
-#if 1
       POLYBENCH_3MM_DATA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
@@ -318,13 +317,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
       break;
     }
 
     case Baseline_OpenMP : {
 
-#if 1                             
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
@@ -357,7 +354,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       }
       stopTimer();
 #endif
-#endif
       break;
     }
 
@@ -367,7 +363,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if 1
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
@@ -399,24 +394,23 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       }
       stopTimer();
 #endif
-#endif
       break;
     }
 
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
-#if 0
+#if 1
       POLYBENCH_3MM_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
-        polybench_3mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
+        polybench_3mm_cuda_1<<<grid_size,block_size>>>(A,B,C,D,E,F,G,m_ni,m_nj,m_nk,m_nl,m_nm);
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-        initCudaDeviceData(D,m_D,m_ni * m_nl ); 
+        grid_size = RAJA_DIVIDE_CEILING_INT(m_nj * m_nl, block_size);
+        polybench_3mm_cuda_2<<<grid_size,block_size>>>(A,B,C,D,E,F,G,m_ni,m_nj,m_nk,m_nl,m_nm);
 
         grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
-        polybench_3mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
+        polybench_3mm_cuda_3<<<grid_size,block_size>>>(A,B,C,D,E,F,G,m_ni,m_nj,m_nk,m_nl,m_nm);
       }
       cudaDeviceSynchronize();
       stopTimer();
@@ -426,29 +420,35 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_CUDA : {
-#if 0
+#if 1
       POLYBENCH_3MM_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
        
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
           Index_type i,j,k;
-          *(tmp + ii) = 0.0;
+          *(E + ii) = 0.0;
           i = ii/nj; j = ii % nj;
           for(k=0;k<nk;k++) {
             POLYBENCH_3MM_BODY2; 
           }
         });
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-        initCudaDeviceData(D,m_D,m_ni * m_nl ); 
+        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, nj * nl}, [=] __device__ (int ii) {
+          *(F + ii) = 0.0;
+          Index_type j,l,m;
+          j = ii/nl; l = ii % nl;
+          for(m=0;m<nm;m++) {
+            POLYBENCH_3MM_BODY4;
+          }  
+        });
 
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nl}, [=] __device__ (int ii) {
-          *(D + ii) *= beta;
+          *(G + ii) = 0.0;
           Index_type i,l,j;
           i = ii/nl; l = ii % nl;
           for(j=0;j<nj;j++) {
-            POLYBENCH_3MM_BODY4;
+            POLYBENCH_3MM_BODY6;
           }  
         });
 
