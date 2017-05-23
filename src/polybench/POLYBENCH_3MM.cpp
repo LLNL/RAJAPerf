@@ -288,13 +288,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_Seq : {
-#if 0
+#if 1
       POLYBENCH_3MM_DATA;
-      resetTimer();
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-        
-
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_3MM_BODY1;
 
@@ -302,16 +299,22 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             POLYBENCH_3MM_BODY2; 
           });
         });
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, nj}, RAJA::RangeSegment{0, nl}, [=] (int j, int l) {
           POLYBENCH_3MM_BODY3;
 
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nm}, [=] (int m) {
             POLYBENCH_3MM_BODY4;
           });
         });
 
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+          POLYBENCH_3MM_BODY5;
 
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+            POLYBENCH_3MM_BODY6;
+          });
+        });
 
       }
       stopTimer();
@@ -321,7 +324,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
     case Baseline_OpenMP : {
 
-#if 0                             
+#if 1                             
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
@@ -329,23 +332,26 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
-            //if(j == 0) printf("Thread : %d\n",omp_get_thread_num());
             POLYBENCH_3MM_BODY1;
             for(Index_type k = 0; k < nk; k++) {
-
               POLYBENCH_3MM_BODY2;
             }
           }
 
+        #pragma omp parallel for   
+        for(Index_type j = 0; j < nj; j++)
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY3;
+            for(Index_type m = 0; m < nm; m++)
+              POLYBENCH_3MM_BODY4;
+          }
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         #pragma omp parallel for   
         for(Index_type i = 0; i < ni; i++)
           for(Index_type l = 0; l < nl; l++) {
-            //if(l == 0) printf("Thread : %d\n",omp_get_thread_num());
-            POLYBENCH_3MM_BODY3;
+            POLYBENCH_3MM_BODY5;
             for(Index_type j = 0; j < nj; j++)
-              POLYBENCH_3MM_BODY4;
+              POLYBENCH_3MM_BODY6;
           }  
 
       }
@@ -361,7 +367,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if 0
+#if 1
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
@@ -373,15 +379,22 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             POLYBENCH_3MM_BODY2; 
           });
         });
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, nj}, RAJA::RangeSegment{0, nl}, [=] (int j, int l) {
           POLYBENCH_3MM_BODY3;
 
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nm}, [=] (int m) {
             POLYBENCH_3MM_BODY4;
           });
         });
 
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
+          POLYBENCH_3MM_BODY5;
+
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+            POLYBENCH_3MM_BODY6;
+          });
+        });
 
       }
       stopTimer();
