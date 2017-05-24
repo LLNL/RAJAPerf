@@ -33,8 +33,8 @@
 
 #include <iostream>
 
-//#define USE_THRUST
-#undef USE_THRUST
+#define USE_THRUST
+//#undef USE_THRUST
 
 #if defined(USE_THRUST)
 #include <thrust/device_vector.h>
@@ -56,12 +56,10 @@ namespace stream
 
 #if defined(RAJA_ENABLE_CUDA)
 
-#define BLOCK_SIZE 256
-
   //
   // Define thread block size for CUDA execution
   //
-  const size_t block_size = BLOCK_SIZE;
+  const size_t block_size = 256;
 
 
 #define DOT_DATA_SETUP_CUDA \
@@ -75,12 +73,14 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
-#if !defined(USE_THRUST)
+#if defined(USE_THRUST)
+// Nothing to do here...
+#else
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend) 
 {
-  __shared__ Real_type pdot[ BLOCK_SIZE ];
+  extern __shared__ Real_type pdot[ ];
 
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -90,7 +90,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
   }
   __syncthreads();
 
-  for ( i = BLOCK_SIZE / 2; i > 0; i /= 2 ) {
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
     }
@@ -264,9 +264,10 @@ void DOT::runKernel(VariantID vid)
         initCudaDeviceData(dprod, &m_dot_init, 1);
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-        dot<<<grid_size, block_size>>>( a, b, 
-                                        dprod, m_dot_init,
-                                        iend ); 
+        dot<<<grid_size, block_size, 
+              sizeof(Real_type)*block_size>>>( a, b, 
+                                               dprod, m_dot_init,
+                                               iend ); 
 
         Real_type lprod;
         Real_ptr plprod = &lprod;

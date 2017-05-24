@@ -68,12 +68,10 @@ Real_type trap_int_func(Real_type x,
 
 #if defined(RAJA_ENABLE_CUDA)
 
-#define BLOCK_SIZE 256
-
   //
   // Define thread block size for CUDA execution
   //
-  const size_t block_size = BLOCK_SIZE;
+  const size_t block_size = 256;
 
 
 #define TRAP_INT_DATA_SETUP_CUDA // nothing to do here...
@@ -86,7 +84,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
                         Real_ptr sumx,
                         Index_type iend)
 {
-  __shared__ Real_type psumx[ BLOCK_SIZE ];
+  extern __shared__ Real_type psumx[ ];
 
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -98,7 +96,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
   }
   __syncthreads();
 
-  for ( i = BLOCK_SIZE / 2; i > 0; i /= 2 ) {
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
     }
@@ -263,11 +261,12 @@ void TRAP_INT::runKernel(VariantID vid)
         initCudaDeviceData(sumx, &m_sumx_init, 1); 
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-        trapint<<<grid_size, block_size>>>(x0, xp,
-                                           y, yp,
-                                           h,
-                                           sumx,
-                                           iend);
+        trapint<<<grid_size, block_size, 
+                  sizeof(Real_type)*block_size>>>(x0, xp,
+                                                  y, yp,
+                                                  h,
+                                                  sumx,
+                                                  iend);
 
         Real_type lsumx;
         Real_ptr plsumx = &lsumx;
