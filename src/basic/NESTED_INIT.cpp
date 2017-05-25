@@ -51,12 +51,6 @@ namespace basic
 
 #if defined(RAJA_ENABLE_CUDA)
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define NESTED_INIT_DATA_SETUP_CUDA \
   Real_ptr array; \
   Int_type ni = m_ni; \
@@ -66,7 +60,7 @@ namespace basic
   allocAndInitCudaDeviceData(array, m_array, ni * nj * nk);
 
 #define NESTED_INIT_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_array, array, iend); \
+  getCudaDeviceData(m_array, array, ni * nj * nk); \
   deallocCudaDeviceData(array);
 
 __global__ void nested_init(Real_ptr array,
@@ -166,6 +160,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
+#if 0 // using collapse actually slows this down a bit...
         #pragma omp parallel 
           {
             #pragma omp for nowait collapse(3) 
@@ -177,6 +172,16 @@ void NESTED_INIT::runKernel(VariantID vid)
               }
             }
           } // omp parallel
+#else
+          #pragma omp parallel for 
+          for (Index_type k = 0; k < nk; ++k ) {
+            for (Index_type j = 0; j < nj; ++j ) {
+              for (Index_type i = 0; i < ni; ++i ) {
+                NESTED_INIT_BODY;
+              }
+            }
+          }
+#endif
 
       }
       stopTimer();
@@ -196,6 +201,8 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
+#if 0 // using collapse here has a significant negative performance
+      // impact....is there something wrong with the forallN implementation?
         RAJA::forallN< RAJA::NestedPolicy< 
                        RAJA::ExecList< RAJA::simd_exec,
                                        RAJA::omp_collapse_nowait_exec,
@@ -207,6 +214,19 @@ void NESTED_INIT::runKernel(VariantID vid)
           [=](Index_type i, Index_type j, Index_type k) {     
           NESTED_INIT_BODY;
         });
+#else
+        RAJA::forallN< RAJA::NestedPolicy< 
+                       RAJA::ExecList< RAJA::simd_exec,
+                                       RAJA::seq_exec,
+                                       RAJA::omp_parallel_for_exec >, 
+                       RAJA::Permute<RAJA::PERM_KJI> > >(
+              RAJA::RangeSegment(0, ni),
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, nk),
+          [=](Index_type i, Index_type j, Index_type k) {     
+          NESTED_INIT_BODY;
+        });
+#endif
 
       }
       stopTimer();
@@ -218,10 +238,48 @@ void NESTED_INIT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
 
+      NESTED_INIT_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        dim3 nthreads_per_block(ni, 1, 1);
+        dim3 nblocks(1, nj, nk);
+
+        nested_init<<<nblocks, nthreads_per_block>>>(array,
+                                                     ni, nj);
+
+      }
+      stopTimer();
+
+      NESTED_INIT_DATA_TEARDOWN_CUDA;
+
       break; 
     }
 
     case RAJA_CUDA : {
+
+      NESTED_INIT_DATA_SETUP_CUDA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::forallN< RAJA::NestedPolicy< 
+                       RAJA::ExecList< RAJA::cuda_thread_x_exec,
+                                       RAJA::cuda_block_y_exec,
+                                       RAJA::cuda_block_z_exec >, 
+                       RAJA::Permute<RAJA::PERM_KJI> > >(
+              RAJA::RangeSegment(0, ni),
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, nk),
+          [=] __device__ (Index_type i, Index_type j, Index_type k) {     
+          NESTED_INIT_BODY;
+        });
+
+      }
+      stopTimer();
+
+      NESTED_INIT_DATA_TEARDOWN_CUDA;
 
       break;
     }
