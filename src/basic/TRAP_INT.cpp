@@ -122,7 +122,7 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1000);
+   setDefaultSamples(2000);
 }
 
 TRAP_INT::~TRAP_INT() 

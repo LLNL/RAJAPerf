@@ -161,6 +161,26 @@ void NESTED_INIT::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Baseline_OpenMP : {
 
+      NESTED_INIT_DATA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        #pragma omp parallel 
+          {
+            #pragma omp for nowait collapse(3) 
+            for (Index_type k = 0; k < nk; ++k ) {
+              for (Index_type j = 0; j < nj; ++j ) {
+                for (Index_type i = 0; i < ni; ++i ) {
+                  NESTED_INIT_BODY;
+                }
+              }
+            }
+          } // omp parallel
+
+      }
+      stopTimer();
+
       break;
     }
 
@@ -170,6 +190,26 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
+
+      NESTED_INIT_DATA;
+
+      startTimer();
+      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+
+        RAJA::forallN< RAJA::NestedPolicy< 
+                       RAJA::ExecList< RAJA::simd_exec,
+                                       RAJA::omp_collapse_nowait_exec,
+                                       RAJA::omp_collapse_nowait_exec >, 
+                       RAJA::Permute<RAJA::PERM_KJI> > >(
+              RAJA::RangeSegment(0, ni),
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, nk),
+          [=](Index_type i, Index_type j, Index_type k) {     
+          NESTED_INIT_BODY;
+        });
+
+      }
+      stopTimer();
 
       break;
     }

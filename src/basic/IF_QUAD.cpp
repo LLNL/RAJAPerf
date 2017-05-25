@@ -102,7 +102,7 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(500);
+   setDefaultSamples(1500);
 }
 
 IF_QUAD::~IF_QUAD() 
