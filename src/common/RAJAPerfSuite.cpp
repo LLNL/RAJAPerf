@@ -37,6 +37,7 @@
 #include "basic/TRAP_INT.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/REDUCE3_INT.hpp"
+#include "basic/NESTED_INIT.hpp"
 
 //
 // Livloops kernels...
@@ -119,6 +120,7 @@ static const std::string KernelNames [] =
   std::string("Basic_TRAP_INT"),
   std::string("Basic_INIT3"),
   std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_NESTED_INIT"),
 
 //
 // Livloops kernels...
@@ -301,6 +303,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_REDUCE3_INT : {
        kernel = new basic::REDUCE3_INT(run_params);
+       break;
+    }
+    case Basic_NESTED_INIT : {
+       kernel = new basic::NESTED_INIT(run_params);
        break;
     }
 

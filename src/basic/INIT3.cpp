@@ -45,7 +45,7 @@ namespace basic
   ResReal_ptr in2 = m_in2;
 
 #define INIT3_BODY  \
-  out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ; \
+  out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
 
 
 #if defined(RAJA_ENABLE_CUDA)

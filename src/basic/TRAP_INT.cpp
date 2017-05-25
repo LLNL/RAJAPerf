@@ -29,7 +29,7 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "RAJA/policy/cuda/policy.hpp"
+#include "RAJA/policy/cuda.hpp"
 
 #include <iostream>
 

@@ -272,39 +272,39 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
 
-  str << "\t --help, -h (prints options with descriptions}\n";
+  str << "\t --help, -h (prints options with descriptions}\n\n";
 
-  str << "\t --print-kernels, -pk (prints valid kernel names}\n";
+  str << "\t --print-kernels, -pk (prints valid kernel names}\n\n";
 
-  str << "\t --print-variants, -pv (prints valid variant names}\n";
+  str << "\t --print-variants, -pv (prints valid variant names}\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n"; 
+      << "\t      (num passes through suite)\n\n"; 
 
   str << "\t --samplefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default # times to run each kernel)\n";
+      << "\t      (fraction of default # times to run each kernel)\n\n";
 
   str << "\t --sizefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel iteration space size to run)\n";
+      << "\t      (fraction of default kernel iteration space size to run)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outdir foo (output files to ./foo directory\n"
-      << "\t\t --odir /nfs/tmp/me (output files to /nfs/tmp/me directory)\n";
+      << "\t\t --odir /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
 
   str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
-      << "\t\t --ofile dat (output data will be in files 'dat*')\n";
+      << "\t\t --ofile dat (output data will be in files 'dat*')\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n";
+      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
 
   str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
       << "\t      (names of variants)\n"; 
@@ -313,9 +313,9 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -v Baseline_Seq RAJA_CUDA (run Baseline_Seq, RAJA_CUDA variants)\n";
 
   str << "\t --refvar, -rv <string> [Default is none]\n"
-      << "\t      (reference variant for speedup calculation)\n";
+      << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
-      << "\t\t -refvar Baseline_Seq (speedups reported relative to Baseline_Seq variants)\n";
+      << "\t\t -refvar Baseline_Seq (speedups reported relative to Baseline_Seq variants)\n\n";
 
   str << "\t --dryrun (print summary of how suite will run without running)\n";
 

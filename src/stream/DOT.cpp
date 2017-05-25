@@ -29,17 +29,12 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "RAJA/policy/cuda/policy.hpp"
+#include "RAJA/policy/cuda.hpp"
 
 #include <iostream>
 
 #define USE_THRUST
 //#undef USE_THRUST
-
-#if defined(USE_THRUST)
-#include <thrust/device_vector.h>
-#include <thrust/inner_product.h>
-#endif
 
 namespace rajaperf 
 {
@@ -55,6 +50,11 @@ namespace stream
 
 
 #if defined(RAJA_ENABLE_CUDA)
+
+#if defined(USE_THRUST)
+#include <thrust/device_vector.h>
+#include <thrust/inner_product.h>
+#endif
 
   //
   // Define thread block size for CUDA execution

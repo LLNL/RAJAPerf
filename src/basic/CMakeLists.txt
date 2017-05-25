@@ -5,4 +5,5 @@ raja_add_library(
           TRAP_INT.cpp 
           INIT3.cpp
           REDUCE3_INT.cpp
+          NESTED_INIT.cpp
   DEPENDS_ON common RAJA)

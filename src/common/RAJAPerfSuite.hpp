@@ -95,6 +95,7 @@ enum KernelID {
   Basic_TRAP_INT,
   Basic_INIT3,
   Basic_REDUCE3_INT,
+  Basic_NESTED_INIT,
 
 //
 // Livloops kernels...
