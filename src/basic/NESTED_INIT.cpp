@@ -93,6 +93,8 @@ NESTED_INIT::~NESTED_INIT()
 
 void NESTED_INIT::setUp(VariantID vid)
 {
+  (void) vid;
+
   m_nk = m_nk_init * static_cast<Real_type>( getRunSize() ) / getDefaultSize();
 
   int len = m_ni * m_nj * m_nk;
