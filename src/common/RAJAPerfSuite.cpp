@@ -194,19 +194,19 @@ static const std::string KernelNames [] =
 static const std::string VariantNames [] =
 {
 
-  std::string("Baseline_Seq"),
+  std::string("Base_Seq"),
   std::string("RAJA_Seq"),
 #if defined(_OPENMP)
-  std::string("Baseline_OpenMP"),
+  std::string("Base_OpenMP"),
   std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
 #endif
 #if defined(RAJA_ENABLE_CUDA)
-  std::string("Baseline_CUDA"),
+  std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
 #endif
 #if 0
-  std::string("Baseline_OpenMP4.x"),
+  std::string("Base_OpenMP4.x"),
   std::string("RAJA_OpenMP4.x"),
 #endif
 

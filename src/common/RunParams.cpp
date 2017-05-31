@@ -310,12 +310,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Baseline_Seq RAJA_CUDA (run Baseline_Seq, RAJA_CUDA variants)\n\n";
+      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq, RAJA_CUDA variants)\n\n";
 
   str << "\t --refvar, -rv <string> [Default is none]\n"
       << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
-      << "\t\t -refvar Baseline_Seq (speedups reported relative to Baseline_Seq variants)\n\n";
+      << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
   str << "\t --dryrun (print summary of how suite will run without running)\n";
 

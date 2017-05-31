@@ -64,7 +64,7 @@ private:
   };
 
   struct FOMGroup {
-    VariantID baseline;
+    VariantID base;
     std::vector<VariantID> variants;
   }; 
 

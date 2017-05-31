@@ -107,7 +107,7 @@ void ADD::runKernel(VariantID vid)
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       ADD_DATA;
 
@@ -142,7 +142,7 @@ void ADD::runKernel(VariantID vid)
     }
 
 #if defined(_OPENMP)
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 
       ADD_DATA;
 
@@ -185,7 +185,7 @@ void ADD::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA : {
+    case Base_CUDA : {
 
       ADD_DATA_SETUP_CUDA;
 
@@ -227,7 +227,7 @@ void ADD::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Baseline_OpenMP4x :
+    case Base_OpenMP4x :
     case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;

@@ -186,7 +186,7 @@ void Executor::setupSuite()
     // Set reference variant if not specified.
     //
     if ( run_params.getReferenceVariant().empty() ) {
-      reference_vid = VariantID::Baseline_Seq;
+      reference_vid = VariantID::Base_Seq;
     }
 
   } else {
@@ -515,7 +515,7 @@ void Executor::writeFOMReport(const string& filename)
     //
     // Print title line.
     //
-    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_baseline) / T_baseline )";
+    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_base) / T_base )";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
@@ -551,7 +551,7 @@ void Executor::writeFOMReport(const string& filename)
       for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
         const FOMGroup& group = fom_groups[ifg];
 
-        VariantID base_vid = group.baseline;
+        VariantID base_vid = group.base;
 
         for (size_t gv = 0; gv < group.variants.size(); ++gv) {
           VariantID comp_vid = group.variants[gv];
@@ -835,10 +835,10 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
     VariantID vid = variant_ids[iv];
     string vname = getVariantName(vid);
 
-    if ( vname.find("Baseline") != string::npos ) {
+    if ( vname.find("Base") != string::npos ) {
 
       FOMGroup group;
-      group.baseline = vid;
+      group.base = vid;
  
       string::size_type pos = vname.find("_");
       string pm(vname.substr(pos+1, string::npos));
@@ -854,7 +854,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
         fom_groups.push_back( group );
       }
 
-    }  // if variant name contains 'Baseline'
+    }  // if variant name contains 'Base'
 
   }  // iterate over variant ids to run
 
@@ -862,7 +862,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   cout << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];
-    cout << "\tBaseline : " << getVariantName(group.baseline) << endl;
+    cout << "\tBase : " << getVariantName(group.base) << endl;
     for (size_t iv = 0; iv < group.variants.size(); ++iv) {
       cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
     }
