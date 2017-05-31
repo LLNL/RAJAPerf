@@ -296,8 +296,8 @@ void Executor::reportRunSummary(ostream& str) const
       str << "\n\nRAJA performance suite dry run summary...."
           <<   "\n--------------------------------------" << endl;
  
-      str << "\nRunParams state:";
-      str << "\n----------------";
+      str << "\nInput state:";
+      str << "\n------------";
       run_params.print(str);
 
     } 
@@ -318,8 +318,13 @@ void Executor::reportRunSummary(ostream& str) const
     ofiles += string("/") + run_params.getOutputFilePrefix() + 
               string("*");
 
-    str << "\nSuite will run with kernels and variants listed below.\n" 
-        << "Output files will be named " << ofiles << endl;
+    str << "\nHow suite will be run:" << endl;
+    str << "\t # passes = " << run_params.getNumPasses() << endl;
+    str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
+    str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
+    str << "\t Output files will be named " << ofiles << endl;
+
+    str << "\nThe following kernels and variants will be run:\n"; 
 
     str << "\nVariants"
         << "\n--------\n";
