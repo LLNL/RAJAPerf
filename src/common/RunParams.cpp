@@ -46,8 +46,8 @@ namespace rajaperf
 RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
    npasses(1),
-   sample_fraction(1.0),
-   size_fraction(1.0),
+   rep_fact(1.0),
+   size_fact(1.0),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -82,8 +82,8 @@ RunParams::~RunParams()
 void RunParams::print(std::ostream& str) const
 {
   str << "\n npasses = " << npasses; 
-  str << "\n sample_fraction = " << sample_fraction; 
-  str << "\n size_fraction = " << size_fraction; 
+  str << "\n rep_fact = " << rep_fact; 
+  str << "\n size_fact = " << size_fact; 
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -154,26 +154,26 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--samplefrac") ) {
+    } else if ( opt == std::string("--repfact") ) {
 
       i++;
       if ( i < argc ) { 
-        sample_fraction = ::atof( argv[i] );
+        rep_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --samplefrac a value for sample fraction (double)" 
+                  << " must give --rep_fact a value (double)" 
                   << std::endl;       
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--sizefrac") ) {
+    } else if ( opt == std::string("--sizefact") ) {
 
       i++;
       if ( i < argc ) { 
-        size_fraction = ::atof( argv[i] );
+        size_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --sizefrac a value for size fraction (double)"
+                  << " must give --sizefact a value (double)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -281,11 +281,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through suite)\n\n"; 
 
-  str << "\t --samplefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default # times to run each kernel)\n\n";
+  str << "\t --repfact <double> [default is 1.0]\n"
+      << "\t      (% of default # reps to run each kernel)\n\n";
 
-  str << "\t --sizefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel iteration space size to run)\n\n";
+  str << "\t --sizefact <double> [default is 1.0]\n"
+      << "\t      (% of default kernel iteration space size to run)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";

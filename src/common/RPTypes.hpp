@@ -51,14 +51,14 @@ namespace rajaperf
 /*!
  ******************************************************************************
  *
- * \brief Type used for indexing in all kernel sample loops.
+ * \brief Type used for indexing in all kernel repetition loops.
  *
- * It is volatile to ensure that kernsls will not be optimized away by 
+ * It is volatile to ensure that kernels will not be optimized away by 
  * compilers, which can happen in some circumstances.
  *
  ******************************************************************************
  */
-typedef volatile int SampIndex_type;
+typedef volatile int RepIndex_type;
 
 
 /*!

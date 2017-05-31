@@ -122,7 +122,7 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(2000);
+   setDefaultReps(2000);
 }
 
 TRAP_INT::~TRAP_INT() 
@@ -149,7 +149,7 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -160,7 +160,7 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type sumx = m_sumx_init;
 
@@ -181,7 +181,7 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
@@ -203,7 +203,7 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type sumx = m_sumx_init;
 
@@ -230,7 +230,7 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
@@ -256,7 +256,7 @@ void TRAP_INT::runKernel(VariantID vid)
       allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         initCudaDeviceData(sumx, &m_sumx_init, 1); 
 
@@ -286,7 +286,7 @@ void TRAP_INT::runKernel(VariantID vid)
       TRAP_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
 

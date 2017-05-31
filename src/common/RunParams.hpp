@@ -75,9 +75,9 @@ public:
 
   int getNumPasses() const { return npasses; }
 
-  double getSampleFraction() const { return sample_fraction; }
+  double getRepFactor() const { return rep_fact; }
 
-  double getSizeFraction() const { return size_fraction; }
+  double getSizeFactor() const { return size_fact; }
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
@@ -119,12 +119,11 @@ private:
   void printGroupNames(std::ostream& str) const;
 //@}
 
-  InputOpt input_state;            /*!< state of command line input */
+  InputOpt input_state;     /*!< state of command line input */
 
-  int npasses;                     /*!< Number of passes through suite  */
-  double sample_fraction;          /*!< Frac of default kernel samples to run */
-  double size_fraction;            /*!< Frac of default kernel iteration space
-                                        to run */
+  int npasses;              /*!< Number of passes through suite  */
+  double rep_fact;          /*!< % of default kernel reps to run */
+  double size_fact;         /*!< % of default kernel iteration space to run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

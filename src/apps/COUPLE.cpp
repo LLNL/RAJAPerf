@@ -118,7 +118,7 @@ COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultSamples(60);
+  setDefaultReps(60);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
@@ -159,7 +159,7 @@ void COUPLE::setUp(VariantID vid)
 
 void COUPLE::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
 
 //
 // RDH: Should we use forallN for this kernel???
@@ -172,7 +172,7 @@ void COUPLE::runKernel(VariantID vid)
       COUPLE_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type k = kmin ; k < kmax ; ++k ) {
           COUPLE_BODY;
@@ -189,7 +189,7 @@ void COUPLE::runKernel(VariantID vid)
       COUPLE_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::seq_exec>(kmin, kmax, [=](int k) {
           COUPLE_BODY;
@@ -206,7 +206,7 @@ void COUPLE::runKernel(VariantID vid)
       COUPLE_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for 
         for (Index_type k = kmin ; k < kmax ; ++k ) {
@@ -228,7 +228,7 @@ void COUPLE::runKernel(VariantID vid)
       COUPLE_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(kmin, kmax, [=](int k) {
           COUPLE_BODY;

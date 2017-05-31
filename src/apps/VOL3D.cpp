@@ -165,7 +165,7 @@ VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultSamples(320);
+  setDefaultReps(320);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
@@ -189,7 +189,7 @@ void VOL3D::setUp(VariantID vid)
 
 void VOL3D::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = m_domain->fpz;
   const Index_type iend = m_domain->lpz+1;
 
@@ -204,7 +204,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           VOL3D_BODY;
@@ -225,7 +225,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           VOL3D_BODY;
@@ -247,7 +247,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
@@ -274,7 +274,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           VOL3D_BODY;
@@ -300,7 +300,7 @@ void VOL3D::runKernel(VariantID vid)
       const Index_type ilen = m_domain->lpz+1 - ibegin;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
@@ -328,7 +328,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,

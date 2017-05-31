@@ -147,7 +147,7 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
   setDefaultSize(312);  // See rzmax in ADomain struct
-  setDefaultSamples(1200);
+  setDefaultReps(1200);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
 }
@@ -173,7 +173,7 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
 
 void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
@@ -189,7 +189,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           DEL_DOT_VEC_2D_BODY;
@@ -211,7 +211,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int ii) {
           DEL_DOT_VEC_2D_BODY;
@@ -234,7 +234,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for 
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
@@ -262,7 +262,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int ii) {
           DEL_DOT_VEC_2D_BODY;
@@ -286,7 +286,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
@@ -317,7 +317,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,

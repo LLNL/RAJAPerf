@@ -83,7 +83,7 @@ MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(1500);
+   setDefaultReps(1500);
 }
 
 MUL::~MUL() 
@@ -99,7 +99,7 @@ void MUL::setUp(VariantID vid)
 
 void MUL::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -110,7 +110,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           MUL_BODY;
@@ -127,7 +127,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           MUL_BODY;
@@ -145,7 +145,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -168,7 +168,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
@@ -188,7 +188,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
          mul<<<grid_size, block_size>>>( b, c, alpha,
@@ -207,7 +207,7 @@ void MUL::runKernel(VariantID vid)
       MUL_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 

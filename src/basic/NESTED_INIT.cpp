@@ -87,7 +87,7 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   m_nk = m_nk_init = 50;
 
   setDefaultSize(m_ni * m_nj * m_nk);
-  setDefaultSamples(100);
+  setDefaultReps(100);
 }
 
 NESTED_INIT::~NESTED_INIT() 
@@ -107,7 +107,7 @@ void NESTED_INIT::setUp(VariantID vid)
 
 void NESTED_INIT::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
 
   switch ( vid ) {
 
@@ -116,7 +116,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type k = 0; k < nk; ++k ) {
           for (Index_type j = 0; j < nj; ++j ) {
@@ -137,7 +137,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN< RAJA::NestedPolicy< 
                        RAJA::ExecList< RAJA::simd_exec,
@@ -163,7 +163,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #if defined(USE_COLLAPSE)
         #pragma omp parallel 
@@ -204,7 +204,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #if defined(USE_COLLAPSE) 
       // impact....is there something wrong with the forallN implementation?
@@ -246,7 +246,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         dim3 nthreads_per_block(ni, 1, 1);
         dim3 nblocks(1, nj, nk);
@@ -267,7 +267,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN< RAJA::NestedPolicy< 
                        RAJA::ExecList< RAJA::cuda_thread_x_exec,

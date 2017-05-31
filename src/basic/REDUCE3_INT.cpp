@@ -124,7 +124,7 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(5000);
+   setDefaultReps(5000);
 }
 
 REDUCE3_INT::~REDUCE3_INT() 
@@ -145,7 +145,7 @@ void REDUCE3_INT::setUp(VariantID vid)
 
 void REDUCE3_INT::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -156,7 +156,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Int_type vsum = m_vsum_init;
         Int_type vmin = m_vmin_init;
@@ -181,7 +181,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
@@ -207,7 +207,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Int_type vsum = m_vsum_init;
         Int_type vmin = m_vmin_init;
@@ -240,7 +240,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
@@ -274,7 +274,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       allocAndInitCudaDeviceData(vmax, &m_vmax_init, 1);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         initCudaDeviceData(vsum, &m_vsum_init, 1);
 
@@ -315,7 +315,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       REDUCE3_INT_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::cuda_reduce<block_size>, Int_type> vmin(m_vmin_init);

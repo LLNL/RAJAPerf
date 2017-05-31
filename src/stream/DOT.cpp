@@ -118,7 +118,7 @@ DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
    setDefaultSize(1000000);
-   setDefaultSamples(1000);
+   setDefaultReps(1000);
 }
 
 DOT::~DOT() 
@@ -136,7 +136,7 @@ void DOT::setUp(VariantID vid)
 
 void DOT::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -147,7 +147,7 @@ void DOT::runKernel(VariantID vid)
       DOT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type dot = m_dot_init;
 
@@ -168,7 +168,7 @@ void DOT::runKernel(VariantID vid)
       DOT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
@@ -190,7 +190,7 @@ void DOT::runKernel(VariantID vid)
       DOT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type dot = m_dot_init;
 
@@ -217,7 +217,7 @@ void DOT::runKernel(VariantID vid)
       DOT_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
 
@@ -244,7 +244,7 @@ void DOT::runKernel(VariantID vid)
       thrust::device_vector<Real_type> vb(m_b, m_b+iend);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type dprod = thrust::inner_product(va.begin(), va.end(), 
                                                 vb.begin(), m_dot_init);
@@ -260,7 +260,7 @@ void DOT::runKernel(VariantID vid)
       allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         initCudaDeviceData(dprod, &m_dot_init, 1);
 
@@ -290,7 +290,7 @@ void DOT::runKernel(VariantID vid)
       DOT_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot_init);
 

@@ -96,7 +96,7 @@ INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultReps(5000);
 }
 
 INIT3::~INIT3() 
@@ -114,7 +114,7 @@ void INIT3::setUp(VariantID vid)
 
 void INIT3::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -125,7 +125,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT3_BODY;
@@ -142,7 +142,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           INIT3_BODY;
@@ -160,7 +160,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -183,7 +183,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
@@ -203,7 +203,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
          init3<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
@@ -222,7 +222,7 @@ void INIT3::runKernel(VariantID vid)
       INIT3_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 

@@ -82,7 +82,7 @@ configurations.
 The suite can be run in a variety of ways by passing options to the executable.
 For example, you can run subsets of kernels by specifying variants, group, or
 listing them explicitly. Other configuration options to set problem sizes, 
-number of kernel sampling passes, etc. can also be provided. The goal is to
+number of kernel repetitions, etc. can also be provided. The goal is to
 build the code once and use scripts or other mechanisms to run the suite
 in different ways.
 
@@ -266,7 +266,7 @@ consistency and ease of understanding. Here we describe several steps and
 conventions that must be followed to ensure that all kernels interact with
 the performance suite machinery in the same way:
 
-1. Initialize the 'KernelBase' class object with KernelID, default size, and default sample count in the `class constructor`.
+1. Initialize the 'KernelBase' class object with KernelID, default size, and default repetition count in the `class constructor`.
 2. Implement data allocation and initialization operation for each kernel variant in the `setUp` method.
 3. Implement kernel execution for each variant in the `RunKernel` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
@@ -284,10 +284,10 @@ The constructor must pass the kernel ID and RunParams object to the base
 class 'KernelBase' constructor. The body of the constructor must also call
 base class methods to set the default size for the iteration space of the 
 kernel (e.g., typically the number of loop iterations, but can be 
-kernel-dependent) and the number of times to sample (i.e., execute) the kernel 
+kernel-dependent) and the number of times to repeat (i.e., execute) the kernel 
 with each pass through the suite to generate adequate timing information. 
 These values will be modified based on input parameters to define the actual 
-size and number of samples applied when the suite is run. Here is how this 
+size and number of reps applied when the suite is run. Here is how this 
 typically looks:
 
 ```cpp
@@ -296,7 +296,7 @@ Foo::Foo(const RunParams& params)
     // default initialization of class members
 {
    setDefaultSize(100000);
-   setDefaultSamples(1000);
+   setDefaultReps(1000);
 }
 ```
 
@@ -332,14 +332,13 @@ kernel execution code section may look like:
 ```cpp
 void Foo::runKernel(VariantID vid)
 {
+  const Index_type run_reps = getRunReps();
   // ...
-
-  // Execute vid variant of kernel
 
   // Declare data for vid variant of kernel...
 
   startTimer();
-  for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+  for (SampIndex_type irep = 0; irep < run_reps; ++irep) {
      // Implementation of vid variant of kernel...
   }
   stopTimer();
