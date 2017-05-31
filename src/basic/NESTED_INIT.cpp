@@ -30,9 +30,12 @@
 
 #include "RAJA/RAJA.hpp"
 #include "RAJA/internal/MemUtils_CPU.hpp"
-#include "RAJA/util/Permutations.hpp"
 
 #include <iostream>
+
+//#define USE_COLLAPSE
+#undef USE_COLLAPSE
+
 
 namespace rajaperf 
 {
@@ -162,7 +165,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-#if 0 // using collapse actually slows this down a bit...
+#if defined(USE_COLLAPSE)
         #pragma omp parallel 
           {
             #pragma omp for nowait collapse(3) 
@@ -203,7 +206,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
 
-#if 0 // using collapse here has a significant negative performance
+#if defined(USE_COLLAPSE) 
       // impact....is there something wrong with the forallN implementation?
         RAJA::forallN< RAJA::NestedPolicy< 
                        RAJA::ExecList< RAJA::simd_exec,
