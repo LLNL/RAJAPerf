@@ -384,11 +384,11 @@ void Executor::outputRunData()
   }
 
   string filename = out_fprefix + "-timing.csv";
-  writeCSVReport(filename, CSVRepMode::Timing);
+  writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
 
   if ( haveReferenceVariant() ) { 
     filename = out_fprefix + "-speedup.csv";
-    writeCSVReport(filename, CSVRepMode::Speedup);
+    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
   }
 
   filename = out_fprefix + "-checksum.txt";
@@ -399,7 +399,8 @@ void Executor::outputRunData()
 }
 
 
-void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
+void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+                              size_t prec)
 {
   ofstream file(filename.c_str(), ios::out | ios::trunc);
   if ( !file ) {
@@ -413,7 +414,6 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     //
     const string kernel_col_name("Kernel  ");
     const string sepchr(" , ");
-    size_t prec = 12;
 
     size_t kercol_width = kernel_col_name.size();
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -458,8 +458,8 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
       file <<left<< setw(kercol_width) << kern->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
-        file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
-             << getReportDataEntry(mode, kern, vid);
+        file << sepchr <<right<< setw(varcol_width[iv]) << setprecision(prec) 
+             << std::fixed << getReportDataEntry(mode, kern, vid);
       }
       file << endl;
     }

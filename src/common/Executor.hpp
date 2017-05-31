@@ -70,7 +70,8 @@ private:
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
-  void writeCSVReport(const std::string& filename, CSVRepMode mode);
+  void writeCSVReport(const std::string& filename, CSVRepMode mode, 
+                      size_t prec);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 
                                  KernelBase* kern, VariantID vid);
