@@ -186,7 +186,7 @@ void Executor::setupSuite()
     // Set reference variant if not specified.
     //
     if ( run_params.getReferenceVariant().empty() ) {
-      reference_vid = VariantID::Baseline_Seq;
+      reference_vid = VariantID::Base_Seq;
     }
 
   } else {
@@ -296,8 +296,8 @@ void Executor::reportRunSummary(ostream& str) const
       str << "\n\nRAJA performance suite dry run summary...."
           <<   "\n--------------------------------------" << endl;
  
-      str << "\nRunParams state:";
-      str << "\n----------------";
+      str << "\nInput state:";
+      str << "\n------------";
       run_params.print(str);
 
     } 
@@ -318,8 +318,13 @@ void Executor::reportRunSummary(ostream& str) const
     ofiles += string("/") + run_params.getOutputFilePrefix() + 
               string("*");
 
-    str << "\nSuite will run with kernels and variants listed below.\n" 
-        << "Output files will be named " << ofiles << endl;
+    str << "\nHow suite will be run:" << endl;
+    str << "\t # passes = " << run_params.getNumPasses() << endl;
+    str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
+    str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
+    str << "\t Output files will be named " << ofiles << endl;
+
+    str << "\nThe following kernels and variants will be run:\n"; 
 
     str << "\nVariants"
         << "\n--------\n";
@@ -379,11 +384,11 @@ void Executor::outputRunData()
   }
 
   string filename = out_fprefix + "-timing.csv";
-  writeCSVReport(filename, CSVRepMode::Timing);
+  writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
 
   if ( haveReferenceVariant() ) { 
     filename = out_fprefix + "-speedup.csv";
-    writeCSVReport(filename, CSVRepMode::Speedup);
+    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
   }
 
   filename = out_fprefix + "-checksum.txt";
@@ -394,7 +399,8 @@ void Executor::outputRunData()
 }
 
 
-void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
+void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+                              size_t prec)
 {
   ofstream file(filename.c_str(), ios::out | ios::trunc);
   if ( !file ) {
@@ -408,7 +414,6 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
     //
     const string kernel_col_name("Kernel  ");
     const string sepchr(" , ");
-    size_t prec = 12;
 
     size_t kercol_width = kernel_col_name.size();
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -453,8 +458,8 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode)
       file <<left<< setw(kercol_width) << kern->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
-        file << sepchr <<left<< setw(varcol_width[iv]) << setprecision(prec) 
-             << getReportDataEntry(mode, kern, vid);
+        file << sepchr <<right<< setw(varcol_width[iv]) << setprecision(prec) 
+             << std::fixed << getReportDataEntry(mode, kern, vid);
       }
       file << endl;
     }
@@ -515,7 +520,7 @@ void Executor::writeFOMReport(const string& filename)
     //
     // Print title line.
     //
-    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_baseline) / T_baseline )";
+    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_base) / T_base )";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
@@ -551,7 +556,7 @@ void Executor::writeFOMReport(const string& filename)
       for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
         const FOMGroup& group = fom_groups[ifg];
 
-        VariantID base_vid = group.baseline;
+        VariantID base_vid = group.base;
 
         for (size_t gv = 0; gv < group.variants.size(); ++gv) {
           VariantID comp_vid = group.variants[gv];
@@ -700,7 +705,7 @@ void Executor::writeChecksumReport(const string& filename)
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
-    size_t prec = 32;
+    size_t prec = 20;
     size_t checksum_width = prec + 4;
 
     size_t namecol_width = 0;
@@ -835,10 +840,10 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
     VariantID vid = variant_ids[iv];
     string vname = getVariantName(vid);
 
-    if ( vname.find("Baseline") != string::npos ) {
+    if ( vname.find("Base") != string::npos ) {
 
       FOMGroup group;
-      group.baseline = vid;
+      group.base = vid;
  
       string::size_type pos = vname.find("_");
       string pm(vname.substr(pos+1, string::npos));
@@ -854,7 +859,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
         fom_groups.push_back( group );
       }
 
-    }  // if variant name contains 'Baseline'
+    }  // if variant name contains 'Base'
 
   }  // iterate over variant ids to run
 
@@ -862,7 +867,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   cout << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];
-    cout << "\tBaseline : " << getVariantName(group.baseline) << endl;
+    cout << "\tBase : " << getVariantName(group.base) << endl;
     for (size_t iv = 0; iv < group.variants.size(); ++iv) {
       cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
     }

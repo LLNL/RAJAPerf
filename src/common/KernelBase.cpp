@@ -38,9 +38,9 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     name( getFullKernelName(kernel_id) ),
     run_params(params),
     run_size(0),
-    run_samples(0),
+    run_reps(0),
     default_size(0),
-    default_samples(0),
+    default_reps(0),
     running_variant(NumVariants)
 {
   for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
@@ -62,13 +62,13 @@ void KernelBase::setDefaultSize(Index_type size)
 {
   default_size = size;
   run_size = 
-    static_cast<Index_type>( size*run_params.getSizeFraction() );
+    static_cast<Index_type>( size*run_params.getSizeFactor() );
 }
 
-void KernelBase::setDefaultSamples(Index_type nsamp)
+void KernelBase::setDefaultReps(Index_type nreps)
 {
-  default_samples = nsamp;
-  run_samples = static_cast<Index_type>( nsamp*run_params.getSampleFraction() );
+  default_reps = nreps;
+  run_reps = static_cast<Index_type>( nreps*run_params.getRepFactor() );
 }
 
 SizeSpec_T KernelBase::getSizeSpec()
@@ -110,8 +110,8 @@ void KernelBase::print(std::ostream& os) const
   os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
   os << "\t\t\t run_size(default_size) = " 
      << run_size << "(" << default_size << ")" << std::endl;
-  os << "\t\t\t run_samples(default_samples) = " 
-     << run_samples << "(" << default_samples << ")" << std::endl;
+  os << "\t\t\t run_reps(default_reps) = " 
+     << run_reps << "(" << default_reps << ")" << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << num_exec[j] << std::endl; 

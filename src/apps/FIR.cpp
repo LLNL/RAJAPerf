@@ -147,7 +147,7 @@ FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
   setDefaultSize(100000);
-  setDefaultSamples(5000);
+  setDefaultReps(5000);
 }
 
 FIR::~FIR() 
@@ -164,20 +164,20 @@ void FIR::setUp(VariantID vid)
 
 void FIR::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize() - m_coefflen;
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       FIR_COEFF;
 
       FIR_DATA;
   
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIR_BODY;
@@ -196,7 +196,7 @@ void FIR::runKernel(VariantID vid)
       FIR_DATA;
  
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
           FIR_BODY;
@@ -209,14 +209,14 @@ void FIR::runKernel(VariantID vid)
     }
 
 #if defined(_OPENMP)      
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 
       FIR_COEFF;
 
       FIR_DATA;
  
       startTimer();
-      for (SampIndex_type isamp = ibegin; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = ibegin; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -241,7 +241,7 @@ void FIR::runKernel(VariantID vid)
       FIR_DATA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
           FIR_BODY;
@@ -255,14 +255,14 @@ void FIR::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA : {
+    case Base_CUDA : {
 
       FIR_COEFF;
 
       FIR_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
@@ -292,7 +292,7 @@ void FIR::runKernel(VariantID vid)
       FIR_DATA_SETUP_CUDA;
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend,
@@ -310,7 +310,7 @@ void FIR::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Baseline_OpenMP4x :
+    case Base_OpenMP4x :
     case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;

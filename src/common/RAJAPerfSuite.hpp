@@ -93,6 +93,9 @@ enum KernelID {
   Basic_MULADDSUB = 0,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
+  Basic_INIT3,
+  Basic_REDUCE3_INT,
+  Basic_NESTED_INIT,
 
 //
 // Livloops kernels...
@@ -166,19 +169,19 @@ enum KernelID {
  */
 enum VariantID {
 
-  Baseline_Seq = 0,
+  Base_Seq = 0,
   RAJA_Seq,
 #if defined(_OPENMP)
-  Baseline_OpenMP,
+  Base_OpenMP,
   RAJALike_OpenMP,
   RAJA_OpenMP,
 #endif
 #if defined(RAJA_ENABLE_CUDA)
-  Baseline_CUDA,
+  Base_CUDA,
   RAJA_CUDA,
 #endif
 #if 0
-  Baseline_OpenMP4x,
+  Base_OpenMP4x,
   RAJA_OpenMP4x,
 #endif
 

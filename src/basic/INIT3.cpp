@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Implementation file for Basic kernel IF_QUAD.
+ * \brief   Implementation file for Basic kernel INIT3.
  *
  ******************************************************************************
  */
@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "IF_QUAD.hpp"
+#include "INIT3.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -37,23 +37,16 @@ namespace rajaperf
 namespace basic
 {
 
-#define IF_QUAD_DATA \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  ResReal_ptr x1 = m_x1; \
-  ResReal_ptr x2 = m_x2;
+#define INIT3_DATA \
+  ResReal_ptr out1 = m_out1; \
+  ResReal_ptr out2 = m_out2; \
+  ResReal_ptr out3 = m_out3; \
+  ResReal_ptr in1 = m_in1; \
+  ResReal_ptr in2 = m_in2;
 
-#define IF_QUAD_BODY  \
-  Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
-  if ( s >= 0 ) { \
-    s = sqrt(s); \
-    x2[i] = (-b[i]+s)/(2.0*a[i]); \
-    x1[i] = (-b[i]-s)/(2.0*a[i]); \
-  } else { \
-    x2[i] = 0.0; \
-    x1[i] = 0.0; \
-  }
+#define INIT3_BODY  \
+  out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
+
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -63,62 +56,63 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define IF_QUAD_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_ptr x1; \
-  Real_ptr x2; \
+#define INIT3_DATA_SETUP_CUDA \
+  Real_ptr out1; \
+  Real_ptr out2; \
+  Real_ptr out3; \
+  Real_ptr in1; \
+  Real_ptr in2; \
 \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend); \
-  allocAndInitCudaDeviceData(x1, m_x1, iend); \
-  allocAndInitCudaDeviceData(x2, m_x2, iend);
+  allocAndInitCudaDeviceData(out1, m_out1, iend); \
+  allocAndInitCudaDeviceData(out2, m_out2, iend); \
+  allocAndInitCudaDeviceData(out3, m_out3, iend); \
+  allocAndInitCudaDeviceData(in1, m_in1, iend); \
+  allocAndInitCudaDeviceData(in2, m_in2, iend);
 
-#define IF_QUAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, iend); \
-  getCudaDeviceData(m_x2, x2, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2);
+#define INIT3_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_out1, out1, iend); \
+  getCudaDeviceData(m_out2, out2, iend); \
+  getCudaDeviceData(m_out3, out3, iend); \
+  deallocCudaDeviceData(out1); \
+  deallocCudaDeviceData(out2); \
+  deallocCudaDeviceData(out3); \
+  deallocCudaDeviceData(in1); \
+  deallocCudaDeviceData(in2);
 
-__global__ void ifquad(Real_ptr x1, Real_ptr x2,
-                       Real_ptr a, Real_ptr b, Real_ptr c,
-                       Index_type iend)
+__global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
+                      Real_ptr in1, Real_ptr in2, 
+                      Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     IF_QUAD_BODY;
+     INIT3_BODY; 
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-IF_QUAD::IF_QUAD(const RunParams& params)
-  : KernelBase(rajaperf::Basic_IF_QUAD, params)
+INIT3::INIT3(const RunParams& params)
+  : KernelBase(rajaperf::Basic_INIT3, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(1500);
+   setDefaultReps(5000);
 }
 
-IF_QUAD::~IF_QUAD() 
+INIT3::~INIT3() 
 {
 }
 
-void IF_QUAD::setUp(VariantID vid)
+void INIT3::setUp(VariantID vid)
 {
-  allocAndInitDataRandSign(m_a, getRunSize(), vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
-  allocAndInitData(m_x1, getRunSize(), vid);
-  allocAndInitData(m_x2, getRunSize(), vid);
+  allocAndInitData(m_out1, getRunSize(), vid);
+  allocAndInitData(m_out2, getRunSize(), vid);
+  allocAndInitData(m_out3, getRunSize(), vid);
+  allocAndInitData(m_in1, getRunSize(), vid);
+  allocAndInitData(m_in2, getRunSize(), vid);
 }
 
-void IF_QUAD::runKernel(VariantID vid)
+void INIT3::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -128,13 +122,13 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      IF_QUAD_DATA;
+      INIT3_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          IF_QUAD_BODY;
+          INIT3_BODY;
         }
 
       }
@@ -145,13 +139,13 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      IF_QUAD_DATA;
+      INIT3_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
-          IF_QUAD_BODY;
+        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+          INIT3_BODY;
         });
 
       }
@@ -163,14 +157,14 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(_OPENMP)
     case Base_OpenMP : {
 
-      IF_QUAD_DATA;
+      INIT3_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          IF_QUAD_BODY;
+          INIT3_BODY;
         }
 
       }
@@ -186,15 +180,15 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      IF_QUAD_DATA;
+      INIT3_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
-          IF_QUAD_BODY;
+        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
+          [=](Index_type i) {
+          INIT3_BODY;
         });
-
 
       }
       stopTimer();
@@ -206,40 +200,40 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
-      IF_QUAD_DATA_SETUP_CUDA;
+      INIT3_DATA_SETUP_CUDA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                            iend );
+         init3<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
+                                           iend ); 
 
       }
       stopTimer();
 
-      IF_QUAD_DATA_TEARDOWN_CUDA;
+      INIT3_DATA_TEARDOWN_CUDA;
 
-      break;
+      break; 
     }
 
     case RAJA_CUDA : {
 
-      IF_QUAD_DATA_SETUP_CUDA;
+      INIT3_DATA_SETUP_CUDA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend,
+           ibegin, iend, 
            [=] __device__ (Index_type i) {
-           IF_QUAD_BODY;
+           INIT3_BODY;
          });
 
       }
       stopTimer();
 
-      IF_QUAD_DATA_TEARDOWN_CUDA;
+      INIT3_DATA_TEARDOWN_CUDA;
 
       break;
     }
@@ -261,20 +255,21 @@ void IF_QUAD::runKernel(VariantID vid)
 
 }
 
-void IF_QUAD::updateChecksum(VariantID vid)
+void INIT3::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x1, getRunSize());
-  checksum[vid] += calcChecksum(m_x2, getRunSize());
+  checksum[vid] += calcChecksum(m_out1, getRunSize());
+  checksum[vid] += calcChecksum(m_out2, getRunSize());
+  checksum[vid] += calcChecksum(m_out3, getRunSize());
 }
 
-void IF_QUAD::tearDown(VariantID vid)
+void INIT3::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_a);
-  deallocData(m_b);
-  deallocData(m_c);
-  deallocData(m_x1);
-  deallocData(m_x2);
+  deallocData(m_out1);
+  deallocData(m_out2);
+  deallocData(m_out3);
+  deallocData(m_in1);
+  deallocData(m_in2);
 }
 
 } // end namespace basic

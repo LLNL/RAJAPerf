@@ -35,6 +35,9 @@
 #include "basic/MULADDSUB.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/TRAP_INT.hpp"
+#include "basic/INIT3.hpp"
+#include "basic/REDUCE3_INT.hpp"
+#include "basic/NESTED_INIT.hpp"
 
 //
 // Livloops kernels...
@@ -117,6 +120,9 @@ static const std::string KernelNames [] =
   std::string("Basic_MULADDSUB"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_TRAP_INT"),
+  std::string("Basic_INIT3"),
+  std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_NESTED_INIT"),
 
 //
 // Livloops kernels...
@@ -192,19 +198,19 @@ static const std::string KernelNames [] =
 static const std::string VariantNames [] =
 {
 
-  std::string("Baseline_Seq"),
+  std::string("Base_Seq"),
   std::string("RAJA_Seq"),
 #if defined(_OPENMP)
-  std::string("Baseline_OpenMP"),
+  std::string("Base_OpenMP"),
   std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
 #endif
 #if defined(RAJA_ENABLE_CUDA)
-  std::string("Baseline_CUDA"),
+  std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
 #endif
 #if 0
-  std::string("Baseline_OpenMP4.x"),
+  std::string("Base_OpenMP4.x"),
   std::string("RAJA_OpenMP4.x"),
 #endif
 
@@ -293,6 +299,18 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
+       break;
+    }
+    case Basic_INIT3 : {
+       kernel = new basic::INIT3(run_params);
+       break;
+    }
+    case Basic_REDUCE3_INT : {
+       kernel = new basic::REDUCE3_INT(run_params);
+       break;
+    }
+    case Basic_NESTED_INIT : {
+       kernel = new basic::NESTED_INIT(run_params);
        break;
     }
 

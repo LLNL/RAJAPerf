@@ -29,6 +29,7 @@
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
 
+#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 namespace rajaperf
 {
@@ -44,6 +45,12 @@ void resetDataInitCount();
  */
 void incDataInitCount();
 
+
+/*!
+ * \brief Allocate and initialize Int_type data array.
+ */
+void allocAndInitData(Int_ptr& ptr, int len,
+                      VariantID vid = NumVariants);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
@@ -67,10 +74,18 @@ void allocAndInitData(Complex_ptr& ptr, int len, bool init = true,
 /*!
  * \brief Free data arrays.
  */
+void deallocData(Int_ptr& ptr);
+///
 void deallocData(Real_ptr& ptr);
 ///
 void deallocData(Complex_ptr& ptr);
 
+
+/*!
+ * \brief Initialize Int_type data array.
+ */
+void initData(Int_ptr& ptr, int len,
+              VariantID vid = NumVariants);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -99,36 +114,39 @@ void initData(Real_type& d,
 
 #if defined(RAJA_ENABLE_CUDA)
 
-/*!
- * \brief Allocate CUDA device Real_type array and copy from host to device.
- */
-void allocAndInitCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
+template <typename T>
+void initCudaDeviceData(T& dptr, const T hptr, int len)
+{
+  cudaErrchk( cudaMemcpy( dptr, hptr, 
+                          len * sizeof(typename std::remove_pointer<T>::type),
+                          cudaMemcpyHostToDevice ) );
 
-/*!
- * \brief Copy host data Real_type array to CUDA device.
- */
-void initCudaDeviceData(Real_ptr& dptr, const Real_ptr hptr, int len);
+  incDataInitCount();
+}
 
-/*!
- * \brief Allocate CUDA device Index_type array and copy from host to device.
- */
-void allocAndInitCudaDeviceData(Index_type*& dptr, const Index_type* hptr,
-                                int len);
+template <typename T>
+void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr,
+              len * sizeof(typename std::remove_pointer<T>::type) ) );
 
-/*!
- * \brief Copy host data Index_type array to CUDA device.
- */
-void initCudaDeviceData(Index_type*& dptr, const Index_type* hptr, int len);
+  initCudaDeviceData(dptr, hptr, len);
+}
 
-/*!
- * \brief Copy CUDA device data array back to host.
- */
-void getCudaDeviceData(Real_ptr& hptr, const Real_ptr dptr, int len);
+template <typename T>
+void getCudaDeviceData(T& hptr, const T dptr, int len)
+{
+  cudaErrchk( cudaMemcpy( hptr, dptr, 
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaMemcpyDeviceToHost ) );
+}
 
-/*!
- * \brief Deallocate CUDA device data.
- */
-void deallocCudaDeviceData(Real_ptr& dptr);
+template <typename T>
+void deallocCudaDeviceData(T& dptr)
+{
+  cudaErrchk( cudaFree( dptr ) );
+  dptr = 0;
+}
 
 #endif
 

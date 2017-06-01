@@ -46,10 +46,10 @@ namespace rajaperf
 RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
    npasses(1),
-   sample_fraction(1.0),
-   size_fraction(1.0),
    size_spec(Specundefined),
    size_spec_string("SPECUNDEFINED"),
+   rep_fact(1.0),
+   size_fact(1.0),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -84,8 +84,8 @@ RunParams::~RunParams()
 void RunParams::print(std::ostream& str) const
 {
   str << "\n npasses = " << npasses; 
-  str << "\n sample_fraction = " << sample_fraction; 
-  str << "\n size_fraction = " << size_fraction; 
+  str << "\n rep_fact = " << rep_fact; 
+  str << "\n size_fact = " << size_fact; 
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -156,26 +156,26 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--samplefrac") ) {
+    } else if ( opt == std::string("--repfact") ) {
 
       i++;
       if ( i < argc ) { 
-        sample_fraction = ::atof( argv[i] );
+        rep_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --samplefrac a value for sample fraction (double)" 
+                  << " must give --rep_fact a value (double)" 
                   << std::endl;       
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--sizefrac") ) {
+    } else if ( opt == std::string("--sizefact") ) {
 
       i++;
       if ( i < argc ) { 
-        size_fraction = ::atof( argv[i] );
+        size_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --sizefrac a value for size fraction (double)"
+                  << " must give --sizefact a value (double)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -285,20 +285,20 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
 
-  str << "\t --help, -h (prints options with descriptions}\n";
+  str << "\t --help, -h (prints options with descriptions}\n\n";
 
-  str << "\t --print-kernels, -pk (prints valid kernel names}\n";
+  str << "\t --print-kernels, -pk (prints valid kernel names}\n\n";
 
-  str << "\t --print-variants, -pv (prints valid variant names}\n";
+  str << "\t --print-variants, -pv (prints valid variant names}\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n"; 
+      << "\t      (num passes through suite)\n\n"; 
 
-  str << "\t --samplefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default # times to run each kernel)\n";
+  str << "\t --repfact <double> [default is 1.0]\n"
+      << "\t      (% of default # reps to run each kernel)\n\n";
 
-  str << "\t --sizefrac <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel iteration space size to run)\n";
+  str << "\t --sizefact <double> [default is 1.0]\n"
+      << "\t      (% of default kernel iteration space size to run)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase)]\n"
       << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n"; 
@@ -307,31 +307,31 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outdir foo (output files to ./foo directory\n"
-      << "\t\t --odir /nfs/tmp/me (output files to /nfs/tmp/me directory)\n";
+      << "\t\t --od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
 
   str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
-      << "\t\t --ofile dat (output data will be in files 'dat*')\n";
+      << "\t\t --of dat (output data will be in files 'dat*')\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n";
+      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
 
   str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
       << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Baseline_Seq RAJA_CUDA (run Baseline_Seq, RAJA_CUDA variants)\n";
+      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq, RAJA_CUDA variants)\n\n";
 
   str << "\t --refvar, -rv <string> [Default is none]\n"
-      << "\t      (reference variant for speedup calculation)\n";
+      << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
-      << "\t\t -refvar Baseline_Seq (speedups reported relative to Baseline_Seq variants)\n";
+      << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
   str << "\t --dryrun (print summary of how suite will run without running)\n";
 

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Stream kernel DOT.
+ * \brief   Header file for Basic kernel NESTED_INIT.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Stream_DOT_HPP
-#define RAJAPerf_Stream_DOT_HPP
+#ifndef RAJAPerf_Basic_NESTED_INIT_HPP
+#define RAJAPerf_Basic_NESTED_INIT_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -33,16 +33,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace stream
+namespace basic
 {
 
-class DOT : public KernelBase
+class NESTED_INIT : public KernelBase
 {
 public:
 
-  DOT(const RunParams& params);
+  NESTED_INIT(const RunParams& params);
 
-  ~DOT();
+  ~NESTED_INIT();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,13 +50,14 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_a;
-  Real_ptr m_b;
-  Real_type m_dot;
-  Real_type m_dot_init;
+  Real_ptr m_array;
+  Int_type m_ni;
+  Int_type m_nj;
+  Int_type m_nk;
+  Int_type m_nk_init;
 };
 
-} // end namespace stream
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

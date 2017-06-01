@@ -29,11 +29,9 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/policy/cuda.hpp"
 
 #include <iostream>
-#if 0
-#include <iomanip>
-#endif
 
 namespace rajaperf 
 {
@@ -80,33 +78,42 @@ Real_type trap_int_func(Real_type x,
 
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
-#if 0
 __global__ void trapint(Real_type x0, Real_type xp,
                         Real_type y, Real_type yp, 
                         Real_type h, 
                         Real_ptr sumx,
                         Index_type iend)
 {
-   extern __shared__ Real_type tsumx[];
+  extern __shared__ Real_type psumx[ ];
 
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     Index_type tid = threadIdx.x;
-     Real_type x = x0 + i*h;
-     Real_type tsumx = trap_int_func(x, y, xp, yp);
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
-     tsumx[tid] = tsumx;
+  psumx[ threadIdx.x ] = 0.0;
+  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+    Real_type x = x0 + i*h;
+    Real_type val = trap_int_func(x, y, xp, yp);
+    psumx[ threadIdx.x ] += val;
+  }
+  __syncthreads();
+
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
+    }
      __syncthreads();
+  }
 
-     for (Index_type s = blockDim.x/2; s > 0; s /= 2) {
-       if (tid < s) tsumx[tid] += tsumx[tid+s];
-       __syncthreads();
-     }
-
-     if (tid == 0) atomcAdd(*sumx, tsumx[tid]);  // Need "atomicAdd for reals
-   }
-}
+#if 1 // serialized access to shared data;
+  if ( threadIdx.x == 0 ) {
+    RAJA::_atomicAdd( sumx, psumx[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *sumx += psumx[ 0 ];
+  }
 #endif
+
+}
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
@@ -115,7 +122,7 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
    setDefaultSize(100000);
-   setDefaultSamples(1200);
+   setDefaultReps(2000);
 }
 
 TRAP_INT::~TRAP_INT() 
@@ -142,33 +149,29 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-#if 0
-std::cout << "\tTRAP(" << vid << ") : sumx = " 
-          << std::setprecision(20) << m_sumx_init << std::endl; 
-#endif
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       TRAP_INT_DATA;
 
-      Real_type sumx = m_sumx_init;
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sumx = m_sumx_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
 
+        m_sumx += sumx * h;
+
       }
       stopTimer();
-
-      m_sumx = sumx * h;
 
       break;
     }
@@ -177,42 +180,42 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::seq_exec>(ibegin, iend, [=](int i) {
           TRAP_INT_BODY;
         });
 
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
       }
       stopTimer();
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
 
 #if defined(_OPENMP)
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 
       TRAP_INT_DATA;
 
-      Real_type sumx = m_sumx_init;
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sumx = m_sumx_init;
 
         #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
         }
 
+        m_sumx += sumx * h;
+
       }
       stopTimer();
-
-      m_sumx = sumx * h;
 
       break;
     }
@@ -226,42 +229,54 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
           TRAP_INT_BODY;
         });
 
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
       }
       stopTimer();
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA : {
+    case Base_CUDA : {
 
-#if 0
-      TRAP_INT_DATA_SETUP_CUDA;
+      TRAP_INT_DATA;
+      Real_ptr sumx;
+      allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         trapint<<<grid_size, block_size>>>( iend );
+        initCudaDeviceData(sumx, &m_sumx_init, 1); 
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+        trapint<<<grid_size, block_size, 
+                  sizeof(Real_type)*block_size>>>(x0, xp,
+                                                  y, yp,
+                                                  h,
+                                                  sumx,
+                                                  iend);
+
+        Real_type lsumx;
+        Real_ptr plsumx = &lsumx;
+        getCudaDeviceData(plsumx, sumx, 1);
+        m_sumx += lsumx;
 
       }
       stopTimer();
 
-      TRAP_INT_DATA_TEARDOWN_CUDA;
-#endif
+      deallocCudaDeviceData(sumx);
 
       break;
     }
@@ -270,28 +285,28 @@ std::cout << "\tTRAP(" << vid << ") : sumx = "
 
       TRAP_INT_DATA;
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend,
-           [=] __device__ (Index_type i) {
-           TRAP_INT_BODY;
-         });
+        RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
+
+        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+          ibegin, iend,
+          [=] __device__ (Index_type i) {
+          TRAP_INT_BODY;
+        });
+
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
       }
       stopTimer();
-
-      m_sumx = static_cast<Real_type>(sumx.get()) * h;
 
       break;
     }
 #endif
 
 #if 0
-    case Baseline_OpenMP4x :
+    case Base_OpenMP4x :
     case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;

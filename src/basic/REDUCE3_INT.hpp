@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Stream kernel DOT.
+ * \brief   Header file for Basic kernel REDUCE3_INT.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Stream_DOT_HPP
-#define RAJAPerf_Stream_DOT_HPP
+#ifndef RAJAPerf_Basic_REDUCE3_INT_HPP
+#define RAJAPerf_Basic_REDUCE3_INT_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -33,16 +33,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace stream
+namespace basic
 {
 
-class DOT : public KernelBase
+class REDUCE3_INT : public KernelBase
 {
 public:
 
-  DOT(const RunParams& params);
+  REDUCE3_INT(const RunParams& params);
 
-  ~DOT();
+  ~REDUCE3_INT();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
@@ -50,13 +50,16 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Real_ptr m_a;
-  Real_ptr m_b;
-  Real_type m_dot;
-  Real_type m_dot_init;
+  Int_ptr m_vec;
+  Int_type m_vsum;
+  Int_type m_vsum_init;
+  Int_type m_vmax;
+  Int_type m_vmax_init;
+  Int_type m_vmin;
+  Int_type m_vmin_init;
 };
 
-} // end namespace stream
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

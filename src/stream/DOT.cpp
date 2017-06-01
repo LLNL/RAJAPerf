@@ -29,8 +29,18 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/policy/cuda.hpp"
 
 #include <iostream>
+
+#define USE_THRUST
+//#undef USE_THRUST
+
+
+#if defined(RAJA_ENABLE_CUDA) && defined(USE_THRUST)
+#include <thrust/device_vector.h>
+#include <thrust/inner_product.h>
+#endif
 
 namespace rajaperf 
 {
@@ -64,13 +74,40 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
-#if 0
+#if defined(USE_THRUST)
+// Nothing to do here...
+#else
 __global__ void dot(Real_ptr a, Real_ptr b,
+                    Real_ptr dprod, Real_type dprod_init,
                     Index_type iend) 
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-   }
+  extern __shared__ Real_type pdot[ ];
+
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  pdot[ threadIdx.x ] = dprod_init; 
+  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+    pdot[ threadIdx.x ] += a[ i ] * b[i];
+  }
+  __syncthreads();
+
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
+    }
+     __syncthreads();
+  }
+
+#if 1 // serialized access to shared data;
+  if ( threadIdx.x == 0 ) {
+    RAJA::_atomicAdd( dprod, pdot[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *dprod += pdot[ 0 ];
+  }
+#endif
+
 }
 #endif
 
@@ -80,8 +117,8 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
-   setDefaultSize(100000);
-   setDefaultSamples(5000);
+   setDefaultSize(1000000);
+   setDefaultReps(1000);
 }
 
 DOT::~DOT() 
@@ -92,33 +129,36 @@ void DOT::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
+
+  m_dot = 0.0;
+  m_dot_init = 0.0;
 }
 
 void DOT::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       DOT_DATA;
 
-      Real_type dot = 0.0;
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
 
+         m_dot += dot;
+
       }
       stopTimer();
-
-      m_dot = dot;
 
       break;
     }
@@ -127,42 +167,42 @@ void DOT::runKernel(VariantID vid)
 
       DOT_DATA;
 
-      RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(0.0);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
         RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
           DOT_BODY;
         });
 
+        m_dot += static_cast<Real_type>(dot.get());
+
       }
       stopTimer();
-
-      m_dot = static_cast<Real_type>(dot.get());
 
       break;
     }
 
 #if defined(_OPENMP)
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 
       DOT_DATA;
 
-      Real_type dot = 0.0;
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
 
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
 
+        m_dot += dot;
+
       }
       stopTimer();
-
-      m_dot = dot;
 
       break;
     }
@@ -176,42 +216,70 @@ void DOT::runKernel(VariantID vid)
 
       DOT_DATA;
 
-      RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(0.0);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
           [=](Index_type i) {
           DOT_BODY;
         });
 
+        m_dot += static_cast<Real_type>(dot.get());
+
       }
       stopTimer();
-
-      m_dot = static_cast<Real_type>(dot.get());
 
       break;
     }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA : {
+    case Base_CUDA : {
 
-#if 0
-      DOT_DATA_SETUP_CUDA;
+#if defined(USE_THRUST)
+
+      thrust::device_vector<Real_type> va(m_a, m_a+iend);
+      thrust::device_vector<Real_type> vb(m_b, m_b+iend);
 
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         dot<<<grid_size, block_size>>>( a, b, 
-                                         iend ); 
+        Real_type dprod = thrust::inner_product(va.begin(), va.end(), 
+                                                vb.begin(), m_dot_init);
+
+        m_dot += dprod;
+
+      }
+      stopTimer();
+      
+#else
+      DOT_DATA_SETUP_CUDA;
+      Real_ptr dprod;
+      allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        initCudaDeviceData(dprod, &m_dot_init, 1);
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+        dot<<<grid_size, block_size, 
+              sizeof(Real_type)*block_size>>>( a, b, 
+                                               dprod, m_dot_init,
+                                               iend ); 
+
+        Real_type lprod;
+        Real_ptr plprod = &lprod;
+        getCudaDeviceData(plprod, dprod, 1);
+        m_dot += lprod;  
 
       }
       stopTimer();
 
       DOT_DATA_TEARDOWN_CUDA;
+      deallocCudaDeviceData(dprod);
 #endif
 
       break; 
@@ -221,10 +289,10 @@ void DOT::runKernel(VariantID vid)
 
       DOT_DATA_SETUP_CUDA;
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(0.0);
-
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+         RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot_init);
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            ibegin, iend, 
@@ -232,10 +300,10 @@ void DOT::runKernel(VariantID vid)
            DOT_BODY;
          });
 
+         m_dot += static_cast<Real_type>(dot.get());
+
       }
       stopTimer();
-
-      m_dot = static_cast<Real_type>(dot.get());
 
       DOT_DATA_TEARDOWN_CUDA;
 
@@ -244,7 +312,7 @@ void DOT::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Baseline_OpenMP4x :
+    case Base_OpenMP4x :
     case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;
@@ -261,7 +329,7 @@ void DOT::runKernel(VariantID vid)
 
 void DOT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += m_dot;
 }
 
 void DOT::tearDown(VariantID vid)

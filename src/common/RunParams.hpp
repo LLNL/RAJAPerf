@@ -78,9 +78,9 @@ public:
 
   int getNumPasses() const { return npasses; }
 
-  double getSampleFraction() const { return sample_fraction; }
+  double getRepFactor() const { return rep_fact; }
 
-  double getSizeFraction() const { return size_fraction; }
+  double getSizeFactor() const { return size_fact; }
 
   SizeSpec_T  getSizeSpec() const { return size_spec; }
 
@@ -128,12 +128,11 @@ private:
   void printGroupNames(std::ostream& str) const;
 //@}
 
-  InputOpt input_state;            /*!< state of command line input */
+  InputOpt input_state;     /*!< state of command line input */
 
-  int npasses;                     /*!< Number of passes through suite  */
-  double sample_fraction;          /*!< Frac of default kernel samples to run */
-  double size_fraction;            /*!< Frac of default kernel iteration space
-                                        to run */
+  int npasses;              /*!< Number of passes through suite  */
+  double rep_fact;          /*!< % of default kernel reps to run */
+  double size_fact;         /*!< % of default kernel iteration space to run */
 
   SizeSpec_T size_spec;          /* if provided use/parse polybench spec file for size data: one of
                                     MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
