@@ -121,11 +121,23 @@ COUPLE::COUPLE(const RunParams& params)
   setDefaultReps(60);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+
+  m_imin = m_domain->imin;
+  m_imax = m_domain->imax;
+  m_jmin = m_domain->jmin;
+  m_jmax = m_domain->jmax;
+  m_kmin = m_domain->kmin;
+  m_kmax = m_domain->kmax;
 }
 
 COUPLE::~COUPLE() 
 {
   delete m_domain;
+}
+
+Index_type COUPLE::getItsPerRep() const 
+{ 
+  return  ( (m_imax - m_imin) * (m_jmax - m_jmin) * (m_kmax - m_kmin) ); 
 }
 
 void COUPLE::setUp(VariantID vid)
@@ -137,13 +149,6 @@ void COUPLE::setUp(VariantID vid)
   allocAndInitData(m_t2, max_loop_index, vid);
   allocAndInitData(m_denac, max_loop_index, vid);
   allocAndInitData(m_denlw, max_loop_index, vid);
-
-  m_imin = m_domain->imin;
-  m_imax = m_domain->imax;
-  m_jmin = m_domain->jmin;
-  m_jmax = m_domain->jmax;
-  m_kmin = m_domain->kmin;
-  m_kmax = m_domain->kmax;
 
   m_clight = 3.e+10;
   m_csound = 3.09e+7;

@@ -38,6 +38,7 @@
 
 namespace rajaperf {
 
+class RunParams;
 
 class KernelBase
 {
@@ -50,11 +51,14 @@ public:
   KernelID     getKernelID() const { return kernel_id; }
   const std::string& getName() const { return name; }
 
-  Index_type getRunSize() const { return run_size; }
-  Index_type getRunReps() const { return run_reps; }
-
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }
+
+  void setDefaultSize(Index_type size) { default_size = size; }
+  void setDefaultReps(Index_type reps) { default_reps = reps; }
+
+  Index_type getRunSize() const;
+  Index_type getRunReps() const;
 
   bool wasVariantRun(VariantID vid) const 
     { return num_exec[vid] > 0; }
@@ -64,13 +68,17 @@ public:
   double getTotTime(VariantID vid) { return tot_time[vid]; }
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
-  void setDefaultSize(Index_type size); 
-  void setDefaultReps(Index_type reps);
-
   void execute(VariantID vid);
   void startTimer() { timer.start(); }
   void stopTimer()  { timer.stop(); recordExecTime(); }
   void resetTimer() { timer.reset(); }
+
+  //
+  // Virtual and pure virtual methods that may/must be implemented
+  // by each concrete kernel class.
+  //
+
+  virtual Index_type getItsPerRep() const { return getRunSize(); }
 
   virtual void print(std::ostream& os) const; 
 
@@ -96,12 +104,9 @@ private:
   KernelID    kernel_id;
   std::string name;
 
-  RAJA::Timer timer;
-
   const RunParams& run_params;
 
-  Index_type run_size;
-  Index_type run_reps;
+  RAJA::Timer timer;
 
   Index_type default_size;
   Index_type default_reps;

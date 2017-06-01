@@ -148,18 +148,22 @@ FIR::FIR(const RunParams& params)
 {
   setDefaultSize(100000);
   setDefaultReps(5000);
+
+  m_coefflen = COEFFLEN;
 }
 
 FIR::~FIR() 
 {
 }
 
+Index_type FIR::getItsPerRep() const { 
+  return getRunSize() - m_coefflen;
+}
+
 void FIR::setUp(VariantID vid)
 {
   allocAndInitData(m_in, getRunSize(), vid);
   allocAndInitData(m_out, getRunSize(), vid);
-
-  m_coefflen = COEFFLEN;
 }
 
 void FIR::runKernel(VariantID vid)
