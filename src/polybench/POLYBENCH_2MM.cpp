@@ -155,34 +155,34 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  setDefaultSamples(1);
+  setDefaultReps(1);
   m_alpha = 1.5;
   m_beta = 1.2;
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
-      m_run_samples = 100000;
+      m_run_reps = 100000;
       break;
     case Small:
       m_ni=40; m_nj=50; m_nk=70; m_nl=80;
-      m_run_samples = 10000;
+      m_run_reps = 10000;
       break;
     case Medium:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_samples = 100;
+      m_run_reps = 100;
       break;
     case Large:
       m_ni=800; m_nj=900; m_nk=1100; m_nl=1200;
-      m_run_samples = 1;
+      m_run_reps = 1;
       break;
     case Extralarge:
       m_ni=1600; m_nj=1800; m_nk=2200; m_nl=2400;
-      m_run_samples = 1;
+      m_run_reps = 1;
       break;
     default:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_samples = 100;
+      m_run_reps = 100;
       break;
   }
   allocAndInitData(m_tmp, m_ni * m_nj);
@@ -211,7 +211,8 @@ void POLYBENCH_2MM::setUp(VariantID vid)
 
 void POLYBENCH_2MM::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
+  // We override run_reps with class m_run_reps to satisfy kerenl run-time to withn a few seconds, except for large spec sizes which only have one rep.
+  //const Index_type run_reps= getRunReps();
   const Index_type ni = m_ni;
   const Index_type nj = m_nj;
   const Index_type nk = m_nk;
@@ -219,11 +220,11 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -248,28 +249,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       POLYBENCH_2MM_DATA;
       resetTimer();
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-
-#if 0 
-        // The following kernel  generates a small checksum error : Will's variant using reductions
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
-          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> t(0);
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
-            t += alpha * *(A + i *nk + k) * *(B + k * nj + j);
-          });
-          *(tmp + i * nj + j) = t;
-        });
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
-          RAJA::ReduceSum<RAJA::seq_reduce, Real_type> d(0);
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
-            d += *(tmp + i * nj + j) * *(C + j * nl + l);
-          });
-          *(D + i * nl + l) = *(D + i * nl + l) * beta + d;
-        });
-
-#endif
-
-#if  1       
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {      
 
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_2MM_BODY1;
@@ -278,7 +258,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             POLYBENCH_2MM_BODY2; 
           });
         });
+
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
           POLYBENCH_2MM_BODY3;
 
@@ -287,19 +269,17 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           });
         });
 
-#endif
-
       }
       stopTimer();
 
       break;
     }
 
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 #if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
@@ -337,7 +317,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_2MM_BODY1;
 
@@ -362,11 +342,11 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Baseline_CUDA : {
+    case Base_CUDA : {
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
         polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,m_ni,m_nj,m_nk,m_nl);
 
@@ -386,7 +366,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
        
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
           Index_type i,j,k;
@@ -418,7 +398,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Baseline_OpenMP4x :
+    case Base_OpenMP4x :
     case RAJA_OpenMP4x : {
       // Fill these in later...you get the idea...
       break;
@@ -435,7 +415,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 void POLYBENCH_2MM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_D, m_ni * m_nl,1.0/m_run_samples);
+  checksum[vid] += calcChecksum(m_D, m_ni * m_nl,1.0/m_run_reps);
 }
 
 void POLYBENCH_2MM::tearDown(VariantID vid)

@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Polybench kernel 2mm .
+ * \brief   Header file for Polybench kernel gemmver.
  *
  ******************************************************************************
  */
@@ -24,8 +24,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_POLYBENCH_3MM_HXX
-#define RAJAPerf_POLYBENCH_3MM_HXX
+#ifndef RAJAPerf_POLYBENCH_GEMMVER_HXX
+#define RAJAPerf_POLYBENCH_GEMMVER_HXX
 
 #include "common/KernelBase.hpp"
 
@@ -37,13 +37,13 @@ class RunParams;
 namespace polybench
 {
 
-class POLYBENCH_3MM : public KernelBase
+class POLYBENCH_GEMMVER : public KernelBase
 {
 public:
 
-  POLYBENCH_3MM(const RunParams& params);
+  POLYBENCH_GEMMVER(const RunParams& params);
 
-  ~POLYBENCH_3MM();
+  ~POLYBENCH_GEMMVER();
 
 
   void setUp(VariantID vid);
@@ -52,19 +52,19 @@ public:
   void tearDown(VariantID vid);
 
 private:
-  Index_type m_ni;
-  Index_type m_nj;
-  Index_type m_nk;
-  Index_type m_nl;
-  Index_type m_nm;
+  Index_type m_n;
   Index_type m_run_reps;
+  Real_type m_alpha;
+  Real_type m_beta;
   Real_ptr m_A;
-  Real_ptr m_B;
-  Real_ptr m_C;
-  Real_ptr m_D; 
-  Real_ptr m_E;
-  Real_ptr m_F;
-  Real_ptr m_G;
+  Real_ptr m_u1;
+  Real_ptr m_v1;
+  Real_ptr m_u2;
+  Real_ptr m_v2;
+  Real_ptr m_w;
+  Real_ptr m_x;
+  Real_ptr m_y;
+  Real_ptr m_z;
 };
 
 } // end namespace polybench

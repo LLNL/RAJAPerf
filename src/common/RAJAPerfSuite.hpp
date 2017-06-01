@@ -129,6 +129,7 @@ enum KernelID {
 #if 1
   Polybench_2MM,
   Polybench_3MM,
+  Polybench_GEMMVER,
 #endif
 
 //
