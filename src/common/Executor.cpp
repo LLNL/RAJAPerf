@@ -705,7 +705,7 @@ void Executor::writeChecksumReport(const string& filename)
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
-    size_t prec = 32;
+    size_t prec = 20;
     size_t checksum_width = prec + 4;
 
     size_t namecol_width = 0;
