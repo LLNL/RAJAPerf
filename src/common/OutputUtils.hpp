@@ -19,18 +19,15 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef OutputUtils_HPP
-#define OutputUtils_HPP
+
+#ifndef RAJAPerf_OutputUtils_HPP
+#define RAJAPerf_OutputUtils_HPP
 
 #include <string>
-#include<iostream>
-#include<iomanip>
-#include<sstream>
-#include<fstream>
 
 namespace rajaperf
 {
