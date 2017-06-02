@@ -220,6 +220,8 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
       m_run_reps = 100;
       break;
   }
+  setDefaultReps(m_run_reps);
+  fprintf(stderr,"Polybench_3MM will run %d reps\n",getRunReps());
   allocAndInitData(m_A, m_ni * m_nk);
   allocAndInitData(m_B, m_nk * m_nj);
   allocAndInitData(m_C, m_nj * m_nm);
@@ -247,8 +249,7 @@ void POLYBENCH_3MM::setUp(VariantID vid)
 
 void POLYBENCH_3MM::runKernel(VariantID vid)
 {
-  // We override run_reps with locally setup m_run_reps
-  //const Index_type run_reps = getRunReps();
+  const Index_type run_reps = getRunReps();
   const Index_type ni = m_ni;
   const Index_type nj = m_nj;
   const Index_type nk = m_nk;
@@ -261,7 +262,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
@@ -291,7 +292,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     case RAJA_Seq : {
       POLYBENCH_3MM_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_3MM_BODY1;
 
@@ -326,7 +327,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
@@ -367,7 +368,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_3MM_BODY1;
 
@@ -402,7 +403,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     case Base_CUDA : {
       POLYBENCH_3MM_DATA_SETUP_CUDA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
         polybench_3mm_cuda_1<<<grid_size,block_size>>>(A,B,C,D,E,F,G,m_ni,m_nj,m_nk,m_nl,m_nm);
 
@@ -421,7 +422,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     case RAJA_CUDA : {
       POLYBENCH_3MM_DATA_SETUP_CUDA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
        
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
           Index_type i,j,k;
@@ -476,7 +477,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
 void POLYBENCH_3MM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_G, m_ni * m_nl,1.0/m_run_reps);
+  checksum[vid] += calcChecksum(m_G, m_ni * m_nl);
 }
 
 void POLYBENCH_3MM::tearDown(VariantID vid)

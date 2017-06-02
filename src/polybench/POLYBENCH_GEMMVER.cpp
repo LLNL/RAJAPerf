@@ -189,7 +189,8 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
 POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMMVER, params)
 {
-  setDefaultReps(1);
+  //setDefaultReps(2000);
+
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
   switch(lsizespec) {
     case Mini:
@@ -217,6 +218,9 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       m_run_reps = 2000;
       break;
   }
+
+  setDefaultReps(m_run_reps);
+  fprintf(stderr,"Polybench_GEMMVAR will run %d reps\n",getRunReps());
   allocAndInitData(m_A, m_n * m_n);
   allocAndInitData(m_u1, m_n);
   allocAndInitData(m_v1, m_n);
@@ -248,6 +252,7 @@ void POLYBENCH_GEMMVER::setUp(VariantID vid)
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 {
+
   const Index_type run_reps = getRunReps();
   const Index_type n = m_n;
 
@@ -257,7 +262,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       POLYBENCH_GEMMVER_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         for (Index_type i = 0; i < n; i++ ) 
           for(Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY1;
@@ -286,7 +291,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     case RAJA_Seq : {
       POLYBENCH_GEMMVER_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, n}, RAJA::RangeSegment{0, n}, [=] (int i, int j) {
           POLYBENCH_GEMMVER_BODY1;
         });
@@ -314,7 +319,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < n; i++ ) 
           for(Index_type j = 0; j < n; j++) {
@@ -353,7 +358,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #if defined(_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, n}, RAJA::RangeSegment{0, n}, [=] (int i, int j) {
           POLYBENCH_GEMMVER_BODY1;
@@ -382,7 +387,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #if 1
       POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
         polybench_gemmver_cuda_1<<<grid_size,block_size>>>(A,u1,v1,u2,v2,m_n);
 
@@ -406,7 +411,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #if 1
       POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
       startTimer();
-      for (RepIndex_type irep = 0; irep < m_run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
        
         RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,j;
@@ -457,7 +462,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
 void POLYBENCH_GEMMVER::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_w, m_n,1.0/m_run_reps);
+  checksum[vid] += calcChecksum(m_w, m_n);
 }
 
 void POLYBENCH_GEMMVER::tearDown(VariantID vid)
