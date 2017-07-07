@@ -37,16 +37,3 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${rajaperf_executable_depends}
   )
-
-#blt_add_executable(
-#  NAME raja-perf.exe
-#  SOURCES RAJAPerfSuiteDriver.cpp
-#  DEPENDS_ON 
-#  common
-#  apps
-#  basic
-###  livloops
-###  polybench
-#  stream
-#  RAJA
-#  )

@@ -17,6 +17,10 @@ cmake_minimum_required(VERSION 3.1)
 
 project(RAJAPerfSuite CXX)
 
+if(PERFSUITE_ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+endif()
+
 #
 # Configure RAJA
 #
@@ -73,11 +77,7 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_build_info.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_build_info.hpp)
 
 
-#set(COMMON_PERFSUITE_DEPS RAJA)
-
-#if (${RAJA_ENABLE_OPENMP})
-#if (RAJA_ENABLE_OPENMP)
-#list(APPEND COMMON_PERFSUITE_DEPS openmp)
-#endif()
-
+#
+# Each directory in the perf suite has its own CMakeLists.txt file.
+#
 add_subdirectory(src)
