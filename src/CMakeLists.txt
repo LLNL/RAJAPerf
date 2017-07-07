@@ -22,29 +22,31 @@ add_subdirectory(basic)
 #add_subdirectory(polybench)
 add_subdirectory(stream)
 
-raja_add_executable(
+set(rajaperf_executable_depends
+    common
+    apps
+    basic
+    stream
+    RAJA)
+if(ENABLE_OPENMP)
+  list(APPEND rajaperf_executable_depends openmp) 
+endif()
+
+blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
-  DEPENDS_ON 
-  common
-  apps
-  basic
-  stream
-  RAJA
-##  livloops
-##  polybench
+  DEPENDS_ON ${rajaperf_executable_depends}
   )
 
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-  set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_DEBUG}")
-elseif (CMAKE_BUILD_TYPE MATCHES Release)
-  set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_RELEASE}")
-elseif (CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-  set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
-endif()
-list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
-
-##set(RAJAPERF_SYSTYPE $ENV{SYS_TYPE})
-
-configure_file(${CMAKE_SOURCE_DIR}/extra/performance/src/rajaperf_build_info.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/rajaperf_build_info.hpp)
+#blt_add_executable(
+#  NAME raja-perf.exe
+#  SOURCES RAJAPerfSuiteDriver.cpp
+#  DEPENDS_ON 
+#  common
+#  apps
+#  basic
+###  livloops
+###  polybench
+#  stream
+#  RAJA
+#  )

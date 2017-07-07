@@ -13,7 +13,7 @@
 #
 ###############################################################################
 
-##add_library(livloops
+##blt_add_library(livloops
 ##  Kernel.cxx)
 
 ##target_link_libraries(livloops

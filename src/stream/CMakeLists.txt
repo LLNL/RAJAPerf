@@ -13,11 +13,19 @@
 #
 ###############################################################################
 
-raja_add_library(
+set(rajaperf_stream_depends
+    common
+    RAJA)
+if(ENABLE_OPENMP)
+  list(APPEND rajaperf_stream_depends openmp)
+endif()
+
+blt_add_library(
   NAME stream
   SOURCES COPY.cpp 
           MUL.cpp 
           ADD.cpp 
           TRIAD.cpp 
           DOT.cpp 
-  DEPENDS_ON common RAJA)
+  DEPENDS_ON ${rajaperf_stream_depends}
+  )

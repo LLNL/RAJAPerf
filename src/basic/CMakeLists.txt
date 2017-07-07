@@ -13,7 +13,14 @@
 #
 ###############################################################################
 
-raja_add_library(
+set(rajaperf_basic_depends
+    common 
+    RAJA)
+if(ENABLE_OPENMP)
+  list(APPEND rajaperf_basic_depends openmp)
+endif()
+
+blt_add_library(
   NAME basic
   SOURCES MULADDSUB.cpp 
           IF_QUAD.cpp 
@@ -21,4 +28,5 @@ raja_add_library(
           INIT3.cpp
           REDUCE3_INT.cpp
           NESTED_INIT.cpp
-  DEPENDS_ON common RAJA)
+  DEPENDS_ON ${rajaperf_basic_depends}
+  )
