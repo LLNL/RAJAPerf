@@ -22,18 +22,15 @@ add_subdirectory(basic)
 #add_subdirectory(polybench)
 add_subdirectory(stream)
 
-set(rajaperf_executable_depends
+set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
-    stream
-    RAJA)
-if(ENABLE_OPENMP)
-  list(APPEND rajaperf_executable_depends openmp) 
-endif()
+    stream)
+list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
 blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
-  DEPENDS_ON ${rajaperf_executable_depends}
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )

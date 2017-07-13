@@ -14,17 +14,17 @@
 ## For more information, see the file LICENSE in the top-level directory.
 ##
 
-rm -rf build_chaos-gcc-4.9.3 2>/dev/null
-mkdir build_chaos-gcc-4.9.3 && cd build_chaos-gcc-4.9.3
+rm -rf build_chaos-clang-3.9.1 2>/dev/null
+mkdir build_chaos-clang-3.9.1 && cd build_chaos-clang-3.9.1
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
-  -C ${PERFSUITE_DIR}/host-configs/chaos/gcc_4_9_3.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/chaos/clang_3_9_0.cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_chaos-gcc-4.9.3 \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-clang-3.9.1 \
   "$@" \
   ${PERFSUITE_DIR}

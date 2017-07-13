@@ -1,30 +1,30 @@
 #!/bin/bash
 
 ##
-## Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
-## LLNL-CODE-689114
+## LLNL-CODE-xxxxxx
 ##
 ## All rights reserved.
 ##
-## For additional details and restrictions, please see RAJA/LICENSE.txt
+## This file is part of the RAJA Performance Suite.
+##
+## For more information, see the file LICENSE in the top-level directory.
 ##
 
-rm -rf build-gcc-4.9.3-debug_WARN 2>/dev/null
-mkdir build-gcc-4.9.3-debug_WARN && cd build-gcc-4.9.3-debug_WARN
+rm -rf build_chaos-gcc-4.9.3_debug 2>/dev/null
+mkdir build_chaos-gcc-4.9.3_debug && cd build_chaos-gcc-4.9.3_debug
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
-RAJA_DIR=${PERFSUITE_DIR}/tpl/RAJA
-
 cmake \
-  -C ${RAJA_DIR}/host-configs/chaos/gcc_4_9_3.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/chaos/gcc_4_9_3.cmake \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DPERFSUITE_ENABLE_WARNINGS=On \
   -DENABLE_OPENMP=On \
+  -DPERFSUITE_ENABLE_WARNINGS=On \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install-gcc-4.9.3 \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-gcc-4.9.3_debug \
   "$@" \
   ${PERFSUITE_DIR}

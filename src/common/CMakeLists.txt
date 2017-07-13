@@ -13,12 +13,6 @@
 #
 ###############################################################################
 
-set(rajaperf_common_depends
-    RAJA)
-if(ENABLE_OPENMP)
-  list(APPEND rajaperf_common_depends openmp)
-endif()
-
 blt_add_library(
   NAME common
   SOURCES DataUtils.cpp 
@@ -27,5 +21,5 @@ blt_add_library(
           OutputUtils.cpp 
           RAJAPerfSuite.cpp 
           RunParams.cpp
-  DEPENDS_ON ${rajaperf_common_depends}
+  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
   )

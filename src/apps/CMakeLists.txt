@@ -13,13 +13,6 @@
 #
 ###############################################################################
 
-set(rajaperf_apps_depends
-    common
-    RAJA)
-if(ENABLE_OPENMP)
-  list(APPEND rajaperf_apps_depends openmp)
-endif()
-
 blt_add_library(
   NAME apps
   SOURCES PRESSURE.cpp 
@@ -28,5 +21,5 @@ blt_add_library(
           DEL_DOT_VEC_2D.cpp 
           COUPLE.cpp
           FIR.cpp
-  DEPENDS_ON ${rajaperf_apps_depends}
+  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

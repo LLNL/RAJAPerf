@@ -17,54 +17,68 @@ cmake_minimum_required(VERSION 3.1)
 
 project(RAJAPerfSuite CXX)
 
-if(PERFSUITE_ENABLE_WARNINGS)
+#
+# Initialize the BLT build system
+#
+
+if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
+set(ENABLE_TESTS On CACHE BOOL "")
+
+include(blt/SetupBLT.cmake)
+
 #
-# Configure RAJA
+# Define RAJA default settings...
 #
 
-set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
-set(RAJA_ENABLE_EXAMPLES Off CACHE BOOL "")
-set(RAJA_ENABLE_DOCUMENTATION Off CACHE BOOL "")
+#
+# Don't turn this off or code won't build (for now)....
+#
+set(RAJA_BUILD_WITH_BLT On)
 
-set(RAJA_USE_CHRONO On CACHE BOOL "")
+set(RAJA_ENABLE_TESTS On)
+set(RAJA_ENABLE_EXAMPLES Off)
+set(RAJA_ENABLE_DOCUMENTATION Off)
 
-set(RAJA_RANGE_ALIGN 4 CACHE INT "")
-set(RAJA_RANGE_MIN_LENGTH 32 CACHE INT "")
-set(RAJA_DATA_ALIGN 64 CACHE INT "")
-set(RAJA_COHERENCE_BLOCK_SIZE 64 CACHE INT "")
+set(RAJA_USE_CHRONO On)
 
-if(ENABLE_OPENMP)
-set(RAJA_ENABLE_OPENMP On CACHE BOOL "")
+set(RAJA_RANGE_ALIGN 4)
+set(RAJA_RANGE_MIN_LENGTH 32)
+set(RAJA_DATA_ALIGN 64)
+set(RAJA_COHERENCE_BLOCK_SIZE 64)
+
+if (ENABLE_OPENMP)
+  set(RAJA_ENABLE_OPENMP On)
 else()
-set(RAJA_ENABLE_OPENMP Off CACHE BOOL "")
+  set(RAJA_ENABLE_OPENMP Off)
 endif()
 
-if(ENABLE_CUDA)
-set(RAJA_ENABLE_CUDA On CACHE BOOL "")
+if (ENABLE_CUDA)
+  set(RAJA_ENABLE_CUDA On)
 else()
-set(RAJA_ENABLE_CUDA Off CACHE BOOL "")
+  set(RAJA_ENABLE_CUDA Off)
 endif()
 
 # exclude RAJA make targets from top-level build...
-add_subdirectory(tpl/RAJA EXCLUDE_FROM_ALL)
+add_subdirectory(tpl/RAJA)
 
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
 
 #
-# Initialize the BLT build system
-#
-
-include(blt/SetupBLT.cmake)
-
-
-#
 # Setup variables to pass to Perf suite
 #
+
+set(RAJA_PERFSUITE_DEPENDS RAJA)
+if (RAJA_ENABLE_OPENMP)
+  list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
+endif()
+if (ENABLE_CUDA)
+  list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
+endif() 
 
 #set(RAJA_PERFSUITE_VERSION "0.1.0")
 

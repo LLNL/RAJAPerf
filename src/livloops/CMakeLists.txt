@@ -13,9 +13,8 @@
 #
 ###############################################################################
 
-##blt_add_library(livloops
-##  Kernel.cxx)
-
-##target_link_libraries(livloops
-##  common
-##  RAJA)
+#blt_add_library(
+#  NAME livloops
+#  SOURCES FOO.cpp 
+#  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+#  )

@@ -13,9 +13,8 @@
 #
 ###############################################################################
 
-##blt_add_library(polybench
-##  Kernel.cxx)
-
-##target_link_libraries(polybench
-##  common
-##  RAJA)
+#blt_add_library(
+#  NAME polybench
+#  SOURCES FOO.cpp 
+#  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+#  )
