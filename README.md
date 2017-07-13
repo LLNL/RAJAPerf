@@ -31,41 +31,41 @@ Table of Contents
 
 # Building the suite
 
-To build the suite, you must obtain a copy of the code by cloning the
-necessary source repositories.
-
-First, clone the RAJA repo into a directory of your choice; e.g.
+To build the suite, you must first obtain a copy of the code by cloning the
+source repository. For example,
 ```
-> mkdir RAJA-stuff
-> cd RAJA-stuff
-> git clone https://github.com/LLNL/RAJA.git
+> mkdir RAJA-PERFSUITE
+> cd RAJA-PERFSUITE
+> git clone --recursive ssh://git@cz-bitbucket.llnl.gov:7999/raja/raja-perfsuite.git
 > ls 
-RAJA
+raja-perfsuite
 ```
 
-Next, clone the RAJA Performance Suite repo into a specific location in 
-the RAJA source tree. Starting after the last step above:
-```
-> cd RAJA
-> git clone ssh://git@cz-bitbucket.llnl.gov:7999/raja/raja-perfsuite.git ./extra/performance
-```
+The '--recursive' argument is used to also clone the Git submodules on
+which the Performance Suite depends.  Note that if you switch to a branch, 
+other than the default branch, you will have to update the submodules; e.g.,
 
-The process of cloning the performance suite repo into the RAJA code in this 
-way will change when the performance suite is moved to a project on GitHub.
+```
+> cd raja-perfsuite
+> git checkout <some branch name>
+> git submodule init
+> git submodule update
+```
 
 Finally, use [CMake] to build the code. The simplest way to build the code is 
-to create a build directory in the top-level RAJA directory (in-source builds 
-are not allowed!) and run CMake from there; i.e., :
+to create a build directory in the top-level RAJA Performance Suite directory 
+(in-source builds are not allowed!) and run CMake from there; i.e., :
 ```
-> mkdir build
-> cd build
-> cmake -DRAJA_ENABLE_PERFSUITE=On ../
-> make raja-perf.exe
+> mkdir my-build
+> cd my-build
+> cmake <cmake args> ../
+> make 
 ```
 
 RAJA and the Performance Suite are built together using the same CMake 
-configuration. Please see the RAJA Quickstart Guide (add link) for details 
-on building RAJA, configuration options, etc.
+configuration. For convenience, we include some scripts in the 'scripts'
+directory some associated configuration files in the 'host-configs' 
+that illustrate how to build the code on various platforms.
 
 * * *
 
