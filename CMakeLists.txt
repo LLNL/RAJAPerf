@@ -29,6 +29,9 @@ set(ENABLE_TESTS On CACHE BOOL "")
 
 include(blt/SetupBLT.cmake)
 
+set(CMAKE_CXX_STANDARD 11)
+set(BLT_CXX_STANDARD 11)
+
 #
 # Define RAJA default settings...
 #

@@ -20,8 +20,8 @@ mkdir build_chaos-nvcc8.0_gcc4.9.3 && cd build_chaos-nvcc8.0_gcc4.9.3
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
-  -C ${PERFSUITE_DIR}/host-configs/chaos/nvcc_gcc4_9_3.cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -C ${PERFSUITE_DIR}/host-configs/chaos/nvcc_gcc4_9_3.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \

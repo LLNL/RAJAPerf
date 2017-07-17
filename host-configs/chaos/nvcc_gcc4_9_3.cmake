@@ -21,12 +21,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0" CACHE STRING "")
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
 #  set(BLT_CUDA_FLAGS "-O2 -restrict -arch compute_37 -std c++11 --expt-extended-lambda -ccbin" ${CMAKE_CXX_COMPILER} CACHE LIST "")
-#   set(BLT_CUDA_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
-#  set(RAJA_NVCC_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(RAJA_NVCC_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
   set(RAJA_NVCC_FLAGS -g; -G; -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
   set(RAJA_NVCC_FLAGS -g; -G; -O0; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -O2; -restrict; -arch compute_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
 endif()
 
 
