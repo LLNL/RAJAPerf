@@ -53,15 +53,15 @@ set(RAJA_DATA_ALIGN 64)
 set(RAJA_COHERENCE_BLOCK_SIZE 64)
 
 if (ENABLE_OPENMP)
-  set(RAJA_ENABLE_OPENMP On)
+  set(RAJA_ENABLE_OPENMP On CACHE BOOL "")
 else()
-  set(RAJA_ENABLE_OPENMP Off)
+  set(RAJA_ENABLE_OPENMP Off CACHE BOOL "")
 endif()
 
 if (ENABLE_CUDA)
-  set(RAJA_ENABLE_CUDA On)
+  set(RAJA_ENABLE_CUDA On CACHE BOOL "")
 else()
-  set(RAJA_ENABLE_CUDA Off)
+  set(RAJA_ENABLE_CUDA Off CACHE BOOL "")
 endif()
 
 # exclude RAJA make targets from top-level build...
