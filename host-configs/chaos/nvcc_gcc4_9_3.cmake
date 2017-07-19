@@ -19,15 +19,17 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -mavx -finline-fu
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -Ofast -mavx -finline-functions -finline-limit=20000" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0" CACHE STRING "")
 
+set(CUDA_COMMON_FLAGS -restrict; -arch sm_37; -std c++11; --expt-extended-lambda)
+
 if(CMAKE_BUILD_TYPE MATCHES Release)
-  set(BLT_CUDA_FLAGS -O3; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
-  set(RAJA_NVCC_FLAGS -O3; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -O3; ${CUDA_COMMON_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; -Xcompiler -fopenmp CACHE LIST "")
+  set(RAJA_NVCC_FLAGS -O3; ${CUDA_COMMON_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-  set(RAJA_NVCC_FLAGS -g; -G; -O3; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin ${CMAKE_CXX_COMPILER} CACHE LIST "")
-  set(BLT_CUDA_FLAGS -O3; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -g; -G; -O3; ${CUDA_COMMON_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; -Xcompiler -fopenmp CACHE LIST "")
+  set(RAJA_NVCC_FLAGS -g; -G; -O3; ${CUDA_COMMON_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(RAJA_NVCC_FLAGS -g; -G; -O0; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin ${CMAKE_CXX_COMPILER} CACHE LIST "")
-  set(BLT_CUDA_FLAGS -g; -G; -O0; -restrict; -arch sm_37; -std c++11; --expt-extended-lambda; -ccbin; ${CMAKE_CXX_COMPILER} CACHE LIST "")
+  set(BLT_CUDA_FLAGS -g; -G; -O0; ${CUDA_COMMON_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; -Xcompiler -fopenmp CACHE LIST "")
+  set(RAJA_NVCC_FLAGS -g; -G; -O0; ${CUDA_COMMON_FLAGS}; -ccbin ; ${CMAKE_CXX_COMPILER} CACHE LIST "")
 endif()
 
 set(RAJA_RANGE_ALIGN 4 CACHE INT "")
