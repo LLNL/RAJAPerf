@@ -16,6 +16,7 @@
 
 rm -rf build_chaos-nvcc8.0_gcc4.9.3 2>/dev/null
 mkdir build_chaos-nvcc8.0_gcc4.9.3 && cd build_chaos-nvcc8.0_gcc4.9.3
+. /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
@@ -27,7 +28,6 @@ cmake \
   -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DRAJA_ENABLE_TESTS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_chaos-gcc-4.9.3 \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-nvcc8.0_gcc4.9.3 \
   "$@" \
   ${PERFSUITE_DIR}

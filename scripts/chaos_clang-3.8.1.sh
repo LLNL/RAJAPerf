@@ -16,12 +16,13 @@
 
 rm -rf build_chaos-clang-3.8.1 2>/dev/null
 mkdir build_chaos-clang-3.8.1 && cd build_chaos-clang-3.8.1
+. /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
-  -C ${PERFSUITE_DIR}/host-configs/chaos/clang_3_8_1.cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -C ${PERFSUITE_DIR}/host-configs/chaos/clang_3_8_1.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
