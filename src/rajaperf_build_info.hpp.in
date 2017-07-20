@@ -30,22 +30,33 @@
 #include <string>
 
 namespace rajaperf {
+
 // Version of RAJA used to build (ex: 0.2.4)
-static const std::string version = "@RAJA_VERSION_MAJOR@.@RAJA_VERSION_MINOR@.@RAJA_VERSION_PATCHLEVEL@";
+//static const std::string version = "@RAJA_VERSION_MAJOR@.@RAJA_VERSION_MINOR@.@RAJA_VERSION_PATCHLEVEL@";
+static const std::string version = 
+std::to_string(RAJA_VERSION_MAJOR) + std::string(".") +
+std::to_string(RAJA_VERSION_MINOR) + std::string(".") +
+std::to_string(RAJA_VERSION_PATCH_LEVEL);
+
+
+// Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
+static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
+static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
 		
 // Compiler used to build (ex: gcc-4.9.3)
-static const std::string compiler = "@CMAKE_CXX_COMPILER@";
+static const std::string compiler = "@RAJAPERF_COMPILER@";
 
 // Command options used to build (ex: -Ofast -mavx)
 static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
 		
 // Name of user who ran code
-//static const std::string user = "@USER@";
+std::string user_run;
 
 // Date, time code was run
-//static const std::string user = "@USER@";
+std::string data_run;
 
-// Systype/platform code ran on (ex: chaos_5_x64_64)
-//static const std::string SYSTYPE = "@RAJAPERF_SYSTYPE@";
+// Systype and machine code ran on (ex: chaos_5_x64_64)
+std::string systype_run;
+std::string machine_run;
 		
 }
