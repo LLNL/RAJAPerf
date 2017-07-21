@@ -19,14 +19,12 @@ mkdir build_blueos-gcc-4.9.3 && cd build_blueos-gcc-4.9.3
 
 module load cmake/3.7.2
 module load gcc/4.9.3
-#module load cuda/8.0
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DENABLE_OPENMP=On \
-  -DENABLE_CUDA=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos-gcc-4.9.3 \

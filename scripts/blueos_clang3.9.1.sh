@@ -14,21 +14,19 @@
 ## For more information, see the file LICENSE in the top-level directory.
 ##
 
-rm -rf build_blueos-gcc-4.9.3 2>/dev/null
-mkdir build_blueos-gcc-4.9.3 && cd build_blueos-gcc-4.9.3
+rm -rf build_blueos-clang-3.9.1 2>/dev/null
+mkdir build_blueos-clang-3.9.1 && cd build_blueos-clang-3.9.1
 
 module load cmake/3.7.2
-module load gcc/4.9.3
-#module load cuda/8.0
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_3_9_1.cmake \
   -DENABLE_OPENMP=On \
-  -DENABLE_CUDA=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos-gcc-4.9.3 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-3.9.1 \
   "$@" \
   ${PERFSUITE_DIR}
