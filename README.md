@@ -41,9 +41,10 @@ source repository. For example,
 raja-perfsuite
 ```
 
-The '--recursive' argument is used to also clone the Git submodules on
-which the Performance Suite depends.  Note that if you switch to a branch, 
-other than the default branch, you will have to update the submodules; e.g.,
+The Performance Suite has [RAJA] and the CMake-based [BLT] build system
+as Git submodules. The '--recursive' argument will clone theses submodules int
+the Performance Suite source code. Note that if you switch to a different
+branch, you will have to update the submodules; e.g.,
 
 ```
 > cd raja-perfsuite
@@ -52,29 +53,37 @@ other than the default branch, you will have to update the submodules; e.g.,
 > git submodule update
 ```
 
-Finally, use [CMake] to build the code. The simplest way to build the code is 
-to create a build directory in the top-level RAJA Performance Suite directory 
-(in-source builds are not allowed!) and run CMake from there; i.e., :
+RAJA and the Performance Suite are built together using the same CMake
+configuration. For convenience, we include some scripts in the 'scripts'
+directory some associated configuration files in the 'host-configs'
+that illustrate how to build the code on various platforms at LLNL. Each 
+build script will create a descriptively-named build space directory in
+the top-level erformance Suite directory, and run CMake with a configuration
+appropriate for the platform and compilers used. After CMake completes, 
+enter the build directory and type 'make' (or 'make -j' for parallel) to
+build the code.
+
+You can also create your own build directory and run CMake with your own
+arguments from there; e.g., :
 ```
 > mkdir my-build
 > cd my-build
 > cmake <cmake args> ../
-> make 
+> make -j
 ```
 
-RAJA and the Performance Suite are built together using the same CMake 
-configuration. For convenience, we include some scripts in the 'scripts'
-directory some associated configuration files in the 'host-configs' 
-that illustrate how to build the code on various platforms.
+The provided configurations will build RAJA unit tests by default. After the
+code builds, you can type 'make test' to verify that everything is working
+properly.
 
 * * *
 
 # Running the suite
 
-The suite is run by invoking the executable in the top-level performance 
-suite 'src' directory in the build space. For example, giving it no options:
+The suite is run by invoking the executable in the 'bin' directory in the 
+build space. For example, giving it no options:
 ```
-> ./extra/performance/src/raja-perf.exe
+> ./bin/raja-perf.exe
 ```
 will run the entire suite (all kernels and variants) in their default 
 configurations.
@@ -91,11 +100,11 @@ Note: most options appear in a long or short form for ease of use.
 To see available options along with a brief description of each, pass the 
 '--help' or '-h' option:
 ```
-> ./extra/performance/src/raja-perf.exe --help
+> ./bin/raja-perf.exe --help
 ```
 or
 ```
-> ./extra/performance/src/raja-perf.exe -h
+> ./bin/raja-perf.exe -h
 ```
 
 Lastly, the program will emit a summary of provided input if it is given 
@@ -434,4 +443,4 @@ in earlier sections for adding a new kernel above.
 * * *
 
 [RAJA]: https://github/LLNL/RAJA
-[CMake]: http://www.cmake.org
+[BLT]: https://github.com/LLNL/blt
