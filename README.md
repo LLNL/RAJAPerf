@@ -61,7 +61,16 @@ build script will create a descriptively-named build space directory in
 the top-level erformance Suite directory, and run CMake with a configuration
 appropriate for the platform and compilers used. After CMake completes, 
 enter the build directory and type 'make' (or 'make -j' for parallel) to
-build the code.
+build the code. The provided configurations will build RAJA unit tests by 
+default. After the code builds, you can type 'make test' to verify that 
+everything is working properly.  For example,
+
+```
+> ./scripts/blueos_nvcc8.0_clang-coral.sh
+> cd build_blueos_nvcc8.0_clang-coral
+> make -j
+> make test
+```
 
 You can also create your own build directory and run CMake with your own
 arguments from there; e.g., :
@@ -72,9 +81,6 @@ arguments from there; e.g., :
 > make -j
 ```
 
-The provided configurations will build RAJA unit tests by default. After the
-code builds, you can type 'make test' to verify that everything is working
-properly.
 
 * * *
 
