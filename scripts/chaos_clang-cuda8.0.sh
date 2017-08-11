@@ -14,8 +14,8 @@
 ## For more information, see the file LICENSE in the top-level directory.
 ##
 
-rm -rf build_chaos-clang_cuda 2>/dev/null
-mkdir build_chaos-clang_cuda && cd build_chaos-clang_cuda
+rm -rf build_chaos-clang_cuda8.0 2>/dev/null
+mkdir build_chaos-clang_cuda8.0 && cd build_chaos-clang_cuda8.0
 . /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
@@ -29,6 +29,6 @@ cmake \
   -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_chaos-clang_cuda \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-clang_cuda8.0 \
    "$@" \
    ${PERFSUITE_DIR}
