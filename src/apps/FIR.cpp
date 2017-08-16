@@ -69,7 +69,7 @@ namespace apps
   out[i] = sum;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
   //
   // Define thread block size for CUDA execution
   //
@@ -140,7 +140,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 
 #endif 
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 FIR::FIR(const RunParams& params)
@@ -212,7 +212,7 @@ void FIR::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       FIR_COEFF;
@@ -258,7 +258,7 @@ void FIR::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       FIR_COEFF;

@@ -46,7 +46,7 @@ namespace stream
   b[i] = alpha * c[i] ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -76,7 +76,7 @@ __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 MUL::MUL(const RunParams& params)
@@ -139,7 +139,7 @@ void MUL::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       MUL_DATA;
@@ -182,7 +182,7 @@ void MUL::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       MUL_DATA_SETUP_CUDA;

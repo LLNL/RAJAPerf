@@ -45,7 +45,7 @@ namespace stream
   c[i] = a[i] ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -74,7 +74,7 @@ __global__ void copy(Real_ptr c, Real_ptr a,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 COPY::COPY(const RunParams& params)
@@ -136,7 +136,7 @@ void COPY::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       COPY_DATA;
@@ -179,7 +179,7 @@ void COPY::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       COPY_DATA_SETUP_CUDA;

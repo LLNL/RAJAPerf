@@ -32,15 +32,6 @@
 
 #include <string>
 
-#if 0
-#ifdef _OPENMP
-  #include <omp.h>
-#else
-  #define omp_get_thread_num() 0
-  #define omp_get_num_threads() 1
-#endif
-#endif
-
 namespace rajaperf
 {
 
@@ -171,12 +162,12 @@ enum VariantID {
 
   Base_Seq = 0,
   RAJA_Seq,
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
   Base_OpenMP,
   RAJALike_OpenMP,
   RAJA_OpenMP,
 #endif
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
   Base_CUDA,
   RAJA_CUDA,
 #endif

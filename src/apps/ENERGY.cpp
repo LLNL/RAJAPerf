@@ -127,7 +127,7 @@ namespace apps
      if (fabs(q_new[i]) < q_cut) q_new[i] = 0.0 ; \
   }
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -264,7 +264,7 @@ __global__ void energycalc6(Real_ptr delvc,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 ENERGY::ENERGY(const RunParams& params)
@@ -384,7 +384,7 @@ void ENERGY::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       ENERGY_DATA;
@@ -511,7 +511,7 @@ void ENERGY::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
     
       ENERGY_DATA_SETUP_CUDA;
