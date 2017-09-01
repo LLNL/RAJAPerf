@@ -14,8 +14,8 @@
 ## For more information, see the file LICENSE in the top-level directory.
 ##
 
-rm -rf build_blueos_nvcc8.0_clang-coral >/dev/null
-mkdir build_blueos_nvcc8.0_clang-coral && cd build_blueos_nvcc8.0_clang-coral
+rm -rf build_blueos_nvcc8.0_clang-coral-2017.06.29 >/dev/null
+mkdir build_blueos_nvcc8.0_clang-coral-2017.06.29 && cd build_blueos_nvcc8.0_clang-coral-2017.06.29
 
 module load cmake/3.7.2
 
@@ -23,12 +23,12 @@ PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang-coral.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang-coral-2017.06.29.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_clang-coral \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_clang-coral-2017.06.29 \
   "$@" \
   ${PERFSUITE_DIR}
