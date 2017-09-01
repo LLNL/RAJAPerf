@@ -29,6 +29,6 @@ cmake \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_clang-coral \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_gcc4.9.3 \
   "$@" \
   ${PERFSUITE_DIR}
