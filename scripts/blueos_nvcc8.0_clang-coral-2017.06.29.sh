@@ -23,7 +23,7 @@ PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang-coral-2017.06.29.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang_coral_2017_06_29.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
