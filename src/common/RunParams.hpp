@@ -52,7 +52,10 @@ public:
   enum InputOpt {
     InfoRequest,  /*!< option requesting information */
     DryRun,       /*!< report summary of how suite will run w/o running */
-    GoodToRun,    /*!< input defines a valid run, suite will run */
+    CheckRun,     /*!< run suite with small rep count to make sure 
+                       everything works properly */
+    PerfRun,      /*!< input defines a valid performance run, 
+                       suite will run as specified */
     BadInput,     /*!< erroneous input given */ 
     Undefined     /*!< input not defined (yet) */
   };
@@ -78,6 +81,8 @@ public:
   double getRepFactor() const { return rep_fact; }
 
   double getSizeFactor() const { return size_fact; }
+
+  int getCheckRunReps() const { return checkrun_reps; }
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
@@ -119,11 +124,13 @@ private:
   void printGroupNames(std::ostream& str) const;
 //@}
 
-  InputOpt input_state;     /*!< state of command line input */
+  InputOpt input_state;  /*!< state of command line input */
 
-  int npasses;              /*!< Number of passes through suite  */
-  double rep_fact;          /*!< % of default kernel reps to run */
-  double size_fact;         /*!< % of default kernel iteration space to run */
+  int npasses;           /*!< Number of passes through suite  */
+  double rep_fact;       /*!< pct of default kernel reps to run */
+  double size_fact;      /*!< pct of default kernel iteration space to run */
+
+  int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

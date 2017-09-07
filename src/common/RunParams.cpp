@@ -48,6 +48,7 @@ RunParams::RunParams(int argc, char** argv)
    npasses(1),
    rep_fact(1.0),
    size_fact(1.0),
+   checkrun_reps(0),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -84,6 +85,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n rep_fact = " << rep_fact; 
   str << "\n size_fact = " << size_fact; 
+  str << "\n checkrun_reps = " << checkrun_reps; 
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -251,7 +253,23 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-        input_state = DryRun;
+       input_state = DryRun;
+   
+    } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
+
+      input_state = CheckRun; 
+      checkrun_reps = 1;
+
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          checkrun_reps = ::atoi( argv[i] );
+        }
+
+      }
 
     } else {
      
@@ -317,7 +335,10 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --dryrun (print summary of how suite will run without running)\n";
+  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
+
+  str << "\t --checkrun <int> [default is 1]\n"
+<< "\t      (num reps to run each kernel, typically small value to check things are working)\n\n"; 
 
   str << std::endl;
   str.flush();

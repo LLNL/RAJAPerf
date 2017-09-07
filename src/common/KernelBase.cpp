@@ -62,7 +62,11 @@ Index_type KernelBase::getRunSize() const
 
 Index_type KernelBase::getRunReps() const
 { 
-  return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+  if (run_params.getInputState() == RunParams::CheckRun) {
+    return static_cast<Index_type>(run_params.getCheckRunReps());
+  } else {
+    return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+  } 
 }
 
 void KernelBase::execute(VariantID vid) 

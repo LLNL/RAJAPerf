@@ -263,8 +263,9 @@ void Executor::setupSuite()
       //
       // If we've gotten to this point, we have good input to run.
       //
-      if ( run_params.getInputState() != RunParams::DryRun ) {
-        run_params.setInputState(RunParams::GoodToRun);
+      if ( run_params.getInputState() != RunParams::DryRun && 
+           run_params.getInputState() != RunParams::CheckRun ) {
+        run_params.setInputState(RunParams::PerfRun);
       }
 
     } // kernel and variant input both look good
@@ -288,8 +289,9 @@ void Executor::reportRunSummary(ostream& str) const
         << "\n  See run parameters or option messages above.\n" 
         << endl;
 
-  } else if ( in_state == RunParams::GoodToRun || 
-              in_state == RunParams::DryRun ) {
+  } else if ( in_state == RunParams::PerfRun || 
+              in_state == RunParams::DryRun || 
+              in_state == RunParams::CheckRun ) {
 
     if ( in_state == RunParams::DryRun ) {
 
@@ -302,7 +304,8 @@ void Executor::reportRunSummary(ostream& str) const
 
     } 
 
-    if ( in_state == RunParams::GoodToRun ) {
+    if ( in_state == RunParams::PerfRun ||
+         in_state == RunParams::CheckRun ) {
 
       str << "\n\nRAJA performance suite run summary...."
           <<   "\n--------------------------------------" << endl;
@@ -349,7 +352,8 @@ void Executor::reportRunSummary(ostream& str) const
 void Executor::runSuite()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun ) {
+  if ( in_state != RunParams::PerfRun && 
+       in_state != RunParams::CheckRun ) {
     return;
   }
 
@@ -368,7 +372,8 @@ void Executor::runSuite()
 void Executor::outputRunData()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun ) {
+  if ( in_state != RunParams::PerfRun && 
+       in_state != RunParams::CheckRun ) {
     return;
   }
 
