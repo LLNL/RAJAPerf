@@ -15,9 +15,9 @@ set(RAJA_COMPILER "RAJA_COMPILER_GNU" CACHE STRING "")
 set(CMAKE_C_COMPILER "/usr/apps/gnu/4.9.3/bin/gcc" CACHE PATH "")
 set(CMAKE_CXX_COMPILER "/usr/apps/gnu/4.9.3/bin/g++" CACHE PATH "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -mavx -finline-functions" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -Ofast -mavx -finline-functions" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -mavx -finline-functions" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -g -mavx -finline-functions" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
 set(CUDA_COMMON_OPT_FLAGS -restrict; -arch compute_37; -std c++11; --expt-extended-lambda)
 set(CUDA_COMMON_DEBUG_FLAGS -restrict; -arch compute_30; -std c++11; --expt-extended-lambda)

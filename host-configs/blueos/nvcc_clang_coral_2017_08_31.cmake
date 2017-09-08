@@ -15,9 +15,9 @@ set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
 set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2017.08.31/bin/clang++" CACHE PATH "")
 set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-coral-2017.08.31/bin/clang" CACHE PATH "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
 set(CUDA_COMMON_OPT_FLAGS -restrict; -arch sm_60; -std c++11; --expt-extended-lambda)
 set(CUDA_COMMON_DEBUG_FLAGS -restrict; -arch compute_30; -std c++11; --expt-extended-lambda)

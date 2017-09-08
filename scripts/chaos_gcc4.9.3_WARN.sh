@@ -24,6 +24,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Debug \
   -C ${PERFSUITE_DIR}/host-configs/chaos/gcc_4_9_3.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_TBB=Off \
   -DPERFSUITE_ENABLE_WARNINGS=On \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_chaos-gcc-4.9.3_debug \

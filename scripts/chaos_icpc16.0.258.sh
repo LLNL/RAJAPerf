@@ -24,6 +24,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ${PERFSUITE_DIR}/host-configs/chaos/icpc_16_0_258.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_TBB=Off \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_chaos-icpc-16.0.258 \

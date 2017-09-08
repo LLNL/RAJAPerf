@@ -26,6 +26,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ${PERFSUITE_DIR}/host-configs/toss3/icpc_17_0_2.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_TBB=Off \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-icpc-17.0.2 \

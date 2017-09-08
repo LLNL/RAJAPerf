@@ -25,6 +25,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ${PERFSUITE_DIR}/host-configs/blueos/clang_3_9_1.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_TBB=Off \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-3.9.1 \
