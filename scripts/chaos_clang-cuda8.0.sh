@@ -24,7 +24,6 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ${PERFSUITE_DIR}/host-configs/chaos/clang_cuda.cmake \
   -DENABLE_OPENMP=On \
-  -DENABLE_TBB=Off \
   -DENABLE_CUDA=On \
   -DENABLE_CLANG_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \

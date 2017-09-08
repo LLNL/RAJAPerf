@@ -24,7 +24,6 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ${PERFSUITE_DIR}/host-configs/chaos/nvcc_gcc4_9_3.cmake \
   -DENABLE_OPENMP=On \
-  -DENABLE_TBB=Off \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
