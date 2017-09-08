@@ -252,6 +252,7 @@ void TRAP_INT::runKernel(VariantID vid)
     case Base_CUDA : {
 
       TRAP_INT_DATA;
+
       Real_ptr sumx;
       allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
 
@@ -271,7 +272,7 @@ void TRAP_INT::runKernel(VariantID vid)
         Real_type lsumx;
         Real_ptr plsumx = &lsumx;
         getCudaDeviceData(plsumx, sumx, 1);
-        m_sumx += lsumx;
+        m_sumx += lsumx * h;
 
       }
       stopTimer();
