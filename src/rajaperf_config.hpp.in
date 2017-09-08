@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file used to capture build inof for perf suite.
+ * \brief   Header file used to capture build configuration for perf suite.
  *
  ******************************************************************************
  */
@@ -24,20 +24,32 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_build_info_HPP
-#define RAJAPerf_build_info_HPP
+#ifndef RAJAPerf_config_HPP
+#define RAJAPerf_config_HPP
+
+#include "RAJA/config.hpp"
 
 #include <string>
 
 namespace rajaperf {
 
-// Version of RAJA used to build (ex: 0.2.4)
-//static const std::string version = "@RAJA_VERSION_MAJOR@.@RAJA_VERSION_MINOR@.@RAJA_VERSION_PATCHLEVEL@";
-static const std::string version = 
-std::to_string(RAJA_VERSION_MAJOR) + std::string(".") +
-std::to_string(RAJA_VERSION_MINOR) + std::string(".") +
-std::to_string(RAJA_VERSION_PATCH_LEVEL);
+struct configuration {
 
+// Version of RAJA Perf Suite (ex: 0.1.0)
+static const std::string perfsuite_version =
+"@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
+"@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
+"@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
+
+// Version of RAJA used to build (ex: 0.2.4)
+static const std::string raja_version = 
+std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
+std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
+std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
+//static const std::string version = 
+//"@RAJA_VERSION_MAJOR@" + std::string(".") +
+//"@RAJA_VERSION_MINOR@" + std::string(".") +
+//"@RAJA_VERSION_PATCHLEVEL@";
 
 // Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
 static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
@@ -53,10 +65,14 @@ static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
 std::string user_run;
 
 // Date, time code was run
-std::string data_run;
+std::string date_run;
 
 // Systype and machine code ran on (ex: chaos_5_x64_64)
 std::string systype_run;
 std::string machine_run;
 		
-}
+};
+
+} // closing brace for rajaperf namespace
+
+#endif  // closing endif for header file include guard

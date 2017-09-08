@@ -33,13 +33,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(BLT_CXX_STANDARD 11)
 
 #
-# Define RAJA default settings...
+# Define RAJA settings...
 #
-
-#
-# Don't turn this off or code won't build (for now)....
-#
-set(RAJA_BUILD_WITH_BLT On)
 
 set(RAJA_ENABLE_TESTS On)
 set(RAJA_ENABLE_EXAMPLES Off)
@@ -52,17 +47,6 @@ set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
 set(RAJA_COHERENCE_BLOCK_SIZE 64)
 
-if (ENABLE_OPENMP)
-  set(RAJA_ENABLE_OPENMP On CACHE BOOL "")
-else()
-  set(RAJA_ENABLE_OPENMP Off CACHE BOOL "")
-endif()
-
-if (ENABLE_CUDA)
-  set(RAJA_ENABLE_CUDA On CACHE BOOL "")
-else()
-  set(RAJA_ENABLE_CUDA Off CACHE BOOL "")
-endif()
 
 # exclude RAJA make targets from top-level build...
 add_subdirectory(tpl/RAJA)
@@ -75,6 +59,10 @@ include_directories(${RAJA_INCLUDE_DIRS})
 # Setup variables to pass to Perf suite
 #
 
+set(RAJA_PERFSUITE_VERSION_MAJOR 0)
+set(RAJA_PERFSUITE_VERSION_MINOR 1)
+set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
+
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
@@ -83,14 +71,13 @@ if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif() 
 
-#set(RAJA_PERFSUITE_VERSION "0.1.0")
-
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
 set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
-set(RAJAPERF_COMPILER_OPTIONS "${BLT_CUDA_FLAGS}")
+list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
+set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
 else()
 set(RAJAPERF_COMPILER "${CMAKE_CXX_COMPILER}")
 string(TOUPPER ${CMAKE_BUILD_TYPE} RAJAPERF_BUILD_TYPE)
@@ -98,8 +85,8 @@ set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_${RAJAPERF_BUILD_TYPE}}")
 list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_build_info.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_build_info.hpp)
+configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
+  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
 
 #
