@@ -13,8 +13,8 @@
 #
 ###############################################################################
 
-#blt_add_library(
-#  NAME livloops
-#  SOURCES FOO.cpp 
-#  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
-#  )
+blt_add_library(
+  NAME lcals
+  SOURCES EOS.cpp 
+  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+  )

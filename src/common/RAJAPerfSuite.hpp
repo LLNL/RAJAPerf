@@ -54,7 +54,7 @@ class RunParams;
 enum GroupID {
 
   Basic = 0,
-  Livloops,
+  Lcals,
   Polybench,
   Stream,
   Apps,
@@ -90,29 +90,15 @@ enum KernelID {
   Basic_NESTED_INIT,
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
 #if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
+  Lcals_HYDRO_1D,
+#endif
+  Lcals_EOS,
+#if 0
+  Lcals_PIC_2D,
+  Lcals_DISC_ORD,
 #endif
 
 //

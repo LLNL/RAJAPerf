@@ -40,8 +40,16 @@
 #include "basic/NESTED_INIT.hpp"
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
+#if 0
+#include "lcals/HYDRO_1D.hpp"
+#endif
+#include "lcals/EOS.hpp"
+#if 0
+#include "lcals/PIC_2D.hpp"
+#include "lcals/DISC_ORD.hpp"
+#endif
 
 //
 // Polybench kernels...
@@ -87,7 +95,7 @@ namespace rajaperf
 static const std::string GroupNames [] =
 {
   std::string("Basic"),
-  std::string("Livloops"),
+  std::string("Lcals"),
   std::string("Polybench"),
   std::string("Stream"),
   std::string("Apps"),
@@ -123,29 +131,15 @@ static const std::string KernelNames [] =
   std::string("Basic_NESTED_INIT"),
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
 #if 0
-  std::string("Livloops_HYDRO_1D"),
-  std::string("Livloops_ICCG"),
-  std::string("Livloops_INNER_PROD"),
-  std::string("Livloops_BAND_LIN_EQ"),
-  std::string("Livloops_TRIDIAG_ELIM"),
-  std::string("Livloops_EOS"),
-  std::string("Livloops_ADI"),
-  std::string("Livloops_INT_PREDICT"),
-  std::string("Livloops_DIFF_PREDICT"),
-  std::string("Livloops_FIRST_SUM"),
-  std::string("Livloops_FIRST_DIFF"),
-  std::string("Livloops_PIC_2D"),
-  std::string("Livloops_PIC_1D"),
-  std::string("Livloops_HYDRO_2D"),
-  std::string("Livloops_GEN_LIN_RECUR"),
-  std::string("Livloops_DISC_ORD"),
-  std::string("Livloops_MAT_X_MAT"),
-  std::string("Livloops_PLANCKIAN"),
-  std::string("Livloops_IMP_HYDRO_2D"),
-  std::string("Livloops_FIND_FIRST_MIN"),
+  std::string("Lcals_HYDRO_1D"),
+#endif
+  std::string("Lcals_EOS"),
+#if 0
+  std::string("Lcals_PIC_2D"),
+  std::string("Lcals_DISC_ORD"),
 #endif
 
 //
@@ -311,29 +305,18 @@ KernelBase* getKernelObject(KernelID kid,
     }
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
 #if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
+  Lcals_HYDRO_1D
+#endif
+    case Lcals_EOS : {
+       kernel = new lcals::EOS(run_params);
+       break;
+    }
+#if 0
+  Lcals_PIC_2D
+  Lcals_DISC_ORD
 #endif
 
 //

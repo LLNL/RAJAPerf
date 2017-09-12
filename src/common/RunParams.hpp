@@ -82,6 +82,8 @@ public:
 
   double getSizeFactor() const { return size_fact; }
 
+  double getPFTolerance() const { return pf_tol; }
+
   int getCheckRunReps() const { return checkrun_reps; }
 
   const std::string& getReferenceVariant() const { return reference_variant; }
@@ -129,6 +131,8 @@ private:
   int npasses;           /*!< Number of passes through suite  */
   double rep_fact;       /*!< pct of default kernel reps to run */
   double size_fact;      /*!< pct of default kernel iteration space to run */
+  double pf_tol;         /*!< pct RAJA variant run time can exceed base for
+                              each PM case to pass/fail acceptance */
 
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 

@@ -46,10 +46,6 @@ static const std::string raja_version =
 std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
-//static const std::string version = 
-//"@RAJA_VERSION_MAJOR@" + std::string(".") +
-//"@RAJA_VERSION_MINOR@" + std::string(".") +
-//"@RAJA_VERSION_PATCHLEVEL@";
 
 // Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
 static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";

@@ -584,7 +584,7 @@ void Executor::writeFOMReport(const string& filename)
                kern->getTotTime(base_vid);
 
             string pfstring(pass);
-            if (pct_diff[ik][col] > 0.1) {
+            if (pct_diff[ik][col] > run_params.getPFTolerance()) {
               pfstring = fail;
             }
 

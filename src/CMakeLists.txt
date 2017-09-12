@@ -18,7 +18,7 @@ include_directories(.)
 add_subdirectory(common)
 add_subdirectory(apps)
 add_subdirectory(basic)
-#add_subdirectory(livloops)
+add_subdirectory(lcals)
 #add_subdirectory(polybench)
 add_subdirectory(stream)
 
@@ -26,6 +26,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    lcals
     stream)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
