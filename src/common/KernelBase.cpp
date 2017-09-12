@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -37,8 +37,6 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
   : kernel_id(kid),
     name( getFullKernelName(kernel_id) ),
     run_params(params),
-    run_size(0),
-    run_reps(0),
     default_size(0),
     default_reps(0),
     running_variant(NumVariants)
@@ -57,18 +55,18 @@ KernelBase::~KernelBase()
 {
 }
 
-
-void KernelBase::setDefaultSize(Index_type size)
-{
-  default_size = size;
-  run_size = 
-    static_cast<Index_type>( size*run_params.getSizeFactor() );
+Index_type KernelBase::getRunSize() const
+{ 
+  return static_cast<Index_type>(default_size*run_params.getSizeFactor()); 
 }
 
-void KernelBase::setDefaultReps(Index_type nreps)
-{
-  default_reps = nreps;
-  run_reps = static_cast<Index_type>( nreps*run_params.getRepFactor() );
+Index_type KernelBase::getRunReps() const
+{ 
+  if (run_params.getInputState() == RunParams::CheckRun) {
+    return static_cast<Index_type>(run_params.getCheckRunReps());
+  } else {
+    return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+  } 
 }
 
 SizeSpec_T KernelBase::getSizeSpec()
@@ -108,10 +106,8 @@ void KernelBase::print(std::ostream& os) const
 {
   os << "\nKernelBase::print..." << std::endl;
   os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
-  os << "\t\t\t run_size(default_size) = " 
-     << run_size << "(" << default_size << ")" << std::endl;
-  os << "\t\t\t run_reps(default_reps) = " 
-     << run_reps << "(" << default_reps << ")" << std::endl;
+  os << "\t\t\t default_size = " << default_size << std::endl;
+  os << "\t\t\t default_reps = " << default_reps << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << num_exec[j] << std::endl; 

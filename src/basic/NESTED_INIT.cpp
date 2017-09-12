@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -52,7 +52,7 @@ namespace basic
   array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
 #define NESTED_INIT_DATA_SETUP_CUDA \
   Real_ptr array; \
@@ -76,7 +76,7 @@ __global__ void nested_init(Real_ptr array,
    NESTED_INIT_BODY; 
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 NESTED_INIT::NESTED_INIT(const RunParams& params)
@@ -157,7 +157,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       NESTED_INIT_DATA;
@@ -240,7 +240,7 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       NESTED_INIT_DATA_SETUP_CUDA;

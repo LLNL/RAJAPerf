@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -37,7 +37,7 @@
 //#undef USE_THRUST
 
 
-#if defined(RAJA_ENABLE_CUDA) && defined(USE_THRUST)
+#if defined(ENABLE_CUDA) && defined(USE_THRUST)
 #include <thrust/device_vector.h>
 #include <thrust/inner_product.h>
 #endif
@@ -55,7 +55,7 @@ namespace stream
   dot += a[i] * b[i] ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -111,7 +111,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 }
 #endif
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 DOT::DOT(const RunParams& params)
@@ -184,7 +184,7 @@ void DOT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       DOT_DATA;
@@ -235,7 +235,7 @@ void DOT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
 #if defined(USE_THRUST)

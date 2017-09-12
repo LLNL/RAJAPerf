@@ -19,9 +19,10 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 
 #include "DataUtils.hpp"
 
@@ -123,16 +124,17 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
 {
   (void) vid;
 
+// First touch...
+#if defined(ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
-#if defined(_OPENMP)
     #pragma omp parallel for
-#endif
     for (int i = 0; i < len; ++i) {
       ptr[i] = 0;
     };
-  }
+  } 
+#endif
 
   srand(4793);
 
@@ -163,20 +165,21 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
+// first touch...
+#if defined(ENABLE_OPENMP)
   if ( vid == Base_OpenMP || 
        vid == RAJALike_OpenMP || 
        vid == RAJA_OpenMP ) {
-#if defined(_OPENMP)
     #pragma omp parallel for
-#endif
     for (int i = 0; i < len; ++i) { 
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
     };
-  } else {
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    } 
-  }
+  } 
+#endif
+
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = factor*(i + 1.1)/(i + 1.12345);
+  } 
 
   incDataInitCount();
 }
@@ -188,16 +191,17 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
   (void) vid;
 
+// First touch...
+#if defined(ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
-#if defined(_OPENMP)
     #pragma omp parallel for
-#endif
     for (int i = 0; i < len; ++i) {
       ptr[i] = 0.0;
     };
   }
+#endif
 
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
@@ -222,19 +226,19 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
   Complex_type factor = ( data_init_count % 2 ?  Complex_type(0.1,0.2) :
                                                  Complex_type(0.2,0.3) );
 
+#if defined(ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
-#if defined(_OPENMP)
     #pragma omp parallel for
-#endif
     for (int i = 0; i < len; ++i) { 
       ptr[i] = factor*(i + 1.1)/(i + 1.12345);
     };
-  } else {
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    }
+  }
+#endif
+
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = factor*(i + 1.1)/(i + 1.12345);
   }
 
   incDataInitCount();

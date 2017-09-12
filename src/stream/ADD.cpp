@@ -19,10 +19,9 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-
 
 #include "ADD.hpp"
 
@@ -46,7 +45,7 @@ namespace stream
   c[i] = a[i] + b[i];
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -78,7 +77,7 @@ __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 ADD::ADD(const RunParams& params)
@@ -141,7 +140,7 @@ void ADD::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       ADD_DATA;
@@ -184,7 +183,7 @@ void ADD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       ADD_DATA_SETUP_CUDA;

@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -50,6 +50,8 @@ RunParams::RunParams(int argc, char** argv)
    size_spec_string("SPECUNDEFINED"),
    rep_fact(1.0),
    size_fact(1.0),
+   pf_tol(0.1),
+   checkrun_reps(1),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -86,6 +88,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n rep_fact = " << rep_fact; 
   str << "\n size_fact = " << size_fact; 
+  str << "\n size_fact = " << size_fact; 
+  str << "\n pf_tol = " << pf_tol; 
+  str << "\n checkrun_reps = " << checkrun_reps; 
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -190,6 +195,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << std::endl;
         input_state = BadInput;
       }
+    } else if ( opt == std::string("--pass-fail-tol") ||
+                opt == std::string("-pftol") ) {
+
+      i++;
+      if ( i < argc ) {
+        pf_tol = ::atof( argv[i] );
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --pass-fail-tol (or -pftol) a value (double)"
+                  << std::endl;
+        input_state = BadInput;
+      }
 
     } else if ( opt == std::string("--kernels") ||
                 opt == std::string("-k") ) {
@@ -264,7 +281,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-        input_state = DryRun;
+       input_state = DryRun;
+   
+    } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
+
+      input_state = CheckRun; 
+
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          checkrun_reps = ::atoi( argv[i] );
+        }
+
+      }
 
     } else {
      
@@ -303,6 +335,9 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase)]\n"
       << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n"; 
 
+  str << "\t --pass-fail-tol, -pftol <double> [default is 0.1]\n"
+      << "\t      (slowdown tolerance for RAJA vs. Base variants for pass/fail)\n\n";
+
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
@@ -333,7 +368,10 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --dryrun (print summary of how suite will run without running)\n";
+  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
+
+  str << "\t --checkrun <int> [default is 1]\n"
+<< "\t      (num reps to run each kernel, typically small value to check things are working)\n\n"; 
 
   str << std::endl;
   str.flush();

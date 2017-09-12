@@ -20,9 +20,10 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 
 #ifndef RAJAPerfSuite_HPP
 #define RAJAPerfSuite_HPP
@@ -30,15 +31,6 @@
 #include "RAJA/config.hpp"
 
 #include <string>
-
-#if 0
-#ifdef _OPENMP
-  #include <omp.h>
-#else
-  #define omp_get_thread_num() 0
-  #define omp_get_num_threads() 1
-#endif
-#endif
 
 namespace rajaperf
 {
@@ -62,7 +54,7 @@ class RunParams;
 enum GroupID {
 
   Basic = 0,
-  Livloops,
+  Lcals,
   Polybench,
   Stream,
   Apps,
@@ -98,29 +90,14 @@ enum KernelID {
   Basic_NESTED_INIT,
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
+  Lcals_HYDRO_1D,
+  Lcals_EOS,
+  Lcals_FIRST_DIFF,
 #if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
+  Lcals_PIC_2D,
+  Lcals_DISC_ORD,
 #endif
 
 //
@@ -172,12 +149,12 @@ enum VariantID {
 
   Base_Seq = 0,
   RAJA_Seq,
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
   Base_OpenMP,
   RAJALike_OpenMP,
   RAJA_OpenMP,
 #endif
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
   Base_CUDA,
   RAJA_CUDA,
 #endif

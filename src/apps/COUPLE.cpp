@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -121,11 +121,23 @@ COUPLE::COUPLE(const RunParams& params)
   setDefaultReps(60);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+
+  m_imin = m_domain->imin;
+  m_imax = m_domain->imax;
+  m_jmin = m_domain->jmin;
+  m_jmax = m_domain->jmax;
+  m_kmin = m_domain->kmin;
+  m_kmax = m_domain->kmax;
 }
 
 COUPLE::~COUPLE() 
 {
   delete m_domain;
+}
+
+Index_type COUPLE::getItsPerRep() const 
+{ 
+  return  ( (m_imax - m_imin) * (m_jmax - m_jmin) * (m_kmax - m_kmin) ); 
 }
 
 void COUPLE::setUp(VariantID vid)
@@ -137,13 +149,6 @@ void COUPLE::setUp(VariantID vid)
   allocAndInitData(m_t2, max_loop_index, vid);
   allocAndInitData(m_denac, max_loop_index, vid);
   allocAndInitData(m_denlw, max_loop_index, vid);
-
-  m_imin = m_domain->imin;
-  m_imax = m_domain->imax;
-  m_jmin = m_domain->jmin;
-  m_jmax = m_domain->jmax;
-  m_kmin = m_domain->kmin;
-  m_kmax = m_domain->kmax;
 
   m_clight = 3.e+10;
   m_csound = 3.09e+7;
@@ -201,7 +206,7 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
       COUPLE_DATA;
 
@@ -241,7 +246,7 @@ void COUPLE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...

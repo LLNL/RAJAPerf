@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -69,7 +69,7 @@ namespace apps
   out[i] = sum;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
   //
   // Define thread block size for CUDA execution
   //
@@ -140,7 +140,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 
 #endif 
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 FIR::FIR(const RunParams& params)
@@ -148,18 +148,22 @@ FIR::FIR(const RunParams& params)
 {
   setDefaultSize(100000);
   setDefaultReps(5000);
+
+  m_coefflen = COEFFLEN;
 }
 
 FIR::~FIR() 
 {
 }
 
+Index_type FIR::getItsPerRep() const { 
+  return getRunSize() - m_coefflen;
+}
+
 void FIR::setUp(VariantID vid)
 {
   allocAndInitData(m_in, getRunSize(), vid);
   allocAndInitData(m_out, getRunSize(), vid);
-
-  m_coefflen = COEFFLEN;
 }
 
 void FIR::runKernel(VariantID vid)
@@ -208,7 +212,7 @@ void FIR::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       FIR_COEFF;
@@ -254,7 +258,7 @@ void FIR::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       FIR_COEFF;

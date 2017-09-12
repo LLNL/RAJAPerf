@@ -19,12 +19,13 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifndef DataUtils_HPP
-#define DataUtils_HPP
+
+#ifndef RAJAPerf_DataUtils_HPP
+#define RAJAPerf_DataUtils_HPP
 
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
@@ -112,7 +113,7 @@ void initData(Real_type& d,
               VariantID vid = NumVariants);
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
 template <typename T>
 void initCudaDeviceData(T& dptr, const T hptr, int len)

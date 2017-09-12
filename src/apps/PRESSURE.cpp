@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -59,7 +59,7 @@ namespace apps
   if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -114,7 +114,7 @@ __global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 PRESSURE::PRESSURE(const RunParams& params)
@@ -192,7 +192,7 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       PRESSURE_DATA;
@@ -264,7 +264,7 @@ void PRESSURE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       PRESSURE_DATA_SETUP_CUDA;

@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -45,6 +45,8 @@ public:
   VOL3D(const RunParams& params);
 
   ~VOL3D();
+
+  Index_type getItsPerRep() const;
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 

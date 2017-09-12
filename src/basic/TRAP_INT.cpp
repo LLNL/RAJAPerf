@@ -19,7 +19,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For more information, please see the file LICENSE in the top-level directory.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -66,7 +66,7 @@ Real_type trap_int_func(Real_type x,
   sumx += trap_int_func(x, y, xp, yp);
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -115,7 +115,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 TRAP_INT::TRAP_INT(const RunParams& params)
@@ -197,7 +197,7 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       TRAP_INT_DATA;
@@ -248,10 +248,11 @@ void TRAP_INT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       TRAP_INT_DATA;
+
       Real_ptr sumx;
       allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
 
@@ -271,7 +272,7 @@ void TRAP_INT::runKernel(VariantID vid)
         Real_type lsumx;
         Real_ptr plsumx = &lsumx;
         getCudaDeviceData(plsumx, sumx, 1);
-        m_sumx += lsumx;
+        m_sumx += lsumx * h;
 
       }
       stopTimer();
