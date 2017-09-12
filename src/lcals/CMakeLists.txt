@@ -15,6 +15,7 @@
 
 blt_add_library(
   NAME lcals
-  SOURCES EOS.cpp 
+  SOURCES HYDRO_1D.cpp 
+          EOS.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

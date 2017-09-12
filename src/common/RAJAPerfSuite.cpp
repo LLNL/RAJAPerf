@@ -42,9 +42,7 @@
 //
 // Lcals kernels...
 //
-#if 0
 #include "lcals/HYDRO_1D.hpp"
-#endif
 #include "lcals/EOS.hpp"
 #if 0
 #include "lcals/PIC_2D.hpp"
@@ -133,9 +131,7 @@ static const std::string KernelNames [] =
 //
 // Lcals kernels...
 //
-#if 0
   std::string("Lcals_HYDRO_1D"),
-#endif
   std::string("Lcals_EOS"),
 #if 0
   std::string("Lcals_PIC_2D"),
@@ -307,9 +303,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Lcals kernels...
 //
-#if 0
-  Lcals_HYDRO_1D
-#endif
+    case Lcals_HYDRO_1D : {
+       kernel = new lcals::HYDRO_1D(run_params);
+       break;
+    }
     case Lcals_EOS : {
        kernel = new lcals::EOS(run_params);
        break;

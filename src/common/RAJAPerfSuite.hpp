@@ -92,9 +92,7 @@ enum KernelID {
 //
 // Lcals kernels...
 //
-#if 0
   Lcals_HYDRO_1D,
-#endif
   Lcals_EOS,
 #if 0
   Lcals_PIC_2D,
