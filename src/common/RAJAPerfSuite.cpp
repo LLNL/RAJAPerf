@@ -44,6 +44,7 @@
 //
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/EOS.hpp"
+#include "lcals/FIRST_DIFF.hpp"
 #if 0
 #include "lcals/PIC_2D.hpp"
 #include "lcals/DISC_ORD.hpp"
@@ -133,6 +134,7 @@ static const std::string KernelNames [] =
 //
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_EOS"),
+  std::string("Lcals_FIRST_DIFF"),
 #if 0
   std::string("Lcals_PIC_2D"),
   std::string("Lcals_DISC_ORD"),
@@ -309,6 +311,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Lcals_EOS : {
        kernel = new lcals::EOS(run_params);
+       break;
+    }
+    case Lcals_FIRST_DIFF : {
+       kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
 #if 0

@@ -94,6 +94,7 @@ enum KernelID {
 //
   Lcals_HYDRO_1D,
   Lcals_EOS,
+  Lcals_FIRST_DIFF,
 #if 0
   Lcals_PIC_2D,
   Lcals_DISC_ORD,
