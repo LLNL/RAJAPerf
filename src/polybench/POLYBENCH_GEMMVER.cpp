@@ -91,7 +91,7 @@ namespace polybench
 
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -184,7 +184,7 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
 
 
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
   
 POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMMVER, params)
@@ -220,7 +220,6 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   }
 
   setDefaultReps(m_run_reps);
-  fprintf(stderr,"Polybench_GEMMVAR will run %d reps\n",getRunReps());
   allocAndInitData(m_A, m_n * m_n);
   allocAndInitData(m_u1, m_n);
   allocAndInitData(m_v1, m_n);
@@ -316,7 +315,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
     case Base_OpenMP : {
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -355,7 +354,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -382,9 +381,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
-#if 1
       POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -403,12 +401,10 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       cudaDeviceSynchronize();
       stopTimer();
       POLYBENCH_GEMMVER_TEARDOWN_CUDA;
-#endif
       break;
     }
 
     case RAJA_CUDA : {
-#if 1
       POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -438,7 +434,6 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       }
       stopTimer();
       POLYBENCH_GEMMVER_TEARDOWN_CUDA;
-#endif
       break;
     }
 

@@ -80,7 +80,7 @@ namespace polybench
   *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -150,7 +150,7 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
 }
 
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
   
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
@@ -187,7 +187,6 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   }
 
   setDefaultReps(m_run_reps);
-  fprintf(stderr,"Polybench_2MM will run %d reps\n",getRunReps());
   allocAndInitData(m_tmp, m_ni * m_nj);
   allocAndInitData(m_A, m_ni * m_nk);
   allocAndInitData(m_B, m_nk * m_nj);
@@ -278,14 +277,13 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case Base_OpenMP : {
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
-            //if(j == 0) printf("Thread : %d\n",omp_get_thread_num());
             POLYBENCH_2MM_BODY1;
             for(Index_type k = 0; k < nk; k++) {
 
@@ -298,7 +296,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         #pragma omp parallel for   
         for(Index_type i = 0; i < ni; i++)
           for(Index_type l = 0; l < nl; l++) {
-            //if(l == 0) printf("Thread : %d\n",omp_get_thread_num());
             POLYBENCH_2MM_BODY3;
             for(Index_type j = 0; j < nj; j++)
               POLYBENCH_2MM_BODY4;
@@ -316,7 +313,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_2MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -343,7 +340,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;

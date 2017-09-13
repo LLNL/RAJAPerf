@@ -98,7 +98,7 @@ namespace polybench
   *(G + i * nl + l) += *(E + i * nj + j) * *(F + j * nl + l);
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -221,7 +221,6 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
       break;
   }
   setDefaultReps(m_run_reps);
-  fprintf(stderr,"Polybench_3MM will run %d reps\n",getRunReps());
   allocAndInitData(m_A, m_ni * m_nk);
   allocAndInitData(m_B, m_nk * m_nj);
   allocAndInitData(m_C, m_nj * m_nm);
@@ -324,7 +323,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
     case Base_OpenMP : {
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -365,7 +364,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -399,7 +398,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
       POLYBENCH_3MM_DATA_SETUP_CUDA;
       startTimer();

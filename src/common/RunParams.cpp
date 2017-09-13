@@ -333,7 +333,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (% of default kernel iteration space size to run)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase)]\n"
-      << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n"; 
+      << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants for pass/fail)\n\n";
