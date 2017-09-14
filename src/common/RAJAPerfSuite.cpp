@@ -45,9 +45,9 @@
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/EOS.hpp"
 #include "lcals/FIRST_DIFF.hpp"
+#include "lcals/PLANCKIAN.hpp"
 #if 0
-#include "lcals/PIC_2D.hpp"
-#include "lcals/DISC_ORD.hpp"
+#include "lcals/GEN_LIN_RECUR.hpp"
 #endif
 
 //
@@ -139,9 +139,9 @@ static const std::string KernelNames [] =
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_EOS"),
   std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_PLANCKIAN"),
 #if 0
-  std::string("Lcals_PIC_2D"),
-  std::string("Lcals_DISC_ORD"),
+  std::string("Lcals_GEN_LIN_RECUR"),
 #endif
 
 //
@@ -325,9 +325,15 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
+    case Lcals_PLANCKIAN : {
+       kernel = new lcals::PLANCKIAN(run_params);
+       break;
+    }
 #if 0
-  Lcals_PIC_2D
-  Lcals_DISC_ORD
+    case Lcals_GEN_LIN_RECUR : {
+       kernel = new lcals::GEN_LIN_RECUR(run_params);
+       break;
+    }
 #endif
 
 //
