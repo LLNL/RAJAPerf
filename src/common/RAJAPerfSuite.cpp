@@ -45,10 +45,8 @@
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/EOS.hpp"
 #include "lcals/FIRST_DIFF.hpp"
+#include "lcals/DIFF_PREDICT.hpp"
 #include "lcals/PLANCKIAN.hpp"
-#if 0
-#include "lcals/GEN_LIN_RECUR.hpp"
-#endif
 
 //
 // Polybench kernels...
@@ -70,7 +68,7 @@
 #include "apps/ENERGY.hpp"
 #include "apps/VOL3D.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
-#include "apps/COUPLE.hpp"
+#include "apps/WIP-COUPLE.hpp"
 #include "apps/FIR.hpp"
 
 
@@ -135,10 +133,8 @@ static const std::string KernelNames [] =
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_EOS"),
   std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_DIFF_PREDICT"),
   std::string("Lcals_PLANCKIAN"),
-#if 0
-  std::string("Lcals_GEN_LIN_RECUR"),
-#endif
 
 //
 // Polybench kernels...
@@ -317,16 +313,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
+    case Lcals_DIFF_PREDICT : {
+       kernel = new lcals::DIFF_PREDICT(run_params);
+       break;
+    }
     case Lcals_PLANCKIAN : {
        kernel = new lcals::PLANCKIAN(run_params);
        break;
     }
-#if 0
-    case Lcals_GEN_LIN_RECUR : {
-       kernel = new lcals::GEN_LIN_RECUR(run_params);
-       break;
-    }
-#endif
 
 //
 // Polybench kernels...
