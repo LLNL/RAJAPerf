@@ -55,6 +55,9 @@ KernelBase::~KernelBase()
 {
 }
 
+
+//SizeSpec_T KernelBase::getSizeSpec() {return run_params->getSizeSpec();}
+
 Index_type KernelBase::getRunSize() const
 { 
   return static_cast<Index_type>(default_size*run_params.getSizeFactor()); 
@@ -69,10 +72,6 @@ Index_type KernelBase::getRunReps() const
   } 
 }
 
-SizeSpec_T KernelBase::getSizeSpec()
-{
-  return run_params.getSizeSpec();
-}
 
 void KernelBase::execute(VariantID vid) 
 {

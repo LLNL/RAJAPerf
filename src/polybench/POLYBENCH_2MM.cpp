@@ -31,6 +31,7 @@
 
 
 #include <iostream>
+#include <cstring>
 
 namespace rajaperf 
 {
