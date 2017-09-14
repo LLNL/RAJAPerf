@@ -44,8 +44,9 @@
 //
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/EOS.hpp"
-#include "lcals/FIRST_DIFF.hpp"
+#include "lcals/INT_PREDICT.hpp"
 #include "lcals/DIFF_PREDICT.hpp"
+#include "lcals/FIRST_DIFF.hpp"
 #include "lcals/PLANCKIAN.hpp"
 
 //
@@ -132,8 +133,9 @@ static const std::string KernelNames [] =
 //
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_EOS"),
-  std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_INT_PREDICT"),
   std::string("Lcals_DIFF_PREDICT"),
+  std::string("Lcals_FIRST_DIFF"),
   std::string("Lcals_PLANCKIAN"),
 
 //
@@ -309,12 +311,16 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new lcals::EOS(run_params);
        break;
     }
-    case Lcals_FIRST_DIFF : {
-       kernel = new lcals::FIRST_DIFF(run_params);
+    case Lcals_INT_PREDICT : {
+       kernel = new lcals::INT_PREDICT(run_params);
        break;
     }
     case Lcals_DIFF_PREDICT : {
        kernel = new lcals::DIFF_PREDICT(run_params);
+       break;
+    }
+    case Lcals_FIRST_DIFF : {
+       kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
     case Lcals_PLANCKIAN : {
