@@ -38,6 +38,28 @@ namespace rajaperf
 class KernelBase;
 class RunParams;
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining size specification for the polybench kernels
+ *
+ * Polybench comes with a spec file to setup the iteration space for the various sizes:
+ * Mini,Small,Medium,Large,Extralarge
+ *
+ * and we adapt those entries within this perfsuite.
+ *
+ * The default size is Medium, but can be overriding as a parameter at run-time
+ *
+ * An example partial entry from that file showing the MINI and SMALL spec for the
+ * kernel 3mm
+ *
+ * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
+ * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
+ * *
+ *******************************************************************************
+ */
+typedef enum SizeSpec {Mini,Small,Medium,Large,Extralarge,Specundefined} SizeSpec_T;
+
 
 /*!
  *******************************************************************************
