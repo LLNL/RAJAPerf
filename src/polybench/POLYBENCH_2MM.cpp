@@ -45,9 +45,7 @@ namespace polybench
   ResReal_ptr C = m_C; \
   ResReal_ptr D = m_D; \
   Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-  alpha = 1.5; \
-  beta = 1.2; 
+  Real_type beta = m_beta; 
 
 
 // The following 2MM_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
@@ -97,8 +95,6 @@ namespace polybench
   Real_ptr D = m_D; \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
-  alpha = 1.5; \
-  beta = 1.2; \
 \
   memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
