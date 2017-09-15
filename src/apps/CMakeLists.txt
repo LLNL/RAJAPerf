@@ -19,7 +19,7 @@ blt_add_library(
           ENERGY.cpp 
           VOL3D.cpp 
           DEL_DOT_VEC_2D.cpp 
-          COUPLE.cpp
+          WIP-COUPLE.cpp
           FIR.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

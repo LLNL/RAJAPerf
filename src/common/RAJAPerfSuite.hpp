@@ -116,11 +116,10 @@ enum KernelID {
 //
   Lcals_HYDRO_1D,
   Lcals_EOS,
+  Lcals_INT_PREDICT,
+  Lcals_DIFF_PREDICT,
   Lcals_FIRST_DIFF,
   Lcals_PLANCKIAN,
-#if 0
-  Lcals_GEN_LIN_RECUR,
-#endif
 
 //
 // Polybench kernels...

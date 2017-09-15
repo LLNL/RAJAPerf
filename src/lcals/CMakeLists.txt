@@ -17,6 +17,8 @@ blt_add_library(
   NAME lcals
   SOURCES HYDRO_1D.cpp 
           EOS.cpp 
+          INT_PREDICT.cpp 
+          DIFF_PREDICT.cpp 
           FIRST_DIFF.cpp 
           PLANCKIAN.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
