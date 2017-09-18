@@ -75,6 +75,7 @@ everything is working properly.  For example,
 
 You can also create your own build directory and run CMake with your own
 arguments from there; e.g., :
+
 ```
 > mkdir my-build
 > cd my-build
@@ -89,9 +90,11 @@ arguments from there; e.g., :
 
 The suite is run by invoking the executable in the 'bin' directory in the 
 build space. For example, giving it no options:
+
 ```
 > ./bin/raja-perf.exe
 ```
+
 will run the entire suite (all kernels and variants) in their default 
 configurations.
 
@@ -106,10 +109,13 @@ Note: most options appear in a long or short form for ease of use.
 
 To see available options along with a brief description of each, pass the 
 '--help' or '-h' option:
+
 ```
 > ./bin/raja-perf.exe --help
 ```
+
 or
+
 ```
 > ./bin/raja-perf.exe -h
 ```
