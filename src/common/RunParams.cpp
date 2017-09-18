@@ -324,19 +324,27 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-variants, -pv (prints valid variant names}\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n\n"; 
+      << "\t      (num passes through suite)\n"; 
+  str << "\t\t Example...\n"
+      << "\t\t --npasses 2 (runs complete suite twice\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (% of default # reps to run each kernel)\n\n";
+      << "\t      (fraction of default # reps to run each kernel)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (% of default kernel iteration space size to run)\n\n";
+      << "\t      (fraction of default kernel iteration space size to run)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --repfact 2.0 (kernel loops will be twice as long as default)\n\n";
 
-  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase)]\n"
+  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
       << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
 
-  str << "\t --pass-fail-tol, -pftol <double> [default is 0.1]\n"
-      << "\t      (slowdown tolerance for RAJA vs. Base variants for pass/fail)\n\n";
+  str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
+      << "\t      (slowdown fail tolerance for RAJA vs. Base variants in FOM report)\n";
+  str << "\t\t Example...\n"
+      << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as FAIL in FOM report)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
@@ -368,10 +376,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
-
   str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (num reps to run each kernel, typically small value to check things are working)\n\n"; 
+<< "\t      (run each kernel given number of times; usually to check things are working)\n"; 
+  str << "\t\t Example...\n"
+      << "\t\t --checkrun 2 (run each kernel twice)\n\n";
+
+  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
 
   str << std::endl;
   str.flush();
