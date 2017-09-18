@@ -102,7 +102,7 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(1500);
+   setDefaultReps(1800);
 }
 
 IF_QUAD::~IF_QUAD() 

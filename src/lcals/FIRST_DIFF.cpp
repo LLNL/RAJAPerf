@@ -81,7 +81,7 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(15000);
+   setDefaultReps(16000);
 }
 
 FIRST_DIFF::~FIRST_DIFF() 

@@ -84,7 +84,7 @@ ADD::ADD(const RunParams& params)
   : KernelBase(rajaperf::Stream_ADD, params)
 {
    setDefaultSize(1000000);
-   setDefaultReps(800);
+   setDefaultReps(1000);
 }
 
 ADD::~ADD() 

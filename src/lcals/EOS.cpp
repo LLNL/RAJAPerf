@@ -99,7 +99,7 @@ EOS::EOS(const RunParams& params)
   : KernelBase(rajaperf::Lcals_EOS, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(6000);
+   setDefaultReps(5000);
 }
 
 EOS::~EOS() 

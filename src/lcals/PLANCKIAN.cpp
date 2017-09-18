@@ -96,7 +96,7 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_PLANCKIAN, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(500);
+   setDefaultReps(460);
 }
 
 PLANCKIAN::~PLANCKIAN() 

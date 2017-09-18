@@ -87,7 +87,7 @@ TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
    setDefaultSize(1000000);
-   setDefaultReps(800);
+   setDefaultReps(1000);
 }
 
 TRIAD::~TRIAD() 

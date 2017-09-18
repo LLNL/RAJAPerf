@@ -93,7 +93,7 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(12000);
+   setDefaultReps(12500);
 }
 
 HYDRO_1D::~HYDRO_1D() 

@@ -165,7 +165,7 @@ VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(320);
+  setDefaultReps(300);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
