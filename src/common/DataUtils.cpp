@@ -65,27 +65,27 @@ void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
 /*
  * Allocate and initialize aligned data arrays.
  */
-void allocAndInitData(Real_ptr& ptr, int len, bool init , VariantID vid )
+void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
 {
   ptr = 
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN, 
                                            len*sizeof(Real_type));
-  if(init) initData(ptr, len, vid);
+  initData(ptr, len, vid);
 }
 
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, bool init, VariantID vid)
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
   ptr =
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
                                            len*sizeof(Real_type));
-  if(init) initDataRandSign(ptr, len, vid);
+  initDataRandSign(ptr, len, vid);
 }
 
-void allocAndInitData(Complex_ptr& ptr, int len, bool init, VariantID vid)
+void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 {
   // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Complex_type[len];
-  if(init) initData(ptr, len, vid);
+  initData(ptr, len, vid);
 }
 
 
