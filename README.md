@@ -33,6 +33,7 @@ Table of Contents
 
 To build the suite, you must first obtain a copy of the code by cloning the
 source repository. For example,
+
 ```
 > mkdir RAJA-PERFSUITE
 > cd RAJA-PERFSUITE
