@@ -13,8 +13,11 @@
 #
 ###############################################################################
 
-#blt_add_library(
-#  NAME polybench
-#  SOURCES FOO.cpp 
-#  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
-#  )
+blt_add_library(
+  NAME polybench
+  SOURCES POLYBENCH_2MM.cpp 
+          POLYBENCH_3MM.cpp
+          POLYBENCH_GEMMVER.cpp
+          # POLYBENCH_ADI.cpp
+  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+  )

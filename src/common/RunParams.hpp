@@ -30,6 +30,9 @@
 #include <vector>
 #include <iosfwd>
 
+
+#include "common/DataUtils.hpp"
+
 namespace rajaperf
 {
 
@@ -81,6 +84,12 @@ public:
   double getRepFactor() const { return rep_fact; }
 
   double getSizeFactor() const { return size_fact; }
+
+  SizeSpec_T  getSizeSpec() const { return size_spec; }
+
+  void  setSizeSpec(std::string inputString);
+
+  const std::string& getSizeSpecString();
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -135,6 +144,11 @@ private:
                               each PM case to pass/fail acceptance */
 
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
+
+  SizeSpec_T size_spec;          /* if provided use/parse polybench spec file for size data: one of
+                                    MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
+
+  std::string size_spec_string;
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

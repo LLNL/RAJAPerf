@@ -30,6 +30,8 @@
 
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RPTypes.hpp"
+#include "common/DataUtils.hpp"
+#include "common/RunParams.hpp"
 
 #include "RAJA/util/Timer.hpp"
 
@@ -37,8 +39,6 @@
 #include <iostream>
 
 namespace rajaperf {
-
-class RunParams;
 
 class KernelBase
 {
@@ -53,6 +53,8 @@ public:
 
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }
+
+  SizeSpec_T getSizeSpec() {return run_params.getSizeSpec();}
 
   void setDefaultSize(Index_type size) { default_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
@@ -95,6 +97,7 @@ protected:
   RAJA::Timer::ElapsedType tot_time[NumVariants];
 
   Checksum_type checksum[NumVariants];
+
 
 private:
   KernelBase() = delete;

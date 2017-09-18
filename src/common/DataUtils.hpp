@@ -35,6 +35,7 @@
 namespace rajaperf
 {
 
+  
 /*!
  * Reset counter for data initialization.
  */
@@ -55,19 +56,19 @@ void allocAndInitData(Int_ptr& ptr, int len,
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
  */
-void allocAndInitData(Real_ptr& ptr, int len,
+void allocAndInitData(Real_ptr& ptr, int len, bool init = true,
                       VariantID vid = NumVariants);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array with random sign.
  */
-void allocAndInitDataRandSign(Real_ptr& ptr, int len,
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, bool init = true,
                               VariantID vid = NumVariants);
 
 /*!
  * \brief Allocate and initialize aligned Complex_type data array.
  */
-void allocAndInitData(Complex_ptr& ptr, int len,
+void allocAndInitData(Complex_ptr& ptr, int len, bool init = true,
                       VariantID vid = NumVariants);
 
 
