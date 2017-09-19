@@ -46,8 +46,12 @@ namespace rajaperf
 RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
    npasses(1),
+   size_spec(Specundefined),
+   size_spec_string("SPECUNDEFINED"),
    rep_fact(1.0),
    size_fact(1.0),
+   pf_tol(0.1),
+   checkrun_reps(1),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -84,6 +88,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n rep_fact = " << rep_fact; 
   str << "\n size_fact = " << size_fact; 
+  str << "\n size_fact = " << size_fact; 
+  str << "\n pf_tol = " << pf_tol; 
+  str << "\n checkrun_reps = " << checkrun_reps; 
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -178,6 +185,29 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if (opt == std::string("--sizespec") ) {
+      i++;
+      if ( i < argc ) {
+        setSizeSpec(argv[i]);
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --sizespec a value for size specification: one of  MINI,SMALL,MEDIUM,LARGE,EXTRALARGE (string : any case)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+    } else if ( opt == std::string("--pass-fail-tol") ||
+                opt == std::string("-pftol") ) {
+
+      i++;
+      if ( i < argc ) {
+        pf_tol = ::atof( argv[i] );
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --pass-fail-tol (or -pftol) a value (double)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
     } else if ( opt == std::string("--kernels") ||
                 opt == std::string("-k") ) {
 
@@ -251,7 +281,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-        input_state = DryRun;
+       input_state = DryRun;
+   
+    } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
+
+      input_state = CheckRun; 
+
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          checkrun_reps = ::atoi( argv[i] );
+        }
+
+      }
 
     } else {
      
@@ -279,13 +324,27 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-variants, -pv (prints valid variant names}\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n\n"; 
+      << "\t      (num passes through suite)\n"; 
+  str << "\t\t Example...\n"
+      << "\t\t --npasses 2 (runs complete suite twice\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (% of default # reps to run each kernel)\n\n";
+      << "\t      (fraction of default # reps to run each kernel)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (% of default kernel iteration space size to run)\n\n";
+      << "\t      (fraction of default kernel iteration space size to run)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --repfact 2.0 (kernel loops will be twice as long as default)\n\n";
+
+  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
+      << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
+
+  str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
+      << "\t      (slowdown fail tolerance for RAJA vs. Base variants in FOM report)\n";
+  str << "\t\t Example...\n"
+      << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as FAIL in FOM report)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
@@ -317,7 +376,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --dryrun (print summary of how suite will run without running)\n";
+  str << "\t --checkrun <int> [default is 1]\n"
+<< "\t      (run each kernel given number of times; usually to check things are working)\n"; 
+  str << "\t\t Example...\n"
+      << "\t\t --checkrun 2 (run each kernel twice)\n\n";
+
+  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
 
   str << std::endl;
   str.flush();
@@ -365,6 +429,48 @@ void RunParams::printGroupNames(std::ostream& str) const
     str << getGroupName(static_cast<GroupID>(is)) << std::endl;
   }
   str.flush();
+}
+
+const std::string& RunParams::getSizeSpecString()
+{
+  switch(size_spec) {
+    case Mini:
+      size_spec_string = "MINI";
+      break;
+    case Small:
+      size_spec_string = "SMALL";
+      break;
+    case Medium:
+      size_spec_string = "MEDIUM";
+      break;
+    case Large:
+      size_spec_string = "LARGE";
+      break;
+    case Extralarge:
+      size_spec_string = "EXTRALARGE";
+      break;
+    default:
+      size_spec_string = "SPECUNDEFINED";
+  }
+  return size_spec_string;
+}
+
+void RunParams::setSizeSpec(std::string inputString)
+{
+  for (auto & c: inputString) c = std::toupper(c);
+  if(inputString == "MINI")
+    size_spec = Mini;
+  else if(inputString == "SMALL")
+    size_spec = Small;
+  else if(inputString == "MEDIUM")
+    size_spec = Medium;
+  else if(inputString == "LARGE")
+    size_spec = Large;
+  else if(inputString == "EXTRALARGE")
+    size_spec = Extralarge;
+  else
+    size_spec = Specundefined;
+  std::cout << "Size Specification : " << getSizeSpecString() << std::endl;
 }
 
 }  // closing brace for rajaperf namespace

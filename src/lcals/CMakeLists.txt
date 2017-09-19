@@ -13,8 +13,13 @@
 #
 ###############################################################################
 
-macro(raja_add_benchmark name)
-  add_test(
-    NAME ${name}-test
-    COMMAND ${name} --benchmark_format=json --benchmark_output=${name}-benchmark-results.json)
-endmacro(raja_add_benchmark)
+blt_add_library(
+  NAME lcals
+  SOURCES HYDRO_1D.cpp 
+          EOS.cpp 
+          INT_PREDICT.cpp 
+          DIFF_PREDICT.cpp 
+          FIRST_DIFF.cpp 
+          PLANCKIAN.cpp 
+  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+  )

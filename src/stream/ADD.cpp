@@ -45,7 +45,7 @@ namespace stream
   c[i] = a[i] + b[i];
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -77,14 +77,14 @@ __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 ADD::ADD(const RunParams& params)
   : KernelBase(rajaperf::Stream_ADD, params)
 {
    setDefaultSize(1000000);
-   setDefaultReps(800);
+   setDefaultReps(1000);
 }
 
 ADD::~ADD() 
@@ -140,7 +140,7 @@ void ADD::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       ADD_DATA;
@@ -183,7 +183,7 @@ void ADD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       ADD_DATA_SETUP_CUDA;

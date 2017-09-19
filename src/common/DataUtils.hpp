@@ -35,6 +35,7 @@
 namespace rajaperf
 {
 
+  
 /*!
  * Reset counter for data initialization.
  */
@@ -112,7 +113,7 @@ void initData(Real_type& d,
               VariantID vid = NumVariants);
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
 template <typename T>
 void initCudaDeviceData(T& dptr, const T hptr, int len)

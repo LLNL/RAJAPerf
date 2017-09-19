@@ -32,20 +32,33 @@
 
 #include <string>
 
-#if 0
-#ifdef _OPENMP
-  #include <omp.h>
-#else
-  #define omp_get_thread_num() 0
-  #define omp_get_num_threads() 1
-#endif
-#endif
-
 namespace rajaperf
 {
 
 class KernelBase;
 class RunParams;
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining size specification for the polybench kernels
+ *
+ * Polybench comes with a spec file to setup the iteration space for the various sizes:
+ * Mini,Small,Medium,Large,Extralarge
+ *
+ * and we adapt those entries within this perfsuite.
+ *
+ * The default size is Medium, but can be overriding as a parameter at run-time
+ *
+ * An example partial entry from that file showing the MINI and SMALL spec for the
+ * kernel 3mm
+ *
+ * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
+ * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
+ * *
+ *******************************************************************************
+ */
+typedef enum SizeSpec {Mini,Small,Medium,Large,Extralarge,Specundefined} SizeSpec_T;
 
 
 /*!
@@ -63,7 +76,7 @@ class RunParams;
 enum GroupID {
 
   Basic = 0,
-  Livloops,
+  Lcals,
   Polybench,
   Stream,
   Apps,
@@ -99,36 +112,22 @@ enum KernelID {
   Basic_NESTED_INIT,
 
 //
-// Livloops kernels...
+// Lcals kernels...
 //
-#if 0
-  Livloops_HYDRO_1D,
-  Livloops_ICCG,
-  Livloops_INNER_PROD,
-  Livloops_BAND_LIN_EQ,
-  Livloops_TRIDIAG_ELIM,
-  Livloops_EOS,
-  Livloops_ADI,
-  Livloops_INT_PREDICT,
-  Livloops_DIFF_PREDICT,
-  Livloops_FIRST_SUM,
-  Livloops_FIRST_DIFF,
-  Livloops_PIC_2D,
-  Livloops_PIC_1D,
-  Livloops_HYDRO_2D,
-  Livloops_GEN_LIN_RECUR,
-  Livloops_DISC_ORD,
-  Livloops_MAT_X_MAT,
-  Livloops_PLANCKIAN,
-  Livloops_IMP_HYDRO_2D,
-  Livloops_FIND_FIRST_MIN,
-#endif
+  Lcals_HYDRO_1D,
+  Lcals_EOS,
+  Lcals_INT_PREDICT,
+  Lcals_DIFF_PREDICT,
+  Lcals_FIRST_DIFF,
+  Lcals_PLANCKIAN,
 
 //
 // Polybench kernels...
 //
-#if 0
-  Polybench_***
+#if 1
+  Polybench_2MM,
+  Polybench_3MM,
+  Polybench_GEMMVER,
 #endif
 
 //
@@ -171,12 +170,12 @@ enum VariantID {
 
   Base_Seq = 0,
   RAJA_Seq,
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
   Base_OpenMP,
   RAJALike_OpenMP,
   RAJA_OpenMP,
 #endif
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
   Base_CUDA,
   RAJA_CUDA,
 #endif

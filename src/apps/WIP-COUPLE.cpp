@@ -24,7 +24,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#include "COUPLE.hpp"
+#include "WIP-COUPLE.hpp"
 
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
@@ -206,7 +206,7 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
       COUPLE_DATA;
 
@@ -246,7 +246,7 @@ void COUPLE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...

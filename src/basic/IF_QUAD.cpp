@@ -55,7 +55,7 @@ namespace basic
     x1[i] = 0.0; \
   }
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -95,14 +95,14 @@ __global__ void ifquad(Real_ptr x1, Real_ptr x2,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
    setDefaultSize(100000);
-   setDefaultReps(1500);
+   setDefaultReps(1800);
 }
 
 IF_QUAD::~IF_QUAD() 
@@ -160,7 +160,7 @@ void IF_QUAD::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)
+#if defined(ENABLE_OPENMP)
     case Base_OpenMP : {
 
       IF_QUAD_DATA;
@@ -203,7 +203,7 @@ void IF_QUAD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       IF_QUAD_DATA_SETUP_CUDA;

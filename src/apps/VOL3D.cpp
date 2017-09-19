@@ -103,7 +103,7 @@ namespace apps
   vol[i] *= vnormq ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -158,14 +158,14 @@ __global__ void vol3d(Real_ptr vol,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(320);
+  setDefaultReps(300);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 }
@@ -241,7 +241,7 @@ void VOL3D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       VOL3D_DATA;
@@ -291,7 +291,7 @@ void VOL3D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       VOL3D_DATA_SETUP_CUDA;

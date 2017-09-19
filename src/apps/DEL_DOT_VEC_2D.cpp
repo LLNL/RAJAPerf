@@ -82,7 +82,7 @@ namespace apps
   div[i] = dfxdx + dfydy + affine ;
 
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -106,11 +106,11 @@ namespace apps
   Real_ptr fx1,fx2,fx3,fx4 ; \
   Real_ptr fy1,fy2,fy3,fy4 ; \
 \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(xdot, m_xdot, iend); \
-  allocAndInitCudaDeviceData(ydot, m_ydot, iend); \
-  allocAndInitCudaDeviceData(div, m_div, iend); \
+  allocAndInitCudaDeviceData(x, m_x, m_domain->nnalls); \
+  allocAndInitCudaDeviceData(y, m_y, m_domain->nnalls); \
+  allocAndInitCudaDeviceData(xdot, m_xdot, m_domain->nnalls); \
+  allocAndInitCudaDeviceData(ydot, m_ydot, m_domain->nnalls); \
+  allocAndInitCudaDeviceData(div, m_div, m_domain->nnalls); \
   allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, m_domain->n_real_zones);
 
 #define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
@@ -120,6 +120,8 @@ namespace apps
   deallocCudaDeviceData(xdot); \
   deallocCudaDeviceData(ydot); \
   deallocCudaDeviceData(div);
+
+//  getCudaDeviceData(m_div, div, m_domain->nnalls); 
 
 __global__ void deldotvec2d(Real_ptr div, 
                             const Real_ptr x1, const Real_ptr x2,
@@ -140,14 +142,14 @@ __global__ void deldotvec2d(Real_ptr div,
    }
 }
 
-#endif // if defined(RAJA_ENABLE_CUDA)
+#endif // if defined(ENABLE_CUDA)
 
 
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
   setDefaultSize(312);  // See rzmax in ADomain struct
-  setDefaultReps(1200);
+  setDefaultReps(1050);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
 }
@@ -164,7 +166,7 @@ Index_type DEL_DOT_VEC_2D::getItsPerRep() const
 
 void DEL_DOT_VEC_2D::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->lrn;
+  int max_loop_index = m_domain->nnalls;
 
   allocAndInitData(m_x, max_loop_index, vid);
   allocAndInitData(m_y, max_loop_index, vid);
@@ -228,7 +230,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(_OPENMP)      
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       DEL_DOT_VEC_2D_DATA;
@@ -280,7 +282,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(ENABLE_CUDA)
     case Base_CUDA : {
 
       DEL_DOT_VEC_2D_DATA_SETUP_CUDA;

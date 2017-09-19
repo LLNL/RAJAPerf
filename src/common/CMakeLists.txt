@@ -13,7 +13,7 @@
 #
 ###############################################################################
 
-raja_add_library(
+blt_add_library(
   NAME common
   SOURCES DataUtils.cpp 
           Executor.cpp 
@@ -21,4 +21,5 @@ raja_add_library(
           OutputUtils.cpp 
           RAJAPerfSuite.cpp 
           RunParams.cpp
-  DEPENDS_ON RAJA)
+  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
+  )

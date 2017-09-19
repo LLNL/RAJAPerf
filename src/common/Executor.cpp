@@ -263,8 +263,9 @@ void Executor::setupSuite()
       //
       // If we've gotten to this point, we have good input to run.
       //
-      if ( run_params.getInputState() != RunParams::DryRun ) {
-        run_params.setInputState(RunParams::GoodToRun);
+      if ( run_params.getInputState() != RunParams::DryRun && 
+           run_params.getInputState() != RunParams::CheckRun ) {
+        run_params.setInputState(RunParams::PerfRun);
       }
 
     } // kernel and variant input both look good
@@ -288,8 +289,9 @@ void Executor::reportRunSummary(ostream& str) const
         << "\n  See run parameters or option messages above.\n" 
         << endl;
 
-  } else if ( in_state == RunParams::GoodToRun || 
-              in_state == RunParams::DryRun ) {
+  } else if ( in_state == RunParams::PerfRun || 
+              in_state == RunParams::DryRun || 
+              in_state == RunParams::CheckRun ) {
 
     if ( in_state == RunParams::DryRun ) {
 
@@ -302,7 +304,8 @@ void Executor::reportRunSummary(ostream& str) const
 
     } 
 
-    if ( in_state == RunParams::GoodToRun ) {
+    if ( in_state == RunParams::PerfRun ||
+         in_state == RunParams::CheckRun ) {
 
       str << "\n\nRAJA performance suite run summary...."
           <<   "\n--------------------------------------" << endl;
@@ -349,7 +352,8 @@ void Executor::reportRunSummary(ostream& str) const
 void Executor::runSuite()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun ) {
+  if ( in_state != RunParams::PerfRun && 
+       in_state != RunParams::CheckRun ) {
     return;
   }
 
@@ -368,7 +372,8 @@ void Executor::runSuite()
 void Executor::outputRunData()
 {
   RunParams::InputOpt in_state = run_params.getInputState();
-  if ( in_state != RunParams::GoodToRun ) {
+  if ( in_state != RunParams::PerfRun && 
+       in_state != RunParams::CheckRun ) {
     return;
   }
 
@@ -493,7 +498,7 @@ void Executor::writeFOMReport(const string& filename)
     //
     const string kernel_col_name("Kernel  ");
     const string sepchr(" , ");
-    size_t prec = 16;
+    size_t prec = 2;
 
     size_t kercol_width = kernel_col_name.size();
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -501,7 +506,7 @@ void Executor::writeFOMReport(const string& filename)
     }
     kercol_width++;
 
-    size_t fom_col_width = prec+8;
+    size_t fom_col_width = prec+14;
 
     size_t ncols = 0;
     for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
@@ -523,11 +528,14 @@ void Executor::writeFOMReport(const string& filename)
     //
     // Print title line.
     //
-    file << "FOM Report (+/- % runtime diff for each prog model: 100 * (T_RAJA - T_base) / T_base )";
+    file << "FOM Report : signed speedup(-)/slowdown(+) for each PM (base vs. RAJA) -> (T_RAJA - T_base) / T_base )";
     for (size_t iv = 0; iv < ncols; ++iv) {
       file << sepchr;
     }
     file << endl;
+
+    string pass(",    ");
+    string fail(",FAIL");
 
     //
     // Print column title line.
@@ -537,7 +545,7 @@ void Executor::writeFOMReport(const string& filename)
       const FOMGroup& group = fom_groups[ifg];
       for (size_t gv = 0; gv < group.variants.size(); ++gv) {
         string name = getVariantName(group.variants[gv]);
-        file << sepchr <<left<< setw(fom_col_width) << name; 
+        file << sepchr <<left<< setw(fom_col_width) << name << pass; 
       } 
     }
     file << endl;
@@ -571,12 +579,17 @@ void Executor::writeFOMReport(const string& filename)
           if ( kern->wasVariantRun(comp_vid) ) {
             col_exec_count[col]++;
 
-            pct_diff[ik][col] = 100.0 *
+            pct_diff[ik][col] = 
               (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
                kern->getTotTime(base_vid);
 
-            file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
-                 << pct_diff[ik][col]; 
+            string pfstring(pass);
+            if (pct_diff[ik][col] > run_params.getPFTolerance()) {
+              pfstring = fail;
+            }
+
+            file << sepchr << setw(fom_col_width) << setprecision(prec)
+                 <<left<< pct_diff[ik][col] <<right<< pfstring;
 
             //
             // Gather data for column summaries (unsigned).
@@ -588,7 +601,7 @@ void Executor::writeFOMReport(const string& filename)
           } else {  // variant was not run, print a big fat goose egg...
 
             file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
-                 << 0.0;
+                 << 0.0 << pass;
 
           }
 
@@ -653,35 +666,35 @@ void Executor::writeFOMReport(const string& filename)
     // 
     file <<left<< setw(kercol_width) << " ";
     for (size_t iv = 0; iv < ncols; ++iv) {
-      file << sepchr <<left<< setw(fom_col_width) << " ";
+      file << sepchr << setw(fom_col_width) <<left<< "  " <<right<< pass;
     }
     file << endl;
 
     file <<left<< setw(kercol_width) << "Col Min";
     for (size_t col = 0; col < ncols; ++col) {
       file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-           << col_min[col];
+           << col_min[col] << pass;
     }
     file << endl;
 
     file <<left<< setw(kercol_width) << "Col Max";
     for (size_t col = 0; col < ncols; ++col) {
       file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-           << col_max[col];
+           << col_max[col] << pass;
     }
     file << endl;
 
     file <<left<< setw(kercol_width) << "Col Avg";
     for (size_t col = 0; col < ncols; ++col) {
       file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-           << col_avg[col];
+           << col_avg[col] << pass;
     }
     file << endl;
 
     file <<left<< setw(kercol_width) << "Col Std Dev";
     for (size_t col = 0; col < ncols; ++col) {
       file << sepchr <<left<< setw(fom_col_width) << setprecision(prec) 
-           << col_stddev[col];
+           << col_stddev[col] << pass;
     }
     file << endl;
 

@@ -30,6 +30,9 @@
 #include <vector>
 #include <iosfwd>
 
+
+#include "common/DataUtils.hpp"
+
 namespace rajaperf
 {
 
@@ -52,7 +55,10 @@ public:
   enum InputOpt {
     InfoRequest,  /*!< option requesting information */
     DryRun,       /*!< report summary of how suite will run w/o running */
-    GoodToRun,    /*!< input defines a valid run, suite will run */
+    CheckRun,     /*!< run suite with small rep count to make sure 
+                       everything works properly */
+    PerfRun,      /*!< input defines a valid performance run, 
+                       suite will run as specified */
     BadInput,     /*!< erroneous input given */ 
     Undefined     /*!< input not defined (yet) */
   };
@@ -78,6 +84,16 @@ public:
   double getRepFactor() const { return rep_fact; }
 
   double getSizeFactor() const { return size_fact; }
+
+  SizeSpec_T  getSizeSpec() const { return size_spec; }
+
+  void  setSizeSpec(std::string inputString);
+
+  const std::string& getSizeSpecString();
+
+  double getPFTolerance() const { return pf_tol; }
+
+  int getCheckRunReps() const { return checkrun_reps; }
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
@@ -119,11 +135,20 @@ private:
   void printGroupNames(std::ostream& str) const;
 //@}
 
-  InputOpt input_state;     /*!< state of command line input */
+  InputOpt input_state;  /*!< state of command line input */
 
-  int npasses;              /*!< Number of passes through suite  */
-  double rep_fact;          /*!< % of default kernel reps to run */
-  double size_fact;         /*!< % of default kernel iteration space to run */
+  int npasses;           /*!< Number of passes through suite  */
+  double rep_fact;       /*!< pct of default kernel reps to run */
+  double size_fact;      /*!< pct of default kernel iteration space to run */
+  double pf_tol;         /*!< pct RAJA variant run time can exceed base for
+                              each PM case to pass/fail acceptance */
+
+  int checkrun_reps;     /*!< Num reps each kernel is run in check run */
+
+  SizeSpec_T size_spec;          /* if provided use/parse polybench spec file for size data: one of
+                                    MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
+
+  std::string size_spec_string;
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

@@ -25,7 +25,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #ifndef RAJAPerf_AppsData_HPP
-#define RAJAPerf_AppsApps_HPP
+#define RAJAPerf_AppsData_HPP
 
 
 namespace rajaperf

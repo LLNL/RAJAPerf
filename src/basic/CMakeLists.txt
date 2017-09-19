@@ -13,7 +13,7 @@
 #
 ###############################################################################
 
-raja_add_library(
+blt_add_library(
   NAME basic
   SOURCES MULADDSUB.cpp 
           IF_QUAD.cpp 
@@ -21,4 +21,5 @@ raja_add_library(
           INIT3.cpp
           REDUCE3_INT.cpp
           NESTED_INIT.cpp
-  DEPENDS_ON common RAJA)
+  DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
+  )
