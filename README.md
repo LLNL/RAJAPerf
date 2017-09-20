@@ -137,10 +137,10 @@ Currently, there are up to four files generated:
 
 1. Timing -- execution time (sec.) of each loop kernel and variant
 2. Checksum -- checksum value from results of each loop kernel and variant
-3. Speedup -- runtime speedup of each loop kernel and variant with respect to some reference variant
-4 Figure of Merit (FOM) -- basic statistics generated from speedup of RAJA variant vs. baseline for each programming model -- this is a work in progress...
+3. Speedup -- runtime speedup of each loop kernel and variant with respect to reference variant. Reference variant can be set with command line option.
+4. Figure of Merit (FOM) -- basic statistics about speedup of RAJA variant vs. baseline for each programming model run. PASS/FAIL tolerance can be set with command line option.
 
-The name of each file will indicate its contents. All files are text files. 
+The name of each file is indicative of its contents. All files are text files. 
 Other than the checksum file, all are in 'csv' format for easy processing 
 by various tools.
 
