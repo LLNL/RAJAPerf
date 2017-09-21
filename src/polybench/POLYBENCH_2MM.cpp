@@ -205,7 +205,7 @@ POLYBENCH_2MM::~POLYBENCH_2MM()
 
 void POLYBENCH_2MM::setUp(VariantID vid)
 {
-
+  (void) vid;
 }
 
 void POLYBENCH_2MM::runKernel(VariantID vid)

@@ -243,7 +243,7 @@ POLYBENCH_3MM::~POLYBENCH_3MM()
 
 void POLYBENCH_3MM::setUp(VariantID vid)
 {
-
+  (void) vid;
 }
 
 void POLYBENCH_3MM::runKernel(VariantID vid)

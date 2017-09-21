@@ -246,7 +246,7 @@ POLYBENCH_GEMMVER::~POLYBENCH_GEMMVER()
 
 void POLYBENCH_GEMMVER::setUp(VariantID vid)
 {
-
+  (void) vid;
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)

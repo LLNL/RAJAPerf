@@ -145,8 +145,8 @@ private:
 
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
-  SizeSpec_T size_spec;          /* if provided use/parse polybench spec file for size data: one of
-                                    MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED */ 
+  SizeSpec_T size_spec;  /*!< optional use/parse polybench spec file for size:
+                              (MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED) */ 
 
   std::string size_spec_string;
 
