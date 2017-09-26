@@ -193,8 +193,8 @@ static const std::string VariantNames [] =
   std::string("RAJA_CUDA"),
 #endif
 #if 0
-  std::string("Base_OpenMP4.x"),
-  std::string("RAJA_OpenMP4.x"),
+  std::string("Base_OpenMPTarget"),
+  std::string("RAJA_OpenMPTarget"),
 #endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....

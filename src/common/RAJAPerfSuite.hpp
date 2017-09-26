@@ -172,8 +172,8 @@ enum VariantID {
   RAJA_CUDA,
 #endif
 #if 0
-  Base_OpenMP4x,
-  RAJA_OpenMP4x,
+  Base_OpenMPTarget,
+  RAJA_OpenMPTarget,
 #endif
 
   NumVariants // Keep this one last and NEVER comment out (!!)

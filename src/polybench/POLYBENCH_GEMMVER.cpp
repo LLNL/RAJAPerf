@@ -303,9 +303,9 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -334,7 +334,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
       }
       stopTimer();
-
+#endif
       break;
     }
 
@@ -344,7 +344,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
+#if defined(ENABLE_OPENMP)      
       POLYBENCH_GEMMVER_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -367,10 +367,9 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
         });
       }
       stopTimer();
-
+#endif
       break;
     }
-#endif
 
 #if defined(ENABLE_CUDA)
     case Base_CUDA : {
@@ -431,8 +430,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }
