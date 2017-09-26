@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// COPY kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   c[i] = a[i] ;
+/// }
+///
 
 #include "COPY.hpp"
 

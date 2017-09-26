@@ -13,6 +13,14 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// ADD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   c[i] = a[i] + b[i];
+/// }
+///
+
 #include "ADD.hpp"
 
 #include "common/DataUtils.hpp"

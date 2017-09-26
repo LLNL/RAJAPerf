@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// MUL kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   b[i] = alpha * c[i] ;
+/// }
+///
 
 #include "MUL.hpp"
 

@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///      
+/// TRIAD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   a[i] = b[i] + alpha * c[i] ;
+/// }
+///
 
 #include "TRIAD.hpp"
 
