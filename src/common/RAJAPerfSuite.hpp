@@ -13,6 +13,9 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// Tyoes and methods for managing Suite kernels and variants.
+///
 
 #ifndef RAJAPerfSuite_HPP
 #define RAJAPerfSuite_HPP

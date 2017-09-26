@@ -13,6 +13,9 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// Utility methods for generating output reports.
+///
 
 #ifndef RAJAPerf_OutputUtils_HPP
 #define RAJAPerf_OutputUtils_HPP

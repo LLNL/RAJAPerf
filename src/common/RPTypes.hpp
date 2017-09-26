@@ -13,6 +13,9 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// Basic data types used in the Suite.
+///
 
 #ifndef RAJAPerf_RPTypes_HPP
 #define RAJAPerf_RPTypes_HPP

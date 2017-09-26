@@ -28,6 +28,13 @@ namespace rajaperf {
 
 class KernelBase;
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Class that assembles kernels and variants to run and executes them.
+ *
+ *******************************************************************************
+ */
 class Executor
 {
 public:

@@ -29,7 +29,7 @@ namespace rajaperf
 /*!
  *******************************************************************************
  *
- * \brief Simple class to hold suite execution parameters.
+ * \brief Simple class to parse and maintain suite execution parameters.
  *
  *******************************************************************************
  */

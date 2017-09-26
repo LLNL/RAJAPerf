@@ -13,6 +13,10 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// Methods for kernel data allocation, initialization, and deallocation.
+///
+
 
 #ifndef RAJAPerf_DataUtils_HPP
 #define RAJAPerf_DataUtils_HPP
