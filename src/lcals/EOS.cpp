@@ -43,7 +43,7 @@ namespace lcals
                    t*( u[i+6] + q*( u[i+5] + q*u[i+4] ) ) );
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -82,7 +82,7 @@ __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 EOS::EOS(const RunParams& params)
@@ -150,7 +150,7 @@ void EOS::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       EOS_DATA;
@@ -193,7 +193,7 @@ void EOS::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       EOS_DATA_SETUP_CUDA;

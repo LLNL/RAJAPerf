@@ -69,7 +69,7 @@ namespace polybench
   *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -137,7 +137,7 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
 }
 
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
   
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
@@ -263,7 +263,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       POLYBENCH_2MM_DATA;
@@ -329,7 +329,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       POLYBENCH_2MM_DATA_SETUP_CUDA;

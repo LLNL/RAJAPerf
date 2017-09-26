@@ -115,7 +115,7 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
   (void) vid;
 
 // First touch...
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
@@ -156,7 +156,7 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
 // first touch...
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP || 
        vid == RAJALike_OpenMP || 
        vid == RAJA_OpenMP ) {
@@ -182,7 +182,7 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
   (void) vid;
 
 // First touch...
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
@@ -216,7 +216,7 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
   Complex_type factor = ( data_init_count % 2 ?  Complex_type(0.1,0.2) :
                                                  Complex_type(0.2,0.3) );
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
        vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {

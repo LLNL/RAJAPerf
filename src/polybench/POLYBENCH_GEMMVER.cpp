@@ -81,7 +81,7 @@ namespace polybench
 
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -174,7 +174,7 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
 
 
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
   
 POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMMVER, params)
@@ -303,7 +303,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       POLYBENCH_GEMMVER_DATA;
@@ -372,7 +372,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
       POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
       startTimer();

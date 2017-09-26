@@ -93,7 +93,7 @@ namespace apps
   vol[i] *= vnormq ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -148,7 +148,7 @@ __global__ void vol3d(Real_ptr vol,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 VOL3D::VOL3D(const RunParams& params)
@@ -231,7 +231,7 @@ void VOL3D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       VOL3D_DATA;
@@ -281,7 +281,7 @@ void VOL3D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       VOL3D_DATA_SETUP_CUDA;

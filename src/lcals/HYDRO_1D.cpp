@@ -40,7 +40,7 @@ namespace lcals
   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -76,7 +76,7 @@ __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 HYDRO_1D::HYDRO_1D(const RunParams& params)
@@ -143,7 +143,7 @@ void HYDRO_1D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       HYDRO_1D_DATA;
@@ -186,7 +186,7 @@ void HYDRO_1D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       HYDRO_1D_DATA_SETUP_CUDA;

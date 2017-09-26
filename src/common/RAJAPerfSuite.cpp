@@ -183,12 +183,12 @@ static const std::string VariantNames [] =
 
   std::string("Base_Seq"),
   std::string("RAJA_Seq"),
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
   std::string("Base_OpenMP"),
   std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
 #endif
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
   std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
 #endif

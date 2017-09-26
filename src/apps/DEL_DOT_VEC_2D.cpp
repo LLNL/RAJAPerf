@@ -72,7 +72,7 @@ namespace apps
   div[i] = dfxdx + dfydy + affine ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -132,7 +132,7 @@ __global__ void deldotvec2d(Real_ptr div,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
@@ -220,7 +220,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       DEL_DOT_VEC_2D_DATA;
@@ -272,7 +272,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       DEL_DOT_VEC_2D_DATA_SETUP_CUDA;

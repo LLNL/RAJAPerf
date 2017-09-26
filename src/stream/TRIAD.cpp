@@ -37,7 +37,7 @@ namespace stream
   a[i] = b[i] + alpha * c[i] ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -70,7 +70,7 @@ __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 TRIAD::TRIAD(const RunParams& params)
@@ -134,7 +134,7 @@ void TRIAD::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       TRIAD_DATA;
@@ -177,7 +177,7 @@ void TRIAD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       TRIAD_DATA_SETUP_CUDA;

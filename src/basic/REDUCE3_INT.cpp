@@ -43,7 +43,7 @@ namespace basic
   vmax.max(vec[i]) ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -107,7 +107,7 @@ __global__ void reduce3int(Int_ptr vec,
 #endif
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
@@ -191,7 +191,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       REDUCE3_INT_DATA;
@@ -252,7 +252,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       REDUCE3_INT_DATA_SETUP_CUDA;

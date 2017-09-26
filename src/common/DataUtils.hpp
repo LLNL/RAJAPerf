@@ -107,7 +107,7 @@ void initData(Real_type& d,
               VariantID vid = NumVariants);
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
 template <typename T>
 void initCudaDeviceData(T& dptr, const T hptr, int len)

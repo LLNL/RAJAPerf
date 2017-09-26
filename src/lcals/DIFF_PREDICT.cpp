@@ -56,7 +56,7 @@ namespace lcals
   px[i + offset * 12] = cr;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -87,7 +87,7 @@ __global__ void diff_predict(Real_ptr px, Real_ptr cx,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
@@ -151,7 +151,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       DIFF_PREDICT_DATA;
@@ -194,7 +194,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       DIFF_PREDICT_DATA_SETUP_CUDA;

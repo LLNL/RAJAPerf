@@ -42,7 +42,7 @@ namespace basic
   array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
 #define NESTED_INIT_DATA_SETUP_CUDA \
   Real_ptr array; \
@@ -66,7 +66,7 @@ __global__ void nested_init(Real_ptr array,
    NESTED_INIT_BODY; 
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 NESTED_INIT::NESTED_INIT(const RunParams& params)
@@ -147,7 +147,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       NESTED_INIT_DATA;
@@ -230,7 +230,7 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       NESTED_INIT_DATA_SETUP_CUDA;

@@ -49,7 +49,7 @@ namespace lcals
           stb5 = b5[k+kb5i] - stb5;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -98,7 +98,7 @@ __global__ void gen_lin_recur2(Real_ptr b5, Real_ptr sa, Real_ptr sb,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
@@ -173,7 +173,7 @@ void GEN_LIN_RECUR::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       GEN_LIN_RECUR_DATA;
@@ -224,7 +224,7 @@ void GEN_LIN_RECUR::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       GEN_LIN_RECUR_DATA_SETUP_CUDA;

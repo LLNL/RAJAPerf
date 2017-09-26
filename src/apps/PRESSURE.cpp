@@ -49,7 +49,7 @@ namespace apps
   if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -104,7 +104,7 @@ __global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 PRESSURE::PRESSURE(const RunParams& params)
@@ -182,7 +182,7 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
       PRESSURE_DATA;
@@ -254,7 +254,7 @@ void PRESSURE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       PRESSURE_DATA_SETUP_CUDA;

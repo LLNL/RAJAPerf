@@ -56,7 +56,7 @@ Real_type trap_int_func(Real_type x,
   sumx += trap_int_func(x, y, xp, yp);
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -105,7 +105,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 TRAP_INT::TRAP_INT(const RunParams& params)
@@ -187,7 +187,7 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       TRAP_INT_DATA;
@@ -238,7 +238,7 @@ void TRAP_INT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       TRAP_INT_DATA;

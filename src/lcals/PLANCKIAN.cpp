@@ -40,7 +40,7 @@ namespace lcals
   w[i] = x[i] / ( exp( y[i] ) - 1.0 );
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -79,7 +79,7 @@ __global__ void planckian(Real_ptr x, Real_ptr y,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 PLANCKIAN::PLANCKIAN(const RunParams& params)
@@ -144,7 +144,7 @@ void PLANCKIAN::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       PLANCKIAN_DATA;
@@ -187,7 +187,7 @@ void PLANCKIAN::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       PLANCKIAN_DATA_SETUP_CUDA;

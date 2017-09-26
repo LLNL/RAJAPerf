@@ -196,7 +196,7 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
       COUPLE_DATA;
 
@@ -236,7 +236,7 @@ void COUPLE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA :
     case RAJA_CUDA : {
       // Fill these in later...you get the idea...

@@ -40,7 +40,7 @@ namespace basic
   out3[i] = in1[i] - in2[i] ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -81,7 +81,7 @@ __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 MULADDSUB::MULADDSUB(const RunParams& params)
@@ -146,7 +146,7 @@ void MULADDSUB::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       MULADDSUB_DATA;
@@ -189,7 +189,7 @@ void MULADDSUB::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       MULADDSUB_DATA_SETUP_CUDA;

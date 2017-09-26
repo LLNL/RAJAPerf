@@ -27,7 +27,7 @@
 //#undef USE_THRUST
 
 
-#if defined(ENABLE_CUDA) && defined(USE_THRUST)
+#if defined(RAJA_ENABLE_CUDA) && defined(USE_THRUST)
 #include <thrust/device_vector.h>
 #include <thrust/inner_product.h>
 #endif
@@ -45,7 +45,7 @@ namespace stream
   dot += a[i] * b[i] ;
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -101,7 +101,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 }
 #endif
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 DOT::DOT(const RunParams& params)
@@ -174,7 +174,7 @@ void DOT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       DOT_DATA;
@@ -225,7 +225,7 @@ void DOT::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
 #if defined(USE_THRUST)

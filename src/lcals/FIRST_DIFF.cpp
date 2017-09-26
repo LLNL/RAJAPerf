@@ -35,7 +35,7 @@ namespace lcals
   x[i] = y[i+1] - y[i];
 
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
   //
   // Define thread block size for CUDA execution
@@ -64,7 +64,7 @@ __global__ void first_diff(Real_ptr x, Real_ptr y,
    }
 }
 
-#endif // if defined(ENABLE_CUDA)
+#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
@@ -126,7 +126,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
       break;
     }
 
-#if defined(ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
       FIRST_DIFF_DATA;
@@ -169,7 +169,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
       FIRST_DIFF_DATA_SETUP_CUDA;
