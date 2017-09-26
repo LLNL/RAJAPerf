@@ -13,6 +13,17 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// NESTED_INIT kernel reference implementation:
+///
+/// for (Index_type k = 0; k < nk; ++k ) {
+///   for (Index_type j = 0; j < nj; ++j ) {
+///     for (Index_type i = 0; i < ni; ++i ) {
+///       array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
+///     }
+///   }
+/// }
+///
 
 #include "NESTED_INIT.hpp"
 

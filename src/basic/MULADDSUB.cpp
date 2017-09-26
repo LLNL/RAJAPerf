@@ -13,6 +13,15 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// MULADDSUB kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   out1[i] = in1[i] * in2[i] ;
+///   out2[i] = in1[i] + in2[i] ;
+///   out3[i] = in1[i] - in2[i] ;
+/// }
+///
 
 #include "MULADDSUB.hpp"
 
