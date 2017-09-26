@@ -311,9 +311,9 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
+#if defined(ENABLE_OPENMP)      
     case Base_OpenMP : {
 
-#if defined(ENABLE_OPENMP)      
       POLYBENCH_3MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -344,7 +344,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
 
@@ -354,7 +354,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(ENABLE_OPENMP)      
+
       POLYBENCH_3MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -384,9 +384,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       }
       stopTimer();
-#endif
+
       break;
     }
+#endif
 
 #if defined(ENABLE_CUDA)
     case Base_CUDA : {
