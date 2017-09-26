@@ -1,13 +1,3 @@
-/*!
- ******************************************************************************
- *
- * \file
- *
- * \brief   Implementation file for Polybench kernel 3MM
- *
- ******************************************************************************
- */
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 //
@@ -19,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For additional details, please read the file LICENSE.
+// For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 

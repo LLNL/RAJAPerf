@@ -1,27 +1,27 @@
-*******************************************************************************
+Copyright (c) 2016-17, Lawrence Livermore National Security, LLC. All rights reserved.
 
-RAJA Performance Suite: ....................., version 0.1.0
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
 
-Copyright (c) 2017, Lawrence Livermore National Security, LLC. 
-Produced at the Lawrence Livermore National Laboratory.
-All rights reserved. See details below.
+* Redistributions of source code must retain the above copyright notice, 
+  this list of conditions and the disclaimer below.
 
-Unlimited Open Source - BSD Distribution
-LLNL-CODE-xxxxxx
-OCEC-xx-xxx
+* Redistributions in binary form must reproduce the above copyright notice, 
+  this list of conditions and the disclaimer (as noted below) in the 
+  documentation and/or other materials provided with the distribution.
 
-The original developers of the RAJA Performance Suite are:
+* Neither the name of the LLNS/LLNL nor the names of its contributors may be 
+  used to endorse or promote products derived from this software without 
+  specific prior written permission.
 
-Rich Hornung (hornung1@llnl.gov)
-Holger Jones (jones19@llnl.gov)
-David Beckingsale (beckingsale1@llnl.gov)
-
-Contributors include:
-
-
-*******************************************************************************
-
-This source code has not been released yet.
-
-It cannot be distributed without permission and further review from Lawrence 
-Livermore National Laboratory.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY, LLC, 
+THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY 
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

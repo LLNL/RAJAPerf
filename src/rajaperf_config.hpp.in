@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file used to capture build configuration for perf suite.
+ * \brief   Header file that captures build configuration for perf suite.
  *
  ******************************************************************************
  */
