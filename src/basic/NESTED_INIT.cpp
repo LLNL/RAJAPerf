@@ -13,6 +13,17 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// NESTED_INIT kernel reference implementation:
+///
+/// for (Index_type k = 0; k < nk; ++k ) {
+///   for (Index_type j = 0; j < nj; ++j ) {
+///     for (Index_type i = 0; i < ni; ++i ) {
+///       array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
+///     }
+///   }
+/// }
+///
 
 #include "NESTED_INIT.hpp"
 
@@ -281,8 +292,8 @@ void NESTED_INIT::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }

@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///      
+/// TRIAD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   a[i] = b[i] + alpha * c[i] ;
+/// }
+///
 
 #include "TRIAD.hpp"
 
@@ -220,8 +227,8 @@ void TRIAD::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }

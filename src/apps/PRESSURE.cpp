@@ -310,8 +310,8 @@ void PRESSURE::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }

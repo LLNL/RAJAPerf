@@ -13,6 +13,24 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// TRAP_INT kernel reference implementation:
+///
+/// Real_type trap_int_func(Real_type x,
+///                         Real_type y,
+///                         Real_type xp,
+///                         Real_type yp)
+/// {
+///    Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
+///    denom = 1.0/sqrt(denom);
+///    return denom;
+/// }
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///    Real_type x = x0 + i*h;
+///    sumx += trap_int_func(x, y, xp, yp);
+/// }
+///
 
 #include "TRAP_INT.hpp"
 
@@ -297,8 +315,8 @@ void TRAP_INT::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }

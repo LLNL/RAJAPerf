@@ -13,6 +13,23 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// REDUCE3_INT kernel reference implementation:
+///
+/// Int_type vsum = m_vsum_init;
+/// Int_type vmin = m_vmin_init;
+/// Int_type vmax = m_vmax_init;
+/// 
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   vsum += vec[i] ;
+///   vmin = RAJA_MIN(vmin, vec[i]) ;
+///   vmax = RAJA_MAX(vmax, vec[i]) ;
+/// }
+///
+/// m_vsum += vsum;
+/// m_vmin = RAJA_MIN(m_vmin, vmin);
+/// m_vmax = RAJA_MAX(m_vmax, vmax);
+///
 
 #include "REDUCE3_INT.hpp"
 
@@ -331,8 +348,8 @@ void REDUCE3_INT::runKernel(VariantID vid)
 #endif
 
 #if 0
-    case Base_OpenMP4x :
-    case RAJA_OpenMP4x : {
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
       // Fill these in later...you get the idea...
       break;
     }
