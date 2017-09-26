@@ -1,14 +1,3 @@
-/*!
- ******************************************************************************
- *
- * \file
- *
- * \brief   Implementation file containing names of suite kernels and 
- *          variants, and routine for creating kernel objects.
- *
- ******************************************************************************
- */
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 //
@@ -20,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For more information, please see the file LICENSE in the top-level directory.
+// For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 

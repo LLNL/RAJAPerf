@@ -1,13 +1,3 @@
-/*!
- ******************************************************************************
- *
- * \file
- *
- * \brief   Header file for utility routines for data management.
- *
- ******************************************************************************
- */
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 //
@@ -19,9 +9,13 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For more information, please see the file LICENSE in the top-level directory.
+// For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+///
+/// Methods for kernel data allocation, initialization, and deallocation.
+///
 
 
 #ifndef RAJAPerf_DataUtils_HPP

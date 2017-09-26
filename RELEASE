@@ -1,0 +1,20 @@
+*******************************************************************************
+
+RAJA Performance Suite: ................................, version 0.1.0
+
+Copyright (c) 2016-17, Lawrence Livermore National Security, LLC. 
+Produced at the Lawrence Livermore National Laboratory.
+All rights reserved. See details in raja-perfsuite/LICENSE and 
+raja-perfsuite/NOTICE files.
+
+Unlimited Open Source - BSD Distribution
+LLNL-CODE-xxxxxx
+OCEC-xx-xxx
+
+The original developers of the RAJA Performance Suite are:
+
+Rich Hornung (hornung1@llnl.gov)
+Holger Jones (jones19@llnl.gov)
+
+Other contributors include:
+

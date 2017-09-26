@@ -1,13 +1,3 @@
-/*!
- ******************************************************************************
- *
- * \file
- *
- * \brief   Header file containing executor class that runs suite.
- *
- ******************************************************************************
- */
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 //
@@ -19,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For more information, please see the file LICENSE in the top-level directory.
+// For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -38,6 +28,13 @@ namespace rajaperf {
 
 class KernelBase;
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Class that assembles kernels and variants to run and executes them.
+ *
+ *******************************************************************************
+ */
 class Executor
 {
 public:

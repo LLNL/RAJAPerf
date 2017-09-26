@@ -1,13 +1,3 @@
-/*!
- ******************************************************************************
- *
- * \file
- *
- * \brief   Header file that defines data types used in performance suite.
- *
- ******************************************************************************
- */
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 //
@@ -19,10 +9,13 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For more information, please see the file LICENSE in the top-level directory.
+// For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// Basic data types used in the Suite.
+///
 
 #ifndef RAJAPerf_RPTypes_HPP
 #define RAJAPerf_RPTypes_HPP
