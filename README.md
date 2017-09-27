@@ -28,7 +28,7 @@ Table of Contents
 4. [Adding kernels and variants](#adding-kernels-and-variants)
 5. [Contributions](#contributions)
 6. [Authors](#authors)
-7. [Copyright and Release](#copyright-release)
+7. [Copyright and Release](#copyright-and-release)
 
 * * *
 
