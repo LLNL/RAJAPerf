@@ -1,15 +1,17 @@
 #!/bin/bash
 
 ##
-## Copyright (c) 2016, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
-## LLNL-CODE-689114
+## LLNL-CODE-738930
 ##
 ## All rights reserved.
+## 
+## This file is part of the RAJA Performance Suite.
 ##
-## For additional details and restrictions, please see RAJA/LICENSE.txt
+## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
 rm -rf build-bgqos_gcc-4.7.2 2>/dev/null

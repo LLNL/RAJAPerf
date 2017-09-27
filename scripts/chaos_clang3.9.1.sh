@@ -5,13 +5,13 @@
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
-## LLNL-CODE-xxxxxx
+## LLNL-CODE-738930
 ##
 ## All rights reserved.
-##
+## 
 ## This file is part of the RAJA Performance Suite.
 ##
-## For more information, see the file LICENSE in the top-level directory.
+## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
 rm -rf build_chaos-clang-3.9.1 2>/dev/null
