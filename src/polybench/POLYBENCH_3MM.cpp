@@ -13,6 +13,38 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// POLYBENCH_3MM kernel reference implementation:
+///
+/// E := A*B 
+/// F := C*D 
+/// G := E*F 
+///
+/// for (Index_type i = 0; i < _PB_NI; i++) {
+///   for (Index_type j = 0; j < _PB_NJ; j++) {
+///     E[i][j] = SCALAR_VAL(0.0);
+///     for (Index_type k = 0; k < _PB_NK; ++k) {
+///       E[i][j] += A[i][k] * B[k][j];
+///     }
+///   }
+/// } 
+/// for (Index_type i = 0; i < _PB_NJ; i++) {
+///   for (Index_type j = 0; j < _PB_NL; j++) {
+///	F[i][j] = SCALAR_VAL(0.0);
+///	for (Index_type k = 0; k < _PB_NM; ++k) {
+///	  F[i][j] += C[i][k] * D[k][j];
+///     }
+///   }
+/// }
+/// for (Index_type i = 0; i < _PB_NI; i++) {
+///   for (Index_type j = 0; j < _PB_NL; j++) {
+///     G[i][j] = SCALAR_VAL(0.0);
+///     for (Index_type k = 0; k < _PB_NJ; ++k) {
+///	  G[i][j] += E[i][k] * F[k][j];
+///     }
+///   }
+/// }
+///
 
 #include "POLYBENCH_3MM.hpp"
 
@@ -37,37 +69,6 @@ namespace polybench
   ResReal_ptr G = m_G; 
   
 
-
-// The following 3MM_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
-// It's just for illustrative purposes
-#if 0
-#pragma scop
-  /* E := A*B */
-  for (i = 0; i < _PB_NI; i++)
-    for (j = 0; j < _PB_NJ; j++)
-      {
-	      E[i][j] = SCALAR_VAL(0.0);
-	      for (k = 0; k < _PB_NK; ++k)
-	        E[i][j] += A[i][k] * B[k][j];
-      }
-  /* F := C*D */
-  for (i = 0; i < _PB_NJ; i++)
-    for (j = 0; j < _PB_NL; j++)
-      {
-	      F[i][j] = SCALAR_VAL(0.0);
-	      for (k = 0; k < _PB_NM; ++k)
-	        F[i][j] += C[i][k] * D[k][j];
-      }
-  /* G := E*F */
-  for (i = 0; i < _PB_NI; i++)
-    for (j = 0; j < _PB_NL; j++)
-      {
-	      G[i][j] = SCALAR_VAL(0.0);
-	      for (k = 0; k < _PB_NJ; ++k)
-	        G[i][j] += E[i][k] * F[k][j];
-      }
-#pragma endscop
-#endif
 
 #define POLYBENCH_3MM_BODY1 \
   *(E + i * nj + j) = 0.0;

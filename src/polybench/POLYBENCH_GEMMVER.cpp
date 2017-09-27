@@ -13,6 +13,32 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// POLYBENCH_GEMMVER kernel reference implementation:
+///
+/// for (Index_type i = 0; i < _PB_N; i++) {
+///   for (Index_type j = 0; j < _PB_N; j++) {
+///     A[i][j] = A[i][j] + u1[i] * v1[j] + u2[i] * v2[j];
+///   }
+/// }
+///
+/// for (Index_type i = 0; i < _PB_N; i++) {
+///   for (Index_type j = 0; j < _PB_N; j++) {
+///     x[i] = x[i] + beta * A[j][i] * y[j];
+///  }
+/// }
+///
+/// for (Index_type i = 0; i < _PB_N; i++) {
+///   x[i] = x[i] + z[i];
+/// }
+///
+/// for (Index_type i = 0; i < _PB_N; i++) {
+///   for (Index_type j = 0; j < _PB_N; j++) {
+///     w[i] = w[i] +  alpha * A[i][j] * x[j];
+///   }
+/// }
+///
+
 
 #include "POLYBENCH_GEMMVER.hpp"
 
@@ -40,32 +66,6 @@ namespace polybench
   ResReal_ptr y = m_y; \
   ResReal_ptr z = m_z; 
   
-
-
-// The following GEMMVER_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
-// It's just for illustrative purposes
-#if 0
-#pragma scop
-  
- 
-  for (i = 0; i < _PB_N; i++)
-    for (j = 0; j < _PB_N; j++)
-      A[i][j] = A[i][j] + u1[i] * v1[j] + u2[i] * v2[j];
-
-  for (i = 0; i < _PB_N; i++)
-    for (j = 0; j < _PB_N; j++)
-      x[i] = x[i] + beta * A[j][i] * y[j];
-
-  for (i = 0; i < _PB_N; i++)
-    x[i] = x[i] + z[i];
-
-  for (i = 0; i < _PB_N; i++)
-    for (j = 0; j < _PB_N; j++)
-      w[i] = w[i] +  alpha * A[i][j] * x[j];
-
-
-#pragma endscop
-#endif
 
 #define POLYBENCH_GEMMVER_BODY1 \
   *(A + i * n + j) = *(A + i * n + j) + *(u1 + i) * *(v1 + j) + *(u2 + i) * *(v2 + j)

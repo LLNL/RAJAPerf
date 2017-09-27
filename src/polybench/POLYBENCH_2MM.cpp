@@ -13,6 +13,29 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// POLYBENCH_2MM kernel reference implementation:
+///
+/// D := alpha*A*B*C + beta*D
+///
+/// for (Index_type i = 0; i < m_ni; i++) {
+///   for (Index_type j = 0; j < m_nj; j++) {
+///     m_tmp[i][j] = 0.0;
+///     for (Index_type k = 0; k < m_nk; ++k) {
+///       m_tmp[i][j] += m_alpha * m_A[i][k] * m_B[k][j];
+///     }
+///   }
+/// } 
+/// for (Index_type i = 0; i < m_ni; i++) {
+///   for (Index_type j = 0; j < m_nl; j++) {
+///     m_D[i][j] *= m_beta;
+///     for (Index_type k = 0; k < m_nj; ++k) {
+///       m_D[i][j] += m_tmp[i][k] * m_C[k][j];
+///     } 
+///   }
+/// } 
+///
+
 
 #include "POLYBENCH_2MM.hpp"
 
@@ -37,24 +60,6 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; 
 
-
-// The following 2MM_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
-// It's just for illustrative purposes
-#define POLYBENCH_2MM_BODY \
-  int i, j, k;\
-  /* D := alpha*A*B*C + beta*D */ \
-  for (i = 0; i < m_ni; i++) \
-    for (j = 0; j < m_nj; j++) { \
-	      m_tmp[i][j] = 0.0; \
-	      for (k = 0; k < m_nk; ++k) \
-	        m_tmp[i][j] += m_alpha * m_A[i][k] * m_B[k][j]; \
-    } \
-  for (i = 0; i < m_ni; i++) \
-    for (j = 0; j < m_nl; j++) { \
-	    m_D[i][j] *= m_beta; \
-	    for (k = 0; k < m_nj; ++k) \
-	      m_D[i][j] += m_tmp[i][k] * m_C[k][j]; \
-    } 
 
 #define POLYBENCH_2MM_BODY1 \
   *(tmp + i * nj + j) = 0.0;
