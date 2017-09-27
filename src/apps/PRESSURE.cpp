@@ -13,6 +13,20 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// PRESSURE kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   bvc[i] = cls * (compression[i] + 1.0);
+/// }
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   p_new[i] = bvc[i] * e_old[i] ; 
+///   if ( fabs(p_new[i]) <  p_cut ) p_new[i] = 0.0 ; 
+///   if ( vnewc[i] >= eosvmax ) p_new[i] = 0.0 ; 
+///   if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
+/// }
+///
 
 #include "PRESSURE.hpp"
 

@@ -13,6 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// FIR kernel reference implementation:
+///
+/// Real_type coeff[COEFFLEN] = { 3.0, -1.0, -1.0, -1.0, 
+///                               -1.0, 3.0, -1.0, -1.0, 
+///                               -1.0, -1.0, 3.0, -1.0, 
+///                               -1.0, -1.0, -1.0, 3.0 };
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   Real_type sum = 0.0; 
+///   for (Index_type j = 0; j < coefflen; ++j ) { 
+///     sum += coeff[j]*in[i+j]; 
+///   } 
+///   out[i] = sum;
+/// }
 
 #include "FIR.hpp"
 
