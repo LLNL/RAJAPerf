@@ -26,6 +26,9 @@ Table of Contents
 2. [Running the suite](#running-the-suite)
 3. [Generated output](#generated-output)
 4. [Adding kernels and variants](#adding-kernels-and-variants)
+5. [Contributions](#contributions)
+6. [Authors](#authors)
+7. [Copyright and Release](#copyright-release)
 
 * * *
 
@@ -37,7 +40,7 @@ source repository. For example,
 ```
 > mkdir RAJA-PERFSUITE
 > cd RAJA-PERFSUITE
-> git clone --recursive ssh://git@cz-bitbucket.llnl.gov:7999/raja/raja-perfsuite.git
+> git clone --recursive https://github.com/llnl/rajaperf.git
 > ls 
 raja-perfsuite
 ```
@@ -452,8 +455,55 @@ add implementations for the variant in the setup, kernel execution,
 checksum computation, and teardown methods. These operations are described
 in earlier sections for adding a new kernel above.
 
+* * *
+
+# Contributions
+
+The RAJA Performance Suite is intended to remain a work-in-progress, with new
+kernels and variants added over time. We encourage interested parties to 
+contribute to it so that C++ compiler optimizations and support for programming
+models like RAJA continue to improve.
+
+The Suite developers follow the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) development model. Folks wishing to contribute to the Suite, should include their work in a feature branch created from the RAJA `develop` 
+branch. Then, create a pull request with the `develop` branch as the 
+destination when it is ready to be reviewed. The `develop` branch contains the 
+latest work in RAJA Performance Suite. Periodically, we will merge the
+develop branch into the `master` branch and tag a new release.
+
+* * *
+
+# Authors
+
+The RAJA Performance Suite was originally developed by:
+
+  * Rich Hornung (hornung1@llnl.gov)
+
+Please see the {RAJA Performance Suite Contributors Page](https://github.com/LLNL/RAJAPerf/graphs/contributors), to see the full list of contributors to the 
+project.
+
+* * *
+
+# Copyright and Release
+
+Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+
+Produced at the Lawrence Livermore National Laboratory.
+
+All rights reserved.
+
+`LLNL-CODE-738930`  `OCEC-17-159`
+
+Unlimited Open Source - BSD Distribution
+
+For release details and restrictions, please read the RELEASE, LICENSE,
+and NOTICE files, also linked here:
+- [RELEASE](./RELEASE)
+- [LICENSE](./LICENSE)
+- [NOTICE](./NOTICE)
+
 
 * * *
 
 [RAJA]: https://github/LLNL/RAJA
 [BLT]: https://github.com/LLNL/blt
+
