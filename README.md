@@ -40,9 +40,9 @@ source repository. For example,
 ```
 > mkdir RAJA-PERFSUITE
 > cd RAJA-PERFSUITE
-> git clone --recursive https://github.com/llnl/rajaperf.git
+> git clone --recursive https://github.com/llnl/RAJAPerf.git
 > ls 
-raja-perfsuite
+RAJAPerf
 ```
 
 The Performance Suite has [RAJA] and the CMake-based [BLT] build system
@@ -51,7 +51,7 @@ the Performance Suite source code. Note that if you switch to a different
 branch, you will have to update the submodules; e.g.,
 
 ```
-> cd raja-perfsuite
+> cd RAJAPerf
 > git checkout <some branch name>
 > git submodule init
 > git submodule update
