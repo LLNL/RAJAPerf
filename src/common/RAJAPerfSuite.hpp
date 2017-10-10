@@ -102,6 +102,7 @@ enum KernelID {
   Basic_INIT3,
   Basic_REDUCE3_INT,
   Basic_NESTED_INIT,
+  Basic_INIT_VIEW1D,
 
 //
 // Lcals kernels...

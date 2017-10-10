@@ -27,6 +27,7 @@
 #include "basic/INIT3.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/INIT_VIEW1D.hpp"
 
 //
 // Lcals kernels...
@@ -120,6 +121,7 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_INIT_VIEW1D"),
 
 //
 // Lcals kernels...
@@ -294,6 +296,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_NESTED_INIT : {
        kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_INIT_VIEW1D : {
+       kernel = new basic::INIT_VIEW1D(run_params);
        break;
     }
 
