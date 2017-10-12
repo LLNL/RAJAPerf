@@ -194,6 +194,9 @@ static const std::string VariantNames [] =
 #endif
 #if 0
   std::string("Base_OpenMPTarget"),
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
   std::string("RAJA_OpenMPTarget"),
 #endif
 

@@ -173,9 +173,11 @@ enum VariantID {
 #endif
 #if 0
   Base_OpenMPTarget,
-  RAJA_OpenMPTarget,
 #endif
 
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  RAJA_OpenMPTarget,
+#endif
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };

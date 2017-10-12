@@ -14,8 +14,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "common/Executor.hpp"
-
 #include <iostream>
+#include "RAJA/RAJA.hpp"
+#include "RAJA/util/defines.hpp"
+
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
@@ -37,5 +39,6 @@ int main( int argc, char** argv )
   executor.outputRunData();
 
   std::cout << "\n\nDONE!!!...." << std::endl; 
+
   return 0;
 }
