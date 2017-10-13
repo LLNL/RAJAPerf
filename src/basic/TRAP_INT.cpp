@@ -254,6 +254,32 @@ void TRAP_INT::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+
+      TRAP_INT_DATA;
+      #pragma omp target data map(to:x0,xp,y,yp,h)
+      {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> sumx(m_sumx_init);
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend,
+          [=](Index_type i) {
+          TRAP_INT_BODY;
+        });
+
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+      }
+      stopTimer();
+      }
+      break;
+    }
+#endif
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

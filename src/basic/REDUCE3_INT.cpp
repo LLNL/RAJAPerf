@@ -267,6 +267,38 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+
+      REDUCE3_INT_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:vec[0:n])
+      startTimer();
+      #pragma omp target data use_device_ptr(vec)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vsum(m_vsum_init);
+        RAJA::ReduceMin<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmin(m_vmin_init);
+        RAJA::ReduceMax<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmax(m_vmax_init);
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend,
+          [=](Index_type i) {
+          REDUCE3_INT_BODY_RAJA;
+        });
+
+        m_vsum += static_cast<Real_type>(vsum.get());
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Real_type>(vmin.get()));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Real_type>(vmax.get()));
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:vec[0:n])
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

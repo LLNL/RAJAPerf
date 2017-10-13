@@ -207,6 +207,29 @@ void IF_QUAD::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+
+      IF_QUAD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],x1[0:n],x2[0:n])
+      startTimer();
+      #pragma omp target data use_device_ptr(a,b,c,x1,x2)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          IF_QUAD_BODY;
+        });
+
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:a[0:n],b[0:n],c[0:n]) map(from:x1[0:n],x2[0:n])
+      break;
+    }
+#endif
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
