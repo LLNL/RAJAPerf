@@ -41,10 +41,13 @@
 
 #include "common/DataUtils.hpp"
 #include <RAJA/RAJA.hpp>
+#include "RAJA/util/defines.hpp"
 
 
 #include <iostream>
 #include <cstring>
+
+#define NUMTEAMS 64 
 
 namespace rajaperf 
 {
@@ -154,11 +157,11 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
-      m_run_reps = 100000;
+      m_run_reps = 10000;
       break;
     case Small:
       m_ni=40; m_nj=50; m_nk=70; m_nl=80;
-      m_run_reps = 10000;
+      m_run_reps = 1000;
       break;
     case Medium:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
@@ -284,7 +287,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             }
           }
 
-
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
         #pragma omp parallel for   
         for(Index_type i = 0; i < ni; i++)
@@ -311,6 +313,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
+            
           POLYBENCH_2MM_BODY1;
 
           RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
@@ -392,10 +395,48 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 #if 0
     case Base_OpenMPTarget :
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+      POLYBENCH_2MM_DATA;
+      #pragma omp target enter data map(to: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl], D[0: m_ni * m_nl], alpha,beta)
+
+      startTimer();
+
+      #pragma omp target data use_device_ptr(tmp,A,B)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,ni * nj, [=](Index_type ii) {
+          Index_type i,j,k;
+          *(tmp + ii) = 0.0;
+          i = ii/nj; j = ii % nj;
+          for(k=0;k<nk;k++) {
+            POLYBENCH_2MM_BODY2; 
+          }
+        });
+
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+
+        #pragma omp target update to(D[0: m_ni * m_nl])
+        
+        #pragma omp target data use_device_ptr(C,D)
+
+
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,ni * nl, [=](Index_type ii) {
+          *(D + ii) *= beta;
+          Index_type i,l,j;
+          i = ii/nl; l = ii % nl;
+          for(j=0;j<nj;j++) {
+            POLYBENCH_2MM_BODY4;
+          }  
+        });
+
+      } // for run_reps
+      stopTimer();
+      #pragma omp target exit data map(from:D[0:m_ni * m_nl]) map(delete: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl])
       break;
-    }
+    } // end case RAJA_OpenMPTarget
 #endif
 
     default : {

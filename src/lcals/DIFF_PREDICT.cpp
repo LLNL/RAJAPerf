@@ -19,8 +19,11 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/util/defines.hpp"
 
 #include <iostream>
+
+#define NUMTEAMS 64 
 
 namespace rajaperf 
 {
@@ -239,8 +242,26 @@ void DIFF_PREDICT::runKernel(VariantID vid)
 
 #if 0
     case Base_OpenMPTarget :
+#endif
+                     
+#if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+      DIFF_PREDICT_DATA;
+
+      #pragma omp target enter data map(to:px[ibegin:iend*14],cx[ibegin:iend*14],offset) 
+      startTimer();
+
+      #pragma omp target data use_device_ptr(px,cx)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
+          [=](Index_type i) {
+          DIFF_PREDICT_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:px[ibegin:iend*14])
       break;
     }
 #endif
