@@ -14,8 +14,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 
-#ifndef RAJAPerf_Basic_INIT_VIEW1D_HPP
-#define RAJAPerf_Basic_INIT_VIEW1D_HPP
+#ifndef RAJAPerf_Basic_INIT_VIEW1D_OFFSET_HPP
+#define RAJAPerf_Basic_INIT_VIEW1D_OFFSET_HPP
 
 #include "common/KernelBase.hpp"
 
@@ -26,13 +26,13 @@ class RunParams;
 namespace basic
 {
 
-class INIT_VIEW1D : public KernelBase
+class INIT_VIEW1D_OFFSET : public KernelBase
 {
 public:
 
-  INIT_VIEW1D(const RunParams& params);
+  INIT_VIEW1D_OFFSET(const RunParams& params);
 
-  ~INIT_VIEW1D();
+  ~INIT_VIEW1D_OFFSET();
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid); 
