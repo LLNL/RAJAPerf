@@ -174,6 +174,29 @@ void COPY::runKernel(VariantID vid)
 
       break;
     }
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget: {
+      COPY_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],c[0:n])
+      startTimer();
+     #pragma omp target data use_device_ptr(a,c)
+     {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
+          COPY_BODY;
+       });
+
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n])
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
