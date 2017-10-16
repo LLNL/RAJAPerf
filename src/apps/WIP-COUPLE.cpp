@@ -244,7 +244,8 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(kmin, kmax, [=](int k) {
+        RAJA::forall<RAJA::seq_exec>(
+          RAJA::RangeSegment(kmin, kmax), [=](int k) {
           COUPLE_BODY;
         }); 
 
@@ -283,7 +284,8 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(kmin, kmax, [=](int k) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(kmin, kmax), [=](int k) {
           COUPLE_BODY;
         }); 
 
