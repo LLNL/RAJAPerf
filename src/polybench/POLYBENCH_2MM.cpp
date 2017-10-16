@@ -39,9 +39,8 @@
 
 #include "POLYBENCH_2MM.hpp"
 
+#include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
-#include <RAJA/RAJA.hpp>
-
 
 #include <iostream>
 #include <cstring>
@@ -117,7 +116,7 @@ __global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
    if (ii < ni * nj) {
      *(tmp + ii) = 0.0;
      i = ii/nj; j = ii % nj;
-     for(k=0; k < nk; k++) {
+     for (k=0; k < nk; k++) {
        POLYBENCH_2MM_BODY2;              
      }
    }
@@ -135,7 +134,7 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
    if (ii < ni * nl) {
      *(D + ii) *= beta;
      i = ii/nl; l = ii % nl;
-     for(j=0; j < nj; j++) {
+     for (j=0; j < nj; j++) {
        POLYBENCH_2MM_BODY4;              
      }
    }
@@ -147,7 +146,6 @@ __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  setDefaultReps(1);
   m_alpha = 1.5;
   m_beta = 1.2;
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
@@ -178,8 +176,8 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
       break;
   }
 
-  setDefaultReps(m_run_reps);
   setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
+  setDefaultReps(m_run_reps);
 
   allocAndInitData(m_tmp, m_ni * m_nj);
   allocAndInitData(m_A, m_ni * m_nk);
@@ -223,9 +221,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = 0; i < ni; i++ ) { 
-          for(Index_type j = 0; j < nj; j++) {
+          for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
-            for(Index_type k = 0; k < nk; k++) {
+            for (Index_type k = 0; k < nk; k++) {
               POLYBENCH_2MM_BODY2;
             }
           }
@@ -233,10 +231,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
-        for(Index_type i = 0; i < ni; i++) {
-          for(Index_type l = 0; l < nl; l++) {
+        for (Index_type i = 0; i < ni; i++) {
+          for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
-            for(Index_type j = 0; j < nj; j++) {
+            for (Index_type j = 0; j < nj; j++) {
               POLYBENCH_2MM_BODY4;
             }
           }
@@ -302,9 +300,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) { 
-          for(Index_type j = 0; j < nj; j++) {
+          for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
-            for(Index_type k = 0; k < nk; k++) {
+            for (Index_type k = 0; k < nk; k++) {
               POLYBENCH_2MM_BODY2;
             }
           }
@@ -313,10 +311,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
         #pragma omp parallel for   
-        for(Index_type i = 0; i < ni; i++) {
-          for(Index_type l = 0; l < nl; l++) {
+        for (Index_type i = 0; i < ni; i++) {
+          for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
-            for(Index_type j = 0; j < nj; j++) {
+            for (Index_type j = 0; j < nj; j++) {
               POLYBENCH_2MM_BODY4;
             }
           }
@@ -340,7 +338,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
+                                                        RAJA::seq_exec>>> (
           RAJA::RangeSegment{0, ni}, 
           RAJA::RangeSegment{0, nj}, 
           [=] (int i, int j) {
@@ -356,7 +355,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (
+        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
+                                                        RAJA::seq_exec>>> (
           RAJA::RangeSegment{0, ni}, 
           RAJA::RangeSegment{0, nl}, 
           [=] (int i, int l) {
@@ -418,7 +418,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           Index_type i,j,k;
           *(tmp + ii) = 0.0;
           i = ii/nj; j = ii % nj;
-          for(k=0;k<nk;k++) {
+          for (k=0;k<nk;k++) {
             POLYBENCH_2MM_BODY2; 
           }
 
@@ -433,7 +433,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           *(D + ii) *= beta;
           Index_type i,l,j;
           i = ii/nl; l = ii % nl;
-          for(j=0;j<nj;j++) {
+          for (j=0;j<nj;j++) {
             POLYBENCH_2MM_BODY4;
           }  
 
