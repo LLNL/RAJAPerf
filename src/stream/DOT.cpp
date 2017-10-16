@@ -173,7 +173,8 @@ void DOT::runKernel(VariantID vid)
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
         });
 
@@ -222,8 +223,8 @@ void DOT::runKernel(VariantID vid)
 
         RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
         });
 
@@ -296,8 +297,7 @@ void DOT::runKernel(VariantID vid)
          RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot_init);
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend, 
-           [=] __device__ (Index_type i) {
+           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
            DOT_BODY;
          });
 
