@@ -19,7 +19,7 @@ mkdir build_blueos_clang-coral-2017.10.06 && cd build_blueos_clang-coral-2017.10
 
 module load cmake/3.7.2
 module load clang/coral-2017.10.06
-module load cuda/8.0
+module load cuda/9.0.176 
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
@@ -31,7 +31,7 @@ cmake \
   -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target" \
   -DRAJA_ENABLE_TARGET_OPENMP=On \
   -DRAJA_ENABLE_MODULES=Off \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.0.176 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DRAJA_BUILD_WITH_BLT=On \

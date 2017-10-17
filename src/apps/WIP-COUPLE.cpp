@@ -292,6 +292,30 @@ void COUPLE::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP2)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+
+      COUPLE_DATA;
+      int n = m_domain->lrn;
+     #pragma omp target enter data map(to:t0[0:n],t1[0:n],t2[0:n],denac[0:n],denlw[0:n], \
+         dt, c10, fratio, r_fratio, c20, ireal, imin, imax, jmin, jmax, kmin, kmax )
+      startTimer();
+      #pragma omp target data use_device_ptr(t0,t1,t2,denac,denlw)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(kmin, kmax, [=](int k) {
+          COUPLE_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:t0[0:n],t1[0:n],t2[0:n]) map(delete:denac[0:n],denlw[0:n])
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
