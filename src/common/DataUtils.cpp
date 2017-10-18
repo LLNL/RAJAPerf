@@ -63,6 +63,30 @@ void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
   initData(ptr, len, vid);
 }
 
+void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
+                           VariantID vid)
+{
+  (void) vid;
+
+  ptr = 
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN, 
+                                           len*sizeof(Real_type));
+
+// first touch...
+#if defined(RAJA_ENABLE_OPENMP)
+  if ( vid == Base_OpenMP || 
+       vid == RAJALike_OpenMP || 
+       vid == RAJA_OpenMP ) {
+    #pragma omp parallel for
+    for (int i = 0; i < len; ++i) { 
+      ptr[i] = val;
+    };
+  } 
+#endif
+
+  incDataInitCount();
+}
+
 void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
   ptr =

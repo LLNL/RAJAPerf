@@ -88,6 +88,8 @@ public:
 protected:
   int num_exec[NumVariants];
 
+  const RunParams& run_params;
+
   RAJA::Timer::ElapsedType min_time[NumVariants];
   RAJA::Timer::ElapsedType max_time[NumVariants];
   RAJA::Timer::ElapsedType tot_time[NumVariants];
@@ -102,8 +104,6 @@ private:
 
   KernelID    kernel_id;
   std::string name;
-
-  const RunParams& run_params;
 
   RAJA::Timer timer;
 
