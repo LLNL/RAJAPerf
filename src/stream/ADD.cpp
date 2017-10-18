@@ -30,8 +30,6 @@
 
 #include <iostream>
 
-#define NUMTEAMS 64 
-
 namespace rajaperf 
 {
 namespace stream
@@ -182,6 +180,30 @@ void ADD::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+      ADD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n])
+      startTimer();
+     #pragma omp target data use_device_ptr(a,b,c)
+     {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
+          ADD_BODY;
+       });
+
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
+     break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -224,32 +246,6 @@ void ADD::runKernel(VariantID vid)
 
       break;
     }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)                     
-    case RAJA_OpenMPTarget : {
-      ADD_DATA;
-      #pragma omp target enter data map(to:a[ibegin:iend],b[ibegin:iend],c[ibegin:iend])
-      startTimer();
-
-      #pragma omp target data use_device_ptr(a,b,c)
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
-          [=](Index_type i) {
-          ADD_BODY;
-        });
-
-      }
-      stopTimer();
-      #pragma omp target exit data map(from:c[ibegin:iend])
-      break;
-    }
-
 #endif
 
     default : {

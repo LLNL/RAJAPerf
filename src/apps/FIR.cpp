@@ -261,6 +261,33 @@ void FIR::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+
+    case RAJA_OpenMPTarget : {
+
+      FIR_COEFF;
+
+      FIR_DATA;
+
+      int n = getRunSize();
+      #pragma omp target enter data map(to:coeff[0:COEFFLEN],in[0:n],out[0:n])
+      startTimer();
+      #pragma omp target data use_device_ptr(in,out)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          FIR_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:out[0:n]) map(delete:in[0:n])
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

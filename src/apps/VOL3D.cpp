@@ -338,6 +338,42 @@ void VOL3D::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+
+    case RAJA_OpenMPTarget : {
+
+      VOL3D_DATA;
+      int n = m_domain->lpn;
+      int jp = m_domain->jp;
+      int kp = m_domain->kp;
+      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],vnormq,vol[0:n],jp,kp)
+
+      startTimer();
+
+      #pragma omp target data use_device_ptr( x,y,z, vol )
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ;
+          ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ;
+          ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
+          NDPTRSET(jp, kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+          NDPTRSET(jp, kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+          NDPTRSET(jp, kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
+
+          VOL3D_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:x[0:n],y[0:n],z[0:n]) map(from:vol[0:n])
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

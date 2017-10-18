@@ -234,6 +234,33 @@ void DOT::runKernel(VariantID vid)
 
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+      DOT_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n])
+      startTimer();
+     #pragma omp target data use_device_ptr(a,b)
+     {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
+
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
+          DOT_BODY;
+       });
+
+        m_dot += static_cast<Real_type>(dot.get());
+
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:a[0:n],b[0:n])
+      break;
+    }
+#endif
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

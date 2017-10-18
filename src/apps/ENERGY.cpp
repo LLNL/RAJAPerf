@@ -576,6 +576,60 @@ void ENERGY::runKernel(VariantID vid)
       stopTimer();
       break;
     }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget : {
+
+      ENERGY_DATA;
+
+      int n = getRunSize();
+
+      #pragma omp target enter data map(to:e_new[0:n],e_old[0:n],delvc[0:n],p_new[0:n],p_old[0:n], \
+       q_new[0:n],q_old[0:n],work[0:n],compHalfStep[0:n],pHalfStep[0:n],bvc[0:n],pbvc[0:n], \
+       ql_old[0:n],qq_old[0:n],vnewc[0:n],rho0,e_cut,emin,q_cut)
+
+      startTimer();
+      #pragma omp target data use_device_ptr(e_new,e_old,delvc,p_new,p_old, \
+       q_new,q_old,work,compHalfStep,pHalfStep,bvc,pbvc, \
+       ql_old,qq_old,vnewc)
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY1;
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY2;
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY3;
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY4;
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY5;
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+          ENERGY_BODY6;
+       });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:q_new[0:n],e_new[0:n]) map(delete:e_old[0:n],delvc[0:n],p_new[0:n],p_old[0:n], \
+       q_old[0:n],work[0:n],compHalfStep[0:n],pHalfStep[0:n],bvc[0:n],pbvc[0:n], \
+       ql_old[0:n],qq_old[0:n],vnewc[0:n])
+
+      break;
+    }
+#endif
+
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
