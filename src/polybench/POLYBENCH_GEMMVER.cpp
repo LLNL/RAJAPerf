@@ -451,23 +451,27 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
        
-        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
+        RAJA::forall<RAJA::cuda_exec<block_size>> (
+          RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY1; 
         });
 
-        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
+        RAJA::forall<RAJA::cuda_exec<block_size>> (
+          RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY2;
         });
 
-        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, n}, [=] __device__ (int i) {
+        RAJA::forall<RAJA::cuda_exec<block_size>> (
+          RAJA::RangeSegment{0, n}, [=] __device__ (int i) {
           POLYBENCH_GEMMVER_BODY3;
         });
 
-        RAJA::forall<RAJA::cuda_exec<block_size>> (RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
+        RAJA::forall<RAJA::cuda_exec<block_size>> (
+          RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY4;

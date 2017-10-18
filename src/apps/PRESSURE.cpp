@@ -204,7 +204,7 @@ void PRESSURE::runKernel(VariantID vid)
       PRESSURE_DATA;
  
       startTimer();
-      for (RepIndex_type irep = ibegin; irep < run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel
           {
