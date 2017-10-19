@@ -79,10 +79,14 @@ void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) { 
-      ptr[i] = val;
+      ptr[i] = 0;
     };
   } 
 #endif
+
+  for (int i = 0; i < len; ++i) { 
+    ptr[i] = val;
+  };
 
   incDataInitCount();
 }
