@@ -88,16 +88,16 @@ namespace apps
 {
 
 #define VOL3D_DATA \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr z = m_z; \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z; \
   ResReal_ptr vol = m_vol; \
 \
   const Real_type vnormq = m_vnormq;
 \
-  ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
-  ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
+  Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
+  Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
 
 
 #define VOL3D_BODY \
