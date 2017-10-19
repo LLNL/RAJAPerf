@@ -260,7 +260,6 @@ void TRAP_INT::runKernel(VariantID vid)
     case RAJA_OpenMPTarget : {
 
       TRAP_INT_DATA;
-      printf("Trap_Int maps x0=%p xp=%p y=%p yp=%p h=%p\n",&x0,&xp,&y,&yp,&h);
       #pragma omp target data map(to:x0,xp,y,yp,h)
       {
       startTimer();

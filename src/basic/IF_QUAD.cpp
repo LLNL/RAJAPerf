@@ -214,7 +214,6 @@ void IF_QUAD::runKernel(VariantID vid)
 
       IF_QUAD_DATA;
       int n = getRunSize();
-      printf("if_quad maps a=%p b=%p c=%p x1=%p x2=%p\n",a,b,c,x1,x2);
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],x1[0:n],x2[0:n])
       startTimer();
       #pragma omp target data use_device_ptr(a,b,c,x1,x2)

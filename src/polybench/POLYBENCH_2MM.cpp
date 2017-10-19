@@ -400,7 +400,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
       POLYBENCH_2MM_DATA;
-      printf("POLYBENCH_2MM maps tmp=%p, A=%p B=%p C=%p D=%p alpha=%p beta=%p\n",tmp,A,B,C,D,&alpha,&beta);
       #pragma omp target enter data map(to: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl], D[0: m_ni * m_nl], alpha,beta)
 
       startTimer();

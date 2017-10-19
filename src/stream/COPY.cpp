@@ -175,7 +175,6 @@ void COPY::runKernel(VariantID vid)
       break;
     }
 
-#if 1                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
     case RAJA_OpenMPTarget: {
@@ -197,7 +196,6 @@ void COPY::runKernel(VariantID vid)
       #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n])
       break;
     }
-#endif
 #endif
 #endif                            
 

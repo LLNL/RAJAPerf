@@ -202,7 +202,6 @@ void MULADDSUB::runKernel(VariantID vid)
 
       MULADDSUB_DATA;
       int n = getRunSize();
-      printf("muladdsub maps in1=%p, in2=%p out1=%p out2=%p out3=%p\n",in1,in2,out1,out2,out3);
       #pragma omp target enter data map(to:in1[0:n],in2[0:n],out1[0:n],out2[0:n],out3[0:n])
       startTimer();
       #pragma omp target data use_device_ptr(in1,in2,out1,out2,out3)

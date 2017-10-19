@@ -274,7 +274,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       REDUCE3_INT_DATA;
       int n = getRunSize();
-      printf("REDUCE3 maps vec=%p\n",vec);
       #pragma omp target enter data map(to:vec[0:n])
       startTimer();
       #pragma omp target data use_device_ptr(vec)

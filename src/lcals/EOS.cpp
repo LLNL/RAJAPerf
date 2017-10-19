@@ -191,7 +191,30 @@ void EOS::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+                       
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget: {
+      EOS_DATA;
+      Index_type n = iend + 7;
+      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],u[0:n],q,r,t)
+      startTimer();
+      #pragma omp target data use_device_ptr(x,y,z,u)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
+          [=](Index_type i) {
+          EOS_BODY;
+        });  
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],u[0:n],q,r,t)
+    
+      break;                        
+    }  
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

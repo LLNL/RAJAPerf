@@ -200,7 +200,34 @@ void INT_PREDICT::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case RAJA_OpenMPTarget: {
+      INT_PREDICT_DATA;
+                              
+      Index_type n = m_offset*13;
+      
+      #pragma omp target enter data map(to:px[0:n],dm22,dm23,dm24,dm25,dm26,dm27,dm28,c0,offset)
+      startTimer();
+      #pragma omp target data use_device_ptr(px)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
+          [=](Index_type i) {
+          INT_PREDICT_BODY;
+        });
+
+      }
+      stopTimer();
+
+      #pragma omp target exit data map(from:px[0:n]) map(delete:dm22,dm23,dm24,dm25,dm26,dm27,dm28,c0,offset)
+      break;
+    }
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
+
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

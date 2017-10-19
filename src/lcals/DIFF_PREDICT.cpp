@@ -247,7 +247,6 @@ void DIFF_PREDICT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
       DIFF_PREDICT_DATA;
-      printf("DIFF_PREDICT maps px=%p cx=%p offset=%p\n",px,cx,&offset);
       #pragma omp target enter data map(to:px[ibegin:iend*14],cx[ibegin:iend*14],offset) 
       startTimer();
 
