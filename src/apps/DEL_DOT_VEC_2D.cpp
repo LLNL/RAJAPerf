@@ -368,7 +368,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #if 0
     case Base_OpenMPTarget :
 #endif
-
+#if 1
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
 
@@ -377,13 +377,15 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       int n=m_domain->nnalls;
       int nn=m_domain->n_real_zones;
       int jp=m_domain->jp;
+
       #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
           ptiny, half, jp )
-
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
       NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+
 
       startTimer();
       #pragma omp target data use_device_ptr(x,y,xdot,ydot,div,real_zones)
@@ -405,11 +407,11 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       }
       stopTimer();
-      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:n])
+      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
 
       }
       break;
-
+#endif
 #endif                             
 
     default : {

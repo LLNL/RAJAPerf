@@ -261,7 +261,7 @@ void FIR::runKernel(VariantID vid)
 
       break;
     }
-
+#if 1 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
 
@@ -283,11 +283,11 @@ void FIR::runKernel(VariantID vid)
 
       }
       stopTimer();
-      #pragma omp target exit data map(from:out[0:n]) map(delete:in[0:n])
+      #pragma omp target exit data map(from:out[0:n]) map(delete:coeff[0:COEFFLEN],in[0:n])
       break;
     }
 #endif
-
+#endif
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

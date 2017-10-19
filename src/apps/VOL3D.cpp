@@ -338,7 +338,6 @@ void VOL3D::runKernel(VariantID vid)
 
       break;
     }
-
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
 
@@ -369,11 +368,10 @@ void VOL3D::runKernel(VariantID vid)
 
       }
       stopTimer();
-      #pragma omp target exit data map(delete:x[0:n],y[0:n],z[0:n]) map(from:vol[0:n])
+      #pragma omp target exit data map(delete:x[0:n],y[0:n],z[0:n],vnormq,jp,kp) map(from:vol[0:n])
       break;
     }
 #endif
-
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

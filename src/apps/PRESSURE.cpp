@@ -267,6 +267,7 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
+#if 1                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
 
@@ -291,12 +292,12 @@ void PRESSURE::runKernel(VariantID vid)
 
       }
       stopTimer();
-      #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n])
+      #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n],cls,p_cut,pmin,eosvmax)
       break;
     }
 #endif
-
 #endif
+#endif                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

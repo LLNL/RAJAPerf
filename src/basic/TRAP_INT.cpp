@@ -260,6 +260,7 @@ void TRAP_INT::runKernel(VariantID vid)
     case RAJA_OpenMPTarget : {
 
       TRAP_INT_DATA;
+      printf("Trap_Int maps x0=%p xp=%p y=%p yp=%p h=%p\n",&x0,&xp,&y,&yp,&h);
       #pragma omp target data map(to:x0,xp,y,yp,h)
       {
       startTimer();
@@ -275,6 +276,7 @@ void TRAP_INT::runKernel(VariantID vid)
         m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
       }
+      #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
       stopTimer();
       }
       break;

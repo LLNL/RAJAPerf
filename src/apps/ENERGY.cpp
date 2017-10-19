@@ -576,7 +576,6 @@ void ENERGY::runKernel(VariantID vid)
       stopTimer();
       break;
     }
-
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
     case RAJA_OpenMPTarget : {
@@ -624,12 +623,11 @@ void ENERGY::runKernel(VariantID vid)
       stopTimer();
       #pragma omp target exit data map(from:q_new[0:n],e_new[0:n]) map(delete:e_old[0:n],delvc[0:n],p_new[0:n],p_old[0:n], \
        q_old[0:n],work[0:n],compHalfStep[0:n],pHalfStep[0:n],bvc[0:n],pbvc[0:n], \
-       ql_old[0:n],qq_old[0:n],vnewc[0:n])
+       ql_old[0:n],qq_old[0:n],vnewc[0:n],rho0,e_cut,emin,q_cut)
 
       break;
     }
 #endif
-
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

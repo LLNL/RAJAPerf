@@ -353,6 +353,8 @@ void Executor::runSuite()
   for (int ip = 0; ip < npasses; ++ip) {  
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+         KernelBase* kern = kernels[ik];
+         cout << kern->getName() << " " <<  getVariantName(variant_ids[iv]) << endl;
          kernels[ik]->execute( variant_ids[iv] );
       } 
     }

@@ -188,6 +188,7 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   allocAndInitData(m_C, m_nj * m_nl);
   allocAndInitData(m_D, m_ni * m_nl);
   allocAndInitData(m_DD, m_ni * m_nl);
+  //printf("maps ctor polybench tmp=%p A=%p B=%p C=%p D=%p DD=%p\n",m_tmp,m_A,m_B,m_C,m_D,m_DD);
 
 }
 
@@ -396,10 +397,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 #if 0
     case Base_OpenMPTarget :
 #endif
-
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
     case RAJA_OpenMPTarget : {
       POLYBENCH_2MM_DATA;
+      printf("POLYBENCH_2MM maps tmp=%p, A=%p B=%p C=%p D=%p alpha=%p beta=%p\n",tmp,A,B,C,D,&alpha,&beta);
       #pragma omp target enter data map(to: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl], D[0: m_ni * m_nl], alpha,beta)
 
       startTimer();
@@ -434,11 +435,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       } // for run_reps
       stopTimer();
-      #pragma omp target exit data map(from:D[0:m_ni * m_nl]) map(delete: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl])
+      #pragma omp target exit data map(from:D[0:m_ni * m_nl]) map(delete: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl],alpha,beta)
       break;
     } // end case RAJA_OpenMPTarget
 #endif
-
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;
     }

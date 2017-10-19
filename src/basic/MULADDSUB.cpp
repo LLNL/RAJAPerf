@@ -196,13 +196,13 @@ void MULADDSUB::runKernel(VariantID vid)
 
       break;
     }
-
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
     case RAJA_OpenMPTarget : {
 
       MULADDSUB_DATA;
       int n = getRunSize();
+      printf("muladdsub maps in1=%p, in2=%p out1=%p out2=%p out3=%p\n",in1,in2,out1,out2,out3);
       #pragma omp target enter data map(to:in1[0:n],in2[0:n],out1[0:n],out2[0:n],out3[0:n])
       startTimer();
       #pragma omp target data use_device_ptr(in1,in2,out1,out2,out3)
@@ -218,9 +218,8 @@ void MULADDSUB::runKernel(VariantID vid)
       #pragma omp target exit data map(delete:in1[0:n],in2[0:n]) map(from:out1[0:n],out2[0:n],out3[0:n])
       break;
     }
-#endif
-
-#endif
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

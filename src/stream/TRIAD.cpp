@@ -183,6 +183,7 @@ void TRIAD::runKernel(VariantID vid)
       break;
     }
 
+#if 1                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case RAJA_OpenMPTarget : {
 #define NUMTEAMS 128
@@ -199,11 +200,13 @@ void TRIAD::runKernel(VariantID vid)
         }
       }
       stopTimer();
-      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n])
+      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
       break;
     }
 #endif
 #endif
+#endif
+
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

@@ -234,7 +234,7 @@ void DOT::runKernel(VariantID vid)
 
       break;
     }
-
+#if 1 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
     case RAJA_OpenMPTarget : {
@@ -262,6 +262,7 @@ void DOT::runKernel(VariantID vid)
     }
 #endif
 #endif
+#endif                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
