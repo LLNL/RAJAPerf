@@ -35,6 +35,7 @@ namespace rajaperf
  */
 RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
+   show_progress(false),
    npasses(1),
    rep_fact(1.0),
    size_fact(1.0),
@@ -75,6 +76,7 @@ RunParams::~RunParams()
  */
 void RunParams::print(std::ostream& str) const
 {
+  str << "\n show_progress = " << show_progress; 
   str << "\n npasses = " << npasses; 
   str << "\n rep_fact = " << rep_fact; 
   str << "\n size_fact = " << size_fact; 
@@ -126,6 +128,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       printHelpMessage(std::cout);
       input_state = InfoRequest;
+
+    } else if ( opt == std::string("--show-progress") ||
+                opt == std::string("-sp") ) {
+
+      show_progress = true;
 
     } else if ( opt == std::string("--print-kernels") ||
                 opt == std::string("-pk") ) {
@@ -307,11 +314,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
 
-  str << "\t --help, -h (prints options with descriptions}\n\n";
+  str << "\t --help, -h (print options with descriptions}\n\n";
 
-  str << "\t --print-kernels, -pk (prints valid kernel names}\n\n";
+  str << "\t --show_progress, -sp (print progress during run}\n\n";
 
-  str << "\t --print-variants, -pv (prints valid variant names}\n\n";
+  str << "\t --print-kernels, -pk (print valid kernel names}\n\n";
+
+  str << "\t --print-variants, -pv (print valid variant names}\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through suite)\n"; 
