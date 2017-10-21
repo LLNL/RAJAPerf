@@ -83,9 +83,15 @@ __global__ void nested_init(Real_ptr array,
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
+#if 1
   m_ni = 500;
   m_nj = 500;
   m_nk = m_nk_init = 50;
+#else
+  m_ni = 6;
+  m_nj = 8;
+  m_nk = m_nk_init = 2;
+#endif
 
   setDefaultSize(m_ni * m_nj * m_nk);
   setDefaultReps(100);
@@ -122,6 +128,11 @@ void NESTED_INIT::runKernel(VariantID vid)
         for (Index_type k = 0; k < nk; ++k ) {
           for (Index_type j = 0; j < nj; ++j ) {
             for (Index_type i = 0; i < ni; ++i ) {
+#if 0
+              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
+                                          int(i+ni*(j+nj*k)),
+                                          0.00000001 * i * j * k); 
+#endif
               NESTED_INIT_BODY;
             }
           }
@@ -137,6 +148,8 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -149,11 +162,42 @@ void NESTED_INIT::runKernel(VariantID vid)
               RAJA::RangeSegment(0, nj),
               RAJA::RangeSegment(0, nk),
           [=](Index_type i, Index_type j, Index_type k) {     
+#if 0
+              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
+                                          int(i+ni*(j+nj*k)),
+                                          0.00000001 * i * j * k); 
+#endif
           NESTED_INIT_BODY;
         });
 
       }
       stopTimer();
+
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::nested::forall(RAJA::nested::Policy< 
+                             RAJA::nested::For<2, RAJA::seq_exec>,      // k
+                             RAJA::nested::For<1, RAJA::seq_exec>,      // j
+                             RAJA::nested::For<0, RAJA::simd_exec> >{}, // i
+                             camp::make_tuple(RAJA::RangeSegment(0, ni),
+                                              RAJA::RangeSegment(0, nj),
+                                              RAJA::RangeSegment(0, nk)),
+             [=](Index_type i, Index_type j, Index_type k) {     
+#if 0
+              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
+                                          int(i+ni*(j+nj*k)),
+                                          0.00000001 * i * j * k); 
+#endif
+             NESTED_INIT_BODY;
+        });
+
+      }
+      stopTimer();
+
+#endif
 
       break;
     }
@@ -204,6 +248,8 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -237,6 +283,16 @@ void NESTED_INIT::runKernel(VariantID vid)
       }
       stopTimer();
 
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      }
+      stopTimer();
+
+#endif
+
       break;
     }
 #endif
@@ -267,6 +323,8 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA_SETUP_CUDA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -284,6 +342,16 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       }
       stopTimer();
+
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      }
+      stopTimer();
+
+#endif
 
       NESTED_INIT_DATA_TEARDOWN_CUDA;
 

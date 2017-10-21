@@ -24,6 +24,9 @@
 
 #include "RAJA/util/Timer.hpp"
 
+#define USE_FORALLN
+//#undef USE_FORALLN
+
 #include <string>
 #include <iostream>
 
