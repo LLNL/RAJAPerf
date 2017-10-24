@@ -236,7 +236,10 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin(); 
          kid != run_kern.end(); ++kid) {
-      kernels.push_back( getKernelObject(*kid, run_params) );
+/// RDH DISABLE COUPLE KERNEL
+      if ( *kid != Apps_COUPLE ) {
+        kernels.push_back( getKernelObject(*kid, run_params) );
+      }
     }
 
     if ( !(run_params.getInvalidVariantInput().empty()) ) {

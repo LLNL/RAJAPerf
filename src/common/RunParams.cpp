@@ -392,7 +392,10 @@ void RunParams::printKernelNames(std::ostream& str) const
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
   for (int ik = 0; ik < NumKernels; ++ik) {
-    str << getKernelName(static_cast<KernelID>(ik)) << std::endl;
+/// RDH DISABLE COUPLE KERNEL
+    if (static_cast<KernelID>(ik) != Apps_COUPLE) {
+      str << getKernelName(static_cast<KernelID>(ik)) << std::endl;
+    }
   }
   str.flush();
 }
@@ -403,7 +406,10 @@ void RunParams::printFullKernelNames(std::ostream& str) const
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
   for (int ik = 0; ik < NumKernels; ++ik) {
-    str << getFullKernelName(static_cast<KernelID>(ik)) << std::endl;
+/// RDH DISABLE COUPLE KERNEL
+    if (static_cast<KernelID>(ik) != Apps_COUPLE) {
+      str << getFullKernelName(static_cast<KernelID>(ik)) << std::endl;
+    }
   }
   str.flush();
 }

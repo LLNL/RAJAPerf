@@ -168,8 +168,6 @@ void LTIMES::runKernel(VariantID vid)
       }
       stopTimer();
 
-      std::cout << "----------------------------------------------\n\n";
-
       break;
     } 
 

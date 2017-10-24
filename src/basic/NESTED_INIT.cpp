@@ -80,15 +80,9 @@ __global__ void nested_init(Real_ptr array,
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
-#if 1
   m_ni = 500;
   m_nj = 500;
   m_nk = m_nk_init = 50;
-#else
-  m_ni = 6;
-  m_nj = 8;
-  m_nk = m_nk_init = 2;
-#endif
 
   setDefaultSize(m_ni * m_nj * m_nk);
   setDefaultReps(100);
@@ -125,11 +119,6 @@ void NESTED_INIT::runKernel(VariantID vid)
         for (Index_type k = 0; k < nk; ++k ) {
           for (Index_type j = 0; j < nj; ++j ) {
             for (Index_type i = 0; i < ni; ++i ) {
-#if 0
-              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
-                                          int(i+ni*(j+nj*k)),
-                                          0.00000001 * i * j * k); 
-#endif
               NESTED_INIT_BODY;
             }
           }
@@ -137,10 +126,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-#if 0
-     std::cout << "\n============================================\n";
-#endif
 
       break;
     }
@@ -162,11 +147,6 @@ void NESTED_INIT::runKernel(VariantID vid)
               RAJA::RangeSegment(0, nj),
               RAJA::RangeSegment(0, ni),
           [=](Index_type k, Index_type j, Index_type i) {     
-#if 0
-              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
-                                          int(i+ni*(j+nj*k)),
-                                          0.00000001 * i * j * k); 
-#endif
           NESTED_INIT_BODY;
         });
 
@@ -186,11 +166,6 @@ void NESTED_INIT::runKernel(VariantID vid)
                                               RAJA::RangeSegment(0, nj),
                                               RAJA::RangeSegment(0, nk)),
              [=](Index_type i, Index_type j, Index_type k) {     
-#if 0
-              printf("(%d, %d, %d) - %d : %g\n", int(i), int(j), int(k),
-                                          int(i+ni*(j+nj*k)),
-                                          0.00000001 * i * j * k); 
-#endif
              NESTED_INIT_BODY;
         });
 
