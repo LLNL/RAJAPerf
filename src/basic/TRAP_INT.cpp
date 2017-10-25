@@ -257,6 +257,26 @@ void TRAP_INT::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+
+      TRAP_INT_DATA;
+      #pragma omp target data map(to:x0,xp,y,yp,h)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Real_type sumx = m_sumx_init;
+        #pragma omp target teams distribute parallel for reduction(+:sumx) \
+                           num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          TRAP_INT_BODY;
+        }
+        m_sumx += sumx * h;
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
+      break;
+    }
+
     case RAJA_OpenMPTarget : {
 
       TRAP_INT_DATA;
@@ -275,13 +295,13 @@ void TRAP_INT::runKernel(VariantID vid)
         m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
       }
-      #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
       stopTimer();
+      #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
       }
       break;
     }
-#endif
-#endif
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP       
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -341,13 +361,6 @@ void TRAP_INT::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
 
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;

@@ -578,8 +578,56 @@ void ENERGY::runKernel(VariantID vid)
     }
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
-    case RAJA_OpenMPTarget : {
+    case Base_OpenMPTarget : {
+      ENERGY_DATA;
 
+      int n = getRunSize();
+      #pragma omp target enter data map(to:e_new[0:n],e_old[0:n],delvc[0:n],p_new[0:n],p_old[0:n], \
+       q_new[0:n],q_old[0:n],work[0:n],compHalfStep[0:n],pHalfStep[0:n],bvc[0:n],pbvc[0:n], \
+       ql_old[0:n],qq_old[0:n],vnewc[0:n],rho0,e_cut,emin,q_cut)
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY1;
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY2;
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY3;
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY4;
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY5;
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ENERGY_BODY6;
+        }
+
+        
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:q_new[0:n],e_new[0:n]) map(delete:e_old[0:n],delvc[0:n],p_new[0:n],p_old[0:n], \
+       q_old[0:n],work[0:n],compHalfStep[0:n],pHalfStep[0:n],bvc[0:n],pbvc[0:n], \
+       ql_old[0:n],qq_old[0:n],vnewc[0:n],rho0,e_cut,emin,q_cut)
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
       ENERGY_DATA;
 
       int n = getRunSize();

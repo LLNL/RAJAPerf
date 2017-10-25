@@ -267,7 +267,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       break;
     }
-
+#if 0
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
     case RAJA_OpenMPTarget : {
@@ -298,7 +298,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 #endif
-
+#endif
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

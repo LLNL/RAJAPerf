@@ -196,8 +196,26 @@ void MULADDSUB::runKernel(VariantID vid)
 
       break;
     }
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      MULADDSUB_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:in1[0:n],in2[0:n],out1[0:n],out2[0:n],out3[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          MULADDSUB_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:in1[0:n],in2[0:n]) map(from:out1[0:n],out2[0:n],out3[0:n])
+      break;
+    }
+
     case RAJA_OpenMPTarget : {
 
       MULADDSUB_DATA;
@@ -262,13 +280,6 @@ void MULADDSUB::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
 
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;

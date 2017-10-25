@@ -227,16 +227,35 @@ void DOT::runKernel(VariantID vid)
           DOT_BODY;
         });
 
-        m_dot += static_cast<Real_type>(dot.get());
+        m_dot += dot;
 
       }
       stopTimer();
 
       break;
     }
-#if 1 
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      DOT_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Real_type dot = m_dot_init;
+        #pragma omp target teams distribute parallel for reduction(+:dot) \
+                num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          DOT_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:a[0:n],b[0:n])
+      break;
+    }
+
     case RAJA_OpenMPTarget : {
       DOT_DATA;
       int n = getRunSize();
@@ -260,9 +279,9 @@ void DOT::runKernel(VariantID vid)
       #pragma omp target exit data map(delete:a[0:n],b[0:n])
       break;
     }
-#endif
-#endif
-#endif                             
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
+                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

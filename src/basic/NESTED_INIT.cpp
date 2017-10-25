@@ -239,7 +239,40 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+#if 0
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 16
+    case RAJA_OpenMPTarget: {
+                              
+      NESTED_INIT_DATA;
+
+      #pragma omp target enter data map(to:array[0:ni * nj * nk],ni,nj,nk)
+      startTimer();
+      #pragma omp target data use_device_ptr(array)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forallN< RAJA::NestedPolicy< 
+                       RAJA::ExecList< RAJA::simd_exec,
+                                       RAJA::seq_exec,
+                                       RAJA::omp_target_parallel_for_exec<NUMTEAMS>>, 
+                       RAJA::Permute<RAJA::PERM_KJI> > >(
+              RAJA::RangeSegment(0, ni),
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, nk),
+          [=](Index_type i, Index_type j, Index_type k) {     
+          NESTED_INIT_BODY;
+        });
+
+      }
+      stopTimer();
+    
+      #pragma omp target exit data map(from:array[0:ni * nj * nk]) map(delete:ni,nj,nk)
+      break;                        
+    }  
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP   
+#endif                            
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

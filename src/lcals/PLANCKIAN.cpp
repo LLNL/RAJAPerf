@@ -189,8 +189,25 @@ void PLANCKIAN::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
-    case RAJA_OpenMPTarget: {
+    case Base_OpenMPTarget : {
+      PLANCKIAN_DATA;
+                              
+      Index_type n = iend;
+      #pragma omp target enter data map(to:x[0:n],y[0:n],u[0:n],v[0:n],w[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          PLANCKIAN_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:w[0:n]) map(delete:x[0:n],y[0:n],u[0:n],v[0:n])
+      break;
+    }
 
+    case RAJA_OpenMPTarget: {
       PLANCKIAN_DATA;
                               
       Index_type n = iend;
@@ -252,14 +269,6 @@ void PLANCKIAN::runKernel(VariantID vid)
 
       PLANCKIAN_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif
