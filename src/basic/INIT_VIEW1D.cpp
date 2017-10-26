@@ -13,15 +13,20 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///      
-/// TRIAD kernel reference implementation:
+///
+/// INIT_VIEW1D kernel reference implementation:
+///
+/// const Real_type val = ...;
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i] = b[i] + alpha * c[i] ;
+///   a[i] = val;
 /// }
 ///
+/// RAJA variants use a "view" and "layout" to do the same thing
+/// where the loop runs over the same range.
+///
 
-#include "TRIAD.hpp"
+#include "INIT_VIEW1D.hpp"
 
 #include "common/DataUtils.hpp"
 
@@ -31,17 +36,26 @@
 
 namespace rajaperf 
 {
-namespace stream
+namespace basic
 {
 
-#define TRIAD_DATA \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  Real_type alpha = m_alpha;
+#define INIT_VIEW1D_DATA \
+  Real_ptr a = m_a; \
+  const Real_type v = m_val;
 
-#define TRIAD_BODY  \
-  a[i] = b[i] + alpha * c[i] ;
+#define INIT_VIEW1D_DATA_RAJA \
+  Real_ptr a = m_a; \
+  const Real_type v = m_val; \
+\
+  const RAJA::Layout<1> my_layout(iend); \
+  ViewType view(a, my_layout);
+
+
+#define INIT_VIEW1D_BODY  \
+  a[i] = v;
+
+#define INIT_VIEW1D_BODY_RAJA  \
+  view(i) = v;
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -52,70 +66,75 @@ namespace stream
   const size_t block_size = 256;
 
 
-#define TRIAD_DATA_SETUP_CUDA \
+#define INIT_VIEW1D_DATA_SETUP_CUDA \
   Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
+  const Real_type v = m_val; \
+\
+  allocAndInitCudaDeviceData(a, m_a, iend);
+
+#define INIT_VIEW1D_DATA_SETUP_CUDA_RAJA \
+  Real_ptr a; \
+  const Real_type v = m_val; \
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
+\
+  const RAJA::Layout<1> my_layout(iend); \
+  ViewType view(a, my_layout);
 
-#define TRIAD_DATA_TEARDOWN_CUDA \
+
+#define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
+  deallocCudaDeviceData(a);
 
-__global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
-                      Index_type iend) 
+__global__ void initview1d(Real_ptr a, 
+                           Real_type v,
+                           const Index_type iend) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     TRIAD_BODY; 
+     INIT_VIEW1D_BODY; 
    }
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
 
 
-TRIAD::TRIAD(const RunParams& params)
-  : KernelBase(rajaperf::Stream_TRIAD, params)
+INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
+  : KernelBase(rajaperf::Basic_INIT_VIEW1D, params)
 {
-   setDefaultSize(1000000);
-   setDefaultReps(1000);
+   setDefaultSize(500000);
+   setDefaultReps(5000);
 }
 
-TRIAD::~TRIAD() 
+INIT_VIEW1D::~INIT_VIEW1D() 
 {
 }
 
-void TRIAD::setUp(VariantID vid)
+void INIT_VIEW1D::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
-  initData(m_alpha, vid);
+  m_val = 0.123;
 }
 
-void TRIAD::runKernel(VariantID vid)
+void INIT_VIEW1D::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >;
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      TRIAD_DATA;
+      INIT_VIEW1D_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_BODY;
+          INIT_VIEW1D_BODY;
         }
 
       }
@@ -126,14 +145,14 @@ void TRIAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      TRIAD_DATA;
+      INIT_VIEW1D_DATA_RAJA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRIAD_BODY;
+          INIT_VIEW1D_BODY_RAJA;
         });
 
       }
@@ -145,14 +164,14 @@ void TRIAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      TRIAD_DATA;
+      INIT_VIEW1D_DATA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_BODY;
+          INIT_VIEW1D_BODY;
         }
 
       }
@@ -168,14 +187,14 @@ void TRIAD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      TRIAD_DATA;
+      INIT_VIEW1D_DATA_RAJA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRIAD_BODY;
+          INIT_VIEW1D_BODY_RAJA;
         });
 
       }
@@ -183,86 +202,54 @@ void TRIAD::runKernel(VariantID vid)
 
       break;
     }
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-#define NUMTEAMS 128
-    case Base_OpenMPTarget : {
-
-      TRIAD_DATA;
-      int n = getRunSize();
-      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_BODY;
-        }
-
-      }
-      stopTimer();
-      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
-      break;
-    }
-
-    case RAJA_OpenMPTarget : {
-
-      TRIAD_DATA;
-      int n = getRunSize();
-      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
-      startTimer();
-     #pragma omp target data use_device_ptr(a,b,c)
-     {
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
-          TRIAD_BODY;
-       });
-        }
-      }
-      stopTimer();
-      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
-      break;
-    }
-#endif //RAJA_ENABLE_TARGET_OPENMP
-#endif //RAJA_ENABLE_OMP                             
+#endif
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
 
-      TRIAD_DATA_SETUP_CUDA;
+      INIT_VIEW1D_DATA_SETUP_CUDA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         triad<<<grid_size, block_size>>>( a, b, c, alpha,
-                                           iend ); 
+         initview1d<<<grid_size, block_size>>>( a,
+                                                v, 
+                                                iend ); 
 
       }
       stopTimer();
 
-      TRIAD_DATA_TEARDOWN_CUDA;
+      INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
       break; 
     }
 
     case RAJA_CUDA : {
 
-      TRIAD_DATA_SETUP_CUDA;
+      INIT_VIEW1D_DATA_SETUP_CUDA_RAJA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
            RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           TRIAD_BODY;
+           INIT_VIEW1D_BODY_RAJA;
          });
 
       }
       stopTimer();
 
-      TRIAD_DATA_TEARDOWN_CUDA;
+      INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
+      break;
+    }
+#endif
+
+#if 0
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget : {
+      // Fill these in later...you get the idea...
       break;
     }
 #endif
@@ -275,18 +262,16 @@ void TRIAD::runKernel(VariantID vid)
 
 }
 
-void TRIAD::updateChecksum(VariantID vid)
+void INIT_VIEW1D::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_a, getRunSize());
 }
 
-void TRIAD::tearDown(VariantID vid)
+void INIT_VIEW1D::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_a);
-  deallocData(m_b);
-  deallocData(m_c);
 }
 
-} // end namespace stream
+} // end namespace basic
 } // end namespace rajaperf

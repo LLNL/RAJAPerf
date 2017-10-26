@@ -194,7 +194,8 @@ void REDUCE3_INT::runKernel(VariantID vid)
         RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           REDUCE3_INT_BODY_RAJA;
         });
 
@@ -253,8 +254,8 @@ void REDUCE3_INT::runKernel(VariantID vid)
         RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           REDUCE3_INT_BODY_RAJA;
         });
 
@@ -361,8 +362,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
         RAJA::ReduceMax<RAJA::cuda_reduce<block_size>, Int_type> vmax(m_vmax_init);
 
         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-          ibegin, iend, 
-          [=] __device__ (Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE3_INT_BODY_RAJA;
         });
 

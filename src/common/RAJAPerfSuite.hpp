@@ -102,6 +102,8 @@ enum KernelID {
   Basic_INIT3,
   Basic_REDUCE3_INT,
   Basic_NESTED_INIT,
+  Basic_INIT_VIEW1D,
+  Basic_INIT_VIEW1D_OFFSET,
 
 //
 // Lcals kernels...
@@ -116,11 +118,9 @@ enum KernelID {
 //
 // Polybench kernels...
 //
-#if 1
   Polybench_2MM,
   Polybench_3MM,
   Polybench_GEMMVER,
-#endif
 
 //
 // Stream kernels...
@@ -138,8 +138,9 @@ enum KernelID {
   Apps_ENERGY,
   Apps_VOL3D,
   Apps_DEL_DOT_VEC_2D,
-  Apps_COUPLE,
   Apps_FIR,
+  Apps_LTIMES,
+  Apps_COUPLE,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

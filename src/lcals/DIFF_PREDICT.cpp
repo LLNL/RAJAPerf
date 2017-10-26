@@ -142,7 +142,8 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DIFF_PREDICT_BODY;
         });
 
@@ -183,8 +184,8 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DIFF_PREDICT_BODY;
         });
 
@@ -265,8 +266,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend, 
-           [=] __device__ (Index_type i) {
+           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
            DIFF_PREDICT_BODY;
          });
 

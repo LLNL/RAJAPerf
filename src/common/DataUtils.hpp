@@ -54,6 +54,12 @@ void allocAndInitData(Real_ptr& ptr, int len,
                       VariantID vid = NumVariants);
 
 /*!
+ * \brief Allocate and initialize aligned Real_type data array.
+ */
+void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
+                           VariantID vid = NumVariants);
+
+/*!
  * \brief Allocate and initialize aligned Real_type data array with random sign.
  */
 void allocAndInitDataRandSign(Real_ptr& ptr, int len,
