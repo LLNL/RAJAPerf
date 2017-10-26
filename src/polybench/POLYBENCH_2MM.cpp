@@ -276,7 +276,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       POLYBENCH_2MM_DATA;
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        #pragma omp parallel for  
+        #pragma omp parallel for collapse(2) 
         for (Index_type i = 0; i < ni; i++ ) 
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -287,7 +287,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
 
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-        #pragma omp parallel for   
+        #pragma omp parallel for collapse(2)  
         for(Index_type i = 0; i < ni; i++)
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
@@ -337,6 +337,39 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      POLYBENCH_2MM_DATA;
+      #pragma omp target enter data map(to: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl], D[0: m_ni * m_nl], alpha,beta)
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
+        for (Index_type i = 0; i < ni; i++ ) 
+          for(Index_type j = 0; j < nj; j++) {
+            POLYBENCH_2MM_BODY1;
+            for(Index_type k = 0; k < nk; k++) {
+
+              POLYBENCH_2MM_BODY2;
+            }
+          }
+
+        #pragma omp target update to(D[0: m_ni * m_nl])
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        for(Index_type i = 0; i < ni; i++)
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_2MM_BODY3;
+            for(Index_type j = 0; j < nj; j++)
+              POLYBENCH_2MM_BODY4;
+          }  
+      } // end run_reps
+      stopTimer(); 
+      #pragma omp target exit data map(from:D[0:m_ni * m_nl]) map(delete: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl],alpha,beta)
+
+      break;
+    }
+
     case RAJA_OpenMPTarget : {
       POLYBENCH_2MM_DATA;
       #pragma omp target enter data map(to: tmp[0:m_ni * m_nj],A[0:m_ni * m_nk], B[0:m_nk * m_nj], C[0:m_nj * m_nl], D[0: m_ni * m_nl], alpha,beta)
@@ -434,10 +467,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       break;
     }
 
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
 #endif
 
     default : {

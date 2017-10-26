@@ -261,9 +261,30 @@ void FIR::runKernel(VariantID vid)
 
       break;
     }
-#if 1 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
+
+    case Base_OpenMPTarget : {
+
+      FIR_COEFF;
+
+      FIR_DATA;
+
+      int n = getRunSize();
+      #pragma omp target enter data map(to:coeff[0:COEFFLEN],in[0:n],out[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+           FIR_BODY;
+        }
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:out[0:n]) map(delete:coeff[0:COEFFLEN],in[0:n])
+      break;
+    }
 
     case RAJA_OpenMPTarget : {
 
@@ -286,9 +307,8 @@ void FIR::runKernel(VariantID vid)
       #pragma omp target exit data map(from:out[0:n]) map(delete:coeff[0:COEFFLEN],in[0:n])
       break;
     }
-#endif
-#endif
-#endif
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

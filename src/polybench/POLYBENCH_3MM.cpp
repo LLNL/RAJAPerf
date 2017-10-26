@@ -392,6 +392,44 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+
+      POLYBENCH_3MM_DATA;
+
+      #pragma omp target enter data map(to: A[0:m_ni * m_nk],B[0:m_nk * m_nj], C[0:m_nj * m_nm], D[0:m_nm * m_nl], E[0: m_ni * m_nj], F[0: m_nj * m_nl], G[0: m_ni * m_nl])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        
+        for (Index_type i = 0; i < ni; i++ ) 
+          for(Index_type j = 0; j < nj; j++) {
+            POLYBENCH_3MM_BODY1;
+            for(Index_type k = 0; k < nk; k++) {
+              POLYBENCH_3MM_BODY2;
+            }
+          }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        for(Index_type j = 0; j < nj; j++)
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY3;
+            for(Index_type m = 0; m < nm; m++)
+              POLYBENCH_3MM_BODY4;
+          }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        for(Index_type i = 0; i < ni; i++)
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY5;
+            for(Index_type j = 0; j < nj; j++)
+              POLYBENCH_3MM_BODY6;
+          }  
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:G[0:m_ni * m_nl]) map(delete: A[0:m_ni * m_nk],B[0:m_nk * m_nj], C[0:m_nj * m_nm], D[0:m_nm * m_nl], E[0: m_ni * m_nj], F[0: m_nj * m_nl])
+      break;
+    }
+
     case RAJA_OpenMPTarget: {
       POLYBENCH_3MM_DATA;
 
@@ -499,14 +537,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
 #endif
 
     default : {

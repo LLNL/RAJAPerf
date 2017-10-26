@@ -183,10 +183,29 @@ void TRIAD::runKernel(VariantID vid)
       break;
     }
 
-#if 1                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case RAJA_OpenMPTarget : {
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+
+      TRIAD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          TRIAD_BODY;
+        }
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+
       TRIAD_DATA;
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
@@ -203,10 +222,8 @@ void TRIAD::runKernel(VariantID vid)
       #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
       break;
     }
-#endif
-#endif
-#endif
-
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -246,14 +263,6 @@ void TRIAD::runKernel(VariantID vid)
 
       TRIAD_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

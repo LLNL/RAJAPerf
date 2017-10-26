@@ -179,10 +179,29 @@ void MUL::runKernel(VariantID vid)
       break;
     }
 
-#if 1                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case RAJA_OpenMPTarget : {
 #define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+
+      MUL_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:b[0:n],c[0:n],alpha)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          MUL_BODY;
+        }
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:b[0:n])  map(delete:c[0:n],alpha)
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+
       MUL_DATA;
       int n = getRunSize();
       #pragma omp target enter data map(to:b[0:n],c[0:n],alpha)
@@ -199,7 +218,6 @@ void MUL::runKernel(VariantID vid)
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
 #endif //RAJA_ENABLE_OPENMP
-#endif
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
