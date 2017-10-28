@@ -361,7 +361,8 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type ii) {
   	      ResReal_ptr x1,x2,x3,x4 ;
   	      ResReal_ptr y1,y2,y3,y4 ; 
   	      ResReal_ptr fx1,fx2,fx3,fx4 ; 

@@ -217,8 +217,8 @@ void PLANCKIAN::runKernel(VariantID vid)
       #pragma omp target data use_device_ptr(x,y,u,v,w)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PLANCKIAN_BODY;
         });
 

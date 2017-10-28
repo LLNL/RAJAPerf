@@ -239,7 +239,8 @@ void IF_QUAD::runKernel(VariantID vid)
       #pragma omp target data use_device_ptr(a,b,c,x1,x2)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           IF_QUAD_BODY;
         });
 

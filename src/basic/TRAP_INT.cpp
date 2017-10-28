@@ -288,8 +288,8 @@ void TRAP_INT::runKernel(VariantID vid)
 
         RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> sumx(m_sumx_init);
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend,
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           TRAP_INT_BODY;
         });
 

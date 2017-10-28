@@ -206,15 +206,14 @@ void ADD::runKernel(VariantID vid)
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n])
       startTimer();
-     #pragma omp target data use_device_ptr(a,b,c)
-     {
+      #pragma omp target data use_device_ptr(a,b,c)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ADD_BODY;
-       });
+        });
 
-        }
       }
       stopTimer();
       #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])

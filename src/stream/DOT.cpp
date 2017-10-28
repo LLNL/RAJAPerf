@@ -245,12 +245,13 @@ void DOT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         Real_type dot = m_dot_init;
-        #pragma omp target teams distribute parallel for reduction(+:dot) \
+        #pragma omp target teams distribute parallel for map(tofrom:dot) reduction(+:dot) \
                 num_teams(NUMTEAMS) schedule(static, 1) 
         
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
+        m_dot += dot;
       }
       stopTimer();
       #pragma omp target exit data map(delete:a[0:n],b[0:n])
@@ -262,19 +263,18 @@ void DOT::runKernel(VariantID vid)
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n])
       startTimer();
-     #pragma omp target data use_device_ptr(a,b)
-     {
+      #pragma omp target data use_device_ptr(a,b)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin,iend,[=](Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
-       });
+        });
 
         m_dot += static_cast<Real_type>(dot.get());
 
-        }
       }
       stopTimer();
       #pragma omp target exit data map(delete:a[0:n],b[0:n])

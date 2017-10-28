@@ -152,7 +152,8 @@ void REDUCE3_INT::setUp(VariantID vid)
 
 void REDUCE3_INT::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
+  //const Index_type run_reps = getRunReps();
+  const Index_type run_reps = 50; //artificially limit until we reconcile raja omp-target reducer performance
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
@@ -268,23 +269,54 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       break;
     }
-#if 0
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 #define NUMTEAMS 128
-    case RAJA_OpenMPTarget : {
+    case Base_OpenMPTarget : {
 
       REDUCE3_INT_DATA;
       int n = getRunSize();
       #pragma omp target enter data map(to:vec[0:n])
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Int_type vsum = m_vsum_init;
+        Int_type vmin = m_vmin_init;
+        Int_type vmax = m_vmax_init;
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static,1) \
+                                 map(tofrom:vsum,vmin,vmax) \
+                                 reduction(+:vsum) \
+                                 reduction(min:vmin) \
+                                 reduction(max:vmax)
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          REDUCE3_INT_BODY;
+        }
+
+        m_vsum += vsum;
+        m_vmin = RAJA_MIN(m_vmin, vmin);
+        m_vmax = RAJA_MAX(m_vmax, vmax);
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:vec[0:n])
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+
+      REDUCE3_INT_DATA;
+      int n = getRunSize();
+
+      #pragma omp target enter data map(to:vec[0:n])
       startTimer();
       #pragma omp target data use_device_ptr(vec)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
         RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmax(m_vmax_init);
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend,
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
           REDUCE3_INT_BODY_RAJA;
         });
@@ -298,9 +330,8 @@ void REDUCE3_INT::runKernel(VariantID vid)
       #pragma omp target exit data map(delete:vec[0:n])
       break;
     }
-#endif
-#endif
-#endif
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -375,14 +406,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       REDUCE3_INT_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

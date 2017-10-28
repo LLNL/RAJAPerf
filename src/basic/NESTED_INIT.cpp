@@ -185,7 +185,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-          #pragma omp parallel for 
+          #pragma omp parallel for collapse(2)
           for (Index_type k = 0; k < nk; ++k ) {
             for (Index_type j = 0; j < nj; ++j ) {
               for (Index_type i = 0; i < ni; ++i ) {
@@ -241,9 +241,30 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-#if 0
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-#define NUMTEAMS 16
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+
+      NESTED_INIT_DATA;
+
+      #pragma omp target enter data map(to:array[0:ni * nj * nk],ni,nj,nk)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(3) 
+        for (Index_type k = 0; k < nk; ++k ) {
+          for (Index_type j = 0; j < nj; ++j ) {
+            for (Index_type i = 0; i < ni; ++i ) {
+              NESTED_INIT_BODY;
+            }
+          }
+        }  
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:array[0:ni * nj * nk]) map(delete:ni,nj,nk)
+      break;
+    }
+
+#if 0  // crashes clang-coral compiler      
     case RAJA_OpenMPTarget: {
                               
       NESTED_INIT_DATA;
@@ -332,14 +353,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

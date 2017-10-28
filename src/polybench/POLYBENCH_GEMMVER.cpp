@@ -467,24 +467,28 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       #pragma omp target data use_device_ptr(A,u1,v1,u2,v2,w,x,y,z)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,n * n, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY1; 
         });
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,n * n, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY2; 
         });
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,n, [=](Index_type i) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,n), [=](Index_type i) {
           POLYBENCH_GEMMVER_BODY3; 
         });
 
         
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,n * n, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
           Index_type i,j;
           i = ii/n; j = ii % n;
           POLYBENCH_GEMMVER_BODY4; 

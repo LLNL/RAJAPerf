@@ -386,7 +386,8 @@ void VOL3D::runKernel(VariantID vid)
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, [=](int i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ;
           ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ;
           ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;

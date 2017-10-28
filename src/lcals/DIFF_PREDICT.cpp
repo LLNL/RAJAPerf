@@ -223,8 +223,8 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       #pragma omp target data use_device_ptr(px,cx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DIFF_PREDICT_BODY;
         });
 

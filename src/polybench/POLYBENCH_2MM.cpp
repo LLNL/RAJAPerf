@@ -392,8 +392,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             }
           }
 
-        #pragma omp target update to(D[0: m_ni * m_nl])
+
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        #pragma omp target update to(D[0: m_ni * m_nl])
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
         for(Index_type i = 0; i < ni; i++)
