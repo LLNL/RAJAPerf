@@ -419,7 +419,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       #pragma omp target data use_device_ptr(tmp,A,B)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,ni * nj, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,ni * nj), [=](Index_type ii) {
           Index_type i,j,k;
           *(tmp + ii) = 0.0;
           i = ii/nj; j = ii % nj;
@@ -435,7 +436,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         #pragma omp target data use_device_ptr(C,D)
 
 
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(0,ni * nl, [=](Index_type ii) {
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(0,ni * nl), [=](Index_type ii) {
           *(D + ii) *= beta;
           Index_type i,l,j;
           i = ii/nl; l = ii % nl;
