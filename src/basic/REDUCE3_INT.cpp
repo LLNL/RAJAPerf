@@ -48,7 +48,6 @@ namespace basic
 #define REDUCE3_INT_DATA \
   Int_ptr vec = m_vec; \
 
-
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \
   vmin = RAJA_MIN(vmin, vec[i]) ; \
@@ -58,7 +57,6 @@ namespace basic
   vsum += vec[i] ; \
   vmin.min(vec[i]) ; \
   vmax.max(vec[i]) ;
-
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -153,7 +151,7 @@ void REDUCE3_INT::setUp(VariantID vid)
 void REDUCE3_INT::runKernel(VariantID vid)
 {
   //const Index_type run_reps = getRunReps();
-  const Index_type run_reps = 50; //artificially limit until we reconcile raja omp-target reducer performance
+  const Index_type run_reps = 100; //artificially limit until we reconcile raja omp-target reducer performance
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
