@@ -316,7 +316,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --help, -h (print options with descriptions}\n\n";
 
-  str << "\t --show_progress, -sp (print progress during run}\n\n";
+  str << "\t --show-progress, -sp (print progress during run}\n\n";
 
   str << "\t --print-kernels, -pk (print valid kernel names}\n\n";
 
