@@ -27,6 +27,8 @@
 #include "basic/INIT3.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/INIT_VIEW1D.hpp"
+#include "basic/INIT_VIEW1D_OFFSET.hpp"
 
 //
 // Lcals kernels...
@@ -62,8 +64,9 @@
 #include "apps/ENERGY.hpp"
 #include "apps/VOL3D.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/FIR.hpp"
+#include "apps/LTIMES.hpp"
+#include "apps/WIP-COUPLE.hpp"
 
 
 #include <iostream>
@@ -120,6 +123,8 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_INIT_VIEW1D"),
+  std::string("Basic_INIT_VIEW1D_OFFSET"),
 
 //
 // Lcals kernels...
@@ -158,8 +163,9 @@ static const std::string KernelNames [] =
   std::string("Apps_ENERGY"),
   std::string("Apps_VOL3D"),
   std::string("Apps_DEL_DOT_VEC_2D"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_FIR"),
+  std::string("Apps_LTIMES"),
+  std::string("Apps_COUPLE"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -296,6 +302,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::NESTED_INIT(run_params);
        break;
     }
+    case Basic_INIT_VIEW1D : {
+       kernel = new basic::INIT_VIEW1D(run_params);
+       break;
+    }
+    case Basic_INIT_VIEW1D_OFFSET : {
+       kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
 
 //
 // Lcals kernels...
@@ -328,7 +342,6 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Polybench kernels...
 //
-#if 1
     case Polybench_2MM : {
        kernel = new polybench::POLYBENCH_2MM(run_params);
        break;
@@ -343,7 +356,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_GEMMVER(run_params);
        break;
     }
-#endif
 
 //
 // Stream kernels...
@@ -388,12 +400,16 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
     case Apps_FIR : {
        kernel = new apps::FIR(run_params);
+       break;
+    }
+    case Apps_LTIMES : {
+       kernel = new apps::LTIMES(run_params);
+       break;
+    }
+    case Apps_COUPLE : {
+       kernel = new apps::COUPLE(run_params);
        break;
     }
 

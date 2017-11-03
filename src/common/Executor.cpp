@@ -236,7 +236,10 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin(); 
          kid != run_kern.end(); ++kid) {
-      kernels.push_back( getKernelObject(*kid, run_params) );
+/// RDH DISABLE COUPLE KERNEL
+      if ( *kid != Apps_COUPLE ) {
+        kernels.push_back( getKernelObject(*kid, run_params) );
+      }
     }
 
     if ( !(run_params.getInvalidVariantInput().empty()) ) {
@@ -350,13 +353,29 @@ void Executor::runSuite()
   cout << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
-  for (int ip = 0; ip < npasses; ++ip) {  
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-         kernels[ik]->execute( variant_ids[iv] );
-      } 
+  for (int ip = 0; ip < npasses; ++ip) {
+    if ( run_params.showProgress() ) {
+      std::cout << "\nPass throught suite # " << ip << "\n";
     }
-  }
+
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kernel = kernels[ik];
+      if ( run_params.showProgress() ) {
+        std::cout << "\n   Running kernel -- " << kernel->getName() << "\n"; 
+      }
+
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+        if ( run_params.showProgress() ) {
+          std::cout << "     Variant - " << getVariantName(vid) << "\n"; 
+         }
+
+         kernel->execute( vid );
+      } // loop over variants 
+
+    } // loop over kernels
+
+  } // loop over passes through suite
 }
 
 void Executor::outputRunData()

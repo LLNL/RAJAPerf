@@ -14,20 +14,21 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_toss3-icpc-18.0-beta 2>/dev/null
-mkdir build_toss3-icpc-18.0-beta && cd build_toss3-icpc-18.0-beta
+rm -rf build_blueos_nvcc8.0_clang-coral-2017.09.18 >/dev/null
+mkdir build_blueos_nvcc8.0_clang-coral-2017.09.18 && cd build_blueos_nvcc8.0_clang-coral-2017.09.18
 
-module load cmake/3.5.2
-module load gcc/4.9.3
+module load cmake/3.7.2
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/toss3/icpc_18_0_beta.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang_coral_2017_09_18.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_CUDA=On \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_toss3-icpc-18.0-beta \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_clang-coral-2017.09.18 \
   "$@" \
   ${PERFSUITE_DIR}

@@ -34,9 +34,6 @@
 
 #include <iostream>
 
-//#define USE_COLLAPSE
-#undef USE_COLLAPSE
-
 
 namespace rajaperf 
 {
@@ -137,23 +134,45 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::simd_exec,
+                       RAJA::ExecList< RAJA::seq_exec,
                                        RAJA::seq_exec,
-                                       RAJA::seq_exec >, 
-                       RAJA::Permute<RAJA::PERM_KJI> > >(
-              RAJA::RangeSegment(0, ni),
-              RAJA::RangeSegment(0, nj),
+                                       RAJA::simd_exec > > > (
               RAJA::RangeSegment(0, nk),
-          [=](Index_type i, Index_type j, Index_type k) {     
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, ni),
+          [=](Index_type k, Index_type j, Index_type i) {     
           NESTED_INIT_BODY;
         });
 
       }
       stopTimer();
+
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::nested::forall(RAJA::nested::Policy< 
+                             RAJA::nested::For<2, RAJA::seq_exec>,      // k
+                             RAJA::nested::For<1, RAJA::seq_exec>,      // j
+                             RAJA::nested::For<0, RAJA::simd_exec> >{}, // i
+                             camp::make_tuple(RAJA::RangeSegment(0, ni),
+                                              RAJA::RangeSegment(0, nj),
+                                              RAJA::RangeSegment(0, nk)),
+             [=](Index_type i, Index_type j, Index_type k) {     
+             NESTED_INIT_BODY;
+        });
+
+      }
+      stopTimer();
+
+#endif
 
       break;
     }
@@ -166,19 +185,6 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#if defined(USE_COLLAPSE)
-        #pragma omp parallel 
-          {
-            #pragma omp for nowait collapse(3) 
-            for (Index_type k = 0; k < nk; ++k ) {
-              for (Index_type j = 0; j < nj; ++j ) {
-                for (Index_type i = 0; i < ni; ++i ) {
-                  NESTED_INIT_BODY;
-                }
-              }
-            }
-          } // omp parallel
-#else
           #pragma omp parallel for 
           for (Index_type k = 0; k < nk; ++k ) {
             for (Index_type j = 0; j < nj; ++j ) {
@@ -187,7 +193,6 @@ void NESTED_INIT::runKernel(VariantID vid)
               }
             }
           }
-#endif
 
       }
       stopTimer();
@@ -204,38 +209,34 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#if defined(USE_COLLAPSE) 
-      // impact....is there something wrong with the forallN implementation?
         RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::simd_exec,
-                                       RAJA::omp_collapse_nowait_exec,
-                                       RAJA::omp_collapse_nowait_exec >, 
-                       RAJA::Permute<RAJA::PERM_KJI> > >(
-              RAJA::RangeSegment(0, ni),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, nk),
-          [=](Index_type i, Index_type j, Index_type k) {     
-          NESTED_INIT_BODY;
-        });
-#else
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::simd_exec,
+                       RAJA::ExecList< RAJA::omp_parallel_for_exec,
                                        RAJA::seq_exec,
-                                       RAJA::omp_parallel_for_exec >, 
-                       RAJA::Permute<RAJA::PERM_KJI> > >(
-              RAJA::RangeSegment(0, ni),
-              RAJA::RangeSegment(0, nj),
+                                       RAJA::simd_exec > > > (
               RAJA::RangeSegment(0, nk),
-          [=](Index_type i, Index_type j, Index_type k) {     
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, ni),
+          [=](Index_type k, Index_type j, Index_type i) {     
           NESTED_INIT_BODY;
         });
-#endif
 
       }
       stopTimer();
+
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      }
+      stopTimer();
+
+#endif
 
       break;
     }
@@ -267,23 +268,34 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA_SETUP_CUDA;
 
+#if defined(USE_FORALLN)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::cuda_thread_x_exec,
+                       RAJA::ExecList< RAJA::cuda_block_z_exec,
                                        RAJA::cuda_block_y_exec,
-                                       RAJA::cuda_block_z_exec >, 
-                       RAJA::Permute<RAJA::PERM_KJI> > >(
-              RAJA::RangeSegment(0, ni),
-              RAJA::RangeSegment(0, nj),
+                                       RAJA::cuda_thread_x_exec > > > (
               RAJA::RangeSegment(0, nk),
-          [=] __device__ (Index_type i, Index_type j, Index_type k) {     
+              RAJA::RangeSegment(0, nj),
+              RAJA::RangeSegment(0, ni),
+          [=] __device__ (Index_type k, Index_type j, Index_type i) {
           NESTED_INIT_BODY;
         });
 
       }
       stopTimer();
+
+#else // use RAJA::nested
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      }
+      stopTimer();
+
+#endif
 
       NESTED_INIT_DATA_TEARDOWN_CUDA;
 

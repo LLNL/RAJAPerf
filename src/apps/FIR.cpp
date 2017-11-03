@@ -28,6 +28,7 @@
 ///   } 
 ///   out[i] = sum;
 /// }
+///
 
 #include "FIR.hpp"
 
@@ -207,7 +208,8 @@ void FIR::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](int i) {
+        RAJA::forall<RAJA::seq_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](int i) {
           FIR_BODY;
         }); 
 
@@ -225,7 +227,7 @@ void FIR::runKernel(VariantID vid)
       FIR_DATA;
  
       startTimer();
-      for (RepIndex_type irep = ibegin; irep < run_reps; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -252,7 +254,8 @@ void FIR::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, [=](int i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](int i) {
           FIR_BODY;
         });
 
@@ -304,8 +307,7 @@ void FIR::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
          RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend,
-           [=] __device__ (Index_type i) {
+           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
            FIR_BODY;
          });
 
