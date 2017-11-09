@@ -99,7 +99,7 @@ namespace polybench
   ResReal_ptr U = m_U; \
   ResReal_ptr V = m_V; \
   ResReal_ptr P = m_P; \
-  ResReal_ptr Q = m_Q; \
+  ResReal_ptr Q = m_Q; 
   
 #define POLYBENCH_ADI_BODY1 \
   Index_type t,i,j; \
@@ -119,7 +119,8 @@ namespace polybench
   c = a; \
   d = -mul2 /2.0; \
   e = 1.0 + mul2; \
-  f = d; 
+  f = d; \
+  for(int ii=0; ii<m_n*m_n; ii++) m_U[ii] = 0.0;
 
 
 #define POLYBENCH_ADI_BODY2 \
@@ -129,13 +130,16 @@ namespace polybench
 
 #define POLYBENCH_ADI_BODY3 \
   *(P + i * n + j) = -c / (a * *(P + i * n + j-1)+b); \
-  *(Q + i * n + j) = (-d * *(U + j * n + i-1) + (1.0 + 2.0*d) * *(U + j * n + i) - f* *(U + j * n + i + 1) -a * *(Q + i * n + j-1))/(a * *(P + i * n + j -1)+b);
+  *(Q + i * n + j) = (-d * *(U + j * n + i-1) + (1.0 + 2.0*d) * *(U + j * n + i) - f* *(U + j * n + i + 1) -a * *(Q + i * n + j-1))/(a * *(P + i * n + j -1)+b); 
+ // printf("P[%d] = %f\n",i*n+j,*(P+i*n+j));
 
 #define POLYBENCH_ADI_BODY4 \
   *(V + (n-1) * n + i) = 1.0;
 
 #define POLYBENCH_ADI_BODY5 \
-  *(V + j * n + i)  = *(P + i * n + j) * *(V + (j+1 * n) + i) + *(Q + i * n + j);
+  *(V + j * n + i)  = *(P + i * n + j) * *(V + (j+1) * n + i) + *(Q + i * n + j); 
+  //printf("V[%d] = %f : i = %d, j = %d n = %d \n",j * n + i,*(V + j * n + i),i,j,n);
+  
 
 #define POLYBENCH_ADI_BODY6 \
   *(U + i * n + 0) = 1.0; \
@@ -150,7 +154,8 @@ namespace polybench
   *(U + i * n + n-1) = 1.0;
 
 #define POLYBENCH_ADI_BODY9 \
-  *(U + i * n + j)= *(P + i * n + j) * *(U + i * n + j +1) + *(Q + i * n + j);
+  *(U + i * n + j)= *(P + i * n + j) * *(U + i * n + j +1) + *(Q + i * n + j); 
+  //printf("U[%d] = %f : i = %d, j = %d n = %d \n",i * n + j,*(U + i * n + j),i,j,n);
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -244,7 +249,7 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
   switch(lsizespec) {
     case Mini:
-      m_n=20; m_tsteps=20; 
+      m_n=20; m_tsteps=1; 
       m_run_reps = 10000;
       break;
     case Small:
@@ -252,8 +257,8 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       m_run_reps = 500;
       break;
     case Medium:
-      m_n=200; m_tsteps=100; 
-      m_run_reps = 10;
+      m_n=200; m_tsteps=1; // change tsteps back to 100 after debugging 
+      m_run_reps = 20;
       break;
     case Large:
       m_n=1000; m_tsteps=500; 
@@ -264,8 +269,8 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       m_run_reps = 1;
       break;
     default:
-      m_n=200; m_tsteps=100; 
-      m_run_reps = 100;
+      m_n=200; m_tsteps=1; 
+      m_run_reps = 20;
       break;
   }
   setDefaultSize( m_tsteps );
@@ -274,6 +279,7 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   allocAndInitData(m_V, m_n * m_n);
   allocAndInitData(m_P, m_n * m_n);
   allocAndInitData(m_Q, m_n * m_n);
+
 }
 
 POLYBENCH_ADI::~POLYBENCH_ADI() 
@@ -282,6 +288,7 @@ POLYBENCH_ADI::~POLYBENCH_ADI()
   deallocData(m_V);
   deallocData(m_P);
   deallocData(m_Q);
+
 }
 
 void POLYBENCH_ADI::setUp(VariantID vid)
@@ -300,68 +307,76 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
     case Base_Seq : {
 
       POLYBENCH_ADI_DATA;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         POLYBENCH_ADI_BODY1;
-        for (Index_type t = 1; t <= tsteps; t++ ) { 
-          for(Index_type i = 1; i < n-1; i++) {
-  //          POLYBENCH_ADI_BODY2;
-            //*(V + (0 * n) + i) = 1.0; 
-            *(P + i * n + 0) = 0.0; 
-            *(Q + i * n + 0) = *(V + (0 * n) + i);
-            for(Index_type j = 1; j < n-1; j++)
+        for (t = 1; t <= tsteps; t++ ) { 
+
+          for(i = 1; i < n-1; i++) {
+            POLYBENCH_ADI_BODY2;
+            for(j = 1; j < n-1; j++) {
               POLYBENCH_ADI_BODY3;
+            }  
             POLYBENCH_ADI_BODY4;
-            for(j = n-2; j>=1; j--)
+            for(j = n-2; j>=1; j--) {
               POLYBENCH_ADI_BODY5;
+            }  
           }
+
           for(Index_type i = 1; i < n-1; i++) {
             POLYBENCH_ADI_BODY6;
-            for(Index_type j = 1; j < n-1; j++)
+            for(j = 1; j < n-1; j++) {
               POLYBENCH_ADI_BODY7;
+            }
             POLYBENCH_ADI_BODY8;
-            for(j = n-2; j>=1; j--)
+            for(j = n-2; j>=1; j--) {
               POLYBENCH_ADI_BODY9;
+            }  
           }
         }
       }
       stopTimer();
-
       break;
     }
 
     case RAJA_Seq : {
       POLYBENCH_ADI_DATA;
       startTimer();
-#if 0      
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-      
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
-          POLYBENCH_ADI_BODY1;
-
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
-            POLYBENCH_ADI_BODY2; 
-          });
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, nj}, RAJA::RangeSegment{0, nl}, [=] (int j, int l) {
-          POLYBENCH_ADI_BODY3;
-
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nm}, [=] (int m) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        POLYBENCH_ADI_BODY1;
+           
+        RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, tsteps + 1}, [=] (int t) {
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int i) {
+            POLYBENCH_ADI_BODY2;
+            RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int j) { 
+              POLYBENCH_ADI_BODY3; 
+            });
             POLYBENCH_ADI_BODY4;
-          });
-        });
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int j) {
+              j = n - 1 - j;
+              POLYBENCH_ADI_BODY5; 
+            });
 
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
-          POLYBENCH_ADI_BODY5;
+          }); // i
 
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int i) {
             POLYBENCH_ADI_BODY6;
-          });
-        });
+            RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int j) {
+              POLYBENCH_ADI_BODY7; 
+            });
+            POLYBENCH_ADI_BODY8;
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int j) {
+              j = n - 1 -j;
+              POLYBENCH_ADI_BODY9; 
+            });
+
+          }); // i
+
+            
+        }); // tsteps
 
       }
-#endif     
       stopTimer();
       break;
     }
@@ -371,35 +386,36 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)      
       POLYBENCH_ADI_DATA;
       startTimer();
-#if 0
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-        #pragma omp parallel for  
-        for (Index_type i = 0; i < ni; i++ ) 
-          for(Index_type j = 0; j < nj; j++) {
-            POLYBENCH_ADI_BODY1;
-            for(Index_type k = 0; k < nk; k++) {
-              POLYBENCH_ADI_BODY2;
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        POLYBENCH_ADI_BODY1;
+
+        for (t = 1; t <= tsteps; t++ ) { 
+
+          #pragma omp parallel for
+          for(i = 1; i < n-1; i++) {
+            POLYBENCH_ADI_BODY2;
+            for(j = 1; j < n-1; j++) {
+              POLYBENCH_ADI_BODY3;
+            }  
+            POLYBENCH_ADI_BODY4;
+            for(j = n-2; j>=1; j--) {
+              POLYBENCH_ADI_BODY5;
+            }  
+          }
+
+          #pragma omp parallel for
+          for(Index_type i = 1; i < n-1; i++) {
+            POLYBENCH_ADI_BODY6;
+            for(j = 1; j < n-1; j++) {
+              POLYBENCH_ADI_BODY7;
             }
+            POLYBENCH_ADI_BODY8;
+            for(j = n-2; j>=1; j--) {
+              POLYBENCH_ADI_BODY9;
+            }  
           }
-
-        #pragma omp parallel for   
-        for(Index_type j = 0; j < nj; j++)
-          for(Index_type l = 0; l < nl; l++) {
-            POLYBENCH_ADI_BODY3;
-            for(Index_type m = 0; m < nm; m++)
-              POLYBENCH_ADI_BODY4;
-          }
-
-        #pragma omp parallel for   
-        for(Index_type i = 0; i < ni; i++)
-          for(Index_type l = 0; l < nl; l++) {
-            POLYBENCH_ADI_BODY5;
-            for(Index_type j = 0; j < nj; j++)
-              POLYBENCH_ADI_BODY6;
-          }  
-
+        }
       }
-#endif
       stopTimer();
 
       break;
