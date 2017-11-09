@@ -54,7 +54,7 @@ public:
 private:
   Index_type m_n;
   Index_type m_tsteps;
-  Index_type m_run_samples;
+  Index_type m_run_reps;
   Real_ptr m_U;
   Real_ptr m_V;
   Real_ptr m_P;

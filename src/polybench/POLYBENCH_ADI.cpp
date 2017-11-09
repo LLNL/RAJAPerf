@@ -37,12 +37,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ADI_DATA \
-  ResReal_ptr U = m_U; \
-  ResReal_ptr V = m_V; \
-  ResReal_ptr P = m_P; \
-  ResReal_ptr Q = m_Q; \
-  
 
 
 // The following ADI_BODY is a prototype of the kernel copied over from the polybench suite and is not used in the runKernel calls  
@@ -100,6 +94,13 @@ namespace polybench
 #pragma endscop
 #endif
 
+
+#define POLYBENCH_ADI_DATA \
+  ResReal_ptr U = m_U; \
+  ResReal_ptr V = m_V; \
+  ResReal_ptr P = m_P; \
+  ResReal_ptr Q = m_Q; \
+  
 #define POLYBENCH_ADI_BODY1 \
   Index_type t,i,j; \
   Real_type DX,DY,DT; \
@@ -122,19 +123,34 @@ namespace polybench
 
 
 #define POLYBENCH_ADI_BODY2 \
-  *(E + i * nj + j) += *(A + i * nk + k) * *(B + k * nj + j);
+  *(V + 0 * n + i) = 1.0; \
+  *(P + i * n + 0) = 0.0; \
+  *(Q + i * n + 0) = *(V + 0 * n + i);
 
 #define POLYBENCH_ADI_BODY3 \
-  *(F + j * nl + l) = 0.0;
+  *(P + i * n + j) = -c / (a * *(P + i * n + j-1)+b); \
+  *(Q + i * n + j) = (-d * *(U + j * n + i-1) + (1.0 + 2.0*d) * *(U + j * n + i) - f* *(U + j * n + i + 1) -a * *(Q + i * n + j-1))/(a * *(P + i * n + j -1)+b);
 
 #define POLYBENCH_ADI_BODY4 \
-  *(F + j * nl + l)  += *(C + j * nm + m) * *(D + m * nl + l);
+  *(V + (n-1) * n + i) = 1.0;
 
 #define POLYBENCH_ADI_BODY5 \
-  *(G + i * nl + l) = 0.0;
+  *(V + j * n + i)  = *(P + i * n + j) * *(V + (j+1 * n) + i) + *(Q + i * n + j);
 
 #define POLYBENCH_ADI_BODY6 \
-  *(G + i * nl + l) += *(E + i * nj + j) * *(F + j * nl + l);
+  *(U + i * n + 0) = 1.0; \
+  *(P + i * n + 0) = 0.0; \
+  *(Q + i * n + 0) = *(U + i * n + 0);
+
+#define POLYBENCH_ADI_BODY7 \
+  *(P + i * n + j) = -f / (d * *(P + i * n + j-1)+e); \
+  *(Q + i * n + j) = (-a * *(V + (i-1) * n + j) + (1.0 + 2.0*a) * *(V + i * n + j) - c * *(V + (i + 1) * n + j) -d * *(Q + i * n + j-1))/(d * *(P + i * n + j-1)+e);
+
+#define POLYBENCH_ADI_BODY8 \
+  *(U + i * n + n-1) = 1.0;
+
+#define POLYBENCH_ADI_BODY9 \
+  *(U + i * n + j)= *(P + i * n + j) * *(U + i * n + j +1) + *(Q + i * n + j);
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -146,34 +162,28 @@ namespace polybench
 
 
 #define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  Real_ptr A = m_A; \
-  Real_ptr B = m_B; \
-  Real_ptr C = m_C; \
-  Real_ptr D = m_D; \
-  Real_ptr E = m_E; \
-  Real_ptr F = m_F; \
-  Real_ptr G = m_G; \
+  ResReal_ptr U = m_U; \
+  ResReal_ptr V = m_V; \
+  ResReal_ptr P = m_P; \
+  ResReal_ptr Q = m_Q; \
 \
-  allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitCudaDeviceData(C, m_C, m_nj * m_nm); \
-  allocAndInitCudaDeviceData(D, m_D, m_nm * m_nl); \
-  allocAndInitCudaDeviceData(E, m_E, m_ni * m_nj); \
-  allocAndInitCudaDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitCudaDeviceData(G, m_G, m_ni * m_nl); 
+  allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
+  allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
+  allocAndInitCudaDeviceData(P, m_P, m_n * m_n); \
+  allocAndInitCudaDeviceData(Q, m_Q, m_n * m_n); 
 
 
 #define POLYBENCH_ADI_TEARDOWN_CUDA \
-  getCudaDeviceData(m_G, G, m_ni * m_nl); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B); \
-  deallocCudaDeviceData(C); \
-  deallocCudaDeviceData(D); \
-  deallocCudaDeviceData(E); \
-  deallocCudaDeviceData(F); \
-  deallocCudaDeviceData(G);
+  getCudaDeviceData(m_U, U, m_n * m_n); \
+  deallocCudaDeviceData(U); \
+  deallocCudaDeviceData(V); \
+  deallocCudaDeviceData(P); \
+  deallocCudaDeviceData(Q); 
 
-__global__ void polybench_3mm_cuda_1(Real_ptr A,
+
+#if 0
+
+__global__ void polybench_adi_cuda_1(Real_ptr A,
                        Real_ptr B, Real_ptr C, Real_ptr D,
                        Real_ptr E, Real_ptr F, Real_ptr G,
                        Index_type ni, Index_type nj,
@@ -190,7 +200,7 @@ __global__ void polybench_3mm_cuda_1(Real_ptr A,
    }
 }
 
-__global__ void polybench_3mm_cuda_2(Real_ptr A,
+__global__ void polybench_adi_cuda_2(Real_ptr A,
                        Real_ptr B, Real_ptr C, Real_ptr D,
                        Real_ptr E, Real_ptr F, Real_ptr G,
                        Index_type ni, Index_type nj,
@@ -208,7 +218,7 @@ __global__ void polybench_3mm_cuda_2(Real_ptr A,
 }
 
 
-__global__ void polybench_3mm_cuda_3(Real_ptr A,
+__global__ void polybench_adi_cuda_3(Real_ptr A,
                        Real_ptr B, Real_ptr C, Real_ptr D,
                        Real_ptr E, Real_ptr F, Real_ptr G,
                        Index_type ni, Index_type nj,
@@ -225,58 +235,53 @@ __global__ void polybench_3mm_cuda_3(Real_ptr A,
    }
 }
 
-
+#endif
 #endif // if defined(RAJA_ENABLE_CUDA)
   
-POLYBENCH_ADI::POLYBENCH_3MM(const RunParams& params)
+POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
-  setDefaultSamples(1);
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
   switch(lsizespec) {
     case Mini:
-      m_ni=16; m_nj=18; m_nk=20; m_nl=22; m_nm=24;
-      m_run_samples = 100000;
+      m_n=20; m_tsteps=20; 
+      m_run_reps = 10000;
       break;
     case Small:
-      m_ni=40; m_nj=50; m_nk=60; m_nl=70; m_nm=80;
-      m_run_samples = 5000;
+      m_n=60; m_tsteps=40; 
+      m_run_reps = 500;
       break;
     case Medium:
-      m_ni=180; m_nj=190; m_nk=200; m_nl=210; m_nm=220;
-      m_run_samples = 100;
+      m_n=200; m_tsteps=100; 
+      m_run_reps = 10;
       break;
     case Large:
-      m_ni=800; m_nj=900; m_nk=1000; m_nl=1100; m_nm=1200;
-      m_run_samples = 1;
+      m_n=1000; m_tsteps=500; 
+      m_run_reps = 1;
       break;
     case Extralarge:
-      m_ni=1600; m_nj=1800; m_nk=2000; m_nl=2200; m_nm=2400;
-      m_run_samples = 1;
+      m_n=2000; m_tsteps=1000; 
+      m_run_reps = 1;
       break;
     default:
-      m_ni=180; m_nj=190; m_nk=200; m_nl=210; m_nm=220;
-      m_run_samples = 100;
+      m_n=200; m_tsteps=100; 
+      m_run_reps = 100;
       break;
   }
-  allocAndInitData(m_A, m_ni * m_nk);
-  allocAndInitData(m_B, m_nk * m_nj);
-  allocAndInitData(m_C, m_nj * m_nm);
-  allocAndInitData(m_D, m_nm * m_nl);
-  allocAndInitData(m_E, m_ni * m_nj);
-  allocAndInitData(m_F, m_nj * m_nl);
-  allocAndInitData(m_G, m_ni * m_nl);
+  setDefaultSize( m_tsteps );
+  setDefaultReps(m_run_reps);
+  allocAndInitData(m_U, m_n * m_n);
+  allocAndInitData(m_V, m_n * m_n);
+  allocAndInitData(m_P, m_n * m_n);
+  allocAndInitData(m_Q, m_n * m_n);
 }
 
-POLYBENCH_ADI::~POLYBENCH_3MM() 
+POLYBENCH_ADI::~POLYBENCH_ADI() 
 {
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
-  deallocData(m_E);
-  deallocData(m_F);
-  deallocData(m_G);
+  deallocData(m_U);
+  deallocData(m_V);
+  deallocData(m_P);
+  deallocData(m_Q);
 }
 
 void POLYBENCH_ADI::setUp(VariantID vid)
@@ -286,40 +291,39 @@ void POLYBENCH_ADI::setUp(VariantID vid)
 
 void POLYBENCH_ADI::runKernel(VariantID vid)
 {
-  const Index_type run_samples = getRunSamples();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
-  const Index_type nm = m_nm;
+  const Index_type run_reps = getRunReps();
+  const Index_type n = m_n;
+  const Index_type tsteps = m_tsteps;
 
   switch ( vid ) {
 
-    case Baseline_Seq : {
+    case Base_Seq : {
 
       POLYBENCH_ADI_DATA;
       startTimer();
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-        for (Index_type i = 0; i < ni; i++ ) 
-          for(Index_type j = 0; j < nj; j++) {
-            POLYBENCH_ADI_BODY1;
-            for(Index_type k = 0; k < nk; k++)
-              POLYBENCH_ADI_BODY2;
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        POLYBENCH_ADI_BODY1;
+        for (Index_type t = 1; t <= tsteps; t++ ) { 
+          for(Index_type i = 1; i < n-1; i++) {
+  //          POLYBENCH_ADI_BODY2;
+            //*(V + (0 * n) + i) = 1.0; 
+            *(P + i * n + 0) = 0.0; 
+            *(Q + i * n + 0) = *(V + (0 * n) + i);
+            for(Index_type j = 1; j < n-1; j++)
+              POLYBENCH_ADI_BODY3;
+            POLYBENCH_ADI_BODY4;
+            for(j = n-2; j>=1; j--)
+              POLYBENCH_ADI_BODY5;
           }
-
-        for(Index_type j = 0; j < nj; j++)
-          for(Index_type l = 0; l < nl; l++) {
-            POLYBENCH_ADI_BODY3;
-            for(Index_type m = 0; m < nm; m++)
-              POLYBENCH_ADI_BODY4;
+          for(Index_type i = 1; i < n-1; i++) {
+            POLYBENCH_ADI_BODY6;
+            for(Index_type j = 1; j < n-1; j++)
+              POLYBENCH_ADI_BODY7;
+            POLYBENCH_ADI_BODY8;
+            for(j = n-2; j>=1; j--)
+              POLYBENCH_ADI_BODY9;
           }
-
-        for(Index_type i = 0; i < ni; i++)
-          for(Index_type l = 0; l < nl; l++) {
-            POLYBENCH_ADI_BODY5;
-            for(Index_type j = 0; j < nj; j++)
-              POLYBENCH_ADI_BODY6;
-          }
+        }
       }
       stopTimer();
 
@@ -329,7 +333,9 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
     case RAJA_Seq : {
       POLYBENCH_ADI_DATA;
       startTimer();
+#if 0      
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
+      
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_ADI_BODY1;
 
@@ -355,15 +361,17 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
         });
 
       }
+#endif     
       stopTimer();
       break;
     }
 
-    case Baseline_OpenMP : {
+    case Base_OpenMP : {
 
-#if defined(_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)      
       POLYBENCH_ADI_DATA;
       startTimer();
+#if 0
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         #pragma omp parallel for  
         for (Index_type i = 0; i < ni; i++ ) 
@@ -391,8 +399,9 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
           }  
 
       }
-      stopTimer();
 #endif
+      stopTimer();
+
       break;
     }
 
@@ -402,9 +411,9 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(_OPENMP)      
       POLYBENCH_ADI_DATA;
       startTimer();
+#if 0      
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
         RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
           POLYBENCH_ADI_BODY1;
@@ -431,14 +440,16 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
         });
 
       }
-      stopTimer();
 #endif
+      stopTimer();
       break;
     }
 
+#endif // RAJA_ENABLE_OPENMP
+
 #if defined(RAJA_ENABLE_CUDA)
     case Baseline_CUDA : {
-#if 1
+#if 0
       POLYBENCH_ADI_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
@@ -459,7 +470,7 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
     }
 
     case RAJA_CUDA : {
-#if 1
+#if 0
       POLYBENCH_ADI_DATA_SETUP_CUDA;
       startTimer();
       for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
@@ -518,7 +529,7 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 
 void POLYBENCH_ADI::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_G, m_ni * m_nl,1.0/m_run_samples);
+  checksum[vid] += calcChecksum(m_U, m_n * m_n);
 }
 
 void POLYBENCH_ADI::tearDown(VariantID vid)
