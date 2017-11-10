@@ -16,10 +16,10 @@
 ///
 /// LTIMES kernel reference implementation:
 ///
-/// for (Index_type z = 0; z < num_z; ++z ) {
-///   for (Index_type g = 0; g < num_g; ++g ) {
-///     for (Index_type m = 0; z < num_m; ++m ) {
-///       for (Index_type d = 0; d < num_d; ++d ) {
+/// for (Index_type d = 0; d < num_d; ++d ) {
+///   for (Index_type z = 0; z < num_z; ++z ) {
+///     for (Index_type g = 0; g < num_g; ++g ) {
+///       for (Index_type m = 0; z < num_m; ++m ) {
 ///         phi[m+ (g * num_g) + (z * num_z * num_g)] +=  
 ///           ell[d+ (m * num_m)] * psi[d+ (g * num_g) + (z * num_z * num_g];
 ///          
@@ -46,26 +46,43 @@ namespace rajaperf
 namespace apps
 {
 
+//
+// These index value types cannot be defined in function scope for
+// RAJA CUDA variant to work.
+//
+namespace ltimes_idx {
+  RAJA_INDEX_VALUE(ID, "ID");
+  RAJA_INDEX_VALUE(IZ, "IZ");
+  RAJA_INDEX_VALUE(IG, "IG");
+  RAJA_INDEX_VALUE(IM, "IM");
+}
+
 #define LTIMES_DATA \
   ResReal_ptr phidat = m_phidat; \
   ResReal_ptr elldat = m_elldat; \
   ResReal_ptr psidat = m_psidat; \
 \
+  Index_type num_d = m_num_d; \
   Index_type num_z = m_num_z; \
   Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m; \
-  Index_type num_d = m_num_d;
+  Index_type num_m = m_num_m;
 
-#define LTIMES_DATA_RAJA \
-  ResReal_ptr phidat = m_phidat; \
-  ResReal_ptr elldat = m_elldat; \
-  ResReal_ptr psidat = m_psidat; \
+#define LTIMES_VIEWS_RAJA \
+  using namespace ltimes_idx; \
 \
-  Index_type num_z = m_num_z; \
-  Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m; \
-  Index_type num_d = m_num_d;
-   
+  using PSI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, ID>; \
+  using ELL_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<2>, IM, ID>; \
+  using PHI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, IM>; \
+\
+  PSI_VIEW psi(psidat, \
+               RAJA::make_permuted_layout( {num_z, num_g, num_d}, \
+                     RAJA::as_array<camp::idx_seq<0, 1, 2> >::get() ) ); \
+  ELL_VIEW ell(elldat, \
+               RAJA::make_permuted_layout( {num_m, num_d}, \
+                     RAJA::as_array<camp::idx_seq<0, 1> >::get() ) ); \
+  PHI_VIEW phi(phidat, \
+               RAJA::make_permuted_layout( {num_z, num_g, num_m}, \
+                     RAJA::as_array<camp::idx_seq<0, 1, 2> >::get() ) );
 
 #define LTIMES_BODY \
   phidat[m+ (g * num_m) + (z * num_m * num_g)] += \
@@ -88,6 +105,11 @@ namespace apps
   Real_ptr elldat; \
   Real_ptr psidat; \
 \
+  Index_type num_d = m_num_d; \
+  Index_type num_z = m_num_z; \
+  Index_type num_g = m_num_g; \
+  Index_type num_m = m_num_m; \
+\
   allocAndInitCudaDeviceData(phidat, m_phidat, m_philen); \
   allocAndInitCudaDeviceData(elldat, m_elldat, m_elllen); \
   allocAndInitCudaDeviceData(psidat, m_psidat, m_psilen);
@@ -98,12 +120,15 @@ namespace apps
   deallocCudaDeviceData(elldat); \
   deallocCudaDeviceData(psidat);
 
-__global__ void ltimes()
+__global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
+                       Index_type d, 
+                       Index_type num_d, Index_type num_g, Index_type num_m)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < 10) {
-//   LTIMES_BODY;
-   }
+   Index_type m = threadIdx.x;
+   Index_type g = blockIdx.y;
+   Index_type z = blockIdx.z;
+
+   LTIMES_BODY;
 }
 
 #endif // if defined(RAJA_ENABLE_CUDA)
@@ -112,10 +137,17 @@ __global__ void ltimes()
 LTIMES::LTIMES(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES, params)
 {
-  m_num_z_default = 32;
-  m_num_g_default = 16;
-  m_num_m_default = 100;
-  m_num_d_default = 96;
+#if 1
+  m_num_z_default = 64;
+  m_num_g_default = 8;
+  m_num_m_default = 256;
+  m_num_d_default = 16;
+#else
+  m_num_z_default = 4;
+  m_num_g_default = 1;
+  m_num_m_default = 8;
+  m_num_d_default = 2;
+#endif
 
   setDefaultSize(m_num_d_default * m_num_m_default * 
                  m_num_g_default * m_num_z_default);
@@ -144,7 +176,11 @@ void LTIMES::setUp(VariantID vid)
 
 void LTIMES::runKernel(VariantID vid)
 {
+#if 0
+  const Index_type run_reps = 1;
+#else
   const Index_type run_reps = getRunReps();
+#endif
 
   switch ( vid ) {
 
@@ -155,11 +191,17 @@ void LTIMES::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type z = 0; z < num_z; ++z ) {
-          for (Index_type g = 0; g < num_g; ++g ) {
-            for (Index_type m = 0; m < num_m; ++m ) {
-              for (Index_type d = 0; d < num_d; ++d ) {
+        for (Index_type d = 0; d < num_d; ++d ) {
+          for (Index_type z = 0; z < num_z; ++z ) {
+            for (Index_type g = 0; g < num_g; ++g ) {
+              for (Index_type m = 0; m < num_m; ++m ) {
                 LTIMES_BODY;
+#if 0
+                printf("(%d, %d, %d, %d) - %d : %g\n", 
+                       int(d), int(z), int(g), int(m), 
+                       m+ (g * num_m) + (z * num_m * num_g),
+                       phidat[m+ (g * num_m) + (z * num_m * num_g)]); 
+#endif
               }
             }
           }
@@ -173,44 +215,27 @@ void LTIMES::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      LTIMES_DATA_RAJA;
+#if defined(USE_FORALLN_FOR_SEQ)
 
-#if defined(USE_FORALLN)
+      LTIMES_DATA;
 
-      RAJA_INDEX_VALUE(IZ, "IZ");
-      RAJA_INDEX_VALUE(IG, "IG");
-      RAJA_INDEX_VALUE(IM, "IM");
-      RAJA_INDEX_VALUE(ID, "ID");
-
-      using PSI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, ID>;
-      using ELL_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<2>, IM, ID>;
-      using PHI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, IM>;
-
-      PSI_VIEW psi(psidat, 
-                   RAJA::make_permuted_layout( {num_z, num_g, num_d}, 
-                         RAJA::as_array<camp::idx_seq<0, 1, 2> >::get() ) );
-      ELL_VIEW ell(elldat, 
-                   RAJA::make_permuted_layout( {num_m, num_d},
-                         RAJA::as_array<camp::idx_seq<0, 1> >::get() ) );
-      PHI_VIEW phi(phidat, 
-                   RAJA::make_permuted_layout( {num_z, num_g, num_m},
-                         RAJA::as_array<camp::idx_seq<0, 1, 2> >::get() ) );
-
+      LTIMES_VIEWS_RAJA;
  
-      using EXEC = RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec, 
-                                                      RAJA::seq_exec, 
-                                                      RAJA::seq_exec, 
-                                                      RAJA::seq_exec> >;
+      using EXEC_POL = 
+        RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec, 
+                                           RAJA::seq_exec, 
+                                           RAJA::seq_exec, 
+                                           RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN< EXEC, IZ, IG, IM, ID >(
+        RAJA::forallN< EXEC_POL, ID, IZ, IG, IM >(
+              RAJA::RangeSegment(0, num_d),
               RAJA::RangeSegment(0, num_z),
               RAJA::RangeSegment(0, num_g),
               RAJA::RangeSegment(0, num_m),
-              RAJA::RangeSegment(0, num_d),
-          [=](IZ z, IG g, IM m, ID d) {
+          [=](ID d, IZ z, IG g, IM m) {
           LTIMES_BODY_RAJA;
         });
 
@@ -219,8 +244,43 @@ void LTIMES::runKernel(VariantID vid)
 
 #else // use RAJA::nested
 
+      LTIMES_DATA;
+
+      LTIMES_VIEWS_RAJA;
+
+#if 0
+      using IDRange = RAJA::TypedRangeSegment<ID>;
+      using IZRange = RAJA::TypedRangeSegment<IZ>;
+      using IGRange = RAJA::TypedRangeSegment<IG>;
+      using IMRange = RAJA::TypedRangeSegment<IM>;
+#endif
+ 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      
+        RAJA::nested::forall(RAJA::nested::Policy<
+#if 1
+                             RAJA::nested::TypedFor<3, RAJA::seq_exec, ID>,
+                             RAJA::nested::TypedFor<2, RAJA::seq_exec, IZ>,
+                             RAJA::nested::TypedFor<1, RAJA::seq_exec, IG>,
+                             RAJA::nested::TypedFor<0, RAJA::seq_exec, IM> >{},
+                             camp::make_tuple(RAJA::RangeSegment(0, num_d),
+                                              RAJA::RangeSegment(0, num_z),
+                                              RAJA::RangeSegment(0, num_g),
+                                              RAJA::RangeSegment(0, num_m)),
+#else
+                             RAJA::nested::For<3, RAJA::seq_exec>,
+                             RAJA::nested::For<2, RAJA::seq_exec>,
+                             RAJA::nested::For<1, RAJA::seq_exec>,
+                             RAJA::nested::For<0, RAJA::seq_exec> >{},
+                             camp::make_tuple(IDRange(0, num_d),
+                                              IZRange(0, num_z),
+                                              IGRange(0, num_g),
+                                              IMRange(0, num_m)), 
+#endif
+          [=](ID d, IZ z, IG g, IM m) {
+          LTIMES_BODY_RAJA;
+        });
 
       }
       stopTimer(); 
@@ -238,11 +298,11 @@ void LTIMES::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for
-        for (Index_type z = 0; z < num_z; ++z ) {
-          for (Index_type g = 0; g < num_g; ++g ) {
-            for (Index_type m = 0; m < num_m; ++m ) {
-              for (Index_type d = 0; d < num_d; ++d ) {
+        for (Index_type d = 0; d < num_d; ++d ) {
+          #pragma omp parallel for
+          for (Index_type z = 0; z < num_z; ++z ) {
+            for (Index_type g = 0; g < num_g; ++g ) {
+              for (Index_type m = 0; m < num_m; ++m ) {
                 LTIMES_BODY;
               }
             }
@@ -261,27 +321,44 @@ void LTIMES::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if 0
 
-      LTIMES_DATA_RAJA;
+#if defined(USE_FORALLN_FOR_OPENMP)
 
-#if defined(USE_FORALLN)
+      LTIMES_DATA;
+
+      LTIMES_VIEWS_RAJA;
+
+      using EXEC_POL = 
+        RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec,
+                                           RAJA::omp_parallel_for_exec,
+                                           RAJA::seq_exec,
+                                           RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forallN< EXEC_POL, ID, IZ, IG, IM >(
+              RAJA::RangeSegment(0, num_d),
+              RAJA::RangeSegment(0, num_z),
+              RAJA::RangeSegment(0, num_g),
+              RAJA::RangeSegment(0, num_m),
+          [=](ID d, IZ z, IG g, IM m) {
+          LTIMES_BODY_RAJA;
+        });
 
       }
       stopTimer();
 
 #else // use RAJA::nested
 
+#if 0
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       }
       stopTimer(); 
-
 #endif
+
 #endif
       break;
     }
@@ -289,33 +366,65 @@ void LTIMES::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
-#if 0
+
       LTIMES_DATA_SETUP_CUDA;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        dim3 nthreads_per_block(num_m, 1, 1);
+        dim3 nblocks(1, num_g, num_z);
+
+        for (Index_type d = 0; d < num_d; ++d ) {
+          ltimes<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
+                                                  d,
+                                                  num_d, num_g, num_m);  
+        }  
 
       }
       stopTimer();
 
       LTIMES_DATA_TEARDOWN_CUDA;
 
-#endif
       break;
     }
 
     case RAJA_CUDA : {
-#if 0
+
+#if defined(USE_FORALLN_FOR_CUDA)
 
       LTIMES_DATA_SETUP_CUDA;
 
-#if defined(USE_FORALLN)
+      LTIMES_VIEWS_RAJA;
 
-      startTimer();
+      using EXEC_POL =
+        RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec,
+                                           RAJA::cuda_block_z_exec,
+                                           RAJA::cuda_block_y_exec,
+                                           RAJA::cuda_thread_x_exec > >;
+              
+      startTimer(); 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+        
+        RAJA::forallN< EXEC_POL, ID, IZ, IG, IM >(
+              RAJA::RangeSegment(0, num_d),
+              RAJA::RangeSegment(0, num_z),
+              RAJA::RangeSegment(0, num_g),
+              RAJA::RangeSegment(0, num_m),
+          [=] __device__ (ID d, IZ z, IG g, IM m) {
+          LTIMES_BODY_RAJA;
+#if 0
+                printf("(%d, %d, %d, %d) - %d : %g\n", 
+                       int(*d), int(*z), int(*g), int(*m), 
+                       *m+ (*g * num_m) + (*z * num_m * num_g),
+                       phidat[*m+ (*g * num_m) + (*z * num_m * num_g)]); 
+#endif
+        });
+      
       }
       stopTimer();
+
+      LTIMES_DATA_TEARDOWN_CUDA;
 
 #else // use RAJA::nested
 
@@ -327,9 +436,6 @@ void LTIMES::runKernel(VariantID vid)
 
 #endif
 
-      LTIMES_DATA_TEARDOWN_CUDA;
-
-#endif
       break;
     }
 #endif

@@ -199,9 +199,9 @@ void REDUCE3_INT::runKernel(VariantID vid)
           REDUCE3_INT_BODY_RAJA;
         });
 
-        m_vsum += static_cast<Real_type>(vsum.get());
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Real_type>(vmin.get()));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Real_type>(vmax.get()));
+        m_vsum += static_cast<Int_type>(vsum.get());
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
 
       }
       stopTimer();
@@ -259,9 +259,9 @@ void REDUCE3_INT::runKernel(VariantID vid)
           REDUCE3_INT_BODY_RAJA;
         });
 
-        m_vsum += static_cast<Real_type>(vsum.get());
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Real_type>(vmin.get()));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Real_type>(vmax.get()));
+        m_vsum += static_cast<Int_type>(vsum.get());
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
 
       }
       stopTimer();
@@ -334,9 +334,9 @@ void REDUCE3_INT::runKernel(VariantID vid)
           REDUCE3_INT_BODY_RAJA;
         });
 
-        m_vsum += static_cast<Real_type>(vsum.get());
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Real_type>(vmin.get()));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Real_type>(vmax.get()));
+        m_vsum += static_cast<Int_type>(vsum.get());
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
 
       }
       stopTimer();
