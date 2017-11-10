@@ -26,6 +26,7 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/util/defines.hpp"
 
 #include <iostream>
 
@@ -180,7 +181,46 @@ void ADD::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      ADD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ADD_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+      ADD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n])
+      startTimer();
+      #pragma omp target data use_device_ptr(a,b,c)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          ADD_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
+     break;
+    }
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -219,14 +259,6 @@ void ADD::runKernel(VariantID vid)
 
       ADD_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

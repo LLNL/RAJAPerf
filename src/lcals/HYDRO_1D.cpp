@@ -171,8 +171,9 @@ void HYDRO_1D::runKernel(VariantID vid)
     case RAJA_OpenMP : {
 
       HYDRO_1D_DATA;
-
+      
       startTimer();
+
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
@@ -185,7 +186,51 @@ void HYDRO_1D::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+                       
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      HYDRO_1D_DATA;
+
+      Index_type n = iend + 12;
+      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],q,r,t)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          HYDRO_1D_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],q,r,t)
+      break;
+    }
+
+    case RAJA_OpenMPTarget: {
+                              
+      HYDRO_1D_DATA;
+
+      Index_type n = iend + 12;
+      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],q,r,t)
+      startTimer();
+      #pragma omp target data use_device_ptr(x,y,z)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          HYDRO_1D_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],q,r,t)
+      break;                        
+    }                          
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
+
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -225,14 +270,6 @@ void HYDRO_1D::runKernel(VariantID vid)
 
       HYDRO_1D_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

@@ -50,6 +50,7 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
+#include "RAJA/util/defines.hpp"
 
 #include <iostream>
 
@@ -302,7 +303,86 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)                     
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      DEL_DOT_VEC_2D_DATA;
+
+      int n=m_domain->nnalls;
+      int nn=m_domain->n_real_zones;
+      int jp=m_domain->jp;
+
+      #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
+          ptiny, half, jp )
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
+  	      ResReal_ptr x1,x2,x3,x4 ;
+  	      ResReal_ptr y1,y2,y3,y4 ; 
+  	      ResReal_ptr fx1,fx2,fx3,fx4 ; 
+  	      ResReal_ptr fy1,fy2,fy3,fy4 ;
+          NDSET2D(jp, x,x1,x2,x3,x4) ;
+          NDSET2D(jp, y,y1,y2,y3,y4) ;
+          NDSET2D(jp, xdot,fx1,fx2,fx3,fx4) ;
+          NDSET2D(jp, ydot,fy1,fy2,fy3,fy4) ;
+
+          DEL_DOT_VEC_2D_BODY;
+        }
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+      DEL_DOT_VEC_2D_DATA;
+
+      int n=m_domain->nnalls;
+      int nn=m_domain->n_real_zones;
+      int jp=m_domain->jp;
+
+      #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
+          ptiny, half, jp )
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+      startTimer();
+      #pragma omp target data use_device_ptr(x,y,xdot,ydot,div,real_zones)
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type ii) {
+  	      ResReal_ptr x1,x2,x3,x4 ;
+  	      ResReal_ptr y1,y2,y3,y4 ; 
+  	      ResReal_ptr fx1,fx2,fx3,fx4 ; 
+  	      ResReal_ptr fy1,fy2,fy3,fy4 ;
+          NDSET2D(jp, x,x1,x2,x3,x4) ;
+          NDSET2D(jp, y,y1,y2,y3,y4) ;
+          NDSET2D(jp, xdot,fx1,fx2,fx3,fx4) ;
+          NDSET2D(jp, ydot,fy1,fy2,fy3,fy4) ;
+
+          DEL_DOT_VEC_2D_BODY;
+        });
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
+      break;
+
+    }
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -358,14 +438,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
 
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
       break;
     }
 #endif

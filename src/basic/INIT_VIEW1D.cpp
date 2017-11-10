@@ -202,7 +202,50 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      INIT_VIEW1D_DATA                 
+      #pragma omp target enter data map(to:a[0:iend],v)
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          INIT_VIEW1D_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:a[0:iend]) map(delete:v)
+      break;
+    }
+
+#if 0
+    case RAJA_OpenMPTarget : {
+
+      INIT_VIEW1D_DATA_RAJA                 
+      #pragma omp target enter data map(to:a[0:iend],v)
+
+      startTimer();
+      #pragma omp target data use_device_ptr(a)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          INIT_VIEW1D_BODY_RAJA;;
+        });
+
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(from:a[0:iend]) map(delete:v)
+      break;
+    }
+#endif // still need to figure out how layout and view will work under RAJA omp-target
+
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {

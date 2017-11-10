@@ -36,3 +36,46 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
+
+
+blt_add_executable(
+  NAME raja-perf-nolibs.exe
+  SOURCES RAJAPerfSuiteDriver.cpp
+  apps/DEL_DOT_VEC_2D.cpp
+  apps/ENERGY.cpp
+  apps/FIR.cpp
+  apps/PRESSURE.cpp
+  apps/VOL3D.cpp
+  apps/WIP-COUPLE.cpp
+  apps/LTIMES.cpp
+  basic/IF_QUAD.cpp
+  basic/INIT3.cpp
+  basic/MULADDSUB.cpp
+  basic/NESTED_INIT.cpp
+  basic/REDUCE3_INT.cpp
+  basic/TRAP_INT.cpp
+  basic/INIT_VIEW1D.cpp
+  basic/INIT_VIEW1D_OFFSET.cpp
+  common/DataUtils.cpp
+  common/Executor.cpp
+  common/KernelBase.cpp
+  common/OutputUtils.cpp
+  common/RAJAPerfSuite.cpp
+  common/RPTypes.hpp
+  common/RunParams.cpp
+  lcals/DIFF_PREDICT.cpp
+  lcals/EOS.cpp
+  lcals/FIRST_DIFF.cpp
+  lcals/HYDRO_1D.cpp
+  lcals/INT_PREDICT.cpp
+  lcals/PLANCKIAN.cpp
+  polybench/POLYBENCH_2MM.cpp
+  polybench/POLYBENCH_3MM.cpp
+  polybench/POLYBENCH_GEMMVER.cpp
+  stream/ADD.cpp
+  stream/COPY.cpp
+  stream/DOT.cpp
+  stream/MUL.cpp
+  stream/TRIAD.cpp
+  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
+)

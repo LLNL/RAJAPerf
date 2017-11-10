@@ -365,17 +365,17 @@ void Executor::runSuite()
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        VariantID vid = variant_ids[iv];
-        if ( run_params.showProgress() ) {
-          std::cout << "     Variant - " << getVariantName(vid) << "\n"; 
-         }
-
-         kernel->execute( vid );
+         KernelBase* kern = kernels[ik];
+         if ( run_params.showProgress() ) {
+           cout << kern->getName() << " " <<  getVariantName(variant_ids[iv]) << endl;
+         }  
+         kernels[ik]->execute( variant_ids[iv] );
       } // loop over variants 
 
     } // loop over kernels
 
   } // loop over passes through suite
+
 }
 
 void Executor::outputRunData()
