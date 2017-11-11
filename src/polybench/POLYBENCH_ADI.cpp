@@ -257,7 +257,7 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       m_run_reps = 500;
       break;
     case Medium:
-      m_n=200; m_tsteps=1; // change tsteps back to 100 after debugging 
+      m_n=200; m_tsteps=100; // change tsteps back to 100 after debugging 
       m_run_reps = 20;
       break;
     case Large:
@@ -269,7 +269,7 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       m_run_reps = 1;
       break;
     default:
-      m_n=200; m_tsteps=1; 
+      m_n=200; m_tsteps=100; 
       m_run_reps = 20;
       break;
   }
@@ -353,8 +353,8 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
               POLYBENCH_ADI_BODY3; 
             });
             POLYBENCH_ADI_BODY4;
-            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int j) {
-              j = n - 1 - j;
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int jj) {
+              int j = n - 1 - jj;
               POLYBENCH_ADI_BODY5; 
             });
 
@@ -366,8 +366,8 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
               POLYBENCH_ADI_BODY7; 
             });
             POLYBENCH_ADI_BODY8;
-            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int j) {
-              j = n - 1 -j;
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int jj) {
+              int j = n - 1 -jj;
               POLYBENCH_ADI_BODY9; 
             });
 
@@ -429,34 +429,38 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
     case RAJA_OpenMP : {
       POLYBENCH_ADI_DATA;
       startTimer();
-#if 0      
-      for (SampIndex_type isamp = 0; isamp < m_run_samples; ++isamp) {
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nj}, [=] (int i, int j) {
-          POLYBENCH_ADI_BODY1;
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        POLYBENCH_ADI_BODY1;
+           
+        RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, tsteps + 1}, [=] (int t) {
 
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nk}, [=] (int k) {
-            POLYBENCH_ADI_BODY2; 
-          });
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, nj}, RAJA::RangeSegment{0, nl}, [=] (int j, int l) {
-          POLYBENCH_ADI_BODY3;
-
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nm}, [=] (int m) {
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(1, n-1), [=](int i) {
+            POLYBENCH_ADI_BODY2;
+            RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int j) { 
+              POLYBENCH_ADI_BODY3; 
+            });
             POLYBENCH_ADI_BODY4;
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int jj) {
+              int j = n - 1 - jj;
+              POLYBENCH_ADI_BODY5; 
+            });
           });
-        });
 
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,RAJA::seq_exec>>> (RAJA::RangeSegment{0, ni}, RAJA::RangeSegment{0, nl}, [=] (int i, int l) {
-          POLYBENCH_ADI_BODY5;
-
-          RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{0, nj}, [=] (int j) {
+          RAJA::forall<RAJA::omp_parallel_for_exec>(
+            RAJA::RangeSegment(1, n-1), [=](int i) {
             POLYBENCH_ADI_BODY6;
+            RAJA::forall<RAJA::seq_exec> (RAJA::RangeSegment{1, n-1}, [=] (int j) {
+              POLYBENCH_ADI_BODY7; 
+            });
+            POLYBENCH_ADI_BODY8;
+            RAJA::forall<RAJA::seq_exec> (1,n-1, [=] (int jj) {
+              int j = n - 1 -jj;
+              POLYBENCH_ADI_BODY9; 
+            });
           });
-        });
-
-      }
-#endif
+        }); // tsteps
+      } // for run_reps
       stopTimer();
       break;
     }
