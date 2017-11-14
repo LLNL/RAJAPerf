@@ -272,11 +272,6 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // Not applicable
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       COUPLE_DATA;

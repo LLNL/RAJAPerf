@@ -189,19 +189,21 @@ static const std::string VariantNames [] =
 
   std::string("Base_Seq"),
   std::string("RAJA_Seq"),
+
 #if defined(RAJA_ENABLE_OPENMP)
   std::string("Base_OpenMP"),
-  std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
-#endif
-#if defined(RAJA_ENABLE_CUDA)
-  std::string("Base_CUDA"),
-  std::string("RAJA_CUDA"),
-#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)  
   std::string("Base_OpenMPTarget"),
   std::string("RAJA_OpenMPTarget"),
+#endif
+
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  std::string("Base_CUDA"),
+  std::string("RAJA_CUDA"),
 #endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....

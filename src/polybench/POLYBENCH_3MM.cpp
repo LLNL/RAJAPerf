@@ -391,11 +391,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       POLYBENCH_3MM_DATA;

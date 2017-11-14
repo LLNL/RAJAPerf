@@ -237,11 +237,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       REDUCE3_INT_DATA;

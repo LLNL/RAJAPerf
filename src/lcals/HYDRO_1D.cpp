@@ -163,11 +163,6 @@ void HYDRO_1D::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       HYDRO_1D_DATA;

@@ -229,11 +229,6 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       TRAP_INT_DATA;

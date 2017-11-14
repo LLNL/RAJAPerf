@@ -201,11 +201,6 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
 #if defined(USE_FORALLN_FOR_OPENMP)

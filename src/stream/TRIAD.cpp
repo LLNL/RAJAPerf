@@ -161,11 +161,6 @@ void TRIAD::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       TRIAD_DATA;
