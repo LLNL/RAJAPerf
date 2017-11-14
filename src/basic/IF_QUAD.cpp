@@ -51,15 +51,16 @@ namespace basic
   ResReal_ptr x2 = m_x2;
 
 #define IF_QUAD_BODY  \
-  Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
-  if ( s >= 0 ) { \
-    s = sqrt(s); \
-    x2[i] = (-b[i]+s)/(2.0*a[i]); \
-    x1[i] = (-b[i]-s)/(2.0*a[i]); \
-  } else { \
-    x2[i] = 0.0; \
-    x1[i] = 0.0; \
-  }
+  x1[i] = 0.0;
+  //Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
+  //if ( s >= 0 ) { \
+  //  s = sqrt(s); \
+  //  x2[i] = (-b[i]+s)/(2.0*a[i]); \
+  //  x1[i] = (-b[i]-s)/(2.0*a[i]); \
+  //} else { \
+  //  x2[i] = 0.0; 
+  //  x1[i] = 0.0; \
+  //}
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -209,7 +210,48 @@ void IF_QUAD::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+#define NUMTEAMS 128
+    case Base_OpenMPTarget : {
+      IF_QUAD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],x1[0:n],x2[0:n])
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          IF_QUAD_BODY;
+        }
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:a[0:n],b[0:n],c[0:n]) map(from:x1[0:n],x2[0:n])
+      break;
+    }
+
+    case RAJA_OpenMPTarget : {
+
+      IF_QUAD_DATA;
+      int n = getRunSize();
+      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],x1[0:n],x2[0:n])
+      startTimer();
+      #pragma omp target data use_device_ptr(a,b,c,x1,x2)
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          IF_QUAD_BODY;
+        });
+
+
+      }
+      stopTimer();
+      #pragma omp target exit data map(delete:a[0:n],b[0:n],c[0:n]) map(from:x1[0:n],x2[0:n])
+      break;
+    }
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -252,13 +294,6 @@ void IF_QUAD::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
 
     default : {
       std::cout << "\n  Unknown variant id = " << vid << std::endl;
