@@ -240,11 +240,6 @@ void FIR::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // Not applicable...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       FIR_COEFF;

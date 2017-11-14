@@ -180,11 +180,6 @@ void INIT_VIEW1D::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       INIT_VIEW1D_DATA_RAJA;

@@ -58,16 +58,16 @@ branch, you will have to update the submodules; e.g.,
 ```
 
 RAJA and the Performance Suite are built together using the same CMake
-configuration. For convenience, we include some scripts in the 'scripts'
-directory some associated configuration files in the 'host-configs'
-that illustrate how to build the code on various platforms at LLNL. Each 
-build script will create a descriptively-named build space directory in
-the top-level erformance Suite directory, and run CMake with a configuration
-appropriate for the platform and compilers used. After CMake completes, 
-enter the build directory and type 'make' (or 'make -j' for parallel) to
-build the code. The provided configurations will build RAJA unit tests by 
-default. After the code builds, you can type 'make test' to verify that 
-everything is working properly.  For example,
+configuration. For convenience, we include scripts in the 'scripts'
+directory that invoke associated (CMake cache) configuration files in the 
+'host-configs' directory that illustrate how to build the code on various 
+platforms at LLNL. Each build script creates a descriptively-named build 
+space directory in the top-level Performance Suite directory and runs CMake 
+with a configuration appropriate for the platform and compilers used. After 
+CMake completes, enter the build directory and type 'make' (or 'make -j' for 
+a parallel build) to build the code. The provided configurations will build 
+RAJA unit tests by default. After the code builds, you can type 'make test' to 
+verify that the RAJA build is working properly.  For example,
 
 ```
 > ./scripts/blueos_nvcc8.0_clang-coral.sh

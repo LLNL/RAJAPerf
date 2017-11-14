@@ -179,11 +179,6 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       INIT_VIEW1D_OFFSET_DATA_RAJA;

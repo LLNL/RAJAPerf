@@ -276,11 +276,6 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // Not applicable
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       DEL_DOT_VEC_2D_DATA;

@@ -314,11 +314,6 @@ void VOL3D::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // Not applicable
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       VOL3D_DATA;

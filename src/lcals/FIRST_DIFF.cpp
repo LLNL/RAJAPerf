@@ -146,11 +146,6 @@ void FIRST_DIFF::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       FIRST_DIFF_DATA;

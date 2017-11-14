@@ -172,11 +172,6 @@ void DIFF_PREDICT::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
       DIFF_PREDICT_DATA;
