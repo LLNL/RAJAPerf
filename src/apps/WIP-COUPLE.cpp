@@ -290,14 +290,23 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP2)
+#if defined(RAJA_ENABLE_TARGET_OPENMP) && 0
+
 #define NUMTEAMS 128
+
+    case Base_OpenMPTarget : {
+
+      break;
+    }
+
     case RAJA_OpenMPTarget : {
 
       COUPLE_DATA;
+
       int n = m_domain->lrn;
-     #pragma omp target enter data map(to:t0[0:n],t1[0:n],t2[0:n],denac[0:n],denlw[0:n], \
+      #pragma omp target enter data map(to:t0[0:n],t1[0:n],t2[0:n],denac[0:n],denlw[0:n], \
          dt, c10, fratio, r_fratio, c20, ireal, imin, imax, jmin, jmax, kmin, kmax )
+
       startTimer();
       #pragma omp target data use_device_ptr(t0,t1,t2,denac,denlw)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -308,12 +317,13 @@ void COUPLE::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:t0[0:n],t1[0:n],t2[0:n]) map(delete:denac[0:n],denlw[0:n])
+
       break;
     }
-#endif
-
-#endif
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA :
@@ -323,16 +333,8 @@ void COUPLE::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
     }
 
   }

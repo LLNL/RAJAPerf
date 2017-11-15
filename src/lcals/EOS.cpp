@@ -190,28 +190,39 @@ void EOS::runKernel(VariantID vid)
 
                        
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       EOS_DATA;
+
       Index_type n = iend + 7;
       #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],u[0:n],q,r,t)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           EOS_BODY;
         }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],u[0:n],q,r,t)
+
       break;
     }
 
     case RAJA_OpenMPTarget: {
+
       EOS_DATA;
+
       Index_type n = iend + 7;
       #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],u[0:n],q,r,t)
+
       startTimer();
       #pragma omp target data use_device_ptr(x,y,z,u)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -220,9 +231,12 @@ void EOS::runKernel(VariantID vid)
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           EOS_BODY;
         });  
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],u[0:n],q,r,t)
+
       break;                        
     }  
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -271,7 +285,7 @@ void EOS::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  EOS : Unknown variant id = " << vid << std::endl;
     }
 
   }

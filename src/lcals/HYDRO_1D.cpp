@@ -182,24 +182,30 @@ void HYDRO_1D::runKernel(VariantID vid)
       break;
     }
 
-                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       HYDRO_1D_DATA;
 
       Index_type n = iend + 12;
       #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],q,r,t)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           HYDRO_1D_BODY;
         }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],q,r,t)
+
       break;
     }
 
@@ -209,6 +215,7 @@ void HYDRO_1D::runKernel(VariantID vid)
 
       Index_type n = iend + 12;
       #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],q,r,t)
+
       startTimer();
       #pragma omp target data use_device_ptr(x,y,z)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -220,7 +227,9 @@ void HYDRO_1D::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n],z[0:n],q,r,t)
+
       break;                        
     }                          
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -270,7 +279,7 @@ void HYDRO_1D::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
     }
 
   }
