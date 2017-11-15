@@ -770,7 +770,7 @@ void ENERGY::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  ENERGY : Unknown variant id = " << vid << std::endl;
     }
 
   }

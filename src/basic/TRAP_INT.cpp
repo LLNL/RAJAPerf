@@ -252,13 +252,18 @@ void TRAP_INT::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
 
       TRAP_INT_DATA;
+
       #pragma omp target data map(to:x0,xp,y,yp,h)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         Real_type sumx = m_sumx_init;
         #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
                            num_teams(NUMTEAMS) schedule(static, 1) 
@@ -267,17 +272,22 @@ void TRAP_INT::runKernel(VariantID vid)
           TRAP_INT_BODY;
         }
         m_sumx += sumx * h;
+
       }
       stopTimer();
+
       #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
 
       TRAP_INT_DATA;
+
       #pragma omp target data map(to:x0,xp,y,yp,h)
       {
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -292,8 +302,11 @@ void TRAP_INT::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
+
       }
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -358,24 +371,16 @@ void TRAP_INT::runKernel(VariantID vid)
 
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#if 0
-std::cout << "\t\t sumx = "
-          << std::setprecision(20) << m_sumx << std::endl; 
-#endif
 }
 
 void TRAP_INT::updateChecksum(VariantID vid)
 {
-#if 1
   checksum[vid] += (m_sumx + 0.00123) / (m_sumx - 0.00123);
-#else
-  checksum[vid] += m_sumx;
-#endif
 }
 
 void TRAP_INT::tearDown(VariantID vid)

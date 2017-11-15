@@ -262,16 +262,21 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       break;
     }
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
 
       REDUCE3_INT_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:vec[0:n])
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         Int_type vsum = m_vsum_init;
         Int_type vmin = m_vmin_init;
         Int_type vmax = m_vmax_init;
@@ -289,9 +294,12 @@ void REDUCE3_INT::runKernel(VariantID vid)
         m_vsum += vsum;
         m_vmin = RAJA_MIN(m_vmin, vmin);
         m_vmax = RAJA_MAX(m_vmax, vmax);
+
       }
       stopTimer();
+
       #pragma omp target exit data map(delete:vec[0:n])
+
       break;
     }
 
@@ -301,9 +309,11 @@ void REDUCE3_INT::runKernel(VariantID vid)
       int n = getRunSize();
 
       #pragma omp target enter data map(to:vec[0:n])
+
       startTimer();
       #pragma omp target data use_device_ptr(vec)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmax(m_vmax_init);
@@ -320,7 +330,9 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(delete:vec[0:n])
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -404,7 +416,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }

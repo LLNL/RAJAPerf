@@ -344,7 +344,20 @@ void LTIMES::runKernel(VariantID vid)
 
       break;
     }
-#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+
+    case Base_OpenMPTarget : {
+
+     break;
+    }
+
+    case RAJA_OpenMPTarget : {
+
+      break;
+    }
+#endif //RAJA_ENABLE_TARGET_OPENMP
+#endif //RAJA_ENABLE_OMP
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -433,16 +446,8 @@ void LTIMES::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n LTIMES : Unknown variant id = " << vid << std::endl;
     }
 
   }

@@ -257,16 +257,20 @@ void PRESSURE::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
 
     case Base_OpenMPTarget : {
 
       PRESSURE_DATA;
+
       int n=getRunSize();
       #pragma omp target enter data map(to:compression[0:n], bvc[0:n], p_new[0:n], e_old[0:n], \
        vnewc[0:n], cls, p_cut, pmin, eosvmax )
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         for (Index_type i = ibegin; i < iend; ++i ) {
           PRESSURE_BODY1;
@@ -279,13 +283,16 @@ void PRESSURE::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n],cls,p_cut,pmin,eosvmax)
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
 
       PRESSURE_DATA;
+
       int n=getRunSize();
       #pragma omp target enter data map(to:compression[0:n], bvc[0:n], p_new[0:n], e_old[0:n], \
        vnewc[0:n], cls, p_cut, pmin, eosvmax )
@@ -306,7 +313,9 @@ void PRESSURE::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n],cls,p_cut,pmin,eosvmax)
+
       break;
     }
 #endif
@@ -366,7 +375,7 @@ void PRESSURE::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
     }
 
   }

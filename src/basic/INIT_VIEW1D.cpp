@@ -200,26 +200,34 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       INIT_VIEW1D_DATA                 
+
       #pragma omp target enter data map(to:a[0:iend],v)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT_VIEW1D_BODY;
         }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:a[0:iend]) map(delete:v)
+
       break;
     }
 
-#if 0
     case RAJA_OpenMPTarget : {
 
+#if 0 
       INIT_VIEW1D_DATA_RAJA                 
       #pragma omp target enter data map(to:a[0:iend],v)
 
@@ -231,13 +239,14 @@ void INIT_VIEW1D::runKernel(VariantID vid)
           INIT_VIEW1D_BODY_RAJA;;
         });
 
-
       }
       stopTimer();
+
       #pragma omp target exit data map(from:a[0:iend]) map(delete:v)
+#endif // still need to figure out how layout and view will work under RAJA omp-target
+
       break;
     }
-#endif // still need to figure out how layout and view will work under RAJA omp-target
 
 #endif //RAJA_ENABLE_TARGET_OPENMP
 #endif //RAJA_ENABLE_OMP                             
@@ -284,16 +293,8 @@ void INIT_VIEW1D::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
     }
 
   }

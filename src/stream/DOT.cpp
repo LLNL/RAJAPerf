@@ -232,31 +232,44 @@ void DOT::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       DOT_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n])
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         Real_type dot = m_dot_init;
+
         #pragma omp target teams distribute parallel for map(tofrom:dot) reduction(+:dot) \
                 num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
         }
+
         m_dot += dot;
+
       }
       stopTimer();
+
       #pragma omp target exit data map(delete:a[0:n],b[0:n])
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
+
       DOT_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n])
+
       startTimer();
       #pragma omp target data use_device_ptr(a,b)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -272,12 +285,13 @@ void DOT::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(delete:a[0:n],b[0:n])
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
 #endif //RAJA_ENABLE_OMP                             
-                             
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -354,16 +368,8 @@ void DOT::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  DOT : Unknown variant id = " << vid << std::endl;
     }
 
   }

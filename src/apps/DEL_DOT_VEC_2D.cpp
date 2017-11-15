@@ -301,8 +301,11 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       DEL_DOT_VEC_2D_DATA;
 
       int n=m_domain->nnalls;
@@ -311,19 +314,21 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
           ptiny, half, jp )
+
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
       NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-  	      ResReal_ptr x1,x2,x3,x4 ;
-  	      ResReal_ptr y1,y2,y3,y4 ; 
-  	      ResReal_ptr fx1,fx2,fx3,fx4 ; 
-  	      ResReal_ptr fy1,fy2,fy3,fy4 ;
+  	  ResReal_ptr x1,x2,x3,x4 ;
+  	  ResReal_ptr y1,y2,y3,y4 ; 
+  	  ResReal_ptr fx1,fx2,fx3,fx4 ; 
+  	  ResReal_ptr fy1,fy2,fy3,fy4 ;
           NDSET2D(jp, x,x1,x2,x3,x4) ;
           NDSET2D(jp, y,y1,y2,y3,y4) ;
           NDSET2D(jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -334,11 +339,14 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
+
       DEL_DOT_VEC_2D_DATA;
 
       int n=m_domain->nnalls;
@@ -347,10 +355,12 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
           ptiny, half, jp )
+
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
       NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
       NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
       startTimer();
       #pragma omp target data use_device_ptr(x,y,xdot,ydot,div,real_zones)
 
@@ -372,7 +382,9 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
+
       break;
 
     }
@@ -438,7 +450,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }

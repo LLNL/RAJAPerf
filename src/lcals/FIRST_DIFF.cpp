@@ -166,30 +166,40 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
+
       FIRST_DIFF_DATA;
                        
       Index_type n = iend + 1;
       #pragma omp target enter data map(to:x[0:n],y[0:n])
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIRST_DIFF_BODY;
         }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n])
+
       break;
     }
 
     case RAJA_OpenMPTarget: {
+
       FIRST_DIFF_DATA;
                        
       Index_type n = iend + 1;
       #pragma omp target enter data map(to:x[0:n],y[0:n])
+
       startTimer();
       #pragma omp target data use_device_ptr(x,y)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -201,7 +211,9 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n])
+
       break;                        
     }                          
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -249,7 +261,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  FIRST_DIFF : Unknown variant id = " << vid << std::endl;
     }
 
   }
