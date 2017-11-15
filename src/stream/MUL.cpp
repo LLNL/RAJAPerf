@@ -176,41 +176,53 @@ void MUL::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
 
       MUL_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:b[0:n],c[0:n],alpha)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           MUL_BODY;
         }
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:b[0:n])  map(delete:c[0:n],alpha)
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
 
       MUL_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:b[0:n],c[0:n],alpha)
+
       startTimer();
       #pragma omp target data use_device_ptr(b,c)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           MUL_BODY;
         });
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:b[0:n])  map(delete:c[0:n],alpha)
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -257,16 +269,8 @@ void MUL::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  MUL : Unknown variant id = " << vid << std::endl;
     }
 
   }

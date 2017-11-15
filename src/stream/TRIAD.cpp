@@ -180,41 +180,53 @@ void TRIAD::runKernel(VariantID vid)
     }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
 
       TRIAD_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRIAD_BODY;
         }
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
 
       TRIAD_DATA;
+
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
+
       startTimer();
       #pragma omp target data use_device_ptr(a,b,c)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           TRIAD_BODY;
         });
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -262,7 +274,7 @@ void TRIAD::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

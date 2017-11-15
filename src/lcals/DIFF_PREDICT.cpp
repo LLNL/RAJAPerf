@@ -192,29 +192,38 @@ void DIFF_PREDICT::runKernel(VariantID vid)
 
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)                     
+
 #define NUMTEAMS 128
+
     case Base_OpenMPTarget : {
 
       DIFF_PREDICT_DATA;
+
       #pragma omp target enter data map(to:px[ibegin:iend*14],cx[ibegin:iend*14],offset) 
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
           DIFF_PREDICT_BODY;
         }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:px[ibegin:iend*14]) map(delete:cx[ibegin:iend*14],offset)
+
       break;
     }
 
     case RAJA_OpenMPTarget : {
-      DIFF_PREDICT_DATA;
-      #pragma omp target enter data map(to:px[ibegin:iend*14],cx[ibegin:iend*14],offset) 
-      startTimer();
 
+      DIFF_PREDICT_DATA;
+
+      #pragma omp target enter data map(to:px[ibegin:iend*14],cx[ibegin:iend*14],offset) 
+
+      startTimer();
       #pragma omp target data use_device_ptr(px,cx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -225,12 +234,13 @@ void DIFF_PREDICT::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:px[ibegin:iend*14]) map(delete:cx[ibegin:iend*14],offset)
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
 #endif //RAJA_ENABLE_OMP    
-
 
 #if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA : {
@@ -274,10 +284,8 @@ void DIFF_PREDICT::runKernel(VariantID vid)
     }
 #endif
 
-
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  DIFF_PREDICT : Unknown variant id = " << vid << std::endl;
     }
 
   }

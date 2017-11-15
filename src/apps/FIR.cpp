@@ -270,17 +270,20 @@ void FIR::runKernel(VariantID vid)
 
       int n = getRunSize();
       #pragma omp target enter data map(to:coeff[0:COEFFLEN],in[0:n],out[0:n])
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
         for (Index_type i = ibegin; i < iend; ++i ) {
            FIR_BODY;
         }
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:out[0:n]) map(delete:coeff[0:COEFFLEN],in[0:n])
+
       break;
     }
 
@@ -292,6 +295,7 @@ void FIR::runKernel(VariantID vid)
 
       int n = getRunSize();
       #pragma omp target enter data map(to:coeff[0:COEFFLEN],in[0:n],out[0:n])
+
       startTimer();
       #pragma omp target data use_device_ptr(in,out)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -303,7 +307,9 @@ void FIR::runKernel(VariantID vid)
 
       }
       stopTimer();
+
       #pragma omp target exit data map(from:out[0:n]) map(delete:coeff[0:COEFFLEN],in[0:n])
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -363,16 +369,8 @@ void FIR::runKernel(VariantID vid)
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
-      break;
-    }
-#endif
-
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  FIR : Unknown variant id = " << vid << std::endl;
     }
 
   }
