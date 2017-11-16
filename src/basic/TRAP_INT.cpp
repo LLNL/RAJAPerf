@@ -265,7 +265,7 @@ void TRAP_INT::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type sumx = m_sumx_init;
-        #pragma omp target teams distribute parallel for reduction(+:sumx) \
+        #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
                            num_teams(NUMTEAMS) schedule(static, 1) 
         
         for (Index_type i = ibegin; i < iend; ++i ) {
