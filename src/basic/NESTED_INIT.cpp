@@ -135,13 +135,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+      using EXEC_POL = RAJA::NestedPolicy<
+                             RAJA::ExecList< RAJA::seq_exec,      // k
+                                             RAJA::seq_exec,      // j
+                                             RAJA::simd_exec > >; // i 
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::seq_exec,
-                                       RAJA::seq_exec,
-                                       RAJA::simd_exec > > > (
+        RAJA::forallN< EXEC_POL >(
               RAJA::RangeSegment(0, nk),
               RAJA::RangeSegment(0, nj),
               RAJA::RangeSegment(0, ni),
@@ -156,13 +158,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+      using EXEC_POL = RAJA::nested::Policy<
+                             RAJA::nested::For<2, RAJA::seq_exec>,    // k
+                             RAJA::nested::For<1, RAJA::seq_exec>,    // j
+                             RAJA::nested::For<0, RAJA::simd_exec> >; // i
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(RAJA::nested::Policy< 
-                             RAJA::nested::For<2, RAJA::seq_exec>,      // k
-                             RAJA::nested::For<1, RAJA::seq_exec>,      // j
-                             RAJA::nested::For<0, RAJA::simd_exec> >{}, // i
+        RAJA::nested::forall(EXEC_POL{},
                              camp::make_tuple(RAJA::RangeSegment(0, ni),
                                               RAJA::RangeSegment(0, nj),
                                               RAJA::RangeSegment(0, nk)),
@@ -186,7 +190,8 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-          #pragma omp parallel for collapse(2)
+//        #pragma omp parallel for collapse(2)
+          #pragma omp parallel for
           for (Index_type k = 0; k < nk; ++k ) {
             for (Index_type j = 0; j < nj; ++j ) {
               for (Index_type i = 0; i < ni; ++i ) {
@@ -207,13 +212,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+      using EXEC_POL = RAJA::NestedPolicy<
+                             RAJA::ExecList< RAJA::omp_parallel_for_exec,  // k
+                                             RAJA::seq_exec,               // j 
+                                             RAJA::simd_exec > >;          // i
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::omp_parallel_for_exec,
-                                       RAJA::seq_exec,
-                                       RAJA::simd_exec > > > (
+        RAJA::forallN< EXEC_POL >(
               RAJA::RangeSegment(0, nk),
               RAJA::RangeSegment(0, nj),
               RAJA::RangeSegment(0, ni),
@@ -228,13 +235,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA;
 
+      using EXEC_POL = RAJA::nested::Policy<
+                           RAJA::nested::For<2, RAJA::omp_parallel_for_exec>,//k
+                           RAJA::nested::For<1, RAJA::seq_exec>,             //j
+                           RAJA::nested::For<0, RAJA::simd_exec> >;          //i
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(RAJA::nested::Policy< 
-                             RAJA::nested::For<2, RAJA::omp_parallel_for_exec>,      // k
-                             RAJA::nested::For<1, RAJA::seq_exec>,      // j
-                             RAJA::nested::For<0, RAJA::simd_exec> >{}, // i
+        RAJA::nested::forall(EXEC_POL{},
                              camp::make_tuple(RAJA::RangeSegment(0, ni),
                                               RAJA::RangeSegment(0, nj),
                                               RAJA::RangeSegment(0, nk)),
@@ -343,13 +352,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA_SETUP_CUDA;
 
+      using EXEC_POL = RAJA::NestedPolicy<
+                             RAJA::ExecList< RAJA::cuda_block_z_exec,      // k
+                                             RAJA::cuda_block_y_exec,      // j
+                                             RAJA::cuda_thread_x_exec > >; // i
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::cuda_block_z_exec,
-                                       RAJA::cuda_block_y_exec,
-                                       RAJA::cuda_thread_x_exec > > > (
+        RAJA::forallN< EXEC_POL >(
               RAJA::RangeSegment(0, nk),
               RAJA::RangeSegment(0, nj),
               RAJA::RangeSegment(0, ni),
@@ -366,13 +377,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       NESTED_INIT_DATA_SETUP_CUDA;
 
+      using EXEC_POL = RAJA::nested::Policy<
+                           RAJA::nested::For<2, RAJA::cuda_block_z_exec>,   //k
+                           RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   //j
+                           RAJA::nested::For<0, RAJA::cuda_thread_x_exec> >;//i
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(RAJA::nested::Policy<
-                             RAJA::nested::For<2, RAJA::cuda_block_z_exec>, // k
-                             RAJA::nested::For<1, RAJA::cuda_block_y_exec>, // j
-                             RAJA::nested::For<0, RAJA::cuda_thread_x_exec> >{}, // i
+        RAJA::nested::forall(EXEC_POL{},
                              camp::make_tuple(RAJA::RangeSegment(0, ni),
                                               RAJA::RangeSegment(0, nj),
                                               RAJA::RangeSegment(0, nk)),
