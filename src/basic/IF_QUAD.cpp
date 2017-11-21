@@ -51,16 +51,16 @@ namespace basic
   ResReal_ptr x2 = m_x2;
 
 #define IF_QUAD_BODY  \
-  x1[i] = 0.0;
-  //Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
-  //if ( s >= 0 ) { \
-  //  s = sqrt(s); \
-  //  x2[i] = (-b[i]+s)/(2.0*a[i]); \
-  //  x1[i] = (-b[i]-s)/(2.0*a[i]); \
-  //} else { \
-  //  x2[i] = 0.0; 
-  //  x1[i] = 0.0; \
-  //}
+  x1[i] = 0.0; \
+  Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
+  if ( s >= 0 ) { \
+    s = sqrt(s); \
+    x2[i] = (-b[i]+s)/(2.0*a[i]); \
+    x1[i] = (-b[i]-s)/(2.0*a[i]); \
+  } else { \
+    x2[i] = 0.0; \
+    x1[i] = 0.0; \
+  }
 
 #if defined(RAJA_ENABLE_CUDA)
 
