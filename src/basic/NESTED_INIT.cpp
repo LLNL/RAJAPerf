@@ -46,8 +46,7 @@ namespace basic
   Int_type nk = m_nk;
 
 #define NESTED_INIT_BODY  \
-   array[i] = 0.00000001;
-//  array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
+  array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
 
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -282,13 +281,16 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMPTarget: {
-#if 0                              
+#if 0
+
       NESTED_INIT_DATA;
+
       #pragma omp target enter data map(to:array[0:ni*nj*nk],ni,nj,nk)
 
       startTimer();
+
       #pragma omp target data use_device_ptr(array)
-      for (RepIndex_type irep = 0; irep < 1; ++irep) {
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forallN< RAJA::NestedPolicy< 
                        RAJA::ExecList< RAJA::simd_exec,
