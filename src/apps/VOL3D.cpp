@@ -74,6 +74,7 @@
 ///
 
 #include "VOL3D.hpp"
+
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
@@ -351,15 +352,18 @@ void VOL3D::runKernel(VariantID vid)
 
       #pragma omp target enter data map(to:x[:n],y[:n],z[:n],vol[:n],vnormq) \
       map(to:x0,x1,x2,x3,x4,x5,x6,x7,y0,y1,y2,y3,y4,y5,y6,y7,z0,z1,z2,z3,z4,z5,z6,z7)
-      startTimer();
 
+      startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           VOL3D_BODY;
        }
+
       }
       stopTimer();
+
       #pragma omp target exit data map(from:vol[0:n]) map(delete:x,y,z,vnormq) \
       map(release: x0,x1,x2,x3,x4,x5,x6,x7,y0,y1,y2,y3,y4,y5,y6,y7,z0,z1,z2,z3,z4,z5,z6,z7)
 
@@ -396,6 +400,7 @@ void VOL3D::runKernel(VariantID vid)
 
       #pragma omp target exit data map(from:vol[0:n]) map(delete:x,y,z,vnormq) \
       map(release: x0,x1,x2,x3,x4,x5,x6,x7,y0,y1,y2,y3,y4,y5,y6,y7,z0,z1,z2,z3,z4,z5,z6,z7)
+
       break;
     }
 #endif //RAJA_ENABLE_TARGET_OPENMP
@@ -410,7 +415,7 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
-      const Index_type ibegin = m_domain->fpz;
+//    const Index_type ibegin = m_domain->fpz;
       const Index_type ilen = m_domain->lpz+1 - ibegin;
 
       startTimer();

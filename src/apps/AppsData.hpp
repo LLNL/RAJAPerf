@@ -34,6 +34,7 @@ namespace apps
    v5 = v1 + kp ; \
    v6 = v2 + kp ; \
    v7 = v3 + kp ;
+
 #define NDSET2D(jp,v,v1,v2,v3,v4)  \
    v4 = v ;   \
    v1 = v4 + 1 ;  \
