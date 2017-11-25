@@ -46,8 +46,9 @@ blt_add_executable(
   apps/FIR.cpp
   apps/PRESSURE.cpp
   apps/VOL3D.cpp
-  apps/WIP-COUPLE.cpp
   apps/LTIMES.cpp
+  apps/LTIMES_NOVIEW.cpp
+  apps/WIP-COUPLE.cpp
   basic/IF_QUAD.cpp
   basic/INIT3.cpp
   basic/MULADDSUB.cpp
