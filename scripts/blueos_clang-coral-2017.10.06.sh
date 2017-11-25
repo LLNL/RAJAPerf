@@ -1,3 +1,4 @@
+#!/bin/bash
 
 ##
 ## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
@@ -13,8 +14,7 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-
-rm -rf build_blueos_clang-coral-2017.10.06 >/dev/null
+rm -rf build_blueos_clang-coral-2017.10.06 2>/dev/null
 mkdir build_blueos_clang-coral-2017.10.06 && cd build_blueos_clang-coral-2017.10.06
 
 module load cmake/3.7.2

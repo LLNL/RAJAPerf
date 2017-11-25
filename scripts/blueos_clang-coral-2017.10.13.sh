@@ -15,29 +15,27 @@
 ##
 
 
-rm -rf build_blueos_clang-coral-2017.11.10-b >/dev/null
-mkdir build_blueos_clang-coral-2017.11.10-b && cd build_blueos_clang-coral-2017.11.10-b
+rm -rf build_blueos_clang-coral-2017.10.13 >/dev/null
+mkdir build_blueos_clang-coral-2017.10.13 && cd build_blueos_clang-coral-2017.10.13
 
 module load cmake/3.7.2
-module load clang/coral-2017.11.10
-module load cuda/9.1.76
+module load clang/coral-2017.10.13
+module load cuda/9.0.176 
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_coral_2017_11_10.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_coral_2017_10_13.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=Off \
-  -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target -fopenmp-implicit-map-lambdas" \
-  -DENABLE_TARGET_OPENMP=On \
+  -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target" \
   -DRAJA_ENABLE_TARGET_OPENMP=On \
   -DRAJA_ENABLE_MODULES=Off \
-  -DRAJA_ENABLE_TESTS=Off \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.1.76 \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.0.176 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DRAJA_BUILD_WITH_BLT=On \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.11.10 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13 \
   "$@" \
   ${PERFSUITE_DIR}
