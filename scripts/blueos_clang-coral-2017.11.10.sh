@@ -15,8 +15,8 @@
 ##
 
 
-rm -rf build_blueos_clang-coral-2017.11.10-b >/dev/null
-mkdir build_blueos_clang-coral-2017.11.10-b && cd build_blueos_clang-coral-2017.11.10-b
+rm -rf build_blueos_clang-coral-2017.11.10 >/dev/null
+mkdir build_blueos_clang-coral-2017.11.10 && cd build_blueos_clang-coral-2017.11.10
 
 module load cmake/3.7.2
 module load clang/coral-2017.11.10
