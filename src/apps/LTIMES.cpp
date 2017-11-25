@@ -438,10 +438,10 @@ void LTIMES::runKernel(VariantID vid)
 
       using EXEC_POL = RAJA::nested::Policy<
                   RAJA::nested::CudaCollapse<
-                    RAJA::nested::TypedFor<1, RAJA::cuda_block_z_exec, IZ>,
-                    RAJA::nested::TypedFor<2, RAJA::cuda_block_y_exec, IG>,
-                    RAJA::nested::TypedFor<3, RAJA::cuda_thread_x_exec, IM> >,
-                  RAJA::nested::TypedFor<0, RAJA::cuda_loop_exec, ID> >;
+                     RAJA::nested::TypedFor<1, RAJA::cuda_block_z_exec, IZ>,
+                     RAJA::nested::TypedFor<2, RAJA::cuda_block_y_exec, IG>,
+                     RAJA::nested::TypedFor<3, RAJA::cuda_thread_x_exec, IM> >,
+                   RAJA::nested::TypedFor<0, RAJA::cuda_loop_exec, ID> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

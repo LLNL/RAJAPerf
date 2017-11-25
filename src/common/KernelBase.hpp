@@ -36,7 +36,7 @@
 //
 //#define USE_FORALLN_FOR_SEQ
 //#define USE_FORALLN_FOR_OPENMP
-#define USE_FORALLN_FOR_CUDA
+//#define USE_FORALLN_FOR_CUDA
 #define USE_FORALLN_FOR_OPENMPTARGET
 
 #include <string>

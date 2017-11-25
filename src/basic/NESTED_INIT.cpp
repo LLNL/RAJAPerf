@@ -378,9 +378,10 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA_SETUP_CUDA;
 
       using EXEC_POL = RAJA::nested::Policy<
+                         RAJA::nested::CudaCollapse<
                            RAJA::nested::For<2, RAJA::cuda_block_z_exec>,   //k
                            RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   //j
-                           RAJA::nested::For<0, RAJA::cuda_thread_x_exec> >;//i
+                           RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;//i
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -389,7 +390,7 @@ void NESTED_INIT::runKernel(VariantID vid)
                              camp::make_tuple(RAJA::RangeSegment(0, ni),
                                               RAJA::RangeSegment(0, nj),
                                               RAJA::RangeSegment(0, nk)),
-          [=](Index_type i, Index_type j, Index_type k) {
+          [=] __device__ (Index_type i, Index_type j, Index_type k) {
           NESTED_INIT_BODY;
         });
 
