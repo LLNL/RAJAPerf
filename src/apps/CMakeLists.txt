@@ -21,6 +21,7 @@ blt_add_library(
           DEL_DOT_VEC_2D.cpp 
           FIR.cpp
           LTIMES.cpp
+          LTIMES_NOVIEW.cpp
           WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

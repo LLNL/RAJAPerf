@@ -66,6 +66,7 @@
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/FIR.hpp"
 #include "apps/LTIMES.hpp"
+#include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/WIP-COUPLE.hpp"
 
 
@@ -165,6 +166,7 @@ static const std::string KernelNames [] =
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_FIR"),
   std::string("Apps_LTIMES"),
+  std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_COUPLE"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
@@ -409,6 +411,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
+       break;
+    }
+    case Apps_LTIMES_NOVIEW : {
+       kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
     case Apps_COUPLE : {

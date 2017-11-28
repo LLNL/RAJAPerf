@@ -25,14 +25,18 @@
 #include "RAJA/util/Timer.hpp"
 
 //
-// Eventually, to be deprecated 'forallN' versions of nested loops are on by 
-// default for some PM backends since the new RAJA::nested::forall interface 
-// does not support all required functionality yet. When it does, the new
-// version will be enabled for all kernel variants.  --RDH
+// If any of these macro constants is not defined, the RAJA::nested version
+// of the corresponding variant will be used.
+//
+// Eventually, the 'forallN' functionality in RAJA will be deprecated in favor
+// of the new RAJA::nested capabilities. Some variants of nested loops are 
+// still using forallN since the RAJA::nested::forall interface does not 
+// support all required functionality yet. When it does, the new
+// versions will be enabled for all kernel variants.  --RDH
 //
 //#define USE_FORALLN_FOR_SEQ
 //#define USE_FORALLN_FOR_OPENMP
-#define USE_FORALLN_FOR_CUDA
+//#define USE_FORALLN_FOR_CUDA
 #define USE_FORALLN_FOR_OPENMPTARGET
 
 #include <string>
