@@ -290,13 +290,14 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMPTarget: {
-                              
-#if 0  // crashes clang-coral compiler      
+#if 0
+
       NESTED_INIT_DATA;
 
-      #pragma omp target enter data map(to:array[0:ni * nj * nk],ni,nj,nk)
+      #pragma omp target enter data map(to:array[0:ni*nj*nk],ni,nj,nk)
 
       startTimer();
+
       #pragma omp target data use_device_ptr(array)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -313,11 +314,12 @@ void NESTED_INIT::runKernel(VariantID vid)
         });
 
       }
+
       stopTimer();
     
       #pragma omp target exit data map(from:array[0:ni * nj * nk]) map(delete:ni,nj,nk)
-#endif                            
-
+                            
+#endif
       break;                        
     }  
 
