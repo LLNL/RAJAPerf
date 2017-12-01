@@ -14,10 +14,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "common/Executor.hpp"
-#include <iostream>
-#include "RAJA/RAJA.hpp"
-#include "RAJA/util/defines.hpp"
 
+#include <iostream>
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )

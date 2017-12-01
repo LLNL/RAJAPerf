@@ -14,8 +14,8 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 >/dev/null
-mkdir blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 && cd blueos_clang-coral-2017.10.13_omptarget-nvcc8.0
+rm -rf build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 >/dev/null
+mkdir build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 && cd build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0
 
 module load cmake/3.9.2
 
