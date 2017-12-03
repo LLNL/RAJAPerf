@@ -103,7 +103,10 @@ INT_PREDICT::~INT_PREDICT()
 
 void INT_PREDICT::setUp(VariantID vid)
 {
-  allocAndInitData(m_px, getRunSize()*13, vid);
+  m_px_initval = 1.0;
+  m_offset = getRunSize();
+
+  allocAndInitDataConst(m_px, m_offset*13, m_px_initval, vid);
 
   initData(m_dm22);
   initData(m_dm23);
@@ -113,8 +116,6 @@ void INT_PREDICT::setUp(VariantID vid)
   initData(m_dm27);
   initData(m_dm28);
   initData(m_c0);
-
-  m_offset = getRunSize();
 }
 
 void INT_PREDICT::runKernel(VariantID vid)
@@ -304,6 +305,10 @@ void INT_PREDICT::runKernel(VariantID vid)
 
 void INT_PREDICT::updateChecksum(VariantID vid)
 {
+  for (Index_type i = 0; i < m_offset*13; ++i) {
+    m_px[i] -= m_px_initval;
+  }
+  
   checksum[vid] += calcChecksum(m_px, m_offset*13);
 }
 

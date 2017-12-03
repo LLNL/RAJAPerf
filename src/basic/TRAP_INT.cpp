@@ -149,8 +149,7 @@ void TRAP_INT::setUp(VariantID vid)
 
   m_h = xn - m_x0;
 
-  m_sumx_init = 0.5*( trap_int_func(m_x0, m_y, m_xp, m_yp) +
-                      trap_int_func(xn, m_y, m_xp, m_yp) );  
+  m_sumx_init = 0.0;
 
   m_sumx = 0;
 }
@@ -380,7 +379,7 @@ void TRAP_INT::runKernel(VariantID vid)
 
 void TRAP_INT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += (m_sumx + 0.00123) / (m_sumx - 0.00123);
+  checksum[vid] += m_sumx;
 }
 
 void TRAP_INT::tearDown(VariantID vid)

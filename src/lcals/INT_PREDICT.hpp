@@ -40,6 +40,9 @@ public:
   void tearDown(VariantID vid);
 
 private:
+  Real_type m_px_initval;
+  Index_type m_offset;
+
   Real_ptr m_px;
 
   Real_type m_dm22;
@@ -50,8 +53,6 @@ private:
   Real_type m_dm27;
   Real_type m_dm28;
   Real_type m_c0;
-
-  Index_type m_offset;
 };
 
 } // end namespace lcals

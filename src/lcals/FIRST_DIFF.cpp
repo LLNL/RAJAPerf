@@ -80,7 +80,7 @@ FIRST_DIFF::~FIRST_DIFF()
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+1, vid);
+  allocAndInitDataConst(m_x, getRunSize()+1, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+1, vid);
 }
 

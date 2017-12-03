@@ -93,7 +93,7 @@ TRIAD::~TRIAD()
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
   initData(m_alpha, vid);

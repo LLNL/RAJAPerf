@@ -112,7 +112,7 @@ INIT_VIEW1D::~INIT_VIEW1D()
 
 void INIT_VIEW1D::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
   m_val = 0.123;
 }
 

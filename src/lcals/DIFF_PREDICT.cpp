@@ -104,7 +104,7 @@ DIFF_PREDICT::~DIFF_PREDICT()
 
 void DIFF_PREDICT::setUp(VariantID vid)
 {
-  allocAndInitData(m_px, getRunSize()*14, vid);
+  allocAndInitDataConst(m_px, getRunSize()*14, 0.0, vid);
   allocAndInitData(m_cx, getRunSize()*14, vid);
 
   m_offset = getRunSize();

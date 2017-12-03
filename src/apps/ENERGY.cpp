@@ -347,12 +347,12 @@ ENERGY::~ENERGY()
 
 void ENERGY::setUp(VariantID vid)
 {
-  allocAndInitData(m_e_new, getRunSize(), vid);
+  allocAndInitDataConst(m_e_new, getRunSize(), 0.0, vid);
   allocAndInitData(m_e_old, getRunSize(), vid);
   allocAndInitData(m_delvc, getRunSize(), vid);
   allocAndInitData(m_p_new, getRunSize(), vid);
   allocAndInitData(m_p_old, getRunSize(), vid);
-  allocAndInitData(m_q_new, getRunSize(), vid);
+  allocAndInitDataConst(m_q_new, getRunSize(), 0.0, vid);
   allocAndInitData(m_q_old, getRunSize(), vid);
   allocAndInitData(m_work, getRunSize(), vid);
   allocAndInitData(m_compHalfStep, getRunSize(), vid);

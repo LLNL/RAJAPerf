@@ -90,7 +90,7 @@ MUL::~MUL()
 
 void MUL::setUp(VariantID vid)
 {
-  allocAndInitData(m_b, getRunSize(), vid);
+  allocAndInitDataConst(m_b, getRunSize(), 0.0, vid);
   allocAndInitData(m_c, getRunSize(), vid);
   initData(m_alpha, vid);
 }

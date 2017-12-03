@@ -98,7 +98,7 @@ EOS::~EOS()
 
 void EOS::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+7, vid);
+  allocAndInitDataConst(m_x, getRunSize()+7, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+7, vid);
   allocAndInitData(m_z, getRunSize()+7, vid);
   allocAndInitData(m_u, getRunSize()+7, vid);

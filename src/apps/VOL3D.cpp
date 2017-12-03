@@ -81,6 +81,7 @@
 #include "RAJA/RAJA.hpp"
 
 #include <iostream>
+#include <iomanip>
 
 namespace rajaperf 
 {
@@ -217,6 +218,8 @@ VOL3D::VOL3D(const RunParams& params)
   setDefaultReps(300);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+
+  m_array_length = m_domain->lpn;
 }
 
 VOL3D::~VOL3D() 
@@ -230,12 +233,16 @@ Index_type VOL3D::getItsPerRep() const {
 
 void VOL3D::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->lpn;
+  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_z, m_array_length, 0.0, vid);
 
-  allocAndInitData(m_x, max_loop_index, vid);
-  allocAndInitData(m_y, max_loop_index, vid);
-  allocAndInitData(m_z, max_loop_index, vid);
-  allocAndInitData(m_vol, max_loop_index, vid);
+  Real_type dx = 0.3;
+  Real_type dy = 0.2;
+  Real_type dz = 0.1;
+  setMeshPositions_3d(m_x, dx, m_y, dy, m_z, dz, *m_domain);
+
+  allocAndInitDataConst(m_vol, m_array_length, 0.0, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
@@ -475,7 +482,7 @@ void VOL3D::runKernel(VariantID vid)
 
 void VOL3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_vol, getRunSize());
+  checksum[vid] += calcChecksum(m_vol, m_array_length);
 }
 
 void VOL3D::tearDown(VariantID vid)

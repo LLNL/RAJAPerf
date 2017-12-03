@@ -88,7 +88,7 @@ COPY::~COPY()
 void COPY::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_c, getRunSize(), 0.0, vid);
 }
 
 void COPY::runKernel(VariantID vid)

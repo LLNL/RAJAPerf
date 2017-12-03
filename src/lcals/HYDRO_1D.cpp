@@ -92,7 +92,7 @@ HYDRO_1D::~HYDRO_1D()
 
 void HYDRO_1D::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+12, vid);
+  allocAndInitDataConst(m_x, getRunSize()+12, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+12, vid);
   allocAndInitData(m_z, getRunSize()+12, vid);
 

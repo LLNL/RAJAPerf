@@ -99,7 +99,7 @@ void PLANCKIAN::setUp(VariantID vid)
   allocAndInitData(m_y, getRunSize(), vid);
   allocAndInitData(m_u, getRunSize(), vid);
   allocAndInitData(m_v, getRunSize(), vid);
-  allocAndInitData(m_w, getRunSize(), vid);
+  allocAndInitDataConst(m_w, getRunSize(), 0.0, vid);
 }
 
 void PLANCKIAN::runKernel(VariantID vid)

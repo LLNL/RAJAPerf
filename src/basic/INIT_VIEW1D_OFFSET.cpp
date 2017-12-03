@@ -111,7 +111,7 @@ INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
   m_val = 0.123;  
 }
 

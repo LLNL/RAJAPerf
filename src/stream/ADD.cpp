@@ -94,7 +94,7 @@ void ADD::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_c, getRunSize(), 0.0, vid);
 }
 
 void ADD::runKernel(VariantID vid)
@@ -183,11 +183,25 @@ void ADD::runKernel(VariantID vid)
 
     case Base_OpenMPTarget : {
 
-#if 1
+#if 0
       ADD_DATA;
 
       int n = getRunSize();
       #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n])
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ADD_BODY;
+        }
+
+      }
+      stopTimer();
+
+      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
+
 #else
       int h = omp_get_initial_device();
       int d = omp_get_default_device();
@@ -204,14 +218,11 @@ void ADD::runKernel(VariantID vid)
       omp_target_memcpy( b, m_b, iend * sizeof(Real_type), 0, 0, d, h );
       omp_target_memcpy( c, m_c, iend * sizeof(Real_type), 0, 0, d, h );
 
-      #pragma omp target is_device_ptr(a, b, c) device( d )
-
-#endif
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        #pragma omp target is_device_ptr(a, b, c) device( d )
+        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         for (Index_type i = ibegin; i < iend; ++i ) {
           ADD_BODY;
         }
@@ -219,9 +230,6 @@ void ADD::runKernel(VariantID vid)
       }
       stopTimer();
 
-#if 1
-      #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
-#else
       omp_target_memcpy( m_c, c, iend * sizeof(Real_type), 0, 0, h, d );
 
       omp_target_free( a, d );
@@ -234,6 +242,7 @@ void ADD::runKernel(VariantID vid)
 
     case RAJA_OpenMPTarget : {
 
+#if 0
       ADD_DATA;
 
       int n = getRunSize();
@@ -252,6 +261,43 @@ void ADD::runKernel(VariantID vid)
       stopTimer();
 
       #pragma omp target exit data map(from:c[0:n]) map(delete:a[0:n],b[0:n])
+
+#else
+
+      int h = omp_get_initial_device();
+      int d = omp_get_default_device();
+
+      Real_ptr a;
+      Real_ptr b;
+      Real_ptr c;
+
+      a = static_cast<Real_ptr>( omp_target_alloc(iend*sizeof(Real_type), d) );
+      b = static_cast<Real_ptr>( omp_target_alloc(iend*sizeof(Real_type), d) );
+      c = static_cast<Real_ptr>( omp_target_alloc(iend*sizeof(Real_type), d) );
+
+      omp_target_memcpy( a, m_a, iend * sizeof(Real_type), 0, 0, d, h );
+      omp_target_memcpy( b, m_b, iend * sizeof(Real_type), 0, 0, d, h );
+      omp_target_memcpy( c, m_c, iend * sizeof(Real_type), 0, 0, d, h );
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+//      #pragma omp target data use_device_ptr(a,b,c)
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          ADD_BODY;
+        });
+
+      }
+      stopTimer();
+
+      omp_target_memcpy( m_c, c, iend * sizeof(Real_type), 0, 0, h, d );
+
+      omp_target_free( a, d );
+      omp_target_free( b, d );
+      omp_target_free( c, d );
+
+#endif
 
       break;
     }
