@@ -41,6 +41,7 @@ blt_add_executable(
 blt_add_executable(
   NAME raja-perf-nolibs.exe
   SOURCES RAJAPerfSuiteDriver.cpp
+  apps/AppsData.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/ENERGY.cpp
   apps/FIR.cpp
