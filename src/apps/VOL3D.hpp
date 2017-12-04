@@ -19,7 +19,6 @@
 
 #include "common/KernelBase.hpp"
 
-
 namespace rajaperf 
 {
 class RunParams;
