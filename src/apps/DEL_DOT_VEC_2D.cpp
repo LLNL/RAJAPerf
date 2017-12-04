@@ -129,15 +129,15 @@ namespace apps
   Real_ptr fx1,fx2,fx3,fx4 ; \
   Real_ptr fy1,fy2,fy3,fy4 ; \
 \
-  allocAndInitCudaDeviceData(x, m_x, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(y, m_y, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(xdot, m_xdot, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(ydot, m_ydot, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(div, m_div, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, m_domain->n_real_zones);
+  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
+  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
+  allocAndInitCudaDeviceData(xdot, m_xdot, m_array_length); \
+  allocAndInitCudaDeviceData(ydot, m_ydot, m_array_length); \
+  allocAndInitCudaDeviceData(div, m_div, m_array_length); \
+  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
 
 #define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_div, div, iend); \
+  getCudaDeviceData(m_div, div, m_array_length); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(xdot); \
