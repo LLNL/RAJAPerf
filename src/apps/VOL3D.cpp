@@ -350,7 +350,7 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      int n = m_domain->lpn;
+      int n = m_array_length;
       int jp = m_domain->jp;
       int kp = m_domain->kp;
 
@@ -383,7 +383,7 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      int n = m_domain->lpn;
+      int n = m_array_length;
       int jp = m_domain->jp;
       int kp = m_domain->kp;
 

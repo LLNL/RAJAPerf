@@ -323,7 +323,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       DEL_DOT_VEC_2D_DATA;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
-      int n=m_domain->nnalls;
+      int n=m_array_length;
       int nn=m_domain->n_real_zones;
       int jp=m_domain->jp;
 
@@ -366,7 +366,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       DEL_DOT_VEC_2D_DATA;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
-      int n=m_domain->nnalls;
+      int n=m_array_length;
       int nn=m_domain->n_real_zones;
       int jp=m_domain->jp;
 
