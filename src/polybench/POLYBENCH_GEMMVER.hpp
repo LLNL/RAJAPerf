@@ -43,7 +43,6 @@ public:
 
 private:
   Index_type m_n;
-  Index_type m_run_reps;
   Real_type m_alpha;
   Real_type m_beta;
   Real_ptr m_A;
