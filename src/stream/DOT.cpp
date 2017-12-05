@@ -16,13 +16,9 @@
 ///
 /// ADD kernel reference implementation:
 ///
-/// Real_type dot = m_dot_init;
-///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   dot += a[i] b b[i];
 /// }
-///
-/// m_dot += dot;
 ///
 
 #include "DOT.hpp"

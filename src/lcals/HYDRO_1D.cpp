@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// HYDRO_1D kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+/// }
+///
 
 #include "HYDRO_1D.hpp"
 

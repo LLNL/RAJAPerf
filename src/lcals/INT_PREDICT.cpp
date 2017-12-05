@@ -13,6 +13,20 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// INT_PREDICT kernel reference implementation:
+///
+/// Index_type offset = iend - ibegin;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   px[i] = dm28*px[i + offset * 12] + dm27*px[i + offset * 11] + 
+///           dm26*px[i + offset * 10] + dm25*px[i + offset *  9] + 
+///           dm24*px[i + offset *  8] + dm23*px[i + offset *  7] + 
+///           dm22*px[i + offset *  6] + 
+///           c0*( px[i + offset *  4] + px[i + offset *  5] ) + 
+///           px[i + offset *  2];
+/// }
+///
 
 #include "INT_PREDICT.hpp"
 

@@ -13,6 +13,14 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// PLANCKIAN kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   y[i] = u[i] / v[i]; 
+///   w[i] = x[i] / ( exp( y[i] ) - 1.0 );
+/// }
+///
 
 #include "PLANCKIAN.hpp"
 

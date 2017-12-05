@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// FIRST_DIFF kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = y[i+1] - y[i]; 
+/// }
+///
 
 #include "FIRST_DIFF.hpp"
 
