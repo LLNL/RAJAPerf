@@ -135,7 +135,8 @@ __global__ void polybench_gemmver_cuda_1(Real_ptr A,
    Index_type i,j;
    if (ii < n * n) {
      i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY1;              
+     POLYBENCH_GEMMVER_BODY1;
+
    }
 }
 
@@ -147,7 +148,10 @@ __global__ void polybench_gemmver_cuda_2(Real_type beta,
    Index_type i,j;
    if (ii < n * n) {
      i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY2;              
+     if(i == 0 && j == 10) printf("CUDA A[0,%d] = %lf  x[%d] = %lf y[%d] = %lf \n",j,*(A + i * n + j),j,*(x + i), j, *(y + i ));    
+     POLYBENCH_GEMMVER_BODY2;
+     if(i == 0 && j == 10) printf("CUDA A[0,%d] = %lf  x[%d] = %lf y[%d] = %lf \n",j,*(A + i * n + j),j,*(x + i), j, *(y + i ));    
+          
    }
 }
 
@@ -213,6 +217,9 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
   setDefaultReps(run_reps);
 
+  m_alpha = 1.5;
+  m_beta = 1.2;
+#if 0
   allocAndInitData(m_A, m_n * m_n);
   allocAndInitData(m_u1, m_n);
   allocAndInitData(m_v1, m_n);
@@ -222,10 +229,12 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   allocAndInitData(m_x, m_n);
   allocAndInitData(m_y, m_n);
   allocAndInitData(m_z, m_n);
+#endif
 }
 
 POLYBENCH_GEMMVER::~POLYBENCH_GEMMVER() 
 {
+#if 0  
   deallocData(m_A);
   deallocData(m_u1);
   deallocData(m_v1);
@@ -235,18 +244,23 @@ POLYBENCH_GEMMVER::~POLYBENCH_GEMMVER()
   deallocData(m_x);
   deallocData(m_y);
   deallocData(m_z);
+#endif  
 }
 
 void POLYBENCH_GEMMVER::setUp(VariantID vid)
 {
   (void) vid;
-#if 0 // RDH attempt to initialize alpha and beta to non-zero values and
-      // w to zero so checksum indicates whether kernel variant is run.
-      // These changes break the code...
-  initData(m_alpha);
-  initData(m_beta);
-  initDataConst(m_w, m_n, 0.0);
-#endif
+
+  allocAndInitData(m_A, m_n * m_n, vid);
+  allocAndInitData(m_u1, m_n, vid);
+  allocAndInitData(m_v1, m_n, vid);
+  allocAndInitData(m_u2, m_n, vid);
+  allocAndInitData(m_v2, m_n, vid);
+  allocAndInitDataConst(m_w, m_n, 0.0, vid);
+  allocAndInitData(m_x, m_n, vid);
+  allocAndInitData(m_y, m_n, vid);
+  allocAndInitData(m_z, m_n, vid);
+
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
@@ -267,12 +281,15 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY1;
+
           }
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
           for (Index_type j = 0; j < n; j++) {
+            if(i == 0 && j == 10) printf("SEQ A[0,%d] = %lf  x[%d] = %lf y[%d] = %lf \n",j,*(A + i * n + j),j,*(x + i), j, *(y + i ));    
             POLYBENCH_GEMMVER_BODY2;
+     if(i == 0 && j == 10) printf("SEQ A[0,%d] = %lf  x[%d] = %lf y[%d] = %lf \n",j,*(A + i * n + j),j,*(x + i), j, *(y + i ));    
           }
         }
 
@@ -596,7 +613,15 @@ void POLYBENCH_GEMMVER::updateChecksum(VariantID vid)
 void POLYBENCH_GEMMVER::tearDown(VariantID vid)
 {
   (void) vid;
-
+  deallocData(m_A);
+  deallocData(m_u1);
+  deallocData(m_v1);
+  deallocData(m_u2);
+  deallocData(m_v2);
+  deallocData(m_w);
+  deallocData(m_x);
+  deallocData(m_y);
+  deallocData(m_z);
 }
 
 } // end namespace basic
