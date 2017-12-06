@@ -53,6 +53,8 @@ namespace rajaperf
 namespace polybench
 {
 
+
+
 #define POLYBENCH_GEMMVER_DATA \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
@@ -274,11 +276,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
         }
 
-// RDH This should not be a loop nest, only an 'i' loop
         for (Index_type i = 0; i < n; i++ ) { 
-          for (Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
-          }
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
@@ -360,9 +359,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         #pragma omp parallel for  
         for (Index_type i = 0; i < n; i++ ) {
-          for (Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
-          }
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         #pragma omp parallel for  
@@ -451,9 +448,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < n; i++ ) {
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
-          }
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
