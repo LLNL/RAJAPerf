@@ -136,7 +136,7 @@ void PRESSURE::setUp(VariantID vid)
 {
   allocAndInitData(m_compression, getRunSize(), vid);
   allocAndInitData(m_bvc, getRunSize(), vid);
-  allocAndInitData(m_p_new, getRunSize(), vid);
+  allocAndInitDataConst(m_p_new, getRunSize(), 0.0, vid);
   allocAndInitData(m_e_old, getRunSize(), vid);
   allocAndInitData(m_vnewc, getRunSize(), vid);
   

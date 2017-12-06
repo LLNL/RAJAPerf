@@ -136,7 +136,7 @@ void Executor::setupSuite()
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(*it) != string::npos ) {
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
           run_kern.insert(kid);
           found_it = true;
         }
@@ -726,12 +726,12 @@ void Executor::writeChecksumReport(const string& filename)
     // Set basic table formatting parameters.
     //
     const string equal_line("===================================================================================================");
-    const string dash_line("----------------------------------------------------------------------------------------------------");
+    const string dash_line("----------------------------------------------------------------------------------------");
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
     size_t prec = 20;
-    size_t checksum_width = prec + 4;
+    size_t checksum_width = prec + 8;
 
     size_t namecol_width = 0;
     for (size_t ik = 0; ik < kernels.size(); ++ik) {

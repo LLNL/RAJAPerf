@@ -13,6 +13,20 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// INT_PREDICT kernel reference implementation:
+///
+/// Index_type offset = iend - ibegin;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   px[i] = dm28*px[i + offset * 12] + dm27*px[i + offset * 11] + 
+///           dm26*px[i + offset * 10] + dm25*px[i + offset *  9] + 
+///           dm24*px[i + offset *  8] + dm23*px[i + offset *  7] + 
+///           dm22*px[i + offset *  6] + 
+///           c0*( px[i + offset *  4] + px[i + offset *  5] ) + 
+///           px[i + offset *  2];
+/// }
+///
 
 #include "INT_PREDICT.hpp"
 
@@ -103,7 +117,10 @@ INT_PREDICT::~INT_PREDICT()
 
 void INT_PREDICT::setUp(VariantID vid)
 {
-  allocAndInitData(m_px, getRunSize()*13, vid);
+  m_px_initval = 1.0;
+  m_offset = getRunSize();
+
+  allocAndInitDataConst(m_px, m_offset*13, m_px_initval, vid);
 
   initData(m_dm22);
   initData(m_dm23);
@@ -113,8 +130,6 @@ void INT_PREDICT::setUp(VariantID vid)
   initData(m_dm27);
   initData(m_dm28);
   initData(m_c0);
-
-  m_offset = getRunSize();
 }
 
 void INT_PREDICT::runKernel(VariantID vid)
@@ -304,6 +319,10 @@ void INT_PREDICT::runKernel(VariantID vid)
 
 void INT_PREDICT::updateChecksum(VariantID vid)
 {
+  for (Index_type i = 0; i < m_offset*13; ++i) {
+    m_px[i] -= m_px_initval;
+  }
+  
   checksum[vid] += calcChecksum(m_px, m_offset*13);
 }
 

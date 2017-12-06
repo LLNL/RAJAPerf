@@ -13,6 +13,33 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// DIFF_PREDICT kernel reference implementation:
+///
+/// Index_type offset = iend - ibegin;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   ar                  = cx[i + offset * 4];       
+///   br                  = ar - px[i + offset * 4];  
+///   px[i + offset * 4]  = ar;                       
+///   cr                  = br - px[i + offset * 5];  
+///   px[i + offset * 5]  = br;                       
+///   ar                  = cr - px[i + offset * 6];  
+///   px[i + offset * 6]  = cr;                       
+///   br                  = ar - px[i + offset * 7];  
+///   px[i + offset * 7]  = ar;                       
+///   cr                  = br - px[i + offset * 8];  
+///   px[i + offset * 8]  = br;                       
+///   ar                  = cr - px[i + offset * 9];  
+///   px[i + offset * 9]  = cr;                       
+///   br                  = ar - px[i + offset * 10]; 
+///   px[i + offset * 10] = ar;                       
+///   cr                  = br - px[i + offset * 11]; 
+///   px[i + offset * 11] = br;                       
+///   px[i + offset * 13] = cr - px[i + offset * 12]; 
+///   px[i + offset * 12] = cr;
+/// }
+///
 
 #include "DIFF_PREDICT.hpp"
 
@@ -104,7 +131,7 @@ DIFF_PREDICT::~DIFF_PREDICT()
 
 void DIFF_PREDICT::setUp(VariantID vid)
 {
-  allocAndInitData(m_px, getRunSize()*14, vid);
+  allocAndInitDataConst(m_px, getRunSize()*14, 0.0, vid);
   allocAndInitData(m_cx, getRunSize()*14, vid);
 
   m_offset = getRunSize();

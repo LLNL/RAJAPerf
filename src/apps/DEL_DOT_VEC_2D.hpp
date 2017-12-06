@@ -54,6 +54,7 @@ private:
   Real_type m_half;
 
   ADomain* m_domain;
+  Index_type m_array_length;
 };
 
 } // end namespace apps

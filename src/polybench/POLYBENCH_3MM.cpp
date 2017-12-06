@@ -236,6 +236,7 @@ POLYBENCH_3MM::~POLYBENCH_3MM()
 void POLYBENCH_3MM::setUp(VariantID vid)
 {
   (void) vid;
+  initDataConst(m_G, m_ni * m_nl, 0.0);
 }
 
 void POLYBENCH_3MM::runKernel(VariantID vid)

@@ -50,7 +50,6 @@
 #include "common/DataUtils.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "RAJA/util/defines.hpp"
 
 #include <iostream>
 
@@ -130,15 +129,15 @@ namespace apps
   Real_ptr fx1,fx2,fx3,fx4 ; \
   Real_ptr fy1,fy2,fy3,fy4 ; \
 \
-  allocAndInitCudaDeviceData(x, m_x, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(y, m_y, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(xdot, m_xdot, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(ydot, m_ydot, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(div, m_div, m_domain->nnalls); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, m_domain->n_real_zones);
+  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
+  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
+  allocAndInitCudaDeviceData(xdot, m_xdot, m_array_length); \
+  allocAndInitCudaDeviceData(ydot, m_ydot, m_array_length); \
+  allocAndInitCudaDeviceData(div, m_div, m_array_length); \
+  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
 
 #define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_div, div, iend); \
+  getCudaDeviceData(m_div, div, m_array_length); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(xdot); \
@@ -176,6 +175,8 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setDefaultReps(1050);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
+
+  m_array_length = m_domain->nnalls;
 }
 
 DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D() 
@@ -190,13 +191,17 @@ Index_type DEL_DOT_VEC_2D::getItsPerRep() const
 
 void DEL_DOT_VEC_2D::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->nnalls;
+  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
 
-  allocAndInitData(m_x, max_loop_index, vid);
-  allocAndInitData(m_y, max_loop_index, vid);
-  allocAndInitData(m_xdot, max_loop_index, vid);
-  allocAndInitData(m_ydot, max_loop_index, vid);
-  allocAndInitData(m_div, max_loop_index, vid);
+  Real_type dx = 0.2;
+  Real_type dy = 0.1;
+  setMeshPositions_2d(m_x, dx, m_y, dy, *m_domain);
+
+  allocAndInitData(m_xdot, m_array_length, vid);
+  allocAndInitData(m_ydot, m_array_length, vid);
+
+  allocAndInitDataConst(m_div, m_array_length, 0.0, vid);
 
   m_ptiny = 1.0e-20;
   m_half = 0.5;
@@ -318,7 +323,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       DEL_DOT_VEC_2D_DATA;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
-      int n=m_domain->nnalls;
+      int n=m_array_length;
       int nn=m_domain->n_real_zones;
       int jp=m_domain->jp;
 
@@ -361,7 +366,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
       DEL_DOT_VEC_2D_DATA;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
-      int n=m_domain->nnalls;
+      int n=m_array_length;
       int nn=m_domain->n_real_zones;
       int jp=m_domain->jp;
 
@@ -473,7 +478,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
 void DEL_DOT_VEC_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_div, getRunSize());
+  checksum[vid] += calcChecksum(m_div, m_array_length);
 }
 
 void DEL_DOT_VEC_2D::tearDown(VariantID vid)

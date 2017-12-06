@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -mavx -finline-functions" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -g -mavx -finline-functions" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
-set(CUDA_COMMON_OPT_FLAGS -restrict; -arch compute_37; -std c++11; --expt-extended-lambda)
+set(CUDA_COMMON_OPT_FLAGS -restrict; -arch sm_35; -std c++11; --expt-extended-lambda)
 set(CUDA_COMMON_DEBUG_FLAGS -restrict; -arch compute_30; -std c++11; --expt-extended-lambda)
 
 set(HOST_OPT_FLAGS -Xcompiler -Ofast -Xcompiler -mavx -Xcompiler -finline-functions -Xcompiler -fopenmp)

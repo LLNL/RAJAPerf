@@ -15,7 +15,8 @@
 
 blt_add_library(
   NAME apps
-  SOURCES PRESSURE.cpp 
+  SOURCES AppsData.cpp
+          PRESSURE.cpp 
           ENERGY.cpp 
           VOL3D.cpp 
           DEL_DOT_VEC_2D.cpp 

@@ -172,13 +172,13 @@ namespace apps
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
   Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ; \
 \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(z, m_z, iend); \
-  allocAndInitCudaDeviceData(vol, m_vol, iend);
+  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
+  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
+  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
+  allocAndInitCudaDeviceData(vol, m_vol, m_array_length);
 
 #define VOL3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_vol, vol, iend); \
+  getCudaDeviceData(m_vol, vol, m_array_length); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(z); \
@@ -198,11 +198,11 @@ __global__ void vol3d(Real_ptr vol,
                       const Real_ptr z4, const Real_ptr z5,
                       const Real_ptr z6, const Real_ptr z7,
                       const Real_type vnormq,
-                      Index_type ibegin, Index_type ilen)
+                      Index_type ibegin, Index_type iend)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   if (ii < ilen) {
-     Index_type i = ii + ibegin; 
+   Index_type i = ii + ibegin; 
+   if (i < iend) {
      VOL3D_BODY;
    }
 }
@@ -217,6 +217,8 @@ VOL3D::VOL3D(const RunParams& params)
   setDefaultReps(300);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+
+  m_array_length = m_domain->nnalls;;
 }
 
 VOL3D::~VOL3D() 
@@ -230,12 +232,16 @@ Index_type VOL3D::getItsPerRep() const {
 
 void VOL3D::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->lpn;
+  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_z, m_array_length, 0.0, vid);
 
-  allocAndInitData(m_x, max_loop_index, vid);
-  allocAndInitData(m_y, max_loop_index, vid);
-  allocAndInitData(m_z, max_loop_index, vid);
-  allocAndInitData(m_vol, max_loop_index, vid);
+  Real_type dx = 0.3;
+  Real_type dy = 0.2;
+  Real_type dz = 0.1;
+  setMeshPositions_3d(m_x, dx, m_y, dy, m_z, dz, *m_domain);
+
+  allocAndInitDataConst(m_vol, m_array_length, 0.0, vid);
 
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
 }
@@ -281,7 +287,7 @@ void VOL3D::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           VOL3D_BODY;
         }); 
 
@@ -326,7 +332,7 @@ void VOL3D::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           VOL3D_BODY;
         });
 
@@ -344,7 +350,7 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      int n = m_domain->lpn;
+      int n = m_array_length;
       int jp = m_domain->jp;
       int kp = m_domain->kp;
 
@@ -377,7 +383,7 @@ void VOL3D::runKernel(VariantID vid)
 
       VOL3D_DATA;
 
-      int n = m_domain->lpn;
+      int n = m_array_length;
       int jp = m_domain->jp;
       int kp = m_domain->kp;
 
@@ -388,7 +394,7 @@ void VOL3D::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ;
           ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ;
           ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
@@ -418,9 +424,6 @@ void VOL3D::runKernel(VariantID vid)
       NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
       NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
-      const Index_type ibegin = m_domain->fpz;
-      const Index_type ilen = m_domain->lpz+1 - ibegin;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -431,7 +434,7 @@ void VOL3D::runKernel(VariantID vid)
                                          y0, y1, y2, y3, y4, y5, y6, y7,
                                          z0, z1, z2, z3, z4, z5, z6, z7,
                                          vnormq,
-                                         ibegin, ilen);
+                                         ibegin, iend);
 
       }
       stopTimer();
@@ -475,7 +478,7 @@ void VOL3D::runKernel(VariantID vid)
 
 void VOL3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_vol, getRunSize());
+  checksum[vid] += calcChecksum(m_vol, m_array_length);
 }
 
 void VOL3D::tearDown(VariantID vid)

@@ -204,6 +204,7 @@ POLYBENCH_2MM::~POLYBENCH_2MM()
 void POLYBENCH_2MM::setUp(VariantID vid)
 {
   (void) vid;
+  initDataConst(m_D, m_ni * m_nl, 0.0);
 }
 
 void POLYBENCH_2MM::runKernel(VariantID vid)

@@ -106,9 +106,9 @@ MULADDSUB::~MULADDSUB()
 
 void MULADDSUB::setUp(VariantID vid)
 {
-  allocAndInitData(m_out1, getRunSize(), vid);
-  allocAndInitData(m_out2, getRunSize(), vid);
-  allocAndInitData(m_out3, getRunSize(), vid);
+  allocAndInitDataConst(m_out1, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_out2, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_out3, getRunSize(), 0.0, vid);
   allocAndInitData(m_in1, getRunSize(), vid);
   allocAndInitData(m_in2, getRunSize(), vid);
 }

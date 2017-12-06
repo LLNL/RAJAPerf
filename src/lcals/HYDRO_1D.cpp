@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// HYDRO_1D kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+/// }
+///
 
 #include "HYDRO_1D.hpp"
 
@@ -92,7 +99,7 @@ HYDRO_1D::~HYDRO_1D()
 
 void HYDRO_1D::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+12, vid);
+  allocAndInitDataConst(m_x, getRunSize()+12, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+12, vid);
   allocAndInitData(m_z, getRunSize()+12, vid);
 

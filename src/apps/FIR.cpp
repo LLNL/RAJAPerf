@@ -32,9 +32,9 @@
 
 #include "FIR.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -169,7 +169,7 @@ Index_type FIR::getItsPerRep() const {
 void FIR::setUp(VariantID vid)
 {
   allocAndInitData(m_in, getRunSize(), vid);
-  allocAndInitData(m_out, getRunSize(), vid);
+  allocAndInitDataConst(m_out, getRunSize(), 0.0, vid);
 }
 
 void FIR::runKernel(VariantID vid)

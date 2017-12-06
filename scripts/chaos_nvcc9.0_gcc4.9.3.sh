@@ -14,21 +14,20 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos_nvcc9.0_clang-coral-2017.09.06 >/dev/null
-mkdir build_blueos_nvcc9.0_clang-coral-2017.09.06 && cd build_blueos_nvcc9.0_clang-coral-2017.09.06
-
-module load cmake/3.7.2
+rm -rf build_chaos-nvcc9.0_gcc4.9.3 2>/dev/null
+mkdir build_chaos-nvcc9.0_gcc4.9.3 && cd build_chaos-nvcc9.0_gcc4.9.3
+. /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_clang_coral_2017_09_06.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/chaos/nvcc_gcc4_9_3.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.0.176 \
+  -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-9.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.0_clang-coral-2017.09.06 \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-nvcc9.0_gcc4.9.3 \
   "$@" \
   ${PERFSUITE_DIR}

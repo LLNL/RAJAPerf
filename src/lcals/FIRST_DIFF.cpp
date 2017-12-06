@@ -13,6 +13,13 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// FIRST_DIFF kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = y[i+1] - y[i]; 
+/// }
+///
 
 #include "FIRST_DIFF.hpp"
 
@@ -80,7 +87,7 @@ FIRST_DIFF::~FIRST_DIFF()
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+1, vid);
+  allocAndInitDataConst(m_x, getRunSize()+1, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+1, vid);
 }
 

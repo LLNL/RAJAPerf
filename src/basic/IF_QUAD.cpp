@@ -121,8 +121,8 @@ void IF_QUAD::setUp(VariantID vid)
   allocAndInitDataRandSign(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
-  allocAndInitData(m_x1, getRunSize(), vid);
-  allocAndInitData(m_x2, getRunSize(), vid);
+  allocAndInitDataConst(m_x1, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_x2, getRunSize(), 0.0, vid);
 }
 
 void IF_QUAD::runKernel(VariantID vid)

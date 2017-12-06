@@ -13,6 +13,14 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// PLANCKIAN kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   y[i] = u[i] / v[i]; 
+///   w[i] = x[i] / ( exp( y[i] ) - 1.0 );
+/// }
+///
 
 #include "PLANCKIAN.hpp"
 
@@ -99,7 +107,7 @@ void PLANCKIAN::setUp(VariantID vid)
   allocAndInitData(m_y, getRunSize(), vid);
   allocAndInitData(m_u, getRunSize(), vid);
   allocAndInitData(m_v, getRunSize(), vid);
-  allocAndInitData(m_w, getRunSize(), vid);
+  allocAndInitDataConst(m_w, getRunSize(), 0.0, vid);
 }
 
 void PLANCKIAN::runKernel(VariantID vid)

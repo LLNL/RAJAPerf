@@ -98,8 +98,12 @@ void NESTED_INIT::setUp(VariantID vid)
   m_nk = m_nk_init * static_cast<Real_type>( getRunSize() ) / getDefaultSize();
 
   int len = m_ni * m_nj * m_nk;
+#if 0
   m_array = RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
                                                    len*sizeof(Real_type)); 
+#else
+  allocAndInitDataConst(m_array, len, 0.0, vid);
+#endif
 }
 
 void NESTED_INIT::runKernel(VariantID vid)

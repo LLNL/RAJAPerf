@@ -180,35 +180,36 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMMVER, params)
 {
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_n=40;
-      m_run_reps = 200000;
+      run_reps = 200000;
       break;
     case Small:
       m_n=120; 
-      m_run_reps = 20000;
+      run_reps = 20000;
       break;
     case Medium:
       m_n=400;
-      m_run_reps = 2000;
+      run_reps = 2000;
       break;
     case Large:
       m_n=2000;
-      m_run_reps = 20;
+      run_reps = 20;
       break;
     case Extralarge:
       m_n=4000; 
-      m_run_reps = 5;
+      run_reps = 5;
       break;
     default:
       m_n=400;
-      m_run_reps = 2000;
+      run_reps = 2000;
       break;
   }
 
   setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
-  setDefaultReps(m_run_reps);
+  setDefaultReps(run_reps);
 
   allocAndInitData(m_A, m_n * m_n);
   allocAndInitData(m_u1, m_n);
@@ -237,6 +238,13 @@ POLYBENCH_GEMMVER::~POLYBENCH_GEMMVER()
 void POLYBENCH_GEMMVER::setUp(VariantID vid)
 {
   (void) vid;
+#if 0 // RDH attempt to initialize alpha and beta to non-zero values and
+      // w to zero so checksum indicates whether kernel variant is run.
+      // These changes break the code...
+  initData(m_alpha);
+  initData(m_beta);
+  initDataConst(m_w, m_n, 0.0);
+#endif
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
@@ -266,6 +274,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
         }
 
+// RDH This should not be a loop nest, only an 'i' loop
         for (Index_type i = 0; i < n; i++ ) { 
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY3;

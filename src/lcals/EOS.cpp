@@ -13,6 +13,15 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// EOS kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = u[i] + r*( z[i] + r*y[i] ) + 
+///                 t*( u[i+3] + r*( u[i+2] + r*u[i+1] ) + 
+///                    t*( u[i+6] + q*( u[i+5] + q*u[i+4] ) ) );
+/// }
+///
 
 #include "EOS.hpp"
 
@@ -98,7 +107,7 @@ EOS::~EOS()
 
 void EOS::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize()+7, vid);
+  allocAndInitDataConst(m_x, getRunSize()+7, 0.0, vid);
   allocAndInitData(m_y, getRunSize()+7, vid);
   allocAndInitData(m_z, getRunSize()+7, vid);
   allocAndInitData(m_u, getRunSize()+7, vid);
