@@ -13,6 +13,22 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// ADD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   c[i] = a[i] + b[i];
+/// }
+///
+
+#define ADD_DATA \
+  ResReal_ptr a = m_a; \
+  ResReal_ptr b = m_b; \
+  ResReal_ptr c = m_c;
+
+#define ADD_BODY  \
+  c[i] = a[i] + b[i];
+
 
 #ifndef RAJAPerf_Stream_ADD_HPP
 #define RAJAPerf_Stream_ADD_HPP
@@ -39,10 +55,14 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
+
 private:
   Real_ptr m_a;
   Real_ptr m_b;
   Real_ptr m_c;
+
 };
 
 } // end namespace stream

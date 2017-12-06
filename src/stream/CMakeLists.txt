@@ -18,6 +18,8 @@ blt_add_library(
   SOURCES COPY.cpp 
           MUL.cpp 
           ADD.cpp 
+          ADD-Cuda.cpp 
+          ADD-OMPTarget.cpp 
           TRIAD.cpp 
           DOT.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}

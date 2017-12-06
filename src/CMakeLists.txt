@@ -75,6 +75,8 @@ blt_add_executable(
   polybench/POLYBENCH_3MM.cpp
   polybench/POLYBENCH_GEMMVER.cpp
   stream/ADD.cpp
+  stream/ADD-Cuda.cpp
+  stream/ADD-OMPTarget.cpp
   stream/COPY.cpp
   stream/DOT.cpp
   stream/MUL.cpp
