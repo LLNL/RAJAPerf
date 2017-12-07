@@ -186,7 +186,7 @@ void COPY::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+       for (Index_type i = ibegin; i < iend; ++i ) {
           COPY_BODY;
         }
 

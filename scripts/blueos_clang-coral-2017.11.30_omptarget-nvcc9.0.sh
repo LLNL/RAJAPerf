@@ -14,25 +14,25 @@
 ##
 
 
-rm -rf build_blueos_clang-coral-2017.10.13 >/dev/null
-mkdir build_blueos_clang-coral-2017.10.13 && cd build_blueos_clang-coral-2017.10.13
+rm -rf build_blueos_clang-coral-2017.11.30 >/dev/null
+mkdir build_blueos_clang-coral-2017.11.30 && cd build_blueos_clang-coral-2017.11.30
 
+
+export CUDA_DIR=$CUDA_HOME
 
 PERFSUITE_DIR=$(git rev-parse --show-toplevel)
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_coral_2017_10_13.cmake \
+  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_coral_2017_11_30.cmake \
   -DENABLE_OPENMP=On \
-  -DENABLE_CUDA=Off \
-  -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target -fopenmp-implicit-map-lambdas" \
   -DENABLE_TARGET_OPENMP=On \
-  -DRAJA_ENABLE_TARGET_OPENMP=On \
+  -DENABLE_TESTS=Off \
+  -DENABLE_CUDA=Off \
+  -DOpenMP_CXX_FLAGS=" -fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target -fopenmp-implicit-map-lambdas" \
   -DRAJA_ENABLE_MODULES=Off \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DRAJA_BUILD_WITH_BLT=On \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.11.30 \
   "$@" \
   ${PERFSUITE_DIR}

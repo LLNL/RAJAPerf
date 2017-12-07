@@ -28,7 +28,6 @@ cmake \
   -DENABLE_TESTS=Off \
   -DENABLE_OPENMP=On \
   -DENABLE_TARGET_OPENMP=On \
-  -DRAJA_ENABLE_TARGET_OPENMP=On \
   -DOpenMP_CXX_FLAGS="-qsmp=omp -qoffload" \
   -DENABLE_CUDA=Off \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.0.176 \
