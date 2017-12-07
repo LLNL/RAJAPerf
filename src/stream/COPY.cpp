@@ -60,7 +60,7 @@ namespace stream
 #define COPY_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_c, c, iend); \
   deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(c)
+  deallocCudaDeviceData(c);
 
 __global__ void copy(Real_ptr c, Real_ptr a,
                      Index_type iend) 

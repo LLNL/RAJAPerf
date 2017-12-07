@@ -47,7 +47,7 @@ namespace stream
   getCudaDeviceData(m_c, c, iend); \
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
+  deallocCudaDeviceData(c);
 
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)

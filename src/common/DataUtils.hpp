@@ -147,6 +147,21 @@ void initData(Complex_ptr& ptr, int len,
 void initData(Real_type& d,
               VariantID vid = NumVariants);
 
+/*!
+ * \brief Calculate and return checksum for data arrays.
+ * 
+ * Checksums are computed as a weighted sum of array entries,
+ * where weight is a simple function of elemtn index.
+ *
+ * Checksumn is multiplied by given scale factor.
+ */
+long double calcChecksum(Real_ptr d, int len, 
+                         Real_type scale_factor = 1.0);
+///
+long double calcChecksum(Complex_ptr d, int len, 
+                         Real_type scale_factor = 1.0);
+
+
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -203,22 +218,7 @@ void deallocCudaDeviceData(T& dptr)
   dptr = 0;
 }
 
-#endif
-
-
-/*!
- * \brief Calculate and return checksum for data arrays.
- * 
- * Checksums are computed as a weighted sum of array entries,
- * where weight is a simple function of elemtn index.
- *
- * Checksumn is multiplied by given scale factor.
- */
-long double calcChecksum(Real_ptr d, int len, 
-                         Real_type scale_factor = 1.0);
-///
-long double calcChecksum(Complex_ptr d, int len, 
-                         Real_type scale_factor = 1.0);
+#endif // RAJA_ENABLE_CUDA
 
 
 }  // closing brace for rajaperf namespace

@@ -66,7 +66,7 @@ namespace stream
   getCudaDeviceData(m_a, a, iend); \
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
+  deallocCudaDeviceData(c);
 
 __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
                       Index_type iend) 
