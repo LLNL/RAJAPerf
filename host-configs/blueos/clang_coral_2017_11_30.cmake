@@ -14,11 +14,11 @@
 
 set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
 
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2017.10.13/bin/clang++-gpu" CACHE PATH "")
-set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-coral-2017.10.13/bin/clang-gpu" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2017.11.30/bin/clang++-gpu" CACHE PATH "")
+set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-coral-2017.11.30/bin/clang-gpu" CACHE PATH "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-vectorize " CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -fno-vectorize" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-vectorize" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -fno-vectorize -g" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
 set(RAJA_RANGE_ALIGN 4 CACHE INT "")

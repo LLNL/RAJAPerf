@@ -93,12 +93,11 @@ namespace apps
   Real_ptr z = m_z; \
   ResReal_ptr vol = m_vol; \
 \
-  const Real_type vnormq = m_vnormq;
+  const Real_type vnormq = m_vnormq; \
 \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
   Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
-
 
 #define VOL3D_BODY \
   Real_type x71 = x7[i] - x1[i] ; \
@@ -354,28 +353,23 @@ void VOL3D::runKernel(VariantID vid)
       int jp = m_domain->jp;
       int kp = m_domain->kp;
 
-      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],vnormq,vol[0:n],jp,kp)
+      NDPTRSET(jp, kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(jp, kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(jp, kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
+      #pragma omp target data map(to:x[0:n],y[0:n],z[0:n],vnormq) map(tofrom:vol[0:n] ) 
+      {
       startTimer();
+    
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         for (Index_type i = ibegin ; i < iend ; ++i ) {
-          ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ;
-          ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ;
-          ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
-          NDPTRSET(jp, kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-          NDPTRSET(jp, kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-          NDPTRSET(jp, kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
-
-          VOL3D_BODY;
+         VOL3D_BODY;
         }
 
       }
       stopTimer();
-
-      #pragma omp target exit data map(delete:x[0:n],y[0:n],z[0:n],vnormq,jp,kp) map(from:vol[0:n])
-
+      }
       break;
     }
 
@@ -386,29 +380,24 @@ void VOL3D::runKernel(VariantID vid)
       int n = m_array_length;
       int jp = m_domain->jp;
       int kp = m_domain->kp;
+      NDPTRSET(jp, kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+      NDPTRSET(jp, kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
+      NDPTRSET(jp, kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
-      #pragma omp target enter data map(to:x[0:n],y[0:n],z[0:n],vnormq,vol[0:n],jp,kp)
-
+      #pragma omp target data map(to:x[0:n],y[0:n],z[0:n],vnormq) map(tofrom:vol[0:n] ) 
+      {
+	
       startTimer();
-      #pragma omp target data use_device_ptr( x,y,z, vol )
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+	#pragma omp target data use_device_ptr(vol,x0,x1,x2,x3,x4,x5,x6,x7,y0,y1,y2,y3,y4,y5,y6,y7,z0,z1,z2,z3,z4,z5,z6,z7)
         RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          ResReal_ptr x0,x1,x2,x3,x4,x5,x6,x7 ;
-          ResReal_ptr y0,y1,y2,y3,y4,y5,y6,y7 ;
-          ResReal_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
-          NDPTRSET(jp, kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-          NDPTRSET(jp, kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-          NDPTRSET(jp, kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
-
           VOL3D_BODY;
         });
 
       }
       stopTimer();
-
-      #pragma omp target exit data map(delete:x[0:n],y[0:n],z[0:n],vnormq,jp,kp) map(from:vol[0:n])
+	}
 
       break;
     }
