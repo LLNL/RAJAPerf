@@ -203,7 +203,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 20000;
       break;
     case Medium:
-      m_n=400;
+      m_n=16;
       run_reps = 2000;
       break;
     case Large:
@@ -215,7 +215,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 5;
       break;
     default:
-      m_n=400;
+      m_n=5;
       run_reps = 2000;
       break;
   }
@@ -265,14 +265,25 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY1;
-
           }
+        }
+        for (Index_type i = 0; i < n; i++) {
+          //printf("SEQ b x[%ld] = %f\n",i,*(x+i)); 
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
           for (Index_type j = 0; j < n; j++) {
+                if(j==0) {
+                   printf("x = %lf\n",*(x+i));
+                   printf("A = %lf\n",*(A+j*n+i));
+                   printf("y = %lf\n",*(y+j));
+                } 
             POLYBENCH_GEMMVER_BODY2;
+            printf("SEQ a %ld x[%ld] = %f\n",j,i,*(x+i)); 
           }
+        }
+        for (Index_type i = 0; i < n; i++) {
+          //printf("SEQ a x[%ld] = %f\n",i,*(x+i)); 
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
@@ -283,6 +294,11 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY4;
           }
+        }
+
+
+        for (Index_type i = 0; i < n; i++) {
+          //printf("SEQ a w[%ld] = %f\n",i,*(w+i)); 
         }
 
       }
@@ -438,24 +454,34 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
         for (Index_type i = 0; i < n; i++ ) { 
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY2;
+          for(Index_type jj = 0; jj < n; jj++) {
+             if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY2;
+              } 
+            }
           }
         }
 
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMMVER_BODY3;
         }
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < n; i++ ) {
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY4;
+          for(Index_type jj = 0; jj < n; jj++) {
+             if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY4;
+              } 
+            }   
           }
         }
+
+
 
       }
       stopTimer();
@@ -484,9 +510,20 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY2; 
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; j++) {
+                if(j==0) {
+                   printf("x = %lf\n",*(x+i));
+                   printf("A = %lf\n",*(A+j*n+i));
+                   printf("y = %lf\n",*(y+j));
+                } 
+                //printf("ompt b %ld x[%ld] = %f\n",j,i,*(x+i)); 
+                POLYBENCH_GEMMVER_BODY2;
+                printf("ompt a %ld x[%ld] = %f\n",j,i,*(x+i)); 
+              } 
+            }
         });
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
@@ -496,16 +533,25 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY4; 
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; j++) { 
+                POLYBENCH_GEMMVER_BODY4;
+                //if(j==n-1)printf("ompt a w[%ld] = %f\n",i,*(w+i)); 
+              } 
+            }   
         });
+
 
       } // for run_reps   
       stopTimer();
 
       #pragma omp target exit data map(from:w[0:m_n]) map(delete: u1[0:m_n],v1[0:m_n], u2[0:m_n], v2[0:m_n], x[0: m_n], y[0: m_n], z[0:m_n], alpha, beta)
     
+      //for (Index_type i = 0; i < 16; i++) {
+      //  printf("ompt a w[%ld] = %f\n",i,*(w+i)); 
+      //}
       break;                        
     }  
 #endif //RAJA_ENABLE_TARGET_OPENMP
