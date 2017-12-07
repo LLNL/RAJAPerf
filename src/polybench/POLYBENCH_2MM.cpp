@@ -42,6 +42,8 @@
 #include "RAJA/RAJA.hpp"
 #include "RAJA/util/defines.hpp"
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include <iostream>
 #include <cstring>

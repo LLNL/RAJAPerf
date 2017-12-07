@@ -29,6 +29,8 @@
 #include "INIT_VIEW1D_OFFSET.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 

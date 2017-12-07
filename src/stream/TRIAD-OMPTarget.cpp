@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ADD.hpp"
+#include "TRIAD.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -33,25 +33,32 @@ namespace stream
 //
 #define NUMTEAMS 128
 
-#define ADD_DATA_SETUP_OMP_TARGET \
+#define TRIAD_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
   Real_ptr a; \
   Real_ptr b; \
   Real_ptr c; \
+  Real_type alpha = m_alpha; \
 \
   allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
   allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
   allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
+//  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid); \
+//\
+//_Pragma("omp target enter data map(to:alpha)")
 
-#define ADD_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_c, c, iend, hid, did); \
+#define TRIAD_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_a, a, iend, hid, did); \
   deallocOpenMPDeviceData(a, did); \
   deallocOpenMPDeviceData(b, did); \
   deallocOpenMPDeviceData(c, did);
+//  deallocOpenMPDeviceData(c, did); \
+//\
+//_Pragma("omp target exit data map(delete:alpha)")
 
-void ADD::runOpenMPTargetVariant(VariantID vid)
+void TRIAD::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -59,41 +66,65 @@ void ADD::runOpenMPTargetVariant(VariantID vid)
 
   if ( vid == Base_OpenMPTarget ) {
 
-    ADD_DATA_SETUP_OMP_TARGET;
+#if 1
+    TRIAD_DATA;
+
+    int n = getRunSize();
+    #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(a, b, c) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
-        ADD_BODY;
+        TRIAD_BODY;
       }
 
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_OMP_TARGET;
+    #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
+#else
+
+    TRIAD_DATA_SETUP_OMP_TARGET;
+
+    #pragma omp target enter data map(to:alpha)
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      for (Index_type i = ibegin; i < iend; ++i ) {
+        TRIAD_BODY;
+      }
+
+    }
+    stopTimer();
+
+    TRIAD_DATA_TEARDOWN_OMP_TARGET;
+
+    #pragma omp target exit data map(delete:alpha)
+#endif
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    ADD_DATA_SETUP_OMP_TARGET;
+    TRIAD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        ADD_BODY;
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+        TRIAD_BODY;
       });
 
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_OMP_TARGET;
+    TRIAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  ADD : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

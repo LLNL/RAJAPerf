@@ -13,19 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///      
-/// TRIAD kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i] = b[i] + alpha * c[i] ;
-/// }
-///
-
 #include "TRIAD.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -33,52 +25,6 @@ namespace rajaperf
 {
 namespace stream
 {
-
-#define TRIAD_DATA \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  Real_type alpha = m_alpha;
-
-#define TRIAD_BODY  \
-  a[i] = b[i] + alpha * c[i] ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define TRIAD_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define TRIAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
-
-__global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
-                      Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     TRIAD_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
-
 
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
@@ -178,97 +124,22 @@ void TRIAD::runKernel(VariantID vid)
 
       break;
     }
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-
-#define NUMTEAMS 128
-
-    case Base_OpenMPTarget : {
-
-      TRIAD_DATA;
-
-      int n = getRunSize();
-      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_BODY;
-        }
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
-
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
-
-    case RAJA_OpenMPTarget : {
-
-      TRIAD_DATA;
-
-      int n = getRunSize();
-      #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
-
-      startTimer();
-      #pragma omp target data use_device_ptr(a,b,c)
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRIAD_BODY;
-        });
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
-
-      break;
-    }
-#endif //RAJA_ENABLE_TARGET_OPENMP
-#endif //RAJA_ENABLE_OMP                             
+#endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      TRIAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         triad<<<grid_size, block_size>>>( a, b, c, alpha,
-                                           iend ); 
-
-      }
-      stopTimer();
-
-      TRIAD_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      TRIAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           TRIAD_BODY;
-         });
-
-      }
-      stopTimer();
-
-      TRIAD_DATA_TEARDOWN_CUDA;
-
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif

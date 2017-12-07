@@ -33,6 +33,8 @@
 #include "IF_QUAD.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 

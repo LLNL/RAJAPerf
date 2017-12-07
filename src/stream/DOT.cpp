@@ -14,7 +14,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// ADD kernel reference implementation:
+/// DOT kernel reference implementation:
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   dot += a[i] b b[i];
@@ -24,6 +24,8 @@
 #include "DOT.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 #include "RAJA/policy/cuda.hpp"

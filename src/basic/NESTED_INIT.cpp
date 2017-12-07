@@ -28,6 +28,8 @@
 #include "NESTED_INIT.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 #include "RAJA/internal/MemUtils_CPU.hpp"

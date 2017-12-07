@@ -25,6 +25,8 @@
 #include "PLANCKIAN.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 

@@ -34,6 +34,8 @@
 #include "LTIMES_NOVIEW.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 #include "camp/camp.hpp"

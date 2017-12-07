@@ -81,5 +81,7 @@ blt_add_executable(
   stream/DOT.cpp
   stream/MUL.cpp
   stream/TRIAD.cpp
+  stream/TRIAD-Cuda.cpp
+  stream/TRIAD-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )

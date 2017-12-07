@@ -21,6 +21,8 @@ blt_add_library(
           ADD-Cuda.cpp 
           ADD-OMPTarget.cpp 
           TRIAD.cpp 
+          TRIAD-Cuda.cpp 
+          TRIAD-OMPTarget.cpp 
           DOT.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

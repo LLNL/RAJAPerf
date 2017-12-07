@@ -44,6 +44,8 @@
 #include "DIFF_PREDICT.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 #include "RAJA/util/defines.hpp"

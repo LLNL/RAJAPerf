@@ -35,6 +35,8 @@
 #include "TRAP_INT.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 #include "RAJA/policy/cuda.hpp"

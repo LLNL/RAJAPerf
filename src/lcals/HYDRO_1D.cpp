@@ -24,6 +24,8 @@
 #include "HYDRO_1D.hpp"
 
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include "RAJA/RAJA.hpp"
 
