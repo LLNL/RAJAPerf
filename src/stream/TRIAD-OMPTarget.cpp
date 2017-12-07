@@ -45,18 +45,12 @@ namespace stream
   allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
   allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
   allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
-//  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid); \
-//\
-//_Pragma("omp target enter data map(to:alpha)")
 
 #define TRIAD_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_a, a, iend, hid, did); \
   deallocOpenMPDeviceData(a, did); \
   deallocOpenMPDeviceData(b, did); \
   deallocOpenMPDeviceData(c, did);
-//  deallocOpenMPDeviceData(c, did); \
-//\
-//_Pragma("omp target exit data map(delete:alpha)")
 
 void TRIAD::runOpenMPTargetVariant(VariantID vid)
 {
@@ -66,34 +60,13 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid)
 
   if ( vid == Base_OpenMPTarget ) {
 
-#if 1
-    TRIAD_DATA;
-
-    int n = getRunSize();
-    #pragma omp target enter data map(to:a[0:n],b[0:n],c[0:n],alpha)
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
-      for (Index_type i = ibegin; i < iend; ++i ) {
-        TRIAD_BODY;
-      }
-
-    }
-    stopTimer();
-
-    #pragma omp target exit data map(from:a[0:n])  map(delete:b[0:n],c[0:n],alpha)
-#else
-
     TRIAD_DATA_SETUP_OMP_TARGET;
 
-    #pragma omp target enter data map(to:alpha)
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp target is_device_ptr(a, b, c) device( did )
+      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRIAD_BODY;
       }
@@ -102,9 +75,6 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     TRIAD_DATA_TEARDOWN_OMP_TARGET;
-
-    #pragma omp target exit data map(delete:alpha)
-#endif
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
