@@ -213,30 +213,23 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
   setDefaultReps(m_run_reps);
 
-  allocAndInitData(m_A, m_ni * m_nk);
-  allocAndInitData(m_B, m_nk * m_nj);
-  allocAndInitData(m_C, m_nj * m_nm);
-  allocAndInitData(m_D, m_nm * m_nl);
-  allocAndInitData(m_E, m_ni * m_nj);
-  allocAndInitData(m_F, m_nj * m_nl);
-  allocAndInitData(m_G, m_ni * m_nl);
+
 }
 
 POLYBENCH_3MM::~POLYBENCH_3MM() 
 {
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
-  deallocData(m_E);
-  deallocData(m_F);
-  deallocData(m_G);
 }
 
 void POLYBENCH_3MM::setUp(VariantID vid)
 {
   (void) vid;
-  initDataConst(m_G, m_ni * m_nl, 0.0);
+  allocAndInitData(m_A, m_ni * m_nk, vid);
+  allocAndInitData(m_B, m_nk * m_nj, vid);
+  allocAndInitData(m_C, m_nj * m_nm, vid);
+  allocAndInitData(m_D, m_nm * m_nl, vid);
+  allocAndInitData(m_E, m_ni * m_nj, vid);
+  allocAndInitData(m_F, m_nj * m_nl, vid);
+  allocAndInitDataConst(m_G, m_ni * m_nl, 0.0, vid);
 }
 
 void POLYBENCH_3MM::runKernel(VariantID vid)
@@ -652,7 +645,13 @@ void POLYBENCH_3MM::updateChecksum(VariantID vid)
 void POLYBENCH_3MM::tearDown(VariantID vid)
 {
   (void) vid;
-
+  deallocData(m_A);
+  deallocData(m_B);
+  deallocData(m_C);
+  deallocData(m_D);
+  deallocData(m_E);
+  deallocData(m_F);
+  deallocData(m_G);
 }
 
 } // end namespace basic

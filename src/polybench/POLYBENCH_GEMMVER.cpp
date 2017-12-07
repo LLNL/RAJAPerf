@@ -184,8 +184,6 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
    }
 }
 
-
-
 #endif // if defined(RAJA_ENABLE_CUDA)
   
 POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
@@ -203,7 +201,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 20000;
       break;
     case Medium:
-      m_n=16;
+      m_n=400;
       run_reps = 2000;
       break;
     case Large:
@@ -215,7 +213,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 5;
       break;
     default:
-      m_n=5;
+      m_n=400;
       run_reps = 2000;
       break;
   }
@@ -267,23 +265,11 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
             POLYBENCH_GEMMVER_BODY1;
           }
         }
-        for (Index_type i = 0; i < n; i++) {
-          //printf("SEQ b x[%ld] = %f\n",i,*(x+i)); 
-        }
 
         for (Index_type i = 0; i < n; i++ ) { 
           for (Index_type j = 0; j < n; j++) {
-                if(j==0) {
-                   printf("x = %lf\n",*(x+i));
-                   printf("A = %lf\n",*(A+j*n+i));
-                   printf("y = %lf\n",*(y+j));
-                } 
             POLYBENCH_GEMMVER_BODY2;
-            printf("SEQ a %ld x[%ld] = %f\n",j,i,*(x+i)); 
           }
-        }
-        for (Index_type i = 0; i < n; i++) {
-          //printf("SEQ a x[%ld] = %f\n",i,*(x+i)); 
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
@@ -294,11 +280,6 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY4;
           }
-        }
-
-
-        for (Index_type i = 0; i < n; i++) {
-          //printf("SEQ a w[%ld] = %f\n",i,*(w+i)); 
         }
 
       }
@@ -486,7 +467,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       }
       stopTimer();
 
-      #pragma omp target exit data map(from:w[0:m_n]) map(delete: u1[0:m_n],v1[0:m_n], u2[0:m_n], v2[0:m_n], x[0: m_n], y[0: m_n], z[0:m_n], alpha, beta)
+      #pragma omp target exit data map(from:w[0:n]) map(delete: A[0:n*n],u1[0:n],v1[0:n], u2[0:n], v2[0:n], x[0:n], y[0:n], z[0:n], alpha, beta)
 
       break;
     }
@@ -514,14 +495,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
             i = ii/n; jj = ii % n;
             if(jj == 0) {
               for(Index_type j=0; j < n; j++) {
-                if(j==0) {
-                   printf("x = %lf\n",*(x+i));
-                   printf("A = %lf\n",*(A+j*n+i));
-                   printf("y = %lf\n",*(y+j));
-                } 
-                //printf("ompt b %ld x[%ld] = %f\n",j,i,*(x+i)); 
                 POLYBENCH_GEMMVER_BODY2;
-                printf("ompt a %ld x[%ld] = %f\n",j,i,*(x+i)); 
               } 
             }
         });
@@ -538,20 +512,15 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
             if(jj == 0) {
               for(Index_type j=0; j < n; j++) { 
                 POLYBENCH_GEMMVER_BODY4;
-                //if(j==n-1)printf("ompt a w[%ld] = %f\n",i,*(w+i)); 
               } 
             }   
         });
 
-
       } // for run_reps   
       stopTimer();
 
-      #pragma omp target exit data map(from:w[0:m_n]) map(delete: u1[0:m_n],v1[0:m_n], u2[0:m_n], v2[0:m_n], x[0: m_n], y[0: m_n], z[0:m_n], alpha, beta)
+      #pragma omp target exit data map(from:w[0:n]) map(delete: A[0:n*n], u1[0:n],v1[0:n], u2[0:n], v2[0:n], x[0:n], y[0:n], z[0:n], alpha, beta)
     
-      //for (Index_type i = 0; i < 16; i++) {
-      //  printf("ompt a w[%ld] = %f\n",i,*(w+i)); 
-      //}
       break;                        
     }  
 #endif //RAJA_ENABLE_TARGET_OPENMP
