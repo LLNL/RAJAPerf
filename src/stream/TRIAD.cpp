@@ -26,6 +26,12 @@ namespace rajaperf
 namespace stream
 {
 
+#define TRIAD_DATA_SETUP_CPU \
+  ResReal_ptr a = m_a; \
+  ResReal_ptr b = m_b; \
+  ResReal_ptr c = m_c; \
+  Real_type alpha = m_alpha;
+
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
@@ -55,7 +61,7 @@ void TRIAD::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,7 +78,7 @@ void TRIAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,7 +97,7 @@ void TRIAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -109,7 +115,7 @@ void TRIAD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

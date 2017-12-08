@@ -78,8 +78,14 @@ blt_add_executable(
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp
   stream/COPY.cpp
+  stream/COPY-Cuda.cpp
+  stream/COPY-OMPTarget.cpp
   stream/DOT.cpp
+  stream/DOT-Cuda.cpp
+  stream/DOT-OMPTarget.cpp
   stream/MUL.cpp
+  stream/MUL-Cuda.cpp
+  stream/MUL-OMPTarget.cpp
   stream/TRIAD.cpp
   stream/TRIAD-Cuda.cpp
   stream/TRIAD-OMPTarget.cpp

@@ -21,18 +21,13 @@
 /// }
 ///
 
-#define TRIAD_DATA \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  Real_type alpha = m_alpha;
+#ifndef RAJAPerf_Stream_TRIAD_HPP
+#define RAJAPerf_Stream_TRIAD_HPP
+
 
 #define TRIAD_BODY  \
   a[i] = b[i] + alpha * c[i] ;
 
-
-#ifndef RAJAPerf_Stream_TRIAD_HPP
-#define RAJAPerf_Stream_TRIAD_HPP
 
 #include "common/KernelBase.hpp"
 

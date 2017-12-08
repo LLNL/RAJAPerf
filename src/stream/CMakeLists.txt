@@ -15,14 +15,20 @@
 
 blt_add_library(
   NAME stream
-  SOURCES COPY.cpp 
+  SOURCES ADD.cpp
+          ADD-Cuda.cpp
+          ADD-OMPTarget.cpp
+          COPY.cpp 
+          COPY-Cuda.cpp
+          COPY-OMPTarget.cpp
+          DOT.cpp 
+          DOT-Cuda.cpp 
+          DOT-OMPTarget.cpp 
           MUL.cpp 
-          ADD.cpp 
-          ADD-Cuda.cpp 
-          ADD-OMPTarget.cpp 
+          MUL-Cuda.cpp 
+          MUL-OMPTarget.cpp 
           TRIAD.cpp 
           TRIAD-Cuda.cpp 
           TRIAD-OMPTarget.cpp 
-          DOT.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

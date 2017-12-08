@@ -21,17 +21,13 @@
 /// }
 ///
 
-#define ADD_DATA \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c;
-
-#define ADD_BODY  \
-  c[i] = a[i] + b[i];
-
-
 #ifndef RAJAPerf_Stream_ADD_HPP
 #define RAJAPerf_Stream_ADD_HPP
+
+
+#define ADD_BODY  \
+  c[i] = a[i] + b[i]; 
+
 
 #include "common/KernelBase.hpp"
 
