@@ -52,7 +52,11 @@ blt_add_executable(
   apps/WIP-COUPLE.cpp
   basic/IF_QUAD.cpp
   basic/INIT3.cpp
+  basic/INIT3-Cuda.cpp
+  basic/INIT3-OMPTarget.cpp
   basic/MULADDSUB.cpp
+  basic/MULADDSUB-Cuda.cpp
+  basic/MULADDSUB-OMPTarget.cpp
   basic/NESTED_INIT.cpp
   basic/REDUCE3_INT.cpp
   basic/TRAP_INT.cpp

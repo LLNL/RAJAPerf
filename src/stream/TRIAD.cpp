@@ -26,11 +26,13 @@ namespace rajaperf
 namespace stream
 {
 
+
 #define TRIAD_DATA_SETUP_CPU \
   ResReal_ptr a = m_a; \
   ResReal_ptr b = m_b; \
   ResReal_ptr c = m_c; \
   Real_type alpha = m_alpha;
+
 
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)

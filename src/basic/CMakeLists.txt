@@ -15,10 +15,14 @@
 
 blt_add_library(
   NAME basic
-  SOURCES MULADDSUB.cpp 
+  SOURCES MULADDSUB.cpp
+          MULADDSUB-Cuda.cpp 
+          MULADDSUB-OMPTarget.cpp 
           IF_QUAD.cpp 
           TRAP_INT.cpp 
           INIT3.cpp
+          INIT3-Cuda.cpp
+          INIT3-OMPTarget.cpp
           REDUCE3_INT.cpp
           NESTED_INIT.cpp
           INIT_VIEW1D.cpp

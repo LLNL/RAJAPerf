@@ -26,10 +26,12 @@ namespace rajaperf
 namespace stream
 {
 
+
 #define MUL_DATA_SETUP_CPU \
   ResReal_ptr b = m_b; \
   ResReal_ptr c = m_c; \
   Real_type alpha = m_alpha;
+
 
 MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)

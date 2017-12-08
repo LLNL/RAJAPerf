@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// INIT3 kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
+/// }
+///
 
 #ifndef RAJAPerf_Basic_INIT3_HPP
 #define RAJAPerf_Basic_INIT3_HPP
+
+
+#define INIT3_BODY  \
+  out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +50,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_out1;

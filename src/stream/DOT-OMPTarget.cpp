@@ -28,10 +28,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define DOT_DATA \
-  Real_ptr a = m_a; \
-  Real_ptr b = m_b;
-
 //
 // Define thread block size for target execution
 //

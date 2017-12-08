@@ -26,9 +26,11 @@ namespace rajaperf
 namespace stream
 {
 
+
 #define COPY_DATA_SETUP_CPU \
   ResReal_ptr a = m_a; \
   ResReal_ptr c = m_c;
+
 
 COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
