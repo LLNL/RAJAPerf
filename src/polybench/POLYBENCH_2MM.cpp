@@ -183,30 +183,24 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
   setDefaultReps(m_run_reps);
 
-  allocAndInitData(m_tmp, m_ni * m_nj);
-  allocAndInitData(m_A, m_ni * m_nk);
-  allocAndInitData(m_B, m_nk * m_nj);
-  allocAndInitData(m_C, m_nj * m_nl);
-  allocAndInitData(m_D, m_ni * m_nl);
-  allocAndInitData(m_DD, m_ni * m_nl);
-  //printf("maps ctor polybench tmp=%p A=%p B=%p C=%p D=%p DD=%p\n",m_tmp,m_A,m_B,m_C,m_D,m_DD);
+
 
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM() 
 {
-  deallocData(m_tmp);
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
-  deallocData(m_DD);
+
 }
 
 void POLYBENCH_2MM::setUp(VariantID vid)
 {
   (void) vid;
-  initDataConst(m_D, m_ni * m_nl, 0.0);
+  allocAndInitData(m_tmp, m_ni * m_nj, vid);
+  allocAndInitData(m_A, m_ni * m_nk, vid);
+  allocAndInitData(m_B, m_nk * m_nj, vid);
+  allocAndInitData(m_C, m_nj * m_nl, vid);
+  allocAndInitDataConst(m_D, m_ni * m_nl, 0.0, vid);
+  allocAndInitData(m_DD, m_ni * m_nl, vid);
 }
 
 void POLYBENCH_2MM::runKernel(VariantID vid)
@@ -555,7 +549,12 @@ void POLYBENCH_2MM::updateChecksum(VariantID vid)
 void POLYBENCH_2MM::tearDown(VariantID vid)
 {
   (void) vid;
-
+  deallocData(m_tmp);
+  deallocData(m_A);
+  deallocData(m_B);
+  deallocData(m_C);
+  deallocData(m_D);
+  deallocData(m_DD);
 }
 
 } // end namespace basic

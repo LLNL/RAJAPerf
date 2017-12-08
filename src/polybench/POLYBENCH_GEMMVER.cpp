@@ -55,6 +55,8 @@ namespace rajaperf
 namespace polybench
 {
 
+
+
 #define POLYBENCH_GEMMVER_DATA \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
@@ -70,16 +72,16 @@ namespace polybench
   
 
 #define POLYBENCH_GEMMVER_BODY1 \
-  *(A + i * n + j) = *(A + i * n + j) + *(u1 + i) * *(v1 + j) + *(u2 + i) * *(v2 + j)
+  *(A + i * n + j) = *(A + i * n +j)  + *(u1 + i) * *(v1 + j) + *(u2 + i) * *(v2 + j)
 
 #define POLYBENCH_GEMMVER_BODY2 \
-  *(x + i) = *(x + i) + beta * *(A + j * n + i) * *(y + j);
+  *(x + i) = *(x+i) + beta * *(A + j * n + i) * *(y + j);
 
 #define POLYBENCH_GEMMVER_BODY3 \
   *(x + i) = *(x + i) + *(z + i);
 
 #define POLYBENCH_GEMMVER_BODY4 \
-  *(w + i) = *(w + i) + alpha * *(A + i * n + j) * *(x + j);
+  *(w + i) = *(w+i) + alpha * *(A + i * n + j) * *(x + j);
 
 
 
@@ -92,6 +94,7 @@ namespace polybench
 
 
 #define POLYBENCH_GEMMVER_DATA_SETUP_CUDA \
+  Index_type n = m_n; \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
   Real_ptr A = m_A; \
@@ -135,7 +138,7 @@ __global__ void polybench_gemmver_cuda_1(Real_ptr A,
    Index_type i,j;
    if (ii < n * n) {
      i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY1;              
+     POLYBENCH_GEMMVER_BODY1;
    }
 }
 
@@ -144,10 +147,15 @@ __global__ void polybench_gemmver_cuda_2(Real_type beta,
                        Index_type n)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j;
+   Index_type i,jj;
    if (ii < n * n) {
-     i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY2;              
+     i = ii/n; jj = ii % n;
+     if(jj == 0) {
+       for(Index_type j=0; j < n; ++j) { 
+         POLYBENCH_GEMMVER_BODY2;
+       } 
+     }   
+          
    }
 }
 
@@ -167,14 +175,16 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
                        Index_type n)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j;
+   Index_type i,jj;
    if (ii < n * n) {
-     i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY4;              
+     i = ii/n; jj = ii % n;
+     if(jj == 0) {
+       for(Index_type j=0; j < n; ++j) { 
+         POLYBENCH_GEMMVER_BODY4;
+       } 
+     }   
    }
 }
-
-
 
 #endif // if defined(RAJA_ENABLE_CUDA)
   
@@ -213,40 +223,28 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
   setDefaultReps(run_reps);
 
-  allocAndInitData(m_A, m_n * m_n);
-  allocAndInitData(m_u1, m_n);
-  allocAndInitData(m_v1, m_n);
-  allocAndInitData(m_u2, m_n);
-  allocAndInitData(m_v2, m_n);
-  allocAndInitData(m_w, m_n);
-  allocAndInitData(m_x, m_n);
-  allocAndInitData(m_y, m_n);
-  allocAndInitData(m_z, m_n);
+  m_alpha = 1.5;
+  m_beta = 1.2;
 }
 
 POLYBENCH_GEMMVER::~POLYBENCH_GEMMVER() 
 {
-  deallocData(m_A);
-  deallocData(m_u1);
-  deallocData(m_v1);
-  deallocData(m_u2);
-  deallocData(m_v2);
-  deallocData(m_w);
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_z);
 }
 
 void POLYBENCH_GEMMVER::setUp(VariantID vid)
 {
   (void) vid;
-#if 0 // RDH attempt to initialize alpha and beta to non-zero values and
-      // w to zero so checksum indicates whether kernel variant is run.
-      // These changes break the code...
-  initData(m_alpha);
-  initData(m_beta);
-  initDataConst(m_w, m_n, 0.0);
-#endif
+
+  allocAndInitData(m_A, m_n * m_n, vid);
+  allocAndInitData(m_u1, m_n, vid);
+  allocAndInitData(m_v1, m_n, vid);
+  allocAndInitData(m_u2, m_n, vid);
+  allocAndInitData(m_v2, m_n, vid);
+  allocAndInitDataConst(m_w, m_n, 0.0, vid);
+  allocAndInitData(m_x, m_n, vid);
+  allocAndInitData(m_y, m_n, vid);
+  allocAndInitData(m_z, m_n, vid);
+
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
@@ -276,11 +274,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
         }
 
-// RDH This should not be a loop nest, only an 'i' loop
         for (Index_type i = 0; i < n; i++ ) { 
-          for (Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
-          }
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         for (Index_type i = 0; i < n; i++ ) { 
@@ -362,9 +357,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         #pragma omp parallel for  
         for (Index_type i = 0; i < n; i++ ) {
-          for (Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
-          }
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         #pragma omp parallel for  
@@ -444,31 +437,39 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
         for (Index_type i = 0; i < n; i++ ) { 
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY2;
+          for(Index_type jj = 0; jj < n; jj++) {
+             if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY2;
+              } 
+            }
           }
+        }
+
+        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+        for (Index_type i = 0; i < n; i++ ) {
+          POLYBENCH_GEMMVER_BODY3;
         }
 
         #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < n; i++ ) {
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY3;
+          for(Index_type jj = 0; jj < n; jj++) {
+             if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY4;
+              } 
+            }   
           }
         }
 
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
-        for (Index_type i = 0; i < n; i++ ) {
-          for(Index_type j = 0; j < n; j++) {
-            POLYBENCH_GEMMVER_BODY4;
-          }
-        }
+
 
       }
       stopTimer();
 
-      #pragma omp target exit data map(from:w[0:m_n]) map(delete: u1[0:m_n],v1[0:m_n], u2[0:m_n], v2[0:m_n], x[0: m_n], y[0: m_n], z[0:m_n], alpha, beta)
+      #pragma omp target exit data map(from:w[0:n]) map(delete: A[0:n*n],u1[0:n],v1[0:n], u2[0:n], v2[0:n], x[0:n], y[0:n], z[0:n], alpha, beta)
 
       break;
     }
@@ -492,9 +493,13 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY2; 
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; j++) {
+                POLYBENCH_GEMMVER_BODY2;
+              } 
+            }
         });
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
@@ -504,15 +509,19 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
             RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY4; 
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; j++) { 
+                POLYBENCH_GEMMVER_BODY4;
+              } 
+            }   
         });
 
       } // for run_reps   
       stopTimer();
 
-      #pragma omp target exit data map(from:w[0:m_n]) map(delete: u1[0:m_n],v1[0:m_n], u2[0:m_n], v2[0:m_n], x[0: m_n], y[0: m_n], z[0:m_n], alpha, beta)
+      #pragma omp target exit data map(from:w[0:n]) map(delete: A[0:n*n], u1[0:n],v1[0:n], u2[0:n], v2[0:n], x[0:n], y[0:n], z[0:n], alpha, beta)
     
       break;                        
     }  
@@ -529,16 +538,16 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-        polybench_gemmver_cuda_1<<<grid_size,block_size>>>(A,u1,v1,u2,v2,m_n);
+        polybench_gemmver_cuda_1<<<grid_size,block_size>>>(A,u1,v1,u2,v2,n);
 
         grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-        polybench_gemmver_cuda_2<<<grid_size,block_size>>>(beta,A,x,y,m_n);
+        polybench_gemmver_cuda_2<<<grid_size,block_size>>>(beta,A,x,y,n);
 
         grid_size = RAJA_DIVIDE_CEILING_INT(m_n , block_size);
-        polybench_gemmver_cuda_3<<<grid_size,block_size>>>(x,z,v1,u2,v2,m_n);
+        polybench_gemmver_cuda_3<<<grid_size,block_size>>>(x,z,v1,u2,v2,n);
 
         grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-        polybench_gemmver_cuda_4<<<grid_size,block_size>>>(alpha,A,x,w,m_n);
+        polybench_gemmver_cuda_4<<<grid_size,block_size>>>(alpha,A,x,w,n);
       }
       cudaDeviceSynchronize();
       stopTimer();
@@ -562,9 +571,13 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::cuda_exec<block_size>> (
           RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY2;
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY2;
+              } 
+            }
         });
 
         RAJA::forall<RAJA::cuda_exec<block_size>> (
@@ -574,9 +587,13 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
         RAJA::forall<RAJA::cuda_exec<block_size>> (
           RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
-          Index_type i,j;
-          i = ii/n; j = ii % n;
-          POLYBENCH_GEMMVER_BODY4;
+            Index_type i,jj;
+            i = ii/n; jj = ii % n;
+            if(jj == 0) {
+              for(Index_type j=0; j < n; ++j) { 
+                POLYBENCH_GEMMVER_BODY4;
+              } 
+            }   
         });
 
       }
@@ -603,7 +620,15 @@ void POLYBENCH_GEMMVER::updateChecksum(VariantID vid)
 void POLYBENCH_GEMMVER::tearDown(VariantID vid)
 {
   (void) vid;
-
+  deallocData(m_A);
+  deallocData(m_u1);
+  deallocData(m_v1);
+  deallocData(m_u2);
+  deallocData(m_v2);
+  deallocData(m_w);
+  deallocData(m_x);
+  deallocData(m_y);
+  deallocData(m_z);
 }
 
 } // end namespace basic
