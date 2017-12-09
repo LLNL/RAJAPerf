@@ -51,6 +51,8 @@ blt_add_executable(
   apps/LTIMES_NOVIEW.cpp
   apps/WIP-COUPLE.cpp
   basic/IF_QUAD.cpp
+  basic/IF_QUAD-Cuda.cpp
+  basic/IF_QUAD-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Cuda.cpp
   basic/INIT3-OMPTarget.cpp

@@ -19,6 +19,8 @@ blt_add_library(
           MULADDSUB-Cuda.cpp 
           MULADDSUB-OMPTarget.cpp 
           IF_QUAD.cpp 
+          IF_QUAD-Cuda.cpp 
+          IF_QUAD-OMPTarget.cpp 
           TRAP_INT.cpp 
           INIT3.cpp
           INIT3-Cuda.cpp

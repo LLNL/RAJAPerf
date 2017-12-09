@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "TRIAD.hpp"
+#include "IF_QUAD.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -25,7 +25,7 @@
 
 namespace rajaperf 
 {
-namespace stream
+namespace basic
 {
 
   //
@@ -34,33 +34,40 @@ namespace stream
   const size_t block_size = 256;
 
 
-#define TRIAD_DATA_SETUP_CUDA \
+#define IF_QUAD_DATA_SETUP_CUDA \
   Real_ptr a; \
   Real_ptr b; \
   Real_ptr c; \
-  Real_type alpha = m_alpha; \
+  Real_ptr x1; \
+  Real_ptr x2; \
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
+  allocAndInitCudaDeviceData(c, m_c, iend); \
+  allocAndInitCudaDeviceData(x1, m_x1, iend); \
+  allocAndInitCudaDeviceData(x2, m_x2, iend);
 
-#define TRIAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
+#define IF_QUAD_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_x1, x1, iend); \
+  getCudaDeviceData(m_x2, x2, iend); \
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
+  deallocCudaDeviceData(c); \
+  deallocCudaDeviceData(x1); \
+  deallocCudaDeviceData(x2);
 
-__global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
-                      Index_type iend) 
+__global__ void ifquad(Real_ptr x1, Real_ptr x2,
+                       Real_ptr a, Real_ptr b, Real_ptr c,
+                       Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     TRIAD_BODY; 
+     IF_QUAD_BODY;
    }
 }
 
 
-void TRIAD::runCudaVariant(VariantID vid)
+void IF_QUAD::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -68,44 +75,43 @@ void TRIAD::runCudaVariant(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRIAD_DATA_SETUP_CUDA;
+    IF_QUAD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       triad<<<grid_size, block_size>>>( a, b, c, alpha,
-                                         iend ); 
+       ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
+                                          iend );
 
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_CUDA;
+    IF_QUAD_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == RAJA_CUDA ) {
 
-    TRIAD_DATA_SETUP_CUDA;
+    IF_QUAD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         TRIAD_BODY;
+         IF_QUAD_BODY;
        });
 
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_CUDA;
+    IF_QUAD_DATA_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  TRIAD : Unknown Cuda variant id = " << vid << std::endl;
+     std::cout << "\n  IF_QUAD : Unknown Cuda variant id = " << vid << std::endl;
   }
-
 }
 
-} // end namespace stream
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
