@@ -13,9 +13,29 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// INIT_VIEW1D kernel reference implementation:
+///
+/// const Real_type val = ...;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   a[i] = val;
+/// }
+///
+/// RAJA variants use a "view" and "layout" to do the same thing
+/// where the loop runs over the same range.
+///
 
 #ifndef RAJAPerf_Basic_INIT_VIEW1D_HPP
 #define RAJAPerf_Basic_INIT_VIEW1D_HPP
+
+
+#define INIT_VIEW1D_BODY  \
+  a[i] = v;
+
+#define INIT_VIEW1D_BODY_RAJA  \
+  view(i) = v;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +58,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_a;

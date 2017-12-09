@@ -26,6 +26,8 @@ blt_add_library(
           REDUCE3_INT.cpp
           NESTED_INIT.cpp
           INIT_VIEW1D.cpp
+          INIT_VIEW1D-Cuda.cpp
+          INIT_VIEW1D-OMPTarget.cpp
           INIT_VIEW1D_OFFSET.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

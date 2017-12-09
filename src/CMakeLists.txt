@@ -61,6 +61,8 @@ blt_add_executable(
   basic/REDUCE3_INT.cpp
   basic/TRAP_INT.cpp
   basic/INIT_VIEW1D.cpp
+  basic/INIT_VIEW1D-Cuda.cpp
+  basic/INIT_VIEW1D-OMPTarget.cpp
   basic/INIT_VIEW1D_OFFSET.cpp
   common/DataUtils.cpp
   common/Executor.cpp
