@@ -22,8 +22,9 @@
 ///   a[i] = val;
 /// }
 ///
-/// RAJA variants use a "view" and "layout" to do the same thing
-/// where the loop runs over the same range.
+/// RAJA variants use a "View" and "Layout" to do the same thing. These 
+/// RAJA constructs provide little benfit in 1D, but they are used here
+/// to exercise those RAJA mechanics in the simplest scenario.
 ///
 
 #ifndef RAJAPerf_Basic_INIT_VIEW1D_HPP

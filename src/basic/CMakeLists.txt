@@ -29,5 +29,7 @@ blt_add_library(
           INIT_VIEW1D-Cuda.cpp
           INIT_VIEW1D-OMPTarget.cpp
           INIT_VIEW1D_OFFSET.cpp
+          INIT_VIEW1D_OFFSET-Cuda.cpp
+          INIT_VIEW1D_OFFSET-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

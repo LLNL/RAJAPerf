@@ -64,6 +64,8 @@ blt_add_executable(
   basic/INIT_VIEW1D-Cuda.cpp
   basic/INIT_VIEW1D-OMPTarget.cpp
   basic/INIT_VIEW1D_OFFSET.cpp
+  basic/INIT_VIEW1D_OFFSET-Cuda.cpp
+  basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
   common/DataUtils.cpp
   common/Executor.cpp
   common/KernelBase.cpp
