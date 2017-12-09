@@ -62,6 +62,8 @@ blt_add_executable(
   basic/NESTED_INIT.cpp
   basic/REDUCE3_INT.cpp
   basic/TRAP_INT.cpp
+  basic/TRAP_INT-Cuda.cpp
+  basic/TRAP_INT-OMPTarget.cpp
   basic/INIT_VIEW1D.cpp
   basic/INIT_VIEW1D-Cuda.cpp
   basic/INIT_VIEW1D-OMPTarget.cpp

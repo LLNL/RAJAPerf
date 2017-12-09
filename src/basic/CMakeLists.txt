@@ -22,6 +22,8 @@ blt_add_library(
           IF_QUAD-Cuda.cpp 
           IF_QUAD-OMPTarget.cpp 
           TRAP_INT.cpp 
+          TRAP_INT-Cuda.cpp 
+          TRAP_INT-OMPTarget.cpp 
           INIT3.cpp
           INIT3-Cuda.cpp
           INIT3-OMPTarget.cpp
