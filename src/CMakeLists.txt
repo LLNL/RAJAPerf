@@ -80,8 +80,14 @@ blt_add_executable(
   common/RPTypes.hpp
   common/RunParams.cpp
   lcals/DIFF_PREDICT.cpp
+  lcals/DIFF_PREDICT-Cuda.cpp
+  lcals/DIFF_PREDICT-OMPTarget.cpp
   lcals/EOS.cpp
+  lcals/EOS-Cuda.cpp
+  lcals/EOS-OMPTarget.cpp
   lcals/FIRST_DIFF.cpp
+  lcals/FIRST_DIFF-Cuda.cpp
+  lcals/FIRST_DIFF-OMPTarget.cpp
   lcals/HYDRO_1D.cpp
   lcals/INT_PREDICT.cpp
   lcals/PLANCKIAN.cpp

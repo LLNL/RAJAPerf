@@ -13,21 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// FIRST_DIFF kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   x[i] = y[i+1] - y[i]; 
-/// }
-///
-
 #include "FIRST_DIFF.hpp"
 
-#include "common/DataUtils.hpp"
-#include "common/CudaDataUtils.hpp"
-
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -36,44 +26,10 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_DIFF_DATA \
+
+#define FIRST_DIFF_DATA_SETUP_CPU \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y;
-
-#define FIRST_DIFF_BODY  \
-  x[i] = y[i+1] - y[i];
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define FIRST_DIFF_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-\
-  allocAndInitCudaDeviceData(x, m_x, iend+1); \
-  allocAndInitCudaDeviceData(y, m_y, iend+1);
-
-#define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
-__global__ void first_diff(Real_ptr x, Real_ptr y,
-                           Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     FIRST_DIFF_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
@@ -89,8 +45,9 @@ FIRST_DIFF::~FIRST_DIFF()
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_x, getRunSize()+1, 0.0, vid);
-  allocAndInitData(m_y, getRunSize()+1, vid);
+  m_array_length = getRunSize()+1; 
+  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
+  allocAndInitData(m_y, m_array_length, vid);
 }
 
 void FIRST_DIFF::runKernel(VariantID vid)
@@ -103,7 +60,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      FIRST_DIFF_DATA;
+      FIRST_DIFF_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -120,7 +77,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      FIRST_DIFF_DATA;
+      FIRST_DIFF_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -139,7 +96,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      FIRST_DIFF_DATA;
+      FIRST_DIFF_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -157,7 +114,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      FIRST_DIFF_DATA;
+      FIRST_DIFF_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -172,99 +129,22 @@ void FIRST_DIFF::runKernel(VariantID vid)
 
       break;
     }
-
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-
-#define NUMTEAMS 128
-
-    case Base_OpenMPTarget : {
-
-      FIRST_DIFF_DATA;
-                       
-      Index_type n = iend + 1;
-      #pragma omp target enter data map(to:x[0:n],y[0:n])
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_DIFF_BODY;
-        }
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n])
-
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
-
-    case RAJA_OpenMPTarget: {
-
-      FIRST_DIFF_DATA;
-                       
-      Index_type n = iend + 1;
-      #pragma omp target enter data map(to:x[0:n],y[0:n])
-
-      startTimer();
-      #pragma omp target data use_device_ptr(x,y)
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          FIRST_DIFF_BODY;
-        });
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:x[0:n]) map(delete:y[0:n])
-
-      break;                        
-    }                          
-#endif //RAJA_ENABLE_TARGET_OPENMP
-#endif //RAJA_ENABLE_OMP                             
+#endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      FIRST_DIFF_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         first_diff<<<grid_size, block_size>>>( x, y,
-                                                iend ); 
-
-      }
-      stopTimer();
-
-      FIRST_DIFF_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      FIRST_DIFF_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           FIRST_DIFF_BODY;
-         });
-
-      }
-      stopTimer();
-
-      FIRST_DIFF_DATA_TEARDOWN_CUDA;
-
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif

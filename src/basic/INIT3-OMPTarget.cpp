@@ -28,7 +28,8 @@ namespace rajaperf
 namespace basic
 {
 
-//// Define thread block size for target execution
+//
+// Define thread block size for target execution
 //
 #define NUMTEAMS 128
 

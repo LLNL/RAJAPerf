@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MUL.hpp"
+#include "DIFF_PREDICT.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -25,7 +25,7 @@
 
 namespace rajaperf 
 {
-namespace stream
+namespace lcals
 {
 
 //
@@ -33,23 +33,24 @@ namespace stream
 //
 #define NUMTEAMS 128
 
-#define MUL_DATA_SETUP_OMP_TARGET \
+#define DIFF_PREDICT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
+  Real_ptr px; \
+  Real_ptr cx; \
+  const Index_type offset = m_offset; \
 \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
+  allocAndInitOpenMPDeviceData(px, m_px, m_array_length, did, hid); \
+  allocAndInitOpenMPDeviceData(cx, m_cx, m_array_length, did, hid);
 
-#define MUL_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_b, b, iend, hid, did); \
-  deallocOpenMPDeviceData(b, did); \
-  deallocOpenMPDeviceData(c, did);
+#define DIFF_PREDICT_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_px, px, m_array_length, hid, did); \
+  deallocOpenMPDeviceData(px, did); \
+  deallocOpenMPDeviceData(cx, did);
 
-void MUL::runOpenMPTargetVariant(VariantID vid)
+
+void DIFF_PREDICT::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -57,45 +58,45 @@ void MUL::runOpenMPTargetVariant(VariantID vid)
 
   if ( vid == Base_OpenMPTarget ) {
 
-    MUL_DATA_SETUP_OMP_TARGET;
+    DIFF_PREDICT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(b, c) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp target is_device_ptr(px, cx) device( did )
+      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
       for (Index_type i = ibegin; i < iend; ++i ) {
-        MUL_BODY;
+        DIFF_PREDICT_BODY;
       }
 
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_OMP_TARGET;
+    DIFF_PREDICT_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    MUL_DATA_SETUP_OMP_TARGET;
+    DIFF_PREDICT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        MUL_BODY;
+        DIFF_PREDICT_BODY;
       });
 
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_OMP_TARGET;
+    DIFF_PREDICT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  MUL : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n  DIFF_PREDICT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
-} // end namespace stream
+} // end namespace lcals
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP

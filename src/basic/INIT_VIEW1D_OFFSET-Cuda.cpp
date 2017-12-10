@@ -22,7 +22,6 @@
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
-#include <iostream>
 
 namespace rajaperf 
 {

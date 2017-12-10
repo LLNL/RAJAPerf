@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MUL.hpp"
+#include "EOS.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -25,7 +25,7 @@
 
 namespace rajaperf 
 {
-namespace stream
+namespace lcals
 {
 
 //
@@ -33,23 +33,32 @@ namespace stream
 //
 #define NUMTEAMS 128
 
-#define MUL_DATA_SETUP_OMP_TARGET \
+#define EOS_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
+  Real_ptr x; \
+  Real_ptr y; \
+  Real_ptr z; \
+  Real_ptr u; \
+  const Real_type q = m_q; \
+  const Real_type r = m_r; \
+  const Real_type t = m_t; \
 \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
+  allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
+  allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid); \
+  allocAndInitOpenMPDeviceData(z, m_z, m_array_length, did, hid); \
+  allocAndInitOpenMPDeviceData(u, m_u, m_array_length, did, hid);
 
-#define MUL_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_b, b, iend, hid, did); \
-  deallocOpenMPDeviceData(b, did); \
-  deallocOpenMPDeviceData(c, did);
+#define EOS_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_x, x, m_array_length, hid, did); \
+  deallocOpenMPDeviceData(x, did); \
+  deallocOpenMPDeviceData(y, did); \
+  deallocOpenMPDeviceData(z, did); \
+  deallocOpenMPDeviceData(u, did);
 
-void MUL::runOpenMPTargetVariant(VariantID vid)
+
+void EOS::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -57,45 +66,45 @@ void MUL::runOpenMPTargetVariant(VariantID vid)
 
   if ( vid == Base_OpenMPTarget ) {
 
-    MUL_DATA_SETUP_OMP_TARGET;
+    EOS_DATA_SETUP_OMP_TARGET
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(b, c) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp target is_device_ptr(x, y, z, u) device( did )
+      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
       for (Index_type i = ibegin; i < iend; ++i ) {
-        MUL_BODY;
+        EOS_BODY;
       }
 
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_OMP_TARGET;
+    EOS_DATA_TEARDOWN_OMP_TARGET
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    MUL_DATA_SETUP_OMP_TARGET;
+    EOS_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        MUL_BODY;
-      });
+        EOS_BODY;
+      });  
 
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_OMP_TARGET;
+    EOS_DATA_TEARDOWN_OMP_TARGET
 
-  } else {
-     std::cout << "\n  MUL : Unknown OMP Target variant id = " << vid << std::endl;
+  } else { 
+     std::cout << "\n  EOS : Unknown OMP Tagretvariant id = " << vid << std::endl;
   }
 }
 
-} // end namespace stream
+} // end namespace lcals
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
