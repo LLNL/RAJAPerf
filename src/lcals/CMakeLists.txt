@@ -22,6 +22,8 @@ blt_add_library(
           EOS-Cuda.cpp 
           EOS-OMPTarget.cpp 
           INT_PREDICT.cpp 
+          INT_PREDICT-Cuda.cpp 
+          INT_PREDICT-OMPTarget.cpp 
           DIFF_PREDICT.cpp 
           DIFF_PREDICT-Cuda.cpp 
           DIFF_PREDICT-OMPTarget.cpp 

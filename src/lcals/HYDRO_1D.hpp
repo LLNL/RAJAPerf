@@ -28,6 +28,7 @@
 #define HYDRO_1D_BODY  \
   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
 
+
 #include "common/KernelBase.hpp"
 
 namespace rajaperf 
