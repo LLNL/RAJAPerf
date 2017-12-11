@@ -31,6 +31,8 @@ blt_add_library(
           REDUCE3_INT-Cuda.cpp
           REDUCE3_INT-OMPTarget.cpp
           NESTED_INIT.cpp
+          NESTED_INIT-Cuda.cpp
+          NESTED_INIT-OMPTarget.cpp
           INIT_VIEW1D.cpp
           INIT_VIEW1D-Cuda.cpp
           INIT_VIEW1D-OMPTarget.cpp

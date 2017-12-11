@@ -60,6 +60,8 @@ blt_add_executable(
   basic/MULADDSUB-Cuda.cpp
   basic/MULADDSUB-OMPTarget.cpp
   basic/NESTED_INIT.cpp
+  basic/NESTED_INIT-Cuda.cpp
+  basic/NESTED_INIT-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Cuda.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
