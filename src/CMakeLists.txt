@@ -95,6 +95,8 @@ blt_add_executable(
   lcals/INT_PREDICT-Cuda.cpp
   lcals/INT_PREDICT-OMPTarget.cpp
   lcals/PLANCKIAN.cpp
+  lcals/PLANCKIAN-Cuda.cpp
+  lcals/PLANCKIAN-OMPTarget.cpp
   polybench/POLYBENCH_2MM.cpp
   polybench/POLYBENCH_3MM.cpp
   polybench/POLYBENCH_GEMMVER.cpp

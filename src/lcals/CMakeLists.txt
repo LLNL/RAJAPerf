@@ -31,5 +31,7 @@ blt_add_library(
           FIRST_DIFF-Cuda.cpp 
           FIRST_DIFF-OMPTarget.cpp 
           PLANCKIAN.cpp 
+          PLANCKIAN-Cuda.cpp 
+          PLANCKIAN-OMPTarget.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
