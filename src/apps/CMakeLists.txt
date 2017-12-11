@@ -20,6 +20,8 @@ blt_add_library(
           ENERGY.cpp 
           VOL3D.cpp 
           DEL_DOT_VEC_2D.cpp 
+          DEL_DOT_VEC_2D-Cuda.cpp 
+          DEL_DOT_VEC_2D-OMPTarget.cpp 
           FIR.cpp
           LTIMES.cpp
           LTIMES_NOVIEW.cpp

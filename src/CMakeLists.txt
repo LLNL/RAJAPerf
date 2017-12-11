@@ -43,6 +43,8 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
   apps/DEL_DOT_VEC_2D.cpp
+  apps/DEL_DOT_VEC_2D-Cuda.cpp
+  apps/DEL_DOT_VEC_2D-OMPTarget.cpp
   apps/ENERGY.cpp
   apps/FIR.cpp
   apps/PRESSURE.cpp
