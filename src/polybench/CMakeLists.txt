@@ -16,6 +16,8 @@
 blt_add_library(
   NAME polybench
   SOURCES POLYBENCH_2MM.cpp 
+          POLYBENCH_2MM-Cuda.cpp
+          POLYBENCH_2MM-OMPTarget.cpp
           POLYBENCH_3MM.cpp
           POLYBENCH_GEMMVER.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
