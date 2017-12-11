@@ -89,6 +89,8 @@ blt_add_executable(
   lcals/FIRST_DIFF-Cuda.cpp
   lcals/FIRST_DIFF-OMPTarget.cpp
   lcals/HYDRO_1D.cpp
+  lcals/HYDRO_1D-Cuda.cpp
+  lcals/HYDRO_1D-OMPTarget.cpp
   lcals/INT_PREDICT.cpp
   lcals/PLANCKIAN.cpp
   polybench/POLYBENCH_2MM.cpp

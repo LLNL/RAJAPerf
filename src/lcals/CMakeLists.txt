@@ -16,6 +16,8 @@
 blt_add_library(
   NAME lcals
   SOURCES HYDRO_1D.cpp 
+          HYDRO_1D-Cuda.cpp
+          HYDRO_1D-OMPTarget.cpp
           EOS.cpp 
           EOS-Cuda.cpp 
           EOS-OMPTarget.cpp 
