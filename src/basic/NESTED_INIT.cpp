@@ -29,9 +29,9 @@ namespace basic
 
 #define NESTED_INIT_DATA_SETUP_CPU \
   ResReal_ptr array = m_array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk;
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk;
 
 
 NESTED_INIT::NESTED_INIT(const RunParams& params)

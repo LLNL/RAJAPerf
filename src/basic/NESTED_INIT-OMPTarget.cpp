@@ -38,9 +38,9 @@ namespace basic
   int did = omp_get_default_device(); \
 \
   Real_ptr array = m_array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk; \
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk; \
 \
   allocAndInitOpenMPDeviceData(array, m_array, m_array_length, did, hid);
 

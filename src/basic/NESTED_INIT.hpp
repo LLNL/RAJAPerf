@@ -63,10 +63,10 @@ private:
 
   Real_ptr m_array;
 
-  Int_type m_ni;
-  Int_type m_nj;
-  Int_type m_nk;
-  Int_type m_nk_init;
+  Index_type m_ni;
+  Index_type m_nj;
+  Index_type m_nk;
+  Index_type m_nk_init;
 };
 
 } // end namespace basic
