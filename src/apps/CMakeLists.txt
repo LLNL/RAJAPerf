@@ -19,6 +19,8 @@ blt_add_library(
           PRESSURE.cpp 
           ENERGY.cpp 
           VOL3D.cpp 
+          VOL3D-Cuda.cpp 
+          VOL3D-OMPTarget.cpp 
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
