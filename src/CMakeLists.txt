@@ -103,6 +103,8 @@ blt_add_executable(
   polybench/POLYBENCH_2MM-Cuda.cpp
   polybench/POLYBENCH_2MM-OMPTarget.cpp
   polybench/POLYBENCH_3MM.cpp
+  polybench/POLYBENCH_3MM-Cuda.cpp
+  polybench/POLYBENCH_3MM-OMPTarget.cpp
   polybench/POLYBENCH_GEMMVER.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
