@@ -52,6 +52,8 @@ namespace rajaperf
 {
 namespace polybench
 {
+//#undef USE_FORALLN_FOR_SEQ
+//#undef USE_FORALLN_FOR_OPENMP
 
 #define POLYBENCH_2MM_DATA_SETUP_CPU \
   ResReal_ptr tmp = m_tmp; \
@@ -160,17 +162,22 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case RAJA_Seq : {
+#if defined(USE_FORALLN_FOR_SEQ)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
+
+      using EXEC_POL = RAJA::NestedPolicy<
+                             RAJA::ExecList< RAJA::seq_exec,      
+                                             RAJA::seq_exec > >; 
+
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {      
 
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,
-                                                        RAJA::seq_exec>>> (
+        RAJA::forallN< EXEC_POL >(
           RAJA::RangeSegment{0, ni}, 
           RAJA::RangeSegment{0, nj}, 
-          [=] (int i, int j) {
+          [=] (Index_type i, Index_type j) {
 
             POLYBENCH_2MM_BODY1;
 
@@ -183,8 +190,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
           memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
-          RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,
-                                                          RAJA::seq_exec>>> (
+          RAJA::forallN<EXEC_POL> (
             RAJA::RangeSegment{0, ni}, 
             RAJA::RangeSegment{0, nl}, 
             [=] (int i, int l) {
@@ -199,7 +205,46 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       }
       stopTimer();
+#else // use RAJA::nested
+      POLYBENCH_2MM_DATA_SETUP_CPU;
 
+      using EXEC_POL = RAJA::nested::Policy<
+        RAJA::nested::For<1, RAJA::seq_exec>,
+        RAJA::nested::For<0, RAJA::seq_exec> >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::nested::forall(EXEC_POL{},
+          camp::make_tuple(RAJA::RangeSegment(0, ni),
+            RAJA::RangeSegment(0, nj)),
+            [=](Index_type i, Index_type j) {     
+            POLYBENCH_2MM_BODY1;
+
+            RAJA::forall<RAJA::seq_exec> (
+              RAJA::RangeSegment{0, nk}, [=] (int k) {
+              POLYBENCH_2MM_BODY2; 
+            });
+        });
+
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+
+        RAJA::nested::forall(EXEC_POL{},
+          camp::make_tuple(RAJA::RangeSegment(0, ni),
+            RAJA::RangeSegment(0, nl)),
+            [=](Index_type i, Index_type l) {     
+            POLYBENCH_2MM_BODY3;
+
+            RAJA::forall<RAJA::seq_exec> (
+              RAJA::RangeSegment{0, nj}, [=] (int j) {
+              POLYBENCH_2MM_BODY4; 
+            });
+        });
+
+      }
+      stopTimer();
+
+#endif
       break;
     }
 
@@ -240,6 +285,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
+#if defined(USE_FORALLN_FOR_OPENMP)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
@@ -280,7 +326,45 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       }
       stopTimer();
+#else // use RAJA::nested
+      POLYBENCH_2MM_DATA_SETUP_CPU;
+      using EXEC_POL = RAJA::nested::Policy<
+        RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
+        RAJA::nested::For<0, RAJA::seq_exec> >;
 
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::nested::forall(EXEC_POL{},
+          camp::make_tuple(RAJA::RangeSegment(0, ni),
+            RAJA::RangeSegment(0, nj)),
+            [=](Index_type i, Index_type j) {     
+            POLYBENCH_2MM_BODY1;
+
+            RAJA::forall<RAJA::seq_exec> (
+              RAJA::RangeSegment{0, nk}, [=] (int k) {
+              POLYBENCH_2MM_BODY2; 
+            });
+        });
+
+        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+
+        RAJA::nested::forall(EXEC_POL{},
+          camp::make_tuple(RAJA::RangeSegment(0, ni),
+            RAJA::RangeSegment(0, nl)),
+            [=](Index_type i, Index_type l) {     
+            POLYBENCH_2MM_BODY3;
+
+            RAJA::forall<RAJA::seq_exec> (
+              RAJA::RangeSegment{0, nj}, [=] (int j) {
+              POLYBENCH_2MM_BODY4; 
+            });
+        });
+
+      }
+      stopTimer();
+
+#endif
       break;
     }
 #endif //RAJA_ENABLE_OPENMP
