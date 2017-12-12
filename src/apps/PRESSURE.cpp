@@ -13,28 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// PRESSURE kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   bvc[i] = cls * (compression[i] + 1.0);
-/// }
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   p_new[i] = bvc[i] * e_old[i] ; 
-///   if ( fabs(p_new[i]) <  p_cut ) p_new[i] = 0.0 ; 
-///   if ( vnewc[i] >= eosvmax ) p_new[i] = 0.0 ; 
-///   if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
-/// }
-///
-
 #include "PRESSURE.hpp"
 
-#include "common/DataUtils.hpp"
-#include "common/CudaDataUtils.hpp"
-
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -43,7 +26,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_DATA \
+#define PRESSURE_DATA_SETUP_CPU \
   ResReal_ptr compression = m_compression; \
   ResReal_ptr bvc = m_bvc; \
   ResReal_ptr p_new = m_p_new; \
@@ -54,74 +37,6 @@ namespace apps
   const Real_type pmin = m_pmin; \
   const Real_type eosvmax = m_eosvmax; 
    
-
-#define PRESSURE_BODY1 \
-  bvc[i] = cls * (compression[i] + 1.0);
-
-#define PRESSURE_BODY2 \
-  p_new[i] = bvc[i] * e_old[i] ; \
-  if ( fabs(p_new[i]) <  p_cut ) p_new[i] = 0.0 ; \
-  if ( vnewc[i] >= eosvmax ) p_new[i] = 0.0 ; \
-  if ( p_new[i]  <  pmin ) p_new[i]   = pmin ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define PRESSURE_DATA_SETUP_CUDA \
-  Real_ptr compression; \
-  Real_ptr bvc; \
-  Real_ptr p_new; \
-  Real_ptr e_old; \
-  Real_ptr vnewc; \
-  const Real_type cls = m_cls; \
-  const Real_type p_cut = m_p_cut; \
-  const Real_type pmin = m_pmin; \
-  const Real_type eosvmax = m_eosvmax; \
-\
-  allocAndInitCudaDeviceData(compression, m_compression, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
-
-#define PRESSURE_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_p_new, p_new, iend); \
-  deallocCudaDeviceData(compression); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(vnewc);
-
-__global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
-                              const Real_type cls,
-                              Index_type iend)
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     PRESSURE_BODY1;
-   }
-}
-
-__global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
-                              Real_ptr vnewc,
-                              const Real_type p_cut, const Real_type eosvmax,
-                              const Real_type pmin,
-                              Index_type iend)
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     PRESSURE_BODY2;
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
-
 
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
@@ -158,7 +73,7 @@ void PRESSURE::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      PRESSURE_DATA;
+      PRESSURE_DATA_SETUP_CPU;
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -179,7 +94,7 @@ void PRESSURE::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      PRESSURE_DATA;
+      PRESSURE_DATA_SETUP_CPU;
  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -214,7 +129,7 @@ void PRESSURE::runKernel(VariantID vid)
 //       is added to RAJA.
 //
 
-      PRESSURE_DATA;
+      PRESSURE_DATA_SETUP_CPU;
       
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -237,7 +152,7 @@ void PRESSURE::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      PRESSURE_DATA;
+      PRESSURE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -254,124 +169,25 @@ void PRESSURE::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-      break;
-    }
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-
-#define NUMTEAMS 128
-
-    case Base_OpenMPTarget : {
-
-      PRESSURE_DATA;
-
-      int n=getRunSize();
-      #pragma omp target enter data map(to:compression[0:n], bvc[0:n], p_new[0:n], e_old[0:n], \
-       vnewc[0:n], cls, p_cut, pmin, eosvmax )
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY1;
-        }
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY2;
-        }
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n],cls,p_cut,pmin,eosvmax)
-
-      break;
-    }
-
-    case RAJA_OpenMPTarget : {
-
-      PRESSURE_DATA;
-
-      int n=getRunSize();
-      #pragma omp target enter data map(to:compression[0:n], bvc[0:n], p_new[0:n], e_old[0:n], \
-       vnewc[0:n], cls, p_cut, pmin, eosvmax )
-
-      startTimer();
-      #pragma omp target data use_device_ptr(compression, bvc, p_new, e_old,vnewc)
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY1;
-        });
-
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY2;
-        });
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:p_new[0:n]) map(delete:compression[0:n],bvc[0:n],e_old[0:n],vnewc[0:n],cls,p_cut,pmin,eosvmax)
 
       break;
     }
 #endif
-#endif                             
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      PRESSURE_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
-         pressurecalc1<<<grid_size, block_size>>>( bvc, compression,
-                                                   cls,
-                                                   iend );
-
-         pressurecalc2<<<grid_size, block_size>>>( p_new, bvc, e_old,
-                                                   vnewc,
-                                                   p_cut, eosvmax, pmin,
-                                                   iend );
-
-      }
-      stopTimer();
-
-      PRESSURE_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
+#endif
 
-    case RAJA_CUDA : {
-
-      PRESSURE_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           PRESSURE_BODY1;
-         });
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           PRESSURE_BODY2;
-         });
-
-      }
-      stopTimer();
-
-      PRESSURE_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif

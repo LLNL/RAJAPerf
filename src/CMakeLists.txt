@@ -48,6 +48,8 @@ blt_add_executable(
   apps/ENERGY.cpp
   apps/FIR.cpp
   apps/PRESSURE.cpp
+  apps/PRESSURE-Cuda.cpp
+  apps/PRESSURE-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Cuda.cpp
   apps/VOL3D-OMPTarget.cpp

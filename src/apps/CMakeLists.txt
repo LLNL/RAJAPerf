@@ -17,6 +17,8 @@ blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
           PRESSURE.cpp 
+          PRESSURE-Cuda.cpp 
+          PRESSURE-OMPTarget.cpp 
           ENERGY.cpp 
           VOL3D.cpp 
           VOL3D-Cuda.cpp 
