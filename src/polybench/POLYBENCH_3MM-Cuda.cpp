@@ -29,6 +29,7 @@ namespace rajaperf
 namespace polybench
 {
 
+#undef USE_FORALLN_FOR_CUDA
 //
 // Define thread block size for CUDA execution
 //
@@ -151,6 +152,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
   } else if (vid == RAJA_CUDA) {
 
+#if defined(USE_FORALLN_FOR_CUDA)
     POLYBENCH_3MM_DATA_SETUP_CUDA;
 
     startTimer();
@@ -196,6 +198,57 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
     stopTimer();
 
     POLYBENCH_3MM_TEARDOWN_CUDA;
+#else // use RAJA::nested
+    POLYBENCH_3MM_DATA_SETUP_CUDA;
+    using EXEC_POL = RAJA::nested::Policy<
+                       RAJA::nested::CudaCollapse<
+                         RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
+                         RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      RAJA::nested::forall(EXEC_POL{},
+                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                                            RAJA::RangeSegment(0, nj)),
+        [=] __device__ (Index_type i, Index_type j) {
+
+        POLYBENCH_3MM_BODY1;
+        for (Index_type k=0;k<nk;k++) {
+          POLYBENCH_3MM_BODY2; 
+        }
+
+      });
+
+      RAJA::nested::forall(EXEC_POL{},
+                           camp::make_tuple(RAJA::RangeSegment(0, nj),
+                                            RAJA::RangeSegment(0, nl)),
+        [=] __device__ (Index_type j, Index_type l) {
+
+        POLYBENCH_3MM_BODY3;
+        for (Index_type m=0;m<nm;m++) {
+          POLYBENCH_3MM_BODY4; 
+        }
+
+      });
+
+      RAJA::nested::forall(EXEC_POL{},
+                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                                            RAJA::RangeSegment(0, nl)),
+        [=] __device__ (Index_type i, Index_type l) {
+
+        POLYBENCH_3MM_BODY5;
+        for (Index_type j=0;j<nj;j++) {
+          POLYBENCH_3MM_BODY6; 
+        }
+
+      });
+    }
+    stopTimer();
+
+    POLYBENCH_3MM_TEARDOWN_CUDA;
+
+
+#endif
   } else {
       std::cout << "\n  POLYBENCH_3MM : Unknown Cuda variant id = " << vid << std::endl;
   }
