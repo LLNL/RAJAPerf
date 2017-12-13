@@ -54,8 +54,8 @@ namespace rajaperf
 namespace polybench
 {
 
-#undef USE_FORALLN_FOR_SEQ
-#undef USE_FORALLN_FOR_OPENMP 
+//#undef USE_FORALLN_FOR_SEQ
+//#undef USE_FORALLN_FOR_OPENMP 
 
 #define POLYBENCH_GEMMVER_DATA_SETUP_CPU \
   Real_type alpha = m_alpha; \

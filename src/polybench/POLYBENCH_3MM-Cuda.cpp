@@ -29,7 +29,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#undef USE_FORALLN_FOR_CUDA
+//#undef USE_FORALLN_FOR_CUDA
 //
 // Define thread block size for CUDA execution
 //
