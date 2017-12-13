@@ -59,8 +59,8 @@ namespace rajaperf
 namespace polybench
 {
 
-#undef USE_FORALLN_FOR_SEQ
-#undef USE_FORALLN_FOR_OPENMP
+//#undef USE_FORALLN_FOR_SEQ
+//#undef USE_FORALLN_FOR_OPENMP
 
 #define POLYBENCH_3MM_DATA_SETUP_CPU \
   ResReal_ptr A = m_A; \
