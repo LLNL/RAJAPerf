@@ -79,15 +79,15 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   switch(lsizespec) {
     case Mini:
       m_n=40;
-      run_reps = 200000;
+      run_reps = 200;
       break;
     case Small:
       m_n=120; 
-      run_reps = 20000;
+      run_reps = 200;
       break;
     case Medium:
       m_n=400;
-      run_reps = 2000;
+      run_reps = 20;
       break;
     case Large:
       m_n=2000;
@@ -99,7 +99,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       break;
     default:
       m_n=400;
-      run_reps = 2000;
+      run_reps = 20;
       break;
   }
 
@@ -273,6 +273,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
             POLYBENCH_GEMMVER_BODY1;
           }
         }
+
 
         #pragma omp parallel for  
         for (Index_type i = 0; i < n; i++ ) {
