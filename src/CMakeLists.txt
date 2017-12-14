@@ -49,6 +49,8 @@ blt_add_executable(
   apps/ENERGY-Cuda.cpp
   apps/ENERGY-OMPTarget.cpp
   apps/FIR.cpp
+  apps/FIR-Cuda.cpp
+  apps/FIR-OMPTarget.cpp
   apps/PRESSURE.cpp
   apps/PRESSURE-Cuda.cpp
   apps/PRESSURE-OMPTarget.cpp

@@ -115,7 +115,7 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
     PRESSURE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-    std::cout << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  PRESSURE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

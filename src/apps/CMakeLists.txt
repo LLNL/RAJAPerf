@@ -29,6 +29,8 @@ blt_add_library(
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
           FIR.cpp
+          FIR-Cuda.cpp
+          FIR-OMPTarget.cpp
           LTIMES.cpp
           LTIMES_NOVIEW.cpp
           WIP-COUPLE.cpp
