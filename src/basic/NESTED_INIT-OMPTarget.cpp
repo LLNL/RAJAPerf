@@ -103,10 +103,10 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
     NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
     using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::OmpCollapse<
-                         RAJA::nested::For<2>,     //k
-                         RAJA::nested::For<1>,     //j
-                         RAJA::nested::For<0> > >; //i
+                       RAJA::nested::OmpTargetCollapse<
+                         RAJA::nested::For<2>,          //k
+                         RAJA::nested::For<1>,          //j
+                         RAJA::nested::For<0> > >;      //i
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

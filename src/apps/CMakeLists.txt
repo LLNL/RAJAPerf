@@ -33,6 +33,8 @@ blt_add_library(
           FIR-OMPTarget.cpp
           LTIMES.cpp
           LTIMES_NOVIEW.cpp
+          LTIMES_NOVIEW-Cuda.cpp
+          LTIMES_NOVIEW-OMPTarget.cpp
           WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

@@ -103,7 +103,7 @@ void FIR::runOpenMPTargetVariant(VariantID vid)
     FIR_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  FIR : Unknown variant id = " << vid << std::endl;
+     std::cout << "\n  FIR : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
