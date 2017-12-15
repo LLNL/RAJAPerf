@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "LTIMES_NOVIEW.hpp"
+#include "LTIMES.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -35,7 +35,7 @@ namespace apps
 //
 #define NUMTEAMS 128
 
-#define LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET \
+#define LTIMES_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
@@ -52,20 +52,20 @@ namespace apps
   allocAndInitOpenMPDeviceData(elldat, m_elldat, m_elllen, did, hid); \
   allocAndInitOpenMPDeviceData(psidat, m_psidat, m_psilen, did, hid);
 
-#define LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET \
+#define LTIMES_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_phidat, phidat, m_philen, hid, did); \
   deallocOpenMPDeviceData(phidat, did); \
   deallocOpenMPDeviceData(elldat, did); \
   deallocOpenMPDeviceData(psidat, did);
 
 
-void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
+void LTIMES::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
   if ( vid == Base_OpenMPTarget ) {
 
-    LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET;
+    LTIMES_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,7 +76,7 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
         for (Index_type g = 0; g < num_g; ++g ) {
           for (Index_type m = 0; m < num_m; ++m ) {
             for (Index_type d = 0; d < num_d; ++d ) {
-              LTIMES_NOVIEW_BODY;
+              LTIMES_BODY;
             }
           }
         }
@@ -85,44 +85,19 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
+    LTIMES_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-#if 1 // temporary implementation until RAJA::nested::OmpTargetCollapse works.
+#if 0 // disabled until RAJA::nested::OmpTargetCollapse works.
 
-    LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET;
+    LTIMES_DATA_SETUP_OMP_TARGET;
 
-    LTIMES_NOVIEW_RANGES_RAJA;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-        IZRange(0, num_z), [=](Index_type z) {
-        for (Index_type g = 0; g < num_g; ++g ) {
-          for (Index_type m = 0; m < num_m; ++m ) {
-            for (Index_type d = 0; d < num_d; ++d ) {
-              LTIMES_NOVIEW_BODY;
-            }
-          }
-        }
-      });
-
-    }
-    stopTimer();
-
-    LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
-
-#else
-
-    LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET;
-
-    LTIMES_NOVIEW_RANGES_RAJA;
+    LTIMES_VIEWS_RANGES_RAJA;
 
     using EXEC_POL = RAJA::nested::Policy<
                 RAJA::nested::OmpTargetCollapse<
-                   RAJA::nested::For<1>,                  // z 
+                   RAJA::nested::For<1>,                  // z
                    RAJA::nested::For<2>,                  // g
                    RAJA::nested::For<3> >,                // m
                  RAJA::nested::For<0, RAJA::loop_exec> >; // d
@@ -136,18 +111,18 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
                                             IGRange(0, num_g),
                                             IMRange(0, num_m)),
         [=] (Index_type d, Index_type z, Index_type g, Index_type m) {
-        LTIMES_NOVIEW_BODY;
+        LTIMES_BODY_RAJA;
       });
 
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
+    LTIMES_DATA_TEARDOWN_OMP_TARGET;
 
 #endif
 
   } else {
-     std::cout << "\n LTIMES_NOVIEW : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n LTIMES : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -21,7 +21,6 @@
 
 #include "camp/camp.hpp"
 
-#include <cstdlib>
 #include <iostream>
 
 namespace rajaperf 

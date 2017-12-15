@@ -32,6 +32,8 @@ blt_add_library(
           FIR-Cuda.cpp
           FIR-OMPTarget.cpp
           LTIMES.cpp
+          LTIMES-Cuda.cpp
+          LTIMES-OMPTarget.cpp
           LTIMES_NOVIEW.cpp
           LTIMES_NOVIEW-Cuda.cpp
           LTIMES_NOVIEW-OMPTarget.cpp

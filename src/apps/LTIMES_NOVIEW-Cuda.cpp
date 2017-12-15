@@ -23,7 +23,6 @@
 
 #include "camp/camp.hpp"
 
-#include <cstdlib>
 #include <iostream>
 
 namespace rajaperf 
@@ -104,11 +103,10 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
     startTimer(); 
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       
-      RAJA::forallN< EXEC_POL >(
-            RAJA::RangeSegment(0, num_d),
-            RAJA::RangeSegment(0, num_z),
-            RAJA::RangeSegment(0, num_g),
-            RAJA::RangeSegment(0, num_m),
+      RAJA::forallN< EXEC_POL >( IDRange(0, num_d),
+                                 IZRange(0, num_z),
+                                 IGRange(0, num_g),
+                                 IMRange(0, num_m),
         [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });
