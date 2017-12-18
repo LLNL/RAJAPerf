@@ -114,8 +114,14 @@ blt_add_executable(
   lcals/PLANCKIAN-Cuda.cpp
   lcals/PLANCKIAN-OMPTarget.cpp
   polybench/POLYBENCH_2MM.cpp
+  polybench/POLYBENCH_2MM-Cuda.cpp
+  polybench/POLYBENCH_2MM-OMPTarget.cpp
   polybench/POLYBENCH_3MM.cpp
+  polybench/POLYBENCH_3MM-Cuda.cpp
+  polybench/POLYBENCH_3MM-OMPTarget.cpp
   polybench/POLYBENCH_GEMMVER.cpp
+  polybench/POLYBENCH_GEMMVER-Cuda.cpp
+  polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp

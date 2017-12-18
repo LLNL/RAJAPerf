@@ -12,10 +12,45 @@
 // For details about use and distribution, please read raja-perfsuite/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+///
+/// POLYBENCH_2MM kernel reference implementation:
+///
+/// D := alpha*A*B*C + beta*D
+///
+/// for (Index_type i = 0; i < m_ni; i++) {
+///   for (Index_type j = 0; j < m_nj; j++) {
+///     m_tmp[i][j] = 0.0;
+///     for (Index_type k = 0; k < m_nk; ++k) {
+///       m_tmp[i][j] += m_alpha * m_A[i][k] * m_B[k][j];
+///     }
+///   }
+/// } 
+/// for (Index_type i = 0; i < m_ni; i++) {
+///   for (Index_type j = 0; j < m_nl; j++) {
+///     m_D[i][j] *= m_beta;
+///     for (Index_type k = 0; k < m_nj; ++k) {
+///       m_D[i][j] += m_tmp[i][k] * m_C[k][j];
+///     } 
+///   }
+/// } 
+///
+
 
 
 #ifndef RAJAPerf_POLYBENCH_2MM_HXX
 #define RAJAPerf_POLYBENCH_2MM_HXX
+
+#define POLYBENCH_2MM_BODY1 \
+  *(tmp + i * nj + j) = 0.0;
+
+#define POLYBENCH_2MM_BODY2 \
+  *(tmp + i * nj + j) += alpha * *(A + i * nk + k) * *(B + k * nj + j);
+
+#define POLYBENCH_2MM_BODY3 \
+  *(D + i * nl + l) *= beta;
+
+#define POLYBENCH_2MM_BODY4 \
+  *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
 
 #include "common/KernelBase.hpp"
 
@@ -40,6 +75,8 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Index_type m_ni;
