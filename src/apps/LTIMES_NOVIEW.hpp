@@ -13,12 +13,39 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// LTIMES_NOVIEW kernel reference implementation:
+///
+/// for (Index_type z = 0; z < num_z; ++z ) {
+///   for (Index_type g = 0; g < num_g; ++g ) {
+///     for (Index_type m = 0; z < num_m; ++m ) {
+///       for (Index_type d = 0; d < num_d; ++d ) {
+///
+///         phi[m+ (g * num_g) + (z * num_z * num_g)] +=
+///           ell[d+ (m * num_m)] * psi[d+ (g * num_g) + (z * num_z * num_g];
+///
+///       }
+///     }
+///   }
+/// }
+///
 
 #ifndef RAJAPerf_Apps_LTIMES_NOVIEW_HPP
 #define RAJAPerf_Apps_LTIMES_NOVIEW_HPP
 
-#include "common/KernelBase.hpp"
 
+#define LTIMES_NOVIEW_BODY \
+  phidat[m+ (g * num_m) + (z * num_m * num_g)] += \
+    elldat[d+ (m * num_d)] * psidat[d+ (g * num_d) + (z * num_d * num_g)];
+
+#define LTIMES_NOVIEW_RANGES_RAJA \
+      using IDRange = RAJA::RangeSegment; \
+      using IZRange = RAJA::RangeSegment; \
+      using IGRange = RAJA::RangeSegment; \
+      using IMRange = RAJA::RangeSegment;
+
+
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {
@@ -39,6 +66,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_phidat;

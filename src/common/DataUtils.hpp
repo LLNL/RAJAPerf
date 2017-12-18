@@ -24,8 +24,6 @@
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
 
-#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
-
 
 namespace rajaperf
 {
@@ -147,65 +145,6 @@ void initData(Complex_ptr& ptr, int len,
 void initData(Real_type& d,
               VariantID vid = NumVariants);
 
-
-#if defined(RAJA_ENABLE_CUDA)
-
-/*!
- * \brief Copy given hptr (host) data to CUDA device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initCudaDeviceData(T& dptr, const T hptr, int len)
-{
-  cudaErrchk( cudaMemcpy( dptr, hptr, 
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          cudaMemcpyHostToDevice ) );
-
-  incDataInitCount();
-}
-
-/*!
- * \brief Allocate CUDA device data array (dptr) and copy given hptr (host) 
- * data to device array.
- */
-template <typename T>
-void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
-{
-  cudaErrchk( cudaMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
-
-  initCudaDeviceData(dptr, hptr, len);
-}
-
-/*!
- * \brief Copy given dptr (CUDA device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void getCudaDeviceData(T& hptr, const T dptr, int len)
-{
-  cudaErrchk( cudaMemcpy( hptr, dptr, 
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaMemcpyDeviceToHost ) );
-}
-
-/*!
- * \brief Free device data array.
- */
-template <typename T>
-void deallocCudaDeviceData(T& dptr)
-{
-  cudaErrchk( cudaFree( dptr ) );
-  dptr = 0;
-}
-
-#endif
-
-
 /*!
  * \brief Calculate and return checksum for data arrays.
  * 
@@ -219,7 +158,6 @@ long double calcChecksum(Real_ptr d, int len,
 ///
 long double calcChecksum(Complex_ptr d, int len, 
                          Real_type scale_factor = 1.0);
-
 
 }  // closing brace for rajaperf namespace
 

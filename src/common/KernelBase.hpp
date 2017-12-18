@@ -29,15 +29,16 @@
 // of the corresponding variant will be used.
 //
 // Eventually, the 'forallN' functionality in RAJA will be deprecated in favor
-// of the new RAJA::nested capabilities. Some variants of nested loops are 
-// still using forallN since the RAJA::nested::forall interface does not 
-// support all required functionality yet. When it does, the new
-// versions will be enabled for all kernel variants.  --RDH
+// of RAJA::nested capabilities. When possible, both forallN and RAJA::nested
+// versions are implemented for nested loops to see if there is a performance
+// difference. When any observed issues in RAJA::nested versions are resolved,
+// forallN versions will be removed. --RDH 
 //
 //#define USE_FORALLN_FOR_SEQ
 //#define USE_FORALLN_FOR_OPENMP
 //#define USE_FORALLN_FOR_CUDA
-#define USE_FORALLN_FOR_OPENMPTARGET
+//
+//Only RAJA::nested will supoort OMP Target variants.
 
 #include <string>
 #include <iostream>

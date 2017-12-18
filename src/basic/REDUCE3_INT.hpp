@@ -13,9 +13,40 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// REDUCE3_INT kernel reference implementation:
+///
+/// Int_type vsum = m_vsum_init;
+/// Int_type vmin = m_vmin_init;
+/// Int_type vmax = m_vmax_init;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   vsum += vec[i] ;
+///   vmin = RAJA_MIN(vmin, vec[i]) ;
+///   vmax = RAJA_MAX(vmax, vec[i]) ;
+/// }
+///
+/// m_vsum += vsum;
+/// m_vmin = RAJA_MIN(m_vmin, vmin);
+/// m_vmax = RAJA_MAX(m_vmax, vmax);
+///
+/// RAJA_MIN/MAX are macros that do what you would expect.
+///
 
 #ifndef RAJAPerf_Basic_REDUCE3_INT_HPP
 #define RAJAPerf_Basic_REDUCE3_INT_HPP
+
+
+#define REDUCE3_INT_BODY  \
+  vsum += vec[i] ; \
+  vmin = RAJA_MIN(vmin, vec[i]) ; \
+  vmax = RAJA_MAX(vmax, vec[i]) ;
+
+#define REDUCE3_INT_BODY_RAJA  \
+  vsum += vec[i] ; \
+  vmin.min(vec[i]) ; \
+  vmax.max(vec[i]) ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +69,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Int_ptr m_vec;

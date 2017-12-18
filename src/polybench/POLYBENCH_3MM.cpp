@@ -50,6 +50,8 @@
 
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+
 
 #include <iostream>
 

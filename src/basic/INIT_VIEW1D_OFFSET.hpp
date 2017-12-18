@@ -13,9 +13,30 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// INIT_VIEW1D_OFFSET kernel reference implementation:
+///
+/// const Real_type val = ...;
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   a[i-ibegin] = val;
+/// }
+///
+/// RAJA variants use a "View" and "Layout" to do the same thing. These 
+/// RAJA constructs provide little benfit in 1D, but they are used here
+/// to exercise those RAJA mechanics in the simplest scenario.
+///
 
 #ifndef RAJAPerf_Basic_INIT_VIEW1D_OFFSET_HPP
 #define RAJAPerf_Basic_INIT_VIEW1D_OFFSET_HPP
+
+
+#define INIT_VIEW1D_OFFSET_BODY  \
+  a[i-ibegin] = v;
+
+#define INIT_VIEW1D_OFFSET_BODY_RAJA  \
+  view(i) = v;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +59,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_a;

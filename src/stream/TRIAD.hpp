@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// TRIAD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   a[i] = b[i] + alpha * c[i] ;
+/// }
+///
 
 #ifndef RAJAPerf_Stream_TRIAD_HPP
 #define RAJAPerf_Stream_TRIAD_HPP
+
+
+#define TRIAD_BODY  \
+  a[i] = b[i] + alpha * c[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +50,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_a;

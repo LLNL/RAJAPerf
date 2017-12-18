@@ -16,6 +16,7 @@
 
 #include "DataUtils.hpp"
 
+
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
 #include <cstdlib>

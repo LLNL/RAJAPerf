@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// FIRST_DIFF kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   x[i] = y[i+1] - y[i];
+/// }
+///
 
 #ifndef RAJAPerf_Basic_FIRST_DIFF_HPP
 #define RAJAPerf_Basic_FIRST_DIFF_HPP
+
+
+#define FIRST_DIFF_BODY  \
+  x[i] = y[i+1] - y[i];
+
 
 #include "common/KernelBase.hpp"
 
@@ -39,9 +51,14 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
+
 private:
   Real_ptr m_x;
   Real_ptr m_y;
+
+  Index_type m_array_length;
 };
 
 } // end namespace lcals

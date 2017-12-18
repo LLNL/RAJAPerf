@@ -13,20 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// PLANCKIAN kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   y[i] = u[i] / v[i]; 
-///   w[i] = x[i] / ( exp( y[i] ) - 1.0 );
-/// }
-///
-
 #include "PLANCKIAN.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 #include <cmath>
@@ -36,58 +27,13 @@ namespace rajaperf
 namespace lcals
 {
 
-#define PLANCKIAN_DATA \
+
+#define PLANCKIAN_DATA_SETUP_CPU \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y; \
   ResReal_ptr u = m_u; \
   ResReal_ptr v = m_v; \
   ResReal_ptr w = m_w;
-
-#define PLANCKIAN_BODY  \
-  y[i] = u[i] / v[i]; \
-  w[i] = x[i] / ( exp( y[i] ) - 1.0 );
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define PLANCKIAN_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr u; \
-  Real_ptr v; \
-  Real_ptr w; \
-\
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(u, m_u, iend); \
-  allocAndInitCudaDeviceData(v, m_v, iend); \
-  allocAndInitCudaDeviceData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_w, w, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(u); \
-  deallocCudaDeviceData(v); \
-  deallocCudaDeviceData(w);
-
-__global__ void planckian(Real_ptr x, Real_ptr y,
-                          Real_ptr u, Real_ptr v, Real_ptr w, 
-                          Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     PLANCKIAN_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 PLANCKIAN::PLANCKIAN(const RunParams& params)
@@ -120,7 +66,7 @@ void PLANCKIAN::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      PLANCKIAN_DATA;
+      PLANCKIAN_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -137,7 +83,7 @@ void PLANCKIAN::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      PLANCKIAN_DATA;
+      PLANCKIAN_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -156,7 +102,7 @@ void PLANCKIAN::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      PLANCKIAN_DATA;
+      PLANCKIAN_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -174,7 +120,7 @@ void PLANCKIAN::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      PLANCKIAN_DATA;
+      PLANCKIAN_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -189,99 +135,22 @@ void PLANCKIAN::runKernel(VariantID vid)
 
       break;
     }
-
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-
-#define NUMTEAMS 128
-
-    case Base_OpenMPTarget : {
-
-      PLANCKIAN_DATA;
-                              
-      Index_type n = iend;
-      #pragma omp target enter data map(to:x[0:n],y[0:n],u[0:n],v[0:n],w[0:n])
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PLANCKIAN_BODY;
-        }
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:w[0:n]) map(delete:x[0:n],y[0:n],u[0:n],v[0:n])
-
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
-
-    case RAJA_OpenMPTarget: {
-
-      PLANCKIAN_DATA;
-                              
-      Index_type n = iend;
-      #pragma omp target enter data map(to:x[0:n],y[0:n],u[0:n],v[0:n],w[0:n])
-
-      startTimer();
-      #pragma omp target data use_device_ptr(x,y,u,v,w)
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-            RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          PLANCKIAN_BODY;
-        });
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:w[0:n]) map(delete:x[0:n],y[0:n],u[0:n],v[0:n])
-
-      break;                        
-    }                          
-#endif //RAJA_ENABLE_TARGET_OPENMP
-#endif //RAJA_ENABLE_OMP                             
+#endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      PLANCKIAN_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         planckian<<<grid_size, block_size>>>( x, y, 
-                                               u, v, w,
-                                               iend );
-
-      }
-      stopTimer();
-
-      PLANCKIAN_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      PLANCKIAN_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           PLANCKIAN_BODY;
-         });
-
-      }
-      stopTimer();
-
-      PLANCKIAN_DATA_TEARDOWN_CUDA;
-
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
