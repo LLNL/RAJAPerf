@@ -43,12 +43,26 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
   apps/DEL_DOT_VEC_2D.cpp
+  apps/DEL_DOT_VEC_2D-Cuda.cpp
+  apps/DEL_DOT_VEC_2D-OMPTarget.cpp
   apps/ENERGY.cpp
+  apps/ENERGY-Cuda.cpp
+  apps/ENERGY-OMPTarget.cpp
   apps/FIR.cpp
+  apps/FIR-Cuda.cpp
+  apps/FIR-OMPTarget.cpp
   apps/PRESSURE.cpp
+  apps/PRESSURE-Cuda.cpp
+  apps/PRESSURE-OMPTarget.cpp
   apps/VOL3D.cpp
+  apps/VOL3D-Cuda.cpp
+  apps/VOL3D-OMPTarget.cpp
   apps/LTIMES.cpp
+  apps/LTIMES-Cuda.cpp
+  apps/LTIMES-OMPTarget.cpp
   apps/LTIMES_NOVIEW.cpp
+  apps/LTIMES_NOVIEW-Cuda.cpp
+  apps/LTIMES_NOVIEW-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Cuda.cpp

@@ -38,9 +38,9 @@ namespace basic
   int did = omp_get_default_device(); \
 \
   Real_ptr array = m_array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk; \
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk; \
 \
   allocAndInitOpenMPDeviceData(array, m_array, m_array_length, did, hid);
 
@@ -103,10 +103,10 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
     NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
     using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::OmpCollapse<
-                         RAJA::nested::For<2>,     //k
-                         RAJA::nested::For<1>,     //j
-                         RAJA::nested::For<0> > >; //i
+                       RAJA::nested::OmpTargetCollapse<
+                         RAJA::nested::For<2>,          //k
+                         RAJA::nested::For<1>,          //j
+                         RAJA::nested::For<0> > >;      //i
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

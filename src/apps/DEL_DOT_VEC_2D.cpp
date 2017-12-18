@@ -13,45 +13,12 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// DEL_DOT_VEC_2D kernel reference implementation:
-///
-/// for (Index_type ii = ibegin; ii < iend; ++ii ) {
-///   Index_type i = real_zones[ii];
-///
-///   Real_type xi  = half * ( x1[i]  + x2[i]  - x3[i]  - x4[i]  ) ;
-///   Real_type xj  = half * ( x2[i]  + x3[i]  - x4[i]  - x1[i]  ) ;
-/// 
-///   Real_type yi  = half * ( y1[i]  + y2[i]  - y3[i]  - y4[i]  ) ; 
-///   Real_type yj  = half * ( y2[i]  + y3[i]  - y4[i]  - y1[i]  ) ;
-///  
-///   Real_type fxi = half * ( fx1[i] + fx2[i] - fx3[i] - fx4[i] ) ;
-///   Real_type fxj = half * ( fx2[i] + fx3[i] - fx4[i] - fx1[i] ) ;
-///  
-///   Real_type fyi = half * ( fy1[i] + fy2[i] - fy3[i] - fy4[i] ) ;
-///   Real_type fyj = half * ( fy2[i] + fy3[i] - fy4[i] - fy1[i] ) ;
-/// 
-///   Real_type rarea  = 1.0 / ( xi * yj - xj * yi + ptiny ) ;
-/// 
-///   Real_type dfxdx  = rarea * ( fxi * yj - fxj * yi ) ;
-/// 
-///   Real_type dfydy  = rarea * ( fyj * xi - fyi * xj ) ;
-/// 
-///   Real_type affine = ( fy1[i] + fy2[i] + fy3[i] + fy4[i] ) /
-///                      ( y1[i]  + y2[i]  + y3[i]  + y4[i]  ) ;
-/// 
-///   div[i] = dfxdx + dfydy + affine ;
-/// }
-///
-
 #include "DEL_DOT_VEC_2D.hpp"
+
+#include "RAJA/RAJA.hpp"
 
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
-#include "common/CudaDataUtils.hpp"
-
-
-#include "RAJA/RAJA.hpp"
 
 #include <iostream>
 
@@ -60,7 +27,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define DEL_DOT_VEC_2D_DATA \
+#define DEL_DOT_VEC_2D_DATA_SETUP_CPU \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y; \
   ResReal_ptr xdot = m_xdot; \
@@ -74,100 +41,6 @@ namespace apps
   ResReal_ptr y1,y2,y3,y4 ; \
   ResReal_ptr fx1,fx2,fx3,fx4 ; \
   ResReal_ptr fy1,fy2,fy3,fy4 ;
-
-#define DEL_DOT_VEC_2D_DATA_INDEX \
-  Index_ptr real_zones = m_domain->real_zones;
-
-#define DEL_DOT_VEC_2D_BODY_INDEX \
-  Index_type i = real_zones[ii];
-
-#define DEL_DOT_VEC_2D_BODY \
-\
-  Real_type xi  = half * ( x1[i]  + x2[i]  - x3[i]  - x4[i]  ) ; \
-  Real_type xj  = half * ( x2[i]  + x3[i]  - x4[i]  - x1[i]  ) ; \
- \
-  Real_type yi  = half * ( y1[i]  + y2[i]  - y3[i]  - y4[i]  ) ; \
-  Real_type yj  = half * ( y2[i]  + y3[i]  - y4[i]  - y1[i]  ) ; \
- \
-  Real_type fxi = half * ( fx1[i] + fx2[i] - fx3[i] - fx4[i] ) ; \
-  Real_type fxj = half * ( fx2[i] + fx3[i] - fx4[i] - fx1[i] ) ; \
- \
-  Real_type fyi = half * ( fy1[i] + fy2[i] - fy3[i] - fy4[i] ) ; \
-  Real_type fyj = half * ( fy2[i] + fy3[i] - fy4[i] - fy1[i] ) ; \
- \
-  Real_type rarea  = 1.0 / ( xi * yj - xj * yi + ptiny ) ; \
- \
-  Real_type dfxdx  = rarea * ( fxi * yj - fxj * yi ) ; \
- \
-  Real_type dfydy  = rarea * ( fyj * xi - fyi * xj ) ; \
- \
-  Real_type affine = ( fy1[i] + fy2[i] + fy3[i] + fy4[i] ) / \
-                     ( y1[i]  + y2[i]  + y3[i]  + y4[i]  ) ; \
- \
-  div[i] = dfxdx + dfydy + affine ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr xdot; \
-  Real_ptr ydot; \
-  Real_ptr div; \
-  Index_ptr real_zones; \
-\
-  const Real_type ptiny = m_ptiny; \
-  const Real_type half = m_half; \
-\
-  Real_ptr x1,x2,x3,x4 ; \
-  Real_ptr y1,y2,y3,y4 ; \
-  Real_ptr fx1,fx2,fx3,fx4 ; \
-  Real_ptr fy1,fy2,fy3,fy4 ; \
-\
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(xdot, m_xdot, m_array_length); \
-  allocAndInitCudaDeviceData(ydot, m_ydot, m_array_length); \
-  allocAndInitCudaDeviceData(div, m_div, m_array_length); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
-
-#define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_div, div, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(xdot); \
-  deallocCudaDeviceData(ydot); \
-  deallocCudaDeviceData(div); \
-  deallocCudaDeviceData(real_zones);
-
-__global__ void deldotvec2d(Real_ptr div, 
-                            const Real_ptr x1, const Real_ptr x2,
-                            const Real_ptr x3, const Real_ptr x4,
-                            const Real_ptr y1, const Real_ptr y2,
-                            const Real_ptr y3, const Real_ptr y4,
-                            const Real_ptr fx1, const Real_ptr fx2,
-                            const Real_ptr fx3, const Real_ptr fx4,
-                            const Real_ptr fy1, const Real_ptr fy2,
-                            const Real_ptr fy3, const Real_ptr fy4,
-                            const Index_ptr real_zones,
-                            const Real_type half, const Real_type ptiny,
-                            Index_type iend)
-{
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   if (ii < iend) {
-     DEL_DOT_VEC_2D_BODY_INDEX;
-     DEL_DOT_VEC_2D_BODY;
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
@@ -219,7 +92,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      DEL_DOT_VEC_2D_DATA;
+      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
@@ -243,7 +116,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      DEL_DOT_VEC_2D_DATA;
+      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -268,7 +141,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
 
-      DEL_DOT_VEC_2D_DATA;
+      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
       DEL_DOT_VEC_2D_DATA_INDEX;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
@@ -293,7 +166,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      DEL_DOT_VEC_2D_DATA;
+      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
 
       NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
       NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -314,159 +187,22 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
       break;
     }
+#endif
 
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)                     
-
-#define NUMTEAMS 128
-
-    case Base_OpenMPTarget : {
-
-      DEL_DOT_VEC_2D_DATA;
-      DEL_DOT_VEC_2D_DATA_INDEX;
-
-      int n=m_array_length;
-      int nn=m_domain->n_real_zones;
-      int jp=m_domain->jp;
-
-      #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
-          ptiny, half, jp )
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp target teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-  	  ResReal_ptr x1,x2,x3,x4 ;
-  	  ResReal_ptr y1,y2,y3,y4 ; 
-  	  ResReal_ptr fx1,fx2,fx3,fx4 ; 
-  	  ResReal_ptr fy1,fy2,fy3,fy4 ;
-          NDSET2D(jp, x,x1,x2,x3,x4) ;
-          NDSET2D(jp, y,y1,y2,y3,y4) ;
-          NDSET2D(jp, xdot,fx1,fx2,fx3,fx4) ;
-          NDSET2D(jp, ydot,fy1,fy2,fy3,fy4) ;
-
-          DEL_DOT_VEC_2D_BODY_INDEX;
-          DEL_DOT_VEC_2D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
-
-    case RAJA_OpenMPTarget : {
-
-      DEL_DOT_VEC_2D_DATA;
-      DEL_DOT_VEC_2D_DATA_INDEX;
-
-      int n=m_array_length;
-      int nn=m_domain->n_real_zones;
-      int jp=m_domain->jp;
-
-      #pragma omp target enter data map(to:x[0:n],y[0:n],xdot[0:n],ydot[0:n],div[0:n],real_zones[0:nn], \
-          ptiny, half, jp )
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      startTimer();
-      #pragma omp target data use_device_ptr(x,y,xdot,ydot,div,real_zones)
-
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type ii) {
-  	      ResReal_ptr x1,x2,x3,x4 ;
-  	      ResReal_ptr y1,y2,y3,y4 ; 
-  	      ResReal_ptr fx1,fx2,fx3,fx4 ; 
-  	      ResReal_ptr fy1,fy2,fy3,fy4 ;
-          NDSET2D(jp, x,x1,x2,x3,x4) ;
-          NDSET2D(jp, y,y1,y2,y3,y4) ;
-          NDSET2D(jp, xdot,fx1,fx2,fx3,fx4) ;
-          NDSET2D(jp, ydot,fy1,fy2,fy3,fy4) ;
-
-          DEL_DOT_VEC_2D_BODY_INDEX;
-          DEL_DOT_VEC_2D_BODY;
-        });
-
-      }
-      stopTimer();
-
-      #pragma omp target exit data map(from:div[0:n]) map(delete:x[0:n],y[0:n],xdot[0:n],ydot[0:n],real_zones[0:nn],ptiny,half,jp)
-
-      break;
-
-    }
-#endif //RAJA_ENABLE_TARGET_OPENMP
-#endif //RAJA_ENABLE_OMP                             
+#endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
-        deldotvec2d<<<grid_size, block_size>>>(div, 
-                                               x1, x2, x3, x4,
-                                               y1, y2, y3, y4,
-                                               fx1, fx2, fx3, fx4,
-                                               fy1, fy2, fy3, fy4,
-                                               real_zones,
-                                               half, ptiny,
-                                               iend);
-
-      }
-      stopTimer();
-
-      DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
-
-      break;
-    }
-
-    case RAJA_CUDA : {
-
-      DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           zones, [=] __device__ (Index_type i) {
-           DEL_DOT_VEC_2D_BODY;
-         });
-
-      }
-      stopTimer();
-
-      DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
-
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif

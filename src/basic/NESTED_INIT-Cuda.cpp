@@ -30,9 +30,9 @@ namespace basic
 
 #define NESTED_INIT_DATA_SETUP_CUDA \
   Real_ptr array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk; \
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk; \
 \
   allocAndInitCudaDeviceData(array, m_array, m_array_length);
 
@@ -41,7 +41,7 @@ namespace basic
   deallocCudaDeviceData(array);
 
 __global__ void nested_init(Real_ptr array,
-                            Int_type ni, Int_type nj)
+                            Index_type ni, Index_type nj)
 {
    Index_type i = threadIdx.x;
    Index_type j = blockIdx.y;
