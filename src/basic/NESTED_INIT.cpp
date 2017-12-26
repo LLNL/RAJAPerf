@@ -86,31 +86,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-#if defined(USE_FORALLN_FOR_SEQ)
-
-      NESTED_INIT_DATA_SETUP_CPU;
-
-      using EXEC_POL = RAJA::NestedPolicy<
-                             RAJA::ExecList< RAJA::seq_exec,      // k
-                                             RAJA::seq_exec,      // j
-                                             RAJA::simd_exec > >; // i 
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< EXEC_POL >(
-              RAJA::RangeSegment(0, nk),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, ni),
-          [=](Index_type k, Index_type j, Index_type i) {     
-          NESTED_INIT_BODY;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
-
       NESTED_INIT_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
@@ -131,8 +106,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-#endif
 
       break;
     }
@@ -164,31 +137,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-#if defined(USE_FORALLN_FOR_OPENMP)
-
-      NESTED_INIT_DATA_SETUP_CPU;
-
-      using EXEC_POL = RAJA::NestedPolicy<
-                             RAJA::ExecList< RAJA::omp_parallel_for_exec,  // k
-                                             RAJA::seq_exec,               // j 
-                                             RAJA::simd_exec > >;          // i
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< EXEC_POL >(
-              RAJA::RangeSegment(0, nk),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, ni),
-          [=](Index_type k, Index_type j, Index_type i) {     
-          NESTED_INIT_BODY;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
-
       NESTED_INIT_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
@@ -209,8 +157,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-#endif
 
       break;
     }

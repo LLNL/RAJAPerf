@@ -54,9 +54,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//#undef USE_FORALLN_FOR_SEQ
-//#undef USE_FORALLN_FOR_OPENMP 
-
 #define POLYBENCH_GEMMVER_DATA_SETUP_CPU \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
@@ -174,47 +171,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     }
 
     case RAJA_Seq : {
-#if defined(USE_FORALLN_FOR_SEQ)
 
-      POLYBENCH_GEMMVER_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY1;
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY2;
-        });
-
-
-        RAJA::forall<RAJA::seq_exec> (
-          RAJA::RangeSegment{0, n}, [=] (int i) {
-          POLYBENCH_GEMMVER_BODY3; 
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::seq_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY4;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
@@ -253,8 +210,6 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-#endif
 
       break;
     }
@@ -301,46 +256,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-#if defined(USE_FORALLN_FOR_OPENMP)
 
-      POLYBENCH_GEMMVER_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY1;
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY2;
-        });
-
-
-        RAJA::forall<RAJA::omp_parallel_for_exec> (
-          RAJA::RangeSegment{0, n}, [=] (int i) {
-          POLYBENCH_GEMMVER_BODY3; 
-        });
-
-        RAJA::forallN<RAJA::NestedPolicy<RAJA::ExecList<RAJA::omp_parallel_for_exec,
-                                                        RAJA::seq_exec>>> (
-          RAJA::RangeSegment{0, n}, 
-          RAJA::RangeSegment{0, n}, 
-          [=] (int i, int j) {
-          POLYBENCH_GEMMVER_BODY4;
-        });
-
-      }
-      stopTimer();
-#else // use RAJA::nested
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
@@ -379,10 +295,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       }
       stopTimer();
 
-#endif
       break;
     }
-
 #endif //RAJA_ENABLE_OPENMP
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)

@@ -88,36 +88,6 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-#if defined(USE_FORALLN_FOR_CUDA)
-
-    LTIMES_NOVIEW_DATA_SETUP_CUDA;
-
-    LTIMES_NOVIEW_RANGES_RAJA;
-
-    using EXEC_POL =
-      RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec,              //d
-                                         RAJA::cuda_block_z_exec,     //z
-                                         RAJA::cuda_block_y_exec,     //g
-                                         RAJA::cuda_thread_x_exec > >;//m
-            
-    startTimer(); 
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      
-      RAJA::forallN< EXEC_POL >( IDRange(0, num_d),
-                                 IZRange(0, num_z),
-                                 IGRange(0, num_g),
-                                 IMRange(0, num_m),
-        [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
-        LTIMES_NOVIEW_BODY;
-      });
-    
-    }
-    stopTimer();
-
-    LTIMES_NOVIEW_DATA_TEARDOWN_CUDA;
-
-#else // use RAJA::nested
-
     LTIMES_NOVIEW_DATA_SETUP_CUDA;
 
     LTIMES_NOVIEW_RANGES_RAJA;
@@ -145,8 +115,6 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
     stopTimer();
 
     LTIMES_NOVIEW_DATA_TEARDOWN_CUDA;
-
-#endif
 
   } else {
      std::cout << "\n LTIMES_NOVIEW : Unknown Cuda variant id = " << vid << std::endl;

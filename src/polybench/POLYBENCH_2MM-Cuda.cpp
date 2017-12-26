@@ -29,7 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//#undef USE_FORALLN_FOR_CUDA
 //
 // Define thread block size for CUDA execution
 //
@@ -130,51 +129,12 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
   } else if (vid == RAJA_CUDA) {
 
-#if defined(USE_FORALLN_FOR_CUDA)
-
     POLYBENCH_2MM_DATA_SETUP_CUDA;
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
-        RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
-
-        Index_type i,j,k;
-        *(tmp + ii) = 0.0;
-        i = ii/nj; j = ii % nj;
-        for (k=0;k<nk;k++) {
-          POLYBENCH_2MM_BODY2; 
-        }
-
-      });
-
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D,m_D,m_ni * m_nl ); 
-
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
-        RAJA::RangeSegment{0, ni * nl}, [=] __device__ (int ii) {
-
-        *(D + ii) *= beta;
-        Index_type i,l,j;
-        i = ii/nl; l = ii % nl;
-        for (j=0;j<nj;j++) {
-          POLYBENCH_2MM_BODY4;
-        }  
-
-      });
-
-    }
-    stopTimer();
-
-    POLYBENCH_2MM_TEARDOWN_CUDA;
-#else // use RAJA::nested
-    POLYBENCH_2MM_DATA_SETUP_CUDA;
     using EXEC_POL = RAJA::nested::Policy<
                        RAJA::nested::CudaCollapse<
                          RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
                          RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;
-
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -212,8 +172,6 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_2MM_TEARDOWN_CUDA;
 
-
-#endif
   } else {
       std::cout << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
   }
