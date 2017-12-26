@@ -127,15 +127,20 @@ Lastly, the program will emit a summary of provided input if it is given
 something that it does not understand. Hopefully, this will make it easy for
 users to understand and correct erroneous usage.
 
-# Important note
+# Important notes
 
-The OpenMP target variants of the kernels should be considered a 
-work-in-progress. They are incomplete (a few RAJA features must be
-filled in to make them comparable to other variants of 'nested' kernels).
-Also, the build system for the Suite needs to be reworked to have the
-OpenMP target kernel variants run from the same executable as the CUDA
-variants. Currently, a separate executable `./bin/raja-perf-nolibs.exe`
-is generated for running OpenMP target variants when they are enabled.
+ * The kernels that use RAJA 'nested' loop constructs will be replaced
+   at some point with new RAJA nested capabilities that are being developed. 
+   The new nested constructs are simpler, more flexible, and perform better.
+
+ * The OpenMP target variants of the kernels in the Suite are a 
+   work-in-progress. They are incomplete (a few RAJA features must be
+   filled in to make them comparable to other variants).
+
+ * The build system for the Suite needs to be reworked to have the
+   OpenMP target kernel variants run from the same executable as the CUDA
+   variants. Currently, a separate executable `./bin/raja-perf-nolibs.exe`
+   is generated for running OpenMP target variants when they are enabled.
 
 * * *
 
