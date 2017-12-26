@@ -92,12 +92,14 @@ void LTIMES::runCudaVariant(VariantID vid)
 
       LTIMES_VIEWS_RANGES_RAJA;
 
+#if 0 // CudaCollapse with typed range appears to be broken...
+
       using EXEC_POL = RAJA::nested::Policy<
                   RAJA::nested::CudaCollapse<
-                     RAJA::nested::TypedFor<1, RAJA::cuda_block_z_exec, IZ>,
-                     RAJA::nested::TypedFor<2, RAJA::cuda_block_y_exec, IG>,
-                     RAJA::nested::TypedFor<3, RAJA::cuda_thread_x_exec, IM> >,
-                   RAJA::nested::TypedFor<0, RAJA::cuda_loop_exec, ID> >;
+                     RAJA::nested::For<1, RAJA::cuda_block_z_exec, IZ>,
+                     RAJA::nested::For<2, RAJA::cuda_block_y_exec, IG>,
+                     RAJA::nested::For<3, RAJA::cuda_thread_x_exec, IM> >,
+                   RAJA::nested::For<0, RAJA::cuda_loop_exec, ID> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,6 +115,32 @@ void LTIMES::runCudaVariant(VariantID vid)
 
       }
       stopTimer();
+
+#else // use non-typed version for now...
+
+    using EXEC_POL = RAJA::nested::Policy<
+                RAJA::nested::CudaCollapse<
+                   RAJA::nested::For<1, RAJA::cuda_block_z_exec>,    //z
+                   RAJA::nested::For<2, RAJA::cuda_block_y_exec>,    //g
+                   RAJA::nested::For<3, RAJA::cuda_thread_x_exec> >, //m
+                 RAJA::nested::For<0, RAJA::cuda_loop_exec> >;       //d
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::nested::forall(EXEC_POL{},
+                           camp::make_tuple(RAJA::RangeSegment(0, num_d),
+                                            RAJA::RangeSegment(0, num_z),
+                                            RAJA::RangeSegment(0, num_g),
+                                            RAJA::RangeSegment(0, num_m)),
+        [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
+        LTIMES_BODY;
+      });
+
+    }
+    stopTimer();
+
+#endif
 
       LTIMES_DATA_TEARDOWN_CUDA;
 
