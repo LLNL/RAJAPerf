@@ -185,7 +185,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                            RAJA::RangeSegment(0, nj)),
             [=](Index_type i, Index_type j) {     
             POLYBENCH_3MM_BODY1;
@@ -197,7 +197,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
         });
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, nj),
+          RAJA::make_tuple(RAJA::RangeSegment(0, nj),
                            RAJA::RangeSegment(0, nl)),
             [=](Index_type j, Index_type l) {     
             POLYBENCH_3MM_BODY3;
@@ -209,7 +209,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
         });
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                            RAJA::RangeSegment(0, nl)),
             [=](Index_type i, Index_type l) {     
             POLYBENCH_3MM_BODY5;
@@ -282,7 +282,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple( RAJA::RangeSegment{0, ni}, 
+          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
                             RAJA::RangeSegment{0, nj}),
           [=] (int i, int j) {
 
@@ -296,7 +296,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
         });
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple( RAJA::RangeSegment{0, nj}, 
+          RAJA::make_tuple( RAJA::RangeSegment{0, nj}, 
                             RAJA::RangeSegment{0, nl}),
           [=] (int j, int l) {
 
@@ -310,7 +310,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
         });
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple( RAJA::RangeSegment{0, ni}, 
+          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
                             RAJA::RangeSegment{0, nl}),
           [=] (int i, int l) {
 

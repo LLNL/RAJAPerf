@@ -171,8 +171,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
-            RAJA::RangeSegment(0, nj)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::RangeSegment(0, nj)),
             [=](Index_type i, Index_type j) {     
             POLYBENCH_2MM_BODY1;
 
@@ -185,8 +185,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
-            RAJA::RangeSegment(0, nl)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::RangeSegment(0, nl)),
             [=](Index_type i, Index_type l) {     
             POLYBENCH_2MM_BODY3;
 
@@ -250,8 +250,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
-            RAJA::RangeSegment(0, nj)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::RangeSegment(0, nj)),
             [=](Index_type i, Index_type j) {     
             POLYBENCH_2MM_BODY1;
 
@@ -264,8 +264,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
         RAJA::nested::forall(EXEC_POL{},
-          camp::make_tuple(RAJA::RangeSegment(0, ni),
-            RAJA::RangeSegment(0, nl)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::RangeSegment(0, nl)),
             [=](Index_type i, Index_type l) {     
             POLYBENCH_2MM_BODY3;
 

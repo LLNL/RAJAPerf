@@ -140,7 +140,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
      
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nj)),
         [=] __device__ (Index_type i, Index_type j) {
 
@@ -155,7 +155,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       initCudaDeviceData(D,m_D,m_ni * m_nl ); 
 
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nl)),
         [=] __device__ (Index_type i, Index_type l) {
 
