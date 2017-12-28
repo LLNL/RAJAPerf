@@ -107,10 +107,10 @@ void LTIMES::runKernel(VariantID vid)
       LTIMES_VIEWS_RANGES_RAJA;
 
       using EXEC_POL = RAJA::nested::Policy<
-                             RAJA::nested::For<1, RAJA::seq_exec, IZ>,
-                             RAJA::nested::For<2, RAJA::seq_exec, IG>,
-                             RAJA::nested::For<3, RAJA::seq_exec, IM>,
-                             RAJA::nested::For<0, RAJA::seq_exec, ID> >;
+                             RAJA::nested::For<1, RAJA::seq_exec>,
+                             RAJA::nested::For<2, RAJA::seq_exec>,
+                             RAJA::nested::For<3, RAJA::seq_exec>,
+                             RAJA::nested::For<0, RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -162,10 +162,10 @@ void LTIMES::runKernel(VariantID vid)
       LTIMES_VIEWS_RANGES_RAJA;
 
       using EXEC_POL = RAJA::nested::Policy<
-                     RAJA::nested::For<1, RAJA::omp_parallel_for_exec, IZ>,
-                     RAJA::nested::For<2, RAJA::seq_exec, IG>,
-                     RAJA::nested::For<3, RAJA::seq_exec, IM>,
-                     RAJA::nested::For<0, RAJA::seq_exec, ID> >;
+                     RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
+                     RAJA::nested::For<2, RAJA::seq_exec>,
+                     RAJA::nested::For<3, RAJA::seq_exec>,
+                     RAJA::nested::For<0, RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
