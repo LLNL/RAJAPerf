@@ -101,19 +101,12 @@ void LTIMES::runCudaVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-#if 1 
-                             RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
-                                              RAJA::RangeSegment(0, num_z),
-                                              RAJA::RangeSegment(0, num_g),
-                                              RAJA::RangeSegment(0, num_m)),
-#else // CudaCollapse with typed range appears to be broken...
                              RAJA::make_tuple(IDRange(0, num_d),
                                               IZRange(0, num_z),
                                               IGRange(0, num_g),
                                               IMRange(0, num_m)),
-#endif
-          [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
-          LTIMES_BODY;
+          [=] __device__ (ID d, IZ z, IG g, IM m) {
+          LTIMES_BODY_RAJA;
         });
 
       }
