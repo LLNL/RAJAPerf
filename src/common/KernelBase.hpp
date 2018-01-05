@@ -24,22 +24,6 @@
 
 #include "RAJA/util/Timer.hpp"
 
-//
-// If any of these macro constants is not defined, the RAJA::nested version
-// of the corresponding variant will be used.
-//
-// Eventually, the 'forallN' functionality in RAJA will be deprecated in favor
-// of RAJA::nested capabilities. When possible, both forallN and RAJA::nested
-// versions are implemented for nested loops to see if there is a performance
-// difference. When any observed issues in RAJA::nested versions are resolved,
-// forallN versions will be removed. --RDH 
-//
-//#define USE_FORALLN_FOR_SEQ
-//#define USE_FORALLN_FOR_OPENMP
-//#define USE_FORALLN_FOR_CUDA
-//
-//Only RAJA::nested will supoort OMP Target variants.
-
 #include <string>
 #include <iostream>
 

@@ -90,7 +90,7 @@ void DOT::runKernel(VariantID vid)
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
         });

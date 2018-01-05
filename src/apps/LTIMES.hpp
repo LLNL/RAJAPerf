@@ -63,10 +63,10 @@
                RAJA::make_permuted_layout( {num_z, num_g, num_m}, \
                      RAJA::as_array<RAJA::Perm<0, 1, 2> >::get() ) ); \
 \
-      using IDRange = RAJA::RangeSegment; \
-      using IZRange = RAJA::RangeSegment; \
-      using IGRange = RAJA::RangeSegment; \
-      using IMRange = RAJA::RangeSegment;
+      using IDRange = RAJA::TypedRangeSegment<ID>; \
+      using IZRange = RAJA::TypedRangeSegment<IZ>; \
+      using IGRange = RAJA::TypedRangeSegment<IG>; \
+      using IMRange = RAJA::TypedRangeSegment<IM>;
 
 
 #include "common/KernelBase.hpp"

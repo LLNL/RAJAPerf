@@ -29,7 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//#undef USE_FORALLN_FOR_CUDA
 //
 // Define thread block size for CUDA execution
 //
@@ -152,54 +151,8 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
   } else if (vid == RAJA_CUDA) {
 
-#if defined(USE_FORALLN_FOR_CUDA)
     POLYBENCH_3MM_DATA_SETUP_CUDA;
 
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
-        RAJA::RangeSegment{0, ni * nj}, [=] __device__ (int ii) {
-
-        Index_type i,j,k;
-        *(E + ii) = 0.0;
-        i = ii/nj; j = ii % nj;
-        for (k=0;k<nk;k++) {
-          POLYBENCH_3MM_BODY2; 
-        }
-
-      });
-
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
-        RAJA::RangeSegment{0, nj * nl}, [=] __device__ (int ii) {
-
-        *(F + ii) = 0.0;
-        Index_type j,l,m;
-        j = ii/nl; l = ii % nl;
-        for (m=0;m<nm;m++) {
-          POLYBENCH_3MM_BODY4;
-        }
-
-      });
-
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
-      RAJA::RangeSegment{0, ni * nl}, [=] __device__ (int ii) {
-
-        *(G + ii) = 0.0;
-        Index_type i,l,j;
-        i = ii/nl; l = ii % nl;
-        for (j=0;j<nj;j++) {
-          POLYBENCH_3MM_BODY6;
-        }  
-
-      });
-
-    }
-    stopTimer();
-
-    POLYBENCH_3MM_TEARDOWN_CUDA;
-#else // use RAJA::nested
-    POLYBENCH_3MM_DATA_SETUP_CUDA;
     using EXEC_POL = RAJA::nested::Policy<
                        RAJA::nested::CudaCollapse<
                          RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
@@ -208,7 +161,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nj)),
         [=] __device__ (Index_type i, Index_type j) {
 
@@ -220,7 +173,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       });
 
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, nj),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, nj),
                                             RAJA::RangeSegment(0, nl)),
         [=] __device__ (Index_type j, Index_type l) {
 
@@ -232,7 +185,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       });
 
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nl)),
         [=] __device__ (Index_type i, Index_type l) {
 
@@ -247,8 +200,6 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_3MM_TEARDOWN_CUDA;
 
-
-#endif
   } else {
       std::cout << "\n  POLYBENCH_3MM : Unknown Cuda variant id = " << vid << std::endl;
   }

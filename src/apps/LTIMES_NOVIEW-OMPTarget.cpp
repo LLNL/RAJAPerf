@@ -21,8 +21,6 @@
 
 #include "common/OpenMPTargetDataUtils.hpp"
 
-#include "camp/camp.hpp"
-
 #include <iostream>
 
 namespace rajaperf 
@@ -131,7 +129,7 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(IDRange(0, num_d),
+                           RAJA::make_tuple(IDRange(0, num_d),
                                             IZRange(0, num_z),
                                             IGRange(0, num_g),
                                             IMRange(0, num_m)),

@@ -19,8 +19,6 @@
 
 #include "common/DataUtils.hpp"
 
-#include "camp/camp.hpp"
-
 #include <iostream>
 
 namespace rajaperf 
@@ -104,50 +102,21 @@ void LTIMES::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-#if defined(USE_FORALLN_FOR_SEQ)
-
-      LTIMES_DATA_SETUP_CPU;
-
-      LTIMES_VIEWS_RANGES_RAJA;
- 
-      using EXEC_POL = RAJA::NestedPolicy<
-                             RAJA::ExecList<RAJA::seq_exec,   // z
-                                            RAJA::seq_exec,   // g
-                                            RAJA::seq_exec,   // m
-                                            RAJA::seq_exec> >;// d
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< EXEC_POL, IZ, IG, IM, ID >(
-              IZRange(0, num_z),
-              IGRange(0, num_g),
-              IMRange(0, num_m),
-              IDRange(0, num_d),
-          [=](IZ z, IG g, IM m, ID d) {
-          LTIMES_BODY_RAJA;
-        });
-
-      }
-      stopTimer(); 
-
-#else // use RAJA::nested
-
       LTIMES_DATA_SETUP_CPU;
 
       LTIMES_VIEWS_RANGES_RAJA;
 
       using EXEC_POL = RAJA::nested::Policy<
-                             RAJA::nested::TypedFor<1, RAJA::seq_exec, IZ>,
-                             RAJA::nested::TypedFor<2, RAJA::seq_exec, IG>,
-                             RAJA::nested::TypedFor<3, RAJA::seq_exec, IM>,
-                             RAJA::nested::TypedFor<0, RAJA::seq_exec, ID> >;
+                             RAJA::nested::For<1, RAJA::seq_exec>,
+                             RAJA::nested::For<2, RAJA::seq_exec>,
+                             RAJA::nested::For<3, RAJA::seq_exec>,
+                             RAJA::nested::For<0, RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       
         RAJA::nested::forall(EXEC_POL{},
-                             camp::make_tuple(IDRange(0, num_d),
+                             RAJA::make_tuple(IDRange(0, num_d),
                                               IZRange(0, num_z),
                                               IGRange(0, num_g),
                                               IMRange(0, num_m)), 
@@ -157,8 +126,6 @@ void LTIMES::runKernel(VariantID vid)
 
       }
       stopTimer(); 
-
-#endif
 
       break;
     }
@@ -190,50 +157,21 @@ void LTIMES::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-#if defined(USE_FORALLN_FOR_OPENMP)
-
-      LTIMES_DATA_SETUP_CPU;
-
-      LTIMES_VIEWS_RANGES_RAJA;
- 
-      using EXEC_POL = RAJA::NestedPolicy<
-                             RAJA::ExecList<RAJA::omp_parallel_for_exec,// z
-                                            RAJA::seq_exec,             // g
-                                            RAJA::seq_exec,             // m
-                                            RAJA::seq_exec > >;         // d
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< EXEC_POL, IZ, IG, IM, ID >(
-              IZRange(0, num_z),
-              IGRange(0, num_g),
-              IMRange(0, num_m),
-              IDRange(0, num_d),
-          [=](IZ z, IG g, IM m, ID d) {
-          LTIMES_BODY_RAJA;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
-
       LTIMES_DATA_SETUP_CPU;
 
       LTIMES_VIEWS_RANGES_RAJA;
 
       using EXEC_POL = RAJA::nested::Policy<
-                     RAJA::nested::TypedFor<1, RAJA::omp_parallel_for_exec, IZ>,
-                     RAJA::nested::TypedFor<2, RAJA::seq_exec, IG>,
-                     RAJA::nested::TypedFor<3, RAJA::seq_exec, IM>,
-                     RAJA::nested::TypedFor<0, RAJA::seq_exec, ID> >;
+                     RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
+                     RAJA::nested::For<2, RAJA::seq_exec>,
+                     RAJA::nested::For<3, RAJA::seq_exec>,
+                     RAJA::nested::For<0, RAJA::seq_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-                             camp::make_tuple(IDRange(0, num_d),
+                             RAJA::make_tuple(IDRange(0, num_d),
                                               IZRange(0, num_z),
                                               IGRange(0, num_g),
                                               IMRange(0, num_m)),
@@ -243,8 +181,6 @@ void LTIMES::runKernel(VariantID vid)
 
       }
       stopTimer();
-
-#endif
 
       break;
     }

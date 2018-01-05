@@ -21,8 +21,6 @@
 
 #include "common/CudaDataUtils.hpp"
 
-#include "camp/camp.hpp"
-
 #include <iostream>
 
 namespace rajaperf 
@@ -88,53 +86,22 @@ void LTIMES::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-#if defined(USE_FORALLN_FOR_CUDA)
-
-      LTIMES_DATA_SETUP_CUDA;
-
-      LTIMES_VIEWS_RANGES_RAJA;
-
-      using EXEC_POL =
-        RAJA::NestedPolicy<RAJA::ExecList< RAJA::seq_exec,              //d
-                                           RAJA::cuda_block_z_exec,     //z
-                                           RAJA::cuda_block_y_exec,     //g
-                                           RAJA::cuda_thread_x_exec > >;//m
-              
-      startTimer(); 
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        
-        RAJA::forallN< EXEC_POL, ID, IZ, IG, IM >(
-              IDRange(0, num_d),
-              IZRange(0, num_z),
-              IGRange(0, num_g),
-              IMRange(0, num_m),
-          [=] __device__ (ID d, IZ z, IG g, IM m) {
-          LTIMES_BODY_RAJA;
-        });
-      
-      }
-      stopTimer();
-
-      LTIMES_DATA_TEARDOWN_CUDA;
-
-#else // use RAJA::nested
-
       LTIMES_DATA_SETUP_CUDA;
 
       LTIMES_VIEWS_RANGES_RAJA;
 
       using EXEC_POL = RAJA::nested::Policy<
                   RAJA::nested::CudaCollapse<
-                     RAJA::nested::TypedFor<1, RAJA::cuda_block_z_exec, IZ>,
-                     RAJA::nested::TypedFor<2, RAJA::cuda_block_y_exec, IG>,
-                     RAJA::nested::TypedFor<3, RAJA::cuda_thread_x_exec, IM> >,
-                   RAJA::nested::TypedFor<0, RAJA::cuda_loop_exec, ID> >;
+                     RAJA::nested::For<1, RAJA::cuda_block_z_exec>,    //z
+                     RAJA::nested::For<2, RAJA::cuda_block_y_exec>,    //g
+                     RAJA::nested::For<3, RAJA::cuda_thread_x_exec> >, //m
+                   RAJA::nested::For<0, RAJA::cuda_loop_exec> >;       //d
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::nested::forall(EXEC_POL{},
-                             camp::make_tuple(IDRange(0, num_d),
+                             RAJA::make_tuple(IDRange(0, num_d),
                                               IZRange(0, num_z),
                                               IGRange(0, num_g),
                                               IMRange(0, num_m)),
@@ -146,8 +113,6 @@ void LTIMES::runCudaVariant(VariantID vid)
       stopTimer();
 
       LTIMES_DATA_TEARDOWN_CUDA;
-
-#endif
 
   } else {
      std::cout << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;

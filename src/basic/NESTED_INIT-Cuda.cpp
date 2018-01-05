@@ -75,33 +75,6 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-#if defined(USE_FORALLN_FOR_CUDA)
-
-    NESTED_INIT_DATA_SETUP_CUDA;
-
-    using EXEC_POL = RAJA::NestedPolicy<
-                           RAJA::ExecList< RAJA::cuda_block_z_exec,      // k
-                                           RAJA::cuda_block_y_exec,      // j
-                                           RAJA::cuda_thread_x_exec > >; // i
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::forallN< EXEC_POL >(
-            RAJA::RangeSegment(0, nk),
-            RAJA::RangeSegment(0, nj),
-            RAJA::RangeSegment(0, ni),
-        [=] __device__ (Index_type k, Index_type j, Index_type i) {
-        NESTED_INIT_BODY;
-      });
-
-    }
-    stopTimer();
-
-    NESTED_INIT_DATA_TEARDOWN_CUDA;
-
-#else // use RAJA::nested
-
     NESTED_INIT_DATA_SETUP_CUDA;
 
     using EXEC_POL = RAJA::nested::Policy<
@@ -114,7 +87,7 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::nested::forall(EXEC_POL{},
-                           camp::make_tuple(RAJA::RangeSegment(0, ni),
+                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nj),
                                             RAJA::RangeSegment(0, nk)),
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
@@ -125,8 +98,6 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     stopTimer();
 
     NESTED_INIT_DATA_TEARDOWN_CUDA;
-
-#endif
 
   } else {
      std::cout << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
