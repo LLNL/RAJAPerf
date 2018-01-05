@@ -17,16 +17,15 @@
 #include "KernelBase.hpp"
 
 #include "RunParams.hpp"
-#include "DataUtils.hpp"
 
 #include <cmath>
 
 namespace rajaperf {
 
 KernelBase::KernelBase(KernelID kid, const RunParams& params) 
-  : kernel_id(kid),
+  : run_params(params),
+    kernel_id(kid),
     name( getFullKernelName(kernel_id) ),
-    run_params(params),
     default_size(0),
     default_reps(0),
     running_variant(NumVariants)

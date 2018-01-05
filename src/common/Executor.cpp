@@ -136,7 +136,7 @@ void Executor::setupSuite()
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(*it) != string::npos ) {
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
           run_kern.insert(kid);
           found_it = true;
         }
@@ -236,7 +236,10 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin(); 
          kid != run_kern.end(); ++kid) {
-      kernels.push_back( getKernelObject(*kid, run_params) );
+/// RDH DISABLE COUPLE KERNEL
+      if ( *kid != Apps_COUPLE ) {
+        kernels.push_back( getKernelObject(*kid, run_params) );
+      }
     }
 
     if ( !(run_params.getInvalidVariantInput().empty()) ) {
@@ -350,13 +353,29 @@ void Executor::runSuite()
   cout << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
-  for (int ip = 0; ip < npasses; ++ip) {  
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-         kernels[ik]->execute( variant_ids[iv] );
-      } 
+  for (int ip = 0; ip < npasses; ++ip) {
+    if ( run_params.showProgress() ) {
+      std::cout << "\nPass throught suite # " << ip << "\n";
     }
-  }
+
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kernel = kernels[ik];
+      if ( run_params.showProgress() ) {
+        std::cout << "\n   Running kernel -- " << kernel->getName() << "\n"; 
+      }
+
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+         KernelBase* kern = kernels[ik];
+         if ( run_params.showProgress() ) {
+           cout << kern->getName() << " " <<  getVariantName(variant_ids[iv]) << endl;
+         }  
+         kernels[ik]->execute( variant_ids[iv] );
+      } // loop over variants 
+
+    } // loop over kernels
+
+  } // loop over passes through suite
+
 }
 
 void Executor::outputRunData()
@@ -707,12 +726,12 @@ void Executor::writeChecksumReport(const string& filename)
     // Set basic table formatting parameters.
     //
     const string equal_line("===================================================================================================");
-    const string dash_line("----------------------------------------------------------------------------------------------------");
+    const string dash_line("----------------------------------------------------------------------------------------");
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
     size_t prec = 20;
-    size_t checksum_width = prec + 4;
+    size_t checksum_width = prec + 8;
 
     size_t namecol_width = 0;
     for (size_t ik = 0; ik < kernels.size(); ++ik) {

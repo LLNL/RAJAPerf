@@ -16,6 +16,7 @@
 
 #include "DataUtils.hpp"
 
+
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
 #include <cstdlib>
@@ -63,6 +64,17 @@ void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
   initData(ptr, len, vid);
 }
 
+void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
+                           VariantID vid)
+{
+  (void) vid;
+
+  ptr = 
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN, 
+                                           len*sizeof(Real_type));
+  initDataConst(ptr, len, val, vid);
+}
+
 void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
   ptr =
@@ -80,7 +92,7 @@ void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 
 
 /*
- * Free data arrays.
+ * Free data arrays of given type.
  */
 void deallocData(Int_ptr& ptr)
 { 
@@ -108,7 +120,8 @@ void deallocData(Complex_ptr& ptr)
 
 
 /*
- * \brief Initialize Int_type data array.
+ * \brief Initialize Int_type data array to 
+ * randomly signed positive and negative values.
  */
 void initData(Int_ptr& ptr, int len, VariantID vid)
 {
@@ -117,7 +130,6 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
 // First touch...
 #if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) {
@@ -147,7 +159,9 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
 }
 
 /*
- * Initialize Real_type data array.
+ * Initialize Real_type data array to non-random 
+ * positive values (0.0, 1.0) based on their array position 
+ * (index) and the order in which this method is called.
  */
 void initData(Real_ptr& ptr, int len, VariantID vid) 
 {
@@ -158,7 +172,6 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 // first touch...
 #if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP || 
-       vid == RAJALike_OpenMP || 
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) { 
@@ -175,6 +188,31 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 }
 
 /*
+ * Initialize Real_type data array to constant values.
+ */
+void initDataConst(Real_ptr& ptr, int len, Real_type val,
+                   VariantID vid) 
+{
+
+// first touch...
+#if defined(RAJA_ENABLE_OPENMP)
+  if ( vid == Base_OpenMP ||
+       vid == RAJA_OpenMP ) {
+    #pragma omp parallel for
+    for (int i = 0; i < len; ++i) {
+      ptr[i] = 0;
+    };
+  }
+#endif
+
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = val;
+  };
+
+  incDataInitCount();
+}
+
+/*
  * Initialize Real_type data array with random sign.
  */
 void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
@@ -184,7 +222,6 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 // First touch...
 #if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) {
@@ -218,7 +255,6 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == RAJALike_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) { 

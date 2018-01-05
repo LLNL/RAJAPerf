@@ -13,12 +13,47 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// FIR kernel reference implementation:
+///
+/// #define FIR_COEFFLEN (16)
+///
+/// Real_type coeff[FIR_COEFFLEN] = { 3.0, -1.0, -1.0, -1.0,
+///                                  -1.0, 3.0, -1.0, -1.0,
+///                                  -1.0, -1.0, 3.0, -1.0,
+///                                  -1.0, -1.0, -1.0, 3.0 };
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   Real_type sum = 0.0;
+///   for (Index_type j = 0; j < coefflen; ++j ) {
+///     sum += coeff[j]*in[i+j];
+///   }
+///   out[i] = sum;
+/// }
+///
 
 #ifndef RAJAPerf_Apps_FIR_HPP
 #define RAJAPerf_Apps_FIR_HPP
 
-#include "common/KernelBase.hpp"
 
+#define FIR_COEFFLEN (16)
+
+#define FIR_COEFF \
+  Real_type coeff_array[FIR_COEFFLEN] = { 3.0, -1.0, -1.0, -1.0, \
+                                         -1.0, 3.0, -1.0, -1.0, \
+                                         -1.0, -1.0, 3.0, -1.0, \
+                                         -1.0, -1.0, -1.0, 3.0 };
+
+#define FIR_BODY \
+  Real_type sum = 0.0; \
+\
+  for (Index_type j = 0; j < coefflen; ++j ) { \
+    sum += coeff[j]*in[i+j]; \
+  } \
+  out[i] = sum;
+
+
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {
@@ -41,6 +76,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_in;

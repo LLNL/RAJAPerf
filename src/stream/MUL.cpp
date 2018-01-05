@@ -13,19 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// MUL kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   b[i] = alpha * c[i] ;
-/// }
-///
-
 #include "MUL.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -34,46 +26,11 @@ namespace rajaperf
 namespace stream
 {
 
-#define MUL_DATA \
+
+#define MUL_DATA_SETUP_CPU \
   ResReal_ptr b = m_b; \
   ResReal_ptr c = m_c; \
   Real_type alpha = m_alpha;
-
-#define MUL_BODY  \
-  b[i] = alpha * c[i] ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define MUL_DATA_SETUP_CUDA \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
-\
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define MUL_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_b, b, iend); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
-
-__global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
-                    Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     MUL_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 MUL::MUL(const RunParams& params)
@@ -85,11 +42,12 @@ MUL::MUL(const RunParams& params)
 
 MUL::~MUL() 
 {
+
 }
 
 void MUL::setUp(VariantID vid)
 {
-  allocAndInitData(m_b, getRunSize(), vid);
+  allocAndInitDataConst(m_b, getRunSize(), 0.0, vid);
   allocAndInitData(m_c, getRunSize(), vid);
   initData(m_alpha, vid);
 }
@@ -104,7 +62,7 @@ void MUL::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      MUL_DATA;
+      MUL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -121,12 +79,13 @@ void MUL::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      MUL_DATA;
+      MUL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(ibegin, iend, [=](Index_type i) {
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           MUL_BODY;
         });
 
@@ -139,7 +98,7 @@ void MUL::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      MUL_DATA;
+      MUL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -155,20 +114,15 @@ void MUL::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      MUL_DATA;
+      MUL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(ibegin, iend, 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           MUL_BODY;
         });
 
@@ -179,58 +133,26 @@ void MUL::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      MUL_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         mul<<<grid_size, block_size>>>( b, c, alpha,
-                                         iend ); 
-
-      }
-      stopTimer();
-
-      MUL_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      MUL_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           ibegin, iend, 
-           [=] __device__ (Index_type i) {
-           MUL_BODY;
-         });
-
-      }
-      stopTimer();
-
-      MUL_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  MUL : Unknown variant id = " << vid << std::endl;
     }
 
   }

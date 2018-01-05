@@ -40,9 +40,9 @@ source repository. For example,
 ```
 > mkdir RAJA-PERFSUITE
 > cd RAJA-PERFSUITE
-> git clone --recursive https://github.com/llnl/rajaperf.git
+> git clone --recursive https://github.com/llnl/RAJAPerf.git
 > ls 
-raja-perfsuite
+RAJAPerf
 ```
 
 The Performance Suite has [RAJA] and the CMake-based [BLT] build system
@@ -51,23 +51,23 @@ the Performance Suite source code. Note that if you switch to a different
 branch, you will have to update the submodules; e.g.,
 
 ```
-> cd raja-perfsuite
+> cd RAJAPerf
 > git checkout <some branch name>
 > git submodule init
 > git submodule update
 ```
 
 RAJA and the Performance Suite are built together using the same CMake
-configuration. For convenience, we include some scripts in the 'scripts'
-directory some associated configuration files in the 'host-configs'
-that illustrate how to build the code on various platforms at LLNL. Each 
-build script will create a descriptively-named build space directory in
-the top-level erformance Suite directory, and run CMake with a configuration
-appropriate for the platform and compilers used. After CMake completes, 
-enter the build directory and type 'make' (or 'make -j' for parallel) to
-build the code. The provided configurations will build RAJA unit tests by 
-default. After the code builds, you can type 'make test' to verify that 
-everything is working properly.  For example,
+configuration. For convenience, we include scripts in the 'scripts'
+directory that invoke associated (CMake cache) configuration files in the 
+'host-configs' directory that illustrate how to build the code on various 
+platforms at LLNL. Each build script creates a descriptively-named build 
+space directory in the top-level Performance Suite directory and runs CMake 
+with a configuration appropriate for the platform and compilers used. After 
+CMake completes, enter the build directory and type 'make' (or 'make -j' for 
+a parallel build) to build the code. The provided configurations will build 
+RAJA unit tests by default. After the code builds, you can type 'make test' to 
+verify that the RAJA build is working properly.  For example,
 
 ```
 > ./scripts/blueos_nvcc8.0_clang-coral.sh
@@ -127,6 +127,21 @@ Lastly, the program will emit a summary of provided input if it is given
 something that it does not understand. Hopefully, this will make it easy for
 users to understand and correct erroneous usage.
 
+# Important notes
+
+ * The kernels that use RAJA 'nested' loop constructs will be replaced
+   at some point with new RAJA nested capabilities that are being developed. 
+   The new nested constructs are simpler, more flexible, and perform better.
+
+ * The OpenMP target variants of the kernels in the Suite are a 
+   work-in-progress. They are incomplete (a few RAJA features must be
+   filled in to make them comparable to other variants).
+
+ * The build system for the Suite needs to be reworked to have the
+   OpenMP target kernel variants run from the same executable as the CUDA
+   variants. Currently, a separate executable `./bin/raja-perf-nolibs.exe`
+   is generated for running OpenMP target variants when they are enabled.
+
 * * *
 
 # Generated output
@@ -165,7 +180,7 @@ Adding a new kernel to the suite involves three main steps:
 
 1. Add unique kernel ID and unique name to the suite. 
 2. If the kernel is part of a new kernel group, also add a unique group ID and name for the group.
-3. Implement a kernel class that contains all operations needed to run it.
+3. Implement a kernel class that contains all operations needed to run it, with source files organized as described below.
 
 These steps are described in the following sections.
 
@@ -174,11 +189,11 @@ These steps are described in the following sections.
 Two key pieces of information identify a kernel: the group in which it 
 resides and the name of the kernel itself. For concreteness, we describe
 how to add a kernel "Foo" that lives in the kernel group "Bar". The files 
-`RAJAPerfSuite.hxx` and `RAJAPerfSuite.cxx` define enumeration 
+`RAJAPerfSuite.hpp` and `RAJAPerfSuite.cpp` define enumeration 
 values and arrays of string names for the kernels, respectively. 
 
 First, add an enumeration value identifier for the kernel, that is unique 
-among all kernels, in the enum 'KerneID' in the header file `RAJAPerfSuite.hxx`:
+among all kernels, in the enum 'KerneID' in the header file `RAJAPerfSuite.hpp`:
 
 ```cpp
 enum KernelID {
@@ -194,7 +209,7 @@ this convention so that the kernel works with existing performance
 suite machinery. 
 
 Second, add the kernel name to the array of strings 'KernelNames' in the file
-`RAJAPerfSuite.cxx`:
+`RAJAPerfSuite.cpp`:
 
 ```cpp
 static const std::string KernelNames [] =
@@ -216,8 +231,8 @@ and matching one-to-one).
 
 If a kernel is added as part of a new group of kernels in the suite, a
 new value must be added to the 'GroupID' enum in the header file 
-`RAJAPerfSuite.hxx` and an associated group string name must be added to
-the 'GroupNames' array of strings in the file `RAJAPerfSuite.cxx`. Again,
+`RAJAPerfSuite.hpp` and an associated group string name must be added to
+the 'GroupNames' array of strings in the file `RAJAPerfSuite.cpp`. Again,
 the enumeration values and items in the string array must be kept
 consistent.
 
@@ -231,7 +246,8 @@ all operations needed to execute and record execution timing and result
 checksum information for each variant of the kernel. 
 
 Continuing with our example, we add 'Foo' class header and implementation 
-files 'Foo.hxx' and 'Foo.cxx', respectively, to the 'src/bar' directory. 
+files 'Foo.hpp', 'Foo.cpp' (CPU variants), `Foo-Cuda.cpp` (CUDA variants), 
+and `Foo-OMPTarget.cpp` (OpenMP target variants) to the 'src/bar' directory. 
 The class must inherit from the 'KernelBase' base class that defines the 
 interface for kernels in the suite. 
 
@@ -243,7 +259,15 @@ Here is what the header file for the Foo kernel object may look like:
 #ifndef RAJAPerf_Bar_Foo_HXX
 #define RAJAPerf_Bar_Foo_HXX
 
-#include "common/KernelBase.hxx"
+
+///
+/// Foo kernel reference implementation:
+///
+/// Describe it here...
+///
+
+
+#include "common/KernelBase.hpp"
 
 namespace rajaperf  
 {
@@ -264,6 +288,9 @@ public:
   void runKernel(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid); 
 
 private:
   // Kernel-specific data (pointers, scalars, etc.) used in kernel...
@@ -345,7 +372,8 @@ checksums can be compared at the end of a run.
 
 Note: to simplify these operations and help ensure consistency, there exist 
 utility methods to allocate, initialize, deallocate, and copy data, and compute
-checksums defined in the `DataUtils.hxx` header file in the 'common' directory.
+checksums defined in the `DataUtils.hpp` `CudaDataUtils.hpp`, and 
+`OpenMPTargetDataUtils.hpp` header files in the 'common' directory.
 
 ##### runKernel() method
 
@@ -360,17 +388,60 @@ void Foo::runKernel(VariantID vid)
   const Index_type run_reps = getRunReps();
   // ...
 
-  // Declare data for vid variant of kernel...
+  switch ( vid ) {
 
-  startTimer();
-  for (SampIndex_type irep = 0; irep < run_reps; ++irep) {
-     // Implementation of vid variant of kernel...
+    case Base_Seq : {
+
+      // Declare data for baseline sequential variant of kernel...
+
+      startTimer();
+      for (SampIndex_type irep = 0; irep < run_reps; ++irep) {
+         // Implementation of kernel variant...
+      }
+      stopTimer();
+
+      // ...
+
+      break; 
+    }
+
+    // case statements for other CPU kernel variants.... 
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
+      break;
+    }
+#endif
+
+    default : {
+      std::cout << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
+    }
+
   }
-  stopTimer();
-
-  // ...
 }
 ```
+
+All kernel implementation files are organized in this way. So following this
+pattern will keep all new additions consistent. 
+
+Note: There are three source files for each kernel: 'Foo.cpp' contains CPU 
+variants, `Foo-Cuda.cpp` contains CUDA variants, and `Foo-OMPTarget.cpp` 
+constains OpenMP target variants. The reason for this is that it makes it 
+easier to apply unique compiler flags to different variants and to manage
+compilation and linking issues that arise when some kernel variants are
+combined in the same translation unit.
 
 Note: for convenience, we make heavy use of macros to define data 
 declarations and kernel bodies in the suite. This significantly reduces
@@ -391,7 +462,7 @@ compared to help identify differences, and potentially errors, in
 implementations, compiler optimizations, programming model execution, etc.
 
 Note: to simplify checksum computations and help ensure consistency, there 
-are methods to compute checksums defined in the `DataUtils.hxx` header file 
+are methods to compute checksums defined in the `DataUtils.hpp` header file 
 in the 'common' directory.
 
 ##### tearDown() method
@@ -407,7 +478,7 @@ The 'Executor' class object is responsible for creating kernel objects
 for the kernels to be run based on the suite input options. To ensure a new
 kernel object will be created properly, add a call to its class constructor 
 based on its 'KernelID' in the 'getKernelObject()' method in the 
-`RAJAPerfSuite.cxx` file.
+`RAJAPerfSuite.cpp` file.
 
   
 ## Adding a variant
@@ -420,7 +491,7 @@ items similar to adding a kernel as described above.
 
 First, add an enumeration value identifier for the variant, that is unique 
 among all variants, in the enum 'VariantID' in the header file 
-`RAJAPerfSuite.hxx`:
+`RAJAPerfSuite.hpp`:
 
 ```cpp
 enum VariantID {
@@ -431,7 +502,7 @@ enum VariantID {
 ```
 
 Second, add the variant name to the array of strings 'VariantNames' in the file
-`RAJAPerfSuite.cxx`:
+`RAJAPerfSuite.cpp`:
 
 ```cpp
 static const std::string VariantNames [] =

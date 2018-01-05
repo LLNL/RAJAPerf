@@ -67,7 +67,9 @@ public:
 
 
 //@{
-//! @name Getters/setters for processing input
+//! @name Getters/setters for processing input and run parameters
+
+  bool showProgress() const { return show_progress; }
 
   int getNumPasses() const { return npasses; }
 
@@ -126,6 +128,8 @@ private:
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
+
+  bool show_progress;    /*!< true -> show run progress; false -> do not */
 
   int npasses;           /*!< Number of passes through suite  */
   double rep_fact;       /*!< pct of default kernel reps to run */

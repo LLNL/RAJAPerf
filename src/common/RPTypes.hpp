@@ -31,7 +31,7 @@
 #undef RP_USE_FLOAT
 
 #define RP_USE_COMPLEX
-//#undef RP_USE_DOUBLE
+//#undef RP_USE_COMPLEX
 
 #if defined(RP_USE_COMPLEX)
 #include <complex>
@@ -52,7 +52,7 @@ namespace rajaperf
  *
  ******************************************************************************
  */
-typedef volatile int RepIndex_type;
+using RepIndex_type = volatile int;
 
 
 /*!
@@ -62,13 +62,9 @@ typedef volatile int RepIndex_type;
  *
  ******************************************************************************
  */
-#if 0 // Index_type
-typedef RAJA::Index_type Index_type;
-#else
-typedef int Index_type;
-#endif
+using Index_type = RAJA::Index_type;
 ///
-typedef Index_type* Index_ptr;
+using Index_ptr = Index_type*;
 
 
 /*!
@@ -78,9 +74,9 @@ typedef Index_type* Index_ptr;
  *
  ******************************************************************************
  */
-typedef int Int_type;
+using Int_type = int;
 ///
-typedef Int_type* Int_ptr;
+using Int_ptr = Int_type*;
 
 
 /*!
@@ -90,7 +86,7 @@ typedef Int_type* Int_ptr;
  *
  ******************************************************************************
  */
-typedef long double Checksum_type;
+using Checksum_type = long double;
 
 
 /*!
@@ -102,26 +98,26 @@ typedef long double Checksum_type;
  */
 #if defined(RP_USE_DOUBLE)
 ///
-typedef double Real_type;
+using Real_type = double;
 
 #elif defined(RP_USE_FLOAT)
 ///
-typedef float Real_type;
+using Real_type = float;
 
 #else
 #error Real_type is undefined!
 
 #endif
 
-typedef Real_type* Real_ptr;
+using Real_ptr = Real_type*;
 typedef Real_type* RAJA_RESTRICT ResReal_ptr;
 
 
 #if defined(RP_USE_COMPLEX)
 ///
-typedef std::complex<Real_type> Complex_type;
+using Complex_type = std::complex<Real_type>;
 
-typedef Complex_type* Complex_ptr;
+using Complex_ptr = Complex_type*;
 typedef Complex_type* RAJA_RESTRICT ResComplex_ptr;
 #endif
 

@@ -12,13 +12,13 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
+set(RAJA_COMPILER "RAJA_COMPILER_GNU" CACHE STRING "")
 
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2017.09.06/bin/clang++" CACHE PATH "")
-set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-coral-2017.09.06/bin/clang" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/gcc/gcc-7.1.0/bin/g++" CACHE PATH "")
+set(CMAKE_C_COMPILER "/usr/tce/packages/gcc/gcc-7.1.0/bin/gcc" CACHE PATH "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -finline-functions -finline-limit=20000" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -g -finline-functions -finline-limit=20000" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
 set(RAJA_RANGE_ALIGN 4 CACHE INT "")

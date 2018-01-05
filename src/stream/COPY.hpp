@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// COPY kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   c[i] = a[i] ;
+/// }
+///
 
 #ifndef RAJAPerf_Stream_COPY_HPP
 #define RAJAPerf_Stream_COPY_HPP
+
+
+#define COPY_BODY  \
+  c[i] = a[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +50,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_a;

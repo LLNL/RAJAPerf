@@ -27,6 +27,8 @@
 #include "basic/INIT3.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/INIT_VIEW1D.hpp"
+#include "basic/INIT_VIEW1D_OFFSET.hpp"
 
 //
 // Lcals kernels...
@@ -62,8 +64,10 @@
 #include "apps/ENERGY.hpp"
 #include "apps/VOL3D.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/FIR.hpp"
+#include "apps/LTIMES.hpp"
+#include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/WIP-COUPLE.hpp"
 
 
 #include <iostream>
@@ -120,6 +124,8 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_INIT_VIEW1D"),
+  std::string("Basic_INIT_VIEW1D_OFFSET"),
 
 //
 // Lcals kernels...
@@ -134,13 +140,9 @@ static const std::string KernelNames [] =
 //
 // Polybench kernels...
 //
-#if 1
   std::string("Polybench_2MM"),
   std::string("Polybench_3MM"),
   std::string("Polybench_GEMMVER"),
-
-  
-#endif
 
 //
 // Stream kernels...
@@ -158,8 +160,10 @@ static const std::string KernelNames [] =
   std::string("Apps_ENERGY"),
   std::string("Apps_VOL3D"),
   std::string("Apps_DEL_DOT_VEC_2D"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_FIR"),
+  std::string("Apps_LTIMES"),
+  std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_COUPLE"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -183,18 +187,21 @@ static const std::string VariantNames [] =
 
   std::string("Base_Seq"),
   std::string("RAJA_Seq"),
+
 #if defined(RAJA_ENABLE_OPENMP)
   std::string("Base_OpenMP"),
-  std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  std::string("Base_OpenMPTarget"),
+  std::string("RAJA_OpenMPTarget"),
 #endif
+
+#endif
+
 #if defined(RAJA_ENABLE_CUDA)
   std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
-#endif
-#if 0
-  std::string("Base_OpenMPTarget"),
-  std::string("RAJA_OpenMPTarget"),
 #endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
@@ -296,6 +303,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::NESTED_INIT(run_params);
        break;
     }
+    case Basic_INIT_VIEW1D : {
+       kernel = new basic::INIT_VIEW1D(run_params);
+       break;
+    }
+    case Basic_INIT_VIEW1D_OFFSET : {
+       kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
 
 //
 // Lcals kernels...
@@ -328,22 +343,18 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Polybench kernels...
 //
-#if 1
     case Polybench_2MM : {
        kernel = new polybench::POLYBENCH_2MM(run_params);
        break;
     }
-
     case Polybench_3MM : {
        kernel = new polybench::POLYBENCH_3MM(run_params);
        break;
     }
-
     case Polybench_GEMMVER : {
        kernel = new polybench::POLYBENCH_GEMMVER(run_params);
        break;
     }
-#endif
 
 //
 // Stream kernels...
@@ -388,12 +399,20 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
     case Apps_FIR : {
        kernel = new apps::FIR(run_params);
+       break;
+    }
+    case Apps_LTIMES : {
+       kernel = new apps::LTIMES(run_params);
+       break;
+    }
+    case Apps_LTIMES_NOVIEW : {
+       kernel = new apps::LTIMES_NOVIEW(run_params);
+       break;
+    }
+    case Apps_COUPLE : {
+       kernel = new apps::COUPLE(run_params);
        break;
     }
 
