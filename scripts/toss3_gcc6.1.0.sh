@@ -19,14 +19,14 @@ mkdir build_toss3-gcc-6.1.0 && cd build_toss3-gcc-6.1.0
 
 module load cmake/3.5.2
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
+TOP_DIR=../
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/toss3/gcc_6_1_0.cmake \
+  -C ${TOP_DIR}/host-configs/toss3/gcc_6_1_0.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-gcc-6.1.0 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ${TOP_DIR}
