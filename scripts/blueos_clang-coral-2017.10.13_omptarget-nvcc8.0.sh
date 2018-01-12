@@ -19,11 +19,11 @@ mkdir build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 && cd build_blueos_c
 
 module load cmake/3.9.2
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
+TOP_DIR=../
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/clang_coral_2017_10_13.cmake \
+  -C ${TOP_DIR}/host-configs/blueos/clang_coral_2017_10_13.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=Off \
   -DENABLE_TARGET_OPENMP=On \
@@ -33,4 +33,4 @@ cmake \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ${TOP_DIR}

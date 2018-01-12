@@ -19,14 +19,14 @@ mkdir build_toss3-clang-3.9.1 && cd build_toss3-clang-3.9.1
 
 module load cmake/3.5.2
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
+TOP_DIR=../
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/toss3/clang_3_9_1.cmake \
+  -C ${TOP_DIR}/host-configs/toss3/clang_3_9_1.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-clang-3.9.1 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ${TOP_DIR}
