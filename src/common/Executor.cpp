@@ -394,11 +394,9 @@ void Executor::outputRunData()
   string out_fprefix;
   string outdir = recursiveMkdir(run_params.getOutputDirName()); 
   if ( !outdir.empty() ) {
-    out_fprefix = outdir + "/" + run_params.getOutputFilePrefix();
     chdir(outdir.c_str());
-  } else {
-    out_fprefix = "./" + run_params.getOutputFilePrefix();
   }
+  out_fprefix = "./" + run_params.getOutputFilePrefix();
 
   string filename = out_fprefix + "-timing.csv";
   writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
