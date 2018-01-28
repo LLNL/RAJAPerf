@@ -153,7 +153,6 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
       polybench_gemmver_cuda_4<<<grid_size,block_size>>>(alpha,A,x,w,n);
 
     }
-    cudaDeviceSynchronize();
     stopTimer();
 
     POLYBENCH_GEMMVER_TEARDOWN_CUDA;
@@ -162,17 +161,19 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
 
     POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
 
+    const bool async = true;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
      
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
+      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
         RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
         Index_type i,j;
         i = ii/n; j = ii % n;
         POLYBENCH_GEMMVER_BODY1; 
       });
 
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
+      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
         RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,jj;
           i = ii/n; jj = ii % n;
@@ -183,12 +184,12 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
           }
       });
 
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
+      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
         RAJA::RangeSegment{0, n}, [=] __device__ (int i) {
         POLYBENCH_GEMMVER_BODY3;
       });
 
-      RAJA::forall<RAJA::cuda_exec<block_size>> (
+      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
         RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,jj;
           i = ii/n; jj = ii % n;
@@ -203,6 +204,7 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
     stopTimer();
 
     POLYBENCH_GEMMVER_TEARDOWN_CUDA;
+
   } else {
       std::cout << "\n  POLYBENCH_GEMMVER : Unknown Cuda variant id = " << vid << std::endl;
   }
