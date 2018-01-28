@@ -19,11 +19,9 @@ mkdir build_blueos_nvcc8.0_gcc4.9.3 && cd build_blueos_nvcc8.0_gcc4.9.3
 
 module load cmake/3.7.2
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/blueos/nvcc_gcc_4_9_3.cmake \
+  -C ../host-configs/blueos/nvcc_gcc_4_9_3.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
@@ -31,4 +29,4 @@ cmake \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_gcc4.9.3 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ..
