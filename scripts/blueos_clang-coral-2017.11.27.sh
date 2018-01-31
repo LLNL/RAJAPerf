@@ -14,18 +14,17 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build-bgqos_gcc-4.7.2 2>/dev/null
-mkdir build-bgqos_gcc-4.7.2 && cd build-bgqos_gcc-4.7.2
-. /usr/local/tools/dotkit/init.sh && use cmake-3.4.3
+rm -rf build_blueos-clang-coral-2017.11.27 2>/dev/null
+mkdir build_blueos-clang-coral-2017.11.27 && cd build_blueos-clang-coral-2017.11.27
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
+module load cmake/3.7.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/bgqos/gcc_4_7_2.cmake \
+  -C ../host-configs/blueos/clang_coral_2017_11_27.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install-bgqos_gcc-4.7.2 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-coral-2017.11.27 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ..

@@ -349,13 +349,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outdir foo (output files to ./foo directory\n"
-      << "\t\t --od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
+      << "\t\t -od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
 
   str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
-      << "\t\t --of dat (output data will be in files 'dat*')\n\n";
+      << "\t\t -of dat (output data will be in files 'dat*')\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 

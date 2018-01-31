@@ -20,14 +20,12 @@ mkdir build_toss3-icpc-18.0.0 && cd build_toss3-icpc-18.0.0
 module load cmake/3.5.2
 module load gcc/7.1.0
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/toss3/icpc_18_0_0.cmake \
+  -C ../host-configs/toss3/icpc_18_0_0.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-icpc-18.0.0 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ..

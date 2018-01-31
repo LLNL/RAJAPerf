@@ -115,15 +115,17 @@ void PRESSURE::runCudaVariant(VariantID vid)
 
     PRESSURE_DATA_SETUP_CUDA;
 
+    const bool async = true;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PRESSURE_BODY1;
        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PRESSURE_BODY2;
        });
