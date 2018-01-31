@@ -14,18 +14,19 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build-bgqos_gcc-4.7.2 2>/dev/null
-mkdir build-bgqos_gcc-4.7.2 && cd build-bgqos_gcc-4.7.2
-. /usr/local/tools/dotkit/init.sh && use cmake-3.4.3
+rm -rf build_blueos_nvcc9.0_clang-coral-2017.12.06 >/dev/null
+mkdir build_blueos_nvcc9.0_clang-coral-2017.12.06 && cd build_blueos_nvcc9.0_clang-coral-2017.12.06
 
-TOP_DIR=../
+module load cmake/3.7.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${TOP_DIR}/host-configs/bgqos/gcc_4_7_2.cmake \
+  -C ../host-configs/blueos/nvcc_clang_coral_2017_12_06.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_CUDA=On \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-9.0.176 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install-bgqos_gcc-4.7.2 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.0_clang-coral-2017.12.06 \
   "$@" \
-  ${TOP_DIR}
+  ..

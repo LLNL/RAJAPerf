@@ -143,7 +143,6 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       polybench_3mm_cuda_3<<<grid_size,block_size>>>(A,B,C,D,E,F,G,
                                                      m_ni,m_nj,m_nk,m_nl,m_nm);
     }
-    cudaDeviceSynchronize();
     stopTimer();
 
     
@@ -160,6 +159,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
       RAJA::nested::forall(EXEC_POL{},
                            RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nj)),
@@ -195,6 +195,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         }
 
       });
+
     }
     stopTimer();
 

@@ -19,15 +19,12 @@ mkdir build_toss3-gcc-7.1.0 && cd build_toss3-gcc-7.1.0
 
 module load cmake/3.5.2
 
-TOP_DIR=../
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${TOP_DIR}/host-configs/toss3/gcc_7_1_0.cmake \
+  -C ../host-configs/toss3/gcc_7_1_0.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DENABLE_TESTS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-gcc-7.1.0 \
   "$@" \
-  ${TOP_DIR}
+  .. 

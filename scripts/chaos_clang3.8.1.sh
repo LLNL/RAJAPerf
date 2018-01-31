@@ -18,14 +18,12 @@ rm -rf build_chaos-clang-3.8.1 2>/dev/null
 mkdir build_chaos-clang-3.8.1 && cd build_chaos-clang-3.8.1
 . /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
-TOP_DIR=../
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${TOP_DIR}/host-configs/chaos/clang_3_8_1.cmake \
+  -C ../host-configs/chaos/clang_3_8_1.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_chaos-clang-3.8.1 \
   "$@" \
-  ${TOP_DIR}
+  ..

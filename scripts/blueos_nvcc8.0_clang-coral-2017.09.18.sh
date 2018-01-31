@@ -19,11 +19,9 @@ mkdir build_blueos_nvcc8.0_clang-coral-2017.09.18 && cd build_blueos_nvcc8.0_cla
 
 module load cmake/3.7.2
 
-TOP_DIR=../
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${TOP_DIR}/host-configs/blueos/nvcc_clang_coral_2017_09_18.cmake \
+  -C ../host-configs/blueos/nvcc_clang_coral_2017_09_18.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
@@ -31,4 +29,4 @@ cmake \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc8.0_clang-coral-2017.09.18 \
   "$@" \
-  ${TOP_DIR}
+  ..

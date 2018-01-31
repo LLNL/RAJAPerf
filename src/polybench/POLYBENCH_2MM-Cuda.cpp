@@ -122,7 +122,6 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
                                                      m_ni,m_nj,m_nk,m_nl);
 
     }
-    cudaDeviceSynchronize();
     stopTimer();
 
     POLYBENCH_2MM_TEARDOWN_CUDA;
