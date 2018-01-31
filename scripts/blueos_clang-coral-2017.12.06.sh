@@ -14,18 +14,17 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_chaos-nvcc8.0_gcc4.9.3 2>/dev/null
-mkdir build_chaos-nvcc8.0_gcc4.9.3 && cd build_chaos-nvcc8.0_gcc4.9.3
-. /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
+rm -rf build_blueos-clang-coral-2017.12.06 2>/dev/null
+mkdir build_blueos-clang-coral-2017.12.06 && cd build_blueos-clang-coral-2017.12.06
+
+module load cmake/3.7.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ../host-configs/chaos/nvcc_gcc4_9_3.cmake \
+  -C ../host-configs/blueos/clang_coral_2017_12_06.cmake \
   -DENABLE_OPENMP=On \
-  -DENABLE_CUDA=On \
-  -DCUDA_TOOLKIT_ROOT_DIR=/opt/cudatoolkit-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_chaos-nvcc8.0_gcc4.9.3 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-coral-2017.12.06 \
   "$@" \
   ..

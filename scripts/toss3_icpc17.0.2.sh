@@ -20,14 +20,12 @@ mkdir build_toss3-icpc-17.0.2 && cd build_toss3-icpc-17.0.2
 module load cmake/3.5.2
 module load gcc/4.9.3
 
-TOP_DIR=../
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${TOP_DIR}/host-configs/toss3/icpc_17_0_2.cmake \
+  -C ../host-configs/toss3/icpc_17_0_2.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-icpc-17.0.2 \
   "$@" \
-  ${TOP_DIR}
+  ..
