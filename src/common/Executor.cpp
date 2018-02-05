@@ -542,7 +542,7 @@ void Executor::writeFOMReport(const string& filename)
     file << endl;
 
     string pass(",    ");
-    string fail(",FAIL");
+    string fail(",OVER_TOL");
 
     //
     // Print column title line.
