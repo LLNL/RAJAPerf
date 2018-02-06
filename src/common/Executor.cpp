@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -542,7 +542,7 @@ void Executor::writeFOMReport(const string& filename)
     file << endl;
 
     string pass(",    ");
-    string fail(",FAIL");
+    string fail(",OVER_TOL");
 
     //
     // Print column title line.
