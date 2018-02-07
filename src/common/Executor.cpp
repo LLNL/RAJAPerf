@@ -519,7 +519,7 @@ void Executor::writeFOMReport(const string& filename)
     for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
       const FOMGroup& group = fom_groups[ifg];
       ncols += group.variants.size(); // num variants to compare 
-                                                // to each PM baseline
+                                      // to each PM baseline
     }
 
     vector<int> col_exec_count(ncols, 0);
@@ -536,12 +536,18 @@ void Executor::writeFOMReport(const string& filename)
     // Print title line.
     //
     file << "FOM Report : signed speedup(-)/slowdown(+) for each PM (base vs. RAJA) -> (T_RAJA - T_base) / T_base )";
-    for (size_t iv = 0; iv < ncols; ++iv) {
+    for (size_t iv = 0; iv < ncols*2; ++iv) {
       file << sepchr;
     }
     file << endl;
 
-    string pass(",    ");
+    file << "'OVER_TOL' in column to right if RAJA speedup is over tolerance";
+    for (size_t iv = 0; iv < ncols*2; ++iv) {
+      file << sepchr;
+    }
+    file << endl;
+
+    string pass(",        ");
     string fail(",OVER_TOL");
 
     //
