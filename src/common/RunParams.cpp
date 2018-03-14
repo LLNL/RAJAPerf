@@ -335,7 +335,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --sizefact <double> [default is 1.0]\n"
       << "\t      (fraction of default kernel iteration space size to run)\n";
   str << "\t\t Example...\n"
-      << "\t\t --repfact 2.0 (kernel loops will be twice as long as default)\n\n";
+      << "\t\t --sizefact 2.0 (kernel size will be twice the default)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
       << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
