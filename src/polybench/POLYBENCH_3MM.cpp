@@ -13,39 +13,6 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// POLYBENCH_3MM kernel reference implementation:
-///
-/// E := A*B 
-/// F := C*D 
-/// G := E*F 
-///
-/// for (Index_type i = 0; i < _PB_NI; i++) {
-///   for (Index_type j = 0; j < _PB_NJ; j++) {
-///     E[i][j] = SCALAR_VAL(0.0);
-///     for (Index_type k = 0; k < _PB_NK; ++k) {
-///       E[i][j] += A[i][k] * B[k][j];
-///     }
-///   }
-/// } 
-/// for (Index_type i = 0; i < _PB_NJ; i++) {
-///   for (Index_type j = 0; j < _PB_NL; j++) {
-///	F[i][j] = SCALAR_VAL(0.0);
-///	for (Index_type k = 0; k < _PB_NM; ++k) {
-///	  F[i][j] += C[i][k] * D[k][j];
-///     }
-///   }
-/// }
-/// for (Index_type i = 0; i < _PB_NI; i++) {
-///   for (Index_type j = 0; j < _PB_NL; j++) {
-///     G[i][j] = SCALAR_VAL(0.0);
-///     for (Index_type k = 0; k < _PB_NJ; ++k) {
-///	  G[i][j] += E[i][k] * F[k][j];
-///     }
-///   }
-/// }
-///
-
 #include "POLYBENCH_3MM.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -178,8 +145,8 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       POLYBENCH_3MM_DATA_SETUP_CPU;
       
       using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::seq_exec>,
-        RAJA::nested::For<0, RAJA::seq_exec> >;
+        RAJA::nested::For<1, RAJA::loop_exec>,
+        RAJA::nested::For<0, RAJA::loop_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -190,7 +157,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type j) {     
             POLYBENCH_3MM_BODY1;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nk}, [=] (int k) {
               POLYBENCH_3MM_BODY2; 
             });
@@ -202,7 +169,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             [=](Index_type j, Index_type l) {     
             POLYBENCH_3MM_BODY3;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nm}, [=] (int m) {
               POLYBENCH_3MM_BODY4; 
             });
@@ -214,7 +181,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type l) {     
             POLYBENCH_3MM_BODY5;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nj}, [=] (int j) {
               POLYBENCH_3MM_BODY6; 
             });
@@ -276,7 +243,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       using EXEC_POL = RAJA::nested::Policy<
         RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
-        RAJA::nested::For<0, RAJA::seq_exec> >;
+        RAJA::nested::For<0, RAJA::loop_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -288,7 +255,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
           POLYBENCH_3MM_BODY1;
 
-          RAJA::forall<RAJA::seq_exec> (
+          RAJA::forall<RAJA::loop_exec> (
           RAJA::RangeSegment{0, nk}, [=] (int k) {
             POLYBENCH_3MM_BODY2; 
           });
@@ -302,7 +269,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
           POLYBENCH_3MM_BODY3;
 
-          RAJA::forall<RAJA::seq_exec> (
+          RAJA::forall<RAJA::loop_exec> (
           RAJA::RangeSegment{0, nm}, [=] (int m) {
             POLYBENCH_3MM_BODY4;
           });
@@ -316,7 +283,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
             POLYBENCH_3MM_BODY5;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nj}, [=] (int j) {
               POLYBENCH_3MM_BODY6;
           });

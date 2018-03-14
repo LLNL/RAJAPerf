@@ -13,30 +13,6 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// POLYBENCH_2MM kernel reference implementation:
-///
-/// D := alpha*A*B*C + beta*D
-///
-/// for (Index_type i = 0; i < m_ni; i++) {
-///   for (Index_type j = 0; j < m_nj; j++) {
-///     m_tmp[i][j] = 0.0;
-///     for (Index_type k = 0; k < m_nk; ++k) {
-///       m_tmp[i][j] += m_alpha * m_A[i][k] * m_B[k][j];
-///     }
-///   }
-/// } 
-/// for (Index_type i = 0; i < m_ni; i++) {
-///   for (Index_type j = 0; j < m_nl; j++) {
-///     m_D[i][j] *= m_beta;
-///     for (Index_type k = 0; k < m_nj; ++k) {
-///       m_D[i][j] += m_tmp[i][k] * m_C[k][j];
-///     } 
-///   }
-/// } 
-///
-
-
 #include "POLYBENCH_2MM.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -164,8 +140,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::seq_exec>,
-        RAJA::nested::For<0, RAJA::seq_exec> >;
+        RAJA::nested::For<1, RAJA::loop_exec>,
+        RAJA::nested::For<0, RAJA::loop_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -176,7 +152,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type j) {     
             POLYBENCH_2MM_BODY1;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nk}, [=] (int k) {
               POLYBENCH_2MM_BODY2; 
             });
@@ -190,7 +166,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type l) {     
             POLYBENCH_2MM_BODY3;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nj}, [=] (int j) {
               POLYBENCH_2MM_BODY4; 
             });
@@ -244,7 +220,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       using EXEC_POL = RAJA::nested::Policy<
         RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
-        RAJA::nested::For<0, RAJA::seq_exec> >;
+        RAJA::nested::For<0, RAJA::loop_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -255,7 +231,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type j) {     
             POLYBENCH_2MM_BODY1;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nk}, [=] (int k) {
               POLYBENCH_2MM_BODY2; 
             });
@@ -269,7 +245,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             [=](Index_type i, Index_type l) {     
             POLYBENCH_2MM_BODY3;
 
-            RAJA::forall<RAJA::seq_exec> (
+            RAJA::forall<RAJA::loop_exec> (
               RAJA::RangeSegment{0, nj}, [=] (int j) {
               POLYBENCH_2MM_BODY4; 
             });
