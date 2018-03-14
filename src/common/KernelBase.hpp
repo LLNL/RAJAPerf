@@ -67,8 +67,27 @@ public:
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
   void execute(VariantID vid);
-  void startTimer() { timer.start(); }
-  void stopTimer()  { timer.stop(); recordExecTime(); }
+
+  void startTimer() 
+  { 
+#if defined(RAJA_ENABLE_CUDA)
+    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
+      cudaDeviceSynchronize();
+    }
+#endif
+    timer.start(); 
+  }
+
+  void stopTimer()  
+  { 
+#if defined(RAJA_ENABLE_CUDA)
+    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
+      cudaDeviceSynchronize();
+    }
+#endif
+    timer.stop(); recordExecTime(); 
+  }
+
   void resetTimer() { timer.reset(); }
 
   //
