@@ -89,8 +89,8 @@ void NESTED_INIT::runKernel(VariantID vid)
       NESTED_INIT_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
-                             RAJA::nested::For<2, RAJA::seq_exec>,    // k
-                             RAJA::nested::For<1, RAJA::seq_exec>,    // j
+                             RAJA::nested::For<2, RAJA::loop_exec>,    // k
+                             RAJA::nested::For<1, RAJA::loop_exec>,    // j
                              RAJA::nested::For<0, RAJA::simd_exec> >; // i
 
       startTimer();
@@ -141,7 +141,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 
       using EXEC_POL = RAJA::nested::Policy<
                            RAJA::nested::For<2, RAJA::omp_parallel_for_exec>,//k
-                           RAJA::nested::For<1, RAJA::seq_exec>,             //j
+                           RAJA::nested::For<1, RAJA::loop_exec>,            //j
                            RAJA::nested::For<0, RAJA::simd_exec> >;          //i
 
       startTimer();
