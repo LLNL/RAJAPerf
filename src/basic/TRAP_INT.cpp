@@ -115,7 +115,7 @@ void TRAP_INT::runKernel(VariantID vid)
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           TRAP_INT_BODY;
         });

@@ -13,33 +13,6 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// POLYBENCH_GEMMVER kernel reference implementation:
-///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
-///     A[i][j] = A[i][j] + u1[i] * v1[j] + u2[i] * v2[j];
-///   }
-/// }
-///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
-///     x[i] = x[i] + beta * A[j][i] * y[j];
-///   }
-/// }
-///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   x[i] = x[i] + z[i];
-/// }
-///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
-///     w[i] = w[i] +  alpha * A[i][j] * x[j];
-///   }
-/// }
-///
-
-
 #include "POLYBENCH_GEMMVER.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -175,8 +148,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::seq_exec>,
-        RAJA::nested::For<0, RAJA::seq_exec> >;
+        RAJA::nested::For<1, RAJA::loop_exec>,
+        RAJA::nested::For<0, RAJA::loop_exec> >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -195,7 +168,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
             POLYBENCH_GEMMVER_BODY2;
         });
 
-        RAJA::forall<RAJA::seq_exec> (
+        RAJA::forall<RAJA::loop_exec> (
           RAJA::RangeSegment{0, n}, [=] (int i) {
           POLYBENCH_GEMMVER_BODY3; 
         });
@@ -260,7 +233,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
       using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::seq_exec>,
+        RAJA::nested::For<1, RAJA::loop_exec>,
         RAJA::nested::For<0, RAJA::omp_parallel_for_exec> >;
 
       startTimer();
