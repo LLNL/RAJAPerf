@@ -147,6 +147,25 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+     case RAJA_HostDevice : {
+
+       INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU;
+
+       startTimer();
+       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+         RAJA::forall<RAJA::simd_exec>(
+           RAJA::RangeSegment(ibegin, iend), [=] RAJA_HOST_DEVICE (Index_type i) {
+           INIT_VIEW1D_OFFSET_BODY_RAJA;
+         });
+
+       }
+       stopTimer();
+
+       break;
+     }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

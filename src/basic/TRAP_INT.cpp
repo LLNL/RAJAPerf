@@ -184,6 +184,29 @@ void TRAP_INT::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+     case RAJA_HostDevice : {
+
+      TRAP_INT_DATA_SETUP_CPU;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
+
+        RAJA::forall<RAJA::loop_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=] RAJA_HOST_DEVICE (int i) {
+          TRAP_INT_BODY;
+        });
+
+        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

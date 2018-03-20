@@ -164,6 +164,9 @@ enum VariantID {
 
   Base_Seq = 0,
   RAJA_Seq,
+#if defined(RAJA_ENABLE_CUDA)
+  RAJA_HostDevice,
+#endif
 
 #if defined(RAJA_ENABLE_OPENMP)
   Base_OpenMP,

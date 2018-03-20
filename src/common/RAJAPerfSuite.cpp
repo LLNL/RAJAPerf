@@ -188,6 +188,10 @@ static const std::string VariantNames [] =
   std::string("Base_Seq"),
   std::string("RAJA_Seq"),
 
+#if defined(RAJA_ENABLE_CUDA)
+  std::string("RAJA_HostDevice"),
+#endif
+
 #if defined(RAJA_ENABLE_OPENMP)
   std::string("Base_OpenMP"),
   std::string("RAJA_OpenMP"),

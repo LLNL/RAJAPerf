@@ -182,7 +182,7 @@ void VOL3D::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)    
     case Base_CUDA :
     case RAJA_CUDA :
     {

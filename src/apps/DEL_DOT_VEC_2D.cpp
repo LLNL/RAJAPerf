@@ -199,6 +199,31 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+     case RAJA_HostDevice : {
+
+      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
+
+      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+      RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::loop_exec>(zones, [=] RAJA_HOST_DEVICE (Index_type i) {
+          DEL_DOT_VEC_2D_BODY;
+        }); 
+
+      }
+      stopTimer(); 
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {
