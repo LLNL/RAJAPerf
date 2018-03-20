@@ -183,6 +183,33 @@ void REDUCE3_INT::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+     case RAJA_HostDevice : {
+
+      REDUCE3_INT_DATA_SETUP_CPU;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
+        RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
+        RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
+
+        RAJA::forall<RAJA::loop_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=] RAJA_HOST_DEVICE (Index_type i) {
+          REDUCE3_INT_BODY_RAJA;
+        });
+
+        m_vsum += static_cast<Int_type>(vsum.get());
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

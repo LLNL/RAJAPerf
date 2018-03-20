@@ -282,6 +282,51 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+      case RAJA_HostDevice : {
+
+      POLYBENCH_GEMMVER_DATA_SETUP_CPU;
+
+      using EXEC_POL = RAJA::nested::Policy<
+        RAJA::nested::For<1, RAJA::loop_exec>,
+        RAJA::nested::For<0, RAJA::loop_exec> >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::nested::forall(EXEC_POL{},
+          RAJA::make_tuple(RAJA::RangeSegment(0, n),
+                           RAJA::RangeSegment(0, n)),
+            [=] RAJA_HOST_DEVICE (Index_type i, Index_type j) {     
+            POLYBENCH_GEMMVER_BODY1;
+        });
+
+        RAJA::nested::forall(EXEC_POL{},
+          RAJA::make_tuple(RAJA::RangeSegment(0, n),
+                           RAJA::RangeSegment(0, n)),
+            [=] RAJA_HOST_DEVICE (Index_type i, Index_type j) {     
+            POLYBENCH_GEMMVER_BODY2;
+        });
+
+        RAJA::forall<RAJA::loop_exec> (
+          RAJA::RangeSegment{0, n}, [=] RAJA_HOST_DEVICE (int i) {
+          POLYBENCH_GEMMVER_BODY3; 
+        });
+
+        RAJA::nested::forall(EXEC_POL{},
+          RAJA::make_tuple(RAJA::RangeSegment(0, n),
+                           RAJA::RangeSegment(0, n)),
+            [=] RAJA_HOST_DEVICE (Index_type i, Index_type j) {     
+            POLYBENCH_GEMMVER_BODY4;
+        });
+
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

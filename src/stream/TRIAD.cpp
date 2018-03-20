@@ -144,6 +144,25 @@ void TRIAD::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+    case RAJA_HostDevice : {
+
+      TRIAD_DATA_SETUP_CPU;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          TRIAD_BODY;
+        });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

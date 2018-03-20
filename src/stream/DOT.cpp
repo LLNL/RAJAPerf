@@ -159,6 +159,29 @@ void DOT::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+    case RAJA_HostDevice : {
+
+      DOT_DATA_SETUP_CPU;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
+
+        RAJA::forall<RAJA::loop_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=] RAJA_HOST_DEVICE (Index_type i) {
+          DOT_BODY;
+        });
+
+        m_dot += static_cast<Real_type>(dot.get());
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {

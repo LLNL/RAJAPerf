@@ -141,6 +141,25 @@ void FIRST_DIFF::runKernel(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
+
+    case RAJA_HostDevice : {
+
+      FIRST_DIFF_DATA_SETUP_CPU;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=] RAJA_HOST_DEVICE (Index_type i) {
+          FIRST_DIFF_BODY;
+        });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case Base_CUDA :
     case RAJA_CUDA :
     {
