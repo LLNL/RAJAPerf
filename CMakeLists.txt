@@ -13,9 +13,9 @@
 #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.8)
 
-project(RAJAPerfSuite CXX)
+project(RAJAPerfSuite CXX CUDA)
 
 #
 # Initialize the BLT build system
@@ -70,7 +70,7 @@ if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
 endif()
 if (ENABLE_CUDA)
-  list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
+  #list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif() 
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
