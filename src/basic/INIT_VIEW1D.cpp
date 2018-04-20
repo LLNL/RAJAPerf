@@ -36,8 +36,7 @@ namespace basic
   const Real_type v = m_val; \
 \
   using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >; \
-  const RAJA::Layout<1> my_layout(iend); \
-  ViewType view(a, my_layout);
+  RAJA::View<Real_type, RAJA::Layout<1,RAJA::Index_type,0> > view(a,iend);
 
 
 INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
