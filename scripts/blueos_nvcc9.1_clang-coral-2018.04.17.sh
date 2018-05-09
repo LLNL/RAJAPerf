@@ -14,17 +14,19 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos-clang-coral-2017.09.18 2>/dev/null
-mkdir build_blueos-clang-coral-2017.09.18 && cd build_blueos-clang-coral-2017.09.18
+rm -rf build_blueos_nvcc9.0_clang-coral-2018.04.17 >/dev/null
+mkdir build_blueos_nvcc9.0_clang-coral-2018.04.17 && cd build_blueos_nvcc9.0_clang-coral-2018.04.17
 
 module load cmake/3.7.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ../host-configs/blueos/clang_coral_2017_09_18.cmake \
+  -C ../host-configs/blueos/nvcc_clang_coral_2018_04_17.cmake \
   -DENABLE_OPENMP=On \
+  -DENABLE_CUDA=On \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-9.1.85 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-coral-2017.09.18 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.0_clang-coral-2018.04.17 \
   "$@" \
   ..
