@@ -46,9 +46,8 @@ namespace basic
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
 \
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >; \
-  const RAJA::Layout<1> my_layout(iend); \
-  ViewType view(a, my_layout);
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
+  ViewType view(a, iend);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_a, a, iend); \
