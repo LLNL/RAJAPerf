@@ -14,8 +14,8 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 >/dev/null
-mkdir build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 && cd build_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0
+rm -rf build_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0 >/dev/null
+mkdir build_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0 && cd build_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0
 
 module load cmake/3.9.2
 
@@ -26,9 +26,8 @@ cmake \
   -DENABLE_CUDA=Off \
   -DENABLE_TARGET_OPENMP=On \
   -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target" \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tcetmp/packages/cuda-8.0 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13_omptarget-nvcc8.0 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0 \
   "$@" \
   ..
