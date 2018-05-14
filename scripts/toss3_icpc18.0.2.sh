@@ -14,17 +14,18 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos-clang-coral-2017.11.27 2>/dev/null
-mkdir build_blueos-clang-coral-2017.11.27 && cd build_blueos-clang-coral-2017.11.27
+rm -rf build_toss3-icpc-18.0.2 2>/dev/null
+mkdir build_toss3-icpc-18.0.2 && cd build_toss3-icpc-18.0.2
 
-module load cmake/3.7.2
+module load cmake/3.5.2
+module load gcc/7.1.0
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ../host-configs/blueos/clang_coral_2017_11_27.cmake \
+  -C ../host-configs/toss3/icpc_18_0_2.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos-clang-coral-2017.11.27 \
+  -DCMAKE_INSTALL_PREFIX=../install_toss3-icpc-18.0.2 \
   "$@" \
   ..
