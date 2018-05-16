@@ -19,6 +19,8 @@ mkdir build_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0 && cd build_blueos_c
 
 module load cmake/3.9.2
 
+## NOTE: RAJA tests are turned off due to compilation issues.
+
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -C ../host-configs/blueos/clang_coral_2017_10_13-gpu.cmake \
@@ -28,6 +30,7 @@ cmake \
   -DOpenMP_CXX_FLAGS="-fopenmp -fopenmp-targets=nvptx64-nvidia-cuda -fopenmp-implicit-declare-target" \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
+  -DENABLE_TESTS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_blueos_clang-coral-2017.10.13_omptarget-nvcc9.0 \
   "$@" \
   ..
