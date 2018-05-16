@@ -77,7 +77,7 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-#if 1 // temporary implementation until RAJA::nested::OmpCollapse works.
+#if 1 // temporary implementation until RAJA::kernel works with OpenMP target
 
     NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
@@ -102,16 +102,12 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
 
     NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::OmpTargetCollapse<
-                         RAJA::nested::For<2>,          //k
-                         RAJA::nested::For<1>,          //j
-                         RAJA::nested::For<0> > >;      //i
+    using EXEC_POL = ...
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
+      RAJA::kernel...
                            RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                             RAJA::RangeSegment(0, nj),
                                             RAJA::RangeSegment(0, nk)),
