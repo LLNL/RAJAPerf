@@ -140,8 +140,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<1, RAJA::loop_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<0>
             >
           >
@@ -220,14 +220,24 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
+#if 0 // without openmp collapse...
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<0>
             > 
           > 
         >;
+#else
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
+                                    RAJA::ArgList<0, 1>,
+            RAJA::statement::Lambda<0>
+          >
+        >;
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

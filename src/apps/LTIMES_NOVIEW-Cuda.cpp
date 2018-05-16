@@ -90,21 +90,28 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
     LTIMES_NOVIEW_RANGES_RAJA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                RAJA::nested::CudaCollapse<
-                   RAJA::nested::For<1, RAJA::cuda_block_z_exec>,    //z
-                   RAJA::nested::For<2, RAJA::cuda_block_y_exec>,    //g
-                   RAJA::nested::For<3, RAJA::cuda_thread_x_exec> >, //m
-                 RAJA::nested::For<0, RAJA::cuda_loop_exec> >;       //d
+    using EXEC_POL = 
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernel<
+          RAJA::statement::For<1, RAJA::cuda_block_exec,      //z
+            RAJA::statement::For<2, RAJA::cuda_block_exec,    //g
+              RAJA::statement::For<3, RAJA::cuda_thread_exec, //m
+                RAJA::statement::For<0, RAJA::seq_exec,       //d
+                  RAJA::statement::Lambda<0>
+                >
+              >
+            >
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(IDRange(0, num_d),
-                                            IZRange(0, num_z),
-                                            IGRange(0, num_g),
-                                            IMRange(0, num_m)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+                                                 IZRange(0, num_z),
+                                                 IGRange(0, num_g),
+                                                 IMRange(0, num_m)),
         [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });

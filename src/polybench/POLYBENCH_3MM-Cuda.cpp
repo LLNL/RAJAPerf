@@ -152,17 +152,22 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_3MM_DATA_SETUP_CUDA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::CudaCollapse<
-                         RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
-                         RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernel<
+          RAJA::statement::For<0, RAJA::cuda_block_exec,
+            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+                RAJA::statement::Lambda<0>
+            >
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nj)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                               RAJA::RangeSegment(0, nj)),
         [=] __device__ (Index_type i, Index_type j) {
 
         POLYBENCH_3MM_BODY1;
@@ -172,9 +177,8 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
       });
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, nj),
-                                            RAJA::RangeSegment(0, nl)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, nj),
+                                               RAJA::RangeSegment(0, nl)),
         [=] __device__ (Index_type j, Index_type l) {
 
         POLYBENCH_3MM_BODY3;
@@ -184,9 +188,8 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
       });
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nl)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                               RAJA::RangeSegment(0, nl)), 
         [=] __device__ (Index_type i, Index_type l) {
 
         POLYBENCH_3MM_BODY5;
