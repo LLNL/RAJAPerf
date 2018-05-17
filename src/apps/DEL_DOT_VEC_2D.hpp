@@ -88,7 +88,7 @@ class RunParams;
 
 namespace apps
 {
-struct ADomain;
+class ADomain;
 
 class DEL_DOT_VEC_2D : public KernelBase
 {

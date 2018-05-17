@@ -139,7 +139,7 @@ class RunParams;
 
 namespace apps
 {
-struct ADomain;
+class ADomain;
 
 class COUPLE : public KernelBase
 {
