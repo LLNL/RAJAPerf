@@ -158,14 +158,14 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),  
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),  
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY1;
         });
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY2;
         });
@@ -175,8 +175,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           POLYBENCH_GEMMVER_BODY3; 
         });
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY4;
         });
@@ -245,14 +245,14 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY1;
         });
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY2;
         });
@@ -262,8 +262,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
           POLYBENCH_GEMMVER_BODY3; 
         });
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, n),
-                                                 RAJA::RangeSegment(0, n)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
           POLYBENCH_GEMMVER_BODY4;
         });

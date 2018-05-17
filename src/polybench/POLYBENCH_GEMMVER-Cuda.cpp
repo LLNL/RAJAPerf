@@ -91,7 +91,7 @@ __global__ void polybench_gemmver_cuda_2(Real_type beta,
    Index_type i,jj;
    if (ii < n * n) {
      i = ii/n; jj = ii % n;
-     if(jj == 0) {
+     if (jj == 0) {
        for(Index_type j=0; j < n; ++j) { 
          POLYBENCH_GEMMVER_BODY2;
        } 
@@ -119,7 +119,7 @@ __global__ void polybench_gemmver_cuda_4(Real_type alpha,
    Index_type i,jj;
    if (ii < n * n) {
      i = ii/n; jj = ii % n;
-     if(jj == 0) {
+     if (jj == 0) {
        for(Index_type j=0; j < n; ++j) { 
          POLYBENCH_GEMMVER_BODY4;
        } 
@@ -177,7 +177,7 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
         RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,jj;
           i = ii/n; jj = ii % n;
-          if(jj == 0) {
+          if (jj == 0) {
             for(Index_type j=0; j < n; ++j) { 
               POLYBENCH_GEMMVER_BODY2;
             } 
@@ -193,7 +193,7 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
         RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
           Index_type i,jj;
           i = ii/n; jj = ii % n;
-          if(jj == 0) {
+          if (jj == 0) {
             for(Index_type j=0; j < n; ++j) { 
               POLYBENCH_GEMMVER_BODY4;
             } 
