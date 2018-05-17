@@ -153,8 +153,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=](Index_type i, Index_type j, Index_type k) {
             POLYBENCH_2MM_BODY1;
@@ -166,8 +166,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nl),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=](Index_type i, Index_type l, Index_type j) {
             POLYBENCH_2MM_BODY3;
@@ -251,8 +251,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=](Index_type i, Index_type j, Index_type k) {
             POLYBENCH_2MM_BODY1;
@@ -264,8 +264,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
         memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nl),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=](Index_type i, Index_type l, Index_type j) {
             POLYBENCH_2MM_BODY3;
