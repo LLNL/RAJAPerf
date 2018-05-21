@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TAR_CMD=tar
-VERSION=0.2.2
+VERSION=0.3.0
 
 git archive --prefix=RAJAPerf-${VERSION}/ -o RAJAPerf-${VERSION}.tar HEAD 2> /dev/null
 

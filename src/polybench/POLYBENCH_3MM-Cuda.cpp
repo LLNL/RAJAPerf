@@ -152,49 +152,58 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_3MM_DATA_SETUP_CUDA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::CudaCollapse<
-                         RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
-                         RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernel<
+          RAJA::statement::For<0, RAJA::cuda_block_exec,
+            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              > 
+            >
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nj)),
-        [=] __device__ (Index_type i, Index_type j) {
-
-        POLYBENCH_3MM_BODY1;
-        for (Index_type k=0;k<nk;k++) {
-          POLYBENCH_3MM_BODY2; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nk}),
+        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+          POLYBENCH_3MM_BODY1;
+        },
+        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+          POLYBENCH_3MM_BODY2;
         }
 
-      });
+      );
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, nj),
-                                            RAJA::RangeSegment(0, nl)),
-        [=] __device__ (Index_type j, Index_type l) {
-
-        POLYBENCH_3MM_BODY3;
-        for (Index_type m=0;m<nm;m++) {
-          POLYBENCH_3MM_BODY4; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nm}),
+        [=] __device__ (Index_type j, Index_type l, Index_type m) {
+          POLYBENCH_3MM_BODY3;
+        },
+        [=] __device__ (Index_type j, Index_type l, Index_type m) {
+          POLYBENCH_3MM_BODY4;
         }
 
-      });
+      );
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nl)),
-        [=] __device__ (Index_type i, Index_type l) {
-
-        POLYBENCH_3MM_BODY5;
-        for (Index_type j=0;j<nj;j++) {
-          POLYBENCH_3MM_BODY6; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nj}),
+        [=] __device__ (Index_type i, Index_type l, Index_type j) {
+          POLYBENCH_3MM_BODY5;
+        }, 
+        [=] __device__ (Index_type i, Index_type l, Index_type j) {
+          POLYBENCH_3MM_BODY6;
         }
-
-      });
+                                               
+      );
 
     }
     stopTimer();

@@ -87,23 +87,43 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-#if 0 // disabled until RAJA::nested::OmpTargetCollapse works.
+#if 1 // temporary implementation until RAJA::kernel works with OpenMP target
+
+    LTIMES_DATA_SETUP_OMP_TARGET;
+
+//  LTIMES_VIEWS_RANGES_RAJA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::RangeSegment(0, num_z), [=](Index_type z) {
+        for (Index_type g = 0; g < num_g; ++g ) {
+          for (Index_type m = 0; m < num_m; ++m ) {
+            for (Index_type d = 0; d < num_d; ++d ) {
+              LTIMES_BODY;
+            }
+          }
+        }
+      });
+
+    }
+    stopTimer();
+
+    LTIMES_DATA_TEARDOWN_OMP_TARGET;
+
+#else
 
     LTIMES_DATA_SETUP_OMP_TARGET;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                RAJA::nested::OmpTargetCollapse<
-                   RAJA::nested::For<1>,                  // z
-                   RAJA::nested::For<2>,                  // g
-                   RAJA::nested::For<3> >,                // m
-                 RAJA::nested::For<0, RAJA::loop_exec> >; // d
+    using EXEC_POL = 
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
+      RAJA::kernel....
                            RAJA::make_tuple(IDRange(0, num_d),
                                             IZRange(0, num_z),
                                             IGRange(0, num_g),

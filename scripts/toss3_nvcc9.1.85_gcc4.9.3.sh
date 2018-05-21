@@ -14,19 +14,19 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos_nvcc9.0_clang-coral-2017.12.06 >/dev/null
-mkdir build_blueos_nvcc9.0_clang-coral-2017.12.06 && cd build_blueos_nvcc9.0_clang-coral-2017.12.06
+rm -rf build_toss3-nvcc9.1.85_gcc4.9.3 2>/dev/null
+mkdir build_toss3-nvcc9.1.85_gcc4.9.3 && cd build_toss3-nvcc9.1.85_gcc4.9.3
 
-module load cmake/3.7.2
+module load cmake/3.5.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ../host-configs/blueos/nvcc_clang_coral_2017_12_06.cmake \
+  -C ../host-configs/toss3/nvcc_gcc4_9_3.cmake \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-9.0.184 \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-9.1.85 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.0_clang-coral-2017.12.06 \
+  -DCMAKE_INSTALL_PREFIX=../install_toss3-nvcc9.1.85_gcc4.9.3 \
   "$@" \
   ..

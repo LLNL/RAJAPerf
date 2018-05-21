@@ -14,8 +14,8 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_chaos-icpc-17.0.174 2>/dev/null
-mkdir build_chaos-icpc-17.0.174 && cd build_chaos-icpc-17.0.174
+rm -rf build_chaos-icpc-17.0.174_debug 2>/dev/null
+mkdir build_chaos-icpc-17.0.174_debug && cd build_chaos-icpc-17.0.174_debug
 . /usr/local/tools/dotkit/init.sh && use cmake-3.4.1 && use gcc-4.9.3p
 
 cmake \
@@ -24,6 +24,6 @@ cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=On \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_chaos-icpc-17.0.174 \
+  -DCMAKE_INSTALL_PREFIX=../install_chaos-icpc-17.0.174_debug \
   "$@" \
   .. 

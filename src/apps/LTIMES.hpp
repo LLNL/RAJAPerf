@@ -54,13 +54,13 @@
   using PHI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, IM>; \
 \
   PSI_VIEW psi(psidat, \
-               RAJA::make_permuted_layout( {num_z, num_g, num_d}, \
+               RAJA::make_permuted_layout( {{num_z, num_g, num_d}}, \
                      RAJA::as_array<RAJA::Perm<0, 1, 2> >::get() ) ); \
   ELL_VIEW ell(elldat, \
-               RAJA::make_permuted_layout( {num_m, num_d}, \
+               RAJA::make_permuted_layout( {{num_m, num_d}}, \
                      RAJA::as_array<RAJA::Perm<0, 1> >::get() ) ); \
   PHI_VIEW phi(phidat, \
-               RAJA::make_permuted_layout( {num_z, num_g, num_m}, \
+               RAJA::make_permuted_layout( {{num_z, num_g, num_m}}, \
                      RAJA::as_array<RAJA::Perm<0, 1, 2> >::get() ) ); \
 \
       using IDRange = RAJA::TypedRangeSegment<ID>; \

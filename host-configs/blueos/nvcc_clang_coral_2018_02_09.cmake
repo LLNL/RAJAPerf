@@ -14,25 +14,23 @@
 
 set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
 
-set(CMAKE_CXX_COMPILER "/usr/global/tools/clang/chaos_5_x86_64_ib/clang-cuda-beta-2017-05-30//rawbin/clang++" CACHE PATH "")
-set(CMAKE_C_COMPILER "/usr/global/tools/clang/chaos_5_x86_64_ib/clang-cuda-beta-2017-05-30//rawbin/clang" CACHE PATH "")
-
-set(CMAKE_EXE_LINKER_FLAGS "-rpath /usr/global/tools/clang/chaos_5_x86_64_ib/clang-cuda-beta-2017-05-30//lib:/usr/apps/gnu/4.9.3/lib64:/usr/apps/gnu/4.9.3/lib" CACHE STRING "")
-
-#set(CUDA_COMMON_OPT_FLAGS "--cuda-gpu-arch=sm_37" CACHE STRING "") 
-
-#set(HOST_OPT_FLAGS -Xcompiler -O3)
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2018.02.09/bin/clang++" CACHE PATH "")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
+set(CUDA_COMMON_OPT_FLAGS -restrict; -arch sm_60; -std c++11; --expt-extended-lambda)
+set(CUDA_COMMON_DEBUG_FLAGS -restrict; -arch compute_30; -std c++11; --expt-extended-lambda)
+
+set(HOST_OPT_FLAGS -Xcompiler -O3 -Xcompiler -fopenmp)
+
 if(CMAKE_BUILD_TYPE MATCHES Release)
-  set(BLT_CUDA_ARCH "sm_37" CACHE STRING "")
+  set(RAJA_NVCC_FLAGS -O3; ${CUDA_COMMON_OPT_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; ${HOST_OPT_FLAGS} CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-  set(BLT_CUDA_ARCH "sm_37" CACHE STRING "")
+  set(RAJA_NVCC_FLAGS -g; -G; -O3; ${CUDA_COMMON_OPT_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; ${HOST_OPT_FLAGS} CACHE LIST "")
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(BLT_CUDA_ARCH "sm_30" CACHE STRING "")
+  set(RAJA_NVCC_FLAGS -g; -G; -O0; ${CUDA_COMMON_DEBUG_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; -Xcompiler -fopenmp CACHE LIST "")
 endif()
 
 set(RAJA_RANGE_ALIGN 4 CACHE INT "")

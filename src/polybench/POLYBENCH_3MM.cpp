@@ -143,49 +143,54 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
     case RAJA_Seq : {
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
-      
-      using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::loop_exec>,
-        RAJA::nested::For<0, RAJA::loop_exec> >;
+
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+              >
+            >
+          >
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nj)),
-            [=](Index_type i, Index_type j) {     
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nk}),
+          [=](Index_type i, Index_type j, Index_type k) {
             POLYBENCH_3MM_BODY1;
+          },
+          [=](Index_type i, Index_type j, Index_type k) {
+            POLYBENCH_3MM_BODY2;
+          }
+        );
 
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nk}, [=] (int k) {
-              POLYBENCH_3MM_BODY2; 
-            });
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, nj),
-                           RAJA::RangeSegment(0, nl)),
-            [=](Index_type j, Index_type l) {     
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nm}),
+          [=](Index_type j, Index_type l, Index_type m) {
             POLYBENCH_3MM_BODY3;
+          },                                     
+          [=](Index_type j, Index_type l, Index_type m) {
+            POLYBENCH_3MM_BODY4;
+          }
+        );
 
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nm}, [=] (int m) {
-              POLYBENCH_3MM_BODY4; 
-            });
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nl)),
-            [=](Index_type i, Index_type l) {     
-            POLYBENCH_3MM_BODY5;
-
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nj}, [=] (int j) {
-              POLYBENCH_3MM_BODY6; 
-            });
-        });
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nj}),
+          [=](Index_type i, Index_type l, Index_type j) {
+            POLYBENCH_3MM_BODY5;                 
+          },                               
+          [=](Index_type i, Index_type l, Index_type j) {
+            POLYBENCH_3MM_BODY6;
+          }
+        );
 
       } // end run_reps
       stopTimer();
@@ -241,55 +246,53 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
 
-      using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
-        RAJA::nested::For<0, RAJA::loop_exec> >;
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+              >
+            >
+          >
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
-                            RAJA::RangeSegment{0, nj}),
-          [=] (int i, int j) {
 
-          POLYBENCH_3MM_BODY1;
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nk}),
+          [=] (Index_type i, Index_type j, Index_type k) {
+            POLYBENCH_3MM_BODY1;
+          },
+          [=] (Index_type i, Index_type j, Index_type k) {
+            POLYBENCH_3MM_BODY2;
+          }
+        );
 
-          RAJA::forall<RAJA::loop_exec> (
-          RAJA::RangeSegment{0, nk}, [=] (int k) {
-            POLYBENCH_3MM_BODY2; 
-          });
-
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, nj}, 
-                            RAJA::RangeSegment{0, nl}),
-          [=] (int j, int l) {
-
-          POLYBENCH_3MM_BODY3;
-
-          RAJA::forall<RAJA::loop_exec> (
-          RAJA::RangeSegment{0, nm}, [=] (int m) {
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nm}),
+          [=] (Index_type j, Index_type l, Index_type m) {
+            POLYBENCH_3MM_BODY3;
+          },
+          [=] (Index_type j, Index_type l, Index_type m) {
             POLYBENCH_3MM_BODY4;
-          });
+          }
+        );
 
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
-                            RAJA::RangeSegment{0, nl}),
-          [=] (int i, int l) {
-
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nj}),
+          [=] (Index_type i, Index_type l, Index_type j) {
             POLYBENCH_3MM_BODY5;
-
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nj}, [=] (int j) {
-              POLYBENCH_3MM_BODY6;
-          });
-
-        });
-
+          },
+          [=] (Index_type i, Index_type l, Index_type j) {
+            POLYBENCH_3MM_BODY6;
+          }
+        );
 
       }
       stopTimer();

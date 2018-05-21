@@ -12,19 +12,19 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-set(RAJA_COMPILER "RAJA_COMPILER_CLANG" CACHE STRING "")
+set(RAJA_COMPILER "RAJA_COMPILER_GNU" CACHE STRING "")
 
-set(CMAKE_CXX_COMPILER "/usr/tce/packages/clang/clang-coral-2017.11.27/bin/clang++" CACHE PATH "")
-set(CMAKE_C_COMPILER "/usr/tce/packages/clang/clang-coral-2017.11.27/bin/clang" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/gcc/gcc-4.9.3/bin/g++" CACHE PATH "")
+set(CMAKE_C_COMPILER "/usr/tce/packages/gcc/gcc-4.9.3/bin/gcc" CACHE PATH "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -finline-functions -finline-limit=20000" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -g -finline-functions -finline-limit=20000" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 
-set(CUDA_COMMON_OPT_FLAGS -restrict; -arch sm_60; -std c++11; --expt-extended-lambda)
+set(CUDA_COMMON_OPT_FLAGS -restrict; -arch sm_35; -std c++11; --expt-extended-lambda)
 set(CUDA_COMMON_DEBUG_FLAGS -restrict; -arch compute_30; -std c++11; --expt-extended-lambda)
 
-set(HOST_OPT_FLAGS -Xcompiler -O3 -Xcompiler -fopenmp)
+set(HOST_OPT_FLAGS -Xcompiler -Ofast -Xcompiler -finline-functions -Xcompiler -fopenmp)
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
   set(RAJA_NVCC_FLAGS -O3; ${CUDA_COMMON_OPT_FLAGS}; -ccbin; ${CMAKE_CXX_COMPILER} ; ${HOST_OPT_FLAGS} CACHE LIST "")
