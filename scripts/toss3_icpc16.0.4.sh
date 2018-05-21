@@ -18,7 +18,7 @@ rm -rf build_toss3-icpc-16.0.4 2>/dev/null
 mkdir build_toss3-icpc-16.0.4 && cd build_toss3-icpc-16.0.4
 
 module load cmake/3.5.2
-module load gcc/4.9.3
+module load gcc/7.1.0
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \

@@ -14,8 +14,8 @@
 ## For details about use and distribution, please read raja-perfsuite/LICENSE.
 ##
 
-rm -rf build_blueos_nvcc9.1_clang-coral-2017.12.06 >/dev/null
-mkdir build_blueos_nvcc9.1_clang-coral-2017.12.06 && cd build_blueos_nvcc9.1_clang-coral-2017.12.06
+rm -rf build_blueos_nvcc9.2_clang-coral-2017.12.06 >/dev/null
+mkdir build_blueos_nvcc9.2_clang-coral-2017.12.06 && cd build_blueos_nvcc9.2_clang-coral-2017.12.06
 
 module load cmake/3.7.2
 
@@ -27,6 +27,6 @@ cmake \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-9.2.64 \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
-  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.1_clang-coral-2017.12.06 \
+  -DCMAKE_INSTALL_PREFIX=../install_blueos_nvcc9.2_clang-coral-2017.12.06 \
   "$@" \
   ..
