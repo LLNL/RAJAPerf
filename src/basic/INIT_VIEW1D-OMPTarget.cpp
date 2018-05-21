@@ -51,7 +51,7 @@ namespace basic
 \
   allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
 \
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >; \
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
   const RAJA::Layout<1> my_layout(iend); \
   ViewType view(a, my_layout);
 
