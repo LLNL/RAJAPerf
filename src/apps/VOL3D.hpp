@@ -146,7 +146,7 @@ class RunParams;
 
 namespace apps
 {
-struct ADomain;
+class ADomain;
 
 class VOL3D : public KernelBase
 {
