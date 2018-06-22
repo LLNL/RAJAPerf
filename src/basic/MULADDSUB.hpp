@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,9 +13,25 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// MULADDSUB kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   out1[i] = in1[i] * in2[i] ;
+///   out2[i] = in1[i] + in2[i] ;
+///   out3[i] = in1[i] - in2[i] ;
+/// }
+///
 
 #ifndef RAJAPerf_Basic_MULADDSUB_HPP
 #define RAJAPerf_Basic_MULADDSUB_HPP
+
+
+#define MULADDSUB_BODY  \
+  out1[i] = in1[i] * in2[i] ; \
+  out2[i] = in1[i] + in2[i] ; \
+  out3[i] = in1[i] - in2[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +54,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_out1;

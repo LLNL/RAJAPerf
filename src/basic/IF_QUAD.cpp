@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,28 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-
-///
-/// IF_QUAD kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   Real_type s = b[i]*b[i] - 4.0*a[i]*c[i];
-///   if ( s >= 0 ) {
-///     s = sqrt(s);
-///     x2[i] = (-b[i]+s)/(2.0*a[i]);
-///     x1[i] = (-b[i]-s)/(2.0*a[i]);
-///   } else {
-///     x2[i] = 0.0;
-///     x1[i] = 0.0;
-///   }
-/// }
-///
-
 #include "IF_QUAD.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -43,65 +26,13 @@ namespace rajaperf
 namespace basic
 {
 
-#define IF_QUAD_DATA \
+
+#define IF_QUAD_DATA_SETUP_CPU \
   ResReal_ptr a = m_a; \
   ResReal_ptr b = m_b; \
   ResReal_ptr c = m_c; \
   ResReal_ptr x1 = m_x1; \
   ResReal_ptr x2 = m_x2;
-
-#define IF_QUAD_BODY  \
-  Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
-  if ( s >= 0 ) { \
-    s = sqrt(s); \
-    x2[i] = (-b[i]+s)/(2.0*a[i]); \
-    x1[i] = (-b[i]-s)/(2.0*a[i]); \
-  } else { \
-    x2[i] = 0.0; \
-    x1[i] = 0.0; \
-  }
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define IF_QUAD_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_ptr x1; \
-  Real_ptr x2; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend); \
-  allocAndInitCudaDeviceData(x1, m_x1, iend); \
-  allocAndInitCudaDeviceData(x2, m_x2, iend);
-
-#define IF_QUAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, iend); \
-  getCudaDeviceData(m_x2, x2, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2);
-
-__global__ void ifquad(Real_ptr x1, Real_ptr x2,
-                       Real_ptr a, Real_ptr b, Real_ptr c,
-                       Index_type iend)
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     IF_QUAD_BODY;
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 IF_QUAD::IF_QUAD(const RunParams& params)
@@ -120,8 +51,8 @@ void IF_QUAD::setUp(VariantID vid)
   allocAndInitDataRandSign(m_a, getRunSize(), vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
-  allocAndInitData(m_x1, getRunSize(), vid);
-  allocAndInitData(m_x2, getRunSize(), vid);
+  allocAndInitDataConst(m_x1, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_x2, getRunSize(), 0.0, vid);
 }
 
 void IF_QUAD::runKernel(VariantID vid)
@@ -134,7 +65,7 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      IF_QUAD_DATA;
+      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -151,12 +82,12 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      IF_QUAD_DATA;
+      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           IF_QUAD_BODY;
         });
@@ -170,7 +101,7 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      IF_QUAD_DATA;
+      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -186,14 +117,9 @@ void IF_QUAD::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      IF_QUAD_DATA;
+      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -211,57 +137,26 @@ void IF_QUAD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      IF_QUAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                            iend );
-
-      }
-      stopTimer();
-
-      IF_QUAD_DATA_TEARDOWN_CUDA;
-
-      break;
-    }
-
-    case RAJA_CUDA : {
-
-      IF_QUAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           IF_QUAD_BODY;
-         });
-
-      }
-      stopTimer();
-
-      IF_QUAD_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

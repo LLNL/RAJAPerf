@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,24 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// INIT_VIEW1D_OFFSET kernel reference implementation:
-///
-/// const Real_type val = ...;
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i-ibegin] = val;
-/// }
-///
-/// RAJA variants use a "view" and an "offset layout" to do the same thing
-/// where the loop runs over the same index range.
-///
-
 #include "INIT_VIEW1D_OFFSET.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -39,63 +26,15 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_OFFSET_DATA \
+#define INIT_VIEW1D_OFFSET_DATA_SETUP_CPU \
   Real_ptr a = m_a; \
   const Real_type v = m_val;
 
-#define INIT_VIEW1D_OFFSET_DATA_RAJA \
+#define INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU \
   Real_ptr a = m_a; \
   const Real_type v = m_val; \
 \
   ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
-
-
-#define INIT_VIEW1D_OFFSET_BODY  \
-  a[i-ibegin] = v;
-
-#define INIT_VIEW1D_OFFSET_BODY_RAJA  \
-  view(i) = v;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  const Real_type v = m_val; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend);
-
-#define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA_RAJA \
-  Real_ptr a; \
-  const Real_type v = m_val; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-\
-  ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
-
-
-#define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a);
-
-__global__ void initview1d(Real_ptr a, 
-                           Real_type v,
-                           const Index_type ibegin,
-                           const Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT_VIEW1D_OFFSET_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
@@ -111,7 +50,7 @@ INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
   m_val = 0.123;  
 }
 
@@ -127,7 +66,7 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      INIT_VIEW1D_OFFSET_DATA;
+      INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -144,7 +83,7 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      INIT_VIEW1D_OFFSET_DATA_RAJA;
+      INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -163,7 +102,7 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      INIT_VIEW1D_OFFSET_DATA;
+      INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -179,14 +118,9 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      INIT_VIEW1D_OFFSET_DATA_RAJA;
+      INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -203,58 +137,26 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         initview1d<<<grid_size, block_size>>>( a, v,
-                                                ibegin,
-                                                iend ); 
-
-      }
-      stopTimer();
-
-      INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA_RAJA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           INIT_VIEW1D_OFFSET_BODY_RAJA;
-         });
-
-      }
-      stopTimer();
-
-      INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;
     }
 
   }

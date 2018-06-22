@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -67,6 +67,7 @@
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/FIR.hpp"
 #include "apps/LTIMES.hpp"
+#include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/WIP-COUPLE.hpp"
 
 
@@ -140,14 +141,10 @@ static const std::string KernelNames [] =
 //
 // Polybench kernels...
 //
-#if 1
   std::string("Polybench_2MM"),
   std::string("Polybench_3MM"),
   std::string("Polybench_GEMMVER"),
   std::string("Polybench_ADI"),
-
-  
-#endif
 
 //
 // Stream kernels...
@@ -167,6 +164,7 @@ static const std::string KernelNames [] =
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_FIR"),
   std::string("Apps_LTIMES"),
+  std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_COUPLE"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
@@ -191,18 +189,21 @@ static const std::string VariantNames [] =
 
   std::string("Base_Seq"),
   std::string("RAJA_Seq"),
+
 #if defined(RAJA_ENABLE_OPENMP)
   std::string("Base_OpenMP"),
-  std::string("RAJALike_OpenMP"),
   std::string("RAJA_OpenMP"),
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  std::string("Base_OMPTarget"),
+  std::string("RAJA_OMPTarget"),
 #endif
+
+#endif
+
 #if defined(RAJA_ENABLE_CUDA)
   std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
-#endif
-#if 0
-  std::string("Base_OpenMPTarget"),
-  std::string("RAJA_OpenMPTarget"),
 #endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
@@ -348,12 +349,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_2MM(run_params);
        break;
     }
-
     case Polybench_3MM : {
        kernel = new polybench::POLYBENCH_3MM(run_params);
        break;
     }
-
     case Polybench_GEMMVER : {
        kernel = new polybench::POLYBENCH_GEMMVER(run_params);
        break;
@@ -412,6 +411,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
+       break;
+    }
+    case Apps_LTIMES_NOVIEW : {
+       kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
     case Apps_COUPLE : {

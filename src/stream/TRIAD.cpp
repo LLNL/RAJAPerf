@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,19 +13,11 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///      
-/// TRIAD kernel reference implementation:
-///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i] = b[i] + alpha * c[i] ;
-/// }
-///
-
 #include "TRIAD.hpp"
 
-#include "common/DataUtils.hpp"
-
 #include "RAJA/RAJA.hpp"
+
+#include "common/DataUtils.hpp"
 
 #include <iostream>
 
@@ -34,50 +26,12 @@ namespace rajaperf
 namespace stream
 {
 
-#define TRIAD_DATA \
+
+#define TRIAD_DATA_SETUP_CPU \
   ResReal_ptr a = m_a; \
   ResReal_ptr b = m_b; \
   ResReal_ptr c = m_c; \
   Real_type alpha = m_alpha;
-
-#define TRIAD_BODY  \
-  a[i] = b[i] + alpha * c[i] ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
-#define TRIAD_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define TRIAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
-
-__global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
-                      Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     TRIAD_BODY; 
-   }
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
 
 
 TRIAD::TRIAD(const RunParams& params)
@@ -93,7 +47,7 @@ TRIAD::~TRIAD()
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
   allocAndInitData(m_b, getRunSize(), vid);
   allocAndInitData(m_c, getRunSize(), vid);
   initData(m_alpha, vid);
@@ -109,7 +63,7 @@ void TRIAD::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,7 +80,7 @@ void TRIAD::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -145,7 +99,7 @@ void TRIAD::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -161,14 +115,9 @@ void TRIAD::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      TRIAD_DATA;
+      TRIAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -185,57 +134,26 @@ void TRIAD::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      TRIAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-         triad<<<grid_size, block_size>>>( a, b, c, alpha,
-                                           iend ); 
-
-      }
-      stopTimer();
-
-      TRIAD_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      TRIAD_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-         RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-           TRIAD_BODY;
-         });
-
-      }
-      stopTimer();
-
-      TRIAD_DATA_TEARDOWN_CUDA;
-
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_CUDA)
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

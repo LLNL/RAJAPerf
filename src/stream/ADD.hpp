@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// ADD kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   c[i] = a[i] + b[i];
+/// }
+///
 
 #ifndef RAJAPerf_Stream_ADD_HPP
 #define RAJAPerf_Stream_ADD_HPP
+
+
+#define ADD_BODY  \
+  c[i] = a[i] + b[i]; 
+
 
 #include "common/KernelBase.hpp"
 
@@ -39,10 +51,14 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
+
 private:
   Real_ptr m_a;
   Real_ptr m_b;
   Real_ptr m_c;
+
 };
 
 } // end namespace stream

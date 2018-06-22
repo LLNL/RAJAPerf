@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
@@ -18,14 +18,12 @@ rm -rf build_chaos-clang-4.0.0_debug 2>/dev/null
 mkdir build_chaos-clang-4.0.0_debug && cd build_chaos-clang-4.0.0_debug
 . /usr/local/tools/dotkit/init.sh && use cmake-3.4.1
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
-
 cmake \
   -DCMAKE_BUILD_TYPE=Debug \
-  -C ${PERFSUITE_DIR}/host-configs/chaos/clang_4_0_0.cmake \
+  -C ../host-configs/chaos/clang_4_0_0.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=On \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_chaos-clang-4.0.0_debug \
   "$@" \
-  ${PERFSUITE_DIR}
+  ..

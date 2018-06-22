@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -141,6 +141,7 @@ enum KernelID {
   Apps_DEL_DOT_VEC_2D,
   Apps_FIR,
   Apps_LTIMES,
+  Apps_LTIMES_NOVIEW,
   Apps_COUPLE,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
@@ -164,18 +165,21 @@ enum VariantID {
 
   Base_Seq = 0,
   RAJA_Seq,
+
 #if defined(RAJA_ENABLE_OPENMP)
   Base_OpenMP,
-  RAJALike_OpenMP,
   RAJA_OpenMP,
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  Base_OpenMPTarget,
+  RAJA_OpenMPTarget,
 #endif
+
+#endif
+
 #if defined(RAJA_ENABLE_CUDA)
   Base_CUDA,
   RAJA_CUDA,
-#endif
-#if 0
-  Base_OpenMPTarget,
-  RAJA_OpenMPTarget,
 #endif
 
   NumVariants // Keep this one last and NEVER comment out (!!)

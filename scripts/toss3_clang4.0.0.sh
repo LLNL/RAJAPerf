@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
@@ -19,14 +19,12 @@ mkdir build_toss3-clang-4.0.0 && cd build_toss3-clang-4.0.0
 
 module load cmake/3.5.2
 
-PERFSUITE_DIR=$(git rev-parse --show-toplevel)
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -C ${PERFSUITE_DIR}/host-configs/toss3/clang_4_0_0.cmake \
+  -C ../host-configs/toss3/clang_4_0_0.cmake \
   -DENABLE_OPENMP=On \
   -DPERFSUITE_ENABLE_WARNINGS=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DCMAKE_INSTALL_PREFIX=../install_toss3-clang-4.0.0 \
   "$@" \
-  ${PERFSUITE_DIR}
+  ..

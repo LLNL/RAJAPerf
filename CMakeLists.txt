@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 #
 # Produced at the Lawrence Livermore National Laboratory
 #
@@ -37,7 +37,7 @@ set(BLT_CXX_STANDARD 11)
 #
 
 set(ENABLE_TESTS On CACHE Bool "")
-set(ENABLE_EXAMPLES Off CACHE Bool "")
+set(ENABLE_EXAMPLES On CACHE Bool "")
 set(ENABLE_DOCUMENTATION Off CACHE Bool "")
 
 set(ENABLE_TBB Off CACHE Bool "")
@@ -62,7 +62,7 @@ include_directories(${RAJA_INCLUDE_DIRS})
 #
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 1)
+set(RAJA_PERFSUITE_VERSION_MINOR 3)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)

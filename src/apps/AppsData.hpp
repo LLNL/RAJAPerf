@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -16,6 +16,7 @@
 #ifndef RAJAPerf_AppsData_HPP
 #define RAJAPerf_AppsData_HPP
 
+#include "common/RPTypes.hpp"
 
 namespace rajaperf
 {
@@ -47,8 +48,12 @@ namespace apps
 //
 // Domain structure to mimic structured mesh loops code style.
 //
-struct ADomain
+class ADomain
 {
+public:
+
+   ADomain() = delete;
+
    ADomain( Index_type rzmax, Index_type ndims ) 
       : ndims(ndims), NPNL(2), NPNR(1)
    {
@@ -144,6 +149,18 @@ struct ADomain
    Index_type* real_zones;
    Index_type  n_real_zones;
 };
+
+//
+// Routines for initializing mesh positions for 2d/3d domains.
+//
+void setMeshPositions_2d(Real_ptr x, Real_type dx,
+                         Real_ptr y, Real_type dy,
+                         const ADomain& domain);
+
+void setMeshPositions_3d(Real_ptr x, Real_type dx,
+                         Real_ptr y, Real_type dy,
+                         Real_ptr z, Real_type dz,
+                         const ADomain& domain);
 
 } // end namespace apps
 } // end namespace rajaperf

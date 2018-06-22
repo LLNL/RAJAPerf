@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,71 +13,12 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// COUPLE kernel reference implementation:
-///
-/// for (Index_type k = kmin ; k < kmax ; ++k ) {
-///   for (Index_type j = jmin; j < jmax; j++) { 
-///    
-///      Index_type it0=    ((k)*(jmax+1) + (j))*(imax+1) ; 
-///      Index_type idenac= ((k)*(jmax+2) + (j))*(imax+2) ; 
-///    
-///      for (Index_type i = imin; i < imax; i++) { 
-///    
-///         Complex_type c1 = c10 * denac[idenac+i]; 
-///         Complex_type c2 = c20 * denlw[it0+i]; 
-///    
-///         /* promote to doubles to avoid possible divide by zero */ 
-///         Real_type c1re = real(c1);  Real_type c1im = imag(c1); 
-///         Real_type c2re = real(c2);  Real_type c2im = imag(c2); 
-///    
-///         /* lamda = sqrt(|c1|^2 + |c2|^2) uses doubles to avoid underflow. */
-///         Real_type zlam = c1re*c1re + c1im*c1im + 
-///                          c2re*c2re + c2im*c2im + 1.0e-34; 
-///         zlam = sqrt(zlam); 
-///         Real_type snlamt = sin(zlam * dt * 0.5); 
-///         Real_type cslamt = cos(zlam * dt * 0.5); 
-///    
-///         Complex_type a0t = t0[it0+i]; 
-///         Complex_type a1t = t1[it0+i]; 
-///         Complex_type a2t = t2[it0+i] * fratio; 
-///    
-///         Real_type r_zlam= 1.0/zlam; 
-///         c1 *= r_zlam; 
-///         c2 *= r_zlam; 
-///         Real_type zac1 = zabs2(c1); 
-///         Real_type zac2 = zabs2(c2); 
-///    
-///         /* compute new A0 */ 
-///         Complex_type z3 = ( c1 * a1t + c2 * a2t ) * snlamt ; 
-///         t0[it0+i] = a0t * cslamt -  ireal * z3; 
-///    
-///         /* compute new A1  */ 
-///         Real_type r = zac1 * cslamt + zac2; 
-///         Complex_type z5 = c2 * a2t; 
-///         Complex_type z4 = conj(c1) * z5 * (cslamt-1); 
-///         z3 = conj(c1) * a0t * snlamt; 
-///         t1[it0+i] = a1t * r + z4 - ireal * z3; 
-///    
-///         /* compute new A2  */ 
-///         r = zac1 + zac2 * cslamt; 
-///         z5 = c1 * a1t; 
-///         z4 = conj(c2) * z5 * (cslamt-1); 
-///         z3 = conj(c2) * a0t * snlamt; 
-///         t2[it0+i] = ( a2t * r + z4 - ireal * z3 ) * r_fratio; 
-///    
-///      } /* i loop */ 
-///    
-///   } /* j loop */
-/// } /* k loop */
-///
-
 #include "WIP-COUPLE.hpp"
+
+#include "RAJA/RAJA.hpp"
 
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
-
-#include "RAJA/RAJA.hpp"
 
 #include <iostream>
 
@@ -86,7 +27,7 @@ namespace rajaperf
 namespace apps
 {
 
-#define COUPLE_DATA \
+#define COUPLE_DATA_SETUP_CPU \
   ResComplex_ptr t0 = m_t0; \
   ResComplex_ptr t1 = m_t1; \
   ResComplex_ptr t2 = m_t2; \
@@ -105,61 +46,6 @@ namespace apps
   const Index_type jmax = m_jmax; \
   const Index_type kmin = m_kmin; \
   const Index_type kmax = m_kmax;
-
-
-#define COUPLE_BODY \
-for (Index_type j = jmin; j < jmax; j++) { \
- \
-   Index_type it0=    ((k)*(jmax+1) + (j))*(imax+1) ; \
-   Index_type idenac= ((k)*(jmax+2) + (j))*(imax+2) ; \
- \
-   for (Index_type i = imin; i < imax; i++) { \
- \
-      Complex_type c1 = c10 * denac[idenac+i]; \
-      Complex_type c2 = c20 * denlw[it0+i]; \
- \
-      /* promote to doubles to avoid possible divide by zero */ \
-      Real_type c1re = real(c1);  Real_type c1im = imag(c1); \
-      Real_type c2re = real(c2);  Real_type c2im = imag(c2); \
- \
-      /* lamda = sqrt(|c1|^2 + |c2|^2) uses doubles to avoid underflow. */ \
-      Real_type zlam = c1re*c1re + c1im*c1im + \
-                       c2re*c2re + c2im*c2im + 1.0e-34; \
-      zlam = sqrt(zlam); \
-      Real_type snlamt = sin(zlam * dt * 0.5); \
-      Real_type cslamt = cos(zlam * dt * 0.5); \
- \
-      Complex_type a0t = t0[it0+i]; \
-      Complex_type a1t = t1[it0+i]; \
-      Complex_type a2t = t2[it0+i] * fratio; \
- \
-      Real_type r_zlam= 1.0/zlam; \
-      c1 *= r_zlam; \
-      c2 *= r_zlam; \
-      Real_type zac1 = zabs2(c1); \
-      Real_type zac2 = zabs2(c2); \
- \
-      /* compute new A0 */ \
-      Complex_type z3 = ( c1 * a1t + c2 * a2t ) * snlamt ; \
-      t0[it0+i] = a0t * cslamt -  ireal * z3; \
- \
-      /* compute new A1  */ \
-      Real_type r = zac1 * cslamt + zac2; \
-      Complex_type z5 = c2 * a2t; \
-      Complex_type z4 = conj(c1) * z5 * (cslamt-1); \
-      z3 = conj(c1) * a0t * snlamt; \
-      t1[it0+i] = a1t * r + z4 - ireal * z3; \
- \
-      /* compute new A2  */ \
-      r = zac1 + zac2 * cslamt; \
-      z5 = c1 * a1t; \
-      z4 = conj(c2) * z5 * (cslamt-1); \
-      z3 = conj(c2) * a0t * snlamt; \
-      t2[it0+i] = ( a2t * r + z4 - ireal * z3 ) * r_fratio; \
- \
-   } /* i loop */ \
- \
-} /* j loop */
 
 
 COUPLE::COUPLE(const RunParams& params)
@@ -214,15 +100,11 @@ void COUPLE::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-//
-// RDH: Should we use forallN for this kernel???
-//
-
   switch ( vid ) {
 
     case Base_Seq : {
 
-      COUPLE_DATA;
+      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -239,12 +121,12 @@ void COUPLE::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      COUPLE_DATA;
+      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::seq_exec>(
+        RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](int k) {
           COUPLE_BODY;
         }); 
@@ -257,7 +139,7 @@ void COUPLE::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP)      
     case Base_OpenMP : {
-      COUPLE_DATA;
+      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -272,14 +154,9 @@ void COUPLE::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // Not applicable
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      COUPLE_DATA;
+      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -296,24 +173,26 @@ void COUPLE::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_TARGET_OPENMP) && 0
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+#if defined(RAJA_ENABLE_CUDA) && 0
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
     }
 
   }

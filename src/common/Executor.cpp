@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -136,7 +136,7 @@ void Executor::setupSuite()
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(*it) != string::npos ) {
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
           run_kern.insert(kid);
           found_it = true;
         }
@@ -365,17 +365,17 @@ void Executor::runSuite()
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-        VariantID vid = variant_ids[iv];
-        if ( run_params.showProgress() ) {
-          std::cout << "     Variant - " << getVariantName(vid) << "\n"; 
-         }
-
-         kernel->execute( vid );
+         KernelBase* kern = kernels[ik];
+         if ( run_params.showProgress() ) {
+           cout << kern->getName() << " " <<  getVariantName(variant_ids[iv]) << endl;
+         }  
+         kernels[ik]->execute( variant_ids[iv] );
       } // loop over variants 
 
     } // loop over kernels
 
   } // loop over passes through suite
+
 }
 
 void Executor::outputRunData()
@@ -394,11 +394,9 @@ void Executor::outputRunData()
   string out_fprefix;
   string outdir = recursiveMkdir(run_params.getOutputDirName()); 
   if ( !outdir.empty() ) {
-    out_fprefix = outdir + "/" + run_params.getOutputFilePrefix();
     chdir(outdir.c_str());
-  } else {
-    out_fprefix = "./" + run_params.getOutputFilePrefix();
   }
+  out_fprefix = "./" + run_params.getOutputFilePrefix();
 
   string filename = out_fprefix + "-timing.csv";
   writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
@@ -521,7 +519,7 @@ void Executor::writeFOMReport(const string& filename)
     for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
       const FOMGroup& group = fom_groups[ifg];
       ncols += group.variants.size(); // num variants to compare 
-                                                // to each PM baseline
+                                      // to each PM baseline
     }
 
     vector<int> col_exec_count(ncols, 0);
@@ -538,13 +536,19 @@ void Executor::writeFOMReport(const string& filename)
     // Print title line.
     //
     file << "FOM Report : signed speedup(-)/slowdown(+) for each PM (base vs. RAJA) -> (T_RAJA - T_base) / T_base )";
-    for (size_t iv = 0; iv < ncols; ++iv) {
+    for (size_t iv = 0; iv < ncols*2; ++iv) {
       file << sepchr;
     }
     file << endl;
 
-    string pass(",    ");
-    string fail(",FAIL");
+    file << "'OVER_TOL' in column to right if RAJA speedup is over tolerance";
+    for (size_t iv = 0; iv < ncols*2; ++iv) {
+      file << sepchr;
+    }
+    file << endl;
+
+    string pass(",        ");
+    string fail(",OVER_TOL");
 
     //
     // Print column title line.
@@ -726,12 +730,12 @@ void Executor::writeChecksumReport(const string& filename)
     // Set basic table formatting parameters.
     //
     const string equal_line("===================================================================================================");
-    const string dash_line("----------------------------------------------------------------------------------------------------");
+    const string dash_line("----------------------------------------------------------------------------------------");
     const string dash_line_short("-------------------------------------------------------");
     string dot_line("........................................................");
 
     size_t prec = 20;
-    size_t checksum_width = prec + 4;
+    size_t checksum_width = prec + 8;
 
     size_t namecol_width = 0;
     for (size_t ik = 0; ik < kernels.size(); ++ik) {

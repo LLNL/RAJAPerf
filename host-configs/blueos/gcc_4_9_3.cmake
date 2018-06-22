@@ -1,5 +1,5 @@
 ##
-## Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
@@ -14,7 +14,7 @@
 
 set(RAJA_COMPILER "RAJA_COMPILER_GNU" CACHE STRING "")
 
-set(CMAKE_CXX_COMPILER "/usr/tcetmp/bin/g++" CACHE PATH "")
+set(CMAKE_CXX_COMPILER "/usr/tce/packages/gcc/gcc-4.9.3/g++" CACHE PATH "")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -finline-functions -finline-limit=20000" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -g -finline-functions -finline-limit=20000" CACHE STRING "")

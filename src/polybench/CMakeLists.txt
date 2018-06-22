@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 #
 # Produced at the Lawrence Livermore National Laboratory
 #
@@ -16,8 +16,16 @@
 blt_add_library(
   NAME polybench
   SOURCES POLYBENCH_2MM.cpp 
+          POLYBENCH_2MM-Cuda.cpp
+          POLYBENCH_2MM-OMPTarget.cpp
           POLYBENCH_3MM.cpp
+          POLYBENCH_3MM-Cuda.cpp
+          POLYBENCH_3MM-OMPTarget.cpp
           POLYBENCH_GEMMVER.cpp
+          POLYBENCH_GEMMVER-Cuda.cpp
+          POLYBENCH_GEMMVER-OMPTarget.cpp
           POLYBENCH_ADI.cpp
+          POLYBENCH_ADI-Cuda.cpp
+          POLYBENCH_ADI-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

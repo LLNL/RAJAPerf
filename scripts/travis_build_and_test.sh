@@ -15,10 +15,11 @@ or_die mkdir travis-build
 cd travis-build
 if [[ "$DO_BUILD" == "yes" ]] ; then
     or_die cmake -DCMAKE_CXX_COMPILER="${COMPILER}" ${CMAKE_EXTRA_FLAGS} ../
-    cat CMakeCache.txt
+# for debugging...
+#   cat CMakeCache.txt
     or_die make -j 3 VERBOSE=1
     if [[ "${DO_TEST}" == "yes" ]] ; then
-        or_die ./bin/raja-perf.exe --checkrun
+        or_die ./bin/raja-perf.exe --checkrun -sp
     fi
 fi
 

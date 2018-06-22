@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -335,27 +335,27 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --sizefact <double> [default is 1.0]\n"
       << "\t      (fraction of default kernel iteration space size to run)\n";
   str << "\t\t Example...\n"
-      << "\t\t --repfact 2.0 (kernel loops will be twice as long as default)\n\n";
+      << "\t\t --sizefact 2.0 (iteration space size is twice the default)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
       << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
-      << "\t      (slowdown fail tolerance for RAJA vs. Base variants in FOM report)\n";
+      << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
   str << "\t\t Example...\n"
-      << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as FAIL in FOM report)\n\n";
+      << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outdir foo (output files to ./foo directory\n"
-      << "\t\t --od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
+      << "\t\t -od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
 
   str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
       << "\t      (file name prefix for output files)\n";
   str << "\t\t Examples...\n"
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
-      << "\t\t --of dat (output data will be in files 'dat*')\n\n";
+      << "\t\t -of dat (output data will be in files 'dat*')\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 

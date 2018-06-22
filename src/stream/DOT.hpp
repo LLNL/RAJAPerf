@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,9 +13,21 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+///
+/// DOT kernel reference implementation:
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   dot += a[i] * b[i];
+/// }
+///
 
 #ifndef RAJAPerf_Stream_DOT_HPP
 #define RAJAPerf_Stream_DOT_HPP
+
+
+#define DOT_BODY  \
+  dot += a[i] * b[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -38,6 +50,9 @@ public:
   void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runCudaVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_a;

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -13,68 +13,25 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// NESTED_INIT kernel reference implementation:
-///
-/// for (Index_type k = 0; k < nk; ++k ) {
-///   for (Index_type j = 0; j < nj; ++j ) {
-///     for (Index_type i = 0; i < ni; ++i ) {
-///       array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
-///     }
-///   }
-/// }
-///
-
 #include "NESTED_INIT.hpp"
+
+#include "RAJA/RAJA.hpp"
 
 #include "common/DataUtils.hpp"
 
-#include "RAJA/RAJA.hpp"
-#include "RAJA/internal/MemUtils_CPU.hpp"
-
 #include <iostream>
-
 
 namespace rajaperf 
 {
 namespace basic
 {
 
-#define NESTED_INIT_DATA \
+
+#define NESTED_INIT_DATA_SETUP_CPU \
   ResReal_ptr array = m_array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk;
-
-#define NESTED_INIT_BODY  \
-  array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
-
-
-#if defined(RAJA_ENABLE_CUDA)
-
-#define NESTED_INIT_DATA_SETUP_CUDA \
-  Real_ptr array; \
-  Int_type ni = m_ni; \
-  Int_type nj = m_nj; \
-  Int_type nk = m_nk; \
-\
-  allocAndInitCudaDeviceData(array, m_array, ni * nj * nk);
-
-#define NESTED_INIT_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_array, array, ni * nj * nk); \
-  deallocCudaDeviceData(array);
-
-__global__ void nested_init(Real_ptr array,
-                            Int_type ni, Int_type nj)
-{
-   Index_type i = threadIdx.x;
-   Index_type j = blockIdx.y;
-   Index_type k = blockIdx.z;
-
-   NESTED_INIT_BODY; 
-}
-
-#endif // if defined(RAJA_ENABLE_CUDA)
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk;
 
 
 NESTED_INIT::NESTED_INIT(const RunParams& params)
@@ -94,13 +51,10 @@ NESTED_INIT::~NESTED_INIT()
 
 void NESTED_INIT::setUp(VariantID vid)
 {
-  (void) vid;
-
   m_nk = m_nk_init * static_cast<Real_type>( getRunSize() ) / getDefaultSize();
+  m_array_length = m_ni * m_nj * m_nk;
 
-  int len = m_ni * m_nj * m_nk;
-  m_array = RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                                   len*sizeof(Real_type)); 
+  allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
 }
 
 void NESTED_INIT::runKernel(VariantID vid)
@@ -111,7 +65,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 
     case Base_Seq : {
 
-      NESTED_INIT_DATA;
+      NESTED_INIT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -132,39 +86,25 @@ void NESTED_INIT::runKernel(VariantID vid)
 
     case RAJA_Seq : {
 
-      NESTED_INIT_DATA;
+      NESTED_INIT_DATA_SETUP_CPU;
 
-#if defined(USE_FORALLN)
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::seq_exec,
-                                       RAJA::seq_exec,
-                                       RAJA::simd_exec > > > (
-              RAJA::RangeSegment(0, nk),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, ni),
-          [=](Index_type k, Index_type j, Index_type i) {     
-          NESTED_INIT_BODY;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
+      using EXEC_POL = 
+        RAJA::KernelPolicy<
+          RAJA::statement::For<2, RAJA::loop_exec,    // k
+            RAJA::statement::For<1, RAJA::loop_exec,  // j
+              RAJA::statement::For<0, RAJA::loop_exec,// i
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(RAJA::nested::Policy< 
-                             RAJA::nested::For<2, RAJA::seq_exec>,      // k
-                             RAJA::nested::For<1, RAJA::seq_exec>,      // j
-                             RAJA::nested::For<0, RAJA::simd_exec> >{}, // i
-                             camp::make_tuple(RAJA::RangeSegment(0, ni),
-                                              RAJA::RangeSegment(0, nj),
-                                              RAJA::RangeSegment(0, nk)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                                 RAJA::RangeSegment(0, nj),
+                                                 RAJA::RangeSegment(0, nk)),
              [=](Index_type i, Index_type j, Index_type k) {     
              NESTED_INIT_BODY;
         });
@@ -172,20 +112,23 @@ void NESTED_INIT::runKernel(VariantID vid)
       }
       stopTimer();
 
-#endif
-
       break;
     }
 
 #if defined(RAJA_ENABLE_OPENMP)
     case Base_OpenMP : {
 
-      NESTED_INIT_DATA;
+      NESTED_INIT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-          #pragma omp parallel for 
+#if 0
+// using collapse here doesn't appear to yield a performance benefit
+//        #pragma omp parallel for collapse(3)
+#else
+          #pragma omp parallel for
+#endif
           for (Index_type k = 0; k < nk; ++k ) {
             for (Index_type j = 0; j < nj; ++j ) {
               for (Index_type i = 0; i < ni; ++i ) {
@@ -200,119 +143,69 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-    case RAJALike_OpenMP : {
-      // case is not defined...
-      break;
-    }
-
     case RAJA_OpenMP : {
 
-      NESTED_INIT_DATA;
+      NESTED_INIT_DATA_SETUP_CPU;
 
-#if defined(USE_FORALLN)
+#if 0
+// To compare OpenMP collapse with RAJA-based OpenMP, use this policy
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
+                                    RAJA::ArgList<2, 1, 0>,  // k, j, i
+            RAJA::statement::Lambda<0>
+          >
+        >;
+#else
+      using EXEC_POL = 
+        RAJA::KernelPolicy<
+          RAJA::statement::For<2, RAJA::omp_parallel_for_exec,    // k
+            RAJA::statement::For<1, RAJA::loop_exec,  // j
+              RAJA::statement::For<0, RAJA::loop_exec,// i
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >;
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::omp_parallel_for_exec,
-                                       RAJA::seq_exec,
-                                       RAJA::simd_exec > > > (
-              RAJA::RangeSegment(0, nk),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, ni),
-          [=](Index_type k, Index_type j, Index_type i) {     
-          NESTED_INIT_BODY;
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                                 RAJA::RangeSegment(0, nj),
+                                                 RAJA::RangeSegment(0, nk)),
+             [=](Index_type i, Index_type j, Index_type k) {     
+             NESTED_INIT_BODY;
         });
 
       }
       stopTimer();
 
-#else // use RAJA::nested
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      }
-      stopTimer();
-
+      break;
+    }
 #endif
 
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+      runOpenMPTargetVariant(vid);
       break;
     }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA : {
-
-      NESTED_INIT_DATA_SETUP_CUDA;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        dim3 nthreads_per_block(ni, 1, 1);
-        dim3 nblocks(1, nj, nk);
-
-        nested_init<<<nblocks, nthreads_per_block>>>(array,
-                                                     ni, nj);
-
-      }
-      stopTimer();
-
-      NESTED_INIT_DATA_TEARDOWN_CUDA;
-
-      break; 
-    }
-
-    case RAJA_CUDA : {
-
-      NESTED_INIT_DATA_SETUP_CUDA;
-
-#if defined(USE_FORALLN)
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forallN< RAJA::NestedPolicy< 
-                       RAJA::ExecList< RAJA::cuda_block_z_exec,
-                                       RAJA::cuda_block_y_exec,
-                                       RAJA::cuda_thread_x_exec > > > (
-              RAJA::RangeSegment(0, nk),
-              RAJA::RangeSegment(0, nj),
-              RAJA::RangeSegment(0, ni),
-          [=] __device__ (Index_type k, Index_type j, Index_type i) {
-          NESTED_INIT_BODY;
-        });
-
-      }
-      stopTimer();
-
-#else // use RAJA::nested
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      }
-      stopTimer();
-
-#endif
-
-      NESTED_INIT_DATA_TEARDOWN_CUDA;
-
-      break;
-    }
-#endif
-
-#if 0
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget : {
-      // Fill these in later...you get the idea...
+    case Base_CUDA :
+    case RAJA_CUDA :
+    {
+      runCudaVariant(vid);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
     }
 
   }
@@ -321,7 +214,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 
 void NESTED_INIT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_array, m_ni * m_nj * m_nk);
+  checksum[vid] += calcChecksum(m_array, m_array_length);
 }
 
 void NESTED_INIT::tearDown(VariantID vid)
