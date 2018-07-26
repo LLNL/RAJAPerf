@@ -36,8 +36,8 @@ set(BLT_CXX_STANDARD 11)
 # Define RAJA settings...
 #
 
-set(ENABLE_TESTS On CACHE Bool "")
-set(ENABLE_EXAMPLES On CACHE Bool "")
+set(ENABLE_TESTS Off CACHE Bool "")
+set(ENABLE_EXAMPLES Off CACHE Bool "")
 set(ENABLE_DOCUMENTATION Off CACHE Bool "")
 
 set(ENABLE_TBB Off CACHE Bool "")
@@ -60,6 +60,8 @@ include_directories(${RAJA_INCLUDE_DIRS})
 #
 # Setup variables to pass to Perf suite
 #
+
+add_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP ) 
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
 set(RAJA_PERFSUITE_VERSION_MINOR 3)
