@@ -3,7 +3,7 @@
  *
  * \file
  *
- * \brief   Header file for Polybench kernel 2mm .
+ * \brief   Header file for Polybench kernel ADI .
  *
  ******************************************************************************
  */
@@ -72,8 +72,8 @@
 
 
 
-#ifndef RAJAPerf_POLYBENCH_ADI_HXX
-#define RAJAPerf_POLYBENCH_ADI_HXX
+#ifndef RAJAPerf_POLYBENCH_ADI_HPP
+#define RAJAPerf_POLYBENCH_ADI_HPP
 
 #include <stdio.h>
 #include "common/KernelBase.hpp"

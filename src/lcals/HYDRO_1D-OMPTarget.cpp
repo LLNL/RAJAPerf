@@ -31,7 +31,7 @@ namespace lcals
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define HYDRO_1D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
