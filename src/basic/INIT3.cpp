@@ -101,7 +101,7 @@ void INIT3::runKernel(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP)
-#if defined(run_openmp)                        
+#if defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       INIT3_DATA_SETUP_CPU;
