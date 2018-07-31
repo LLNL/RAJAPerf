@@ -115,8 +115,10 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       POLYBENCH_ADI_BODY1;
-      RAJA::forall<RAJA::seq_exec> (
-        RAJA::RangeSegment(1, tsteps+1), [=](Index_type t) { 
+//     RAJA::forall<RAJA::seq_exec> (
+//        RAJA::RangeSegment(1, tsteps+1), [=](Index_type t) { 
+        for (Index_type t = 1; t <= tsteps; t++ ) { 
+
           RAJA::forall<RAJA::cuda_exec<block_size, async>> (
             RAJA::RangeSegment{1, n - 1}, [=] __device__ (int i) {
               Index_type j;
@@ -141,7 +143,8 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
                 POLYBENCH_ADI_BODY9;
               }  
             });
-        }); // tsteps
+        } //Tsteps  
+//        }); // tsteps
     }
 
     stopTimer();
