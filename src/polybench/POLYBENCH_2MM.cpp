@@ -156,7 +156,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
-          [=](Index_type i, Index_type j, Index_type k) {
+          [=](Index_type i, Index_type j, Index_type /* k */) {
             POLYBENCH_2MM_BODY1;
           },
           [=](Index_type i, Index_type j, Index_type k) {
@@ -169,7 +169,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
-          [=](Index_type i, Index_type l, Index_type j) {
+          [=](Index_type i, Index_type l, Index_type /* j */) {
             POLYBENCH_2MM_BODY3;
           },
           [=](Index_type i, Index_type l, Index_type j) {
@@ -254,7 +254,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
-          [=](Index_type i, Index_type j, Index_type k) {
+          [=](Index_type i, Index_type j, Index_type /* k */) {
             POLYBENCH_2MM_BODY1;
           },
           [=](Index_type i, Index_type j, Index_type k) {
@@ -267,7 +267,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
-          [=](Index_type i, Index_type l, Index_type j) {
+          [=](Index_type i, Index_type l, Index_type /* j */) {
             POLYBENCH_2MM_BODY3;
           },
           [=](Index_type i, Index_type l, Index_type j) {
