@@ -31,7 +31,7 @@ namespace basic
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define INIT_VIEW1D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -85,7 +85,7 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
     INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
-
+#if 0 // segfaults on device ... wait until patched
      INIT_VIEW1D_DATA_SETUP_RAJA_OMP_TARGET
 
      startTimer();
@@ -100,7 +100,7 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
      stopTimer();
 
      INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET;
-
+#endif
   } else {
      std::cout << "\n  INIT_VIEW1D : Unknown OMP Targetvariant id = " << vid << std::endl;
   }

@@ -88,6 +88,7 @@ void FIR::runKernel(VariantID vid)
       break;
     } 
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       FIR_COEFF;
@@ -107,8 +108,10 @@ void FIR::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       FIR_COEFF;
@@ -148,7 +151,8 @@ void FIR::runKernel(VariantID vid)
 
       break;
     }
-#endif
+#endif // RUN_OPENMP                       
+#endif // RAJA_ENABLE_OPENMP
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :

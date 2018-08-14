@@ -140,6 +140,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
@@ -197,8 +198,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
@@ -299,9 +302,9 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_OPENMP                       
+#endif // RAJA_ENABLE_OPENMP
 
-#endif //RAJA_ENABLE_OPENMP
-                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :

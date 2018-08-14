@@ -81,6 +81,7 @@ void PLANCKIAN::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       PLANCKIAN_DATA_SETUP_CPU;
@@ -98,8 +99,10 @@ void PLANCKIAN::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP)
+#if defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       PLANCKIAN_DATA_SETUP_CPU;
@@ -135,7 +138,8 @@ void PLANCKIAN::runKernel(VariantID vid)
 
       break;
     }
-#endif
+#endif // RUN_OPENMP                       
+#endif // RAJA_ENABLE_OPENMP
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
