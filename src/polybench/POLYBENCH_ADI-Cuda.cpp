@@ -108,9 +108,9 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 
     POLYBENCH_ADI_TEARDOWN_CUDA;
 
-  } else if (vid == RAJA_CUDA) {
+  } else if (vid == RAJA_CUDA) {   
     POLYBENCH_ADI_DATA_SETUP_CUDA;
-
+#if 1 // older technique
     const bool async = false;
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -146,7 +146,66 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
         } //Tsteps  
 //        }); // tsteps
     }
+#else  // WIP 
+   #define CUDA_BLOCK_SIZE 256        
+   using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::CudaKernel<
+            RAJA::statement::For<0, RAJA::cuda_threadblock_exec<CUDA_BLOCK_SIZE>,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<3>
+              >
+            >
+          >  
+        >;
 
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      POLYBENCH_ADI_BODY1;
+      for (Index_type t = 1; t <= tsteps; t++ ) { 
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                                                 RAJA::RangeSegment{1, n-1}),
+
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY2;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY3;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY4;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY5;
+          }
+        );
+
+         
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                                                 RAJA::RangeSegment{1, n-1}),
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY6;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY7;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY8;
+          },
+          [=]__device__(Index_type i, Index_type j) {
+            POLYBENCH_ADI_BODY9;
+          }
+        ); 
+      } // for tsteps
+    } // for run_reps
+
+#endif
     stopTimer();
 
     POLYBENCH_ADI_TEARDOWN_CUDA;
