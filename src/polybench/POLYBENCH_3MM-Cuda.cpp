@@ -172,7 +172,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nj},
                                                RAJA::RangeSegment{0, nk}),
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+        [=] __device__ (Index_type i, Index_type j, Index_type /* k */) {
           POLYBENCH_3MM_BODY1;
         },
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
@@ -184,7 +184,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                                                RAJA::RangeSegment{0, nl},
                                                RAJA::RangeSegment{0, nm}),
-        [=] __device__ (Index_type j, Index_type l, Index_type m) {
+        [=] __device__ (Index_type j, Index_type l, Index_type /* m */) {
           POLYBENCH_3MM_BODY3;
         },
         [=] __device__ (Index_type j, Index_type l, Index_type m) {
@@ -196,7 +196,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nl},
                                                RAJA::RangeSegment{0, nj}),
-        [=] __device__ (Index_type i, Index_type l, Index_type j) {
+        [=] __device__ (Index_type i, Index_type l, Index_type /* j */) {
           POLYBENCH_3MM_BODY5;
         }, 
         [=] __device__ (Index_type i, Index_type l, Index_type j) {

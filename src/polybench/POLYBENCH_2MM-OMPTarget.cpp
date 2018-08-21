@@ -46,7 +46,7 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type)); \
+  memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitOpenMPDeviceData(tmp, m_tmp, m_ni * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
@@ -89,9 +89,8 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      //#pragma omp target update to(D[0: m_ni * m_nl])
-      initOpenMPDeviceData(D,m_D,m_ni * m_nl, did, hid); 
+      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+      initOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid); 
 
       #pragma omp target is_device_ptr(tmp,A,B,C,D) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
@@ -104,44 +103,57 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         }  
       }
 
-    } // end run_reps
+    }
     stopTimer(); 
+
     POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     POLYBENCH_2MM_DATA_SETUP_OMP_TARGET;
 
-    startTimer();
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
+                                  RAJA::ArgList<0, 1>,
+          RAJA::statement::Lambda<0>,
+          RAJA::statement::For<2, RAJA::seq_exec,
+            RAJA::statement::Lambda<1>
+          >
+        >
+      >;
 
+    startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,ni * nj), [=](Index_type ii) {
-        Index_type i,j,k;
-        *(tmp + ii) = 0.0;
-        i = ii/nj; j = ii % nj;
-        for(k=0;k<nk;k++) {
-          POLYBENCH_2MM_BODY2; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nk}),
+        [=] (Index_type i, Index_type j, Index_type /* k */) {
+          POLYBENCH_2MM_BODY1;
+        },
+        [=] (Index_type i, Index_type j, Index_type k) {
+          POLYBENCH_2MM_BODY2;
         }
-      });
+      );
 
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+      initOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid);
 
-      //#pragma omp target update to(D[0: m_ni * m_nl])
-      initOpenMPDeviceData(D,m_D,m_ni * m_nl, did, hid); 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,ni * nl), [=](Index_type ii) {
-        *(D + ii) *= beta;
-        Index_type i,l,j;
-        i = ii/nl; l = ii % nl;
-        for(j=0;j<nj;j++) {
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nj}),
+        [=] (Index_type i, Index_type l, Index_type /* j */) {
+          POLYBENCH_2MM_BODY3;
+        },
+        [=] (Index_type i, Index_type l, Index_type j) {
           POLYBENCH_2MM_BODY4;
-        }  
-      });
+        }
+      );
 
-    } // for run_reps
+    }
     stopTimer();
+
     POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {

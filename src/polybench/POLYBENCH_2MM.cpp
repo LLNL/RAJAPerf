@@ -18,9 +18,15 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
-
 #include <iostream>
 #include <cstring>
+
+
+#define USE_OMP_COLLAPSE
+//#undef USE_OMP_COLLAPSE
+
+#define USE_RAJA_OMP_COLLAPSE
+//#undef USE_RAJA_OMP_COLLAPSE
 
 
 namespace rajaperf 
@@ -117,7 +123,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
 
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
@@ -164,7 +170,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
@@ -191,7 +197,11 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for collapse(2) 
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif 
         for (Index_type i = 0; i < ni; i++ ) {
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -201,9 +211,13 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
 
-        #pragma omp parallel for collapse(2)  
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif 
         for(Index_type i = 0; i < ni; i++) {
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
@@ -223,7 +237,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
-#if 1
+#if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
@@ -234,7 +248,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             >
           >
         >;
-#else // without openmp collapse...
+#else // without collapse...
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -262,7 +276,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
+        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},

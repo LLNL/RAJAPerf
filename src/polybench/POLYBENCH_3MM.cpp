@@ -21,6 +21,14 @@
 #include <iostream>
 #include <cstring>
 
+
+#define USE_OMP_COLLAPSE
+//#undef USE_OMP_COLLAPSE
+
+#define USE_RAJA_OMP_COLLAPSE
+//#undef USE_RAJA_OMP_COLLAPSE
+
+
 namespace rajaperf 
 {
 namespace polybench
@@ -206,7 +214,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
         #pragma omp parallel for  
+#endif
         for (Index_type i = 0; i < ni; i++ )  {
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
@@ -216,7 +228,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp parallel for   
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for  
+#endif
         for (Index_type j = 0; j < nj; j++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY3;
@@ -226,7 +242,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp parallel for   
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for  
+#endif
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY5;
@@ -246,6 +266,18 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
 
+#if defined(USE_RAJA_OMP_COLLAPSE)
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
+                                    RAJA::ArgList<0, 1>,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<2, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >
+          >
+        >;
+#else
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -257,6 +289,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
             >
           >
         >;
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

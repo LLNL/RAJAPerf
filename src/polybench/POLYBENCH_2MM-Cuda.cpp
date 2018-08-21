@@ -43,7 +43,7 @@ const size_t block_size = 256;
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type)); \
+  memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -60,9 +60,10 @@ const size_t block_size = 256;
   deallocCudaDeviceData(D);
 
 __global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl)
+                                     Real_ptr B, Real_ptr C, Real_ptr D,
+                                     Real_type alpha, Real_type beta, 
+                                     Index_type ni, Index_type nj,
+                                     Index_type nk, Index_type nl)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
    Index_type i,j,k;
@@ -73,14 +74,13 @@ __global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
        POLYBENCH_2MM_BODY2;              
      }
    }
-
-
 }
 
 __global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl)
+                                     Real_ptr B, Real_ptr C, Real_ptr D,
+                                     Real_type alpha, Real_type beta, 
+                                     Index_type ni, Index_type nj,
+                                     Index_type nk, Index_type nl)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
    Index_type i,l,j;
@@ -114,8 +114,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
                                                      m_ni,m_nj,m_nk,m_nl);
 
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D,m_D,m_ni * m_nl ); 
+      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+      initCudaDeviceData(D, m_D, m_ni * m_nl); 
 
       grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
       polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
@@ -150,7 +150,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nj},
                                                RAJA::RangeSegment{0, nk}),
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+        [=] __device__ (Index_type i, Index_type j, Index_type /* k */) {
           POLYBENCH_2MM_BODY1;
         },
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
@@ -158,13 +158,13 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
       );
 
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D,m_D,m_ni * m_nl ); 
+      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+      initCudaDeviceData(D, m_D, m_ni * m_nl); 
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nl},
                                                RAJA::RangeSegment{0, nj}),
-        [=] __device__ (Index_type i, Index_type l, Index_type j) {
+        [=] __device__ (Index_type i, Index_type l, Index_type /* j */) {
           POLYBENCH_2MM_BODY3;
         },
         [=] __device__ (Index_type i, Index_type l, Index_type j) {
