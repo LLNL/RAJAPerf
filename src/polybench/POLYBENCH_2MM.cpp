@@ -123,7 +123,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
 
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
@@ -170,7 +170,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
@@ -211,7 +211,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
 
 #if defined(USE_OMP_COLLAPSE)
         #pragma omp parallel for collapse(2)
@@ -276,7 +276,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},

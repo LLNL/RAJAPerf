@@ -17,19 +17,19 @@
 ///
 /// D := alpha*A*B*C + beta*D
 ///
-/// for (Index_type i = 0; i < m_ni; i++) {
-///   for (Index_type j = 0; j < m_nj; j++) {
-///     m_tmp[i][j] = 0.0;
-///     for (Index_type k = 0; k < m_nk; ++k) {
-///       m_tmp[i][j] += m_alpha * m_A[i][k] * m_B[k][j];
+/// for (Index_type i = 0; i < ni; i++) {
+///   for (Index_type j = 0; j < nj; j++) {
+///     tmp[i][j] = 0.0;
+///     for (Index_type k = 0; k < nk; ++k) {
+///       tmp[i][j] += alpha * A[i][k] * B[k][j];
 ///     }
 ///   }
 /// } 
-/// for (Index_type i = 0; i < m_ni; i++) {
-///   for (Index_type j = 0; j < m_nl; j++) {
-///     m_D[i][j] *= m_beta;
-///     for (Index_type k = 0; k < m_nj; ++k) {
-///       m_D[i][j] += m_tmp[i][k] * m_C[k][j];
+/// for (Index_type i = 0; i < ni; i++) {
+///   for (Index_type l = 0; l < nl; l++) {
+///     D[i][l] *= beta;
+///     for (Index_type j = 0; j < nj; ++j) {
+///       D[i][l] += tmp[i][j] * C[j][l];
 ///     } 
 ///   }
 /// } 
@@ -37,20 +37,20 @@
 
 
 
-#ifndef RAJAPerf_POLYBENCH_2MM_HXX
-#define RAJAPerf_POLYBENCH_2MM_HXX
+#ifndef RAJAPerf_POLYBENCH_2MM_HPP
+#define RAJAPerf_POLYBENCH_2MM_HPP
 
 #define POLYBENCH_2MM_BODY1 \
-  *(tmp + i * nj + j) = 0.0;
+  tmp[j + i*nj] = 0.0;
 
 #define POLYBENCH_2MM_BODY2 \
-  *(tmp + i * nj + j) += alpha * *(A + i * nk + k) * *(B + k * nj + j);
+  tmp[j + i*nj] += alpha * A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_2MM_BODY3 \
-  *(D + i * nl + l) *= beta;
+  D[l + i*nl] *= beta;
 
 #define POLYBENCH_2MM_BODY4 \
-  *(D + i * nl + l) += *(tmp + i * nj + j) * *(C + j * nl + l);
+  D[l + i*nl] += tmp[j + i*nj] * C[l + j*nl];
 
 #include "common/KernelBase.hpp"
 

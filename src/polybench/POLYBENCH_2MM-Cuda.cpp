@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for CUDA execution
-//
-const size_t block_size = 256;
-
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
   Real_ptr tmp = m_tmp; \
   Real_ptr A = m_A; \
@@ -43,7 +38,6 @@ const size_t block_size = 256;
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -59,37 +53,32 @@ const size_t block_size = 256;
   deallocCudaDeviceData(C); \
   deallocCudaDeviceData(D);
 
-__global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
-                                     Real_ptr B, Real_ptr C, Real_ptr D,
-                                     Real_type alpha, Real_type beta, 
-                                     Index_type ni, Index_type nj,
-                                     Index_type nk, Index_type nl)
+
+__global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
+                           Real_type alpha,
+                           Index_type nj, Index_type nk)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j,k;
-   if (ii < ni * nj) {
-     *(tmp + ii) = 0.0;
-     i = ii/nj; j = ii % nj;
-     for (k=0; k < nk; k++) {
-       POLYBENCH_2MM_BODY2;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type j = threadIdx.y;
+
+   POLYBENCH_2MM_BODY1;
+
+   for (Index_type k=0; k < nk; ++k) {
+     POLYBENCH_2MM_BODY2;              
    }
 }
 
-__global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
-                                     Real_ptr B, Real_ptr C, Real_ptr D,
-                                     Real_type alpha, Real_type beta, 
-                                     Index_type ni, Index_type nj,
-                                     Index_type nk, Index_type nl)
+__global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
+                           Real_type beta,
+                           Index_type nl, Index_type nj)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,l,j;
-   if (ii < ni * nl) {
-     *(D + ii) *= beta;
-     i = ii/nl; l = ii % nl;
-     for (j=0; j < nj; j++) {
-       POLYBENCH_2MM_BODY4;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type l = threadIdx.y;
+
+   POLYBENCH_2MM_BODY3;
+
+   for (Index_type j=0; j < nj; ++j) {
+     POLYBENCH_2MM_BODY4;
    }
 }
 
@@ -110,16 +99,17 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
-      polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
-                                                     m_ni,m_nj,m_nk,m_nl);
+      dim3 nblocks1(ni, 1, 1);
+      dim3 nthreads_per_block1(1, nj, 1);
+      poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
+                                                    m_nj, m_nk);
 
-      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D, m_D, m_ni * m_nl); 
+      cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
-      polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
-                                                     m_ni,m_nj,m_nk,m_nl);
+      dim3 nblocks2(ni, 1, 1);
+      dim3 nthreads_per_block2(1, nl, 1);
+      poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
+                                                    m_nl, m_nj);
 
     }
     stopTimer();
@@ -158,8 +148,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
       );
 
-      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D, m_D, m_ni * m_nl); 
+      cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nl},
