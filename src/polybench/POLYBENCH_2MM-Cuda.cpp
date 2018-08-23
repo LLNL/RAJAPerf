@@ -104,7 +104,9 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
                                                     m_nj, m_nk);
 
-      cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
+      if ( irep == run_reps - 1 ) {
+        cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
+      }
 
       dim3 nblocks2(ni, 1, 1);
       dim3 nthreads_per_block2(1, nl, 1);
@@ -148,7 +150,9 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
       );
 
-      cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
+      if ( irep == run_reps - 1 ) {
+        cudaErrchk( cudaMemsetAsync(D, 0, m_ni * m_nl * sizeof(Real_type)) );
+      }
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nl},

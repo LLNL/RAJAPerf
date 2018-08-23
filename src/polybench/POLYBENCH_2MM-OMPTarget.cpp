@@ -32,7 +32,7 @@ namespace polybench
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define POLYBENCH_2MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -46,7 +46,6 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitOpenMPDeviceData(tmp, m_tmp, m_ni * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
@@ -89,7 +88,9 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
+      if ( irep == run_reps - 1 ) {
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
+      }
       initOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid); 
 
       #pragma omp target is_device_ptr(tmp,A,B,C,D) device( did )
@@ -137,8 +138,10 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         }
       );
 
-      memcpy(m_D, m_DD, m_ni * m_nl * sizeof(Real_type));
-      initOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid);
+      if ( irep == run_reps - 1 ) {
+        memset(m_D, 0, m_ni * m_nl * sizeof(Real_type));
+      }
+      initOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid); 
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                RAJA::RangeSegment{0, nl},
