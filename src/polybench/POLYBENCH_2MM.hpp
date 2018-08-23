@@ -27,7 +27,9 @@
 /// } 
 /// for (Index_type i = 0; i < ni; i++) {
 ///   for (Index_type l = 0; l < nl; l++) {
-///     D[i][l] *= beta;
+///     D[i][l] *= beta;  // NOTE: Changed to 'D[i][l] = beta;' 
+///                       // to avoid need for memset operation
+///                       // to zero out matrix.
 ///     for (Index_type j = 0; j < nj; ++j) {
 ///       D[i][l] += tmp[i][j] * C[j][l];
 ///     } 
@@ -47,7 +49,7 @@
   tmp[j + i*nj] += alpha * A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_2MM_BODY3 \
-  D[l + i*nl] *= beta;
+  D[l + i*nl] = beta;
 
 #define POLYBENCH_2MM_BODY4 \
   D[l + i*nl] += tmp[j + i*nj] * C[l + j*nl];
