@@ -102,12 +102,12 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       dim3 nblocks1(ni, 1, 1);
       dim3 nthreads_per_block1(1, nj, 1);
       poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
-                                                    m_nj, m_nk);
+                                                    nj, nk);
 
       dim3 nblocks2(ni, 1, 1);
       dim3 nthreads_per_block2(1, nl, 1);
       poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
-                                                    m_nl, m_nj);
+                                                    nl, nj);
 
     }
     stopTimer();
