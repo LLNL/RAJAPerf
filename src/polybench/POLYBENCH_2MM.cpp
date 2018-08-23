@@ -47,38 +47,40 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  m_alpha = 1.5;
-  m_beta = 1.2;
   SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  int run_reps = 0; 
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
-      m_run_reps = 10000;
+      run_reps = 10000;
       break;
     case Small:
       m_ni=40; m_nj=50; m_nk=70; m_nl=80;
-      m_run_reps = 1000;
+      run_reps = 1000;
       break;
     case Medium:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_reps = 100;
+      run_reps = 100;
       break;
     case Large:
       m_ni=800; m_nj=900; m_nk=1100; m_nl=1200;
-      m_run_reps = 1;
+      run_reps = 1;
       break;
     case Extralarge:
       m_ni=1600; m_nj=1800; m_nk=2200; m_nl=2400;
-      m_run_reps = 1;
+      run_reps = 1;
       break;
     default:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_reps = 100;
+      run_reps = 100;
       break;
   }
 
   setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
-  setDefaultReps(m_run_reps);
+  setDefaultReps(run_reps);
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM() 

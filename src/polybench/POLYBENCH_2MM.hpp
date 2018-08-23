@@ -85,7 +85,6 @@ private:
   Index_type m_nj;
   Index_type m_nk;
   Index_type m_nl;
-  Index_type m_run_reps;
   Real_type m_alpha;
   Real_type m_beta;
   Real_ptr m_tmp;
