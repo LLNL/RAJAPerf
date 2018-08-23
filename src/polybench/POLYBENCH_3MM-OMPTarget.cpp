@@ -32,7 +32,7 @@ namespace polybench
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define POLYBENCH_3MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -81,7 +81,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
     
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(A,B,E) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
@@ -92,7 +92,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(C,D,F) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for(Index_type j = 0; j < nj; j++) {
         for(Index_type l = 0; l < nl; l++) {
@@ -103,7 +103,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(E,F,G) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {

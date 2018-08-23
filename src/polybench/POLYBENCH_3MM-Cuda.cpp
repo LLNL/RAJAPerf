@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for CUDA execution
-//
-const size_t block_size = 256;
-
 #define POLYBENCH_3MM_DATA_SETUP_CUDA \
   Real_ptr A = m_A; \
   Real_ptr B = m_B; \
@@ -62,57 +57,45 @@ const size_t block_size = 256;
   deallocCudaDeviceData(F); \
   deallocCudaDeviceData(G);
 
-__global__ void polybench_3mm_cuda_1(Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_ptr E, Real_ptr F, Real_ptr G,
-                       Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl, Index_type nm)
+__global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
+                           Index_type nj, Index_type nk)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j,k;
-   if (ii < ni * nj) {
-     *(E + ii) = 0.0;
-     i = ii/nj; j = ii % nj;
-     for (k=0; k < nk; k++) {
-       POLYBENCH_3MM_BODY2;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type j = threadIdx.y;
+
+   POLYBENCH_3MM_BODY1;
+
+   for (Index_type k=0; k < nk; ++k) {
+     POLYBENCH_3MM_BODY2;
    }
 }
 
-__global__ void polybench_3mm_cuda_2(Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_ptr E, Real_ptr F, Real_ptr G,
-                       Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl, Index_type nm)
+__global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
+                           Index_type nl, Index_type nm)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type j,l,m;
-   if (ii < nj * nl) {
-     *(F + ii) = 0.0;
-     j = ii/nl; l = ii % nl;
-     for (m=0; m < nm; m++) {
-       POLYBENCH_3MM_BODY4;              
-     }
+   Index_type j = blockIdx.x;
+   Index_type l = threadIdx.y;
+
+   POLYBENCH_3MM_BODY3;
+
+   for (Index_type m=0; m < nm; ++m) {
+     POLYBENCH_3MM_BODY4;
    }
 }
 
-
-__global__ void polybench_3mm_cuda_3(Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_ptr E, Real_ptr F, Real_ptr G,
-                       Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl, Index_type nm)
+__global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
+                           Index_type nl, Index_type nj)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,l,j;
-   if (ii < ni * nl) {
-     *(G + ii) = 0.0;
-     i = ii/nl; l = ii % nl;
-     for (j=0; j < nj; j++) {
-       POLYBENCH_3MM_BODY6;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type l = threadIdx.y;
+
+   POLYBENCH_3MM_BODY5;
+
+   for (Index_type j=0; j < nj; ++j) {
+     POLYBENCH_3MM_BODY6;
    }
 }
+
 
 void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 {
@@ -131,20 +114,23 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
-      polybench_3mm_cuda_1<<<grid_size,block_size>>>(A,B,C,D,E,F,G,
-                                                     m_ni,m_nj,m_nk,m_nl,m_nm);
+      dim3 nblocks1(ni, 1, 1);
+      dim3 nthreads_per_block1(1, nj, 1);
+      poly_3mm_1<<<nblocks1, nthreads_per_block1>>>(E, A, B,
+                                                    nj, nk);
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_nj * m_nl, block_size);
-      polybench_3mm_cuda_2<<<grid_size,block_size>>>(A,B,C,D,E,F,G,
-                                                     m_ni,m_nj,m_nk,m_nl,m_nm);
+      dim3 nblocks2(nj, 1, 1);
+      dim3 nthreads_per_block2(1, nl, 1);
+      poly_3mm_2<<<nblocks2, nthreads_per_block2>>>(F, C, D,
+                                                    nl, nm);
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
-      polybench_3mm_cuda_3<<<grid_size,block_size>>>(A,B,C,D,E,F,G,
-                                                     m_ni,m_nj,m_nk,m_nl,m_nm);
+      dim3 nblocks3(ni, 1, 1);
+      dim3 nthreads_per_block3(1, nl, 1);
+      poly_3mm_3<<<nblocks3, nthreads_per_block3>>>(G, E, F,
+                                                    nl, nj);
+
     }
     stopTimer();
-
     
     POLYBENCH_3MM_TEARDOWN_CUDA;
 
