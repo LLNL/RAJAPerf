@@ -355,7 +355,7 @@ void Executor::runSuite()
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
     if ( run_params.showProgress() ) {
-      std::cout << "\nPass throught suite # " << ip << "\n";
+      std::cout << "\nPass through suite # " << ip << "\n";
     }
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
