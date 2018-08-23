@@ -71,62 +71,51 @@ const size_t block_size = 256;
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(z); 
 
-__global__ void polybench_gemmver_cuda_1(Real_ptr A,
-                       Real_ptr u1, Real_ptr v1, Real_ptr u2,
-                       Real_ptr v2, Index_type n)
+__global__ void poly_gemmver_1(Real_ptr A, 
+                               Real_ptr u1, Real_ptr v1, 
+                               Real_ptr u2, Real_ptr v2,
+                               Index_type n)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j;
-   if (ii < n * n) {
-     i = ii/n; j = ii % n;
-     POLYBENCH_GEMMVER_BODY1;
-   }
+  Index_type i = blockIdx.x;
+  Index_type j = threadIdx.y; 
+
+  POLYBENCH_GEMMVER_BODY1;
 }
 
-__global__ void polybench_gemmver_cuda_2(Real_type beta,
-                       Real_ptr A, Real_ptr x, Real_ptr y,
-                       Index_type n)
+__global__ void poly_gemmver_2(Real_ptr A, 
+                               Real_ptr x, Real_ptr y,
+                               Real_type beta, 
+                               Index_type n)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,jj;
-   if (ii < n * n) {
-     i = ii/n; jj = ii % n;
-     if (jj == 0) {
-       for(Index_type j=0; j < n; ++j) { 
-         POLYBENCH_GEMMVER_BODY2;
-       } 
-     }   
-          
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) { 
+    for (Index_type j = 0; j < n; ++j) {
+      POLYBENCH_GEMMVER_BODY2;
+    }
+  }
 }
 
-
-__global__ void polybench_gemmver_cuda_3(Real_ptr x,
-                       Real_ptr z, Real_ptr v1, Real_ptr u2,
-                       Real_ptr v2, Index_type n)
+__global__ void poly_gemmver_3(Real_ptr x, Real_ptr z,
+                               Index_type n)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < n) {
-     POLYBENCH_GEMMVER_BODY3;              
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) {
+    POLYBENCH_GEMMVER_BODY3;
+  }
 }
 
-__global__ void polybench_gemmver_cuda_4(Real_type alpha,
-                       Real_ptr A, Real_ptr x, Real_ptr w,
-                       Index_type n)
+__global__ void poly_gemmver_4(Real_ptr A,
+                               Real_ptr x, Real_ptr w,
+                               Real_type alpha,
+                               Index_type n)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,jj;
-   if (ii < n * n) {
-     i = ii/n; jj = ii % n;
-     if (jj == 0) {
-       for(Index_type j=0; j < n; ++j) { 
-         POLYBENCH_GEMMVER_BODY4;
-       } 
-     }   
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) { 
+    for (Index_type j = 0; j < n; ++j) {
+      POLYBENCH_GEMMVER_BODY4;
+    }
+  }
 }
-
 
 
 void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
@@ -140,18 +129,23 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-      polybench_gemmver_cuda_1<<<grid_size,block_size>>>(A,u1,v1,u2,v2,n);
+      dim3 nblocks(n, 1, 1);
+      dim3 nthreads_per_block(1, n, 1);
+      poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2, 
+                                                      n);
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-      polybench_gemmver_cuda_2<<<grid_size,block_size>>>(beta,A,x,y,n);
+      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size); 
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_n , block_size);
-      polybench_gemmver_cuda_3<<<grid_size,block_size>>>(x,z,v1,u2,v2,n);
+      poly_gemmver_2<<<grid_size, block_size>>>(A, x, y,
+                                                beta,
+                                                n);
 
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-      polybench_gemmver_cuda_4<<<grid_size,block_size>>>(alpha,A,x,w,n);
+      poly_gemmver_3<<<grid_size, block_size>>>(x, z,
+                                                n); 
 
+      poly_gemmver_4<<<grid_size, block_size>>>(A, x, w,
+                                                alpha,
+                                                n);
     }
     stopTimer();
 
@@ -161,44 +155,58 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
 
     POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
 
-    const bool async = true;
+    using EXEC_POL1 =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<0, RAJA::cuda_block_exec,
+            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+              RAJA::statement::Lambda<0>,
+            >
+          >
+        >
+      >;
+
+    using EXEC_POL24 = 
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<0, RAJA::cuda_block_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<0>,
+            >
+          >
+        >
+      >;
+ 
+    using EXEC_POL3 = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
-      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-        RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
-        Index_type i,j;
-        i = ii/n; j = ii % n;
-        POLYBENCH_GEMMVER_BODY1; 
-      });
 
-      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-        RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
-          Index_type i,jj;
-          i = ii/n; jj = ii % n;
-          if (jj == 0) {
-            for(Index_type j=0; j < n; ++j) { 
-              POLYBENCH_GEMMVER_BODY2;
-            } 
-          }
-      });
+      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                               RAJA::RangeSegment{0, n}),
+        [=] __device__ (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY1;
+        }
+      );
 
-      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-        RAJA::RangeSegment{0, n}, [=] __device__ (int i) {
+      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
+        [=] __device__ (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY2;
+        }
+      );
+
+      RAJA::forall<EXEC_POL3> (
+        RAJA::RangeSegment{0, n}, [=] __device__ (Index_type i) {
         POLYBENCH_GEMMVER_BODY3;
       });
 
-      RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-        RAJA::RangeSegment{0, n * n}, [=] __device__ (int ii) {
-          Index_type i,jj;
-          i = ii/n; jj = ii % n;
-          if (jj == 0) {
-            for(Index_type j=0; j < n; ++j) { 
-              POLYBENCH_GEMMVER_BODY4;
-            } 
-          }   
-      });
+      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
+        [=] __device__ (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY4;
+        }
+      );
       
     }
     stopTimer();

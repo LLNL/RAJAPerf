@@ -32,7 +32,7 @@ namespace polybench
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -87,42 +87,33 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(A,u1,v1,u2,v2,w,x,y,z) device( did )
+      #pragma omp target is_device_ptr(A,u1,v1,u2,v2) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
-      
-      for (Index_type i = 0; i < n; i++ ) {
+      for (Index_type i = 0; i < n; i++) {
         for(Index_type j = 0; j < n; j++) {
           POLYBENCH_GEMMVER_BODY1;
         }
       }
 
-      #pragma omp target is_device_ptr(A,u1,v1,u2,v2,w,x,y,z) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
-      for (Index_type i = 0; i < n; i++ ) { 
-        for(Index_type jj = 0; jj < n; jj++) {
-           if(jj == 0) {
-            for(Index_type j=0; j < n; ++j) { 
-              POLYBENCH_GEMMVER_BODY2;
-            } 
-          }
+      #pragma omp target is_device_ptr(A,x,y) device( did )
+      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      for (Index_type i = 0; i < n; i++) { 
+        for (Index_type j = 0; j < n; j++) { 
+          POLYBENCH_GEMMVER_BODY2;
         }
       }
 
-      #pragma omp target is_device_ptr(A,u1,v1,u2,v2,w,x,y,z) device( did )
+      #pragma omp target is_device_ptr(x,z) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
-      for (Index_type i = 0; i < n; i++ ) {
+      for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMMVER_BODY3;
       }
 
-      #pragma omp target is_device_ptr(A,u1,v1,u2,v2,w,x,y,z) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
-      for (Index_type i = 0; i < n; i++ ) {
-        for(Index_type jj = 0; jj < n; jj++) {
-           if(jj == 0) {
-            for(Index_type j=0; j < n; ++j) { 
-              POLYBENCH_GEMMVER_BODY4;
-            } 
-          }   
+      #pragma omp target is_device_ptr(A,w,x) device( did )
+      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      for (Index_type i = 0; i < n; i++) {
+        for (Index_type j = 0; j < n; ++j) { 
+          POLYBENCH_GEMMVER_BODY4;
         }
       }
 
@@ -134,46 +125,57 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
 
     POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET;
 
-    startTimer();
+    using EXEC_POL1 =
+      RAJA::KernelPolicy<
+        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
+                                  RAJA::ArgList<0, 1>,
+          RAJA::statement::Lambda<0>
+        >
+      >;
 
+    using EXEC_POL24 =
+      RAJA::KernelPolicy<
+        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
+          RAJA::statement::For<1, RAJA::seq_exec,
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >;
+  
+    using EXEC_POL3 = RAJA::omp_target_parallel_for_exec<NUMTEAMS>;
+
+    startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-        Index_type i,j;
-        i = ii/n; j = ii % n;
-        POLYBENCH_GEMMVER_BODY1; 
-      });
+      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                RAJA::RangeSegment{0, n}),
+        [=] (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY1;
+        }
+      );
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,jj;
-          i = ii/n; jj = ii % n;
-          if(jj == 0) {
-            for(Index_type j=0; j < n; j++) {
-              POLYBENCH_GEMMVER_BODY2;
-            } 
-          }
-      });
+      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
+        [=] (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY2;
+        }
+      );
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,n), [=](Index_type i) {
-        POLYBENCH_GEMMVER_BODY3; 
-      });
+      RAJA::forall<EXEC_POL3> (
+        RAJA::RangeSegment{0, n}, [=] (Index_type i) {
+        POLYBENCH_GEMMVER_BODY3;
+      }); 
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,n * n), [=](Index_type ii) {
-          Index_type i,jj;
-          i = ii/n; jj = ii % n;
-          if(jj == 0) {
-            for(Index_type j=0; j < n; j++) { 
-              POLYBENCH_GEMMVER_BODY4;
-            } 
-          }   
-      });
+      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                 RAJA::RangeSegment{0, n}),
+        [=] (Index_type i, Index_type j) {
+          POLYBENCH_GEMMVER_BODY4;
+        }
+      ); 
 
-    } // for run_reps
+    }
     stopTimer();
+
     POLYBENCH_GEMMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else {

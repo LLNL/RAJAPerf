@@ -21,6 +21,7 @@
 #include <iostream>
 #include <cstring>
 
+
 namespace rajaperf 
 {
 namespace polybench
@@ -96,7 +97,6 @@ void POLYBENCH_GEMMVER::setUp(VariantID vid)
   allocAndInitData(m_x, m_n, vid);
   allocAndInitData(m_y, m_n, vid);
   allocAndInitData(m_z, m_n, vid);
-
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
@@ -196,15 +196,14 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY1;
           }
         }
 
-
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY2;
