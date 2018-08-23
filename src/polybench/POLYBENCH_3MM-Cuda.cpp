@@ -140,7 +140,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernel<
+        RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<0, RAJA::cuda_block_exec,
             RAJA::statement::For<1, RAJA::cuda_thread_exec,
               RAJA::statement::Lambda<0>,
