@@ -88,8 +88,6 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
     LTIMES_NOVIEW_DATA_SETUP_CUDA;
 
-    LTIMES_NOVIEW_RANGES_RAJA;
-
     using EXEC_POL = 
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
@@ -108,10 +106,10 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                               IZRange(0, num_z),
-                                               IGRange(0, num_g),
-                                               IMRange(0, num_m)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                                               RAJA::RangeSegment(0, num_z),
+                                               RAJA::RangeSegment(0, num_g),
+                                               RAJA::RangeSegment(0, num_m)),
         [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });

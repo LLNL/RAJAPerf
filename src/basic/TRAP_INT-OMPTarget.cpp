@@ -45,7 +45,7 @@ Real_type trap_int_func(Real_type x,
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define TRAP_INT_DATA_SETUP_OMP_TARGET \
   Real_type x0 = m_x0; \

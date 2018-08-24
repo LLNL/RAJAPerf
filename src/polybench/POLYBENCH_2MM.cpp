@@ -47,7 +47,7 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0; 
   switch(lsizespec) {
     case Mini:

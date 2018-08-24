@@ -38,13 +38,6 @@
   phidat[m+ (g * num_m) + (z * num_m * num_g)] += \
     elldat[d+ (m * num_d)] * psidat[d+ (g * num_d) + (z * num_d * num_g)];
 
-#define LTIMES_NOVIEW_RANGES_RAJA \
-      using IDRange = RAJA::RangeSegment; \
-      using IZRange = RAJA::RangeSegment; \
-      using IGRange = RAJA::RangeSegment; \
-      using IMRange = RAJA::RangeSegment;
-
-
 #include "common/KernelBase.hpp"
 
 namespace rajaperf 

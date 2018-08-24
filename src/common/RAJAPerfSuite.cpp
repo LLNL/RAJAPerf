@@ -21,10 +21,10 @@
 //
 // Basic kernels...
 //
+#include "basic/INIT3.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/TRAP_INT.hpp"
-#include "basic/INIT3.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/INIT_VIEW1D.hpp"
@@ -118,10 +118,10 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_INIT3"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_TRAP_INT"),
-  std::string("Basic_INIT3"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_INIT_VIEW1D"),
@@ -279,6 +279,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_INIT3 : {
+       kernel = new basic::INIT3(run_params);
+       break;
+    }
     case Basic_MULADDSUB : {
        kernel = new basic::MULADDSUB(run_params);
        break;
@@ -289,10 +293,6 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
-       break;
-    }
-    case Basic_INIT3 : {
-       kernel = new basic::INIT3(run_params);
        break;
     }
     case Basic_REDUCE3_INT : {

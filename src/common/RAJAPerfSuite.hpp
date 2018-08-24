@@ -35,22 +35,31 @@ class RunParams;
  *
  * \brief Enumeration defining size specification for the polybench kernels
  *
- * Polybench comes with a spec file to setup the iteration space for the various sizes:
- * Mini,Small,Medium,Large,Extralarge
+ * Polybench comes with a spec file to setup the iteration space for 
+ * various sizes: Mini, Small, Medium, Large, Extralarge
  *
- * and we adapt those entries within this perfsuite.
+ * We adapt those entries within this perfsuite.
  *
- * The default size is Medium, but can be overriding as a parameter at run-time
+ * The default size is Medium, which can be overridden at run-time.
  *
- * An example partial entry from that file showing the MINI and SMALL spec for the
- * kernel 3mm
+ * An example partial entry from that file showing the MINI and SMALL spec 
+ * for the kernel 3mm is:
  *
  * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
  * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
  * *
  *******************************************************************************
  */
-typedef enum SizeSpec {Mini,Small,Medium,Large,Extralarge,Specundefined} SizeSpec_T;
+enum SizeSpec {
+  
+  Mini = 0,
+  Small,
+  Medium,
+  Large,
+  Extralarge,
+  Specundefined
+
+};
 
 
 /*!
@@ -96,10 +105,10 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_MULADDSUB = 0,
+  Basic_INIT3 = 0,
+  Basic_MULADDSUB,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
-  Basic_INIT3,
   Basic_REDUCE3_INT,
   Basic_NESTED_INIT,
   Basic_INIT_VIEW1D,

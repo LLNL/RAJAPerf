@@ -50,7 +50,7 @@ public:
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }
 
-  SizeSpec_T getSizeSpec() {return run_params.getSizeSpec();}
+  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
 
   void setDefaultSize(Index_type size) { default_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
