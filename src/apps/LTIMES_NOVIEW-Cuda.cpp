@@ -92,7 +92,7 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
     using EXEC_POL = 
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernel<
+        RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<1, RAJA::cuda_block_exec,      //z
             RAJA::statement::For<2, RAJA::cuda_block_exec,    //g
               RAJA::statement::For<3, RAJA::cuda_thread_exec, //m
@@ -109,9 +109,9 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),
+                                               IZRange(0, num_z),
+                                               IGRange(0, num_g),
+                                               IMRange(0, num_m)),
         [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });

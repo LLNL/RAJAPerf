@@ -92,7 +92,7 @@ void LTIMES::runCudaVariant(VariantID vid)
 
     using EXEC_POL = 
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernel<
+        RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<1, RAJA::cuda_block_exec,      //z 
             RAJA::statement::For<2, RAJA::cuda_block_exec,    //g
               RAJA::statement::For<3, RAJA::cuda_thread_exec, //m
