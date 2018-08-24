@@ -40,8 +40,8 @@
 
 
 
-#ifndef RAJAPerf_POLYBENCH_GEMMVER_HXX
-#define RAJAPerf_POLYBENCH_GEMMVER_HXX
+#ifndef RAJAPerf_POLYBENCH_GEMMVER_HPP
+#define RAJAPerf_POLYBENCH_GEMMVER_HPP
 
 #define POLYBENCH_GEMMVER_BODY1 \
   A[j + i*n] = A[j + i*n] + u1[i] * v1[j] + u2[i] * v2[j];

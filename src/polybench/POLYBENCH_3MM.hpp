@@ -45,8 +45,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_POLYBENCH_3MM_HXX
-#define RAJAPerf_POLYBENCH_3MM_HXX
+#ifndef RAJAPerf_POLYBENCH_3MM_HPP
+#define RAJAPerf_POLYBENCH_3MM_HPP
 
 #define POLYBENCH_3MM_BODY1 \
   E[j + i*nj] = 0.0;
