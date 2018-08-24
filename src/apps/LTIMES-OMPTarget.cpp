@@ -31,7 +31,7 @@ namespace apps
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define LTIMES_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -87,57 +87,35 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-#if 1 // temporary implementation until RAJA::kernel works with OpenMP target
-
-    LTIMES_DATA_SETUP_OMP_TARGET;
-
-//  LTIMES_VIEWS_RANGES_RAJA;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
-        RAJA::RangeSegment(0, num_z), [=](Index_type z) {
-        for (Index_type g = 0; g < num_g; ++g ) {
-          for (Index_type m = 0; m < num_m; ++m ) {
-            for (Index_type d = 0; d < num_d; ++d ) {
-              LTIMES_BODY;
-            }
-          }
-        }
-      });
-
-    }
-    stopTimer();
-
-    LTIMES_DATA_TEARDOWN_OMP_TARGET;
-
-#else
-
     LTIMES_DATA_SETUP_OMP_TARGET;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
     using EXEC_POL = 
+      RAJA::KernelPolicy<
+        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
+                                  RAJA::ArgList<1, 2, 3>, // z, g, m
+          RAJA::statement::For<0, RAJA::seq_exec,         // d
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel....
-                           RAJA::make_tuple(IDRange(0, num_d),
-                                            IZRange(0, num_z),
-                                            IGRange(0, num_g),
-                                            IMRange(0, num_m)),
-        [=] (Index_type d, Index_type z, Index_type g, Index_type m) {
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+                                               IZRange(0, num_z),
+                                               IGRange(0, num_g),
+                                               IMRange(0, num_m)),
+        [=] (ID d, IZ z, IG g, IM m) {
         LTIMES_BODY_RAJA;
-      });
+      }); 
 
     }
     stopTimer();
 
     LTIMES_DATA_TEARDOWN_OMP_TARGET;
-
-#endif
 
   } else {
      std::cout << "\n LTIMES : Unknown OMP Target variant id = " << vid << std::endl;
