@@ -87,7 +87,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( sumx, psumx[ 0 ] );
+    atomicAdd( sumx, psumx[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {
