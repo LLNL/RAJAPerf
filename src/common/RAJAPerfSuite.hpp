@@ -105,10 +105,11 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_INIT3 = 0,
+  Basic_DAXPY = 0,
   Basic_MULADDSUB,
   Basic_IF_QUAD,
   Basic_TRAP_INT,
+  Basic_INIT3,
   Basic_REDUCE3_INT,
   Basic_NESTED_INIT,
   Basic_INIT_VIEW1D,

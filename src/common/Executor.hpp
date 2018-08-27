@@ -27,6 +27,7 @@
 namespace rajaperf {
 
 class KernelBase;
+class WarmupKernel;
 
 /*!
  *******************************************************************************
@@ -83,7 +84,6 @@ private:
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;
-
 };
 
 }  // closing brace for rajaperf namespace

@@ -19,6 +19,9 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
+// Warmup kernel to run first to remove startup overheads in timings
+#include "basic/DAXPY.hpp"
+
 #include <list>
 #include <vector>
 #include <string>
@@ -236,7 +239,8 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin(); 
          kid != run_kern.end(); ++kid) {
-/// RDH DISABLE COUPLE KERNEL
+/// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do 
+/// complex numbers in GPU code
       if ( *kid != Apps_COUPLE ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
@@ -349,6 +353,20 @@ void Executor::runSuite()
        in_state != RunParams::CheckRun ) {
     return;
   }
+
+  cout << "\n\nRunning warmup kernel variants...\n";
+
+  KernelBase* warmup_kernel = new basic::DAXPY(run_params);
+
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    if ( run_params.showProgress() ) {
+      cout << "Warmup Kernel " <<  getVariantName(variant_ids[iv]) << endl;
+    }
+    warmup_kernel->execute( variant_ids[iv] );
+  }
+
+  delete warmup_kernel;
+
 
   cout << "\n\nRunning specified kernels and variants...\n";
 

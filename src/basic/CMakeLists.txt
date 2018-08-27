@@ -15,7 +15,10 @@
 
 blt_add_library(
   NAME basic
-  SOURCES MULADDSUB.cpp
+  SOURCES DAXPY.cpp
+          DAXPY-Cuda.cpp 
+          DAXPY-OMPTarget.cpp 
+          MULADDSUB.cpp
           MULADDSUB-Cuda.cpp 
           MULADDSUB-OMPTarget.cpp 
           IF_QUAD.cpp 
