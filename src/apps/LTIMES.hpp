@@ -49,9 +49,15 @@
 #define LTIMES_VIEWS_RANGES_RAJA \
   using namespace ltimes_idx; \
 \
-  using PSI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, ID>; \
-  using ELL_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<2>, IM, ID>; \
-  using PHI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, IM>; \
+  using PSI_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<3, Index_type, 2>, \
+                                   IZ, IG, ID>; \
+  using ELL_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<2, Index_type, 1>, \
+                                   IM, ID>; \
+  using PHI_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<3, Index_type, 2>, \
+                                   IZ, IG, IM>; \
 \
   PSI_VIEW psi(psidat, \
                RAJA::make_permuted_layout( {{num_z, num_g, num_d}}, \
