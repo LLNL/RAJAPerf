@@ -21,8 +21,8 @@
 ///     for (Index_type m = 0; z < num_m; ++m ) {
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
-///         phi[m+ (g * num_g) + (z * num_z * num_g)] +=
-///           ell[d+ (m * num_m)] * psi[d+ (g * num_g) + (z * num_z * num_g];
+///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=
+///           ell[d+ (m * num_d)] * psi[d+ (g * num_d) + (z * num_d * num_g];
 ///
 ///       }
 ///     }
