@@ -31,15 +31,11 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     stream)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
-blt_add_executable(
-  NAME raja-perf.exe
-  SOURCES RAJAPerfSuiteDriver.cpp
-  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
-  )
-
+if(ENABLE_TARGET_OPENMP)
+  remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 
 blt_add_executable(
-  NAME raja-perf-nolibs.exe
+  NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
   apps/DEL_DOT_VEC_2D.cpp
@@ -118,6 +114,9 @@ blt_add_executable(
   polybench/POLYBENCH_GEMMVER.cpp
   polybench/POLYBENCH_GEMMVER-Cuda.cpp
   polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
+  polybench/POLYBENCH_ADI.cpp
+  polybench/POLYBENCH_ADI-Cuda.cpp
+  polybench/POLYBENCH_ADI-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp
@@ -142,3 +141,11 @@ blt_add_executable(
   common/RunParams.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
+
+else()
+blt_add_executable(
+  NAME raja-perf.exe
+  SOURCES RAJAPerfSuiteDriver.cpp
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
+  )
+endif()

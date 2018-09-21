@@ -24,5 +24,8 @@ blt_add_library(
           POLYBENCH_GEMMVER.cpp
           POLYBENCH_GEMMVER-Cuda.cpp
           POLYBENCH_GEMMVER-OMPTarget.cpp
+          POLYBENCH_ADI.cpp
+          POLYBENCH_ADI-Cuda.cpp
+          POLYBENCH_ADI-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
