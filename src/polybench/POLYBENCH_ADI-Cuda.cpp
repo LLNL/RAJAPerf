@@ -35,6 +35,14 @@ namespace polybench
 const size_t block_size = 256;
 
 #define POLYBENCH_ADI_DATA_SETUP_CUDA \
+  const Index_type n = m_n; \
+  const Index_type tsteps = m_tsteps; \
+\
+  Real_type DX,DY,DT; \
+  Real_type B1,B2; \
+  Real_type mul1,mul2; \
+  Real_type a,b,c,d,e,f; \
+\
   Real_ptr U = m_U; \
   Real_ptr V = m_V; \
   Real_ptr P = m_P; \
@@ -54,43 +62,46 @@ const size_t block_size = 256;
   deallocCudaDeviceData(Q); 
 
 
-__global__ void polybench_adi_cuda(Real_ptr U,
-                       Real_ptr V, Real_ptr P, Real_ptr Q,
-                       Real_type a, Real_type b, Real_type c,
-                       Real_type d, Real_type e, Real_type f,
-                       Index_type n)
+__global__ void adi1(const Index_type n,
+                     const Real_type a, const Real_type b, const Real_type c, 
+                     const Real_type d, const Real_type f,
+                     Real_ptr P, Real_ptr Q, Real_ptr U, Real_ptr V)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type j;
-   if (i < n - 1 && i > 0) {
-     POLYBENCH_ADI_BODY2;
-     for(j = 1; j < n-1; j++) {
-       POLYBENCH_ADI_BODY3;
-     }  
-     POLYBENCH_ADI_BODY4;
-     for(j = 1; j < n-1; j++) {
-       POLYBENCH_ADI_BODY5;
-     }  
-   }
-   __syncthreads();
-   if (i < n - 1 && i > 0) {
-     POLYBENCH_ADI_BODY6;
-     for(j = 1; j < n-1; j++) {
-       POLYBENCH_ADI_BODY7;
-     }  
-     POLYBENCH_ADI_BODY8;
-     for(j = 1; j < n-1; j++) {
-       POLYBENCH_ADI_BODY9;
-     }  
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i > 0 && i < n-1) {
+    NEW_POLYBENCH_ADI_BODY2;
+    for (Index_type j = 1; j < n-1; ++j) {
+       NEW_POLYBENCH_ADI_BODY3;
+    }
+    NEW_POLYBENCH_ADI_BODY4;
+    for (Index_type k = n-2; k >= 1; --k) {
+       NEW_POLYBENCH_ADI_BODY5;
+    }
+  }
+}
+
+__global__ void adi2(const Index_type n,
+                     const Real_type a, const Real_type c, const Real_type d, 
+                     const Real_type e, const Real_type f,
+                     Real_ptr P, Real_ptr Q, Real_ptr U, Real_ptr V)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i > 0 && i < n-1) {
+    NEW_POLYBENCH_ADI_BODY6;
+    for (Index_type j = 1; j < n-1; ++j) {
+      NEW_POLYBENCH_ADI_BODY7;
+    }
+    NEW_POLYBENCH_ADI_BODY8;
+    for (Index_type k = n-2; k >= 1; --k) {
+      NEW_POLYBENCH_ADI_BODY9;
+    }
+  }
 }
 
 
 void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type n = m_n;
-  const Index_type tsteps = m_tsteps;
   
   if ( vid == Base_CUDA ) {
 
@@ -98,117 +109,99 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      POLYBENCH_ADI_BODY1;
-      for (Index_type t = 1; t <= tsteps; t++ ) { 
-        size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n * m_n, block_size);
-        polybench_adi_cuda<<<grid_size,block_size>>>(U,V,P,Q,a,b,c,d,e,f,n);
-      }  
+
+      for (Index_type t = 1; t <= tsteps; ++t) {
+
+        POLYBENCH_ADI_BODY1;
+
+        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-1, block_size);
+
+        adi1<<<grid_size, block_size>>>(n,
+                                        a, b, c, d, f,
+                                        P, Q, U, V);
+
+        adi2<<<grid_size, block_size>>>(n,
+                                        a, c, d, e, f,
+                                        P, Q, U, V);
+
+      }  // tstep loop
+
     }
     stopTimer();
 
     POLYBENCH_ADI_TEARDOWN_CUDA;
 
   } else if (vid == RAJA_CUDA) {   
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
-#if 1 // older technique
-    const bool async = false;
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      POLYBENCH_ADI_BODY1;
-//     RAJA::forall<RAJA::seq_exec> (
-//        RAJA::RangeSegment(1, tsteps+1), [=](Index_type t) { 
-        for (Index_type t = 1; t <= tsteps; t++ ) { 
 
-          RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-            RAJA::RangeSegment{1, n - 1}, [=] __device__ (int i) {
-              Index_type j;
-              POLYBENCH_ADI_BODY2;
-              for(j = 1; j < n-1; j++) {
-                POLYBENCH_ADI_BODY3;
-              }  
-              POLYBENCH_ADI_BODY4;
-              for(j = 1; j < n-1; j++) {
-                POLYBENCH_ADI_BODY5;
-              }  
-            });
-          RAJA::forall<RAJA::cuda_exec<block_size, async>> (
-            RAJA::RangeSegment{1, n - 1}, [=] __device__ (int i) {
-              Index_type j;
-              POLYBENCH_ADI_BODY6;
-              for(j = 1; j < n-1; j++) {
-                POLYBENCH_ADI_BODY7;
-              }  
-              POLYBENCH_ADI_BODY8;
-              for(j = 1; j < n-1; j++) {
-                POLYBENCH_ADI_BODY9;
-              }  
-            });
-        } //Tsteps  
-//        }); // tsteps
-    }
-#else  // WIP 
-   #define CUDA_BLOCK_SIZE 256        
-   using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::CudaKernel<
-            RAJA::statement::For<0, RAJA::cuda_threadblock_exec<CUDA_BLOCK_SIZE>,
-              RAJA::statement::Lambda<0>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1>
-              >,
-              RAJA::statement::Lambda<2>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<3>
-              >
+    POLYBENCH_ADI_DATA_SETUP_CUDA
+
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1>
+            >,
+            RAJA::statement::Lambda<2>,
+            RAJA::statement::For<2, RAJA::seq_exec,
+              RAJA::statement::Lambda<3>
             >
-          >  
-        >;
-
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      POLYBENCH_ADI_BODY1;
-      for (Index_type t = 1; t <= tsteps; t++ ) { 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
-                                                 RAJA::RangeSegment{1, n-1}),
 
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY2;
+      POLYBENCH_ADI_BODY1;
+
+      for (Index_type t = 1; t <= tsteps; ++t) {
+
+        RAJA::kernel<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                           RAJA::RangeSegment{1, n-1},
+                           RAJA::RangeStrideSegment{n-2, 0, -1}),
+
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY2;
           },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY3;
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY3;
           },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY4;
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY4;
           },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY5;
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
+            NEW_POLYBENCH_ADI_BODY5;
           }
         );
 
-         
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
-                                                 RAJA::RangeSegment{1, n-1}),
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY6;
-          },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY7;
-          },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY8;
-          },
-          [=]__device__(Index_type i, Index_type j) {
-            POLYBENCH_ADI_BODY9;
-          }
-        ); 
-      } // for tsteps
-    } // for run_reps
+        RAJA::kernel<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                           RAJA::RangeSegment{1, n-1},
+                           RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-#endif
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY6;
+          },
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY7;
+          },
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+            NEW_POLYBENCH_ADI_BODY8;
+          },
+          [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
+            NEW_POLYBENCH_ADI_BODY9;
+          }
+        );
+
+      }  // tstep loop
+
+    } // run_reps
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
+    POLYBENCH_ADI_TEARDOWN_CUDA
 
   } else {
       std::cout << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
