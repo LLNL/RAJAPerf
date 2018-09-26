@@ -119,6 +119,7 @@ void COUPLE::runKernel(VariantID vid)
       break;
     } 
 
+#if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 
       COUPLE_DATA_SETUP_CPU;
@@ -136,8 +137,9 @@ void COUPLE::runKernel(VariantID vid)
 
       break;
     }
+#endif
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
       COUPLE_DATA_SETUP_CPU;
 

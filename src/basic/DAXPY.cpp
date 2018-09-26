@@ -76,6 +76,7 @@ void DAXPY::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 
       DAXPY_DATA_SETUP_CPU;
@@ -93,8 +94,9 @@ void DAXPY::runKernel(VariantID vid)
 
       break;
     }
+#endif
 
-#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
 
       DAXPY_DATA_SETUP_CPU;
