@@ -102,8 +102,7 @@ void INIT_VIEW1D::runKernel(VariantID vid)
     }
 #endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)
-#if defined(RUN_OPENMP)                        
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       INIT_VIEW1D_DATA_SETUP_CPU;
@@ -139,8 +138,7 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
       break;
     }
-#endif // RUN_OPENMP                       
-#endif // RAJA_ENABLE_OPENMP
+#endif
                        
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :

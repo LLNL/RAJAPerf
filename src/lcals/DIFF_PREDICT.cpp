@@ -98,8 +98,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
     }
 #endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)
-#if defined(RUN_OPENMP)                        
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       DIFF_PREDICT_DATA_SETUP_CPU;
@@ -135,8 +134,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
 
       break;
     }
-#endif // RUN_OPENMP                       
-#endif // RAJA_ENABLE_OPENMP
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :

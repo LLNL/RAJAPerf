@@ -194,8 +194,7 @@ static const std::string VariantNames [] =
   std::string("RAJA_Seq"),
 #endif
 
-#if defined(RAJA_ENABLE_OPENMP)
-#if defined(RUN_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Base_OpenMP"),
   std::string("RAJA_OpenMP"),
 #endif
@@ -203,8 +202,6 @@ static const std::string VariantNames [] =
 #if defined(RAJA_ENABLE_TARGET_OPENMP)  
   std::string("Base_OMPTarget"),
   std::string("RAJA_OMPTarget"),
-#endif
-
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
