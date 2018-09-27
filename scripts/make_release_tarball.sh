@@ -15,7 +15,7 @@
 ##
 
 TAR_CMD=gtar
-VERSION=0.3.0
+VERSION=0.4.0
 
 git archive --prefix=RAJAPerf-${VERSION}/ -o RAJAPerf-${VERSION}.tar HEAD 2> /dev/null
 
