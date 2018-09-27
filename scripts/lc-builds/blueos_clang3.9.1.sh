@@ -11,7 +11,7 @@
 ##
 ## This file is part of the RAJA Performance Suite.
 ##
-## For details about use and distribution, please read raja-perfsuite/LICENSE.
+## For details about use and distribution, please read RAJAPerf/LICENSE.
 ##
 
 BUILD_SUFFIX=lc_blueos-clang-3.9.1

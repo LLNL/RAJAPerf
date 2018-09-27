@@ -11,7 +11,7 @@
 ##
 ## This file is part of the RAJA Performance Suite.
 ##
-## For details about use and distribution, please read raja-perfsuite/LICENSE.
+## For details about use and distribution, please read RAJAPerf/LICENSE.
 ##
 
 BUILD_SUFFIX=lc_blueos_nvcc9.0_clang-coral-2018.04.17
