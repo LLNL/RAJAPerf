@@ -45,13 +45,13 @@ matrix:
     env:
     - COMPILER=icpc
     - TRAVIS_INSTALL_COMPILER="intel"
-  - compiler: nvcc
-    addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
-    env:
-    - COMPILER=g++-4.9
-    - CMAKE_EXTRA_FLAGS="-DENABLE_CUDA=On -DENABLE_EXAMPLES=Off -DENABLE_TESTS=Off"
-    - TRAVIS_INSTALL_COMPILER="nvcc"
-    - DO_TEST=no
+##  - compiler: nvcc
+##    addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
+##    env:
+##    - COMPILER=g++-4.9
+##    - CMAKE_EXTRA_FLAGS="-DENABLE_CUDA=On -DENABLE_EXAMPLES=Off -DENABLE_TESTS=Off"
+##    - TRAVIS_INSTALL_COMPILER="nvcc"
+##    - DO_TEST=no
   - compiler: gcc-4.9-debug
     addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
     env:
@@ -63,13 +63,13 @@ matrix:
     - COMPILER=clang++
     - LLVM_VERSION=3.9.1
     - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Debug"
-  - compiler: nvcc-debug
-    addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
-    env:
-    - COMPILER=g++-4.9
-    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Debug -DENABLE_CUDA=On -DENABLE_EXAMPLES=Off -DENABLE_TESTS=Off"
-    - TRAVIS_INSTALL_COMPILER="nvcc"
-    - DO_TEST=no
+##  - compiler: nvcc-debug
+##    addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
+##    env:
+##    - COMPILER=g++-4.9
+##    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Debug -DENABLE_CUDA=On -DENABLE_EXAMPLES=Off -DENABLE_TESTS=Off"
+##    - TRAVIS_INSTALL_COMPILER="nvcc"
+##    - DO_TEST=no
 cache:
   directories:
   - $HOME/llvm
