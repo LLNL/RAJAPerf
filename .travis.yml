@@ -67,7 +67,7 @@ matrix:
     addons: { apt: { sources: [ ubuntu-toolchain-r-test ] , packages: [ g++-4.9, libtbb-dev ] } }
     env:
     - COMPILER=g++-4.9
-    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Debug -DENABLE_CUDA=On -DENABLE_EXAMPLES=Off"
+    - CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Debug -DENABLE_CUDA=On -DENABLE_EXAMPLES=Off -DENABLE_TESTS=Off"
     - TRAVIS_INSTALL_COMPILER="nvcc"
     - DO_TEST=no
 cache:
