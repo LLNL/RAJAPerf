@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -77,19 +77,25 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
 
     NESTED_INIT_DATA_SETUP_CUDA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::CudaCollapse<
-                         RAJA::nested::For<2, RAJA::cuda_block_z_exec>,   //k
-                         RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   //j
-                         RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;//i
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<2, RAJA::cuda_block_exec,      // k
+            RAJA::statement::For<1, RAJA::cuda_block_exec,    // j
+              RAJA::statement::For<0, RAJA::cuda_thread_exec, // i
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nj),
-                                            RAJA::RangeSegment(0, nk)),
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                               RAJA::RangeSegment(0, nj),
+                                               RAJA::RangeSegment(0, nk)),
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });

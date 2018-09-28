@@ -9,30 +9,30 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 ///
 /// POLYBENCH_GEMMVER kernel reference implementation:
 ///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
+/// for (Index_type i = 0; i < N; i++) {
+///   for (Index_type j = 0; j < N; j++) {
 ///     A[i][j] = A[i][j] + u1[i] * v1[j] + u2[i] * v2[j];
 ///   }
 /// }
 ///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
+/// for (Index_type i = 0; i < N; i++) {
+///   for (Index_type j = 0; j < N; j++) {
 ///     x[i] = x[i] + beta * A[j][i] * y[j];
 ///   }
 /// }
 ///
-/// for (Index_type i = 0; i < _PB_N; i++) {
+/// for (Index_type i = 0; i < N; i++) {
 ///   x[i] = x[i] + z[i];
 /// }
 ///
-/// for (Index_type i = 0; i < _PB_N; i++) {
-///   for (Index_type j = 0; j < _PB_N; j++) {
+/// for (Index_type i = 0; i < N; i++) {
+///   for (Index_type j = 0; j < N; j++) {
 ///     w[i] = w[i] +  alpha * A[i][j] * x[j];
 ///   }
 /// }
@@ -40,20 +40,20 @@
 
 
 
-#ifndef RAJAPerf_POLYBENCH_GEMMVER_HXX
-#define RAJAPerf_POLYBENCH_GEMMVER_HXX
+#ifndef RAJAPerf_POLYBENCH_GEMMVER_HPP
+#define RAJAPerf_POLYBENCH_GEMMVER_HPP
 
 #define POLYBENCH_GEMMVER_BODY1 \
-  *(A + i * n + j) = *(A + i * n +j)  + *(u1 + i) * *(v1 + j) + *(u2 + i) * *(v2 + j)
+  A[j + i*n] = A[j + i*n] + u1[i] * v1[j] + u2[i] * v2[j];
 
 #define POLYBENCH_GEMMVER_BODY2 \
-  *(x + i) = *(x+i) + beta * *(A + j * n + i) * *(y + j);
+  x[i] =  x[i] + beta * A[i + j*n] * y[j];
 
 #define POLYBENCH_GEMMVER_BODY3 \
-  *(x + i) = *(x + i) + *(z + i);
+  x[i] = x[i] + z[i];
 
 #define POLYBENCH_GEMMVER_BODY4 \
-  *(w + i) = *(w+i) + alpha * *(A + i * n + j) * *(x + j);
+  w[i] = w[i] +  alpha * A[j + i*n] * x[j];
 
 
 #include "common/KernelBase.hpp"

@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -21,6 +21,7 @@
 //
 // Basic kernels...
 //
+#include "basic/DAXPY.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/TRAP_INT.hpp"
@@ -45,6 +46,7 @@
 #include "polybench/POLYBENCH_2MM.hpp"
 #include "polybench/POLYBENCH_3MM.hpp"
 #include "polybench/POLYBENCH_GEMMVER.hpp"
+#include "polybench/POLYBENCH_ADI.hpp"
 
 //
 
@@ -118,6 +120,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_DAXPY"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_TRAP_INT"),
@@ -143,6 +146,7 @@ static const std::string KernelNames [] =
   std::string("Polybench_2MM"),
   std::string("Polybench_3MM"),
   std::string("Polybench_GEMMVER"),
+  std::string("Polybench_ADI"),
 
 //
 // Stream kernels...
@@ -186,17 +190,18 @@ static const std::string VariantNames [] =
 {
 
   std::string("Base_Seq"),
+#if defined(RUN_RAJA_SEQ)
   std::string("RAJA_Seq"),
+#endif
 
-#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Base_OpenMP"),
   std::string("RAJA_OpenMP"),
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)  
   std::string("Base_OMPTarget"),
   std::string("RAJA_OMPTarget"),
-#endif
-
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -279,6 +284,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_DAXPY : {
+       kernel = new basic::DAXPY(run_params);
+       break;
+    }
     case Basic_MULADDSUB : {
        kernel = new basic::MULADDSUB(run_params);
        break;
@@ -356,6 +365,10 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 
+    case Polybench_ADI  : {
+       kernel = new polybench::POLYBENCH_ADI(run_params);
+       break;
+    }
 //
 // Stream kernels...
 //

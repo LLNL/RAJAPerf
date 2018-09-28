@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -35,7 +35,7 @@ namespace basic
   Real_ptr a = m_a; \
   const Real_type v = m_val; \
 \
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >; \
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
   const RAJA::Layout<1> my_layout(iend); \
   ViewType view(a, my_layout);
 
@@ -82,6 +82,7 @@ void INIT_VIEW1D::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       INIT_VIEW1D_DATA_RAJA_SETUP_CPU;
@@ -99,8 +100,9 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       INIT_VIEW1D_DATA_SETUP_CPU;
@@ -137,7 +139,7 @@ void INIT_VIEW1D::runKernel(VariantID vid)
       break;
     }
 #endif
-
+                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :

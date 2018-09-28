@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -81,6 +81,7 @@ void PLANCKIAN::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       PLANCKIAN_DATA_SETUP_CPU;
@@ -88,7 +89,7 @@ void PLANCKIAN::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PLANCKIAN_BODY;
         });
@@ -98,8 +99,9 @@ void PLANCKIAN::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       PLANCKIAN_DATA_SETUP_CPU;

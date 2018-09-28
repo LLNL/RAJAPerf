@@ -10,7 +10,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for CUDA execution
-//
-const size_t block_size = 256;
-
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
   Real_ptr tmp = m_tmp; \
   Real_ptr A = m_A; \
@@ -43,7 +38,6 @@ const size_t block_size = 256;
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type)); \
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -59,37 +53,32 @@ const size_t block_size = 256;
   deallocCudaDeviceData(C); \
   deallocCudaDeviceData(D);
 
-__global__ void polybench_2mm_cuda_1(Real_ptr tmp, Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl)
+
+__global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
+                           Real_type alpha,
+                           Index_type nj, Index_type nk)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,j,k;
-   if (ii < ni * nj) {
-     *(tmp + ii) = 0.0;
-     i = ii/nj; j = ii % nj;
-     for (k=0; k < nk; k++) {
-       POLYBENCH_2MM_BODY2;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type j = threadIdx.y;
+
+   POLYBENCH_2MM_BODY1;
+
+   for (Index_type k=0; k < nk; ++k) {
+     POLYBENCH_2MM_BODY2;              
    }
-
-
 }
 
-__global__ void polybench_2mm_cuda_2(Real_ptr tmp, Real_ptr A,
-                       Real_ptr B, Real_ptr C, Real_ptr D,
-                       Real_type alpha, Real_type beta, Index_type ni, Index_type nj,
-                       Index_type nk, Index_type nl)
+__global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
+                           Real_type beta,
+                           Index_type nl, Index_type nj)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i,l,j;
-   if (ii < ni * nl) {
-     *(D + ii) *= beta;
-     i = ii/nl; l = ii % nl;
-     for (j=0; j < nj; j++) {
-       POLYBENCH_2MM_BODY4;              
-     }
+   Index_type i = blockIdx.x;
+   Index_type l = threadIdx.y;
+
+   POLYBENCH_2MM_BODY3;
+
+   for (Index_type j=0; j < nj; ++j) {
+     POLYBENCH_2MM_BODY4;
    }
 }
 
@@ -110,16 +99,15 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nj, block_size);
-      polybench_2mm_cuda_1<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
-                                                     m_ni,m_nj,m_nk,m_nl);
+      dim3 nblocks1(ni, 1, 1);
+      dim3 nthreads_per_block1(1, nj, 1);
+      poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
+                                                    nj, nk);
 
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D,m_D,m_ni * m_nl ); 
-
-      grid_size = RAJA_DIVIDE_CEILING_INT(m_ni * m_nl, block_size);
-      polybench_2mm_cuda_2<<<grid_size,block_size>>>(tmp,A,B,C,D,alpha,beta,
-                                                     m_ni,m_nj,m_nk,m_nl);
+      dim3 nblocks2(ni, 1, 1);
+      dim3 nthreads_per_block2(1, nl, 1);
+      poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
+                                                    nl, nj);
 
     }
     stopTimer();
@@ -130,41 +118,44 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_2MM_DATA_SETUP_CUDA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                       RAJA::nested::CudaCollapse<
-                         RAJA::nested::For<1, RAJA::cuda_block_y_exec>,   
-                         RAJA::nested::For<0, RAJA::cuda_thread_x_exec> > >;
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<0, RAJA::cuda_block_exec,
+            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >
+            >
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nj)),
-        [=] __device__ (Index_type i, Index_type j) {
 
-        POLYBENCH_2MM_BODY1;
-        for (Index_type k=0;k<nk;k++) {
-          POLYBENCH_2MM_BODY2; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nk}),
+        [=] __device__ (Index_type i, Index_type j, Index_type /* k */) {
+          POLYBENCH_2MM_BODY1;
+        },
+        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+          POLYBENCH_2MM_BODY2;
         }
+      );
 
-      });
-
-      memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-      initCudaDeviceData(D,m_D,m_ni * m_nl ); 
-
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                            RAJA::RangeSegment(0, nl)),
-        [=] __device__ (Index_type i, Index_type l) {
-
-        POLYBENCH_2MM_BODY3;
-        for (Index_type j=0;j<nj;j++) {
-          POLYBENCH_2MM_BODY4; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nj}),
+        [=] __device__ (Index_type i, Index_type l, Index_type /* j */) {
+          POLYBENCH_2MM_BODY3;
+        },
+        [=] __device__ (Index_type i, Index_type l, Index_type j) {
+          POLYBENCH_2MM_BODY4;
         }
-
-      });
-
+      );
 
     }
     stopTimer();

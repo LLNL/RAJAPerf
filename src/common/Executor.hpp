@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -27,6 +27,7 @@
 namespace rajaperf {
 
 class KernelBase;
+class WarmupKernel;
 
 /*!
  *******************************************************************************
@@ -83,7 +84,6 @@ private:
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;
-
 };
 
 }  // closing brace for rajaperf namespace

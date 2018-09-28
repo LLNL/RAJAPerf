@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -31,7 +31,7 @@ namespace apps
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define LTIMES_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -87,37 +87,35 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-#if 0 // disabled until RAJA::nested::OmpTargetCollapse works.
-
     LTIMES_DATA_SETUP_OMP_TARGET;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
-    using EXEC_POL = RAJA::nested::Policy<
-                RAJA::nested::OmpTargetCollapse<
-                   RAJA::nested::For<1>,                  // z
-                   RAJA::nested::For<2>,                  // g
-                   RAJA::nested::For<3> >,                // m
-                 RAJA::nested::For<0, RAJA::loop_exec> >; // d
+    using EXEC_POL = 
+      RAJA::KernelPolicy<
+        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
+                                  RAJA::ArgList<1, 2, 3>, // z, g, m
+          RAJA::statement::For<0, RAJA::seq_exec,         // d
+            RAJA::statement::Lambda<0>
+          >
+        >
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::nested::forall(EXEC_POL{},
-                           RAJA::make_tuple(IDRange(0, num_d),
-                                            IZRange(0, num_z),
-                                            IGRange(0, num_g),
-                                            IMRange(0, num_m)),
-        [=] (Index_type d, Index_type z, Index_type g, Index_type m) {
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+                                               IZRange(0, num_z),
+                                               IGRange(0, num_g),
+                                               IMRange(0, num_m)),
+        [=] (ID d, IZ z, IG g, IM m) {
         LTIMES_BODY_RAJA;
-      });
+      }); 
 
     }
     stopTimer();
 
     LTIMES_DATA_TEARDOWN_OMP_TARGET;
-
-#endif
 
   } else {
      std::cout << "\n LTIMES : Unknown OMP Target variant id = " << vid << std::endl;

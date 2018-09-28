@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -23,14 +23,6 @@
 
 #include <iostream>
 
-#define USE_THRUST
-//#undef USE_THRUST
-
-
-#if defined(RAJA_ENABLE_CUDA) && defined(USE_THRUST)
-#include <thrust/device_vector.h>
-#include <thrust/inner_product.h>
-#endif
 
 namespace rajaperf 
 {
@@ -54,9 +46,6 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
-#if defined(USE_THRUST)
-// Nothing to do here...
-#else
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend) 
@@ -80,7 +69,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::_atomicAdd( dprod, pdot[ 0 ] );
+    atomicAdd( dprod, pdot[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {
@@ -89,7 +78,6 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 #endif
 
 }
-#endif
 
 
 void DOT::runCudaVariant(VariantID vid)
@@ -99,24 +87,6 @@ void DOT::runCudaVariant(VariantID vid)
   const Index_type iend = getRunSize();
 
   if ( vid == Base_CUDA ) {
-
-#if defined(USE_THRUST)
-
-    thrust::device_vector<Real_type> va(m_a, m_a+iend);
-    thrust::device_vector<Real_type> vb(m_b, m_b+iend);
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      Real_type dprod = thrust::inner_product(va.begin(), va.end(), 
-                                              vb.begin(), m_dot_init);
-
-      m_dot += dprod;
-
-    }
-    stopTimer();
-      
-#else // don't use thrust
 
     DOT_DATA_SETUP_CUDA;
 
@@ -145,8 +115,6 @@ void DOT::runCudaVariant(VariantID vid)
     DOT_DATA_TEARDOWN_CUDA;
 
     deallocCudaDeviceData(dprod);
-
-#endif
 
   } else if ( vid == RAJA_CUDA ) {
 

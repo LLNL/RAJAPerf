@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -20,6 +20,14 @@
 
 #include <iostream>
 #include <cstring>
+
+
+#define USE_OMP_COLLAPSE
+//#undef USE_OMP_COLLAPSE
+
+#define USE_RAJA_OMP_COLLAPSE
+//#undef USE_RAJA_OMP_COLLAPSE
+
 
 namespace rajaperf 
 {
@@ -39,7 +47,7 @@ namespace polybench
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
 {
-  SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  SizeSpec lsizespec = KernelBase::getSizeSpec();
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=20; m_nl=22; m_nm=24;
@@ -69,8 +77,6 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
 
   setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
   setDefaultReps(m_run_reps);
-
-
 }
 
 POLYBENCH_3MM::~POLYBENCH_3MM() 
@@ -84,8 +90,8 @@ void POLYBENCH_3MM::setUp(VariantID vid)
   allocAndInitData(m_B, m_nk * m_nj, vid);
   allocAndInitData(m_C, m_nj * m_nm, vid);
   allocAndInitData(m_D, m_nm * m_nl, vid);
-  allocAndInitData(m_E, m_ni * m_nj, vid);
-  allocAndInitData(m_F, m_nj * m_nl, vid);
+  allocAndInitDataConst(m_E, m_ni * m_nj, 0.0, vid);
+  allocAndInitDataConst(m_F, m_nj * m_nl, 0.0, vid);
   allocAndInitDataConst(m_G, m_ni * m_nl, 0.0, vid);
 }
 
@@ -140,60 +146,67 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
-      
-      using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::loop_exec>,
-        RAJA::nested::For<0, RAJA::loop_exec> >;
+
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+              >
+            >
+          >
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nj)),
-            [=](Index_type i, Index_type j) {     
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nk}),
+          [=](Index_type i, Index_type j, Index_type /* k */) {
             POLYBENCH_3MM_BODY1;
+          },
+          [=](Index_type i, Index_type j, Index_type k) {
+            POLYBENCH_3MM_BODY2;
+          }
+        );
 
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nk}, [=] (int k) {
-              POLYBENCH_3MM_BODY2; 
-            });
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, nj),
-                           RAJA::RangeSegment(0, nl)),
-            [=](Index_type j, Index_type l) {     
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nm}),
+          [=](Index_type j, Index_type l, Index_type /* m */) {
             POLYBENCH_3MM_BODY3;
+          },                                     
+          [=](Index_type j, Index_type l, Index_type m) {
+            POLYBENCH_3MM_BODY4;
+          }
+        );
 
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nm}, [=] (int m) {
-              POLYBENCH_3MM_BODY4; 
-            });
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nl)),
-            [=](Index_type i, Index_type l) {     
-            POLYBENCH_3MM_BODY5;
-
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nj}, [=] (int j) {
-              POLYBENCH_3MM_BODY6; 
-            });
-        });
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nj}),
+          [=](Index_type i, Index_type l, Index_type /* j */) {
+            POLYBENCH_3MM_BODY5;                 
+          },                               
+          [=](Index_type i, Index_type l, Index_type j) {
+            POLYBENCH_3MM_BODY6;
+          }
+        );
 
       } // end run_reps
       stopTimer();
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
@@ -201,7 +214,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
         #pragma omp parallel for  
+#endif
         for (Index_type i = 0; i < ni; i++ )  {
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
@@ -211,7 +228,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp parallel for   
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for  
+#endif
         for (Index_type j = 0; j < nj; j++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY3;
@@ -221,7 +242,11 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           }
         }
 
-        #pragma omp parallel for   
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for  
+#endif
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY5;
@@ -241,64 +266,74 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
 
-      using EXEC_POL = RAJA::nested::Policy<
-        RAJA::nested::For<1, RAJA::omp_parallel_for_exec>,
-        RAJA::nested::For<0, RAJA::loop_exec> >;
+#if defined(USE_RAJA_OMP_COLLAPSE)
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
+                                    RAJA::ArgList<0, 1>,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<2, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >
+          >
+        >;
+#else
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<2, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+              >
+            >
+          >
+        >;
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
-                            RAJA::RangeSegment{0, nj}),
-          [=] (int i, int j) {
 
-          POLYBENCH_3MM_BODY1;
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nk}),
+          [=] (Index_type i, Index_type j, Index_type /* k */) {
+            POLYBENCH_3MM_BODY1;
+          },
+          [=] (Index_type i, Index_type j, Index_type k) {
+            POLYBENCH_3MM_BODY2;
+          }
+        );
 
-          RAJA::forall<RAJA::loop_exec> (
-          RAJA::RangeSegment{0, nk}, [=] (int k) {
-            POLYBENCH_3MM_BODY2; 
-          });
-
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, nj}, 
-                            RAJA::RangeSegment{0, nl}),
-          [=] (int j, int l) {
-
-          POLYBENCH_3MM_BODY3;
-
-          RAJA::forall<RAJA::loop_exec> (
-          RAJA::RangeSegment{0, nm}, [=] (int m) {
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nm}),
+          [=] (Index_type j, Index_type l, Index_type /* m */) {
+            POLYBENCH_3MM_BODY3;
+          },
+          [=] (Index_type j, Index_type l, Index_type m) {
             POLYBENCH_3MM_BODY4;
-          });
+          }
+        );
 
-        });
-
-        RAJA::nested::forall(EXEC_POL{},
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni}, 
-                            RAJA::RangeSegment{0, nl}),
-          [=] (int i, int l) {
-
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                                 RAJA::RangeSegment{0, nl},
+                                                 RAJA::RangeSegment{0, nj}),
+          [=] (Index_type i, Index_type l, Index_type /* j */) {
             POLYBENCH_3MM_BODY5;
-
-            RAJA::forall<RAJA::loop_exec> (
-              RAJA::RangeSegment{0, nj}, [=] (int j) {
-              POLYBENCH_3MM_BODY6;
-          });
-
-        });
-
+          },
+          [=] (Index_type i, Index_type l, Index_type j) {
+            POLYBENCH_3MM_BODY6;
+          }
+        );
 
       }
       stopTimer();
 
       break;
     }
+#endif
 
-#endif //RAJA_ENABLE_OPENMP
-                       
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :

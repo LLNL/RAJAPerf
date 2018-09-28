@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -33,7 +33,7 @@ namespace apps
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \

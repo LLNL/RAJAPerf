@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -86,25 +86,32 @@ void LTIMES::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-      LTIMES_DATA_SETUP_CUDA;
+    LTIMES_DATA_SETUP_CUDA;
 
-      LTIMES_VIEWS_RANGES_RAJA;
+    LTIMES_VIEWS_RANGES_RAJA;
 
-      using EXEC_POL = RAJA::nested::Policy<
-                  RAJA::nested::CudaCollapse<
-                     RAJA::nested::For<1, RAJA::cuda_block_z_exec>,    //z
-                     RAJA::nested::For<2, RAJA::cuda_block_y_exec>,    //g
-                     RAJA::nested::For<3, RAJA::cuda_thread_x_exec> >, //m
-                   RAJA::nested::For<0, RAJA::cuda_loop_exec> >;       //d
-
+    using EXEC_POL = 
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelAsync<
+          RAJA::statement::For<1, RAJA::cuda_block_exec,      //z 
+            RAJA::statement::For<2, RAJA::cuda_block_exec,    //g
+              RAJA::statement::For<3, RAJA::cuda_thread_exec, //m
+                RAJA::statement::For<0, RAJA::seq_exec,       //d
+                  RAJA::statement::Lambda<0>
+                >
+              >
+            >
+          >
+        >
+      >; 
+    
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::nested::forall(EXEC_POL{},
-                             RAJA::make_tuple(IDRange(0, num_d),
-                                              IZRange(0, num_z),
-                                              IGRange(0, num_g),
-                                              IMRange(0, num_m)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+                                                 IZRange(0, num_z),
+                                                 IGRange(0, num_g),
+                                                 IMRange(0, num_m)),
           [=] __device__ (ID d, IZ z, IG g, IM m) {
           LTIMES_BODY_RAJA;
         });

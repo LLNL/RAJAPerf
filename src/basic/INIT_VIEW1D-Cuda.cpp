@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -46,7 +46,7 @@ namespace basic
 \
   allocAndInitCudaDeviceData(a, m_a, iend); \
 \
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1> >; \
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
   const RAJA::Layout<1> my_layout(iend); \
   ViewType view(a, my_layout);
 

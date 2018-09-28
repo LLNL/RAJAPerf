@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -77,7 +77,7 @@ public:
 
   double getSizeFactor() const { return size_fact; }
 
-  SizeSpec_T  getSizeSpec() const { return size_spec; }
+  SizeSpec  getSizeSpec() const { return size_spec; }
 
   void  setSizeSpec(std::string inputString);
 
@@ -139,8 +139,7 @@ private:
 
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
-  SizeSpec_T size_spec;  /*!< optional use/parse polybench spec file for size:
-                              (MINI, SMALL, MEDIUM, LARGE, EXTRALARGE, UNDEFINED) */ 
+  SizeSpec size_spec;    /*!< optional use/parse polybench spec file for size */
 
   std::string size_spec_string;
 

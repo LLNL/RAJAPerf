@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -18,6 +18,9 @@
 
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
+
+// Warmup kernel to run first to remove startup overheads in timings
+#include "basic/DAXPY.hpp"
 
 #include <list>
 #include <vector>
@@ -236,7 +239,8 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin(); 
          kid != run_kern.end(); ++kid) {
-/// RDH DISABLE COUPLE KERNEL
+/// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do 
+/// complex numbers in GPU code
       if ( *kid != Apps_COUPLE ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
@@ -350,12 +354,26 @@ void Executor::runSuite()
     return;
   }
 
+  cout << "\n\nRunning warmup kernel variants...\n";
+
+  KernelBase* warmup_kernel = new basic::DAXPY(run_params);
+
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    if ( run_params.showProgress() ) {
+      cout << "Warmup Kernel " <<  getVariantName(variant_ids[iv]) << endl;
+    }
+    warmup_kernel->execute( variant_ids[iv] );
+  }
+
+  delete warmup_kernel;
+
+
   cout << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
     if ( run_params.showProgress() ) {
-      std::cout << "\nPass throught suite # " << ip << "\n";
+      std::cout << "\nPass through suite # " << ip << "\n";
     }
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {

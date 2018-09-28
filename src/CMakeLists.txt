@@ -9,7 +9,7 @@
 #
 # This file is part of the RAJA Performance Suite.
 #
-# For details about use and distribution, please read raja-perfsuite/LICENSE.
+# For details about use and distribution, please read RAJAPerf/LICENSE.
 #
 ###############################################################################
 
@@ -31,15 +31,11 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     stream)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
-blt_add_executable(
-  NAME raja-perf.exe
-  SOURCES RAJAPerfSuiteDriver.cpp
-  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
-  )
-
+if(ENABLE_TARGET_OPENMP)
+  remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 
 blt_add_executable(
-  NAME raja-perf-nolibs.exe
+  NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
   apps/DEL_DOT_VEC_2D.cpp
@@ -64,12 +60,21 @@ blt_add_executable(
   apps/LTIMES_NOVIEW-Cuda.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
+  basic/DAXPY.cpp
+  basic/DAXPY-Cuda.cpp
+  basic/DAXPY-OMPTarget.cpp
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Cuda.cpp
   basic/IF_QUAD-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Cuda.cpp
   basic/INIT3-OMPTarget.cpp
+  basic/INIT_VIEW1D.cpp
+  basic/INIT_VIEW1D-Cuda.cpp
+  basic/INIT_VIEW1D-OMPTarget.cpp
+  basic/INIT_VIEW1D_OFFSET.cpp
+  basic/INIT_VIEW1D_OFFSET-Cuda.cpp
+  basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
   basic/MULADDSUB.cpp
   basic/MULADDSUB-Cuda.cpp
   basic/MULADDSUB-OMPTarget.cpp
@@ -82,19 +87,6 @@ blt_add_executable(
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Cuda.cpp
   basic/TRAP_INT-OMPTarget.cpp
-  basic/INIT_VIEW1D.cpp
-  basic/INIT_VIEW1D-Cuda.cpp
-  basic/INIT_VIEW1D-OMPTarget.cpp
-  basic/INIT_VIEW1D_OFFSET.cpp
-  basic/INIT_VIEW1D_OFFSET-Cuda.cpp
-  basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
-  common/DataUtils.cpp
-  common/Executor.cpp
-  common/KernelBase.cpp
-  common/OutputUtils.cpp
-  common/RAJAPerfSuite.cpp
-  common/RPTypes.hpp
-  common/RunParams.cpp
   lcals/DIFF_PREDICT.cpp
   lcals/DIFF_PREDICT-Cuda.cpp
   lcals/DIFF_PREDICT-OMPTarget.cpp
@@ -122,6 +114,9 @@ blt_add_executable(
   polybench/POLYBENCH_GEMMVER.cpp
   polybench/POLYBENCH_GEMMVER-Cuda.cpp
   polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
+  polybench/POLYBENCH_ADI.cpp
+  polybench/POLYBENCH_ADI-Cuda.cpp
+  polybench/POLYBENCH_ADI-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp
@@ -137,5 +132,20 @@ blt_add_executable(
   stream/TRIAD.cpp
   stream/TRIAD-Cuda.cpp
   stream/TRIAD-OMPTarget.cpp
+  common/DataUtils.cpp
+  common/Executor.cpp
+  common/KernelBase.cpp
+  common/OutputUtils.cpp
+  common/RAJAPerfSuite.cpp
+  common/RPTypes.hpp
+  common/RunParams.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
+
+else()
+blt_add_executable(
+  NAME raja-perf.exe
+  SOURCES RAJAPerfSuiteDriver.cpp
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
+  )
+endif()

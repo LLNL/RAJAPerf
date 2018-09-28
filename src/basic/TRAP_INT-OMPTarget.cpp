@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -45,7 +45,7 @@ Real_type trap_int_func(Real_type x,
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define TRAP_INT_DATA_SETUP_OMP_TARGET \
   Real_type x0 = m_x0; \
@@ -95,9 +95,9 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::policy::omp::omp_target_reduce<NUMTEAMS>, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         TRAP_INT_BODY;
       });

@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -21,8 +21,8 @@
 ///     for (Index_type m = 0; z < num_m; ++m ) {
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
-///         phi[m+ (g * num_g) + (z * num_z * num_g)] +=
-///           ell[d+ (m * num_m)] * psi[d+ (g * num_g) + (z * num_z * num_g];
+///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=
+///           ell[d+ (m * num_d)] * psi[d+ (g * num_d) + (z * num_d * num_g];
 ///
 ///       }
 ///     }
@@ -37,13 +37,6 @@
 #define LTIMES_NOVIEW_BODY \
   phidat[m+ (g * num_m) + (z * num_m * num_g)] += \
     elldat[d+ (m * num_d)] * psidat[d+ (g * num_d) + (z * num_d * num_g)];
-
-#define LTIMES_NOVIEW_RANGES_RAJA \
-      using IDRange = RAJA::RangeSegment; \
-      using IZRange = RAJA::RangeSegment; \
-      using IGRange = RAJA::RangeSegment; \
-      using IMRange = RAJA::RangeSegment;
-
 
 #include "common/KernelBase.hpp"
 

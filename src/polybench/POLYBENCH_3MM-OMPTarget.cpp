@@ -10,7 +10,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -32,7 +32,7 @@ namespace polybench
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define POLYBENCH_3MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -81,7 +81,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
     
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(A,B,E) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
@@ -92,7 +92,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(C,D,F) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for(Index_type j = 0; j < nj; j++) {
         for(Index_type l = 0; l < nl; l++) {
@@ -103,7 +103,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(A,B,C,D,E,F,G) device( did )
+      #pragma omp target is_device_ptr(E,F,G) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {
@@ -114,52 +114,68 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-    } // end run_reps
+    }
     stopTimer(); 
+
     POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     POLYBENCH_3MM_DATA_SETUP_OMP_TARGET;
 
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
+                                  RAJA::ArgList<0, 1>, 
+          RAJA::statement::Lambda<0>,
+          RAJA::statement::For<2, RAJA::seq_exec,
+            RAJA::statement::Lambda<1>
+          >
+        >
+      >;
+
     startTimer();
-
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,ni * nj), [=](Index_type ii) {
-        Index_type i,j,k;
-        *(E + ii) = 0.0;
-        i = ii/nj; j = ii % nj;
-        for(k=0;k<nk;k++) {
-          POLYBENCH_3MM_BODY2; 
+     
+       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nk}),
+        [=] (Index_type i, Index_type j, Index_type /* k */) {
+          POLYBENCH_3MM_BODY1;
+        },
+        [=] (Index_type i, Index_type j, Index_type k) {
+          POLYBENCH_3MM_BODY2;
         }
-      });
 
+      );
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,nj * nl), [=](Index_type ii) {
-        Index_type j,l,m;
-        *(F + ii) = 0.0;
-        j = ii/nl; l = ii % nl;
-        for(m=0;m<nm;m++) {
-          POLYBENCH_3MM_BODY4; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nm}),
+        [=] (Index_type j, Index_type l, Index_type /* m */) {
+          POLYBENCH_3MM_BODY3;
+        },
+        [=] (Index_type j, Index_type l, Index_type m) {
+          POLYBENCH_3MM_BODY4;
         }
-      });
 
+      );
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
-          RAJA::RangeSegment(0,ni * nl), [=](Index_type ii) {
-        Index_type i,l,j;
-        *(G + ii) = 0.0;
-        i = ii/nl; l = ii % nl;
-        for(j=0;j<nj;j++) {
-          POLYBENCH_3MM_BODY6; 
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                                               RAJA::RangeSegment{0, nl},
+                                               RAJA::RangeSegment{0, nj}),
+        [=] (Index_type i, Index_type l, Index_type /* j */) {
+          POLYBENCH_3MM_BODY5;
+        },
+        [=] (Index_type i, Index_type l, Index_type j) {
+          POLYBENCH_3MM_BODY6;
         }
-      });
 
-    } // for run_reps
+      ); 
+
+    }
     stopTimer();
+
     POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
