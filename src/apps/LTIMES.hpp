@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -21,8 +21,8 @@
 ///     for (Index_type m = 0; z < num_m; ++m ) {
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
-///         phi[m+ (g * num_g) + (z * num_z * num_g)] +=
-///           ell[d+ (m * num_m)] * psi[d+ (g * num_g) + (z * num_z * num_g];
+///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=
+///           ell[d+ (m * num_d)] * psi[d+ (g * num_d) + (z * num_d * num_g];
 ///
 ///       }
 ///     }
@@ -49,9 +49,15 @@
 #define LTIMES_VIEWS_RANGES_RAJA \
   using namespace ltimes_idx; \
 \
-  using PSI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, ID>; \
-  using ELL_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<2>, IM, ID>; \
-  using PHI_VIEW = RAJA::TypedView<Real_type, RAJA::Layout<3>, IZ, IG, IM>; \
+  using PSI_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<3, Index_type, 2>, \
+                                   IZ, IG, ID>; \
+  using ELL_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<2, Index_type, 1>, \
+                                   IM, ID>; \
+  using PHI_VIEW = RAJA::TypedView<Real_type, \
+                                   RAJA::Layout<3, Index_type, 2>, \
+                                   IZ, IG, IM>; \
 \
   PSI_VIEW psi(psidat, \
                RAJA::make_permuted_layout( {{num_z, num_g, num_d}}, \

@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -76,6 +76,7 @@ void ADD::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       ADD_DATA_SETUP_CPU;
@@ -93,8 +94,9 @@ void ADD::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       ADD_DATA_SETUP_CPU;

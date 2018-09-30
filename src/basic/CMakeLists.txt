@@ -9,13 +9,16 @@
 #
 # This file is part of the RAJA Performance Suite.
 #
-# For details about use and distribution, please read raja-perfsuite/LICENSE.
+# For details about use and distribution, please read RAJAPerf/LICENSE.
 #
 ###############################################################################
 
 blt_add_library(
   NAME basic
-  SOURCES MULADDSUB.cpp
+  SOURCES DAXPY.cpp
+          DAXPY-Cuda.cpp 
+          DAXPY-OMPTarget.cpp 
+          MULADDSUB.cpp
           MULADDSUB-Cuda.cpp 
           MULADDSUB-OMPTarget.cpp 
           IF_QUAD.cpp 

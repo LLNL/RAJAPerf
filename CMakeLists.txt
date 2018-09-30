@@ -9,7 +9,7 @@
 #
 # This file is part of the RAJA Performance Suite.
 #
-# For details about use and distribution, please read raja-perfsuite/LICENSE.
+# For details about use and distribution, please read RAJAPerf/LICENSE.
 #
 ###############################################################################
 
@@ -36,8 +36,8 @@ set(BLT_CXX_STANDARD 11)
 # Define RAJA settings...
 #
 
-set(ENABLE_TESTS On CACHE Bool "")
-set(ENABLE_EXAMPLES On CACHE Bool "")
+set(ENABLE_TESTS Off CACHE Bool "")
+set(ENABLE_EXAMPLES Off CACHE Bool "")
 set(ENABLE_DOCUMENTATION Off CACHE Bool "")
 
 set(ENABLE_TBB Off CACHE Bool "")
@@ -61,8 +61,14 @@ include_directories(${RAJA_INCLUDE_DIRS})
 # Setup variables to pass to Perf suite
 #
 
+#
+# These (hopefully temporary) macro constants are needed to work-around
+# performance issues in the xl compiler.
+#
+add_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP ) 
+
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 3)
+set(RAJA_PERFSUITE_VERSION_MINOR 4)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)

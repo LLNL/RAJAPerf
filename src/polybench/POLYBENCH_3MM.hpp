@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 ///
@@ -19,52 +19,52 @@
 /// F := C*D 
 /// G := E*F 
 ///
-/// for (Index_type i = 0; i < _PB_NI; i++) {
-///   for (Index_type j = 0; j < _PB_NJ; j++) {
-///     E[i][j] = SCALAR_VAL(0.0);
-///     for (Index_type k = 0; k < _PB_NK; ++k) {
+/// for (Index_type i = 0; i < NI; i++) {
+///   for (Index_type j = 0; j < NJ; j++) {
+///     E[i][j] = 0.0;
+///     for (Index_type k = 0; k < NK; ++k) {
 ///       E[i][j] += A[i][k] * B[k][j];
 ///     }
 ///   }
 /// } 
-/// for (Index_type i = 0; i < _PB_NJ; i++) {
-///   for (Index_type j = 0; j < _PB_NL; j++) {
-///	F[i][j] = SCALAR_VAL(0.0);
-///	for (Index_type k = 0; k < _PB_NM; ++k) {
-///	  F[i][j] += C[i][k] * D[k][j];
+/// for (Index_type j = 0; j < NJ; j++) {
+///   for (Index_type l = 0; l < NL; l++) {
+///	F[j][l] = 0.0;
+///	for (Index_type m = 0; m < NM; ++m) {
+///	  F[j][l] += C[j][m] * D[m][l];
 ///     }
 ///   }
 /// }
-/// for (Index_type i = 0; i < _PB_NI; i++) {
-///   for (Index_type j = 0; j < _PB_NL; j++) {
-///     G[i][j] = SCALAR_VAL(0.0);
-///     for (Index_type k = 0; k < _PB_NJ; ++k) {
-///	  G[i][j] += E[i][k] * F[k][j];
+/// for (Index_type i = 0; i < NI; i++) {
+///   for (Index_type l = 0; l < NL; l++) {
+///     G[i][l] = 0.0;
+///     for (Index_type j = 0; j < NJ; ++j) {
+///	  G[i][l] += E[i][j] * F[j][l];
 ///     }
 ///   }
 /// }
 ///
 
-#ifndef RAJAPerf_POLYBENCH_3MM_HXX
-#define RAJAPerf_POLYBENCH_3MM_HXX
+#ifndef RAJAPerf_POLYBENCH_3MM_HPP
+#define RAJAPerf_POLYBENCH_3MM_HPP
 
 #define POLYBENCH_3MM_BODY1 \
-  *(E + i * nj + j) = 0.0;
+  E[j + i*nj] = 0.0;
 
 #define POLYBENCH_3MM_BODY2 \
-  *(E + i * nj + j) += *(A + i * nk + k) * *(B + k * nj + j);
+  E[j + i*nj] += A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_3MM_BODY3 \
-  *(F + j * nl + l) = 0.0;
+  F[l + j*nl] = 0.0;
 
 #define POLYBENCH_3MM_BODY4 \
-  *(F + j * nl + l)  += *(C + j * nm + m) * *(D + m * nl + l);
+  F[l + j*nl] += C[m + j*nm] * D[l + m*nl];
 
 #define POLYBENCH_3MM_BODY5 \
-  *(G + i * nl + l) = 0.0;
+  G[l + i*nl] = 0.0;
 
 #define POLYBENCH_3MM_BODY6 \
-  *(G + i * nl + l) += *(E + i * nj + j) * *(F + j * nl + l);
+  G[l + i*nl] += E[j + i*nj] * F[l + j*nl];
 
 
 #include "common/KernelBase.hpp"

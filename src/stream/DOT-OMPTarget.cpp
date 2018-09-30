@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -31,7 +31,7 @@ namespace stream
 //
 // Define thread block size for target execution
 //
-#define NUMTEAMS 128
+#define NUMTEAMS 256
 
 #define DOT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -83,9 +83,9 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
+      RAJA::ReduceSum<RAJA::policy::omp::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         DOT_BODY;
       });

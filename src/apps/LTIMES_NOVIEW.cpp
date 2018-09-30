@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -100,11 +100,10 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       break;
     } 
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       LTIMES_NOVIEW_DATA_SETUP_CPU;
-
-      LTIMES_NOVIEW_RANGES_RAJA;
 
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -122,10 +121,10 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),      
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                                                 RAJA::RangeSegment(0, num_z),
+                                                 RAJA::RangeSegment(0, num_g),
+                                                 RAJA::RangeSegment(0, num_m)),
           [=](Index_type d, Index_type z, Index_type g, Index_type m) {
           LTIMES_NOVIEW_BODY;
         });
@@ -135,8 +134,9 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
 
       LTIMES_NOVIEW_DATA_SETUP_CPU;
@@ -165,8 +165,6 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 
       LTIMES_NOVIEW_DATA_SETUP_CPU;
 
-      LTIMES_NOVIEW_RANGES_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::omp_parallel_for_exec, // z
@@ -183,10 +181,10 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)),
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+                                                 RAJA::RangeSegment(0, num_z),
+                                                 RAJA::RangeSegment(0, num_g),
+                                                 RAJA::RangeSegment(0, num_m)),
           [=](Index_type d, Index_type z, Index_type g, Index_type m) {
           LTIMES_NOVIEW_BODY;
         });

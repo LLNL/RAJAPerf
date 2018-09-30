@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <cstring>
+
 
 namespace rajaperf 
 {
@@ -43,7 +44,7 @@ namespace polybench
 POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMMVER, params)
 {
-  SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
     case Mini:
@@ -96,7 +97,6 @@ void POLYBENCH_GEMMVER::setUp(VariantID vid)
   allocAndInitData(m_x, m_n, vid);
   allocAndInitData(m_y, m_n, vid);
   allocAndInitData(m_z, m_n, vid);
-
 }
 
 void POLYBENCH_GEMMVER::runKernel(VariantID vid)
@@ -142,6 +142,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
@@ -187,8 +188,9 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       break;
     }
+#endif // RUN_RAJA_SEQ
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
@@ -196,15 +198,14 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY1;
           }
         }
 
-
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMMVER_BODY2;
@@ -273,7 +274,7 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       break;
     }
-#endif //RAJA_ENABLE_OPENMP
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :

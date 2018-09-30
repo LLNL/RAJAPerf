@@ -9,7 +9,7 @@
 //
 // This file is part of the RAJA Performance Suite.
 //
-// For details about use and distribution, please read raja-perfsuite/LICENSE.
+// For details about use and distribution, please read RAJAPerf/LICENSE.
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
@@ -18,9 +18,15 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
-
 #include <iostream>
 #include <cstring>
+
+
+#define USE_OMP_COLLAPSE
+//#undef USE_OMP_COLLAPSE
+
+#define USE_RAJA_OMP_COLLAPSE
+//#undef USE_RAJA_OMP_COLLAPSE
 
 
 namespace rajaperf 
@@ -41,38 +47,40 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
-  m_alpha = 1.5;
-  m_beta = 1.2;
-  SizeSpec_T lsizespec = KernelBase::getSizeSpec();
+  SizeSpec lsizespec = KernelBase::getSizeSpec();
+  int run_reps = 0; 
   switch(lsizespec) {
     case Mini:
       m_ni=16; m_nj=18; m_nk=22; m_nl=24;
-      m_run_reps = 10000;
+      run_reps = 10000;
       break;
     case Small:
       m_ni=40; m_nj=50; m_nk=70; m_nl=80;
-      m_run_reps = 1000;
+      run_reps = 1000;
       break;
     case Medium:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_reps = 100;
+      run_reps = 100;
       break;
     case Large:
       m_ni=800; m_nj=900; m_nk=1100; m_nl=1200;
-      m_run_reps = 1;
+      run_reps = 1;
       break;
     case Extralarge:
       m_ni=1600; m_nj=1800; m_nk=2200; m_nl=2400;
-      m_run_reps = 1;
+      run_reps = 1;
       break;
     default:
       m_ni=180; m_nj=190; m_nk=210; m_nl=220;
-      m_run_reps = 100;
+      run_reps = 100;
       break;
   }
 
   setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
-  setDefaultReps(m_run_reps);
+  setDefaultReps(run_reps);
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM() 
@@ -88,7 +96,6 @@ void POLYBENCH_2MM::setUp(VariantID vid)
   allocAndInitData(m_B, m_nk * m_nj, vid);
   allocAndInitData(m_C, m_nj * m_nl, vid);
   allocAndInitDataConst(m_D, m_ni * m_nl, 0.0, vid);
-  allocAndInitData(m_DD, m_ni * m_nl, vid);
 }
 
 void POLYBENCH_2MM::runKernel(VariantID vid)
@@ -117,8 +124,6 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-
         for (Index_type i = 0; i < ni; i++) {
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
@@ -134,8 +139,9 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
 
+#if defined(RUN_RAJA_SEQ)      
+    case RAJA_Seq : {
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
       using EXEC_POL =
@@ -156,7 +162,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
-          [=](Index_type i, Index_type j, Index_type k) {
+          [=](Index_type i, Index_type j, Index_type /* k */) {
             POLYBENCH_2MM_BODY1;
           },
           [=](Index_type i, Index_type j, Index_type k) {
@@ -164,12 +170,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
-          [=](Index_type i, Index_type l, Index_type j) {
+          [=](Index_type i, Index_type l, Index_type /* j */) {
             POLYBENCH_2MM_BODY3;
           },
           [=](Index_type i, Index_type l, Index_type j) {
@@ -179,11 +183,13 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       }
       stopTimer();
-
       break;
     }
 
-#if defined(RAJA_ENABLE_OPENMP)      
+#endif // RUN_RAJA_SEQ
+
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
@@ -191,7 +197,11 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for collapse(2) 
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif 
         for (Index_type i = 0; i < ni; i++ ) {
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -201,9 +211,11 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         }
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-
-        #pragma omp parallel for collapse(2)  
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif 
         for(Index_type i = 0; i < ni; i++) {
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY3;
@@ -223,7 +235,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
-#if 1
+#if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
@@ -234,7 +246,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
             >
           >
         >;
-#else // without openmp collapse...
+#else // without collapse...
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -254,7 +266,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
-          [=](Index_type i, Index_type j, Index_type k) {
+          [=](Index_type i, Index_type j, Index_type /* k */) {
             POLYBENCH_2MM_BODY1;
           },
           [=](Index_type i, Index_type j, Index_type k) {
@@ -262,12 +274,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
           }
         );
 
-        memcpy(m_D,m_DD,m_ni * m_nl * sizeof(Real_type));
-
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
-          [=](Index_type i, Index_type l, Index_type j) {
+          [=](Index_type i, Index_type l, Index_type /* j */) {
             POLYBENCH_2MM_BODY3;
           },
           [=](Index_type i, Index_type l, Index_type j) {
@@ -280,7 +290,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       break;
     }
-#endif //RAJA_ENABLE_OPENMP
+#endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
@@ -321,7 +331,6 @@ void POLYBENCH_2MM::tearDown(VariantID vid)
   deallocData(m_B);
   deallocData(m_C);
   deallocData(m_D);
-  deallocData(m_DD);
 }
 
 } // end namespace polybench
