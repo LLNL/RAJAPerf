@@ -21,11 +21,11 @@ blt_add_library(
           POLYBENCH_3MM.cpp
           POLYBENCH_3MM-Cuda.cpp
           POLYBENCH_3MM-OMPTarget.cpp
-          POLYBENCH_GEMMVER.cpp
-          POLYBENCH_GEMMVER-Cuda.cpp
-          POLYBENCH_GEMMVER-OMPTarget.cpp
           POLYBENCH_ADI.cpp
           POLYBENCH_ADI-Cuda.cpp
           POLYBENCH_ADI-OMPTarget.cpp
+          POLYBENCH_GEMMVER.cpp
+          POLYBENCH_GEMMVER-Cuda.cpp
+          POLYBENCH_GEMMVER-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

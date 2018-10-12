@@ -46,8 +46,8 @@
 // Polybench kernels...
 #include "polybench/POLYBENCH_2MM.hpp"
 #include "polybench/POLYBENCH_3MM.hpp"
-#include "polybench/POLYBENCH_GEMMVER.hpp"
 #include "polybench/POLYBENCH_ADI.hpp"
+#include "polybench/POLYBENCH_GEMMVER.hpp"
 
 //
 
@@ -147,8 +147,8 @@ static const std::string KernelNames [] =
 //
   std::string("Polybench_2MM"),
   std::string("Polybench_3MM"),
-  std::string("Polybench_GEMMVER"),
   std::string("Polybench_ADI"),
+  std::string("Polybench_GEMMVER"),
 
 //
 // Stream kernels...
@@ -366,15 +366,15 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_3MM(run_params);
        break;
     }
+    case Polybench_ADI  : {
+       kernel = new polybench::POLYBENCH_ADI(run_params);
+       break;
+    }
     case Polybench_GEMMVER : {
        kernel = new polybench::POLYBENCH_GEMMVER(run_params);
        break;
     }
 
-    case Polybench_ADI  : {
-       kernel = new polybench::POLYBENCH_ADI(run_params);
-       break;
-    }
 //
 // Stream kernels...
 //

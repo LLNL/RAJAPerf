@@ -131,8 +131,8 @@ enum KernelID {
 //
   Polybench_2MM,
   Polybench_3MM,
-  Polybench_GEMMVER,
   Polybench_ADI,
+  Polybench_GEMMVER,
 
 //
 // Stream kernels...
