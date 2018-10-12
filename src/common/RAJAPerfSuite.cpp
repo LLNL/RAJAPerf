@@ -22,14 +22,14 @@
 // Basic kernels...
 //
 #include "basic/DAXPY.hpp"
-#include "basic/MULADDSUB.hpp"
 #include "basic/IF_QUAD.hpp"
-#include "basic/TRAP_INT.hpp"
 #include "basic/INIT3.hpp"
-#include "basic/REDUCE3_INT.hpp"
-#include "basic/NESTED_INIT.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#include "basic/MULADDSUB.hpp"
+#include "basic/NESTED_INIT.hpp"
+#include "basic/REDUCE3_INT.hpp"
+#include "basic/TRAP_INT.hpp"
 
 //
 // Lcals kernels...
@@ -122,14 +122,14 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_DAXPY"),
-  std::string("Basic_MULADDSUB"),
   std::string("Basic_IF_QUAD"),
-  std::string("Basic_TRAP_INT"),
   std::string("Basic_INIT3"),
-  std::string("Basic_REDUCE3_INT"),
-  std::string("Basic_NESTED_INIT"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  std::string("Basic_MULADDSUB"),
+  std::string("Basic_NESTED_INIT"),
+  std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_TRAP_INT"),
 
 //
 // Lcals kernels...
@@ -290,28 +290,12 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::DAXPY(run_params);
        break;
     }
-    case Basic_MULADDSUB : {
-       kernel = new basic::MULADDSUB(run_params);
-       break;
-    }
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
     }
-    case Basic_TRAP_INT : {
-       kernel = new basic::TRAP_INT(run_params);
-       break;
-    }
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
-       break;
-    }
-    case Basic_REDUCE3_INT : {
-       kernel = new basic::REDUCE3_INT(run_params);
-       break;
-    }
-    case Basic_NESTED_INIT : {
-       kernel = new basic::NESTED_INIT(run_params);
        break;
     }
     case Basic_INIT_VIEW1D : {
@@ -320,6 +304,22 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_INIT_VIEW1D_OFFSET : {
        kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
+    case Basic_MULADDSUB : {
+       kernel = new basic::MULADDSUB(run_params);
+       break;
+    }
+    case Basic_NESTED_INIT : {
+       kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_REDUCE3_INT : {
+       kernel = new basic::REDUCE3_INT(run_params);
+       break;
+    }
+    case Basic_TRAP_INT : {
+       kernel = new basic::TRAP_INT(run_params);
        break;
     }
 
