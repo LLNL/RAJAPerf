@@ -153,11 +153,11 @@ static const std::string KernelNames [] =
 //
 // Stream kernels...
 //
-  std::string("Stream_COPY"),
-  std::string("Stream_MUL"),
   std::string("Stream_ADD"),
-  std::string("Stream_TRIAD"),
+  std::string("Stream_COPY"),
   std::string("Stream_DOT"),
+  std::string("Stream_MUL"),
+  std::string("Stream_TRIAD"),
 
 //
 // Apps kernels...
@@ -378,24 +378,24 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Stream kernels...
 //
+    case Stream_ADD : {
+       kernel = new stream::ADD(run_params);
+       break;
+    }
     case Stream_COPY : {
        kernel = new stream::COPY(run_params);
+       break;
+    }
+    case Stream_DOT : {
+       kernel = new stream::DOT(run_params);
        break;
     }
     case Stream_MUL : {
        kernel = new stream::MUL(run_params);
        break;
     }
-    case Stream_ADD : {
-       kernel = new stream::ADD(run_params);
-       break;
-    }
     case Stream_TRIAD : {
        kernel = new stream::TRIAD(run_params);
-       break;
-    }
-    case Stream_DOT : {
-       kernel = new stream::DOT(run_params);
        break;
     }
 
