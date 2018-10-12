@@ -50,9 +50,6 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Cuda.cpp
   apps/PRESSURE-OMPTarget.cpp
-  apps/VOL3D.cpp
-  apps/VOL3D-Cuda.cpp
-  apps/VOL3D-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Cuda.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -60,6 +57,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW-Cuda.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
+  apps/VOL3D.cpp
+  apps/VOL3D-Cuda.cpp
+  apps/VOL3D-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Cuda.cpp
   basic/DAXPY-OMPTarget.cpp

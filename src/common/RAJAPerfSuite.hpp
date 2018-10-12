@@ -146,14 +146,14 @@ enum KernelID {
 //
 // Apps kernels...
 //
-  Apps_PRESSURE,
-  Apps_ENERGY,
-  Apps_VOL3D,
+  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
+  Apps_ENERGY,
   Apps_FIR,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
-  Apps_COUPLE,
+  Apps_PRESSURE,
+  Apps_VOL3D,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

@@ -63,14 +63,14 @@
 //
 // Apps kernels...
 //
-#include "apps/PRESSURE.hpp"
-#include "apps/ENERGY.hpp"
-#include "apps/VOL3D.hpp"
+#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
-#include "apps/WIP-COUPLE.hpp"
+#include "apps/PRESSURE.hpp"
+#include "apps/VOL3D.hpp"
 
 
 #include <iostream>
@@ -162,14 +162,14 @@ static const std::string KernelNames [] =
 //
 // Apps kernels...
 //
-  std::string("Apps_PRESSURE"),
-  std::string("Apps_ENERGY"),
-  std::string("Apps_VOL3D"),
+  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
-  std::string("Apps_COUPLE"),
+  std::string("Apps_PRESSURE"),
+  std::string("Apps_VOL3D"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -402,20 +402,16 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Apps kernels...
 //
-    case Apps_PRESSURE : {
-       kernel = new apps::PRESSURE(run_params);
-       break;
-    }
-    case Apps_ENERGY : {
-       kernel = new apps::ENERGY(run_params);
-       break;
-    }
-    case Apps_VOL3D : {
-       kernel = new apps::VOL3D(run_params);
+    case Apps_COUPLE : {
+       kernel = new apps::COUPLE(run_params);
        break;
     }
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
+       break;
+    }
+    case Apps_ENERGY : {
+       kernel = new apps::ENERGY(run_params);
        break;
     }
     case Apps_FIR : {
@@ -430,8 +426,12 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
+    case Apps_PRESSURE : {
+       kernel = new apps::PRESSURE(run_params);
+       break;
+    }
+    case Apps_VOL3D : {
+       kernel = new apps::VOL3D(run_params);
        break;
     }
 
