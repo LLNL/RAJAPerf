@@ -176,51 +176,44 @@ void ENERGY::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
-//
-// NOTE: This kernel should be written to have an OpenMP parallel 
-//       region around it and then use an OpenMP for-nowait for
-//       each loop inside it. We currently don't have a clean way to
-//       do this in RAJA. So, the base OpenMP variant is coded the
-//       way it is to be able to do an "apples to apples" comparison.
-//
-//       This will be changed in the future when the required feature 
-//       is added to RAJA.
-//
-
       ENERGY_DATA_SETUP_CPU;
       
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY1;
-        }
 
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY2;
-        }
+        #pragma omp parallel
+        {
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY1;
+          }
 
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY3;
-        }
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY2;
+          }
 
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY4;
-        }
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY3;
+          }
 
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY5;
-        }
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY4;
+          }
 
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY6;
-        }
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY5;
+          }
+
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            ENERGY_BODY6;
+          }
+
+        } // end omp parallel region
 
       }
       stopTimer();
@@ -235,35 +228,39 @@ void ENERGY::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY1;
-        });
+        RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY2;
-        });
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY1;
+          });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY3;
-        });
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY2;
+          });
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY4;
-        });
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY5;
-        });
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY6;
-        });
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY3;
+          });
+  
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY4;
+          });
+  
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY5;
+          });
+  
+          RAJA::forall<RAJA::omp_for_nowait_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY6;
+          });
+  
+        }); // end omp parallel region
 
       }
       stopTimer();
