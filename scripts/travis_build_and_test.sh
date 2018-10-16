@@ -1,4 +1,3 @@
-
 #!/bin/bash
 env
 function or_die () {
