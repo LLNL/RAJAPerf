@@ -17,6 +17,9 @@ cmake_minimum_required(VERSION 3.3)
 
 project(RAJAPerfSuite CXX)
 
+option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
+this, and all other variants, to run _only_ raw C loops." On)
+
 #
 # Initialize the BLT build system
 #
@@ -65,13 +68,19 @@ include_directories(${RAJA_INCLUDE_DIRS})
 # These (hopefully temporary) macro constants are needed to work-around
 # performance issues in the xl compiler.
 #
-add_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP ) 
+if (ENABLE_RAJA_SEQUENTIAL)
+  add_definitions(-DRUN_RAJA_SEQ)
+endif ()
+if (ENABLE_OPENMP)
+  add_definitions(-DRUN_OPENMP)
+endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
 set(RAJA_PERFSUITE_VERSION_MINOR 4)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
+
 if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
 endif()
@@ -83,14 +92,14 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
-list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
-set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
+  set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
+  list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
+  set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
 else()
-set(RAJAPERF_COMPILER "${CMAKE_CXX_COMPILER}")
-string(TOUPPER ${CMAKE_BUILD_TYPE} RAJAPERF_BUILD_TYPE)
-set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_${RAJAPERF_BUILD_TYPE}}")
-list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
+  set(RAJAPERF_COMPILER "${CMAKE_CXX_COMPILER}")
+  string(TOUPPER ${CMAKE_BUILD_TYPE} RAJAPERF_BUILD_TYPE)
+  set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_${RAJAPERF_BUILD_TYPE}}")
+  list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
