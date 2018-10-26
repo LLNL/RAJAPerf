@@ -142,6 +142,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
+
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
       using EXEC_POL =

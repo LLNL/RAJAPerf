@@ -43,10 +43,10 @@ const size_t block_size = 256;
   Real_type mul1,mul2; \
   Real_type a,b,c,d,e,f; \
 \
-  Real_ptr U = m_U; \
-  Real_ptr V = m_V; \
-  Real_ptr P = m_P; \
-  Real_ptr Q = m_Q; \
+  Real_ptr U; \
+  Real_ptr V; \
+  Real_ptr P; \
+  Real_ptr Q; \
 \
   allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
   allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \

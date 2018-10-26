@@ -30,11 +30,11 @@ namespace polybench
 {
 
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
-  Real_ptr tmp = m_tmp; \
-  Real_ptr A = m_A; \
-  Real_ptr B = m_B; \
-  Real_ptr C = m_C; \
-  Real_ptr D = m_D; \
+  Real_ptr tmp; \
+  Real_ptr A; \
+  Real_ptr B; \
+  Real_ptr C; \
+  Real_ptr D; \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \

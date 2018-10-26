@@ -38,15 +38,15 @@ const size_t block_size = 256;
   Index_type n = m_n; \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
-  Real_ptr A = m_A; \
-  Real_ptr u1 = m_u1; \
-  Real_ptr v1 = m_v1; \
-  Real_ptr u2 = m_u2; \
-  Real_ptr v2 = m_v2; \
-  Real_ptr w = m_w; \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_ptr z = m_z; \
+  Real_ptr A; \
+  Real_ptr u1; \
+  Real_ptr v1; \
+  Real_ptr u2; \
+  Real_ptr v2; \
+  Real_ptr w; \
+  Real_ptr x; \
+  Real_ptr y; \
+  Real_ptr z; \
 \
   allocAndInitCudaDeviceData(A, m_A, m_n * m_n); \
   allocAndInitCudaDeviceData(u1, m_u1, m_n); \
