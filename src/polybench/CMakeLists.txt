@@ -24,6 +24,9 @@ blt_add_library(
           POLYBENCH_ADI.cpp
           POLYBENCH_ADI-Cuda.cpp
           POLYBENCH_ADI-OMPTarget.cpp
+          POLYBENCH_ATAX.cpp
+          POLYBENCH_ATAX-Cuda.cpp
+          POLYBENCH_ATAX-OMPTarget.cpp
           POLYBENCH_GEMMVER.cpp
           POLYBENCH_GEMMVER-Cuda.cpp
           POLYBENCH_GEMMVER-OMPTarget.cpp

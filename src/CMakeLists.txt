@@ -117,6 +117,9 @@ blt_add_executable(
   polybench/POLYBENCH_ADI.cpp
   polybench/POLYBENCH_ADI-Cuda.cpp
   polybench/POLYBENCH_ADI-OMPTarget.cpp
+  polybench/POLYBENCH_ATAX.cpp
+  polybench/POLYBENCH_ATAX-Cuda.cpp
+  polybench/POLYBENCH_ATAX-OMPTarget.cpp
   polybench/POLYBENCH_GEMMVER.cpp
   polybench/POLYBENCH_GEMMVER-Cuda.cpp
   polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
