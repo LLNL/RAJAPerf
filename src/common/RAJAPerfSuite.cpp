@@ -49,6 +49,7 @@
 #include "polybench/POLYBENCH_ADI.hpp"
 #include "polybench/POLYBENCH_ATAX.hpp"
 #include "polybench/POLYBENCH_GEMMVER.hpp"
+#include "polybench/POLYBENCH_JACOBI_1D.hpp"
 
 //
 
@@ -151,6 +152,7 @@ static const std::string KernelNames [] =
   std::string("Polybench_ADI"),
   std::string("Polybench_ATAX"),
   std::string("Polybench_GEMMVER"),
+  std::string("Polybench_JACOBI_1D"),
 
 //
 // Stream kernels...
@@ -378,6 +380,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Polybench_GEMMVER : {
        kernel = new polybench::POLYBENCH_GEMMVER(run_params);
+       break;
+    }
+    case Polybench_JACOBI_1D : {
+       kernel = new polybench::POLYBENCH_JACOBI_1D(run_params);
        break;
     }
 

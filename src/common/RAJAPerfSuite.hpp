@@ -134,6 +134,7 @@ enum KernelID {
   Polybench_ADI,
   Polybench_ATAX,
   Polybench_GEMMVER,
+  Polybench_JACOBI_1D,
 
 //
 // Stream kernels...

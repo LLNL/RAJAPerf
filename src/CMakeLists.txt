@@ -123,6 +123,9 @@ blt_add_executable(
   polybench/POLYBENCH_GEMMVER.cpp
   polybench/POLYBENCH_GEMMVER-Cuda.cpp
   polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
+  polybench/POLYBENCH_JACOBI_1D.cpp
+  polybench/POLYBENCH_JACOBI_1D-Cuda.cpp
+  polybench/POLYBENCH_JACOBI_1D-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp
