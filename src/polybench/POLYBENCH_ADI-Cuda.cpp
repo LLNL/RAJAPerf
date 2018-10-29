@@ -69,13 +69,13 @@ __global__ void adi1(const Index_type n,
 {
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i > 0 && i < n-1) {
-    NEW_POLYBENCH_ADI_BODY2;
+    POLYBENCH_ADI_BODY2;
     for (Index_type j = 1; j < n-1; ++j) {
-       NEW_POLYBENCH_ADI_BODY3;
+       POLYBENCH_ADI_BODY3;
     }
-    NEW_POLYBENCH_ADI_BODY4;
+    POLYBENCH_ADI_BODY4;
     for (Index_type k = n-2; k >= 1; --k) {
-       NEW_POLYBENCH_ADI_BODY5;
+       POLYBENCH_ADI_BODY5;
     }
   }
 }
@@ -87,13 +87,13 @@ __global__ void adi2(const Index_type n,
 {
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i > 0 && i < n-1) {
-    NEW_POLYBENCH_ADI_BODY6;
+    POLYBENCH_ADI_BODY6;
     for (Index_type j = 1; j < n-1; ++j) {
-      NEW_POLYBENCH_ADI_BODY7;
+      POLYBENCH_ADI_BODY7;
     }
-    NEW_POLYBENCH_ADI_BODY8;
+    POLYBENCH_ADI_BODY8;
     for (Index_type k = n-2; k >= 1; --k) {
-      NEW_POLYBENCH_ADI_BODY9;
+      POLYBENCH_ADI_BODY9;
     }
   }
 }
@@ -164,16 +164,16 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY2;
+            POLYBENCH_ADI_BODY2;
           },
           [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY3;
+            POLYBENCH_ADI_BODY3;
           },
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY4;
+            POLYBENCH_ADI_BODY4;
           },
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
-            NEW_POLYBENCH_ADI_BODY5;
+            POLYBENCH_ADI_BODY5;
           }
         );
 
@@ -183,16 +183,16 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY6;
+            POLYBENCH_ADI_BODY6;
           },
           [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY7;
+            POLYBENCH_ADI_BODY7;
           },
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY8;
+            POLYBENCH_ADI_BODY8;
           },
           [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
-            NEW_POLYBENCH_ADI_BODY9;
+            POLYBENCH_ADI_BODY9;
           }
         );
 

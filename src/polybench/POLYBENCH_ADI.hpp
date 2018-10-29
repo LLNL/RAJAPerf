@@ -87,69 +87,37 @@
   f = d; 
 
 #define POLYBENCH_ADI_BODY2 \
-  *(V + 0 * n + i) = 1.0; \
-  *(P + i * n + 0) = 0.0; \
-  *(Q + i * n + 0) = *(V + 0 * n + i);
-
-#define NEW_POLYBENCH_ADI_BODY2 \
   V[0 * n + i] = 1.0; \
   P[i * n + 0] = 0.0; \
   Q[i * n + 0] = V[0 * n + i];
 
 #define POLYBENCH_ADI_BODY3 \
-  *(P + i * n + j) = -c / (a * *(P + i * n + j-1)+b); \
-  *(Q + i * n + j) = (-d * *(U + j * n + i-1) + (1.0 + 2.0*d) * *(U + j * n + i) - f* *(U + j * n + i + 1) -a * *(Q + i * n + j-1))/(a * *(P + i * n + j -1)+b);
-
-#define NEW_POLYBENCH_ADI_BODY3 \
   P[i * n + j] = -c / (a * P[i * n + j-1] + b); \
   Q[i * n + j] = (-d * U[j * n + i-1] + (1.0 + 2.0*d) * U[j * n + i] - \
                  f * U[j * n + i + 1] - a * Q[i * n + j-1]) / \
                     (a * P[i * n + j-1] + b); 
 
 #define POLYBENCH_ADI_BODY4 \
-  *(V + (n-1) * n + i) = 1.0;
-
-#define NEW_POLYBENCH_ADI_BODY4 \
   V[(n-1) * n + i] = 1.0;
 
 #define POLYBENCH_ADI_BODY5 \
-  int jj = n - 1 - j; \
-  *(V + jj * n + i)  = *(P + i * n + jj) * *(V + (jj+1) * n + i) + *(Q + i * n + jj); 
-
-#define NEW_POLYBENCH_ADI_BODY5 \
   V[k * n + i]  = P[i * n + k] * V[(k+1) * n + i] + Q[i * n + k]; 
 
 #define POLYBENCH_ADI_BODY6 \
-  *(U + i * n + 0) = 1.0; \
-  *(P + i * n + 0) = 0.0; \
-  *(Q + i * n + 0) = *(U + i * n + 0);
-
-#define NEW_POLYBENCH_ADI_BODY6 \
   U[i * n + 0] = 1.0; \
   P[i * n + 0] = 0.0; \
   Q[i * n + 0] = U[i * n + 0];
 
 #define POLYBENCH_ADI_BODY7 \
-  *(P + i * n + j) = -f / (d * *(P + i * n + j-1)+e); \
-  *(Q + i * n + j) = (-a * *(V + (i-1) * n + j) + (1.0 + 2.0*a) * *(V + i * n + j) - c * *(V + (i + 1) * n + j) -d * *(Q + i * n + j-1))/(d * *(P + i * n + j-1)+e);
-
-#define NEW_POLYBENCH_ADI_BODY7 \
   P[i * n + j] = -f / (d * P[i * n + j-1] + e); \
   Q[i * n + j] = (-a * V[(i-1) * n + j] + (1.0 + 2.0*a) * V[i * n + j] - \
                  c * V[(i + 1) * n + j] - d * Q[i * n + j-1]) / \
                     (d * P[i * n + j-1] + e);
 
 #define POLYBENCH_ADI_BODY8 \
-  *(U + i * n + n-1) = 1.0;
-
-#define NEW_POLYBENCH_ADI_BODY8 \
   U[i * n + n-1] = 1.0;
 
 #define POLYBENCH_ADI_BODY9 \
-  int jj = n - 1 - j; \
-  *(U + i * n + jj)= *(P + i * n + jj) * *(U + i * n + jj +1) + *(Q + i * n + jj); 
-
-#define NEW_POLYBENCH_ADI_BODY9 \
   U[i * n + k] = P[i * n + k] * U[i * n + k +1] + Q[i * n + k]; 
 
 #include "common/KernelBase.hpp"
