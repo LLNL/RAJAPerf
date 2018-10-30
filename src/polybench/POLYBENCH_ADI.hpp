@@ -50,8 +50,8 @@
 ///    }
 ///    //Row Sweep
 ///    for (i=1; i<N-1; i++) {
-///      u[i][0] = 1.0);
-///      p[i][0] = 0.0);
+///      u[i][0] = 1.0;
+///      p[i][0] = 0.0;
 ///      q[i][0] = u[i][0];
 ///      for (j=1; j<N-1; j++) {
 ///        p[i][j] = -f / (d*p[i][j-1]+e);
@@ -119,6 +119,51 @@
 
 #define POLYBENCH_ADI_BODY9 \
   U[i * n + k] = P[i * n + k] * U[i * n + k +1] + Q[i * n + k]; 
+
+
+#define POLYBENCH_ADI_BODY2_RAJA \
+  Vview(0, i) = 1.0; \
+  Pview(i, 0) = 0.0; \
+  Qview(i, 0) = Vview(0, i);
+
+#define POLYBENCH_ADI_BODY3_RAJA \
+  Pview(i, j) = -c / (a * Pview(i, j-1) + b); \
+  Qview(i, j) = (-d * Uview(j, i-1) + (1.0 + 2.0*d) * Uview(j, i) - \
+                 f * Uview(j, i+1) - a * Qview(i, j-1)) / \
+                   (a * Pview(i, j-1) + b);
+
+#define POLYBENCH_ADI_BODY4_RAJA \
+  Vview(n-1, i) = 1.0;
+
+#define POLYBENCH_ADI_BODY5_RAJA \
+  Vview(k, i)  = Pview(i, k) * Vview(k+1, i) + Qview(i, k);
+
+#define POLYBENCH_ADI_BODY6_RAJA \
+  Uview(i, 0) = 1.0; \
+  Pview(i, 0) = 0.0; \
+  Qview(i, 0) = Uview(i, 0);
+
+#define POLYBENCH_ADI_BODY7_RAJA \
+  Pview(i, j) = -f / (d * Pview(i, j-1) + e); \
+  Qview(i, j) = (-a * Vview(i-1, j) + (1.0 + 2.0*a) * Vview(i, j) - \
+                 c * Vview(i + 1, j) - d * Qview(i, j-1)) / \
+                   (d * Pview(i, j-1) + e);
+
+#define POLYBENCH_ADI_BODY8_RAJA \
+  Uview(i, n-1) = 1.0;
+
+#define POLYBENCH_ADI_BODY9_RAJA \
+  Uview(i, k) = Pview(i, k) * Uview(i, k+1) + Qview(i, k);
+
+#define POLYBENCH_ADI_VIEWS_RAJA \
+  using VIEW_TYPE = RAJA::View<Real_type, \
+                          RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_TYPE Uview(U, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Vview(V, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Pview(P, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Qview(Q, RAJA::Layout<2>(n, n));
+
 
 #include "common/KernelBase.hpp"
 

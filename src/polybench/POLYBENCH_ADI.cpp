@@ -141,6 +141,8 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 
       POLYBENCH_ADI_DATA_SETUP_CPU;
 
+      POLYBENCH_ADI_VIEWS_RAJA;
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -178,28 +180,28 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY2;
+              POLYBENCH_ADI_BODY2_RAJA;
             },
             [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY3;
+              POLYBENCH_ADI_BODY3_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY4;
+              POLYBENCH_ADI_BODY4_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY5;
+              POLYBENCH_ADI_BODY5_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY6;
+              POLYBENCH_ADI_BODY6_RAJA;
             },
             [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY7;
+              POLYBENCH_ADI_BODY7_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY8;
+              POLYBENCH_ADI_BODY8_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY9;
+              POLYBENCH_ADI_BODY9_RAJA;
             }
           );
 
@@ -260,6 +262,8 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 
       POLYBENCH_ADI_DATA_SETUP_CPU;
 
+      POLYBENCH_ADI_VIEWS_RAJA;
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -297,28 +301,28 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY2;
+              POLYBENCH_ADI_BODY2_RAJA;
             },
             [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY3;
+              POLYBENCH_ADI_BODY3_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY4;
+              POLYBENCH_ADI_BODY4_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY5;
+              POLYBENCH_ADI_BODY5_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY6;
+              POLYBENCH_ADI_BODY6_RAJA;
             },
             [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY7;
+              POLYBENCH_ADI_BODY7_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY8;
+              POLYBENCH_ADI_BODY8_RAJA;
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY9;
+              POLYBENCH_ADI_BODY9_RAJA;
             }
           );
 
