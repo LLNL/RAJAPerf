@@ -133,7 +133,7 @@ enum KernelID {
   Polybench_3MM,
   Polybench_ADI,
   Polybench_ATAX,
-  Polybench_GEMMVER,
+  Polybench_GEMVER,
   Polybench_JACOBI_1D,
 
 //
