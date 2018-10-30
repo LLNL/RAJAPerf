@@ -68,7 +68,7 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 5;
       break;
     default:
-      m_n=400;
+      m_n=2000;
       run_reps = 20;
       break;
   }

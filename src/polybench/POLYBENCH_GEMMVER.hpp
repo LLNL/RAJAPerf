@@ -44,16 +44,28 @@
 #define RAJAPerf_POLYBENCH_GEMMVER_HPP
 
 #define POLYBENCH_GEMMVER_BODY1 \
-  A[j + i*n] = A[j + i*n] + u1[i] * v1[j] + u2[i] * v2[j];
+  A[j + i*n] += u1[i] * v1[j] + u2[i] * v2[j];
 
 #define POLYBENCH_GEMMVER_BODY2 \
-  x[i] =  x[i] + beta * A[i + j*n] * y[j];
+  x[i] +=  beta * A[i + j*n] * y[j];
 
 #define POLYBENCH_GEMMVER_BODY3 \
-  x[i] = x[i] + z[i];
+  x[i] += z[i];
 
 #define POLYBENCH_GEMMVER_BODY4 \
-  w[i] = w[i] +  alpha * A[j + i*n] * x[j];
+  w[i] +=  alpha * A[j + i*n] * x[j];
+
+#define POLYBENCH_GEMMVER_BODY1_RAJA \
+  A(i,j) += u1(i) * v1(j) + u2(i) * v2(j);
+
+#define POLYBENCH_GEMMVER_BODY2_RAJA \
+  x(i) +=  beta * A(j,i) * y(j);
+
+#define POLYBENCH_GEMMVER_BODY3_RAJA \
+  x(i) += z(i);
+
+#define POLYBENCH_GEMMVER_BODY4_RAJA \
+  w(i) +=  alpha * A(i,j) * x(j);
 
 
 #include "common/KernelBase.hpp"
