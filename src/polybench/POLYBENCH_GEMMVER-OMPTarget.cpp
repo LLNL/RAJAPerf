@@ -125,6 +125,8 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
 
     POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET;
 
+    POLYBENCH_GEMMVER_VIEWS_RAJA;
+
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
@@ -150,26 +152,26 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                 RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY1;
+          POLYBENCH_GEMMVER_BODY1_RAJA;
         }
       );
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY2;
+          POLYBENCH_GEMMVER_BODY2_RAJA;
         }
       );
 
       RAJA::forall<EXEC_POL3> (
         RAJA::RangeSegment{0, n}, [=] (Index_type i) {
-        POLYBENCH_GEMMVER_BODY3;
+        POLYBENCH_GEMMVER_BODY3_RAJA;
       }); 
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY4;
+          POLYBENCH_GEMMVER_BODY4_RAJA;
         }
       ); 
 

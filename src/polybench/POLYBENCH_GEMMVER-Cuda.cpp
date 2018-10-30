@@ -155,6 +155,8 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
 
     POLYBENCH_GEMMVER_DATA_SETUP_CUDA;
 
+    POLYBENCH_GEMMVER_VIEWS_RAJA;
+
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
@@ -169,7 +171,7 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
     using EXEC_POL24 = 
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
+          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
             RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<0>,
             >
@@ -183,7 +185,7 @@ void POLYBENCH_GEMMVER::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                               RAJA::RangeSegment{0, n}),
+                                                RAJA::RangeSegment{0, n}),
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMMVER_BODY1;
         }

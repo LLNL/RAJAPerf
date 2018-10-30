@@ -55,17 +55,35 @@
 #define POLYBENCH_GEMMVER_BODY4 \
   w[i] +=  alpha * A[j + i*n] * x[j];
 
+
 #define POLYBENCH_GEMMVER_BODY1_RAJA \
-  A(i,j) += u1(i) * v1(j) + u2(i) * v2(j);
+  Aview(i,j) += u1view(i) * v1view(j) + u2view(i) * v2view(j);
 
 #define POLYBENCH_GEMMVER_BODY2_RAJA \
-  x(i) +=  beta * A(j,i) * y(j);
+  xview(i) +=  beta * Aview(j,i) * yview(j);
 
 #define POLYBENCH_GEMMVER_BODY3_RAJA \
-  x(i) += z(i);
+  xview(i) += zview(i);
 
 #define POLYBENCH_GEMMVER_BODY4_RAJA \
-  w(i) +=  alpha * A(i,j) * x(j);
+  wview(i) +=  alpha * Aview(i,j) * xview(j);
+
+#define POLYBENCH_GEMMVER_VIEWS_RAJA \
+  using VIEW_1 = RAJA::View<Real_type, \
+                            RAJA::Layout<1, Index_type, 0>>; \
+\
+  using VIEW_2 = RAJA::View<Real_type, \
+                            RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_1 u1view(u1, RAJA::Layout<1>(n)); \
+  VIEW_1 v1view(v1, RAJA::Layout<1>(n)); \
+  VIEW_1 u2view(u2, RAJA::Layout<1>(n)); \
+  VIEW_1 v2view(v2, RAJA::Layout<1>(n)); \
+  VIEW_1 wview(w, RAJA::Layout<1>(n)); \
+  VIEW_1 xview(x, RAJA::Layout<1>(n)); \
+  VIEW_1 yview(y, RAJA::Layout<1>(n)); \
+  VIEW_1 zview(z, RAJA::Layout<1>(n)); \
+  VIEW_2 Aview(A, RAJA::Layout<2>(n, n));
 
 
 #include "common/KernelBase.hpp"

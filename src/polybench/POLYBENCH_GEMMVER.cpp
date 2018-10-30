@@ -68,8 +68,8 @@ POLYBENCH_GEMMVER::POLYBENCH_GEMMVER(const RunParams& params)
       run_reps = 5;
       break;
     default:
-      m_n=2000;
-      run_reps = 20;
+      m_n=800;
+      run_reps = 40;
       break;
   }
 
@@ -147,6 +147,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
+      POLYBENCH_GEMMVER_VIEWS_RAJA;
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -162,24 +164,24 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),  
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY1;
+          POLYBENCH_GEMMVER_BODY1_RAJA;
         });
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY2;
+          POLYBENCH_GEMMVER_BODY2_RAJA;
         });
 
         RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{0, n}, 
           [=] (Index_type i) {
-          POLYBENCH_GEMMVER_BODY3; 
+          POLYBENCH_GEMMVER_BODY3_RAJA; 
         });
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY4;
+          POLYBENCH_GEMMVER_BODY4_RAJA;
         });
 
 
@@ -234,6 +236,8 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
 
       POLYBENCH_GEMMVER_DATA_SETUP_CPU;
 
+      POLYBENCH_GEMMVER_VIEWS_RAJA;
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -249,24 +253,24 @@ void POLYBENCH_GEMMVER::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY1;
+          POLYBENCH_GEMMVER_BODY1_RAJA;
         });
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY2;
+          POLYBENCH_GEMMVER_BODY2_RAJA;
         });
 
         RAJA::forall<RAJA::omp_parallel_for_exec> ( RAJA::RangeSegment{0, n}, 
           [=] (int i) {
-          POLYBENCH_GEMMVER_BODY3; 
+          POLYBENCH_GEMMVER_BODY3_RAJA; 
         });
 
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
           [=](Index_type i, Index_type j) {     
-          POLYBENCH_GEMMVER_BODY4;
+          POLYBENCH_GEMMVER_BODY4_RAJA;
         });
 
       }
