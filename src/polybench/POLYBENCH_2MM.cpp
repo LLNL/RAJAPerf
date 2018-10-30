@@ -144,6 +144,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     case RAJA_Seq : {
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
+  
+      POLYBENCH_2MM_VIEWS_RAJA;
 
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -164,10 +166,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=](Index_type i, Index_type j, Index_type /* k */) {
-            POLYBENCH_2MM_BODY1;
+            POLYBENCH_2MM_BODY1_RAJA;
           },
           [=](Index_type i, Index_type j, Index_type k) {
-            POLYBENCH_2MM_BODY2;
+            POLYBENCH_2MM_BODY2_RAJA;
           }
         );
 
@@ -175,10 +177,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=](Index_type i, Index_type l, Index_type /* j */) {
-            POLYBENCH_2MM_BODY3;
+            POLYBENCH_2MM_BODY3_RAJA;
           },
           [=](Index_type i, Index_type l, Index_type j) {
-            POLYBENCH_2MM_BODY4;
+            POLYBENCH_2MM_BODY4_RAJA;
           }
         );
 
@@ -236,6 +238,8 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 
       POLYBENCH_2MM_DATA_SETUP_CPU;
 
+      POLYBENCH_2MM_VIEWS_RAJA;
+
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -268,10 +272,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=](Index_type i, Index_type j, Index_type /* k */) {
-            POLYBENCH_2MM_BODY1;
+            POLYBENCH_2MM_BODY1_RAJA;
           },
           [=](Index_type i, Index_type j, Index_type k) {
-            POLYBENCH_2MM_BODY2;
+            POLYBENCH_2MM_BODY2_RAJA;
           }
         );
 
@@ -279,10 +283,10 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=](Index_type i, Index_type l, Index_type /* j */) {
-            POLYBENCH_2MM_BODY3;
+            POLYBENCH_2MM_BODY3_RAJA;
           },
           [=](Index_type i, Index_type l, Index_type j) {
-            POLYBENCH_2MM_BODY4;
+            POLYBENCH_2MM_BODY4_RAJA;
           }
         );
 

@@ -118,6 +118,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_2MM_DATA_SETUP_CUDA;
 
+    POLYBENCH_2MM_VIEWS_RAJA;
+
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
@@ -139,10 +141,10 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
                                                RAJA::RangeSegment{0, nj},
                                                RAJA::RangeSegment{0, nk}),
         [=] __device__ (Index_type i, Index_type j, Index_type /* k */) {
-          POLYBENCH_2MM_BODY1;
+          POLYBENCH_2MM_BODY1_RAJA;
         },
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
-          POLYBENCH_2MM_BODY2;
+          POLYBENCH_2MM_BODY2_RAJA;
         }
       );
 
@@ -150,10 +152,10 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
                                                RAJA::RangeSegment{0, nl},
                                                RAJA::RangeSegment{0, nj}),
         [=] __device__ (Index_type i, Index_type l, Index_type /* j */) {
-          POLYBENCH_2MM_BODY3;
+          POLYBENCH_2MM_BODY3_RAJA;
         },
         [=] __device__ (Index_type i, Index_type l, Index_type j) {
-          POLYBENCH_2MM_BODY4;
+          POLYBENCH_2MM_BODY4_RAJA;
         }
       );
 
