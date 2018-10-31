@@ -121,7 +121,7 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_JACOBI_1D_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_1D : Unknown Cuda variant id = " << vid << std::endl;
+      std::cout << "\n  POLYBENCH_JACOBI_1D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }

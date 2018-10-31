@@ -120,9 +120,12 @@ blt_add_executable(
   polybench/POLYBENCH_ATAX.cpp
   polybench/POLYBENCH_ATAX-Cuda.cpp
   polybench/POLYBENCH_ATAX-OMPTarget.cpp
-  polybench/POLYBENCH_GEMMVER.cpp
-  polybench/POLYBENCH_GEMMVER-Cuda.cpp
-  polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
+  polybench/POLYBENCH_FDTD_2D.cpp
+  polybench/POLYBENCH_FDTD_2D-Cuda.cpp
+  polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
+  polybench/POLYBENCH_GEMVER.cpp
+  polybench/POLYBENCH_GEMVER-Cuda.cpp
+  polybench/POLYBENCH_GEMVER-OMPTarget.cpp
   polybench/POLYBENCH_JACOBI_1D.cpp
   polybench/POLYBENCH_JACOBI_1D-Cuda.cpp
   polybench/POLYBENCH_JACOBI_1D-OMPTarget.cpp

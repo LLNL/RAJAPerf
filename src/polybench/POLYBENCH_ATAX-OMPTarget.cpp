@@ -134,7 +134,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_ATAX_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown Cuda variant id = " << vid << std::endl;
+      std::cout << "\n  POLYBENCH_ATAX : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
