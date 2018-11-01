@@ -21,11 +21,20 @@ blt_add_library(
           POLYBENCH_3MM.cpp
           POLYBENCH_3MM-Cuda.cpp
           POLYBENCH_3MM-OMPTarget.cpp
-          POLYBENCH_GEMMVER.cpp
-          POLYBENCH_GEMMVER-Cuda.cpp
-          POLYBENCH_GEMMVER-OMPTarget.cpp
           POLYBENCH_ADI.cpp
           POLYBENCH_ADI-Cuda.cpp
           POLYBENCH_ADI-OMPTarget.cpp
+          POLYBENCH_ATAX.cpp
+          POLYBENCH_ATAX-Cuda.cpp
+          POLYBENCH_ATAX-OMPTarget.cpp
+          POLYBENCH_FDTD_2D.cpp
+          POLYBENCH_FDTD_2D-Cuda.cpp
+          POLYBENCH_FDTD_2D-OMPTarget.cpp
+          POLYBENCH_GEMVER.cpp
+          POLYBENCH_GEMVER-Cuda.cpp
+          POLYBENCH_GEMVER-OMPTarget.cpp
+          POLYBENCH_JACOBI_1D.cpp
+          POLYBENCH_JACOBI_1D-Cuda.cpp
+          POLYBENCH_JACOBI_1D-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 ///
-/// POLYBENCH_GEMMVER kernel reference implementation:
+/// POLYBENCH_GEMVER kernel reference implementation:
 ///
 /// for (Index_type i = 0; i < N; i++) {
 ///   for (Index_type j = 0; j < N; j++) {
@@ -40,20 +40,50 @@
 
 
 
-#ifndef RAJAPerf_POLYBENCH_GEMMVER_HPP
-#define RAJAPerf_POLYBENCH_GEMMVER_HPP
+#ifndef RAJAPerf_POLYBENCH_GEMVER_HPP
+#define RAJAPerf_POLYBENCH_GEMVER_HPP
 
-#define POLYBENCH_GEMMVER_BODY1 \
-  A[j + i*n] = A[j + i*n] + u1[i] * v1[j] + u2[i] * v2[j];
+#define POLYBENCH_GEMVER_BODY1 \
+  A[j + i*n] += u1[i] * v1[j] + u2[i] * v2[j];
 
-#define POLYBENCH_GEMMVER_BODY2 \
-  x[i] =  x[i] + beta * A[i + j*n] * y[j];
+#define POLYBENCH_GEMVER_BODY2 \
+  x[i] +=  beta * A[i + j*n] * y[j];
 
-#define POLYBENCH_GEMMVER_BODY3 \
-  x[i] = x[i] + z[i];
+#define POLYBENCH_GEMVER_BODY3 \
+  x[i] += z[i];
 
-#define POLYBENCH_GEMMVER_BODY4 \
-  w[i] = w[i] +  alpha * A[j + i*n] * x[j];
+#define POLYBENCH_GEMVER_BODY4 \
+  w[i] +=  alpha * A[j + i*n] * x[j];
+
+
+#define POLYBENCH_GEMVER_BODY1_RAJA \
+  Aview(i,j) += u1view(i) * v1view(j) + u2view(i) * v2view(j);
+
+#define POLYBENCH_GEMVER_BODY2_RAJA \
+  xview(i) +=  beta * Aview(j,i) * yview(j);
+
+#define POLYBENCH_GEMVER_BODY3_RAJA \
+  xview(i) += zview(i);
+
+#define POLYBENCH_GEMVER_BODY4_RAJA \
+  wview(i) +=  alpha * Aview(i,j) * xview(j);
+
+#define POLYBENCH_GEMVER_VIEWS_RAJA \
+  using VIEW_1 = RAJA::View<Real_type, \
+                            RAJA::Layout<1, Index_type, 0>>; \
+\
+  using VIEW_2 = RAJA::View<Real_type, \
+                            RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_1 u1view(u1, RAJA::Layout<1>(n)); \
+  VIEW_1 v1view(v1, RAJA::Layout<1>(n)); \
+  VIEW_1 u2view(u2, RAJA::Layout<1>(n)); \
+  VIEW_1 v2view(v2, RAJA::Layout<1>(n)); \
+  VIEW_1 wview(w, RAJA::Layout<1>(n)); \
+  VIEW_1 xview(x, RAJA::Layout<1>(n)); \
+  VIEW_1 yview(y, RAJA::Layout<1>(n)); \
+  VIEW_1 zview(z, RAJA::Layout<1>(n)); \
+  VIEW_2 Aview(A, RAJA::Layout<2>(n, n));
 
 
 #include "common/KernelBase.hpp"
@@ -66,13 +96,13 @@ class RunParams;
 namespace polybench
 {
 
-class POLYBENCH_GEMMVER : public KernelBase
+class POLYBENCH_GEMVER : public KernelBase
 {
 public:
 
-  POLYBENCH_GEMMVER(const RunParams& params);
+  POLYBENCH_GEMVER(const RunParams& params);
 
-  ~POLYBENCH_GEMMVER();
+  ~POLYBENCH_GEMVER();
 
 
   void setUp(VariantID vid);

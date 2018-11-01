@@ -151,6 +151,8 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
 
+      POLYBENCH_3MM_VIEWS_RAJA;
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -170,10 +172,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=](Index_type i, Index_type j, Index_type /* k */) {
-            POLYBENCH_3MM_BODY1;
+            POLYBENCH_3MM_BODY1_RAJA;
           },
           [=](Index_type i, Index_type j, Index_type k) {
-            POLYBENCH_3MM_BODY2;
+            POLYBENCH_3MM_BODY2_RAJA;
           }
         );
 
@@ -181,10 +183,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nm}),
           [=](Index_type j, Index_type l, Index_type /* m */) {
-            POLYBENCH_3MM_BODY3;
+            POLYBENCH_3MM_BODY3_RAJA;
           },                                     
           [=](Index_type j, Index_type l, Index_type m) {
-            POLYBENCH_3MM_BODY4;
+            POLYBENCH_3MM_BODY4_RAJA;
           }
         );
 
@@ -192,10 +194,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=](Index_type i, Index_type l, Index_type /* j */) {
-            POLYBENCH_3MM_BODY5;                 
+            POLYBENCH_3MM_BODY5_RAJA;                 
           },                               
           [=](Index_type i, Index_type l, Index_type j) {
-            POLYBENCH_3MM_BODY6;
+            POLYBENCH_3MM_BODY6_RAJA;
           }
         );
 
@@ -266,6 +268,8 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
       POLYBENCH_3MM_DATA_SETUP_CPU;
 
+      POLYBENCH_3MM_VIEWS_RAJA;
+
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -298,10 +302,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nj},
                                                  RAJA::RangeSegment{0, nk}),
           [=] (Index_type i, Index_type j, Index_type /* k */) {
-            POLYBENCH_3MM_BODY1;
+            POLYBENCH_3MM_BODY1_RAJA;
           },
           [=] (Index_type i, Index_type j, Index_type k) {
-            POLYBENCH_3MM_BODY2;
+            POLYBENCH_3MM_BODY2_RAJA;
           }
         );
 
@@ -309,10 +313,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nm}),
           [=] (Index_type j, Index_type l, Index_type /* m */) {
-            POLYBENCH_3MM_BODY3;
+            POLYBENCH_3MM_BODY3_RAJA;
           },
           [=] (Index_type j, Index_type l, Index_type m) {
-            POLYBENCH_3MM_BODY4;
+            POLYBENCH_3MM_BODY4_RAJA;
           }
         );
 
@@ -320,10 +324,10 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
                                                  RAJA::RangeSegment{0, nl},
                                                  RAJA::RangeSegment{0, nj}),
           [=] (Index_type i, Index_type l, Index_type /* j */) {
-            POLYBENCH_3MM_BODY5;
+            POLYBENCH_3MM_BODY5_RAJA;
           },
           [=] (Index_type i, Index_type l, Index_type j) {
-            POLYBENCH_3MM_BODY6;
+            POLYBENCH_3MM_BODY6_RAJA;
           }
         );
 

@@ -106,23 +106,24 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_DAXPY = 0,
-  Basic_MULADDSUB,
   Basic_IF_QUAD,
-  Basic_TRAP_INT,
   Basic_INIT3,
-  Basic_REDUCE3_INT,
-  Basic_NESTED_INIT,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MULADDSUB,
+  Basic_NESTED_INIT,
+  Basic_REDUCE3_INT,
+  Basic_TRAP_INT,
 
 //
 // Lcals kernels...
 //
-  Lcals_HYDRO_1D,
-  Lcals_EOS,
-  Lcals_INT_PREDICT,
   Lcals_DIFF_PREDICT,
+  Lcals_EOS,
   Lcals_FIRST_DIFF,
+  Lcals_HYDRO_1D,
+  Lcals_HYDRO_2D,
+  Lcals_INT_PREDICT,
   Lcals_PLANCKIAN,
 
 //
@@ -130,29 +131,32 @@ enum KernelID {
 //
   Polybench_2MM,
   Polybench_3MM,
-  Polybench_GEMMVER,
   Polybench_ADI,
+  Polybench_ATAX,
+  Polybench_FDTD_2D,
+  Polybench_GEMVER,
+  Polybench_JACOBI_1D,
 
 //
 // Stream kernels...
 //
-  Stream_COPY,
-  Stream_MUL,
   Stream_ADD,
-  Stream_TRIAD,
+  Stream_COPY,
   Stream_DOT,
+  Stream_MUL,
+  Stream_TRIAD,
 
 //
 // Apps kernels...
 //
-  Apps_PRESSURE,
-  Apps_ENERGY,
-  Apps_VOL3D,
+  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
+  Apps_ENERGY,
   Apps_FIR,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
-  Apps_COUPLE,
+  Apps_PRESSURE,
+  Apps_VOL3D,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

@@ -67,6 +67,36 @@
   G[l + i*nl] += E[j + i*nj] * F[l + j*nl];
 
 
+#define POLYBENCH_3MM_BODY1_RAJA \
+  Eview(i,j) = 0.0;
+
+#define POLYBENCH_3MM_BODY2_RAJA \
+  Eview(i,j) += Aview(i,k) * Bview(k,j);
+
+#define POLYBENCH_3MM_BODY3_RAJA \
+  Fview(j,l) = 0.0;
+
+#define POLYBENCH_3MM_BODY4_RAJA \
+  Fview(j,l) += Cview(j,m) * Dview(m,l);
+
+#define POLYBENCH_3MM_BODY5_RAJA \
+  Gview(i,l) = 0.0;
+
+#define POLYBENCH_3MM_BODY6_RAJA \
+  Gview(i,l) += Eview(i,j) * Fview(j,l);
+
+#define POLYBENCH_3MM_VIEWS_RAJA \
+using VIEW_TYPE = RAJA::View<Real_type, \
+                             RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_TYPE Aview(A, RAJA::Layout<2>(ni, nk)); \
+  VIEW_TYPE Bview(B, RAJA::Layout<2>(nk, nj)); \
+  VIEW_TYPE Cview(C, RAJA::Layout<2>(nj, nm)); \
+  VIEW_TYPE Dview(D, RAJA::Layout<2>(nm, nl)); \
+  VIEW_TYPE Eview(E, RAJA::Layout<2>(ni, nj)); \
+  VIEW_TYPE Fview(F, RAJA::Layout<2>(nj, nl)); \
+  VIEW_TYPE Gview(G, RAJA::Layout<2>(ni, nl));
+
 #include "common/KernelBase.hpp"
 
 namespace rajaperf 

@@ -80,9 +80,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n npasses = " << npasses; 
   str << "\n rep_fact = " << rep_fact; 
   str << "\n size_fact = " << size_fact; 
-  str << "\n size_fact = " << size_fact; 
   str << "\n pf_tol = " << pf_tol; 
   str << "\n checkrun_reps = " << checkrun_reps; 
+  str << "\n size_spec_string = " << size_spec_string;  
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -338,7 +338,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --sizefact 2.0 (iteration space size is twice the default)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
-      << "\t      (used to set specific sizes for certain kernels : e.g. polybench)\n\n"; 
+      << "\t      (used to set specific sizes for polybench kernels)\n\n"; 
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
@@ -463,15 +463,15 @@ const std::string& RunParams::getSizeSpecString()
 void RunParams::setSizeSpec(std::string inputString)
 {
   for (auto & c: inputString) c = std::toupper(c);
-  if(inputString == "MINI")
+  if (inputString == "MINI")
     size_spec = Mini;
-  else if(inputString == "SMALL")
+  else if (inputString == "SMALL")
     size_spec = Small;
-  else if(inputString == "MEDIUM")
+  else if (inputString == "MEDIUM")
     size_spec = Medium;
-  else if(inputString == "LARGE")
+  else if (inputString == "LARGE")
     size_spec = Large;
-  else if(inputString == "EXTRALARGE")
+  else if (inputString == "EXTRALARGE")
     size_spec = Extralarge;
   else
     size_spec = Specundefined;

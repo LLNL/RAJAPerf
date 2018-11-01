@@ -14,7 +14,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "POLYBENCH_GEMMVER.hpp"
+#include "POLYBENCH_GEMVER.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -34,7 +34,7 @@ namespace polybench
 //
 #define NUMTEAMS 256
 
-#define POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET \
+#define POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
@@ -61,7 +61,7 @@ namespace polybench
   allocAndInitOpenMPDeviceData(y, m_y, m_n, did, hid); \
   allocAndInitOpenMPDeviceData(z, m_z, m_n, did, hid); 
 
-#define POLYBENCH_GEMMVER_DATA_TEARDOWN_OMP_TARGET \
+#define POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_w, w, m_n, hid, did); \
   deallocOpenMPDeviceData(A, did); \
   deallocOpenMPDeviceData(u1, did); \
@@ -75,14 +75,14 @@ namespace polybench
 
   
 
-void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type n = m_n;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET;
+    POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,7 +91,7 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < n; i++) {
         for(Index_type j = 0; j < n; j++) {
-          POLYBENCH_GEMMVER_BODY1;
+          POLYBENCH_GEMVER_BODY1;
         }
       }
 
@@ -99,31 +99,33 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) { 
         for (Index_type j = 0; j < n; j++) { 
-          POLYBENCH_GEMMVER_BODY2;
+          POLYBENCH_GEMVER_BODY2;
         }
       }
 
       #pragma omp target is_device_ptr(x,z) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
       for (Index_type i = 0; i < n; i++) {
-        POLYBENCH_GEMMVER_BODY3;
+        POLYBENCH_GEMVER_BODY3;
       }
 
       #pragma omp target is_device_ptr(A,w,x) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
         for (Index_type j = 0; j < n; ++j) { 
-          POLYBENCH_GEMMVER_BODY4;
+          POLYBENCH_GEMVER_BODY4;
         }
       }
 
     } // end run_reps
     stopTimer(); 
-    POLYBENCH_GEMMVER_DATA_TEARDOWN_OMP_TARGET;
+    POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    POLYBENCH_GEMMVER_DATA_SETUP_OMP_TARGET;
+    POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET;
+
+    POLYBENCH_GEMVER_VIEWS_RAJA;
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
@@ -150,36 +152,36 @@ void POLYBENCH_GEMMVER::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                 RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY1;
+          POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY2;
+          POLYBENCH_GEMVER_BODY2_RAJA;
         }
       );
 
       RAJA::forall<EXEC_POL3> (
         RAJA::RangeSegment{0, n}, [=] (Index_type i) {
-        POLYBENCH_GEMMVER_BODY3;
+        POLYBENCH_GEMVER_BODY3_RAJA;
       }); 
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMMVER_BODY4;
+          POLYBENCH_GEMVER_BODY4_RAJA;
         }
       ); 
 
     }
     stopTimer();
 
-    POLYBENCH_GEMMVER_DATA_TEARDOWN_OMP_TARGET;
+    POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  POLYBENCH_GEMMVER : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n  POLYBENCH_GEMVER : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
