@@ -136,6 +136,7 @@ enum KernelID {
   Polybench_FDTD_2D,
   Polybench_GEMVER,
   Polybench_JACOBI_1D,
+  Polybench_MVT,
 
 //
 // Stream kernels...
