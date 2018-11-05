@@ -137,6 +137,7 @@ enum KernelID {
   Polybench_GEMM,
   Polybench_GEMVER,
   Polybench_JACOBI_1D,
+  Polybench_JACOBI_2D,
   Polybench_MVT,
 
 //

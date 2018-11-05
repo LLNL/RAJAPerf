@@ -132,6 +132,9 @@ blt_add_executable(
   polybench/POLYBENCH_JACOBI_1D.cpp
   polybench/POLYBENCH_JACOBI_1D-Cuda.cpp
   polybench/POLYBENCH_JACOBI_1D-OMPTarget.cpp
+  polybench/POLYBENCH_JACOBI_2D.cpp
+  polybench/POLYBENCH_JACOBI_2D-Cuda.cpp
+  polybench/POLYBENCH_JACOBI_2D-OMPTarget.cpp
   polybench/POLYBENCH_MVT.cpp
   polybench/POLYBENCH_MVT-Cuda.cpp
   polybench/POLYBENCH_MVT-OMPTarget.cpp

@@ -52,6 +52,7 @@
 #include "polybench/POLYBENCH_GEMM.hpp"
 #include "polybench/POLYBENCH_GEMVER.hpp"
 #include "polybench/POLYBENCH_JACOBI_1D.hpp"
+#include "polybench/POLYBENCH_JACOBI_2D.hpp"
 #include "polybench/POLYBENCH_MVT.hpp"
 
 //
@@ -158,6 +159,7 @@ static const std::string KernelNames [] =
   std::string("Polybench_GEMM"),
   std::string("Polybench_GEMVER"),
   std::string("Polybench_JACOBI_1D"),
+  std::string("Polybench_JACOBI_2D"),
   std::string("Polybench_MVT"),
 
 //
@@ -398,6 +400,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Polybench_JACOBI_1D : {
        kernel = new polybench::POLYBENCH_JACOBI_1D(run_params);
+       break;
+    }
+    case Polybench_JACOBI_2D : {
+       kernel = new polybench::POLYBENCH_JACOBI_2D(run_params);
        break;
     }
     case Polybench_MVT : {
