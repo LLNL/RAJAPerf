@@ -123,6 +123,9 @@ blt_add_executable(
   polybench/POLYBENCH_FDTD_2D.cpp
   polybench/POLYBENCH_FDTD_2D-Cuda.cpp
   polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
+  polybench/POLYBENCH_GEMM.cpp
+  polybench/POLYBENCH_GEMM-Cuda.cpp
+  polybench/POLYBENCH_GEMM-OMPTarget.cpp
   polybench/POLYBENCH_GEMVER.cpp
   polybench/POLYBENCH_GEMVER-Cuda.cpp
   polybench/POLYBENCH_GEMVER-OMPTarget.cpp
