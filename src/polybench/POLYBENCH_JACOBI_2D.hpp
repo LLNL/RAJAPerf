@@ -41,10 +41,10 @@
 
 
 #define POLYBENCH_JACOBI_2D_BODY1_RAJA \
-  B(i,j) = 0.2 * (A(i,j) + A(i,j-1) + A(i,j+1) + A(i+1,j) + A(i-1,j));
+  Bview(i,j) = 0.2 * (Aview(i,j) + Aview(i,j-1) + Aview(i,j+1) + Aview(i+1,j) + Aview(i-1,j));
 
 #define POLYBENCH_JACOBI_2D_BODY2_RAJA \
-  A(i,j) = 0.2 * (B(i,j) + B(i,j-1) + B(i,j+1) + B(i+1,j) + B(i-1,j));
+  Aview(i,j) = 0.2 * (Bview(i,j) + Bview(i,j-1) + Bview(i,j+1) + Bview(i+1,j) + Bview(i-1,j));
 
 #define POLYBENCH_JACOBI_2D_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \

@@ -116,10 +116,10 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1}),
           [=] (Index_type i, Index_type j) {
-            POLYBENCH_JACOBI_2D_BODY1;
+            POLYBENCH_JACOBI_2D_BODY1_RAJA;
           },
           [=] (Index_type i, Index_type j) {
-            POLYBENCH_JACOBI_2D_BODY2;
+            POLYBENCH_JACOBI_2D_BODY2_RAJA;
           }
         );
 
