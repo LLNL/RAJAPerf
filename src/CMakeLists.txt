@@ -123,12 +123,24 @@ blt_add_executable(
   polybench/POLYBENCH_FDTD_2D.cpp
   polybench/POLYBENCH_FDTD_2D-Cuda.cpp
   polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
+  polybench/POLYBENCH_GEMM.cpp
+  polybench/POLYBENCH_GEMM-Cuda.cpp
+  polybench/POLYBENCH_GEMM-OMPTarget.cpp
   polybench/POLYBENCH_GEMVER.cpp
   polybench/POLYBENCH_GEMVER-Cuda.cpp
   polybench/POLYBENCH_GEMVER-OMPTarget.cpp
+  polybench/POLYBENCH_HEAT_3D.cpp
+  polybench/POLYBENCH_HEAT_3D-Cuda.cpp
+  polybench/POLYBENCH_HEAT_3D-OMPTarget.cpp
   polybench/POLYBENCH_JACOBI_1D.cpp
   polybench/POLYBENCH_JACOBI_1D-Cuda.cpp
   polybench/POLYBENCH_JACOBI_1D-OMPTarget.cpp
+  polybench/POLYBENCH_JACOBI_2D.cpp
+  polybench/POLYBENCH_JACOBI_2D-Cuda.cpp
+  polybench/POLYBENCH_JACOBI_2D-OMPTarget.cpp
+  polybench/POLYBENCH_MVT.cpp
+  polybench/POLYBENCH_MVT-Cuda.cpp
+  polybench/POLYBENCH_MVT-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp
