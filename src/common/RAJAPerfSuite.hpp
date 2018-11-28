@@ -136,6 +136,7 @@ enum KernelID {
   Polybench_FDTD_2D,
   Polybench_GEMM,
   Polybench_GEMVER,
+  Polybench_GESUMMV,
   Polybench_HEAT_3D,
   Polybench_JACOBI_1D,
   Polybench_JACOBI_2D,
