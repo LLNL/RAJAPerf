@@ -233,7 +233,7 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
     }
 #endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP) && 0
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :
     {

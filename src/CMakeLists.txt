@@ -131,6 +131,7 @@ blt_add_executable(
   polybench/POLYBENCH_GEMVER-OMPTarget.cpp
   polybench/POLYBENCH_GESUMMV.cpp
   polybench/POLYBENCH_GESUMMV-Cuda.cpp
+  polybench/POLYBENCH_GESUMMV-OMPTarget.cpp
   polybench/POLYBENCH_HEAT_3D.cpp
   polybench/POLYBENCH_HEAT_3D-Cuda.cpp
   polybench/POLYBENCH_HEAT_3D-OMPTarget.cpp

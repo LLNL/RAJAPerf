@@ -38,6 +38,7 @@ blt_add_library(
           POLYBENCH_GEMVER-OMPTarget.cpp
           POLYBENCH_GESUMMV.cpp
           POLYBENCH_GESUMMV-Cuda.cpp
+          POLYBENCH_GESUMMV-OMPTarget.cpp
           POLYBENCH_HEAT_3D.cpp
           POLYBENCH_HEAT_3D-Cuda.cpp
           POLYBENCH_HEAT_3D-OMPTarget.cpp
