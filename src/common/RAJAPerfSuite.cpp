@@ -49,6 +49,7 @@
 #include "polybench/POLYBENCH_ADI.hpp"
 #include "polybench/POLYBENCH_ATAX.hpp"
 #include "polybench/POLYBENCH_FDTD_2D.hpp"
+#include "polybench/POLYBENCH_FLOYD_WARSHALL.hpp"
 #include "polybench/POLYBENCH_GEMM.hpp"
 #include "polybench/POLYBENCH_GEMVER.hpp"
 #include "polybench/POLYBENCH_GESUMMV.hpp"
@@ -158,6 +159,7 @@ static const std::string KernelNames [] =
   std::string("Polybench_ADI"),
   std::string("Polybench_ATAX"),
   std::string("Polybench_FDTD_2D"),
+  std::string("Polybench_FLOYD_WARSHALL"),
   std::string("Polybench_GEMM"),
   std::string("Polybench_GEMVER"),
   std::string("Polybench_GESUMMV"),
@@ -392,6 +394,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Polybench_FDTD_2D : {
        kernel = new polybench::POLYBENCH_FDTD_2D(run_params);
+       break;
+    }
+    case Polybench_FLOYD_WARSHALL : {
+       kernel = new polybench::POLYBENCH_FLOYD_WARSHALL(run_params);
        break;
     }
     case Polybench_GEMM : {

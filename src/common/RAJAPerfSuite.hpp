@@ -134,6 +134,7 @@ enum KernelID {
   Polybench_ADI,
   Polybench_ATAX,
   Polybench_FDTD_2D,
+  Polybench_FLOYD_WARSHALL,
   Polybench_GEMM,
   Polybench_GEMVER,
   Polybench_GESUMMV,
