@@ -123,7 +123,7 @@ void DOT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> dot(m_dot_init);
+       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
 
        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

@@ -30,12 +30,18 @@ blt_add_library(
           POLYBENCH_FDTD_2D.cpp
           POLYBENCH_FDTD_2D-Cuda.cpp
           POLYBENCH_FDTD_2D-OMPTarget.cpp
+          POLYBENCH_FLOYD_WARSHALL.cpp
+          POLYBENCH_FLOYD_WARSHALL-Cuda.cpp
+          POLYBENCH_FLOYD_WARSHALL-OMPTarget.cpp
           POLYBENCH_GEMM.cpp
           POLYBENCH_GEMM-Cuda.cpp
           POLYBENCH_GEMM-OMPTarget.cpp
           POLYBENCH_GEMVER.cpp
           POLYBENCH_GEMVER-Cuda.cpp
           POLYBENCH_GEMVER-OMPTarget.cpp
+          POLYBENCH_GESUMMV.cpp
+          POLYBENCH_GESUMMV-Cuda.cpp
+          POLYBENCH_GESUMMV-OMPTarget.cpp
           POLYBENCH_HEAT_3D.cpp
           POLYBENCH_HEAT_3D-Cuda.cpp
           POLYBENCH_HEAT_3D-OMPTarget.cpp

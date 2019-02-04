@@ -154,9 +154,9 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::cuda_reduce<block_size>, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::cuda_reduce<block_size>, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
