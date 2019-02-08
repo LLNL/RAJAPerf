@@ -230,35 +230,39 @@ void ENERGY::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY1;
-       });
+      RAJA::region<RAJA::seq_region>( [=]() {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY2;
-       });
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY1;
+        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY3;
-       });
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY2;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY3;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY4;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY5;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY6;
+        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY4;
-       });
-
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY5;
-       });
-
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY6;
-       });
+      }); // end sequential region (for single-source code)
 
     }
     stopTimer();
