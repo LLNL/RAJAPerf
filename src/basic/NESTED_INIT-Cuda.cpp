@@ -80,9 +80,9 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<2, RAJA::cuda_block_exec,      // k
-            RAJA::statement::For<1, RAJA::cuda_block_exec,    // j
-              RAJA::statement::For<0, RAJA::cuda_thread_exec, // i
+          RAJA::statement::For<2, RAJA::cuda_block_z_loop,      // k
+            RAJA::statement::For<1, RAJA::cuda_block_y_loop,    // j
+              RAJA::statement::For<0, RAJA::cuda_thread_x_loop, // i
                 RAJA::statement::Lambda<0>
               >
             >

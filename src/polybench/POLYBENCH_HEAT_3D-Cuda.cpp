@@ -105,18 +105,18 @@ void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_block_exec,
-              RAJA::statement::For<2, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_z_loop,
+            RAJA::statement::For<1, RAJA::cuda_block_y_loop,
+              RAJA::statement::For<2, RAJA::cuda_thread_x_loop,
                 RAJA::statement::Lambda<0>
               >
             >
           >
         >,
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_block_exec,
-              RAJA::statement::For<2, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_z_loop,
+            RAJA::statement::For<1, RAJA::cuda_block_y_loop,
+              RAJA::statement::For<2, RAJA::cuda_thread_x_loop,
                 RAJA::statement::Lambda<1>
               >
             >

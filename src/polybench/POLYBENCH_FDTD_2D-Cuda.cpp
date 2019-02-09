@@ -142,8 +142,8 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
     using EXEC_POL234 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_y_loop,
               RAJA::statement::Lambda<0>
             >
           >

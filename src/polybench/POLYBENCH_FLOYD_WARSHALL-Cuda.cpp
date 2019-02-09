@@ -1,4 +1,4 @@
-  
+ 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
@@ -91,8 +91,8 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
           RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<1, RAJA::cuda_block_exec,
-              RAJA::statement::For<2, RAJA::cuda_thread_exec,
+            RAJA::statement::For<1, RAJA::cuda_block_x_loop,
+              RAJA::statement::For<2, RAJA::cuda_thread_y_loop,
                 RAJA::statement::Lambda<0>
               >
             >

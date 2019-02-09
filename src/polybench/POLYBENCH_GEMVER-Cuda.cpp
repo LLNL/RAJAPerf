@@ -160,8 +160,8 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_y_loop,
               RAJA::statement::Lambda<0>,
             >
           >
@@ -171,7 +171,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     using EXEC_POL24 = 
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
+          RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
             RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<0>,
             >
