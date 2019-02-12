@@ -109,7 +109,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
-    using EXEC_POL =
+    using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
@@ -118,11 +118,15 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
               RAJA::statement::Lambda<1>
             >
           >
-        >,
+        >
+      >;
+
+    using EXEC_POL2 = 
+      RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
             RAJA::statement::For<0, RAJA::seq_exec,
-              RAJA::statement::Lambda<2>
+              RAJA::statement::Lambda<0>
             >
           >
         >
@@ -131,14 +135,19 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N}),
+      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                RAJA::RangeSegment{0, N}),
         [=] __device__ (Index_type i, Index_type /* j */) {
           POLYBENCH_ATAX_BODY1_RAJA;
         },
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_ATAX_BODY2_RAJA;
-        },
+        }
+      );
+
+      RAJA::kernel<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                RAJA::RangeSegment{0, N}),
+
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_ATAX_BODY3_RAJA;
         }

@@ -187,26 +187,26 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                 RAJA::RangeSegment{0, n}),
         [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY1;
+          POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY2;
+          POLYBENCH_GEMVER_BODY2_RAJA;
         }
       );
 
       RAJA::forall<EXEC_POL3> (
         RAJA::RangeSegment{0, n}, [=] __device__ (Index_type i) {
-        POLYBENCH_GEMVER_BODY3;
+        POLYBENCH_GEMVER_BODY3_RAJA;
       });
 
       RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                  RAJA::RangeSegment{0, n}),
         [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY4;
+          POLYBENCH_GEMVER_BODY4_RAJA;
         }
       );
       

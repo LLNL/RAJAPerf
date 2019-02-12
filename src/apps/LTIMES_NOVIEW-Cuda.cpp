@@ -53,7 +53,7 @@ __global__ void ltimes_noview(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
                               Index_type num_d, Index_type num_g, Index_type num_m)
 {
    Index_type m = threadIdx.x;
-   Index_type g = blockIdx.y;
+   Index_type g = threadIdx.y;
    Index_type z = blockIdx.z;
 
    for (Index_type d = 0; d < num_d; ++d ) {
@@ -73,8 +73,8 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(num_m, 1, 1);
-      dim3 nblocks(1, num_g, num_z);
+      dim3 nthreads_per_block(num_m, num_g, 1);
+      dim3 nblocks(1, 1, num_z);
 
       ltimes_noview<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
                                                      num_d, num_g, num_m);  
@@ -92,7 +92,7 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
           RAJA::statement::For<1, RAJA::cuda_block_z_loop,      //z
-            RAJA::statement::For<2, RAJA::cuda_block_y_loop,    //g
+            RAJA::statement::For<2, RAJA::cuda_thread_y_loop,    //g
               RAJA::statement::For<3, RAJA::cuda_thread_x_loop, //m
                 RAJA::statement::For<0, RAJA::seq_exec,       //d
                   RAJA::statement::Lambda<0>
