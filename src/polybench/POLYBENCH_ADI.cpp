@@ -154,17 +154,7 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
             RAJA::statement::For<2, RAJA::loop_exec,
               RAJA::statement::Lambda<3>
             >
-          >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<4>,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<5>
-            >,
-            RAJA::statement::Lambda<6>,
-            RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<7>
-            >
-          >    
+          >
         >;
 
       startTimer();
@@ -190,7 +180,14 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
               POLYBENCH_ADI_BODY5_RAJA;
-            },
+            }
+          );
+
+          RAJA::kernel<EXEC_POL>(
+            RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                             RAJA::RangeSegment{1, n-1},
+                             RAJA::RangeStrideSegment{n-2, 0, -1}),
+
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
               POLYBENCH_ADI_BODY6_RAJA;
             },
@@ -275,16 +272,6 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
             RAJA::statement::For<2, RAJA::loop_exec,
               RAJA::statement::Lambda<3>
             >
-          >,
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<4>,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<5>
-            >,
-            RAJA::statement::Lambda<6>,
-            RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<7>
-            >
           >
         >;
 
@@ -311,7 +298,14 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
             },
             [=](Index_type i, Index_type /*j*/, Index_type k) {
               POLYBENCH_ADI_BODY5_RAJA;
-            },
+            }
+          );
+
+          RAJA::kernel<EXEC_POL>(
+            RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
+                             RAJA::RangeSegment{1, n-1},
+                             RAJA::RangeStrideSegment{n-2, 0, -1}),
+
             [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
               POLYBENCH_ADI_BODY6_RAJA;
             },
