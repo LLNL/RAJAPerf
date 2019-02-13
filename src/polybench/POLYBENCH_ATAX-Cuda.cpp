@@ -112,10 +112,12 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
-            RAJA::statement::Lambda<0>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1>
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >
             >
           >
         >
@@ -124,9 +126,11 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
     using EXEC_POL2 = 
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
-            RAJA::statement::For<0, RAJA::seq_exec,
-              RAJA::statement::Lambda<0>
+          RAJA::statement::Tile<1, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+              RAJA::statement::For<0, RAJA::seq_exec,
+                RAJA::statement::Lambda<0>
+              >
             >
           >
         >
