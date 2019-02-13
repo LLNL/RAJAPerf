@@ -130,28 +130,21 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
       POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<0>
-          >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<1>
-          >
-        >;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i) {
+
+          RAJA::forall<RAJA::loop_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY1;
-            },
-            [=](Index_type i) {
+          });
+
+          RAJA::forall<RAJA::loop_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY2;
-            }
-          );
+          });
+
         }
 
       }
@@ -196,28 +189,21 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
       POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0>
-          >,
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<1>
-          >
-        >;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i) {
+
+          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY1;
-            },
-            [=](Index_type i) {
+          });
+
+          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY2;
-            }
-          );
+          });
+
         }
 
       }
