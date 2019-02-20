@@ -21,7 +21,7 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -32,12 +32,12 @@ namespace polybench
   ResReal_ptr x = m_x; \
   ResReal_ptr A = m_A;
 
-  
+
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
   SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_N=42;
@@ -69,7 +69,7 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultReps(run_reps);
 }
 
-POLYBENCH_ATAX::~POLYBENCH_ATAX() 
+POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
 
 }
@@ -97,17 +97,22 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) { 
-          POLYBENCH_ATAX_BODY1;
+        for (Index_type i = 0; i < N; ++i ) {
+          double dot;
+          POLYBENCH_ATAX_BODY_i1;
           for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY2;
+            POLYBENCH_ATAX_BODY_i2;
           }
+          POLYBENCH_ATAX_BODY_i3;
         }
 
-        for (Index_type i = 0; i < N; ++i ) { 
-          for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY3;
+        for (Index_type j = 0; j < N; ++j ) {
+          double dot;
+          POLYBENCH_ATAX_BODY_i4;
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_ATAX_BODY_i5;
           }
+          POLYBENCH_ATAX_BODY_i6;
         }
 
       }
@@ -117,7 +122,8 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+
     case RAJA_Seq : {
 
       POLYBENCH_ATAX_DATA_SETUP_CPU;
@@ -130,45 +136,62 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
             RAJA::statement::Lambda<0>,
             RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<1>
-            >
+             >,
+            RAJA::statement::Lambda<2>
           >
         >;
 
       using EXEC_POL2 =
-        RAJA::KernelPolicy< 
+        RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::loop_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
-              RAJA::statement::Lambda<0>
-            >
+            RAJA::statement::Lambda<0>,
+              RAJA::statement::For<0, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+                >,
+                RAJA::statement::Lambda<2>
           >
         >;
+
+    auto Lam1 = [=]  (Index_type i, Index_type /* j */, double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i1
+    };
+    auto Lam2 =  [=]  (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i2
+    };
+
+    auto Lam3 = [=]  (Index_type i, Index_type /* j */, double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i3
+    };
+    auto Lam4 =  [=]  (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i4
+    };
+
+    auto Lam5 = [=]  (Index_type i, Index_type j , double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i5
+    };
+    auto Lam6 =  [=]  (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_RAJA_i6
+    };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type /* j */) {
-            POLYBENCH_ATAX_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j) {
-            POLYBENCH_ATAX_BODY2_RAJA;
-          }
-        );
+        RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                        RAJA::RangeSegment{0, N}),
+                                       RAJA::make_tuple(0.0),
+                                       Lam1, Lam2, Lam3
+                                       );
 
-        RAJA::kernel<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type j) {
-            POLYBENCH_ATAX_BODY3_RAJA;
-          }
-        );
-
+        RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                        RAJA::RangeSegment{0, N}),
+                                       RAJA::make_tuple(0.0),
+                                       Lam4, Lam5, Lam6
+                                       );
       }
       stopTimer();
 
       break;
     }
-
 #endif // RUN_RAJA_SEQ
 
 
@@ -182,17 +205,22 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = 0; i < N; ++i ) {
-          POLYBENCH_ATAX_BODY1;
+          double dot;
+          POLYBENCH_ATAX_BODY_i1;
           for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY2;
+            POLYBENCH_ATAX_BODY_i2;
           }
+          POLYBENCH_ATAX_BODY_i3;
         }
 
         #pragma omp parallel for
         for (Index_type j = 0; j < N; ++j ) {
+          double dot;
+          POLYBENCH_ATAX_BODY_i4;
           for (Index_type i = 0; i < N; ++i ) {
-            POLYBENCH_ATAX_BODY3;
+            POLYBENCH_ATAX_BODY_i5;
           }
+          POLYBENCH_ATAX_BODY_i6;
         }
 
       }
@@ -213,42 +241,60 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
             RAJA::statement::Lambda<0>,
             RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<1>
-            >
-          >
-        >;
-  
-      using EXEC_POL2 =
-        RAJA::KernelPolicy< 
-          RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
-              RAJA::statement::Lambda<0>
-            >
+             >,
+            RAJA::statement::Lambda<2>
           >
         >;
 
+      using EXEC_POL2 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
+            RAJA::statement::Lambda<0>,
+              RAJA::statement::For<0, RAJA::loop_exec,
+                RAJA::statement::Lambda<1>
+                >,
+                RAJA::statement::Lambda<2>
+          >
+        >;
+
+      auto Lam1 = [=]  (Index_type i, Index_type /* j */, double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i1
+      };
+      auto Lam2 =  [=]  (Index_type i, Index_type j, double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i2
+      };
+      
+      auto Lam3 = [=]  (Index_type i, Index_type /* j */, double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i3
+      };
+      auto Lam4 =  [=]  (Index_type i, Index_type j, double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i4
+      };
+      
+      auto Lam5 = [=]  (Index_type i, Index_type j , double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i5
+      };
+      auto Lam6 =  [=]  (Index_type i, Index_type j, double &dot) {
+        POLYBENCH_ATAX_BODY_RAJA_i6
+      };
+      
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type /* j */) {
-            POLYBENCH_ATAX_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j) {
-            POLYBENCH_ATAX_BODY2_RAJA;
-          }
-        );
-
-        RAJA::kernel<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type j) {
-            POLYBENCH_ATAX_BODY3_RAJA;
-          }
-        );
-
+        
+        RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                        RAJA::RangeSegment{0, N}),
+                                       RAJA::make_tuple(0.0),
+                                       Lam1, Lam2, Lam3
+                                       );
+        
+        RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                        RAJA::RangeSegment{0, N}),
+                                       RAJA::make_tuple(0.0),
+                                       Lam4, Lam5, Lam6
+                                       );
       }
       stopTimer();
-
+      
       break;
     }
 #endif

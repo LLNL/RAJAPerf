@@ -145,24 +145,24 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
       >;
 
     auto Lam1 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
-      POLYBENCH_ATAX_BODY_i1
+      POLYBENCH_ATAX_BODY_RAJA_i1
     };
     auto Lam2 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_i2
+      POLYBENCH_ATAX_BODY_RAJA_i2
     };
 
     auto Lam3 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
-      POLYBENCH_ATAX_BODY_i3
+      POLYBENCH_ATAX_BODY_RAJA_i3
     };
     auto Lam4 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_i4
+      POLYBENCH_ATAX_BODY_RAJA_i4
     };
 
     auto Lam5 = [=] __device__ (Index_type i, Index_type j , double &dot) {
-      POLYBENCH_ATAX_BODY_i5
+      POLYBENCH_ATAX_BODY_RAJA_i5
     };
     auto Lam6 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_i6
+      POLYBENCH_ATAX_BODY_RAJA_i6
     };
 
     RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},

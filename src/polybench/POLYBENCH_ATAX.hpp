@@ -63,6 +63,39 @@ y[j] = dot;
   y[j] += A[j + i*N] * tmp[i];
 
 
+#define POLYBENCH_ATAX_BODY_RAJA_i1 \
+yview(i) = 0.0;                \
+dot = 0.0;
+
+#define POLYBENCH_ATAX_BODY_RAJA_i2 \
+dot += Aview(i, j) * xview(j);
+
+#define POLYBENCH_ATAX_BODY_RAJA_i3 \
+tmpview(i) = dot;
+
+#define POLYBENCH_ATAX_BODY_RAJA_i4 \
+dot = yview(j);
+
+#define POLYBENCH_ATAX_BODY_RAJA_i5 \
+dot += Aview(i, j) * tmpview(i);
+
+#define POLYBENCH_ATAX_BODY_RAJA_i6 \
+yview(j) = dot;
+
+#define POLYBENCH_ATAX_BODY1 \
+  y[i] = 0.0; \
+  tmp[i] = 0.0;
+
+#define POLYBENCH_ATAX_BODY2 \
+  tmp[i] += A[j + i*N] * x[j];
+
+#define POLYBENCH_ATAX_BODY3 \
+  y[j] += A[j + i*N] * tmp[i];
+
+
+
+
+
 #define POLYBENCH_ATAX_BODY1_RAJA \
   yview(i) = 0.0; \
   tmpview(i) = 0.0;

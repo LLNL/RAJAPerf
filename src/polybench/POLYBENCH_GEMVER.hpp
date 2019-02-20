@@ -49,6 +49,15 @@
 #define POLYBENCH_GEMVER_BODY2 \
   x[i] +=  beta * A[i + j*n] * y[j];
 
+#define POLYBENCH_GEMVER_BODY2a \
+  dot = 0;
+
+#define POLYBENCH_GEMVER_BODY2b \
+  dot +=  beta * A[i + j*n] * y[j];
+
+#define POLYBENCH_GEMVER_BODY2c \
+  x[i] += dot;
+
 #define POLYBENCH_GEMVER_BODY3 \
   x[i] += z[i];
 
@@ -56,17 +65,45 @@
   w[i] +=  alpha * A[j + i*n] * x[j];
 
 
+#define POLYBENCH_GEMVER_BODY4a \
+  dot = w[i];
+
+#define POLYBENCH_GEMVER_BODY4b \
+  dot +=  alpha * A[j + i*n] * x[j];
+
+#define POLYBENCH_GEMVER_BODY4c \
+  w[i] += dot;
+
+
 #define POLYBENCH_GEMVER_BODY1_RAJA \
   Aview(i,j) += u1view(i) * v1view(j) + u2view(i) * v2view(j);
 
 #define POLYBENCH_GEMVER_BODY2_RAJA \
-  xview(i) +=  beta * Aview(j,i) * yview(j);
+  xview(i) += beta * Aview(j,i) * yview(j);
+
+#define POLYBENCH_GEMVER_BODY2a_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_GEMVER_BODY2b_RAJA \
+  dot +=  beta * Aview(j,i) * yview(j);
+
+#define POLYBENCH_GEMVER_BODY2c_RAJA \
+  xview(i) += dot;
 
 #define POLYBENCH_GEMVER_BODY3_RAJA \
   xview(i) += zview(i);
 
 #define POLYBENCH_GEMVER_BODY4_RAJA \
-  wview(i) +=  alpha * Aview(i,j) * xview(j);
+  wview(i) += alpha * Aview(i,j) * xview(j);
+
+#define POLYBENCH_GEMVER_BODY4a_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_GEMVER_BODY4b_RAJA \
+  dot +=  alpha * Aview(i,j) * xview(j);
+
+#define POLYBENCH_GEMVER_BODY4c_RAJA \
+  wview(i) += dot;
 
 #define POLYBENCH_GEMVER_VIEWS_RAJA \
   using VIEW_1 = RAJA::View<Real_type, \
