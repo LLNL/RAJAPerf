@@ -32,6 +32,26 @@
 #ifndef RAJAPerf_POLYBENCH_ATAX_HPP
 #define RAJAPerf_POLYBENCH_ATAX_HPP
 
+
+#define POLYBENCH_ATAX_BODY_i1 \
+y[i] = 0.0; \
+dot = 0.0;
+
+#define POLYBENCH_ATAX_BODY_i2 \
+dot += A[j + i*N] * x[j];
+
+#define POLYBENCH_ATAX_BODY_i3 \
+tmp[i] = dot;
+
+#define POLYBENCH_ATAX_BODY_i4 \
+dot = y[j];
+
+#define POLYBENCH_ATAX_BODY_i5 \
+dot += A[j + i*N] * tmp[i];
+
+#define POLYBENCH_ATAX_BODY_i6 \
+y[j] = dot;
+
 #define POLYBENCH_ATAX_BODY1 \
   y[i] = 0.0; \
   tmp[i] = 0.0;

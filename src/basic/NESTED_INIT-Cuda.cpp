@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -47,7 +47,7 @@ __global__ void nested_init(Real_ptr array,
    Index_type j = blockIdx.y;
    Index_type k = blockIdx.z;
 
-   NESTED_INIT_BODY; 
+   NESTED_INIT_BODY;
 }
 
 
@@ -90,15 +90,21 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
         >
       >;
 
+    auto myLoop = [=] __device__ (Index_type i, Index_type j, Index_type k) {
+      NESTED_INIT_BODY;
+    };
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                               RAJA::RangeSegment(0, nj),
+                                               RAJA::RangeSegment(0, nk)), myLoop);
+
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                RAJA::RangeSegment(0, nj),
                                                RAJA::RangeSegment(0, nk)),
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
-        NESTED_INIT_BODY;
-      });
+                              myLoop);
 
     }
     stopTimer();

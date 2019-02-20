@@ -1,4 +1,4 @@
-  
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
 //
@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -59,11 +59,13 @@ __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if (i < N) { 
-     POLYBENCH_ATAX_BODY1;
+   if (i < N) {
+     double dot;
+     POLYBENCH_ATAX_BODY_i1
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_ATAX_BODY2;
+       POLYBENCH_ATAX_BODY_i2
      }
+     POLYBENCH_ATAX_BODY_i3
    }
 }
 
@@ -72,10 +74,13 @@ __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
 {
    Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if (j < N) { 
+   if (j < N) {
+     double dot;
+     POLYBENCH_ATAX_BODY_i4
      for (Index_type i = 0; i < N; ++i ) {
-       POLYBENCH_ATAX_BODY3;
+       POLYBENCH_ATAX_BODY_i5
      }
+     POLYBENCH_ATAX_BODY_i6
    }
 }
 
@@ -117,45 +122,78 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
               RAJA::statement::Lambda<0>,
               RAJA::statement::For<1, RAJA::seq_exec,
                 RAJA::statement::Lambda<1>
-              >
+              >,
+              RAJA::statement::Lambda<2>
             >
           >
         >
       >;
 
-    using EXEC_POL2 = 
+    using EXEC_POL2 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
           RAJA::statement::Tile<1, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
             RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+                                 RAJA::statement::Lambda<0>,
               RAJA::statement::For<0, RAJA::seq_exec,
-                RAJA::statement::Lambda<0>
-              >
+                RAJA::statement::Lambda<1>
+                                   >,
+                RAJA::statement::Lambda<2>
             >
           >
         >
       >;
 
+    auto Lam1 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+      POLYBENCH_ATAX_BODY_i1
+    };
+    auto Lam2 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_i2
+    };
+
+    auto Lam3 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+      POLYBENCH_ATAX_BODY_i3
+    };
+    auto Lam4 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_i4
+    };
+
+    auto Lam5 = [=] __device__ (Index_type i, Index_type j , double &dot) {
+      POLYBENCH_ATAX_BODY_i5
+    };
+    auto Lam6 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
+      POLYBENCH_ATAX_BODY_i6
+    };
+
+    RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                    RAJA::RangeSegment{0, N}),
+                                   RAJA::make_tuple(0.0),
+                                   Lam1, Lam2, Lam3
+                             );
+
+
+    RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                              RAJA::RangeSegment{0, N}),
+                             RAJA::make_tuple(0.0),
+                             Lam4, Lam5, Lam6
+                             );
+
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                RAJA::RangeSegment{0, N}),
-        [=] __device__ (Index_type i, Index_type /* j */) {
-          POLYBENCH_ATAX_BODY1_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_ATAX_BODY2_RAJA;
-        }
-      );
+    RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                    RAJA::RangeSegment{0, N}),
+                                   RAJA::make_tuple(0.0),
+                                   Lam1, Lam2, Lam3
+                             );
 
-      RAJA::kernel<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                RAJA::RangeSegment{0, N}),
 
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_ATAX_BODY3_RAJA;
-        }
-      );
+    RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                              RAJA::RangeSegment{0, N}),
+                                   RAJA::make_tuple(0.0),
+                             Lam4, Lam5, Lam6
+                             );
 
     }
     stopTimer();
@@ -172,4 +210,3 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
