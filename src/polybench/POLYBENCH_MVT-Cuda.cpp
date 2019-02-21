@@ -144,37 +144,35 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
         >
       >;
 
-    auto lam1a = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY1a_RAJA;
-    };
-
-    auto lam1b = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY1b_RAJA;
-    };
-
-    auto lam1c = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY1c_RAJA;
-    };
-
-    auto lam2a = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY2a_RAJA;
-    };
-
-    auto lam2b = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY2b_RAJA;
-    };
-
-    auto lam2c = [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_MVT_BODY2c_RAJA;
-    };
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::kernel_param<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                      RAJA::RangeSegment{0, N}),
                                     RAJA::make_tuple(0.0),
-                                    lam1a, lam1b, lam1c, lam2a, lam2b, lam2c
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY1a_RAJA;
+                                    },
+
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY1b_RAJA;
+                                    },
+
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY1c_RAJA;
+                                    },
+
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY2a_RAJA;
+                                    },
+
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY2b_RAJA;
+                                    },
+
+                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                      POLYBENCH_MVT_BODY2c_RAJA;
+                                    }                                    
       );
 
     }

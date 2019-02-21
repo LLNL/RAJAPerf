@@ -149,37 +149,35 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
           >
         >;
 
-      auto lam1a = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY1a_RAJA;
-      };
-      
-      auto lam1b = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY1b_RAJA;
-      };
-      
-      auto lam1c = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY1c_RAJA;
-      };
-      
-      auto lam2a = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2a_RAJA;
-      };
-      
-      auto lam2b = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2b_RAJA;
-      };
-      
-      auto lam2c = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2c_RAJA;
-      };
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::kernel_param<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                        RAJA::RangeSegment{0, N}),
                                       RAJA::make_tuple(0.0),
-                                      lam1a, lam1b, lam1c, lam2a, lam2b, lam2c
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1a_RAJA;
+                                      },
+                                      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1b_RAJA;
+                                      },
+      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1c_RAJA;
+                                      },
+      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2a_RAJA;
+                                      },
+      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2b_RAJA;
+                                      },
+      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2c_RAJA;
+                                      }
                                       );
 
       }
@@ -237,7 +235,8 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
       POLYBENCH_MVT_VIEWS_RAJA;
 
       using EXEC_POL =
-        RAJA::KernelPolicy<
+        RAJA::KernelPolicy< 
+        RAJA::statement::Region<RAJA::omp_parallel_region,
           RAJA::statement::For<0, RAJA::omp_for_nowait_exec,
             RAJA::statement::Lambda<0>,
               RAJA::statement::For<1, RAJA::loop_exec,
@@ -252,44 +251,46 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
                >,
               RAJA::statement::Lambda<5>
           >
+         >
         >;
 
-      auto lam1a = [=] (Index_type i, Index_type j, double &dot) {
+
+      auto lam1a = 
+        [=] (Index_type i, Index_type j, double &dot) {
         POLYBENCH_MVT_BODY1a_RAJA;
       };
       
-      auto lam1b = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY1b_RAJA;
-      };
-      
-      auto lam1c = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY1c_RAJA;
-      };
-      
-      auto lam2a = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2a_RAJA;
-      };
-      
-      auto lam2b = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2b_RAJA;
-      };
-      
-      auto lam2c = [=] (Index_type i, Index_type j, double &dot) {
-        POLYBENCH_MVT_BODY2c_RAJA;
-      };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::region<RAJA::omp_parallel_region>( [=]() {
+        RAJA::kernel_param<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                                                       RAJA::RangeSegment{0, N}),
+                                      RAJA::make_tuple(0.0),
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1a_RAJA;
+                                      },
 
-          RAJA::kernel_param<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                         RAJA::RangeSegment{0, N}),
-                                        RAJA::make_tuple(0.0),
-                                        lam1a, lam1b, lam1c, lam2a, lam2b, lam2c
-          );
-
-        }); // end omp parallel region
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1b_RAJA;
+                                      },                          
+            
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY1c_RAJA;
+                                      },
+                                      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2a_RAJA;
+                                      },
+                                      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2b_RAJA;
+                                      },
+                                      
+                                      [=] (Index_type i, Index_type j, double &dot) {
+                                        POLYBENCH_MVT_BODY2c_RAJA;
+                                      }
+                                      );       
 
       }
       stopTimer();

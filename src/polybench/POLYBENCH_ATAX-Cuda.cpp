@@ -144,40 +144,6 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
         >
       >;
 
-    auto Lam1 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i1
-    };
-    auto Lam2 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i2
-    };
-
-    auto Lam3 = [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i3
-    };
-    auto Lam4 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i4
-    };
-
-    auto Lam5 = [=] __device__ (Index_type i, Index_type j , double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i5
-    };
-    auto Lam6 =  [=] __device__ (Index_type i, Index_type j, double &dot) {
-      POLYBENCH_ATAX_BODY_RAJA_i6
-    };
-
-    RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                    RAJA::RangeSegment{0, N}),
-                                   RAJA::make_tuple(0.0),
-                                   Lam1, Lam2, Lam3
-                             );
-
-
-    RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                              RAJA::RangeSegment{0, N}),
-                             RAJA::make_tuple(0.0),
-                             Lam4, Lam5, Lam6
-                             );
-
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -185,14 +151,30 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
     RAJA::kernel_param<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                     RAJA::RangeSegment{0, N}),
                                    RAJA::make_tuple(0.0),
-                                   Lam1, Lam2, Lam3
+                                   [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i1
+                                    },
+                                   [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i2
+                                       },
+                                   [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i3
+                                   }
                              );
 
 
     RAJA::kernel_param<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                               RAJA::RangeSegment{0, N}),
                                    RAJA::make_tuple(0.0),
-                             Lam4, Lam5, Lam6
+                                   [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i4
+                                       },
+                                   [=] __device__ (Index_type i, Index_type j , double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i5
+                                       },
+                                   [=] __device__ (Index_type i, Index_type j, double &dot) {
+                                     POLYBENCH_ATAX_BODY_RAJA_i6
+                                       }
                              );
 
     }
