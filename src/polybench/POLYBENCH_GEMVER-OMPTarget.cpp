@@ -166,7 +166,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
-        RAJA::make_tuple(0.0),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
         [=] (Index_type /* i */, Index_type /* j */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
@@ -188,7 +188,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
-        RAJA::make_tuple(0.0),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
         [=] (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY6_RAJA;

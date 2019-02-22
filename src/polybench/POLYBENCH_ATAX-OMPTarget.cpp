@@ -128,7 +128,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel_param<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
-        RAJA::make_tuple(0.0),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
         [=] (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
@@ -145,7 +145,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
       RAJA::kernel_param<EXEC_POL2>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
-        RAJA::make_tuple(0.0),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
         [=] (Index_type /* i */, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;

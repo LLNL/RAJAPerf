@@ -139,7 +139,7 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(0.0),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
           [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY1_RAJA;
@@ -156,7 +156,7 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(0.0),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
           [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY4_RAJA;

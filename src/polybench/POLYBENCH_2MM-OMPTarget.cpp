@@ -85,6 +85,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           for(Index_type k = 0; k < nk; k++) {
             POLYBENCH_2MM_BODY2;
           }
+          POLYBENCH_2MM_BODY3;
         }
       }
 
@@ -92,10 +93,11 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {
-          POLYBENCH_2MM_BODY3;
+          POLYBENCH_2MM_BODY4;
           for(Index_type j = 0; j < nj; j++) {
-            POLYBENCH_2MM_BODY4;
+            POLYBENCH_2MM_BODY5;
           }
+          POLYBENCH_2MM_BODY6;
         }  
       }
 
@@ -117,32 +119,45 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
           RAJA::statement::Lambda<0>,
           RAJA::statement::For<2, RAJA::seq_exec,
             RAJA::statement::Lambda<1>
-          >
+          >,
+          RAJA::statement::Lambda<2>
         >
       >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nj},
-                                               RAJA::RangeSegment{0, nk}),
-        [=] (Index_type i, Index_type j, Index_type /* k */) {
+      RAJA::kernel_param<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nj},
+                         RAJA::RangeSegment{0, nk}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
-        [=] (Index_type i, Index_type j, Index_type k) {
+        [=](Index_type i, Index_type j, Index_type k, Real_type &dot) {
           POLYBENCH_2MM_BODY2_RAJA;
+        },
+        [=](Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY3_RAJA;
         }
       );
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nl},
-                                               RAJA::RangeSegment{0, nj}),
-        [=] (Index_type i, Index_type l, Index_type /* j */) {
-          POLYBENCH_2MM_BODY3_RAJA;
-        },
-        [=] (Index_type i, Index_type l, Index_type j) {
+      RAJA::kernel_param<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nl},
+                         RAJA::RangeSegment{0, nj}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
+        },
+        [=](Index_type i, Index_type l, Index_type j, Real_type &dot) {
+          POLYBENCH_2MM_BODY5_RAJA;
+        },
+        [=](Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY6_RAJA;
         }
       );
 
