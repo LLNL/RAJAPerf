@@ -49,41 +49,59 @@
 #define RAJAPerf_POLYBENCH_3MM_HPP
 
 #define POLYBENCH_3MM_BODY1 \
-  E[j + i*nj] = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_3MM_BODY2 \
-  E[j + i*nj] += A[k + i*nk] * B[j + k*nj];
+  dot += A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_3MM_BODY3 \
-  F[l + j*nl] = 0.0;
+  E[j + i*nj] = dot;
 
 #define POLYBENCH_3MM_BODY4 \
-  F[l + j*nl] += C[m + j*nm] * D[l + m*nl];
+  Real_type dot = 0.0;
 
 #define POLYBENCH_3MM_BODY5 \
-  G[l + i*nl] = 0.0;
+  dot += C[m + j*nm] * D[l + m*nl];
 
 #define POLYBENCH_3MM_BODY6 \
-  G[l + i*nl] += E[j + i*nj] * F[l + j*nl];
+  F[l + j*nl] = dot;
+
+#define POLYBENCH_3MM_BODY7 \
+  Real_type dot = 0.0;
+
+#define POLYBENCH_3MM_BODY8 \
+  dot += E[j + i*nj] * F[l + j*nl];
+
+#define POLYBENCH_3MM_BODY9 \
+  G[l + i*nl] = dot;
 
 
 #define POLYBENCH_3MM_BODY1_RAJA \
-  Eview(i,j) = 0.0;
+  dot = 0.0;
 
 #define POLYBENCH_3MM_BODY2_RAJA \
-  Eview(i,j) += Aview(i,k) * Bview(k,j);
+  dot += Aview(i,k) * Bview(k,j);
 
 #define POLYBENCH_3MM_BODY3_RAJA \
-  Fview(j,l) = 0.0;
+  Eview(i,j) = dot;
 
 #define POLYBENCH_3MM_BODY4_RAJA \
-  Fview(j,l) += Cview(j,m) * Dview(m,l);
+  dot = 0.0;
 
 #define POLYBENCH_3MM_BODY5_RAJA \
-  Gview(i,l) = 0.0;
+  dot += Cview(j,m) * Dview(m,l)
 
 #define POLYBENCH_3MM_BODY6_RAJA \
-  Gview(i,l) += Eview(i,j) * Fview(j,l);
+  Fview(j,l) = dot;
+
+#define POLYBENCH_3MM_BODY7_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_3MM_BODY8_RAJA \
+  dot += Eview(i,j) * Fview(j,l);
+
+#define POLYBENCH_3MM_BODY9_RAJA \
+  Gview(i,l) = dot;
 
 
 #define POLYBENCH_3MM_VIEWS_RAJA \
