@@ -60,11 +60,11 @@ __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (i < N) {
-     POLYBENCH_ATAX_BODY1
+     POLYBENCH_ATAX_BODY1;
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_ATAX_BODY2
+       POLYBENCH_ATAX_BODY2;
      }
-     POLYBENCH_ATAX_BODY3
+     POLYBENCH_ATAX_BODY3;
    }
 }
 
@@ -74,11 +74,11 @@ __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
    Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (j < N) {
-     POLYBENCH_ATAX_BODY4
+     POLYBENCH_ATAX_BODY4;
      for (Index_type i = 0; i < N; ++i ) {
-       POLYBENCH_ATAX_BODY5
+       POLYBENCH_ATAX_BODY5;
      }
-     POLYBENCH_ATAX_BODY6
+     POLYBENCH_ATAX_BODY6;
    }
 }
 

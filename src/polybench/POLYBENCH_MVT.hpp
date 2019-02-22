@@ -31,53 +31,42 @@
 #define RAJAPerf_POLYBENCH_MVT_HPP
 
 #define POLYBENCH_MVT_BODY1 \
-  x1[i] += A[j + i*N] * y1[j];
-
-#define POLYBENCH_MVT_BODY1a \
-  dot = 0.0;
-
-#define POLYBENCH_MVT_BODY1b \
-  dot += A[j + i*N] * y1[j];
-
-#define POLYBENCH_MVT_BODY1c \
-  x1[i] += dot;
+  double dot = 0.0;
 
 #define POLYBENCH_MVT_BODY2 \
-  x2[i] += A[i + j*N] * y2[i];
+  dot += A[j + i*N] * y1[j];
 
-#define POLYBENCH_MVT_BODY2a \
-  dot = 0.0;
+#define POLYBENCH_MVT_BODY3 \
+  x1[i] += dot;
 
-#define POLYBENCH_MVT_BODY2b \
+#define POLYBENCH_MVT_BODY4 \
+  double dot = 0.0;
+
+#define POLYBENCH_MVT_BODY5 \
   dot += A[i + j*N] * y2[i];
 
-#define POLYBENCH_MVT_BODY2c \
+#define POLYBENCH_MVT_BODY6 \
   x2[i] += dot;
 
 
 #define POLYBENCH_MVT_BODY1_RAJA \
-  x1view(i) += Aview(i, j) * y1view(j); 
-
-#define POLYBENCH_MVT_BODY1a_RAJA \
   dot = 0.0;
-
-#define POLYBENCH_MVT_BODY1b_RAJA \
-  dot += Aview(i, j) * y1view(j); 
-
-#define POLYBENCH_MVT_BODY1c_RAJA \
-  x1view(i) += dot;
 
 #define POLYBENCH_MVT_BODY2_RAJA \
-  x2view(i) += Aview(j, i) * y2view(i); 
+  dot += Aview(i, j) * y1view(j); 
 
-#define POLYBENCH_MVT_BODY2a_RAJA \
+#define POLYBENCH_MVT_BODY3_RAJA \
+  x1view(i) += dot;
+
+#define POLYBENCH_MVT_BODY4_RAJA \
   dot = 0.0;
 
-#define POLYBENCH_MVT_BODY2b_RAJA \
+#define POLYBENCH_MVT_BODY5_RAJA \
   dot += Aview(j, i) * y2view(i); 
 
-#define POLYBENCH_MVT_BODY2c_RAJA \
+#define POLYBENCH_MVT_BODY6_RAJA \
   x2view(i) += dot;
+
 
 #define POLYBENCH_MVT_VIEWS_RAJA \
   using VIEW_1 = RAJA::View<Real_type, \

@@ -64,12 +64,11 @@ __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (i < N) {
-     double dot;
-     POLYBENCH_MVT_BODY1a;
+     POLYBENCH_MVT_BODY1;
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_MVT_BODY1b;
+       POLYBENCH_MVT_BODY2;
      }
-     POLYBENCH_MVT_BODY1c;
+     POLYBENCH_MVT_BODY3;
    }
 }
 
@@ -79,12 +78,11 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (i < N) {
-     double dot;
-     POLYBENCH_MVT_BODY2a;
+     POLYBENCH_MVT_BODY4;
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_MVT_BODY2b;
+       POLYBENCH_MVT_BODY5;
      }
-     POLYBENCH_MVT_BODY2c;
+     POLYBENCH_MVT_BODY6;
    }
 }
 
@@ -124,21 +122,10 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
           RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
             RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>,
-                RAJA::statement::For<1, RAJA::seq_exec,
-                  RAJA::statement::Lambda<1>
-                >,
-                RAJA::statement::Lambda<2>
-            >
-          >
-        >,
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_loop,
-              RAJA::statement::Lambda<3>,
-                RAJA::statement::For<1, RAJA::seq_exec,
-                  RAJA::statement::Lambda<4>
-                >,
-                RAJA::statement::Lambda<5>
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>
             >
           >
         >
@@ -147,33 +134,43 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                     RAJA::RangeSegment{0, N}),
-                                    RAJA::make_tuple(0.0),
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY1a_RAJA;
-                                    },
+      RAJA::region<RAJA::seq_region>( [=]() {
 
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY1b_RAJA;
-                                    },
+        RAJA::kernel_param<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(0.0),
 
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY1c_RAJA;
-                                    },
+          [=] __device__ (Index_type /* i */, Index_type /* j */, double &dot) {
+            POLYBENCH_MVT_BODY1_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type j, double &dot) {
+            POLYBENCH_MVT_BODY2_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+            POLYBENCH_MVT_BODY3_RAJA;
+          }
 
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY2a_RAJA;
-                                    },
+        );
 
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY2b_RAJA;
-                                    },
+        RAJA::kernel_param<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(0.0),
 
-                                    [=] __device__ (Index_type i, Index_type j, double &dot) {
-                                      POLYBENCH_MVT_BODY2c_RAJA;
-                                    }                                    
-      );
+          [=] __device__ (Index_type /* i */, Index_type /* j */, double &dot) {
+            POLYBENCH_MVT_BODY4_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type j, double &dot) {
+            POLYBENCH_MVT_BODY5_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+            POLYBENCH_MVT_BODY6_RAJA;
+          }
+
+        );
+
+      }); // end sequential region (for single-source code)
 
     }
     stopTimer();
