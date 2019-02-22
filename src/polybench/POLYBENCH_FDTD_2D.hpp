@@ -69,6 +69,7 @@
   hzview(i, j) = hzview(i, j) - 0.7*(exview(i, j+1) - exview(i, j) + \
                                      eyview(i+1, j) - eyview(i, j));
 
+
 #define POLYBENCH_FDTD_2D_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \
                              RAJA::Layout<2, Index_type, 1>>; \

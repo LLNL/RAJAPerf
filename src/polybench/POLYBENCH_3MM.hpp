@@ -85,6 +85,7 @@
 #define POLYBENCH_3MM_BODY6_RAJA \
   Gview(i,l) += Eview(i,j) * Fview(j,l);
 
+
 #define POLYBENCH_3MM_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \
                              RAJA::Layout<2, Index_type, 1>>; \

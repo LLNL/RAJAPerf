@@ -32,7 +32,7 @@
 
 #define POLYBENCH_GEMM_BODY1 \
   C[j + i*nj] *= beta; \
-  double dot = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_GEMM_BODY2 \
   dot += alpha * A[k + i*nk] * B[j + k*nj];  
@@ -50,6 +50,7 @@
 
 #define POLYBENCH_GEMM_BODY3_RAJA \
   Cview(i, j) = dot;
+
 
 #define POLYBENCH_GEMM_VIEWS_RAJA \
   using VIEW_TYPE = RAJA::View<Real_type, \

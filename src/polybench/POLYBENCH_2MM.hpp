@@ -67,6 +67,7 @@
 #define POLYBENCH_2MM_BODY4_RAJA \
   Dview(i,l) += tmpview(i,j) * Cview(j, l);
 
+
 #define POLYBENCH_2MM_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \
                              RAJA::Layout<2, Index_type, 1>>; \

@@ -40,6 +40,7 @@
   poutview(i, j) = pinview(i, j) < pinview(i, k) + pinview(k, j) ? \
                    pinview(i, j) : pinview(i, k) + pinview(k, j);
 
+
 #define POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA \
   using VIEW_TYPE = RAJA::View<Real_type, \
                                RAJA::Layout<2, Index_type, 1>>; \

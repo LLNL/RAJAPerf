@@ -52,6 +52,7 @@
 #define POLYBENCH_GESUMMV_BODY3_RAJA \
   yview(i) = alpha * tmpview(i) + beta * yview(i);
 
+
 #define POLYBENCH_GESUMMV_VIEWS_RAJA \
   using VIEW1_TYPE = RAJA::View<Real_type, \
                                  RAJA::Layout<1, Index_type, 0>>; \
