@@ -35,7 +35,7 @@
 
 #define POLYBENCH_ATAX_BODY1 \
   y[i] = 0.0; \
-  double dot = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_ATAX_BODY2 \
   dot += A[j + i*N] * x[j];
@@ -44,7 +44,7 @@
   tmp[i] = dot;
 
 #define POLYBENCH_ATAX_BODY4 \
-  double dot = y[j];
+  Real_type dot = y[j];
 
 #define POLYBENCH_ATAX_BODY5 \
   dot += A[j + i*N] * tmp[i];

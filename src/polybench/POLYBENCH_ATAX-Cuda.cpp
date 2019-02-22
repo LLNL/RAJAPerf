@@ -151,13 +151,13 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, N}),
         RAJA::make_tuple(0.0),
 
-        [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+        [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, double &dot) {
+        [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY2_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+        [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_ATAX_BODY3_RAJA;
         }
 
@@ -168,13 +168,13 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, N}),
         RAJA::make_tuple(0.0),
 
-        [=] __device__ (Index_type /* i */, Index_type j, double &dot) {
+        [=] __device__ (Index_type /* i */, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j , double &dot) {
+        [=] __device__ (Index_type i, Index_type j , Real_type &dot) {
           POLYBENCH_ATAX_BODY5_RAJA;
         },
-        [=] __device__ (Index_type /* i */, Index_type j, double &dot) {
+        [=] __device__ (Index_type /* i */, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY6_RAJA;
         }
 

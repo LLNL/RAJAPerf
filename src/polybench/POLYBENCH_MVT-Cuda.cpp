@@ -141,13 +141,13 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(0.0),
 
-          [=] __device__ (Index_type /* i */, Index_type /* j */, double &dot) {
+          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, double &dot) {
+          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_MVT_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY3_RAJA;
           }
 
@@ -158,13 +158,13 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(0.0),
 
-          [=] __device__ (Index_type /* i */, Index_type /* j */, double &dot) {
+          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY4_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, double &dot) {
+          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_MVT_BODY5_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /* j */, double &dot) {
+          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_MVT_BODY6_RAJA;
           }
 

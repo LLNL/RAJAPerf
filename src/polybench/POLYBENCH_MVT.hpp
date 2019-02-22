@@ -31,7 +31,7 @@
 #define RAJAPerf_POLYBENCH_MVT_HPP
 
 #define POLYBENCH_MVT_BODY1 \
-  double dot = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_MVT_BODY2 \
   dot += A[j + i*N] * y1[j];
@@ -40,7 +40,7 @@
   x1[i] += dot;
 
 #define POLYBENCH_MVT_BODY4 \
-  double dot = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_MVT_BODY5 \
   dot += A[i + j*N] * y2[i];

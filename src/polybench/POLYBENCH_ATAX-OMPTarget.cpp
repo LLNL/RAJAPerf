@@ -130,13 +130,13 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, N}),
         RAJA::make_tuple(0.0),
 
-        [=] (Index_type i, Index_type /* j */, double &dot) {
+        [=] (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
         },
-        [=] (Index_type i, Index_type j, double &dot) {
+        [=] (Index_type i, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY2_RAJA;
         },
-        [=] (Index_type i, Index_type /* j */, double &dot) {
+        [=] (Index_type i, Index_type /* j */, Real_type &dot) {
           POLYBENCH_ATAX_BODY3_RAJA;
         }
 
@@ -147,13 +147,13 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, N}),
         RAJA::make_tuple(0.0),
 
-        [=] (Index_type /* i */, Index_type j, double &dot) {
+        [=] (Index_type /* i */, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;
         },
-        [=] (Index_type i, Index_type j , double &dot) {
+        [=] (Index_type i, Index_type j , Real_type &dot) {
           POLYBENCH_ATAX_BODY5_RAJA;
         },
-        [=] (Index_type /* i */, Index_type j, double &dot) {
+        [=] (Index_type /* i */, Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY6_RAJA;
         }
 
