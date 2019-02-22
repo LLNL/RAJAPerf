@@ -40,13 +40,11 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  Real_ptr tmp; \
   Real_ptr x; \
   Real_ptr y; \
   Real_ptr A; \
   Real_ptr B; \
 \
-  allocAndInitCudaDeviceData(tmp, m_tmp, N); \
   allocAndInitCudaDeviceData(x, m_x, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
   allocAndInitCudaDeviceData(A, m_A, N*N); \
@@ -55,14 +53,13 @@ namespace polybench
 
 #define POLYBENCH_GESUMMV_TEARDOWN_CUDA \
   getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(tmp); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(A); \
   deallocCudaDeviceData(B);
 
 
-__global__ void poly_gesummv(Real_ptr tmp, Real_ptr x, Real_ptr y,
+__global__ void poly_gesummv(Real_ptr x, Real_ptr y,
                              Real_ptr A, Real_ptr B,
                              Real_type alpha, Real_type beta,
                              Index_type N) 
@@ -92,7 +89,7 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_gesummv<<<grid_size, block_size>>>(tmp, x, y, 
+      poly_gesummv<<<grid_size, block_size>>>(x, y, 
                                               A, B, 
                                               alpha, beta,
                                               N);
@@ -126,18 +123,22 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>(
-
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
+                           static_cast<Real_type>(0.0)),
 
-          [=] __device__ (Index_type i, Index_type /*j*/) {
+          [=] __device__ (Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
+                                                              Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j) {
+          [=] __device__ (Index_type i, Index_type j, Real_type& tmpdot,
+                                                      Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/) {
+          [=] __device__ (Index_type i, Index_type /*j*/, Real_type& tmpdot,
+                                                          Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY3_RAJA;
           }
         );
