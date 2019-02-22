@@ -76,14 +76,17 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
         for (Index_type j = 0; j < N; ++j ) {
           POLYBENCH_ATAX_BODY2;
         }
+        POLYBENCH_ATAX_BODY3;
       }
         
       #pragma omp target is_device_ptr(y,tmp,A) device( did )
       #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
       for (Index_type j = 0; j < N; ++j ) {
+        POLYBENCH_ATAX_BODY4;
         for (Index_type i = 0; i < N; ++i ) {
-          POLYBENCH_ATAX_BODY3;
+          POLYBENCH_ATAX_BODY5;
         }
+        POLYBENCH_ATAX_BODY6;
       }
 
     }
@@ -103,37 +106,57 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
           RAJA::statement::Lambda<0>,
           RAJA::statement::For<1, RAJA::seq_exec,
             RAJA::statement::Lambda<1>
-          >
+          >,
+          RAJA::statement::Lambda<2>
         >
       >;
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<
         RAJA::statement::For<1, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
+          RAJA::statement::Lambda<0>,
           RAJA::statement::For<0, RAJA::seq_exec,
-            RAJA::statement::Lambda<0>
-          >
+            RAJA::statement::Lambda<1>
+          >,
+          RAJA::statement::Lambda<2>
         >
       >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                RAJA::RangeSegment{0, N}),
-        [=] (Index_type i, Index_type /* j */) {
+      RAJA::kernel_param<EXEC_POL1>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N}),
+        RAJA::make_tuple(0.0),
+
+        [=] (Index_type i, Index_type /* j */, double &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
         },
-        [=] (Index_type i, Index_type j) {
+        [=] (Index_type i, Index_type j, double &dot) {
           POLYBENCH_ATAX_BODY2_RAJA;
-        }
-      );
-
-      RAJA::kernel<EXEC_POL2>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                RAJA::RangeSegment{0, N}),
-        [=] (Index_type i, Index_type j) {
+        },
+        [=] (Index_type i, Index_type /* j */, double &dot) {
           POLYBENCH_ATAX_BODY3_RAJA;
         }
+
+      );
+
+      RAJA::kernel_param<EXEC_POL2>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                         RAJA::RangeSegment{0, N}),
+        RAJA::make_tuple(0.0),
+
+        [=] (Index_type /* i */, Index_type j, double &dot) {
+          POLYBENCH_ATAX_BODY4_RAJA;
+        },
+        [=] (Index_type i, Index_type j , double &dot) {
+          POLYBENCH_ATAX_BODY5_RAJA;
+        },
+        [=] (Index_type /* i */, Index_type j, double &dot) {
+          POLYBENCH_ATAX_BODY6_RAJA;
+        }
+
       );
 
     }

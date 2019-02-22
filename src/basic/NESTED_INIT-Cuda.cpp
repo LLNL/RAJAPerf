@@ -97,9 +97,9 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                RAJA::RangeSegment(0, nj),
                                                RAJA::RangeSegment(0, nk)),
-                              [=] __device__ (Index_type i, Index_type j, Index_type k) {
-                                NESTED_INIT_BODY;
-                              });
+        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+        NESTED_INIT_BODY;
+      });
 
     }
     stopTimer();
