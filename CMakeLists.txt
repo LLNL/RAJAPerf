@@ -13,7 +13,11 @@
 #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.3)
+if (ENABLE_CUDA)
+  cmake_minimum_required(VERSION 3.9)
+else ()
+  cmake_minimum_required(VERSION 3.8.2)
+endif ()
 
 project(RAJAPerfSuite CXX)
 
@@ -50,7 +54,6 @@ set(RAJA_USE_CHRONO On CACHE Bool "")
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
-set(RAJA_COHERENCE_BLOCK_SIZE 64)
 
 
 # exclude RAJA make targets from top-level build...
@@ -76,7 +79,7 @@ if (ENABLE_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 4)
+set(RAJA_PERFSUITE_VERSION_MINOR 5)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
