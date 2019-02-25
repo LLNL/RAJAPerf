@@ -60,8 +60,8 @@ namespace polybench
 __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
                            Index_type nj, Index_type nk)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    POLYBENCH_3MM_BODY1;
    for (Index_type k=0; k < nk; ++k) {
@@ -73,8 +73,8 @@ __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
 __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
                            Index_type nl, Index_type nm)
 {
-   Index_type j = blockIdx.x;
-   Index_type l = threadIdx.y;
+   Index_type j = blockIdx.y;
+   Index_type l = threadIdx.x;
 
    POLYBENCH_3MM_BODY4;
    for (Index_type m=0; m < nm; ++m) {
@@ -86,8 +86,8 @@ __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
 __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
                            Index_type nl, Index_type nj)
 {
-   Index_type i = blockIdx.x;
-   Index_type l = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type l = threadIdx.x;
 
    POLYBENCH_3MM_BODY7;
    for (Index_type j=0; j < nj; ++j) {
@@ -114,18 +114,18 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks1(ni, 1, 1);
-      dim3 nthreads_per_block1(1, nj, 1);
+      dim3 nblocks1(1, ni, 1);
+      dim3 nthreads_per_block1(nj, 1, 1);
       poly_3mm_1<<<nblocks1, nthreads_per_block1>>>(E, A, B,
                                                     nj, nk);
 
-      dim3 nblocks2(nj, 1, 1);
-      dim3 nthreads_per_block2(1, nl, 1);
+      dim3 nblocks2(1, nj, 1);
+      dim3 nthreads_per_block2(nl, 1, 1);
       poly_3mm_2<<<nblocks2, nthreads_per_block2>>>(F, C, D,
                                                     nl, nm);
 
-      dim3 nblocks3(ni, 1, 1);
-      dim3 nthreads_per_block3(1, nl, 1);
+      dim3 nblocks3(1, ni, 1);
+      dim3 nthreads_per_block3(nl, 1, 1);
       poly_3mm_3<<<nblocks3, nthreads_per_block3>>>(G, E, F,
                                                     nl, nj);
 
