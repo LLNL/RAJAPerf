@@ -58,8 +58,8 @@ __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
                            Real_type alpha,
                            Index_type nj, Index_type nk)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    POLYBENCH_2MM_BODY1;
    for (Index_type k=0; k < nk; ++k) {
@@ -72,8 +72,8 @@ __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
                            Real_type beta,
                            Index_type nl, Index_type nj)
 {
-   Index_type i = blockIdx.x;
-   Index_type l = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type l = threadIdx.x;
 
    POLYBENCH_2MM_BODY4;
    for (Index_type j=0; j < nj; ++j) {
@@ -99,13 +99,13 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks1(ni, 1, 1);
-      dim3 nthreads_per_block1(1, nj, 1);
+      dim3 nblocks1(1, ni, 1);
+      dim3 nthreads_per_block1(nj, 1, 1);
       poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
                                                     nj, nk);
 
-      dim3 nblocks2(ni, 1, 1);
-      dim3 nthreads_per_block2(1, nl, 1);
+      dim3 nblocks2(1, ni, 1);
+      dim3 nthreads_per_block2(nl, 1, 1);
       poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
                                                     nl, nj);
 
@@ -123,8 +123,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_x_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_y_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1>
