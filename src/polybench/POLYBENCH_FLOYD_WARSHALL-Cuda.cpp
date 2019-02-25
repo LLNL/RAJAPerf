@@ -47,8 +47,8 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
                                     Index_type k,
                                     Index_type N)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    POLYBENCH_FLOYD_WARSHALL_BODY;              
 }
@@ -69,8 +69,8 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        dim3 nblocks1(N, 1, 1);
-        dim3 nthreads_per_block1(1, N, 1);
+        dim3 nblocks1(1, N, 1);
+        dim3 nthreads_per_block1(N, 1, 1);
         poly_floyd_warshall<<<nblocks1, nthreads_per_block1>>>(pout, pin,
                                                                k, N);
 
@@ -91,8 +91,8 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
           RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<1, RAJA::cuda_block_x_loop,
-              RAJA::statement::For<2, RAJA::cuda_thread_y_loop,
+            RAJA::statement::For<1, RAJA::cuda_block_y_loop,
+              RAJA::statement::For<2, RAJA::cuda_thread_x_loop,
                 RAJA::statement::Lambda<0>
               >
             >
