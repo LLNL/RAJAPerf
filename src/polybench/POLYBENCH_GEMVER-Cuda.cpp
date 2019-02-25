@@ -76,8 +76,8 @@ __global__ void poly_gemmver_1(Real_ptr A,
                                Real_ptr u2, Real_ptr v2,
                                Index_type n)
 {
-  Index_type i = blockIdx.x;
-  Index_type j = threadIdx.y; 
+  Index_type i = blockIdx.y;
+  Index_type j = threadIdx.x; 
 
   POLYBENCH_GEMVER_BODY1;
 }
@@ -133,8 +133,8 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks(n, 1, 1);
-      dim3 nthreads_per_block(1, n, 1);
+      dim3 nblocks(1, n, 1);
+      dim3 nthreads_per_block(n, 1, 1);
       poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2, 
                                                       n);
 
@@ -165,8 +165,8 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_x_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_y_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>,
             >
           >
