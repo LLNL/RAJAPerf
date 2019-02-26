@@ -28,10 +28,10 @@ namespace rajaperf
 namespace apps
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define ENERGY_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -107,7 +107,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(e_new, e_old, delvc, \
                                        p_old, q_old, work) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY1;
       }
@@ -115,20 +115,20 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, q_new, compHalfStep, \
                                        pHalfStep, e_new, bvc, pbvc, \
                                        ql_old, qq_old) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY2;
       }
 
       #pragma omp target is_device_ptr(e_new, delvc, p_old, \
                                        q_old, pHalfStep, q_new) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY3;
       }
 
       #pragma omp target is_device_ptr(e_new, work) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY4;
       }
@@ -136,7 +136,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, ql_old, qq_old, \
                                        p_old, q_old, pHalfStep, q_new) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY5;
       }
@@ -144,7 +144,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, q_new, ql_old, qq_old) \
                                        device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY6;
       }
@@ -163,32 +163,32 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY2;
         });
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY3;
         });
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY4;
         });
   
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY5;
         });
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](int i) {
           ENERGY_BODY6;
         });

@@ -29,10 +29,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_2MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -78,7 +78,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       
       #pragma omp target is_device_ptr(tmp,A,B) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2) 
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
           POLYBENCH_2MM_BODY1;
@@ -90,7 +90,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(tmp,C,D) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {
           POLYBENCH_2MM_BODY4;

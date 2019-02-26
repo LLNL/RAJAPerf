@@ -29,10 +29,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -68,13 +68,13 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
        
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY1;
         }
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY2;
         }
@@ -94,12 +94,12 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>> (
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> (
           RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>> (
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> (
           RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });

@@ -28,10 +28,10 @@ namespace rajaperf
 namespace stream
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define DOT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -64,7 +64,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(a, b) device( did ) map(tofrom:dot)
       #pragma omp teams distribute parallel for reduction(+:dot) \
-              num_teams(NUMTEAMS) schedule(static, 1)
+              num_teams(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         DOT_BODY;
       }
@@ -85,7 +85,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
 
       RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(m_dot_init);
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         DOT_BODY;
       });

@@ -28,10 +28,10 @@ namespace rajaperf
 namespace lcals
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define EOS_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -72,7 +72,7 @@ void EOS::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y, z, u) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) 
       for (Index_type i = ibegin; i < iend; ++i ) {
         EOS_BODY;
       }
@@ -89,7 +89,7 @@ void EOS::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         EOS_BODY;
       });  

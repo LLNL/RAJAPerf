@@ -29,10 +29,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_ADI_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -79,7 +79,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) { 
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY2;
           for (Index_type j = 1; j < n-1; ++j) {
@@ -92,7 +92,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY6;
           for (Index_type j = 1; j < n-1; ++j) {
@@ -119,7 +119,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
+        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
           RAJA::statement::Lambda<0>,
           RAJA::statement::For<1, RAJA::seq_exec,
             RAJA::statement::Lambda<1>
