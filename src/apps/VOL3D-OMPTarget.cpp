@@ -84,7 +84,7 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
                                        y0,y1,y2,y3,y4,y5,y6,y7, \
                                        z0,z1,z2,z3,z4,z5,z6,z7, \
                                        vol) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
       for (Index_type i = ibegin ; i < iend ; ++i ) {
         VOL3D_BODY;
       }

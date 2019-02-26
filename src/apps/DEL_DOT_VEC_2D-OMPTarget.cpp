@@ -92,7 +92,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(x1,x2,x3,x4, y1,y2,y3,y4, \
                                        fx1,fx2,fx3,fx4, fy1,fy2,fy3,fy4, \
                                        div, real_zones) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
       for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;

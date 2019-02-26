@@ -107,7 +107,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(e_new, e_old, delvc, \
                                        p_old, q_old, work) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY1;
       }
@@ -115,20 +115,20 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, q_new, compHalfStep, \
                                        pHalfStep, e_new, bvc, pbvc, \
                                        ql_old, qq_old) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY2;
       }
 
       #pragma omp target is_device_ptr(e_new, delvc, p_old, \
                                        q_old, pHalfStep, q_new) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY3;
       }
 
       #pragma omp target is_device_ptr(e_new, work) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY4;
       }
@@ -136,7 +136,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, ql_old, qq_old, \
                                        p_old, q_old, pHalfStep, q_new) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY5;
       }
@@ -144,7 +144,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(delvc, pbvc, e_new, vnewc, \
                                        bvc, p_new, q_new, ql_old, qq_old) \
                                        device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY6;
       }
