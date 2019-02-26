@@ -28,11 +28,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
-
 #define HYDRO_2D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -151,7 +146,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(za, zb, zp, zq, zr, zm) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY1;
@@ -159,7 +154,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(zu, zv, za, zb, zz, zr) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY2;
@@ -167,7 +162,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(zrout, zzout, zr, zu, zz, zv) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY3;
