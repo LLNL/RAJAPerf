@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
-
 #define POLYBENCH_3MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -82,7 +77,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
     
       #pragma omp target is_device_ptr(A,B,E) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
           POLYBENCH_3MM_BODY1;
@@ -94,7 +89,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(C,D,F) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for(Index_type j = 0; j < nj; j++) {
         for(Index_type l = 0; l < nl; l++) {
           POLYBENCH_3MM_BODY4;
@@ -106,7 +101,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(E,F,G) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {
           POLYBENCH_3MM_BODY7;

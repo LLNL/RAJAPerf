@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
-
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -67,7 +62,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
       for (Index_type k = 0; k < N; ++k) {
 
         #pragma omp target is_device_ptr(pout,pin) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < N; ++i) {
           for (Index_type j = 0; j < N; ++j) {
             POLYBENCH_FLOYD_WARSHALL_BODY;

@@ -29,11 +29,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
-
 #define POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -68,7 +63,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             POLYBENCH_JACOBI_2D_BODY1;
@@ -76,7 +71,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
         }
     
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             POLYBENCH_JACOBI_2D_BODY2;

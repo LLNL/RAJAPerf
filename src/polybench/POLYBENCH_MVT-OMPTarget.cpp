@@ -74,7 +74,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x1,A,y1) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < N; ++i ) {
         POLYBENCH_MVT_BODY1;
         for (Index_type j = 0; j < N; ++j ) {
@@ -84,7 +84,7 @@ void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(x2,A,y2) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < N; ++i ) {
         POLYBENCH_MVT_BODY4;
         for (Index_type j = 0; j < N; ++j ) {

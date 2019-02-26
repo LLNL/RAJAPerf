@@ -74,13 +74,13 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
 
         #pragma omp target is_device_ptr(ey,fict) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type j = 0; j < ny; j++) {
           POLYBENCH_FDTD_2D_BODY1;
         }
 
         #pragma omp target is_device_ptr(ey,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 1; i < nx; i++) {
           for (Index_type j = 0; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY2;
@@ -88,7 +88,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(ex,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < nx; i++) {
           for (Index_type j = 1; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY3;
@@ -96,7 +96,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(ex,ey,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < nx - 1; i++) {
           for (Index_type j = 0; j < ny - 1; j++) {
             POLYBENCH_FDTD_2D_BODY4;

@@ -88,7 +88,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(A,u1,v1,u2,v2) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < n; i++) {
         for(Index_type j = 0; j < n; j++) {
           POLYBENCH_GEMVER_BODY1;
@@ -96,7 +96,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(A,x,y) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) { 
         POLYBENCH_GEMVER_BODY2;
         for (Index_type j = 0; j < n; j++) {
@@ -106,13 +106,13 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(x,z) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
       for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMVER_BODY5;
       }
 
       #pragma omp target is_device_ptr(A,w,x) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMVER_BODY6;
         for (Index_type j = 0; j < n; j++) {

@@ -74,7 +74,7 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y, A, B) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < N; ++i ) {
         POLYBENCH_GESUMMV_BODY1;
         for (Index_type j = 0; j < N; ++j ) {

@@ -68,13 +68,13 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
        
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY1;
         }
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY2;
         }

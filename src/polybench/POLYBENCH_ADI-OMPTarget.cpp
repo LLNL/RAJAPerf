@@ -79,7 +79,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) { 
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY2;
           for (Index_type j = 1; j < n-1; ++j) {
@@ -92,7 +92,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
           POLYBENCH_ADI_BODY6;
           for (Index_type j = 1; j < n-1; ++j) {
