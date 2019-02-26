@@ -63,7 +63,7 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid)
       Int_type vmax = m_vmax_init;
 
       #pragma omp target is_device_ptr(vec) device( did ) map(tofrom:vsum, vmin, vmax)
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static,1) \
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static,1) \
                                reduction(+:vsum) \
                                reduction(min:vmin) \
                                reduction(max:vmax)

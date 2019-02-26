@@ -28,11 +28,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define threads per team for target execution
-  //
-  const size_t threads_per_team = 256;
-
 #define NESTED_INIT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -61,7 +56,7 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(array) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1) collapse(3) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(3) 
       for (Index_type k = 0; k < nk; ++k ) {
         for (Index_type j = 0; j < nj; ++j ) {
           for (Index_type i = 0; i < ni; ++i ) {

@@ -75,7 +75,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
       Real_type sumx = m_sumx_init;
 
       #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
-                         num_teams(threads_per_team) schedule(static, 1) 
+                         thread_limit(threads_per_team) schedule(static, 1) 
         
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRAP_INT_BODY;
