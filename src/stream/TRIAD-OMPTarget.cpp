@@ -66,7 +66,7 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(a, b, c) device( did )
-      #pragma omp teams distribute parallel for num_teams(threads_per_team) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRIAD_BODY;
       }

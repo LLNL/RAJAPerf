@@ -64,7 +64,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(a, b) device( did ) map(tofrom:dot)
       #pragma omp teams distribute parallel for reduction(+:dot) \
-              num_teams(threads_per_team) schedule(static, 1)
+              thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         DOT_BODY;
       }
