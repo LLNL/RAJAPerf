@@ -83,7 +83,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::policy::omp::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(m_dot_init);
 
       RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
