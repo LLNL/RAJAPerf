@@ -49,7 +49,6 @@ namespace lcals
   const Real_type t = m_t; \
 \
   const Index_type jn = m_jn; \
-  const Index_type kn = m_kn; \
 \
   allocAndInitOpenMPDeviceData(za, m_za, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(zb, m_zb, m_array_length, did, hid); \
