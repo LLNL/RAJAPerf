@@ -26,6 +26,9 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release\
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
+  -DENABLE_TESTS=Off \
+  -DENABLE_EXAMPLES=Off \
+  -DENABLE_EXERCISES=Off \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..
