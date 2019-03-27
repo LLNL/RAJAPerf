@@ -15,7 +15,7 @@
 ##
 
 BUILD_SUFFIX=lc_toss3-clang-4.0.0
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-;builds/toss3/clang_4_0_0.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/clang_4_0_0.cmake
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
