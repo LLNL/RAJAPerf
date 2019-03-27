@@ -14,7 +14,7 @@
 ## For details about use and distribution, please read RAJAPerf/LICENSE.
 ##
 
-BUILD_SUFFIX=lc_blueos-nvcc8-gcc4.9.3
+BUILD_SUFFIX=lc_blueos-EA-nvcc8-gcc4.9.3
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_4_9_3.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null

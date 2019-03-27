@@ -14,7 +14,7 @@
 ## For details about use and distribution, please read RAJAPerf/LICENSE.
 ##
 
-BUILD_SUFFIX=lc_blueos-EA-nvcc9-clang-upstream-2018.12.03
+BUILD_SUFFIX=lc_blueos-nvcc9-clang-upstream-2018.12.03
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_upstream_2018_12_03.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
