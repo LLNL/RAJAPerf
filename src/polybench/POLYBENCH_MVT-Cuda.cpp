@@ -134,7 +134,11 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if CUDART_VERSION >= 9000
+// Defining an extended __device__ lambda inside inside another lambda
+// was not supported until CUDA 9.x
       RAJA::region<RAJA::seq_region>( [=]() {
+#endif
 
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
@@ -170,7 +174,9 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
 
         );
 
+#if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)
+#endif
 
     }
     stopTimer();

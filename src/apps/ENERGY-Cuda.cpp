@@ -230,7 +230,11 @@ void ENERGY::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if CUDART_VERSION >= 9000
+// Defining an extended __device__ lambda inside inside another lambda
+// was not supported until CUDA 9.x
       RAJA::region<RAJA::seq_region>( [=]() {
+#endif
 
         RAJA::forall< RAJA::cuda_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -262,7 +266,9 @@ void ENERGY::runCudaVariant(VariantID vid)
           ENERGY_BODY6;
         });
 
+#if CUDART_VERSION >= 9000
       }); // end sequential region (for single-source code)
+#endif
 
     }
     stopTimer();
