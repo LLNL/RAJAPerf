@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -49,23 +49,72 @@
 #define RAJAPerf_POLYBENCH_3MM_HPP
 
 #define POLYBENCH_3MM_BODY1 \
-  E[j + i*nj] = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_3MM_BODY2 \
-  E[j + i*nj] += A[k + i*nk] * B[j + k*nj];
+  dot += A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_3MM_BODY3 \
-  F[l + j*nl] = 0.0;
+  E[j + i*nj] = dot;
 
 #define POLYBENCH_3MM_BODY4 \
-  F[l + j*nl] += C[m + j*nm] * D[l + m*nl];
+  Real_type dot = 0.0;
 
 #define POLYBENCH_3MM_BODY5 \
-  G[l + i*nl] = 0.0;
+  dot += C[m + j*nm] * D[l + m*nl];
 
 #define POLYBENCH_3MM_BODY6 \
-  G[l + i*nl] += E[j + i*nj] * F[l + j*nl];
+  F[l + j*nl] = dot;
 
+#define POLYBENCH_3MM_BODY7 \
+  Real_type dot = 0.0;
+
+#define POLYBENCH_3MM_BODY8 \
+  dot += E[j + i*nj] * F[l + j*nl];
+
+#define POLYBENCH_3MM_BODY9 \
+  G[l + i*nl] = dot;
+
+
+#define POLYBENCH_3MM_BODY1_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_3MM_BODY2_RAJA \
+  dot += Aview(i,k) * Bview(k,j);
+
+#define POLYBENCH_3MM_BODY3_RAJA \
+  Eview(i,j) = dot;
+
+#define POLYBENCH_3MM_BODY4_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_3MM_BODY5_RAJA \
+  dot += Cview(j,m) * Dview(m,l)
+
+#define POLYBENCH_3MM_BODY6_RAJA \
+  Fview(j,l) = dot;
+
+#define POLYBENCH_3MM_BODY7_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_3MM_BODY8_RAJA \
+  dot += Eview(i,j) * Fview(j,l);
+
+#define POLYBENCH_3MM_BODY9_RAJA \
+  Gview(i,l) = dot;
+
+
+#define POLYBENCH_3MM_VIEWS_RAJA \
+using VIEW_TYPE = RAJA::View<Real_type, \
+                             RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_TYPE Aview(A, RAJA::Layout<2>(ni, nk)); \
+  VIEW_TYPE Bview(B, RAJA::Layout<2>(nk, nj)); \
+  VIEW_TYPE Cview(C, RAJA::Layout<2>(nj, nm)); \
+  VIEW_TYPE Dview(D, RAJA::Layout<2>(nm, nl)); \
+  VIEW_TYPE Eview(E, RAJA::Layout<2>(ni, nj)); \
+  VIEW_TYPE Fview(F, RAJA::Layout<2>(nj, nl)); \
+  VIEW_TYPE Gview(G, RAJA::Layout<2>(ni, nl));
 
 #include "common/KernelBase.hpp"
 

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 #
 # Produced at the Lawrence Livermore National Laboratory
 #
@@ -50,9 +50,6 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Cuda.cpp
   apps/PRESSURE-OMPTarget.cpp
-  apps/VOL3D.cpp
-  apps/VOL3D-Cuda.cpp
-  apps/VOL3D-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Cuda.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -60,6 +57,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW-Cuda.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
+  apps/VOL3D.cpp
+  apps/VOL3D-Cuda.cpp
+  apps/VOL3D-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Cuda.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -99,6 +99,9 @@ blt_add_executable(
   lcals/HYDRO_1D.cpp
   lcals/HYDRO_1D-Cuda.cpp
   lcals/HYDRO_1D-OMPTarget.cpp
+  lcals/HYDRO_2D.cpp
+  lcals/HYDRO_2D-Cuda.cpp
+  lcals/HYDRO_2D-OMPTarget.cpp
   lcals/INT_PREDICT.cpp
   lcals/INT_PREDICT-Cuda.cpp
   lcals/INT_PREDICT-OMPTarget.cpp
@@ -111,12 +114,39 @@ blt_add_executable(
   polybench/POLYBENCH_3MM.cpp
   polybench/POLYBENCH_3MM-Cuda.cpp
   polybench/POLYBENCH_3MM-OMPTarget.cpp
-  polybench/POLYBENCH_GEMMVER.cpp
-  polybench/POLYBENCH_GEMMVER-Cuda.cpp
-  polybench/POLYBENCH_GEMMVER-OMPTarget.cpp
   polybench/POLYBENCH_ADI.cpp
   polybench/POLYBENCH_ADI-Cuda.cpp
   polybench/POLYBENCH_ADI-OMPTarget.cpp
+  polybench/POLYBENCH_ATAX.cpp
+  polybench/POLYBENCH_ATAX-Cuda.cpp
+  polybench/POLYBENCH_ATAX-OMPTarget.cpp
+  polybench/POLYBENCH_FDTD_2D.cpp
+  polybench/POLYBENCH_FDTD_2D-Cuda.cpp
+  polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL-Cuda.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL-OMPTarget.cpp
+  polybench/POLYBENCH_GEMM.cpp
+  polybench/POLYBENCH_GEMM-Cuda.cpp
+  polybench/POLYBENCH_GEMM-OMPTarget.cpp
+  polybench/POLYBENCH_GEMVER.cpp
+  polybench/POLYBENCH_GEMVER-Cuda.cpp
+  polybench/POLYBENCH_GEMVER-OMPTarget.cpp
+  polybench/POLYBENCH_GESUMMV.cpp
+  polybench/POLYBENCH_GESUMMV-Cuda.cpp
+  polybench/POLYBENCH_GESUMMV-OMPTarget.cpp
+  polybench/POLYBENCH_HEAT_3D.cpp
+  polybench/POLYBENCH_HEAT_3D-Cuda.cpp
+  polybench/POLYBENCH_HEAT_3D-OMPTarget.cpp
+  polybench/POLYBENCH_JACOBI_1D.cpp
+  polybench/POLYBENCH_JACOBI_1D-Cuda.cpp
+  polybench/POLYBENCH_JACOBI_1D-OMPTarget.cpp
+  polybench/POLYBENCH_JACOBI_2D.cpp
+  polybench/POLYBENCH_JACOBI_2D-Cuda.cpp
+  polybench/POLYBENCH_JACOBI_2D-OMPTarget.cpp
+  polybench/POLYBENCH_MVT.cpp
+  polybench/POLYBENCH_MVT-Cuda.cpp
+  polybench/POLYBENCH_MVT-OMPTarget.cpp
   stream/ADD.cpp
   stream/ADD-Cuda.cpp
   stream/ADD-OMPTarget.cpp

@@ -2,7 +2,7 @@
 
 RAJA Performance Suite: ................................, version 0.1.0
 
-Copyright (c) 2017, Lawrence Livermore National Security, LLC. 
+Copyright (c) 2017 - 2019, Lawrence Livermore National Security, LLC. 
 Produced at the Lawrence Livermore National Laboratory.
 All rights reserved. See details in RAJAPerf/LICENSE and 
 RAJAPerf/NOTICE files.
@@ -20,3 +20,5 @@ Other contributors include:
 David Beckingsale (beckingsale1@llnl.gov)
 Holger Jones (jones19@llnl.gov)
 Matt Cordery (cordery1@llnl.gov)
+Arturo Vargas (vargas45@llnl.gov)
+Jason Burmark (burmark1@llnl.gov)

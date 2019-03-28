@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
-## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
@@ -21,7 +21,6 @@ rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
 module load cmake/3.9.2
-module load gcc/7.1.0
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \

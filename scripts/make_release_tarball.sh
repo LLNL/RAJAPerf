@@ -1,27 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-##
-## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
-##
-## Produced at the Lawrence Livermore National Laboratory.
-##
-## LLNL-CODE-738930
-##
-## All rights reserved.
-##
-## This file is part of the RAJA Performance Suite.
-##
-## For details about use and distribution, please read RAJAPerf/LICENSE.
-##
+###############################################################################
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+#
+# Produced at the Lawrence Livermore National Laboratory
+#
+# LLNL-CODE-738930
+#
+# All rights reserved.
+#
+# This file is part of the RAJA Performance Suite.
+#
+# For details about use and distribution, please read RAJAPerf/LICENSE.
+#   
+###############################################################################
 
-TAR_CMD=gtar
-VERSION=0.4.0
+TAR_CMD=`which tar`
+VERSION=`git describe --tags`
 
 git archive --prefix=RAJAPerf-${VERSION}/ -o RAJAPerf-${VERSION}.tar HEAD 2> /dev/null
 
 echo "Running git archive submodules..."
 
-p=`pwd` && (echo .; git submodule foreach) | while read entering path; do
+p=`pwd` && (echo .; git submodule foreach --recursive) | while read entering path; do
     temp="${path%\'}";
     temp="${temp#\'}";
     path=$temp;

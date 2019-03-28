@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -30,11 +30,11 @@ namespace polybench
 {
 
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
-  Real_ptr tmp = m_tmp; \
-  Real_ptr A = m_A; \
-  Real_ptr B = m_B; \
-  Real_ptr C = m_C; \
-  Real_ptr D = m_D; \
+  Real_ptr tmp; \
+  Real_ptr A; \
+  Real_ptr B; \
+  Real_ptr C; \
+  Real_ptr D; \
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
@@ -58,28 +58,28 @@ __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
                            Real_type alpha,
                            Index_type nj, Index_type nk)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    POLYBENCH_2MM_BODY1;
-
    for (Index_type k=0; k < nk; ++k) {
      POLYBENCH_2MM_BODY2;              
    }
+   POLYBENCH_2MM_BODY3;
 }
 
 __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
                            Real_type beta,
                            Index_type nl, Index_type nj)
 {
-   Index_type i = blockIdx.x;
-   Index_type l = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type l = threadIdx.x;
 
-   POLYBENCH_2MM_BODY3;
-
+   POLYBENCH_2MM_BODY4;
    for (Index_type j=0; j < nj; ++j) {
-     POLYBENCH_2MM_BODY4;
+     POLYBENCH_2MM_BODY5;
    }
+   POLYBENCH_2MM_BODY6;
 }
 
 
@@ -99,13 +99,13 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks1(ni, 1, 1);
-      dim3 nthreads_per_block1(1, nj, 1);
+      dim3 nblocks1(1, ni, 1);
+      dim3 nthreads_per_block1(nj, 1, 1);
       poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
                                                     nj, nk);
 
-      dim3 nblocks2(ni, 1, 1);
-      dim3 nthreads_per_block2(1, nl, 1);
+      dim3 nblocks2(1, ni, 1);
+      dim3 nthreads_per_block2(nl, 1, 1);
       poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
                                                     nl, nj);
 
@@ -118,15 +118,18 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_2MM_DATA_SETUP_CUDA;
 
+    POLYBENCH_2MM_VIEWS_RAJA;
+
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1>
-              >
+              >,
+              RAJA::statement::Lambda<2>
             >
           >
         >
@@ -135,25 +138,37 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nj},
-                                               RAJA::RangeSegment{0, nk}),
-        [=] __device__ (Index_type i, Index_type j, Index_type /* k */) {
-          POLYBENCH_2MM_BODY1;
+      RAJA::kernel_param<EXEC_POL>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nj},
+                         RAJA::RangeSegment{0, nk}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
-          POLYBENCH_2MM_BODY2;
+        [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type &dot) {
+          POLYBENCH_2MM_BODY2_RAJA;
+        },
+        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY3_RAJA;
         }
       );
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nl},
-                                               RAJA::RangeSegment{0, nj}),
-        [=] __device__ (Index_type i, Index_type l, Index_type /* j */) {
-          POLYBENCH_2MM_BODY3;
+      RAJA::kernel_param<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nl},
+                         RAJA::RangeSegment{0, nj}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j) {
-          POLYBENCH_2MM_BODY4;
+        [=] __device__ (Index_type i, Index_type l, Index_type j, Real_type &dot) {
+          POLYBENCH_2MM_BODY5_RAJA;
+        },
+        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+          POLYBENCH_2MM_BODY6_RAJA;
         }
       );
 

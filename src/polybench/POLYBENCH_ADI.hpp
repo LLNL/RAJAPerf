@@ -1,6 +1,6 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -50,8 +50,8 @@
 ///    }
 ///    //Row Sweep
 ///    for (i=1; i<N-1; i++) {
-///      u[i][0] = 1.0);
-///      p[i][0] = 0.0);
+///      u[i][0] = 1.0;
+///      p[i][0] = 0.0;
 ///      q[i][0] = u[i][0];
 ///      for (j=1; j<N-1; j++) {
 ///        p[i][j] = -f / (d*p[i][j-1]+e);
@@ -87,70 +87,84 @@
   f = d; 
 
 #define POLYBENCH_ADI_BODY2 \
-  *(V + 0 * n + i) = 1.0; \
-  *(P + i * n + 0) = 0.0; \
-  *(Q + i * n + 0) = *(V + 0 * n + i);
-
-#define NEW_POLYBENCH_ADI_BODY2 \
   V[0 * n + i] = 1.0; \
   P[i * n + 0] = 0.0; \
   Q[i * n + 0] = V[0 * n + i];
 
 #define POLYBENCH_ADI_BODY3 \
-  *(P + i * n + j) = -c / (a * *(P + i * n + j-1)+b); \
-  *(Q + i * n + j) = (-d * *(U + j * n + i-1) + (1.0 + 2.0*d) * *(U + j * n + i) - f* *(U + j * n + i + 1) -a * *(Q + i * n + j-1))/(a * *(P + i * n + j -1)+b);
-
-#define NEW_POLYBENCH_ADI_BODY3 \
   P[i * n + j] = -c / (a * P[i * n + j-1] + b); \
   Q[i * n + j] = (-d * U[j * n + i-1] + (1.0 + 2.0*d) * U[j * n + i] - \
                  f * U[j * n + i + 1] - a * Q[i * n + j-1]) / \
                     (a * P[i * n + j-1] + b); 
 
 #define POLYBENCH_ADI_BODY4 \
-  *(V + (n-1) * n + i) = 1.0;
-
-#define NEW_POLYBENCH_ADI_BODY4 \
   V[(n-1) * n + i] = 1.0;
 
 #define POLYBENCH_ADI_BODY5 \
-  int jj = n - 1 - j; \
-  *(V + jj * n + i)  = *(P + i * n + jj) * *(V + (jj+1) * n + i) + *(Q + i * n + jj); 
-
-#define NEW_POLYBENCH_ADI_BODY5 \
   V[k * n + i]  = P[i * n + k] * V[(k+1) * n + i] + Q[i * n + k]; 
 
 #define POLYBENCH_ADI_BODY6 \
-  *(U + i * n + 0) = 1.0; \
-  *(P + i * n + 0) = 0.0; \
-  *(Q + i * n + 0) = *(U + i * n + 0);
-
-#define NEW_POLYBENCH_ADI_BODY6 \
   U[i * n + 0] = 1.0; \
   P[i * n + 0] = 0.0; \
   Q[i * n + 0] = U[i * n + 0];
 
 #define POLYBENCH_ADI_BODY7 \
-  *(P + i * n + j) = -f / (d * *(P + i * n + j-1)+e); \
-  *(Q + i * n + j) = (-a * *(V + (i-1) * n + j) + (1.0 + 2.0*a) * *(V + i * n + j) - c * *(V + (i + 1) * n + j) -d * *(Q + i * n + j-1))/(d * *(P + i * n + j-1)+e);
-
-#define NEW_POLYBENCH_ADI_BODY7 \
   P[i * n + j] = -f / (d * P[i * n + j-1] + e); \
   Q[i * n + j] = (-a * V[(i-1) * n + j] + (1.0 + 2.0*a) * V[i * n + j] - \
                  c * V[(i + 1) * n + j] - d * Q[i * n + j-1]) / \
                     (d * P[i * n + j-1] + e);
 
 #define POLYBENCH_ADI_BODY8 \
-  *(U + i * n + n-1) = 1.0;
-
-#define NEW_POLYBENCH_ADI_BODY8 \
   U[i * n + n-1] = 1.0;
 
 #define POLYBENCH_ADI_BODY9 \
-  int jj = n - 1 - j; \
-  *(U + i * n + jj)= *(P + i * n + jj) * *(U + i * n + jj +1) + *(Q + i * n + jj); 
-
-#define NEW_POLYBENCH_ADI_BODY9 \
   U[i * n + k] = P[i * n + k] * U[i * n + k +1] + Q[i * n + k]; 
+
+
+#define POLYBENCH_ADI_BODY2_RAJA \
+  Vview(0, i) = 1.0; \
+  Pview(i, 0) = 0.0; \
+  Qview(i, 0) = Vview(0, i);
+
+#define POLYBENCH_ADI_BODY3_RAJA \
+  Pview(i, j) = -c / (a * Pview(i, j-1) + b); \
+  Qview(i, j) = (-d * Uview(j, i-1) + (1.0 + 2.0*d) * Uview(j, i) - \
+                 f * Uview(j, i+1) - a * Qview(i, j-1)) / \
+                   (a * Pview(i, j-1) + b);
+
+#define POLYBENCH_ADI_BODY4_RAJA \
+  Vview(n-1, i) = 1.0;
+
+#define POLYBENCH_ADI_BODY5_RAJA \
+  Vview(k, i)  = Pview(i, k) * Vview(k+1, i) + Qview(i, k);
+
+#define POLYBENCH_ADI_BODY6_RAJA \
+  Uview(i, 0) = 1.0; \
+  Pview(i, 0) = 0.0; \
+  Qview(i, 0) = Uview(i, 0);
+
+#define POLYBENCH_ADI_BODY7_RAJA \
+  Pview(i, j) = -f / (d * Pview(i, j-1) + e); \
+  Qview(i, j) = (-a * Vview(i-1, j) + (1.0 + 2.0*a) * Vview(i, j) - \
+                 c * Vview(i + 1, j) - d * Qview(i, j-1)) / \
+                   (d * Pview(i, j-1) + e);
+
+#define POLYBENCH_ADI_BODY8_RAJA \
+  Uview(i, n-1) = 1.0;
+
+#define POLYBENCH_ADI_BODY9_RAJA \
+  Uview(i, k) = Pview(i, k) * Uview(i, k+1) + Qview(i, k);
+
+
+#define POLYBENCH_ADI_VIEWS_RAJA \
+  using VIEW_TYPE = RAJA::View<Real_type, \
+                          RAJA::Layout<2, Index_type, 1>>; \
+\
+  VIEW_TYPE Uview(U, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Vview(V, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Pview(P, RAJA::Layout<2>(n, n)); \
+  VIEW_TYPE Qview(Q, RAJA::Layout<2>(n, n));
+
 
 #include "common/KernelBase.hpp"
 

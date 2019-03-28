@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -87,7 +87,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    atomicAdd( sumx, psumx[ 0 ] );
+    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( sumx, psumx[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {
@@ -143,7 +143,7 @@ void TRAP_INT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce<block_size>, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

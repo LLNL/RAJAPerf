@@ -1,6 +1,6 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -29,10 +29,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_ADI_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -79,28 +79,28 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) { 
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
-          NEW_POLYBENCH_ADI_BODY2;
+          POLYBENCH_ADI_BODY2;
           for (Index_type j = 1; j < n-1; ++j) {
-            NEW_POLYBENCH_ADI_BODY3;
+            POLYBENCH_ADI_BODY3;
           }  
-          NEW_POLYBENCH_ADI_BODY4;
+          POLYBENCH_ADI_BODY4;
           for (Index_type k = n-2; k >= 1; --k) {
-            NEW_POLYBENCH_ADI_BODY5;
+            POLYBENCH_ADI_BODY5;
           }  
         }
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < n-1; ++i) {
-          NEW_POLYBENCH_ADI_BODY6;
+          POLYBENCH_ADI_BODY6;
           for (Index_type j = 1; j < n-1; ++j) {
-            NEW_POLYBENCH_ADI_BODY7;
+            POLYBENCH_ADI_BODY7;
           }
-          NEW_POLYBENCH_ADI_BODY8;
+          POLYBENCH_ADI_BODY8;
           for (Index_type k = n-2; k >= 1; --k) {
-            NEW_POLYBENCH_ADI_BODY9;
+            POLYBENCH_ADI_BODY9;
           }
         }
 
@@ -115,9 +115,11 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
     POLYBENCH_ADI_DATA_SETUP_OMP_TARGET;
 
+    POLYBENCH_ADI_VIEWS_RAJA;
+
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
+        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
           RAJA::statement::Lambda<0>,
           RAJA::statement::For<1, RAJA::seq_exec,
             RAJA::statement::Lambda<1>
@@ -142,16 +144,16 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
           [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY2;
+            POLYBENCH_ADI_BODY2_RAJA;
           },
           [=] (Index_type i, Index_type j, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY3;
+            POLYBENCH_ADI_BODY3_RAJA;
           },
           [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY4;
+            POLYBENCH_ADI_BODY4_RAJA;
           },
           [=] (Index_type i, Index_type /*j*/, Index_type k) {
-            NEW_POLYBENCH_ADI_BODY5;
+            POLYBENCH_ADI_BODY5_RAJA;
           }
         );
 
@@ -161,16 +163,16 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
           [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY6;
+            POLYBENCH_ADI_BODY6_RAJA;
           },
           [=] (Index_type i, Index_type j, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY7;
+            POLYBENCH_ADI_BODY7_RAJA;
           },
           [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
-            NEW_POLYBENCH_ADI_BODY8;
+            POLYBENCH_ADI_BODY8_RAJA;
           },
           [=] (Index_type i, Index_type /*j*/, Index_type k) {
-            NEW_POLYBENCH_ADI_BODY9;
+            POLYBENCH_ADI_BODY9_RAJA;
           }
         );
 

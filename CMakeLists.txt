@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 #
 # Produced at the Lawrence Livermore National Laboratory
 #
@@ -13,9 +13,16 @@
 #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.3)
+if (ENABLE_CUDA)
+  cmake_minimum_required(VERSION 3.9)
+else ()
+  cmake_minimum_required(VERSION 3.8.2)
+endif ()
 
 project(RAJAPerfSuite CXX)
+
+option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
+this, and all other variants, to run _only_ raw C loops." On)
 
 #
 # Initialize the BLT build system
@@ -47,7 +54,6 @@ set(RAJA_USE_CHRONO On CACHE Bool "")
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
-set(RAJA_COHERENCE_BLOCK_SIZE 64)
 
 
 # exclude RAJA make targets from top-level build...
@@ -65,13 +71,19 @@ include_directories(${RAJA_INCLUDE_DIRS})
 # These (hopefully temporary) macro constants are needed to work-around
 # performance issues in the xl compiler.
 #
-add_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP ) 
+if (ENABLE_RAJA_SEQUENTIAL)
+  add_definitions(-DRUN_RAJA_SEQ)
+endif ()
+if (ENABLE_OPENMP)
+  add_definitions(-DRUN_OPENMP)
+endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 4)
+set(RAJA_PERFSUITE_VERSION_MINOR 5)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
+
 if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
 endif()
@@ -83,14 +95,17 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
-list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
-set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
+  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda")
+
+  set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
+  list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
+  set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
 else()
-set(RAJAPERF_COMPILER "${CMAKE_CXX_COMPILER}")
-string(TOUPPER ${CMAKE_BUILD_TYPE} RAJAPERF_BUILD_TYPE)
-set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_${RAJAPERF_BUILD_TYPE}}")
-list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
+  set(RAJAPERF_COMPILER "${CMAKE_CXX_COMPILER}")
+  string(TOUPPER ${CMAKE_BUILD_TYPE} RAJAPERF_BUILD_TYPE)
+  set(RAJAPERF_COMPILER_OPTIONS "${CMAKE_CXX_FLAGS_${RAJAPERF_BUILD_TYPE}}")
+  list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in

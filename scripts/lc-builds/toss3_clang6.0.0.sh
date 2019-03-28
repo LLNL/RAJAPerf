@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
-## Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+## Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 ##
 ## Produced at the Lawrence Livermore National Laboratory.
 ##
