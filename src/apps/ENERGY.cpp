@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -136,35 +136,39 @@ void ENERGY::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY1;
-        }); 
+        RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY2;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY1;
+          });
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY3;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY2;
+          }); 
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY4;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY3;
+          }); 
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY5;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY4;
+          }); 
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          ENERGY_BODY6;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY5;
+          }); 
+
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            ENERGY_BODY6;
+          }); 
+
+        }); // end sequential region (for single-source code)
 
       }
       stopTimer(); 

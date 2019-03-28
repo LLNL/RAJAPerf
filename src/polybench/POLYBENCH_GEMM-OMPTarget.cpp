@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -28,11 +28,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
 
 #define POLYBENCH_GEMM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -73,7 +68,7 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(A,B,C) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; ++i ) {
         for (Index_type j = 0; j < nj; ++j ) {
           POLYBENCH_GEMM_BODY1;
@@ -115,16 +110,15 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
 
-          RAJA::tuple<double>{0.0},  // variable for dot
-
-          [=] (Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=] (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=] (Index_type i, Index_type j, Index_type k, double& dot) {
+          [=] (Index_type i, Index_type j, Index_type k, Real_type& dot) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=] (Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=] (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
           }
         );

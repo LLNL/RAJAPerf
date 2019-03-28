@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -204,8 +204,8 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<0, RAJA::cuda_block_exec,  // k
-              RAJA::statement::For<1, RAJA::cuda_thread_exec,  // j
+            RAJA::statement::For<0, RAJA::cuda_block_y_loop,  // k
+              RAJA::statement::For<1, RAJA::cuda_thread_x_loop,  // j
                 RAJA::statement::Lambda<0>
               >
             >

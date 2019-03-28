@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -28,11 +28,6 @@ namespace rajaperf
 namespace lcals
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
-
 #define HYDRO_2D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -54,7 +49,6 @@ namespace lcals
   const Real_type t = m_t; \
 \
   const Index_type jn = m_jn; \
-  const Index_type kn = m_kn; \
 \
   allocAndInitOpenMPDeviceData(za, m_za, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(zb, m_zb, m_array_length, did, hid); \
@@ -151,7 +145,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(za, zb, zp, zq, zr, zm) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY1;
@@ -159,7 +153,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(zu, zv, za, zb, zz, zr) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY2;
@@ -167,7 +161,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(zrout, zzout, zr, zu, zz, zv) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY3;

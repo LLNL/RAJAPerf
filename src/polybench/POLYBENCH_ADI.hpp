@@ -1,6 +1,6 @@
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -154,6 +154,7 @@
 
 #define POLYBENCH_ADI_BODY9_RAJA \
   Uview(i, k) = Pview(i, k) * Uview(i, k+1) + Qview(i, k);
+
 
 #define POLYBENCH_ADI_VIEWS_RAJA \
   using VIEW_TYPE = RAJA::View<Real_type, \

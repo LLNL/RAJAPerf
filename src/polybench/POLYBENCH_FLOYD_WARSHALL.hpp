@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -39,6 +39,7 @@
 #define POLYBENCH_FLOYD_WARSHALL_BODY_RAJA \
   poutview(i, j) = pinview(i, j) < pinview(i, k) + pinview(k, j) ? \
                    pinview(i, j) : pinview(i, k) + pinview(k, j);
+
 
 #define POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA \
   using VIEW_TYPE = RAJA::View<Real_type, \

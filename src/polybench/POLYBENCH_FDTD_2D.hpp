@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -68,6 +68,7 @@
 #define POLYBENCH_FDTD_2D_BODY4_RAJA \
   hzview(i, j) = hzview(i, j) - 0.7*(exview(i, j+1) - exview(i, j) + \
                                      eyview(i+1, j) - eyview(i, j));
+
 
 #define POLYBENCH_FDTD_2D_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \

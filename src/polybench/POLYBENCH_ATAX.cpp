@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -21,7 +21,7 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -32,12 +32,12 @@ namespace polybench
   ResReal_ptr x = m_x; \
   ResReal_ptr A = m_A;
 
-  
+
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
   SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_N=42;
@@ -69,7 +69,7 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultReps(run_reps);
 }
 
-POLYBENCH_ATAX::~POLYBENCH_ATAX() 
+POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
 
 }
@@ -97,17 +97,20 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) { 
+        for (Index_type i = 0; i < N; ++i ) {
           POLYBENCH_ATAX_BODY1;
           for (Index_type j = 0; j < N; ++j ) {
             POLYBENCH_ATAX_BODY2;
           }
+          POLYBENCH_ATAX_BODY3;
         }
 
-        for (Index_type i = 0; i < N; ++i ) { 
-          for (Index_type j = 0; j < N; ++j ) {
-            POLYBENCH_ATAX_BODY3;
+        for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY4;
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_ATAX_BODY5;
           }
+          POLYBENCH_ATAX_BODY6;
         }
 
       }
@@ -117,42 +120,72 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+
     case RAJA_Seq : {
 
       POLYBENCH_ATAX_DATA_SETUP_CPU;
 
       POLYBENCH_ATAX_VIEWS_RAJA;
 
-      using EXEC_POL =
+      using EXEC_POL1 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
             RAJA::statement::Lambda<0>,
             RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<1>
-            >
-          >,
-          RAJA::statement::For<1, RAJA::loop_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
-              RAJA::statement::Lambda<2>
-            >
+            >,
+            RAJA::statement::Lambda<2>
           >
         >;
+
+      using EXEC_POL2 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<1, RAJA::loop_exec,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<0, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >,
+            RAJA::statement::Lambda<2>
+          >
+        >;
+
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type /* j */) {
+        RAJA::kernel_param<EXEC_POL1>( 
+          RAJA::make_tuple(RAJA::RangeSegment{0, N}, 
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_ATAX_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=] (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_ATAX_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_ATAX_BODY3_RAJA;
           }
+
+        );
+        
+        RAJA::kernel_param<EXEC_POL2>( 
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+            POLYBENCH_ATAX_BODY4_RAJA;
+          },
+          [=] (Index_type i, Index_type j , Real_type &dot) {
+            POLYBENCH_ATAX_BODY5_RAJA;
+          },
+          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+            POLYBENCH_ATAX_BODY6_RAJA;
+          }
+
         );
 
       }
@@ -160,7 +193,6 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
       break;
     }
-
 #endif // RUN_RAJA_SEQ
 
 
@@ -178,13 +210,16 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
           for (Index_type j = 0; j < N; ++j ) {
             POLYBENCH_ATAX_BODY2;
           }
+          POLYBENCH_ATAX_BODY3;
         }
 
         #pragma omp parallel for
         for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY4;
           for (Index_type i = 0; i < N; ++i ) {
-            POLYBENCH_ATAX_BODY3;
+            POLYBENCH_ATAX_BODY5;
           }
+          POLYBENCH_ATAX_BODY6;
         }
 
       }
@@ -199,40 +234,69 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
       POLYBENCH_ATAX_VIEWS_RAJA;
 
-      using EXEC_POL =
+      using EXEC_POL1 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
             RAJA::statement::Lambda<0>,
             RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::Lambda<1>
-            >
-          >,
-          RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
-            RAJA::statement::For<0, RAJA::loop_exec,
-              RAJA::statement::Lambda<2>
-            >
+             >,
+            RAJA::statement::Lambda<2>
           >
         >;
 
+      using EXEC_POL2 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<0, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >,
+            RAJA::statement::Lambda<2>
+          >
+        >;
+
+      
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        
+        RAJA::kernel_param<EXEC_POL1>( 
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N}),
-          [=](Index_type i, Index_type /* j */) {
+          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_ATAX_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=] (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_ATAX_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
             POLYBENCH_ATAX_BODY3_RAJA;
           }
+
+        );
+        
+        RAJA::kernel_param<EXEC_POL2>( 
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+            POLYBENCH_ATAX_BODY4_RAJA;
+          },
+          [=] (Index_type i, Index_type j , Real_type &dot) {
+            POLYBENCH_ATAX_BODY5_RAJA;
+          },
+          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+            POLYBENCH_ATAX_BODY6_RAJA;
+          }
+
         );
 
       }
       stopTimer();
-
+      
       break;
     }
 #endif

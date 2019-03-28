@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -127,7 +127,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 
 #if 0
 // using collapse here doesn't appear to yield a performance benefit
-//        #pragma omp parallel for collapse(3)
+          #pragma omp parallel for collapse(3)
 #else
           #pragma omp parallel for
 #endif
@@ -161,9 +161,9 @@ void NESTED_INIT::runKernel(VariantID vid)
 #else
       using EXEC_POL = 
         RAJA::KernelPolicy<
-          RAJA::statement::For<2, RAJA::omp_parallel_for_exec,    // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::For<0, RAJA::loop_exec,// i
+          RAJA::statement::For<2, RAJA::omp_parallel_for_exec,  // k
+            RAJA::statement::For<1, RAJA::loop_exec,            // j
+              RAJA::statement::For<0, RAJA::loop_exec,          // i
                 RAJA::statement::Lambda<0>
               >
             >

@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -140,14 +140,16 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::Lambda<0>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1>
-            >,
-            RAJA::statement::Lambda<2>,
-            RAJA::statement::For<2, RAJA::seq_exec,
-              RAJA::statement::Lambda<3>
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<3>
+              >
             >
           >
         >

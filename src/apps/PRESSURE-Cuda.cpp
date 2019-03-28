@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -120,15 +120,25 @@ void PRESSURE::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         PRESSURE_BODY1;
-       });
+#if CUDART_VERSION >= 9000
+// Defining an extended __device__ lambda inside inside another lambda
+// was not supported until CUDA 9.x
+      RAJA::region<RAJA::seq_region>( [=]() {
+#endif
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         PRESSURE_BODY2;
-       });
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          PRESSURE_BODY1;
+        });
+
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          PRESSURE_BODY2;
+        });
+
+#if CUDART_VERSION >= 9000
+      }); // end sequential region (for single-source code)
+#endif
 
     }
     stopTimer();

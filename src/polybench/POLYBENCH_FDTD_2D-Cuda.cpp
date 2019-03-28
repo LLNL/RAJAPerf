@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -69,8 +69,8 @@ __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
 
 __global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz, Index_type ny)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    if (i > 0) {
      POLYBENCH_FDTD_2D_BODY2;
@@ -79,8 +79,8 @@ __global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz, Index_type ny)
 
 __global__ void poly_fdtd2d_3(Real_ptr ex, Real_ptr hz, Index_type ny)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    if (j > 0) {
      POLYBENCH_FDTD_2D_BODY3;
@@ -90,8 +90,8 @@ __global__ void poly_fdtd2d_3(Real_ptr ex, Real_ptr hz, Index_type ny)
 __global__ void poly_fdtd2d_4(Real_ptr hz, Real_ptr ex, Real_ptr ey,
                               Index_type nx, Index_type ny)
 {
-   Index_type i = blockIdx.x;
-   Index_type j = threadIdx.y;
+   Index_type i = blockIdx.y;
+   Index_type j = threadIdx.x;
 
    if (i < nx-1 && j < ny-1) {
      POLYBENCH_FDTD_2D_BODY4;
@@ -116,8 +116,8 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
         poly_fdtd2d_1<<<grid_size1, block_size>>>(ey, fict, ny, t);
 
-        dim3 nblocks234(nx, 1, 1);
-        dim3 nthreads_per_block234(1, ny, 1);
+        dim3 nblocks234(1, nx, 1);
+        dim3 nthreads_per_block234(ny, 1, 1);
         poly_fdtd2d_2<<<nblocks234, nthreads_per_block234>>>(ey, hz, ny);
 
         poly_fdtd2d_3<<<nblocks234, nthreads_per_block234>>>(ex, hz, ny);
@@ -142,8 +142,8 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
     using EXEC_POL234 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_exec,
-            RAJA::statement::For<1, RAJA::cuda_thread_exec,
+          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>
             >
           >

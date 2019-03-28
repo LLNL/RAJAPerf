@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -32,7 +32,6 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  ResReal_ptr tmp = m_tmp; \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y; \
   ResReal_ptr A = m_A; \
@@ -86,7 +85,6 @@ POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()
 void POLYBENCH_GESUMMV::setUp(VariantID vid)
 {
   (void) vid;
-  allocAndInitData(m_tmp, m_N, vid);
   allocAndInitData(m_x, m_N, vid);
   allocAndInitDataConst(m_y, m_N, 0.0, vid);
   allocAndInitData(m_A, m_N * m_N, vid);
@@ -142,18 +140,22 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>(
-     
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0), 
+                           static_cast<Real_type>(0.0)),
 
-          [=](Index_type i, Index_type /*j*/) {
+          [=](Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
+                                                  Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=](Index_type i, Index_type j, Real_type& tmpdot,
+                                          Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type /*j*/) {
+          [=](Index_type i, Index_type /*j*/, Real_type& tmpdot,
+                                              Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY3_RAJA;
           }
         );
@@ -210,18 +212,22 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>(
-
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
+                           static_cast<Real_type>(0.0)),
 
-          [=](Index_type i, Index_type /*j*/) {
+          [=](Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
+                                                  Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j) {
+          [=](Index_type i, Index_type j, Real_type& tmpdot,
+                                          Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type /*j*/) {
+          [=](Index_type i, Index_type /*j*/, Real_type& tmpdot,
+                                              Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY3_RAJA;
           }
         );
@@ -267,7 +273,6 @@ void POLYBENCH_GESUMMV::updateChecksum(VariantID vid)
 void POLYBENCH_GESUMMV::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_tmp);
   deallocData(m_x);
   deallocData(m_y);
   deallocData(m_A);

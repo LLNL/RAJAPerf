@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 #
 # Produced at the Lawrence Livermore National Laboratory
 #
@@ -13,7 +13,11 @@
 #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.3)
+if (ENABLE_CUDA)
+  cmake_minimum_required(VERSION 3.9)
+else ()
+  cmake_minimum_required(VERSION 3.8.2)
+endif ()
 
 project(RAJAPerfSuite CXX)
 
@@ -50,7 +54,6 @@ set(RAJA_USE_CHRONO On CACHE Bool "")
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
-set(RAJA_COHERENCE_BLOCK_SIZE 64)
 
 
 # exclude RAJA make targets from top-level build...
@@ -76,7 +79,7 @@ if (ENABLE_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 4)
+set(RAJA_PERFSUITE_VERSION_MINOR 5)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
@@ -92,6 +95,9 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
+  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda")
+
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")

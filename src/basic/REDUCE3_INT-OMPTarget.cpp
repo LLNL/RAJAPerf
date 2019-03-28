@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -28,10 +28,10 @@ namespace rajaperf
 namespace basic
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define REDUCE3_INT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -63,7 +63,7 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid)
       Int_type vmax = m_vmax_init;
 
       #pragma omp target is_device_ptr(vec) device( did ) map(tofrom:vsum, vmin, vmax)
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static,1) \
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static,1) \
                                reduction(+:vsum) \
                                reduction(min:vmin) \
                                reduction(max:vmax)
@@ -87,11 +87,11 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::omp_target_reduce<NUMTEAMS>, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Int_type> vsum(m_vsum_init);
+      RAJA::ReduceMin<RAJA::omp_target_reduce, Int_type> vmin(m_vmin_init);
+      RAJA::ReduceMax<RAJA::omp_target_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
         [=](Index_type i) {
         REDUCE3_INT_BODY_RAJA;

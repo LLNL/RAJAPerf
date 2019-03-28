@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -29,10 +29,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -68,13 +68,13 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
        
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY1;
         }
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
           POLYBENCH_JACOBI_1D_BODY2;
         }
@@ -89,29 +89,20 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
 
     POLYBENCH_JACOBI_1D_DATA_SETUP_OMP_TARGET;
 
-    using EXEC_POL =
-      RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
-          RAJA::statement::Lambda<0>
-        >,
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
-          RAJA::statement::Lambda<1>
-        >
-      >;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
-          [=] (Index_type i) {
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> (
+          RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
-          },
-          [=] (Index_type i) {
+        });
+
+        RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>> (
+          RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
-          }
-        );
+        });
 
       }
 

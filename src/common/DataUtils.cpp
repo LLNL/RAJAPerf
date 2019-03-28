@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -203,6 +203,8 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
       ptr[i] = 0;
     };
   }
+#else
+  (void) vid;
 #endif
 
   for (int i = 0; i < len; ++i) {

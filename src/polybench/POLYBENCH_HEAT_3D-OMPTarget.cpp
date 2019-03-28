@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -28,11 +28,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -68,7 +63,7 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(3)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(3)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {
@@ -78,7 +73,7 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(A,B) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(3)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(3)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             for (Index_type k = 1; k < N-1; ++k ) {

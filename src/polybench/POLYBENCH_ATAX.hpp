@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -32,26 +32,46 @@
 #ifndef RAJAPerf_POLYBENCH_ATAX_HPP
 #define RAJAPerf_POLYBENCH_ATAX_HPP
 
+
 #define POLYBENCH_ATAX_BODY1 \
   y[i] = 0.0; \
-  tmp[i] = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_ATAX_BODY2 \
-  tmp[i] += A[j + i*N] * x[j];
+  dot += A[j + i*N] * x[j];
 
 #define POLYBENCH_ATAX_BODY3 \
-  y[j] += A[j + i*N] * tmp[i];
+  tmp[i] = dot;
+
+#define POLYBENCH_ATAX_BODY4 \
+  Real_type dot = y[j];
+
+#define POLYBENCH_ATAX_BODY5 \
+  dot += A[j + i*N] * tmp[i];
+
+#define POLYBENCH_ATAX_BODY6 \
+  y[j] = dot;
 
 
 #define POLYBENCH_ATAX_BODY1_RAJA \
   yview(i) = 0.0; \
-  tmpview(i) = 0.0;
+  dot = 0.0;
 
 #define POLYBENCH_ATAX_BODY2_RAJA \
-  tmpview(i) += Aview(i, j) * xview(j); 
+  dot += Aview(i, j) * xview(j);
 
 #define POLYBENCH_ATAX_BODY3_RAJA \
-  yview(j) += Aview(i, j) * tmpview(i); 
+  tmpview(i) = dot;
+
+#define POLYBENCH_ATAX_BODY4_RAJA \
+  dot = yview(j);
+
+#define POLYBENCH_ATAX_BODY5_RAJA \
+  dot += Aview(i, j) * tmpview(i);
+
+#define POLYBENCH_ATAX_BODY6_RAJA \
+  yview(j) = dot;
+
 
 #define POLYBENCH_ATAX_VIEWS_RAJA \
   using VIEW_1 = RAJA::View<Real_type, \

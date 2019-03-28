@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -47,26 +47,51 @@
   A[j + i*n] += u1[i] * v1[j] + u2[i] * v2[j];
 
 #define POLYBENCH_GEMVER_BODY2 \
-  x[i] +=  beta * A[i + j*n] * y[j];
+  Real_type dot = 0.0;
 
 #define POLYBENCH_GEMVER_BODY3 \
-  x[i] += z[i];
+  dot +=  beta * A[i + j*n] * y[j];
 
 #define POLYBENCH_GEMVER_BODY4 \
-  w[i] +=  alpha * A[j + i*n] * x[j];
+  x[i] += dot;
+
+#define POLYBENCH_GEMVER_BODY5 \
+  x[i] += z[i];
+
+#define POLYBENCH_GEMVER_BODY6 \
+  Real_type dot = w[i];
+
+#define POLYBENCH_GEMVER_BODY7 \
+  dot +=  alpha * A[j + i*n] * x[j];
+
+#define POLYBENCH_GEMVER_BODY8 \
+  w[i] = dot;
 
 
 #define POLYBENCH_GEMVER_BODY1_RAJA \
   Aview(i,j) += u1view(i) * v1view(j) + u2view(i) * v2view(j);
 
 #define POLYBENCH_GEMVER_BODY2_RAJA \
-  xview(i) +=  beta * Aview(j,i) * yview(j);
+  dot = 0.0;
 
 #define POLYBENCH_GEMVER_BODY3_RAJA \
-  xview(i) += zview(i);
+  dot +=  beta * Aview(j,i) * yview(j);
 
 #define POLYBENCH_GEMVER_BODY4_RAJA \
-  wview(i) +=  alpha * Aview(i,j) * xview(j);
+  xview(i) += dot;
+
+#define POLYBENCH_GEMVER_BODY5_RAJA \
+  xview(i) += zview(i);
+
+#define POLYBENCH_GEMVER_BODY6_RAJA \
+  dot = w[i];
+
+#define POLYBENCH_GEMVER_BODY7_RAJA \
+  dot +=  alpha * Aview(i,j) * xview(j);
+
+#define POLYBENCH_GEMVER_BODY8_RAJA \
+  wview(i) = dot;
+
 
 #define POLYBENCH_GEMVER_VIEWS_RAJA \
   using VIEW_1 = RAJA::View<Real_type, \

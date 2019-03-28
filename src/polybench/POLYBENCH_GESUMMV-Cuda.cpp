@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -40,13 +40,11 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
-  Real_ptr tmp; \
   Real_ptr x; \
   Real_ptr y; \
   Real_ptr A; \
   Real_ptr B; \
 \
-  allocAndInitCudaDeviceData(tmp, m_tmp, N); \
   allocAndInitCudaDeviceData(x, m_x, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
   allocAndInitCudaDeviceData(A, m_A, N*N); \
@@ -55,14 +53,13 @@ namespace polybench
 
 #define POLYBENCH_GESUMMV_TEARDOWN_CUDA \
   getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(tmp); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(A); \
   deallocCudaDeviceData(B);
 
 
-__global__ void poly_gesummv(Real_ptr tmp, Real_ptr x, Real_ptr y,
+__global__ void poly_gesummv(Real_ptr x, Real_ptr y,
                              Real_ptr A, Real_ptr B,
                              Real_type alpha, Real_type beta,
                              Index_type N) 
@@ -92,7 +89,7 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_gesummv<<<grid_size, block_size>>>(tmp, x, y, 
+      poly_gesummv<<<grid_size, block_size>>>(x, y, 
                                               A, B, 
                                               alpha, beta,
                                               N);
@@ -111,12 +108,14 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::Lambda<0>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1>
-            >,
-            RAJA::statement::Lambda<2>
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>
+            >
           >
         >
       >;
@@ -124,18 +123,22 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>(
-
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
+                           static_cast<Real_type>(0.0)),
 
-          [=] __device__ (Index_type i, Index_type /*j*/) {
+          [=] __device__ (Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
+                                                              Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j) {
+          [=] __device__ (Index_type i, Index_type j, Real_type& tmpdot,
+                                                      Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/) {
+          [=] __device__ (Index_type i, Index_type /*j*/, Real_type& tmpdot,
+                                                          Real_type& ydot) {
             POLYBENCH_GESUMMV_BODY3_RAJA;
           }
         );

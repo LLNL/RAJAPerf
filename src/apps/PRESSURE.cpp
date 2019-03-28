@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -100,15 +100,19 @@ void PRESSURE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY1;
-        }); 
+        RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY2;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            PRESSURE_BODY1;
+          }); 
+
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            PRESSURE_BODY2;
+          }); 
+
+        }); // end sequential region (for single-source code)
 
       }
       stopTimer(); 

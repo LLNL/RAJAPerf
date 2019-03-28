@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -100,33 +100,22 @@ void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
 
     POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA;
 
-    using EXEC_POL =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::Lambda<0>
-          >
-        >,
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::Lambda<1>
-          >
-        >
-      >;
+    using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
-          },
+        });
+
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
-          }
-        );
+        });
 
       }
 

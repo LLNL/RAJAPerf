@@ -1,6 +1,6 @@
   
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
 //
 // Produced at the Lawrence Livermore National Laboratory
 //
@@ -64,9 +64,11 @@ __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (i < N) {
+     POLYBENCH_MVT_BODY1;
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_MVT_BODY1;
+       POLYBENCH_MVT_BODY2;
      }
+     POLYBENCH_MVT_BODY3;
    }
 }
 
@@ -76,9 +78,11 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
    if (i < N) {
+     POLYBENCH_MVT_BODY4;
      for (Index_type j = 0; j < N; ++j ) {
-       POLYBENCH_MVT_BODY2;
+       POLYBENCH_MVT_BODY5;
      }
+     POLYBENCH_MVT_BODY6;
    }
 }
 
@@ -115,16 +119,13 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<0>
-            >
-          >
-        >,
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1>
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>
             >
           >
         >
@@ -133,15 +134,49 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                               RAJA::RangeSegment{0, N}),
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_MVT_BODY1_RAJA;
-        },
-        [=] __device__ (Index_type i, Index_type j) {
-          POLYBENCH_MVT_BODY2_RAJA;
-        }
-      );
+#if CUDART_VERSION >= 9000
+// Defining an extended __device__ lambda inside inside another lambda
+// was not supported until CUDA 9.x
+      RAJA::region<RAJA::seq_region>( [=]() {
+#endif
+
+        RAJA::kernel_param<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
+            POLYBENCH_MVT_BODY1_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
+            POLYBENCH_MVT_BODY2_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
+            POLYBENCH_MVT_BODY3_RAJA;
+          }
+
+        );
+
+        RAJA::kernel_param<EXEC_POL>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
+            POLYBENCH_MVT_BODY4_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
+            POLYBENCH_MVT_BODY5_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
+            POLYBENCH_MVT_BODY6_RAJA;
+          }
+
+        );
+
+#if CUDART_VERSION >= 9000
+      }); // end sequential region (for single-source code)
+#endif
 
     }
     stopTimer();
