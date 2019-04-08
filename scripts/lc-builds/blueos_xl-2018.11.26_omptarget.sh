@@ -27,9 +27,6 @@ cmake \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_TARGET_OPENMP=On \
-  -DENABLE_TESTS=Off \
-  -DENABLE_EXAMPLES=Off \
-  -DENABLE_EXERCISES=Off \
   -DOpenMP_CXX_FLAGS="-qoffload;-qsmp=omp;-qnoeh;-qnoinline;-qalias=noansi" \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \

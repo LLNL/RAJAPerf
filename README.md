@@ -2,20 +2,20 @@ RAJA Performance Suite
 ======================
 
 The RAJA performance suite is designed to explore performance of loop-based 
-computational kernels of the sort found in HPC applications. In particular, it
+computational kernels found in HPC applications. In particular, it
 is used to assess, monitor, and compare runtime performance of kernels 
 implemented using RAJA and variants implemented using standard or 
 vendor-supported parallel programming models directly. Each kernel in the 
-suite appears in multiple RAJA and non-RAJA variants using parallel 
-programming models such as OpenMP and CUDA.
+suite appears in multiple RAJA and non-RAJA (i.e., baseline) variants using 
+parallel programming models such as OpenMP and CUDA.
 
-The kernels are borrowed from a variety of sources, such as HPC benchmark 
-suites and applications. Kernels are partitioned into "groups" --  each group
+The kernels originate from various HPC benchmark suites and applications. 
+Kernels are partitioned into "groups" --  each group
 indicates the origin of its kernels, the algorithm patterns they represent, 
 etc. For example, the "Apps" group contains a collection of kernels extracted 
-from real scientific computing applications, kernels in the "Basic" group are 
-small and simple, but exhibit challenges for compiler optimizations, and so 
-forth.
+from real scientific computing applications, the "Basic" group contains 
+kernels that are small and simple, but exhibit challenges for compiler 
+optimization, and so forth.
 
 * * *
 
@@ -46,9 +46,10 @@ RAJAPerf
 ```
 
 The Performance Suite has [RAJA] and the CMake-based [BLT] build system
-as Git submodules. The '--recursive' argument will clone theses submodules int
-the Performance Suite source code. Note that if you switch to a different
-branch, you will have to update the submodules; e.g.,
+as Git submodules. The `--recursive` argument will clone the appropriate
+version of the submodules into the Performance Suite source code. So
+if you switch to a different branch, you will have to update the 
+submodules. For example,
 
 ```
 > cd RAJAPerf
@@ -58,22 +59,20 @@ branch, you will have to update the submodules; e.g.,
 ```
 
 RAJA and the Performance Suite are built together using the same CMake
-configuration. For convenience, we include scripts in the 'scripts'
-directory that invoke associated (CMake cache) configuration files in the 
-'host-configs' directory that illustrate how to build the code on various 
-platforms at LLNL. Each build script creates a descriptively-named build 
-space directory in the top-level Performance Suite directory and runs CMake 
-with a configuration appropriate for the platform and compilers used. After 
-CMake completes, enter the build directory and type 'make' (or 'make -j' for 
-a parallel build) to build the code. The provided configurations will build 
-RAJA unit tests by default. After the code builds, you can type 'make test' to 
-verify that the RAJA build is working properly.  For example,
+configuration. For convenience, we include scripts in the `scripts`
+directory that invoke corresponding configuration files (CMake cache files) 
+in the RAJA submodule. For example, the `scripts/lc-builds` directory 
+contains scripts that show how we build code for testing on platforms in
+the Livermore Computing Center. Each build script creates a 
+descriptively-named build space directory in the top-level Performance Suite 
+directory and runs CMake with a configuration appropriate for the platform and 
+compilers used. After CMake completes, enter the build directory and type 
+`make` (or `make -j <N>` for a parallel build) to compile the code. For example,
 
 ```
 > ./scripts/blueos_nvcc8.0_clang-coral.sh
 > cd build_blueos_nvcc8.0_clang-coral
 > make -j
-> make test
 ```
 
 You can also create your own build directory and run CMake with your own
@@ -86,12 +85,20 @@ arguments from there; e.g., :
 > make -j
 ```
 
+The provided configurations will only build the Performance Suite code by
+default; i.e., it will not build any RAJA test or example codes. If you
+want to build the RAJA tests for example and verify your build of RAJA is 
+working properly, just add the `-DENABLE_TESTS=On` option to CMake, either
+on the command line if you run CMake directly or edit the script you are 
+running to do this. Then, when the build completes, you can type `make test`
+to run the tests.
+
 
 * * *
 
 # Running the suite
 
-The suite is run by invoking the executable in the 'bin' directory in the 
+The suite is run by invoking the executable in the `bin` directory in the 
 build space. For example, giving it no options:
 
 ```
@@ -102,16 +109,16 @@ will run the entire suite (all kernels and variants) in their default
 configurations.
 
 The suite can be run in a variety of ways by passing options to the executable.
-For example, you can run subsets of kernels by specifying variants, group, or
-listing them explicitly. Other configuration options to set problem sizes, 
-number of kernel repetitions, etc. can also be provided. The goal is to
-build the code once and use scripts or other mechanisms to run the suite
-in different ways.
+For example, you can run subsets of kernels by specifying variants, groups, or
+listing individual kernels explicitly. Other configuration options to set 
+problem sizes, number of kernel repetitions, etc. can also be specified. The 
+goal is to build the code once and use scripts or other mechanisms to run the 
+suite in different ways.
 
 Note: most options appear in a long or short form for ease of use.
 
 To see available options along with a brief description of each, pass the 
-'--help' or '-h' option:
+`--help` or `-h` option:
 
 ```
 > ./bin/raja-perf.exe --help
@@ -124,23 +131,18 @@ or
 ```
 
 Lastly, the program will emit a summary of provided input if it is given 
-something that it does not understand. Hopefully, this will make it easy for
-users to understand and correct erroneous usage.
+input that the code does not know how to parse. Hopefully, this will make it 
+easy for users to correct erroneous usage.
 
 # Important notes
 
- * The kernels that use RAJA 'nested' loop constructs will be replaced
-   at some point with new RAJA nested capabilities that are being developed. 
-   The new nested constructs are simpler, more flexible, and perform better.
-
- * The OpenMP target variants of the kernels in the Suite are a 
-   work-in-progress. They are incomplete (a few RAJA features must be
-   filled in to make them comparable to other variants).
-
- * The build system for the Suite needs to be reworked to have the
-   OpenMP target kernel variants run from the same executable as the CUDA
-   variants. Currently, a separate executable `./bin/raja-perf-nolibs.exe`
-   is generated for running OpenMP target variants when they are enabled.
+ * The OpenMP target offload variants of the kernels in the Suite are a 
+   work-in-progress. Depending on the compiler you have available, you 
+   may not be able to compile them. If you can build them, they will 
+   appear in an executable named `./bin/raja-perf-omptarget.exe` which is
+   distinct from the one named above. The build system will be reworked in 
+   the future so that the OpenMP target variants can be run from the same 
+   executable as the other variants.
 
 * * *
 
