@@ -7,3 +7,6 @@
 [submodule "tpl/RAJA"]
 	path = tpl/RAJA
 	url = https://github.com/LLNL/RAJA.git
+[submodule "tpl/caliper"]
+	path = tpl/caliper
+	url = https://github.com/LLNL/Caliper.git
