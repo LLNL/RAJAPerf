@@ -494,7 +494,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
         VariantID vid = variant_ids[iv];
         file << sepchr <<right<< setw(varcol_width[iv]) << setprecision(prec) 
              << std::fixed << getReportDataEntry(mode, kern, vid);
-        declarePerformanceResult(kern->getName(),getVariantName(),getCSVModeString(),getReportDataEntry(mode, kern, vid));
+        declarePerformanceResult(kern->getName(),getVariantName(variant_ids[iv]),getCSVModeString(mode),getReportDataEntry(mode, kern, vid));
       }
       file << endl;
     }

@@ -71,6 +71,7 @@ if(ENABLE_CALIPER)
   add_subdirectory(tpl/caliper)
   get_property(CALIPER_INCLUDE_DIRS DIRECTORY tpl/caliper PROPERTY INCLUDE_DIRECTORIES)
   include_directories(${CALIPER_INCLUDE_DIRS})
+  add_definitions("-DUSE_CALIPER")
 endif()
 
 #
