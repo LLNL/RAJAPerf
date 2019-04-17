@@ -169,6 +169,7 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  ${CMAKE_BINARY_DIR}/bin/rajaperf_config.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 
