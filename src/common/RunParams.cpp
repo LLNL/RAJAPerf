@@ -17,6 +17,7 @@
 #include "RunParams.hpp"
 
 #include "RAJAPerfSuite.hpp"
+#include "rajaperf_config.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -119,7 +120,6 @@ void RunParams::print(std::ostream& str) const
  *******************************************************************************
  */
 void RunParams::publish() const{
-#ifdef USE_CALIPER
   declareMetadata("num_passes",npasses);
   declareMetadata("reference_variant",reference_variant);
   declareMetadata("perfsuite_version",configuration::perfsuite_version);
@@ -128,7 +128,6 @@ void RunParams::publish() const{
   declareMetadata("machine_build",configuration::machine_build);
   declareMetadata("compiler",configuration::compiler);
   declareMetadata("compiler_options",configuration::compiler_options);
-#endif
 }
 
 /*
