@@ -1,0 +1,22 @@
+#include "rajaperf_config.hpp.in"
+
+namespace rajaperf{
+
+const std::string configuration::perfsuite_version =
+  "@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
+  "@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
+  "@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
+
+const std::string configuration::raja_version = 
+std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
+std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
+std::to_string(RAJA::RAJA_VERSION_PATCHLEVEL);
+
+const std::string configuration::systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
+const std::string configuration::machine_build = "@RAJAPERF_BUILD_HOST@";
+
+const std::string configuration::compiler = "@RAJAPERF_COMPILER@";
+
+const std::string configuration::compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
+
+} //close namespace rajaperf

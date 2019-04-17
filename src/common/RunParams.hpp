@@ -113,6 +113,10 @@ public:
    */
   void print(std::ostream& str) const;
 
+  /*!
+   * \brief Forward all run params data to listening tools
+   */
+  void publish() const;
 
 private:
   RunParams() = delete;

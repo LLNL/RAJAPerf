@@ -18,6 +18,7 @@
 
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
+#include "common/CaliperUtil.hpp"
 
 // Warmup kernel to run first to remove startup overheads in timings
 #include "basic/DAXPY.hpp"
@@ -268,7 +269,7 @@ void Executor::setupSuite()
     } // kernel and variant input both look good
 
   } // if kernel input looks good
-
+  run_params.publish();  
 }
 
 
@@ -493,12 +494,12 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
         VariantID vid = variant_ids[iv];
         file << sepchr <<right<< setw(varcol_width[iv]) << setprecision(prec) 
              << std::fixed << getReportDataEntry(mode, kern, vid);
+        declarePerformanceResult(kern->getName(),getVariantName(),getCSVModeString(),getReportDataEntry(mode, kern, vid));
       }
       file << endl;
     }
 
     file.flush(); 
-
   } // note file will be closed when file stream goes out of scope
 }
 
@@ -829,6 +830,24 @@ void Executor::writeChecksumReport(const string& filename)
   } // note file will be closed when file stream goes out of scope
 }
 
+
+string Executor::getCSVModeString(CSVRepMode mode){
+  string title;
+  switch ( mode ) {
+    case CSVRepMode::Timing : { 
+      title = string("time"); 
+      break; 
+    }
+    case CSVRepMode::Speedup : { 
+      if ( haveReferenceVariant() ) {
+        title = string("speedup");
+      }
+      break; 
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  }; 
+  return title;
+}
 
 string Executor::getReportTitle(CSVRepMode mode)
 {

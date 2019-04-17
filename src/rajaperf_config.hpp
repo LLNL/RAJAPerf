@@ -36,26 +36,20 @@ namespace rajaperf {
 struct configuration {
 
 // Version of RAJA Perf Suite (ex: 0.1.0)
-static const std::string perfsuite_version =
-"@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
+static const std::string perfsuite_version;
 
 // Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version = 
-std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
+static const std::string raja_version; 
 
 // Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
-static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
-static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
+static const std::string systype_build;
+static const std::string machine_build;
 		
 // Compiler used to build (ex: gcc-4.9.3)
-static const std::string compiler = "@RAJAPERF_COMPILER@";
+static const std::string compiler;
 
 // Command options used to build (ex: -Ofast -mavx)
-static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
+static const std::string compiler_options;
 		
 // Name of user who ran code
 std::string user_run;

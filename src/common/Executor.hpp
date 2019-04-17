@@ -70,6 +70,7 @@ private:
 
   void writeCSVReport(const std::string& filename, CSVRepMode mode, 
                       size_t prec);
+  std::string getCSVModeString(CSVRepMode mode);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode, 
                                  KernelBase* kern, VariantID vid);

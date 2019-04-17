@@ -22,6 +22,8 @@
 #include <cstdio>
 #include <iostream>
 
+#include "common/CaliperUtil.hpp"
+
 namespace rajaperf
 {
 
@@ -109,6 +111,25 @@ void RunParams::print(std::ostream& str) const
   str.flush();
 }
 
+/*
+ *******************************************************************************
+ *
+ * Forward all run params to listening tools
+ *
+ *******************************************************************************
+ */
+void RunParams::publish() const{
+#ifdef USE_CALIPER
+  declareMetadata("num_passes",npasses);
+  declareMetadata("reference_variant",reference_variant);
+  declareMetadata("perfsuite_version",configuration::perfsuite_version);
+  declareMetadata("raja_version",configuration::raja_version);
+  declareMetadata("systype_build",configuration::systype_build);
+  declareMetadata("machine_build",configuration::machine_build);
+  declareMetadata("compiler",configuration::compiler);
+  declareMetadata("compiler_options",configuration::compiler_options);
+#endif
+}
 
 /*
  *******************************************************************************
