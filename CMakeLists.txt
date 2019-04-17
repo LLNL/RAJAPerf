@@ -61,9 +61,17 @@ set(RAJA_DATA_ALIGN 64)
 # exclude RAJA make targets from top-level build...
 add_subdirectory(tpl/RAJA)
 
+
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
+if(ENABLE_CALIPER)
+  set(BUILD_TESTING OFF)
+  set(WITH_GOTCHA OFF)
+  add_subdirectory(tpl/caliper)
+  get_property(CALIPER_INCLUDE_DIRS DIRECTORY tpl/caliper PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${CALIPER_INCLUDE_DIRS})
+endif()
 
 #
 # Setup variables to pass to Perf suite
@@ -113,8 +121,8 @@ else()
   list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
+configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.cpp.in
+  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.cpp)
 
 # Make sure RAJA flag propagate
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})

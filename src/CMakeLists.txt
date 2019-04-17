@@ -176,6 +176,7 @@ else()
 blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
+  ${CMAKE_BINARY_DIR}/bin/rajaperf_config.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
 endif()

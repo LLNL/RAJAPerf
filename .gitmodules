@@ -9,4 +9,4 @@
 	url = https://github.com/LLNL/RAJA.git
 [submodule "tpl/caliper"]
 	path = tpl/caliper
-	url = https://github.com/LLNL/Caliper.git
+	url = https://github.com/LLNL/Caliper
