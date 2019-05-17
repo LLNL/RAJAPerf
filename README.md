@@ -1,5 +1,16 @@
+[comment]: # (#################################################################)
+[comment]: # (Copyright 2017-19, Lawrence Livermore National Security, LLC)
+[comment]: # (and RAJA Performance Suite project contributors.)
+[comment]: # (See the RAJA/COPYRIGHT file for details.)
+[comment]: #
+[comment]: # (# SPDX-License-Identifier: (BSD-3-Clause))
+[comment]: # (#################################################################)
+
+
 RAJA Performance Suite
 ======================
+
+[![Build Status](https://travis-ci.org/LLNL/RAJAPerf.svg?branch=develop)](https://travis-ci.org/LLNL/RAJAPerf)
 
 The RAJA performance suite is designed to explore performance of loop-based 
 computational kernels found in HPC applications. In particular, it
