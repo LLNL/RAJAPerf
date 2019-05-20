@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
 
-##
-## Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
-##
-## Produced at the Lawrence Livermore National Laboratory.
-##
-## LLNL-CODE-738930
-##
-## All rights reserved.
-##
-## This file is part of the RAJA Performance Suite.
-##
-## For details about use and distribution, please read RAJAPerf/LICENSE.
-##
+###############################################################################
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+#################################################################################
 
 BUILD_SUFFIX=lc_blueos-clang-coral-2018.08.08
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clang_coral_2018_08_08.cmake
