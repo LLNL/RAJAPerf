@@ -3,7 +3,7 @@
 [comment]: # (and RAJA Performance Suite project contributors.)
 [comment]: # (See the RAJA/COPYRIGHT file for details.)
 [comment]: #
-[comment]: # (# SPDX-License-Identifier: (BSD-3-Clause))
+[comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
 
 
