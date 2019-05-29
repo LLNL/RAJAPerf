@@ -588,6 +588,6 @@ and NOTICE files, also linked here:
 
 * * *
 
-[RAJA]: https://github/LLNL/RAJA
+[RAJA]: https://github.com/LLNL/RAJA
 [BLT]: https://github.com/LLNL/blt
 
