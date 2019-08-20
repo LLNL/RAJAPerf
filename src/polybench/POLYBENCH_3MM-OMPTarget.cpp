@@ -1,17 +1,9 @@
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_3MM.hpp"
@@ -28,11 +20,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
 
 #define POLYBENCH_3MM_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -82,35 +69,38 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
     
       #pragma omp target is_device_ptr(A,B,E) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
           POLYBENCH_3MM_BODY1;
           for(Index_type k = 0; k < nk; k++) {
             POLYBENCH_3MM_BODY2;
           }
+          POLYBENCH_3MM_BODY3;
         }
       }
 
       #pragma omp target is_device_ptr(C,D,F) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for(Index_type j = 0; j < nj; j++) {
         for(Index_type l = 0; l < nl; l++) {
-          POLYBENCH_3MM_BODY3;
+          POLYBENCH_3MM_BODY4;
           for(Index_type m = 0; m < nm; m++) {
-            POLYBENCH_3MM_BODY4;
+            POLYBENCH_3MM_BODY5;
           }
+          POLYBENCH_3MM_BODY6;
         }
       }
 
       #pragma omp target is_device_ptr(E,F,G) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for(Index_type i = 0; i < ni; i++) {
         for(Index_type l = 0; l < nl; l++) {
-          POLYBENCH_3MM_BODY5;
+          POLYBENCH_3MM_BODY7;
           for(Index_type j = 0; j < nj; j++) {
-            POLYBENCH_3MM_BODY6;
+            POLYBENCH_3MM_BODY8;
           }
+          POLYBENCH_3MM_BODY9;
         }
       }
 
@@ -132,45 +122,64 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
           RAJA::statement::Lambda<0>,
           RAJA::statement::For<2, RAJA::seq_exec,
             RAJA::statement::Lambda<1>
-          >
+          >,
+          RAJA::statement::Lambda<2>
         >
       >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
-       RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nj},
-                                               RAJA::RangeSegment{0, nk}),
-        [=] (Index_type i, Index_type j, Index_type /* k */) {
+    
+      RAJA::kernel_param<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nj},
+                         RAJA::RangeSegment{0, nk}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
         },
-        [=] (Index_type i, Index_type j, Index_type k) {
+        [=] (Index_type i, Index_type j, Index_type k, Real_type &dot) {
           POLYBENCH_3MM_BODY2_RAJA;
-        }
-
-      );
-
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, nj},
-                                               RAJA::RangeSegment{0, nl},
-                                               RAJA::RangeSegment{0, nm}),
-        [=] (Index_type j, Index_type l, Index_type /* m */) {
-          POLYBENCH_3MM_BODY3_RAJA;
         },
-        [=] (Index_type j, Index_type l, Index_type m) {
-          POLYBENCH_3MM_BODY4_RAJA;
+        [=] (Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+          POLYBENCH_3MM_BODY3_RAJA;
         }
 
       );
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, ni},
-                                               RAJA::RangeSegment{0, nl},
-                                               RAJA::RangeSegment{0, nj}),
-        [=] (Index_type i, Index_type l, Index_type /* j */) {
+      RAJA::kernel_param<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment{0, nj},
+                         RAJA::RangeSegment{0, nl},
+                         RAJA::RangeSegment{0, nm}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] (Index_type /*j*/, Index_type /*l*/, Index_type /*m*/, Real_type &dot) {
+          POLYBENCH_3MM_BODY4_RAJA;
+        },
+        [=] (Index_type j, Index_type l, Index_type m, Real_type &dot) {
           POLYBENCH_3MM_BODY5_RAJA;
         },
-        [=] (Index_type i, Index_type l, Index_type j) {
+        [=] (Index_type j, Index_type l, Index_type /*m*/, Real_type &dot) {
           POLYBENCH_3MM_BODY6_RAJA;
+        }
+
+      );
+
+      RAJA::kernel_param<EXEC_POL>( 
+        RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                         RAJA::RangeSegment{0, nl},
+                         RAJA::RangeSegment{0, nj}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+          POLYBENCH_3MM_BODY7_RAJA;
+        },
+        [=] (Index_type i, Index_type l, Index_type j, Real_type &dot) {
+          POLYBENCH_3MM_BODY8_RAJA;
+        },
+        [=] (Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+          POLYBENCH_3MM_BODY9_RAJA;
         }
 
       ); 

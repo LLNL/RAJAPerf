@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "TRAP_INT.hpp"
@@ -42,10 +35,10 @@ Real_type trap_int_func(Real_type x,
    return denom;
 }
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define TRAP_INT_DATA_SETUP_OMP_TARGET \
   Real_type x0 = m_x0; \
@@ -75,7 +68,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
       Real_type sumx = m_sumx_init;
 
       #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
-                         num_teams(NUMTEAMS) schedule(static, 1) 
+                         thread_limit(threads_per_team) schedule(static, 1) 
         
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRAP_INT_BODY;
@@ -95,9 +88,9 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::policy::omp::omp_target_reduce<NUMTEAMS>, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         TRAP_INT_BODY;
       });

@@ -1,18 +1,10 @@
-  
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+// SPDX-License-Identifier: (BSD-3-Clause)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//  
 
 #include "POLYBENCH_FDTD_2D.hpp"
 
@@ -30,9 +22,9 @@ namespace polybench
 {
 
   //
-  // Define thread block size for target execution
+  // Define threads per team for target execution
   //
-#define NUMTEAMS 256
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_FDTD_2D_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -74,13 +66,13 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
       for (Index_type t = 0; t < tsteps; ++t) {
 
         #pragma omp target is_device_ptr(ey,fict) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+        #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type j = 0; j < ny; j++) {
           POLYBENCH_FDTD_2D_BODY1;
         }
 
         #pragma omp target is_device_ptr(ey,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 1; i < nx; i++) {
           for (Index_type j = 0; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY2;
@@ -88,7 +80,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(ex,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < nx; i++) {
           for (Index_type j = 1; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY3;
@@ -96,7 +88,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
         }
 
         #pragma omp target is_device_ptr(ex,ey,hz) device( did )
-        #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+        #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 0; i < nx - 1; i++) {
           for (Index_type j = 0; j < ny - 1; j++) {
             POLYBENCH_FDTD_2D_BODY4;
@@ -116,7 +108,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
 
     POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
-    using EXEC_POL1 = RAJA::omp_target_parallel_for_exec<NUMTEAMS>;
+    using EXEC_POL1 = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
     using EXEC_POL234 =
       RAJA::KernelPolicy<

@@ -1,18 +1,10 @@
-  
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+// SPDX-License-Identifier: (BSD-3-Clause)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
 
 #include "POLYBENCH_ADI.hpp"
 
@@ -140,14 +132,16 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_threadblock_exec<block_size>,
-            RAJA::statement::Lambda<0>,
-            RAJA::statement::For<1, RAJA::seq_exec,
-              RAJA::statement::Lambda<1>
-            >,
-            RAJA::statement::Lambda<2>,
-            RAJA::statement::For<2, RAJA::seq_exec,
-              RAJA::statement::Lambda<3>
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+              RAJA::statement::Lambda<0>,
+              RAJA::statement::For<1, RAJA::seq_exec,
+                RAJA::statement::Lambda<1>
+              >,
+              RAJA::statement::Lambda<2>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<3>
+              >
             >
           >
         >

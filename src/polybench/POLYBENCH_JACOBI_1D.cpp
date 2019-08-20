@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_1D.hpp"
@@ -130,28 +123,21 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
       POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<0>
-          >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<1>
-          >
-        >;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i) {
+
+          RAJA::forall<RAJA::loop_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY1;
-            },
-            [=](Index_type i) {
+          });
+
+          RAJA::forall<RAJA::loop_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY2;
-            }
-          );
+          });
+
         }
 
       }
@@ -196,28 +182,21 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
       POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0>
-          >,
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<1>
-          >
-        >;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i) {
+
+          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY1;
-            },
-            [=](Index_type i) {
+          });
+
+          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
+            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
               POLYBENCH_JACOBI_1D_BODY2;
-            }
-          );
+          });
+
         }
 
       }

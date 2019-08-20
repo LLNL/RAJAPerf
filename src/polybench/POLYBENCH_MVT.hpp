@@ -1,17 +1,11 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 ///
 /// POLYBENCH_MVT kernel reference implementation:
 ///
@@ -31,17 +25,42 @@
 #define RAJAPerf_POLYBENCH_MVT_HPP
 
 #define POLYBENCH_MVT_BODY1 \
-  x1[i] += A[j + i*N] * y1[j];
+  Real_type dot = 0.0;
 
 #define POLYBENCH_MVT_BODY2 \
-  x2[i] += A[i + j*N] * y2[i];
+  dot += A[j + i*N] * y1[j];
+
+#define POLYBENCH_MVT_BODY3 \
+  x1[i] += dot;
+
+#define POLYBENCH_MVT_BODY4 \
+  Real_type dot = 0.0;
+
+#define POLYBENCH_MVT_BODY5 \
+  dot += A[i + j*N] * y2[i];
+
+#define POLYBENCH_MVT_BODY6 \
+  x2[i] += dot;
 
 
 #define POLYBENCH_MVT_BODY1_RAJA \
-  x1view(i) += Aview(i, j) * y1view(j); 
+  dot = 0.0;
 
 #define POLYBENCH_MVT_BODY2_RAJA \
-  x2view(i) += Aview(j, i) * y2view(i); 
+  dot += Aview(i, j) * y1view(j); 
+
+#define POLYBENCH_MVT_BODY3_RAJA \
+  x1view(i) += dot;
+
+#define POLYBENCH_MVT_BODY4_RAJA \
+  dot = 0.0;
+
+#define POLYBENCH_MVT_BODY5_RAJA \
+  dot += Aview(j, i) * y2view(i); 
+
+#define POLYBENCH_MVT_BODY6_RAJA \
+  x2view(i) += dot;
+
 
 #define POLYBENCH_MVT_VIEWS_RAJA \
   using VIEW_1 = RAJA::View<Real_type, \

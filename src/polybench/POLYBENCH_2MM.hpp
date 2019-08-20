@@ -1,17 +1,11 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 ///
 /// POLYBENCH_2MM kernel reference implementation:
 ///
@@ -43,29 +37,42 @@
 #define RAJAPerf_POLYBENCH_2MM_HPP
 
 #define POLYBENCH_2MM_BODY1 \
-  tmp[j + i*nj] = 0.0;
+  Real_type dot = 0.0;
 
 #define POLYBENCH_2MM_BODY2 \
-  tmp[j + i*nj] += alpha * A[k + i*nk] * B[j + k*nj];
+  dot += alpha * A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_2MM_BODY3 \
-  D[l + i*nl] = beta;
+  tmp[j + i*nj] = dot;
 
 #define POLYBENCH_2MM_BODY4 \
-  D[l + i*nl] += tmp[j + i*nj] * C[l + j*nl];
+  Real_type dot = beta;
+
+#define POLYBENCH_2MM_BODY5 \
+  dot += tmp[j + i*nj] * C[l + j*nl];
+
+#define POLYBENCH_2MM_BODY6 \
+  D[l + i*nl] = dot;
 
 
 #define POLYBENCH_2MM_BODY1_RAJA \
-  tmpview(i,j) = 0.0;
+  dot = 0.0;
 
 #define POLYBENCH_2MM_BODY2_RAJA \
-  tmpview(i,j) += alpha * Aview(i,k) * Bview(k,j);
+  dot += alpha * Aview(i,k) * Bview(k,j);
 
 #define POLYBENCH_2MM_BODY3_RAJA \
-  Dview(i,l) = beta;
+  tmpview(i,j) = dot;
 
 #define POLYBENCH_2MM_BODY4_RAJA \
-  Dview(i,l) += tmpview(i,j) * Cview(j, l);
+  dot = beta;
+
+#define POLYBENCH_2MM_BODY5_RAJA \
+  dot += tmpview(i,j) * Cview(j, l);
+
+#define POLYBENCH_2MM_BODY6_RAJA \
+  Dview(i,l) = dot;
+
 
 #define POLYBENCH_2MM_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \

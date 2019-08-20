@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GEMM.hpp"
@@ -149,16 +142,15 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
 
-          RAJA::tuple<double>{0.0},  // variable for dot
-
-          [=](Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j, Index_type k, double& dot) {
+          [=](Index_type i, Index_type j, Index_type k, Real_type& dot) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
           }
         );
@@ -185,7 +177,7 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
             for (Index_type k = 0; k < nk; ++k ) {
-               POLYBENCH_GEMM_BODY2;
+              POLYBENCH_GEMM_BODY2;
             }
             POLYBENCH_GEMM_BODY3;
           }
@@ -223,16 +215,15 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
 
-          RAJA::tuple<double>{0.0},  // variable for dot
-
-          [=](Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=](Index_type i, Index_type j, Index_type k, double& dot) {
+          [=](Index_type i, Index_type j, Index_type k, Real_type& dot) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=](Index_type i, Index_type j, Index_type /*k*/, double& dot) {
+          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
           }
         );

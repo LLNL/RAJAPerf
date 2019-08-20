@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "LTIMES.hpp"
@@ -27,11 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
 
 #define LTIMES_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -69,7 +57,7 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(phidat, elldat, psidat) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(3)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(3)
       for (Index_type z = 0; z < num_z; ++z ) {
         for (Index_type g = 0; g < num_g; ++g ) {
           for (Index_type m = 0; m < num_m; ++m ) {

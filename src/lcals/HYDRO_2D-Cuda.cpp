@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "HYDRO_2D.hpp"
@@ -204,8 +197,8 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<0, RAJA::cuda_block_exec,  // k
-              RAJA::statement::For<1, RAJA::cuda_thread_exec,  // j
+            RAJA::statement::For<0, RAJA::cuda_block_y_loop,  // k
+              RAJA::statement::For<1, RAJA::cuda_thread_x_loop,  // j
                 RAJA::statement::Lambda<0>
               >
             >

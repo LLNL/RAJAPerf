@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "PRESSURE.hpp"
@@ -100,15 +93,19 @@ void PRESSURE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY1;
-        }); 
+        RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          PRESSURE_BODY2;
-        }); 
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            PRESSURE_BODY1;
+          }); 
+
+          RAJA::forall<RAJA::loop_exec>(
+            RAJA::RangeSegment(ibegin, iend), [=](int i) {
+            PRESSURE_BODY2;
+          }); 
+
+        }); // end sequential region (for single-source code)
 
       }
       stopTimer(); 

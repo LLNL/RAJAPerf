@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT_VIEW1D_OFFSET.hpp"
@@ -34,6 +27,7 @@ namespace basic
   Real_ptr a = m_a; \
   const Real_type v = m_val; \
 \
+  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
   ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
 
 
@@ -59,8 +53,6 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
   const Index_type iend = getRunSize()+1;
-
-  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >;
 
   switch ( vid ) {
 

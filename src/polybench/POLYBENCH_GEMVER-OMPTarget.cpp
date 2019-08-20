@@ -1,17 +1,9 @@
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GEMVER.hpp"
@@ -29,10 +21,10 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -88,7 +80,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(A,u1,v1,u2,v2) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) collapse(2)
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < n; i++) {
         for(Index_type j = 0; j < n; j++) {
           POLYBENCH_GEMVER_BODY1;
@@ -96,29 +88,34 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(A,x,y) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) { 
-        for (Index_type j = 0; j < n; j++) { 
-          POLYBENCH_GEMVER_BODY2;
+        POLYBENCH_GEMVER_BODY2;
+        for (Index_type j = 0; j < n; j++) {
+          POLYBENCH_GEMVER_BODY3;
         }
+        POLYBENCH_GEMVER_BODY4;
       }
 
       #pragma omp target is_device_ptr(x,z) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
       for (Index_type i = 0; i < n; i++) {
-        POLYBENCH_GEMVER_BODY3;
+        POLYBENCH_GEMVER_BODY5;
       }
 
       #pragma omp target is_device_ptr(A,w,x) device( did )
-      #pragma omp teams distribute parallel for num_teams(NUMTEAMS) schedule(static, 1)
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
-        for (Index_type j = 0; j < n; ++j) { 
-          POLYBENCH_GEMVER_BODY4;
+        POLYBENCH_GEMVER_BODY6;
+        for (Index_type j = 0; j < n; j++) {
+          POLYBENCH_GEMVER_BODY7;
         }
+        POLYBENCH_GEMVER_BODY8;
       }
 
     } // end run_reps
     stopTimer(); 
+
     POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
@@ -137,14 +134,16 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 
     using EXEC_POL24 =
       RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<NUMTEAMS>,
+        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
+          RAJA::statement::Lambda<0>,
           RAJA::statement::For<1, RAJA::seq_exec,
-            RAJA::statement::Lambda<0>
-          >
+            RAJA::statement::Lambda<1>
+          >,
+          RAJA::statement::Lambda<2>
         >
       >;
   
-    using EXEC_POL3 = RAJA::omp_target_parallel_for_exec<NUMTEAMS>;
+    using EXEC_POL3 = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -156,24 +155,43 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                                 RAJA::RangeSegment{0, n}),
-        [=] (Index_type i, Index_type j) {
+      RAJA::kernel_param<EXEC_POL24>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                         RAJA::RangeSegment{0, n}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] (Index_type /* i */, Index_type /* j */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
+        },
+        [=] (Index_type i, Index_type j, Real_type &dot) {
+          POLYBENCH_GEMVER_BODY3_RAJA;
+        },
+        [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+          POLYBENCH_GEMVER_BODY4_RAJA;
         }
       );
 
-      RAJA::forall<EXEC_POL3> (
-        RAJA::RangeSegment{0, n}, [=] (Index_type i) {
-        POLYBENCH_GEMVER_BODY3_RAJA;
-      }); 
-
-      RAJA::kernel<EXEC_POL24>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
-                                                 RAJA::RangeSegment{0, n}),
-        [=] (Index_type i, Index_type j) {
-          POLYBENCH_GEMVER_BODY4_RAJA;
+      RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n},
+        [=] (Index_type i) {
+          POLYBENCH_GEMVER_BODY5_RAJA;
         }
-      ); 
+      );
+
+      RAJA::kernel_param<EXEC_POL24>(
+        RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                         RAJA::RangeSegment{0, n}),
+        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+        [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+          POLYBENCH_GEMVER_BODY6_RAJA;
+        },
+        [=] (Index_type i, Index_type j, Real_type &dot) {
+          POLYBENCH_GEMVER_BODY7_RAJA;
+        },
+        [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+          POLYBENCH_GEMVER_BODY8_RAJA;
+        }
+      );
 
     }
     stopTimer();

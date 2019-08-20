@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "ENERGY.hpp"
@@ -230,35 +223,45 @@ void ENERGY::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY1;
-       });
+#if CUDART_VERSION >= 9000
+// Defining an extended __device__ lambda inside inside another lambda
+// was not supported until CUDA 9.x
+      RAJA::region<RAJA::seq_region>( [=]() {
+#endif
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY2;
-       });
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY1;
+        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY3;
-       });
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY2;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY3;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY4;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY5;
+        });
+ 
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          ENERGY_BODY6;
+        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY4;
-       });
-
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY5;
-       });
-
-       RAJA::forall< RAJA::cuda_exec<block_size, async> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         ENERGY_BODY6;
-       });
+#if CUDART_VERSION >= 9000
+      }); // end sequential region (for single-source code)
+#endif
 
     }
     stopTimer();

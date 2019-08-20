@@ -1,17 +1,11 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
 ///
 /// POLYBENCH_FDTD_2D kernel reference implementation:
 ///
@@ -68,6 +62,7 @@
 #define POLYBENCH_FDTD_2D_BODY4_RAJA \
   hzview(i, j) = hzview(i, j) - 0.7*(exview(i, j+1) - exview(i, j) + \
                                      eyview(i+1, j) - eyview(i, j));
+
 
 #define POLYBENCH_FDTD_2D_VIEWS_RAJA \
 using VIEW_TYPE = RAJA::View<Real_type, \

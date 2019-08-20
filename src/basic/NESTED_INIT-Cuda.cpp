@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "NESTED_INIT.hpp"
@@ -23,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -47,7 +40,7 @@ __global__ void nested_init(Real_ptr array,
    Index_type j = blockIdx.y;
    Index_type k = blockIdx.z;
 
-   NESTED_INIT_BODY; 
+   NESTED_INIT_BODY;
 }
 
 
@@ -80,15 +73,16 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<2, RAJA::cuda_block_exec,      // k
-            RAJA::statement::For<1, RAJA::cuda_block_exec,    // j
-              RAJA::statement::For<0, RAJA::cuda_thread_exec, // i
+          RAJA::statement::For<2, RAJA::cuda_block_z_loop,      // k
+            RAJA::statement::For<1, RAJA::cuda_block_y_loop,    // j
+              RAJA::statement::For<0, RAJA::cuda_thread_x_loop, // i
                 RAJA::statement::Lambda<0>
               >
             >
           >
         >
       >;
+
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

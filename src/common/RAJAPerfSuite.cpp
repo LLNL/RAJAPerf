@@ -1,18 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-
 
 #include "RAJAPerfSuite.hpp"
 
@@ -49,8 +41,10 @@
 #include "polybench/POLYBENCH_ADI.hpp"
 #include "polybench/POLYBENCH_ATAX.hpp"
 #include "polybench/POLYBENCH_FDTD_2D.hpp"
+#include "polybench/POLYBENCH_FLOYD_WARSHALL.hpp"
 #include "polybench/POLYBENCH_GEMM.hpp"
 #include "polybench/POLYBENCH_GEMVER.hpp"
+#include "polybench/POLYBENCH_GESUMMV.hpp"
 #include "polybench/POLYBENCH_HEAT_3D.hpp"
 #include "polybench/POLYBENCH_JACOBI_1D.hpp"
 #include "polybench/POLYBENCH_JACOBI_2D.hpp"
@@ -157,8 +151,10 @@ static const std::string KernelNames [] =
   std::string("Polybench_ADI"),
   std::string("Polybench_ATAX"),
   std::string("Polybench_FDTD_2D"),
+  std::string("Polybench_FLOYD_WARSHALL"),
   std::string("Polybench_GEMM"),
   std::string("Polybench_GEMVER"),
+  std::string("Polybench_GESUMMV"),
   std::string("Polybench_HEAT_3D"),
   std::string("Polybench_JACOBI_1D"),
   std::string("Polybench_JACOBI_2D"),
@@ -392,12 +388,20 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_FDTD_2D(run_params);
        break;
     }
+    case Polybench_FLOYD_WARSHALL : {
+       kernel = new polybench::POLYBENCH_FLOYD_WARSHALL(run_params);
+       break;
+    }
     case Polybench_GEMM : {
        kernel = new polybench::POLYBENCH_GEMM(run_params);
        break;
     }
     case Polybench_GEMVER : {
        kernel = new polybench::POLYBENCH_GEMVER(run_params);
+       break;
+    }
+    case Polybench_GESUMMV : {
+       kernel = new polybench::POLYBENCH_GESUMMV(run_params);
        break;
     }
     case Polybench_HEAT_3D : {

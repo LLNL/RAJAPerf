@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DOT.hpp"
@@ -28,10 +21,10 @@ namespace rajaperf
 namespace stream
 {
 
-//
-// Define thread block size for target execution
-//
-#define NUMTEAMS 256
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define DOT_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -64,7 +57,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(a, b) device( did ) map(tofrom:dot)
       #pragma omp teams distribute parallel for reduction(+:dot) \
-              num_teams(NUMTEAMS) schedule(static, 1)
+              thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         DOT_BODY;
       }
@@ -83,9 +76,9 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::policy::omp::omp_target_reduce<NUMTEAMS>, Real_type> dot(m_dot_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(m_dot_init);
 
-      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<NUMTEAMS>>(
+      RAJA::forall<RAJA::policy::omp::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         DOT_BODY;
       });

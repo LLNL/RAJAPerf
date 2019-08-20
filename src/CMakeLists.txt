@@ -1,16 +1,9 @@
 ###############################################################################
-# Copyright (c) 2017-18, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/COPYRIGHT file for details.
 #
-# Produced at the Lawrence Livermore National Laboratory
-#
-# LLNL-CODE-738930
-#
-# All rights reserved.
-#
-# This file is part of the RAJA Performance Suite.
-#
-# For details about use and distribution, please read RAJAPerf/LICENSE.
-#
+# SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
 include_directories(.)
@@ -123,12 +116,18 @@ blt_add_executable(
   polybench/POLYBENCH_FDTD_2D.cpp
   polybench/POLYBENCH_FDTD_2D-Cuda.cpp
   polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL-Cuda.cpp
+  polybench/POLYBENCH_FLOYD_WARSHALL-OMPTarget.cpp
   polybench/POLYBENCH_GEMM.cpp
   polybench/POLYBENCH_GEMM-Cuda.cpp
   polybench/POLYBENCH_GEMM-OMPTarget.cpp
   polybench/POLYBENCH_GEMVER.cpp
   polybench/POLYBENCH_GEMVER-Cuda.cpp
   polybench/POLYBENCH_GEMVER-OMPTarget.cpp
+  polybench/POLYBENCH_GESUMMV.cpp
+  polybench/POLYBENCH_GESUMMV-Cuda.cpp
+  polybench/POLYBENCH_GESUMMV-OMPTarget.cpp
   polybench/POLYBENCH_HEAT_3D.cpp
   polybench/POLYBENCH_HEAT_3D-Cuda.cpp
   polybench/POLYBENCH_HEAT_3D-OMPTarget.cpp
