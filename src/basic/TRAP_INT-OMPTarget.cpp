@@ -60,7 +60,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
 
     TRAP_INT_DATA_SETUP_OMP_TARGET;
 
-    #pragma omp target data map(to:x0,xp,y,yp,h)
+    #pragma omp target enter data map(to:x0,xp,y,yp,h)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
