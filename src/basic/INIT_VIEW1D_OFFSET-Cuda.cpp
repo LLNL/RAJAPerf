@@ -61,7 +61,7 @@ __global__ void initview1d_offset(Real_ptr a,
 void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 1;
+  const Index_type ibegin = 0;
   const Index_type iend = getRunSize()+1;
 
   if ( vid == Base_CUDA ) {
