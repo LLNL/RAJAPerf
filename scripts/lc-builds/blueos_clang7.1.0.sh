@@ -8,8 +8,8 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 #################################################################################
 
-BUILD_SUFFIX=lc_blueos-clang-4.0.0
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clang_4_0_0.cmake
+BUILD_SUFFIX=lc_blueos-clang-7.1.0
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -18,6 +18,7 @@ module load cmake/3.9.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-7.1.0/bin/clang++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
