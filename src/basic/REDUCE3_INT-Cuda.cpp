@@ -70,9 +70,9 @@ __global__ void reduce3int(Int_ptr vec,
 
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( vsum, psum[ 0 ] );
-    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( vmin, pmin[ 0 ] );
-    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( vmax, pmax[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( vsum, psum[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {
