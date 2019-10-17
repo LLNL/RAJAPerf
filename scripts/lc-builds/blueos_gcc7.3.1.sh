@@ -14,7 +14,7 @@ RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/gcc_X.cmake
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.9.2
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
