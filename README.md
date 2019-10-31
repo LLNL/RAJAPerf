@@ -1,5 +1,16 @@
+[comment]: # (#################################################################)
+[comment]: # (Copyright 2017-19, Lawrence Livermore National Security, LLC)
+[comment]: # (and RAJA Performance Suite project contributors.)
+[comment]: # (See the RAJA/COPYRIGHT file for details.)
+[comment]: #
+[comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
+[comment]: # (#################################################################)
+
+
 RAJA Performance Suite
 ======================
+
+[![Build Status](https://travis-ci.org/LLNL/RAJAPerf.svg?branch=develop)](https://travis-ci.org/LLNL/RAJAPerf)
 
 The RAJA performance suite is designed to explore performance of loop-based 
 computational kernels found in HPC applications. In particular, it
@@ -532,7 +543,7 @@ in earlier sections for adding a new kernel above.
 
 # Contributions
 
-The RAJA Performance Suite is intended to remain a work-in-progress, with new
+The RAJA Performance Suite is intended to be a work-in-progress, with new
 kernels and variants added over time. We encourage interested parties to 
 contribute to it so that C++ compiler optimizations and support for programming
 models like RAJA continue to improve.
@@ -556,27 +567,55 @@ project.
 
 * * *
 
-# Copyright and Release
+# LICENSE
 
-Copyright (c) 2017, Lawrence Livermore National Security, LLC.
+The RAJA Performance Suite is licensed under the BSD 3-Clause license,
+(BSD-3-Clause or https://opensource.org/licenses/BSD-3-Clause).
 
-Produced at the Lawrence Livermore National Laboratory.
+Copyrights and patents in the RAJAPerf project are retained by contributors.
+No copyright assignment is required to contribute to RAJAPerf.
 
-All rights reserved.
-
+Unlimited Open Source - BSD 3-clause Distribution
 `LLNL-CODE-738930`  `OCEC-17-159`
 
-Unlimited Open Source - BSD Distribution
-
-For release details and restrictions, please read the RELEASE, LICENSE,
-and NOTICE files, also linked here:
+For release details and restrictions, please see the information in the
+following:
 - [RELEASE](./RELEASE)
 - [LICENSE](./LICENSE)
 - [NOTICE](./NOTICE)
 
+* * *
+
+# SPDX Usage
+
+Individual files contain SPDX tags instead of the full license text.
+This enables machine processing of license information based on the SPDX
+License Identifiers that are available here: https://spdx.org/licenses/
+
+Files that are licensed as BSD 3-Clause contain the following
+text in the license header:
+
+    SPDX-License-Identifier: (BSD-3-Clause)
 
 * * *
 
-[RAJA]: https://github/LLNL/RAJA
+# External Packages
+
+The RAJA Performance Suite has some external dependencies, which are included 
+as Git submodules. These packages are covered by various permissive licenses.
+A summary listing follows. See the license included with each package for
+full details.
+
+PackageName: BLT
+PackageHomePage: https://github.com/LLNL/blt/
+PackageLicenseDeclared: BSD-3-Clause
+
+PackageName: RAJA
+PackageHomePage: http://github.com/LLNL/RAJA/
+PackageLicenseDeclared: BSD-3-Clause
+
+* * *
+
+[RAJA]: https://github.com/LLNL/RAJA
 [BLT]: https://github.com/LLNL/blt
 

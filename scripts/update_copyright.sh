@@ -1,25 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors. 
+# See the RAJAPerf/COPYRIGHT file for details.
 #
-# Produced at the Lawrence Livermore National Laboratory
-#
-# LLNL-CODE-738930
-#
-# All rights reserved.
-#
-# This file is part of the RAJA Performance Suite.
-#
-# For details about use and distribution, please read RAJAPerf/LICENSE.
-#
+# SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
 #=============================================================================
 # Change the copyright date in all files that contain the text
-# "RAJA Performance Suite". We restrict to this subset of files
-# since we do not want to modify files we do not own (e.g., other repos
-# included as submodules). Note that this file and *.git files are omitted
+# "the RAJAPerf/COPYRIGHT file", which is part of the copyright statement
+# at the top of each RAJA file. We use this to distinguish RAJA files from
+# that we do not own (e.g., other repos included as submodules), which we do
+# not want to modify. Note that this file and *.git files are omitted
 # as well.
 #
 # IMPORTANT: Since this file is not modified (it is running the shell 
@@ -43,7 +37,7 @@
 #=============================================================================
 # First find all the files we want to modify
 #=============================================================================
-find . -type f ! -name \*.git\*  ! -name \*update_copyright\* -exec grep -l "RAJA Performance Suite" {} \; > files2change
+find . -type f ! -name \*.git\*  ! -name \*update_copyright\* -exec grep -l "the RAJAPerf/COPYRIGHT file" {} \; > files2change
 
 #=============================================================================
 # Replace the old copyright dates with new dates
@@ -52,7 +46,14 @@ for i in `cat files2change`
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/Copyright (c) 2017-18/Copyright (c) 2017-19/" $i.sed.bak > $i
+    sed "s/Copyright (c) 2017-19/Copyright (c) 2017-20/" $i.sed.bak > $i
+done
+
+for i in LICENSE RELEASE
+do
+    echo $i
+    cp $i $i.sed.bak
+    sed "s/Copyright (c) 2017-19/Copyright (c) 2017-20/" $i.sed.bak > $i
 done
 
 #=============================================================================

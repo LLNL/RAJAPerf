@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DOT.hpp"
@@ -69,7 +62,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomic::atomicAdd<RAJA::atomic::cuda_atomic>( dprod, pdot[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( dprod, pdot[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {

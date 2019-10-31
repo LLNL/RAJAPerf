@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
 
-##
-## Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
-##
-## Produced at the Lawrence Livermore National Laboratory.
-##
-## LLNL-CODE-738930
-##
-## All rights reserved.
-##
-## This file is part of the RAJA Performance Suite.
-##
-## For details about use and distribution, please read RAJAPerf/LICENSE.
-##
+###############################################################################
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+#################################################################################
 
 BUILD_SUFFIX=lc_blueos-clangcuda-upstream-2018.12.03_nvcc-9.2
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clangcuda_upstream_2018_12_03_nvcc_9_2.cmake
@@ -20,7 +14,7 @@ RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clangcuda_upstream_201
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.9.2
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \

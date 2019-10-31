@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "TRAP_INT.hpp"
@@ -67,7 +60,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
 
     TRAP_INT_DATA_SETUP_OMP_TARGET;
 
-    #pragma omp target data map(to:x0,xp,y,yp,h)
+    #pragma omp target enter data map(to:x0,xp,y,yp,h)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

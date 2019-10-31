@@ -1,16 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
-// Produced at the Lawrence Livermore National Laboratory
-//
-// LLNL-CODE-738930
-//
-// All rights reserved.
-//
-// This file is part of the RAJA Performance Suite.
-//
-// For details about use and distribution, please read RAJAPerf/LICENSE.
-//
+// SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT_VIEW1D_OFFSET.hpp"
@@ -68,7 +61,7 @@ __global__ void initview1d_offset(Real_ptr a,
 void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 1;
+  const Index_type ibegin = 0;
   const Index_type iend = getRunSize()+1;
 
   if ( vid == Base_CUDA ) {

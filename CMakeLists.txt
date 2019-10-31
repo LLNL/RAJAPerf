@@ -1,25 +1,14 @@
 ###############################################################################
-# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors. 
+# See the RAJAPerf/COPYRIGHT file for details.
 #
-# Produced at the Lawrence Livermore National Laboratory
-#
-# LLNL-CODE-738930
-#
-# All rights reserved.
-#
-# This file is part of the RAJA Performance Suite.
-#
-# For details about use and distribution, please read RAJAPerf/LICENSE.
-#
+# SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if (ENABLE_CUDA)
-  cmake_minimum_required(VERSION 3.9)
-else ()
-  cmake_minimum_required(VERSION 3.8.2)
-endif ()
-
 project(RAJAPerfSuite CXX)
+
+cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
@@ -45,13 +34,13 @@ set(BLT_CXX_STANDARD 11)
 # Define RAJA settings...
 #
 
-set(ENABLE_TESTS Off CACHE Bool "")
-set(ENABLE_EXAMPLES Off CACHE Bool "")
-set(ENABLE_DOCUMENTATION Off CACHE Bool "")
+set(ENABLE_TESTS Off CACHE BOOL "")
+set(ENABLE_EXAMPLES Off CACHE BOOL "")
+set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
-set(ENABLE_TBB Off CACHE Bool "")
+set(ENABLE_TBB Off CACHE BOOL "")
 
-set(RAJA_USE_CHRONO On CACHE Bool "")
+set(RAJA_USE_CHRONO On CACHE BOOL "")
 
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
@@ -82,7 +71,7 @@ endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
 set(RAJA_PERFSUITE_VERSION_MINOR 5)
-set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 1)
+set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 2)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 
@@ -98,7 +87,7 @@ set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
   set(CMAKE_CUDA_STANDARD 11)
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})

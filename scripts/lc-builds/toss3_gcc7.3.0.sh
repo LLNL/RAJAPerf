@@ -1,29 +1,24 @@
 #!/usr/bin/env bash
 
-##
-## Copyright (c) 2017-19, Lawrence Livermore National Security, LLC.
-##
-## Produced at the Lawrence Livermore National Laboratory.
-##
-## LLNL-CODE-738930
-##
-## All rights reserved.
-##
-## This file is part of the RAJA Performance Suite.
-##
-## For details about use and distribution, please read RAJAPerf/LICENSE.
-##
+###############################################################################
+# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/COPYRIGHT file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+#################################################################################
 
 BUILD_SUFFIX=lc_toss3-gcc-7.3.0
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/gcc_7_3_0.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/gcc_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.9.2
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-7.3.0/bin/g++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
