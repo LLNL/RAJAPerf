@@ -9,15 +9,16 @@
 #################################################################################
 
 BUILD_SUFFIX=lc_blueos-nvcc9-clang-coral-2018.08.08
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_coral_2018_08_08.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.9.2
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-coral-2018.08.08/bin/clang++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \

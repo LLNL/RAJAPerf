@@ -9,15 +9,16 @@
 #################################################################################
 
 BUILD_SUFFIX=lc_blueos-nvcc9-gcc7.3.1
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_7_3_1.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.9.2
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-7.3.1/bin/g++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
