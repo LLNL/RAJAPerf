@@ -6,13 +6,9 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if (ENABLE_CUDA)
-  cmake_minimum_required(VERSION 3.9)
-else ()
-  cmake_minimum_required(VERSION 3.8.2)
-endif ()
-
 project(RAJAPerfSuite CXX)
+
+cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
