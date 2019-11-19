@@ -22,10 +22,6 @@ namespace basic
 
 #define INIT_VIEW1D_DATA_SETUP_CPU \
   Real_ptr a = m_a; \
-  const Real_type v = m_val;
-
-#define INIT_VIEW1D_DATA_RAJA_SETUP_CPU \
-  Real_ptr a = m_a; \
   const Real_type v = m_val; \
 \
   using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
@@ -56,11 +52,15 @@ void INIT_VIEW1D::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  INIT_VIEW1D_DATA_SETUP_CPU;
+
+  auto initview1d_lam = [=](Index_type i) {
+                          INIT_VIEW1D_BODY_RAJA;
+                        };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      INIT_VIEW1D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -78,15 +78,11 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      INIT_VIEW1D_DATA_RAJA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT_VIEW1D_BODY_RAJA;
-        });
+          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
 
       }
       stopTimer();
@@ -97,8 +93,6 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      INIT_VIEW1D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -116,15 +110,11 @@ void INIT_VIEW1D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      INIT_VIEW1D_DATA_RAJA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT_VIEW1D_BODY_RAJA;
-        });
+          RAJA::RangeSegment(ibegin, iend),  initview1d_lam);
 
       }
       stopTimer();

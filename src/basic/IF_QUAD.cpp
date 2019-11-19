@@ -54,11 +54,15 @@ void IF_QUAD::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  IF_QUAD_DATA_SETUP_CPU;
+
+  auto ifquad_lam = [=](int i) {
+                      IF_QUAD_BODY;
+                    };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -75,15 +79,11 @@ void IF_QUAD::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      IF_QUAD_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          IF_QUAD_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), ifquad_lam);
 
       }
       stopTimer();
@@ -94,8 +94,6 @@ void IF_QUAD::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      IF_QUAD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,16 +111,11 @@ void IF_QUAD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      IF_QUAD_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
-          IF_QUAD_BODY;
-        });
-
+          RAJA::RangeSegment(ibegin, iend), ifquad_lam);
 
       }
       stopTimer();

@@ -57,11 +57,11 @@ void REDUCE3_INT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  REDUCE3_INT_DATA_SETUP_CPU;
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      REDUCE3_INT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,8 +86,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
-
-      REDUCE3_INT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,8 +113,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
-      REDUCE3_INT_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -142,8 +138,6 @@ void REDUCE3_INT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
-      REDUCE3_INT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

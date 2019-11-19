@@ -76,11 +76,11 @@ void TRAP_INT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  TRAP_INT_DATA_SETUP_CPU;
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      TRAP_INT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -101,8 +101,6 @@ void TRAP_INT::runKernel(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
-
-      TRAP_INT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,8 +124,6 @@ void TRAP_INT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
-      TRAP_INT_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -148,15 +144,13 @@ void TRAP_INT::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      TRAP_INT_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          RAJA::RangeSegment(ibegin, iend), [=](int i) {
           TRAP_INT_BODY;
         });
 
