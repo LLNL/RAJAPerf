@@ -68,12 +68,17 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  LTIMES_NOVIEW_DATA_SETUP_CPU;
+ 
+  auto ltimesnoview_lam = [=](Index_type d, Index_type z, 
+                              Index_type g, Index_type m) {
+                                LTIMES_NOVIEW_BODY;
+                          };
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      LTIMES_NOVIEW_DATA_SETUP_CPU;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -96,8 +101,6 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      LTIMES_NOVIEW_DATA_SETUP_CPU;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::loop_exec,       // z
@@ -118,9 +121,8 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
                                                  RAJA::RangeSegment(0, num_z),
                                                  RAJA::RangeSegment(0, num_g),
                                                  RAJA::RangeSegment(0, num_m)),
-          [=](Index_type d, Index_type z, Index_type g, Index_type m) {
-          LTIMES_NOVIEW_BODY;
-        });
+                                ltimesnoview_lam
+                              );
 
       }
       stopTimer(); 
@@ -131,8 +133,6 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      LTIMES_NOVIEW_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -156,8 +156,6 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      LTIMES_NOVIEW_DATA_SETUP_CPU;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::omp_parallel_for_exec, // z
@@ -178,9 +176,8 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
                                                  RAJA::RangeSegment(0, num_z),
                                                  RAJA::RangeSegment(0, num_g),
                                                  RAJA::RangeSegment(0, num_m)),
-          [=](Index_type d, Index_type z, Index_type g, Index_type m) {
-          LTIMES_NOVIEW_BODY;
-        });
+                                ltimesnoview_lam
+                              );
 
       }
       stopTimer();

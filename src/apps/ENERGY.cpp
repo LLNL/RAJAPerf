@@ -82,12 +82,31 @@ void ENERGY::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  ENERGY_DATA_SETUP_CPU;
+  
+  auto energy1_lam = [=](int i) {
+                       ENERGY_BODY1;
+                     };
+  auto energy2_lam = [=](int i) {
+                       ENERGY_BODY2;
+                     };
+  auto energy3_lam = [=](int i) {
+                       ENERGY_BODY3;
+                     };
+  auto energy4_lam = [=](int i) {
+                       ENERGY_BODY4;
+                     };
+  auto energy5_lam = [=](int i) {
+                       ENERGY_BODY5;
+                     };
+  auto energy6_lam = [=](int i) {
+                       ENERGY_BODY6;
+                     };
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      ENERGY_DATA_SETUP_CPU;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -124,42 +143,28 @@ void ENERGY::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      ENERGY_DATA_SETUP_CPU;
- 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY1;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy1_lam);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY2;
-          }); 
+            RAJA::RangeSegment(ibegin, iend), energy2_lam);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY3;
-          }); 
+            RAJA::RangeSegment(ibegin, iend), energy3_lam);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY4;
-          }); 
+            RAJA::RangeSegment(ibegin, iend), energy4_lam);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY5;
-          }); 
+            RAJA::RangeSegment(ibegin, iend), energy5_lam);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY6;
-          }); 
+            RAJA::RangeSegment(ibegin, iend), energy6_lam);
 
         }); // end sequential region (for single-source code)
 
@@ -173,8 +178,6 @@ void ENERGY::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
-      ENERGY_DATA_SETUP_CPU;
-      
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -220,42 +223,28 @@ void ENERGY::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      ENERGY_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY1;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy1_lam);
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY2;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy2_lam);
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY3;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy3_lam);
   
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY4;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy4_lam);
   
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY5;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy5_lam);
   
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), [=](int i) {
-            ENERGY_BODY6;
-          });
+            RAJA::RangeSegment(ibegin, iend), energy6_lam);
   
         }); // end omp parallel region
 
