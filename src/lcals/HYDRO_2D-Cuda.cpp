@@ -22,53 +22,6 @@ namespace lcals
 {
 
 #define HYDRO_2D_DATA_SETUP_CUDA \
-  Real_ptr za; \
-  Real_ptr zb; \
-  Real_ptr zm; \
-  Real_ptr zp; \
-  Real_ptr zq; \
-  Real_ptr zr; \
-  Real_ptr zu; \
-  Real_ptr zv; \
-  Real_ptr zz; \
-\
-  Real_ptr zrout; \
-  Real_ptr zzout; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type jn = m_jn; \
-  const Index_type kn = m_kn; \
-\
-  allocAndInitCudaDeviceData(za, m_za, m_array_length); \
-  allocAndInitCudaDeviceData(zb, m_zb, m_array_length); \
-  allocAndInitCudaDeviceData(zm, m_zm, m_array_length); \
-  allocAndInitCudaDeviceData(zp, m_zp, m_array_length); \
-  allocAndInitCudaDeviceData(zq, m_zq, m_array_length); \
-  allocAndInitCudaDeviceData(zr, m_zr, m_array_length); \
-  allocAndInitCudaDeviceData(zu, m_zu, m_array_length); \
-  allocAndInitCudaDeviceData(zv, m_zv, m_array_length); \
-  allocAndInitCudaDeviceData(zz, m_zz, m_array_length); \
-  allocAndInitCudaDeviceData(zrout, m_zrout, m_array_length); \
-  allocAndInitCudaDeviceData(zzout, m_zzout, m_array_length);
-
-#define HYDRO_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_zrout, zrout, m_array_length); \
-  getCudaDeviceData(m_zzout, zzout, m_array_length); \
-  deallocCudaDeviceData(za); \
-  deallocCudaDeviceData(zb); \
-  deallocCudaDeviceData(zm); \
-  deallocCudaDeviceData(zp); \
-  deallocCudaDeviceData(zq); \
-  deallocCudaDeviceData(zr); \
-  deallocCudaDeviceData(zu); \
-  deallocCudaDeviceData(zv); \
-  deallocCudaDeviceData(zz); \
-  deallocCudaDeviceData(zrout); \
-  deallocCudaDeviceData(zzout);
-
-#define HYDRO_2D_DATA_SETUP_CUDA_RAJA \
   Real_ptr zadat; \
   Real_ptr zbdat; \
   Real_ptr zmdat; \
@@ -100,7 +53,7 @@ namespace lcals
   allocAndInitCudaDeviceData(zroutdat, m_zrout, m_array_length); \
   allocAndInitCudaDeviceData(zzoutdat, m_zzout, m_array_length);
 
-#define HYDRO_2D_DATA_TEARDOWN_CUDA_RAJA \
+#define HYDRO_2D_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_zrout, zroutdat, m_array_length); \
   getCudaDeviceData(m_zzout, zzoutdat, m_array_length); \
   deallocCudaDeviceData(zadat); \
@@ -115,8 +68,9 @@ namespace lcals
   deallocCudaDeviceData(zroutdat); \
   deallocCudaDeviceData(zzoutdat);
 
-__global__ void hydro_2d1(Real_ptr za, Real_ptr zb, 
-                          Real_ptr zp, Real_ptr zq, Real_ptr zr, Real_ptr zm,
+__global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat, 
+                          Real_ptr zpdat, Real_ptr zqdat, 
+                          Real_ptr zrdat, Real_ptr zmdat,
                           Index_type jn, Index_type kn) 
 {
    Index_type k = blockIdx.y;
@@ -126,8 +80,9 @@ __global__ void hydro_2d1(Real_ptr za, Real_ptr zb,
    }
 }
 
-__global__ void hydro_2d2(Real_ptr zu, Real_ptr zv,
-                          Real_ptr za, Real_ptr zb, Real_ptr zz, Real_ptr zr,
+__global__ void hydro_2d2(Real_ptr zudat, Real_ptr zvdat,
+                          Real_ptr zadat, Real_ptr zbdat, 
+                          Real_ptr zzdat, Real_ptr zrdat,
                           Real_type s,
                           Index_type jn, Index_type kn)
 {
@@ -138,8 +93,9 @@ __global__ void hydro_2d2(Real_ptr zu, Real_ptr zv,
    }
 }
 
-__global__ void hydro_2d3(Real_ptr zrout, Real_ptr zzout,
-                          Real_ptr zr, Real_ptr zu, Real_ptr zz, Real_ptr zv,
+__global__ void hydro_2d3(Real_ptr zroutdat, Real_ptr zzoutdat,
+                          Real_ptr zrdat, Real_ptr zudat, 
+                          Real_ptr zzdat, Real_ptr zvdat,
                           Real_type t,
                           Index_type jn, Index_type kn)
 {
@@ -169,17 +125,17 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
        dim3 nthreads_per_block(jn, 1, 1);
        dim3 nblocks(1, kn, 1);
 
-       hydro_2d1<<<nblocks, nthreads_per_block>>>(za, zb,
-                                                  zp, zq, zr, zm,
+       hydro_2d1<<<nblocks, nthreads_per_block>>>(zadat, zbdat,
+                                                  zpdat, zqdat, zrdat, zmdat,
                                                   jn, kn);
 
-       hydro_2d2<<<nblocks, nthreads_per_block>>>(zu, zv,
-                                                  za, zb, zz, zr,
+       hydro_2d2<<<nblocks, nthreads_per_block>>>(zudat, zvdat,
+                                                  zadat, zbdat, zzdat, zrdat,
                                                   s,
                                                   jn, kn);
 
-       hydro_2d3<<<nblocks, nthreads_per_block>>>(zrout, zzout,
-                                                  zr, zu, zz, zv,
+       hydro_2d3<<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
+                                                  zrdat, zudat, zzdat, zvdat,
                                                   t,
                                                   jn, kn);
 
@@ -190,7 +146,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-    HYDRO_2D_DATA_SETUP_CUDA_RAJA;
+    HYDRO_2D_DATA_SETUP_CUDA;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -232,7 +188,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_CUDA_RAJA;
+    HYDRO_2D_DATA_TEARDOWN_CUDA;
 
   } else { 
      std::cout << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;

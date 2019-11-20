@@ -21,26 +21,6 @@ namespace lcals
 
 
 #define HYDRO_2D_DATA_SETUP_CPU \
-  ResReal_ptr za = m_za; \
-  ResReal_ptr zb = m_zb; \
-  ResReal_ptr zm = m_zm; \
-  ResReal_ptr zp = m_zp; \
-  ResReal_ptr zq = m_zq; \
-  ResReal_ptr zr = m_zr; \
-  ResReal_ptr zu = m_zu; \
-  ResReal_ptr zv = m_zv; \
-  ResReal_ptr zz = m_zz; \
-\
-  ResReal_ptr zrout = m_zrout; \
-  ResReal_ptr zzout = m_zzout; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type jn = m_jn;
-
-
-#define HYDRO_2D_DATA_SETUP_CPU_RAJA \
   ResReal_ptr zadat = m_za; \
   ResReal_ptr zbdat = m_zb; \
   ResReal_ptr zmdat = m_zm; \
@@ -104,11 +84,23 @@ void HYDRO_2D::runKernel(VariantID vid)
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
+  HYDRO_2D_DATA_SETUP_CPU;
+
+  HYDRO_2D_VIEWS_RAJA;
+
+  auto hydro2d1_lam = [=] (Index_type k, Index_type j) {
+                        HYDRO_2D_BODY1_RAJA;
+                      };
+  auto hydro2d2_lam = [=] (Index_type k, Index_type j) {
+                        HYDRO_2D_BODY2_RAJA;
+                      };
+  auto hydro2d3_lam = [=] (Index_type k, Index_type j) {
+                        HYDRO_2D_BODY3_RAJA;
+                      };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      HYDRO_2D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -140,10 +132,6 @@ void HYDRO_2D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      HYDRO_2D_DATA_SETUP_CPU_RAJA;
-
-      HYDRO_2D_VIEWS_RAJA;
-
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,  // k
@@ -156,26 +144,20 @@ void HYDRO_2D::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXECPOL>( 
-          RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                            RAJA::RangeSegment(jbeg, jend)), 
-          [=] (Index_type k, Index_type j) {
-          HYDRO_2D_BODY1_RAJA;
-        });
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d1_lam); 
 
-        RAJA::kernel<EXECPOL>( 
-          RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                            RAJA::RangeSegment(jbeg, jend)), 
-          [=] (Index_type k, Index_type j) {
-          HYDRO_2D_BODY2_RAJA;
-        });
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d2_lam); 
 
-        RAJA::kernel<EXECPOL>( 
-          RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                            RAJA::RangeSegment(jbeg, jend)), 
-          [=] (Index_type k, Index_type j) {
-          HYDRO_2D_BODY3_RAJA;
-        });
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d3_lam); 
 
       }
       stopTimer();
@@ -186,8 +168,6 @@ void HYDRO_2D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      HYDRO_2D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -226,10 +206,6 @@ void HYDRO_2D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      HYDRO_2D_DATA_SETUP_CPU_RAJA;
-
-      HYDRO_2D_VIEWS_RAJA;
-
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_for_nowait_exec,  // k
@@ -245,25 +221,19 @@ void HYDRO_2D::runKernel(VariantID vid)
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
           RAJA::kernel<EXECPOL>(
-            RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                              RAJA::RangeSegment(jbeg, jend)),
-            [=] (Index_type k, Index_type j) {
-            HYDRO_2D_BODY1_RAJA;
-          });
+                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                         RAJA::RangeSegment(jbeg, jend)),
+                       hydro2d1_lam); 
 
           RAJA::kernel<EXECPOL>(
-            RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                              RAJA::RangeSegment(jbeg, jend)),
-            [=] (Index_type k, Index_type j) {
-            HYDRO_2D_BODY2_RAJA;
-          });
+                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                         RAJA::RangeSegment(jbeg, jend)),
+                       hydro2d2_lam); 
 
           RAJA::kernel<EXECPOL>(
-            RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                              RAJA::RangeSegment(jbeg, jend)),
-            [=] (Index_type k, Index_type j) {
-            HYDRO_2D_BODY3_RAJA;
-          });
+                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                         RAJA::RangeSegment(jbeg, jend)),
+                       hydro2d3_lam); 
 
         }); // end omp parallel region 
 
