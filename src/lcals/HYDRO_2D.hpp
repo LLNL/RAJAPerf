@@ -44,24 +44,28 @@
 
 
 #define HYDRO_2D_BODY1  \
-  za[j+k*jn] = ( zp[j-1+(k+1)*jn] + zq[j-1+(k+1)*jn] - zp[j-1+k*jn] - zq[j-1+k*jn] ) * \
-               ( zr[j+k*jn] + zr[j-1+k*jn] ) / ( zm[j-1+k*jn] + zm[j-1+(k+1)*jn] ); \
-  zb[j+k*jn] = ( zp[j-1+k*jn] + zq[j-1+k*jn] - zp[j+k*jn] - zq[j+k*jn] ) * \
-               ( zr[j+k*jn] + zr[j+(k-1)*jn] ) / ( zm[j+k*jn] + zm[j-1+k*jn] );
+  zadat[j+k*jn] = ( zpdat[j-1+(k+1)*jn] + zqdat[j-1+(k+1)*jn] - \
+                    zpdat[j-1+k*jn] - zqdat[j-1+k*jn] ) * \
+                  ( zrdat[j+k*jn] + zrdat[j-1+k*jn] ) / \
+                  ( zmdat[j-1+k*jn] + zmdat[j-1+(k+1)*jn] ); \
+  zbdat[j+k*jn] = ( zpdat[j-1+k*jn] + zqdat[j-1+k*jn] - \
+                    zpdat[j+k*jn] - zqdat[j+k*jn] ) * \
+                  ( zrdat[j+k*jn] + zrdat[j+(k-1)*jn] ) / \
+                  ( zmdat[j+k*jn] + zmdat[j-1+k*jn] );
 
 #define HYDRO_2D_BODY2 \
-  zu[j+k*jn] += s*( za[j+k*jn] * ( zz[j+k*jn] - zz[j+1+k*jn] ) - \
-                    za[j-1+k*jn] * ( zz[j+k*jn] - zz[j-1+k*jn] ) - \
-                    zb[j+k*jn] * ( zz[j+k*jn] - zz[j+(k-1)*jn] ) + \
-                    zb[j+(k+1)*jn] * ( zz[j+k*jn] - zz[j+(k+1)*jn] ) ); \
-  zv[j+k*jn] += s*( za[j+k*jn] * ( zr[j+k*jn] - zr[j+1+k*jn] ) - \
-                    za[j-1+k*jn] * ( zr[j+k*jn] - zr[j-1+k*jn] ) - \
-                    zb[j+k*jn] * ( zr[j+k*jn] - zr[j+(k-1)*jn] ) + \
-                    zb[j+(k+1)*jn] * ( zr[j+k*jn] - zr[j+(k+1)*jn] ) );
+  zudat[j+k*jn] += s*( zadat[j+k*jn] * ( zzdat[j+k*jn] - zzdat[j+1+k*jn] ) - \
+                    zadat[j-1+k*jn] * ( zzdat[j+k*jn] - zzdat[j-1+k*jn] ) - \
+                    zbdat[j+k*jn] * ( zzdat[j+k*jn] - zzdat[j+(k-1)*jn] ) + \
+                    zbdat[j+(k+1)*jn] * ( zzdat[j+k*jn] - zzdat[j+(k+1)*jn] ) ); \
+  zvdat[j+k*jn] += s*( zadat[j+k*jn] * ( zrdat[j+k*jn] - zrdat[j+1+k*jn] ) - \
+                    zadat[j-1+k*jn] * ( zrdat[j+k*jn] - zrdat[j-1+k*jn] ) - \
+                    zbdat[j+k*jn] * ( zrdat[j+k*jn] - zrdat[j+(k-1)*jn] ) + \
+                    zbdat[j+(k+1)*jn] * ( zrdat[j+k*jn] - zrdat[j+(k+1)*jn] ) );
 
 #define HYDRO_2D_BODY3 \
-  zrout[j+k*jn] = zr[j+k*jn] + t*zu[j+k*jn]; \
-  zzout[j+k*jn] = zz[j+k*jn] + t*zv[j+k*jn]; \
+  zroutdat[j+k*jn] = zrdat[j+k*jn] + t*zudat[j+k*jn]; \
+  zzoutdat[j+k*jn] = zzdat[j+k*jn] + t*zvdat[j+k*jn]; \
 
 
 #define HYDRO_2D_VIEWS_RAJA \
