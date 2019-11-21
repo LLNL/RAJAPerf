@@ -115,13 +115,16 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
 
           RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
 
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j, Index_type k, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
           }
         );

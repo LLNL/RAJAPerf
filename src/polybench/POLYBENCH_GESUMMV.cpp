@@ -88,11 +88,26 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
+  POLYBENCH_GESUMMV_DATA_SETUP_CPU;
+
+  POLYBENCH_GESUMMV_VIEWS_RAJA;
+
+  auto poly_gesummv_lam1 = [=](Index_type /*i*/, Index_type /*j*/, 
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY1_RAJA;
+                              };
+  auto poly_gesummv_lam2 = [=](Index_type i, Index_type j, 
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY2_RAJA;
+                              };
+  auto poly_gesummv_lam3 = [=](Index_type i, Index_type /*j*/, 
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY3_RAJA;
+                              };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_GESUMMV_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,10 +130,6 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_GESUMMV_DATA_SETUP_CPU;
-
-      POLYBENCH_GESUMMV_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -139,18 +150,9 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
           RAJA::make_tuple(static_cast<Real_type>(0.0), 
                            static_cast<Real_type>(0.0)),
 
-          [=](Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
-                                                  Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j, Real_type& tmpdot,
-                                          Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY2_RAJA;
-          },
-          [=](Index_type i, Index_type /*j*/, Real_type& tmpdot,
-                                              Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY3_RAJA;
-          }
+          poly_gesummv_lam1,
+          poly_gesummv_lam2,
+          poly_gesummv_lam3
         );
 
       }
@@ -164,8 +166,6 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_GESUMMV_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -187,10 +187,6 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_GESUMMV_DATA_SETUP_CPU;
-
-      POLYBENCH_GESUMMV_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -211,18 +207,9 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
           RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
 
-          [=](Index_type /*i*/, Index_type /*j*/, Real_type& tmpdot,
-                                                  Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j, Real_type& tmpdot,
-                                          Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY2_RAJA;
-          },
-          [=](Index_type i, Index_type /*j*/, Real_type& tmpdot,
-                                              Real_type& ydot) {
-            POLYBENCH_GESUMMV_BODY3_RAJA;
-          }
+          poly_gesummv_lam1,
+          poly_gesummv_lam2,
+          poly_gesummv_lam3
         );
 
       }

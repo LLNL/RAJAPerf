@@ -156,13 +156,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nk}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type k, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY2_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY3_RAJA;
         }
 
@@ -174,13 +177,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nm}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*j*/, Index_type /*l*/, Index_type /*m*/, Real_type &dot) {
+        [=] __device__ (Index_type /*j*/, Index_type /*l*/, Index_type /*m*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type j, Index_type l, Index_type m, Real_type &dot) {
+        [=] __device__ (Index_type j, Index_type l, Index_type m, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY5_RAJA;
         },
-        [=] __device__ (Index_type j, Index_type l, Index_type /*m*/, Real_type &dot) {
+        [=] __device__ (Index_type j, Index_type l, Index_type /*m*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY6_RAJA;
         }
 
@@ -192,13 +198,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nj}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY7_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type j, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY8_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY9_RAJA;
         }
 

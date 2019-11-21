@@ -101,11 +101,20 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
   const Index_type N = m_N;
   const Index_type tsteps = m_tsteps;
 
+  POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
+
+  POLYBENCH_HEAT_3D_VIEWS_RAJA;
+
+  auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
+                            POLYBENCH_HEAT_3D_BODY1_RAJA;
+                          };
+  auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
+                            POLYBENCH_HEAT_3D_BODY2_RAJA;
+                          };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -142,10 +151,6 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
-
-      POLYBENCH_HEAT_3D_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -172,12 +177,9 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i, Index_type j, Index_type k) {
-              POLYBENCH_HEAT_3D_BODY1_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type k) {
-              POLYBENCH_HEAT_3D_BODY2_RAJA;
-            }
+
+            poly_heat3d_lam1,
+            poly_heat3d_lam2
           );
 
         }
@@ -195,8 +197,6 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -233,10 +233,6 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
      
-      POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
-
-      POLYBENCH_HEAT_3D_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
@@ -261,12 +257,9 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i, Index_type j, Index_type k) {
-              POLYBENCH_HEAT_3D_BODY1_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type k) {
-              POLYBENCH_HEAT_3D_BODY2_RAJA;
-            }
+
+            poly_heat3d_lam1,
+            poly_heat3d_lam2
           );
 
         }

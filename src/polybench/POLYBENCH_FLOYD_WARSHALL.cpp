@@ -82,11 +82,17 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
   const Index_type run_reps= getRunReps();
   const Index_type N = m_N;
 
+  POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
+
+  POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
+
+  auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, Index_type j) {
+                                  POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
+                                };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -109,10 +115,6 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
-
-      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -130,9 +132,7 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type k, Index_type i, Index_type j) {
-            POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
-          }
+          poly_floydwarshall_lam 
         );
 
       }
@@ -146,8 +146,6 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -172,10 +170,6 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
-      POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
-
-      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
 
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
@@ -206,9 +200,7 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N}),
-          [=](Index_type k, Index_type i, Index_type j) {
-            POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
-          }
+          poly_floydwarshall_lam 
         );
 
       }
