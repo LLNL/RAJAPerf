@@ -142,6 +142,32 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel
+        {
+
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            pressure1_lam(i);
+          }
+
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            pressure2_lam(i);
+          }
+
+        } // end omp parallel region
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();

@@ -155,6 +155,33 @@ void LTIMES::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      auto ltimes_omp_lam = [=](Index_type d, Index_type z, 
+                                Index_type g, Index_type m) {
+                              LTIMES_BODY;
+                            };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type z = 0; z < num_z; ++z ) {
+          for (Index_type g = 0; g < num_g; ++g ) {
+            for (Index_type m = 0; m < num_m; ++m ) {
+              for (Index_type d = 0; d < num_d; ++d ) {
+                ltimes_omp_lam(d, z, g, m);
+              }
+            }
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       using EXEC_POL = 
