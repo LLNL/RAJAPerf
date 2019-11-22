@@ -117,6 +117,30 @@ void DOT::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
+
+        auto dot_lam = [=](Index_type i) -> Real_type {
+                         return a[i] * b[i];
+                       };
+
+        #pragma omp parallel for reduction(+:dot)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          dot += dot_lam(i);
+        }
+
+        m_dot += dot;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();

@@ -142,6 +142,31 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sumx = m_sumx_init;
+
+        auto trapint_lam = [=](Index_type i) -> Real_type {
+                             Real_type x = x0 + i*h;
+                             return trap_int_func(x, y, xp, yp);
+                           };
+
+        #pragma omp parallel for reduction(+:sumx)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          sumx += trapint_lam(i);
+        }
+
+        m_sumx += sumx * h;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();

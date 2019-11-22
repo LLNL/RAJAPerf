@@ -183,6 +183,7 @@ enum VariantID {
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   Base_OpenMP,
+  OpenMP_Lambda,
   RAJA_OpenMP,
 #endif
 

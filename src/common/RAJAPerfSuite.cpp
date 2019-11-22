@@ -208,6 +208,7 @@ static const std::string VariantNames [] =
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Base_OpenMP"),
+  std::string("OpenMP_Lambda"),
   std::string("RAJA_OpenMP"),
 #endif
 

@@ -137,6 +137,48 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Int_type vsum = m_vsum_init;
+        Int_type vmin = m_vmin_init;
+        Int_type vmax = m_vmax_init;
+
+        //
+        // NOTE: These lambdas must capture by reference since 
+        //       scalars inside them change.
+        // 
+        auto init3_lam1 = [&](Index_type i) -> Int_type {
+                            return vec[i];
+                          };
+        auto init3_lam2 = [&](Index_type i) -> Int_type {
+                            return RAJA_MIN(vmin, vec[i]);
+                          };
+        auto init3_lam3 = [&](Index_type i) -> Int_type {
+                            return RAJA_MAX(vmax, vec[i]);
+                          };
+
+        #pragma omp parallel for reduction(+:vsum), \
+                                 reduction(min:vmin), \
+                                 reduction(max:vmax)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          vsum += init3_lam1(i);
+          vmin = RAJA_MIN(vmin, init3_lam2(i));
+          vmax = RAJA_MAX(vmax, init3_lam3(i));
+        }
+
+        m_vsum += vsum;
+        m_vmin = RAJA_MIN(m_vmin, vmin);
+        m_vmax = RAJA_MAX(m_vmax, vmax);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();
