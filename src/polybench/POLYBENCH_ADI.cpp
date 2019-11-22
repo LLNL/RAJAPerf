@@ -23,10 +23,19 @@ namespace polybench
   const Index_type n = m_n; \
   const Index_type tsteps = m_tsteps; \
 \
-  Real_type DX,DY,DT; \
-  Real_type B1,B2; \
-  Real_type mul1,mul2; \
-  Real_type a,b,c,d,e,f; \
+  Real_type DX = 1.0/(Real_type)n; \
+  Real_type DY = 1.0/(Real_type)n; \
+  Real_type DT = 1.0/(Real_type)tsteps; \
+  Real_type B1 = 2.0; \
+  Real_type B2 = 1.0; \
+  Real_type mul1 = B1 * DT / (DX * DX); \
+  Real_type mul2 = B2 * DT / (DY * DY); \
+  Real_type a = -mul1 / 2.0; \
+  Real_type b = 1.0 + mul1; \
+  Real_type c = a; \
+  Real_type d = -mul2 /2.0; \
+  Real_type e = 1.0 + mul2; \
+  Real_type f = d; \
 \
   ResReal_ptr U = m_U; \
   ResReal_ptr V = m_V; \
@@ -85,16 +94,41 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  POLYBENCH_ADI_DATA_SETUP_CPU;
+
+  POLYBENCH_ADI_VIEWS_RAJA;
+
+  auto poly_adi_lam2 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY2_RAJA;
+                       };
+  auto poly_adi_lam3 = [=](Index_type i, Index_type j, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY3_RAJA;
+                       };
+  auto poly_adi_lam4 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY4_RAJA;
+                       };
+  auto poly_adi_lam5 = [=](Index_type i, Index_type /*j*/, Index_type k) {
+                         POLYBENCH_ADI_BODY5_RAJA;
+                       };
+  auto poly_adi_lam6 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY6_RAJA;
+                       };
+  auto poly_adi_lam7 = [=](Index_type i, Index_type j, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY7_RAJA;
+                       };
+  auto poly_adi_lam8 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY8_RAJA;
+                       };
+  auto poly_adi_lam9 = [=](Index_type i, Index_type /*j*/, Index_type k) {
+                         POLYBENCH_ADI_BODY9_RAJA;
+                       };
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      POLYBENCH_ADI_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        POLYBENCH_ADI_BODY1;
 
         for (Index_type t = 1; t <= tsteps; ++t) { 
 
@@ -131,10 +165,6 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_ADI_DATA_SETUP_CPU;
-
-      POLYBENCH_ADI_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -152,8 +182,6 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        POLYBENCH_ADI_BODY1;
-
         for (Index_type t = 1; t <= tsteps; ++t) { 
 
           RAJA::kernel<EXEC_POL>( 
@@ -161,18 +189,11 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY2_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY3_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY4_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY5_RAJA;
-            }
+            poly_adi_lam2,
+            poly_adi_lam3,
+            poly_adi_lam4,
+            poly_adi_lam5
+
           );
 
           RAJA::kernel<EXEC_POL>(
@@ -180,18 +201,11 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY6_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY7_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY8_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY9_RAJA;
-            }
+            poly_adi_lam6,
+            poly_adi_lam7,
+            poly_adi_lam8,
+            poly_adi_lam9
+
           );
 
         }  // tstep loop
@@ -206,12 +220,8 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
 
-      POLYBENCH_ADI_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        POLYBENCH_ADI_BODY1;
 
         for (Index_type t = 1; t <= tsteps; ++t) { 
 
@@ -249,10 +259,6 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_ADI_DATA_SETUP_CPU;
-
-      POLYBENCH_ADI_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -270,8 +276,6 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        POLYBENCH_ADI_BODY1;
-
         for (Index_type t = 1; t <= tsteps; ++t) {
 
           RAJA::kernel<EXEC_POL>(
@@ -279,18 +283,11 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY2_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY3_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY4_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY5_RAJA;
-            }
+            poly_adi_lam2,
+            poly_adi_lam3,
+            poly_adi_lam4,
+            poly_adi_lam5
+
           );
 
           RAJA::kernel<EXEC_POL>(
@@ -298,18 +295,11 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
                              RAJA::RangeSegment{1, n-1},
                              RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY6_RAJA;
-            },
-            [=](Index_type i, Index_type j, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY7_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-              POLYBENCH_ADI_BODY8_RAJA;
-            },
-            [=](Index_type i, Index_type /*j*/, Index_type k) {
-              POLYBENCH_ADI_BODY9_RAJA;
-            }
+            poly_adi_lam6,
+            poly_adi_lam7,
+            poly_adi_lam8,
+            poly_adi_lam9
+
           );
 
         }  // tstep loop

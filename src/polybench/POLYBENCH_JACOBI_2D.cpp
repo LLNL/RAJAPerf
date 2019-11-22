@@ -90,11 +90,20 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
   const Index_type N = m_N;
   const Index_type tsteps = m_tsteps;
 
+  POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
+
+  POLYBENCH_JACOBI_2D_VIEWS_RAJA;
+
+  auto poly_jacobi2d_lam1 = [=](Index_type i, Index_type j) {
+                              POLYBENCH_JACOBI_2D_BODY1_RAJA;
+                            };
+  auto poly_jacobi2d_lam2 = [=](Index_type i, Index_type j) {
+                              POLYBENCH_JACOBI_2D_BODY2_RAJA;
+                            };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,10 +135,6 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
-
-      POLYBENCH_JACOBI_2D_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
@@ -151,12 +156,9 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i, Index_type j) {
-              POLYBENCH_JACOBI_2D_BODY1_RAJA;
-            },
-            [=](Index_type i, Index_type j) {
-              POLYBENCH_JACOBI_2D_BODY2_RAJA;
-            }
+
+            poly_jacobi2d_lam1,
+            poly_jacobi2d_lam2
           );
 
         }
@@ -174,8 +176,6 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -208,10 +208,6 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
-
-      POLYBENCH_JACOBI_2D_VIEWS_RAJA;
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -233,12 +229,9 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
-            [=](Index_type i, Index_type j) {
-              POLYBENCH_JACOBI_2D_BODY1_RAJA;
-            },
-            [=](Index_type i, Index_type j) {
-              POLYBENCH_JACOBI_2D_BODY2_RAJA;
-            }
+
+	    poly_jacobi2d_lam1,
+	    poly_jacobi2d_lam2
           );
 
         }

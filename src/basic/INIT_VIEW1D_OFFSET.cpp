@@ -21,10 +21,6 @@ namespace basic
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CPU \
   Real_ptr a = m_a; \
-  const Real_type v = m_val;
-
-#define INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU \
-  Real_ptr a = m_a; \
   const Real_type v = m_val; \
 \
   using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
@@ -54,11 +50,15 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = getRunSize()+1;
 
+  INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
+
+  auto initview1doffset_lam = [=](Index_type i) {
+                                INIT_VIEW1D_OFFSET_BODY_RAJA;
+                              };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,15 +76,11 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT_VIEW1D_OFFSET_BODY_RAJA;
-        });
+          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
 
       }
       stopTimer();
@@ -95,8 +91,6 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,15 +108,11 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      INIT_VIEW1D_OFFSET_DATA_RAJA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT_VIEW1D_OFFSET_BODY_RAJA;
-        });
+          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
 
       }
       stopTimer();

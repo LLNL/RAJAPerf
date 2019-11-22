@@ -50,11 +50,15 @@ void ADD::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  ADD_DATA_SETUP_CPU;
+
+  auto add_lam = [=](Index_type i) {
+                   ADD_BODY;
+                 };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      ADD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,15 +76,11 @@ void ADD::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      ADD_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          ADD_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), add_lam);
 
       }
       stopTimer();
@@ -91,8 +91,6 @@ void ADD::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      ADD_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -110,15 +108,11 @@ void ADD::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      ADD_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          ADD_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), add_lam);
 
       }
       stopTimer();

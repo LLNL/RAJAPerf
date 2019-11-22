@@ -25,55 +25,6 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr za; \
-  Real_ptr zb; \
-  Real_ptr zm; \
-  Real_ptr zp; \
-  Real_ptr zq; \
-  Real_ptr zr; \
-  Real_ptr zu; \
-  Real_ptr zv; \
-  Real_ptr zz; \
-\
-  Real_ptr zrout; \
-  Real_ptr zzout; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type jn = m_jn; \
-\
-  allocAndInitOpenMPDeviceData(za, m_za, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zb, m_zb, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zm, m_zm, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zp, m_zp, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zq, m_zq, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zr, m_zr, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zu, m_zu, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zv, m_zv, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zz, m_zz, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zrout, m_zrout, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zzout, m_zzout, m_array_length, did, hid);
-
-#define HYDRO_2D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_zrout, zrout, m_array_length, hid, did); \
-  getOpenMPDeviceData(m_zzout, zzout, m_array_length, hid, did); \
-  deallocOpenMPDeviceData(za, did); \
-  deallocOpenMPDeviceData(zb, did); \
-  deallocOpenMPDeviceData(zm, did); \
-  deallocOpenMPDeviceData(zp, did); \
-  deallocOpenMPDeviceData(zq, did); \
-  deallocOpenMPDeviceData(zr, did); \
-  deallocOpenMPDeviceData(zu, did); \
-  deallocOpenMPDeviceData(zv, did); \
-  deallocOpenMPDeviceData(zz, did); \
-  deallocOpenMPDeviceData(zrout, did); \
-  deallocOpenMPDeviceData(zzout, did);
-
-#define HYDRO_2D_DATA_SETUP_OMP_TARGET_RAJA \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
   Real_ptr zadat; \
   Real_ptr zbdat; \
   Real_ptr zmdat; \
@@ -105,7 +56,7 @@ namespace lcals
   allocAndInitOpenMPDeviceData(zroutdat, m_zrout, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(zzoutdat, m_zzout, m_array_length, did, hid);
 
-#define HYDRO_2D_DATA_TEARDOWN_OMP_TARGET_RAJA \
+#define HYDRO_2D_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_zrout, zroutdat, m_array_length, hid, did); \
   getOpenMPDeviceData(m_zzout, zzoutdat, m_array_length, hid, did); \
   deallocOpenMPDeviceData(zadat, did); \
@@ -137,7 +88,8 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp target is_device_ptr(za, zb, zp, zq, zr, zm) device( did )
+      #pragma omp target is_device_ptr(zadat, zbdat, zpdat, \
+                                       zqdat, zrdat, zmdat) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
@@ -145,7 +97,8 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(zu, zv, za, zb, zz, zr) device( did )
+      #pragma omp target is_device_ptr(zudat, zvdat, zadat, \
+                                       zbdat, zzdat, zrdat) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
@@ -153,7 +106,8 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
         }
       }
 
-      #pragma omp target is_device_ptr(zrout, zzout, zr, zu, zz, zv) device( did )
+      #pragma omp target is_device_ptr(zroutdat, zzoutdat, \
+                                       zrdat, zudat, zzdat, zvdat) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
@@ -168,7 +122,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    HYDRO_2D_DATA_SETUP_OMP_TARGET_RAJA;
+    HYDRO_2D_DATA_SETUP_OMP_TARGET;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -207,7 +161,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_OMP_TARGET_RAJA;
+    HYDRO_2D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      std::cout << "\n  HYDRO_2D : Unknown OMP Target variant id = " << vid << std::endl;

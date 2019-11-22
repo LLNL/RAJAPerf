@@ -91,11 +91,18 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
   const Index_type N = m_N;
   const Index_type tsteps = m_tsteps;
 
+  POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
+
+  auto poly_jacobi1d_lam1 = [=] (Index_type i) {
+                              POLYBENCH_JACOBI_1D_BODY1;
+                            };
+  auto poly_jacobi1d_lam2 = [=] (Index_type i) {
+                              POLYBENCH_JACOBI_1D_BODY2;
+                            };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -121,22 +128,18 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)      
     case RAJA_Seq : {
 
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<RAJA::loop_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY1;
-          });
+          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
+            poly_jacobi1d_lam1
+          );
 
-          RAJA::forall<RAJA::loop_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY2;
-          });
+          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1}, 
+            poly_jacobi1d_lam2
+          );
 
         }
 
@@ -153,8 +156,6 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -180,22 +181,18 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY1;
-          });
+          RAJA::forall<RAJA::omp_parallel_for_exec> (RAJA::RangeSegment{1, N-1},
+            poly_jacobi1d_lam1
+          );
 
-          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY2;
-          });
+          RAJA::forall<RAJA::omp_parallel_for_exec> (RAJA::RangeSegment{1, N-1},
+            poly_jacobi1d_lam2
+          );
 
         }
 

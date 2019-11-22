@@ -54,11 +54,15 @@ void NESTED_INIT::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  NESTED_INIT_DATA_SETUP_CPU;
+
+  auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
+                          NESTED_INIT_BODY;
+                        };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      NESTED_INIT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,8 +84,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      NESTED_INIT_DATA_SETUP_CPU;
-
       using EXEC_POL = 
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::loop_exec,    // k
@@ -99,9 +101,8 @@ void NESTED_INIT::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                  RAJA::RangeSegment(0, nj),
                                                  RAJA::RangeSegment(0, nk)),
-             [=](Index_type i, Index_type j, Index_type k) {     
-             NESTED_INIT_BODY;
-        });
+                                nestedinit_lam
+                              );
 
       }
       stopTimer();
@@ -112,8 +113,6 @@ void NESTED_INIT::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      NESTED_INIT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -139,8 +138,6 @@ void NESTED_INIT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
-      NESTED_INIT_DATA_SETUP_CPU;
 
 #if 0
 // To compare OpenMP collapse with RAJA-based OpenMP, use this policy
@@ -170,9 +167,8 @@ void NESTED_INIT::runKernel(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                  RAJA::RangeSegment(0, nj),
                                                  RAJA::RangeSegment(0, nk)),
-             [=](Index_type i, Index_type j, Index_type k) {     
-             NESTED_INIT_BODY;
-        });
+                                nestedinit_lam
+                              );
 
       }
       stopTimer();

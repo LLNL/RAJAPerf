@@ -120,7 +120,8 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, nk}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+            Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
         [=](Index_type i, Index_type j, Index_type k, Real_type &dot) {
@@ -137,7 +138,8 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, nj}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
+            Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
         },
         [=](Index_type i, Index_type l, Index_type j, Real_type &dot) {

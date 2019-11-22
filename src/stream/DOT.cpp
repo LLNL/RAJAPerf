@@ -51,11 +51,11 @@ void DOT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  DOT_DATA_SETUP_CPU;
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      DOT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,8 +76,6 @@ void DOT::runKernel(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
-
-      DOT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -101,8 +99,6 @@ void DOT::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
 
-      DOT_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -122,8 +118,6 @@ void DOT::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
-      DOT_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

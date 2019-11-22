@@ -48,11 +48,15 @@ void COPY::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  COPY_DATA_SETUP_CPU;
+
+  auto copy_lam = [=](Index_type i) {
+                    COPY_BODY;
+                  };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      COPY_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -70,15 +74,11 @@ void COPY::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      COPY_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          COPY_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), copy_lam);
 
       }
       stopTimer();
@@ -89,8 +89,6 @@ void COPY::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      COPY_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -108,15 +106,11 @@ void COPY::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      COPY_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          COPY_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), copy_lam);
 
       }
       stopTimer();

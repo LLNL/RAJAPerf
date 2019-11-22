@@ -81,11 +81,32 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
   const Index_type run_reps= getRunReps();
   const Index_type N = m_N;
 
+  POLYBENCH_ATAX_DATA_SETUP_CPU;
+
+  POLYBENCH_ATAX_VIEWS_RAJA;
+
+  auto poly_atax_lam1 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+                             POLYBENCH_ATAX_BODY1_RAJA;
+                            };
+  auto poly_atax_lam2 =  [=] (Index_type i, Index_type j, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY2_RAJA;
+                            };
+  auto poly_atax_lam3 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+                             POLYBENCH_ATAX_BODY3_RAJA;
+                            };
+  auto poly_atax_lam4 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+                             POLYBENCH_ATAX_BODY4_RAJA;
+                            };
+  auto poly_atax_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
+                             POLYBENCH_ATAX_BODY5_RAJA;
+                            };
+  auto poly_atax_lam6 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+                             POLYBENCH_ATAX_BODY6_RAJA;
+                            };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      POLYBENCH_ATAX_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -116,10 +137,6 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
 
     case RAJA_Seq : {
-
-      POLYBENCH_ATAX_DATA_SETUP_CPU;
-
-      POLYBENCH_ATAX_VIEWS_RAJA;
 
       using EXEC_POL1 =
         RAJA::KernelPolicy<
@@ -152,15 +169,9 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-            POLYBENCH_ATAX_BODY1_RAJA;
-          },
-          [=] (Index_type i, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY2_RAJA;
-          },
-          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-            POLYBENCH_ATAX_BODY3_RAJA;
-          }
+          poly_atax_lam1,
+          poly_atax_lam2,
+          poly_atax_lam3
 
         );
         
@@ -169,15 +180,9 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY4_RAJA;
-          },
-          [=] (Index_type i, Index_type j , Real_type &dot) {
-            POLYBENCH_ATAX_BODY5_RAJA;
-          },
-          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY6_RAJA;
-          }
+          poly_atax_lam4,
+          poly_atax_lam5,
+          poly_atax_lam6
 
         );
 
@@ -191,8 +196,6 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      POLYBENCH_ATAX_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -223,10 +226,6 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_ATAX_DATA_SETUP_CPU;
-
-      POLYBENCH_ATAX_VIEWS_RAJA;
-
       using EXEC_POL1 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
@@ -252,40 +251,28 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
       
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        
-        RAJA::kernel_param<EXEC_POL1>( 
+       
+        RAJA::kernel_param<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-            POLYBENCH_ATAX_BODY1_RAJA;
-          },
-          [=] (Index_type i, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY2_RAJA;
-          },
-          [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-            POLYBENCH_ATAX_BODY3_RAJA;
-          }
+          poly_atax_lam1,
+          poly_atax_lam2,
+          poly_atax_lam3
 
         );
-        
-        RAJA::kernel_param<EXEC_POL2>( 
+
+        RAJA::kernel_param<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY4_RAJA;
-          },
-          [=] (Index_type i, Index_type j , Real_type &dot) {
-            POLYBENCH_ATAX_BODY5_RAJA;
-          },
-          [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-            POLYBENCH_ATAX_BODY6_RAJA;
-          }
+          poly_atax_lam4,
+          poly_atax_lam5,
+          poly_atax_lam6
 
-        );
+        ); 
 
       }
       stopTimer();

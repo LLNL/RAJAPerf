@@ -68,12 +68,18 @@ void LTIMES::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  LTIMES_DATA_SETUP_CPU;
+
+  LTIMES_VIEWS_RANGES_RAJA;
+
+  auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
+                      LTIMES_BODY_RAJA;
+                    };
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      LTIMES_DATA_SETUP_CPU;
-  
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -96,10 +102,6 @@ void LTIMES::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      LTIMES_DATA_SETUP_CPU;
-
-      LTIMES_VIEWS_RANGES_RAJA;
-
       using EXEC_POL = 
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::loop_exec,       // z
@@ -120,9 +122,8 @@ void LTIMES::runKernel(VariantID vid)
                                                  IZRange(0, num_z),
                                                  IGRange(0, num_g),
                                                  IMRange(0, num_m)), 
-          [=](ID d, IZ z, IG g, IM m) {
-          LTIMES_BODY_RAJA;
-        });
+                                ltimes_lam
+                              );
 
       }
       stopTimer(); 
@@ -133,8 +134,6 @@ void LTIMES::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-
-      LTIMES_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -158,10 +157,6 @@ void LTIMES::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      LTIMES_DATA_SETUP_CPU;
-
-      LTIMES_VIEWS_RANGES_RAJA;
-
       using EXEC_POL = 
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::omp_parallel_for_exec, // z
@@ -182,9 +177,8 @@ void LTIMES::runKernel(VariantID vid)
                                                  IZRange(0, num_z),
                                                  IGRange(0, num_g),
                                                  IMRange(0, num_m)), 
-          [=](ID d, IZ z, IG g, IM m) {
-          LTIMES_BODY_RAJA;
-        });
+                                ltimes_lam
+                              );
 
       }
       stopTimer();

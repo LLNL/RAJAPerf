@@ -81,17 +81,24 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
+  DEL_DOT_VEC_2D_DATA_SETUP_CPU;
+
+  RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
+
+  NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+  NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+  NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+  NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+  auto deldotvec2d_lam = [=](Index_type i) {
+                           DEL_DOT_VEC_2D_BODY;
+                         };
+
   switch ( vid ) {
 
     case Base_Seq : {
 
-      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
       DEL_DOT_VEC_2D_DATA_INDEX;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -110,21 +117,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(zones, [=](Index_type i) {
-          DEL_DOT_VEC_2D_BODY;
-        }); 
+        RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
 
       }
       stopTimer(); 
@@ -136,13 +132,7 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
 
-      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
       DEL_DOT_VEC_2D_DATA_INDEX;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -161,21 +151,10 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      DEL_DOT_VEC_2D_DATA_SETUP_CPU;
-
-      NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-      NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-      NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-      NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-      RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>(zones, [=](Index_type i) { 
-          DEL_DOT_VEC_2D_BODY;
-        });
+        RAJA::forall<RAJA::omp_parallel_for_exec>(zones, deldotvec2d_lam);
 
       }
       stopTimer();
