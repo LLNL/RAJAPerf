@@ -301,6 +301,87 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      auto poly_3mm_omp_lam2 = [=] (Index_type i, Index_type j, Index_type k,
+                                    Real_type &dot) {
+                                 POLYBENCH_3MM_BODY2_RAJA;
+                               };
+      auto poly_3mm_omp_lam3 = [=] (Index_type i, Index_type j,
+                                    Real_type &dot) {
+                                 POLYBENCH_3MM_BODY3_RAJA;
+                               };
+      auto poly_3mm_omp_lam5 = [=] (Index_type j, Index_type l, Index_type m,
+                                    Real_type &dot) {
+                                  POLYBENCH_3MM_BODY5_RAJA;
+                               };
+      auto poly_3mm_omp_lam6 = [=] (Index_type j, Index_type l,
+                                    Real_type &dot) {
+                                 POLYBENCH_3MM_BODY6_RAJA;
+                               };
+      auto poly_3mm_omp_lam8 = [=] (Index_type i, Index_type l, Index_type j,
+                                    Real_type &dot) {
+                                 POLYBENCH_3MM_BODY8_RAJA;
+                               };
+      auto poly_3mm_omp_lam9 = [=] (Index_type i, Index_type l,
+                                    Real_type &dot) {
+                                 POLYBENCH_3MM_BODY9_RAJA;
+                               };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for (Index_type i = 0; i < ni; i++ )  {
+          for (Index_type j = 0; j < nj; j++) {
+            POLYBENCH_3MM_BODY1;
+            for (Index_type k = 0; k < nk; k++) {
+              poly_3mm_omp_lam2(i, j, k, dot);
+            }
+            poly_3mm_omp_lam3(i, j, dot);
+          }
+        }
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for (Index_type j = 0; j < nj; j++) {
+          for (Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY4;
+            for (Index_type m = 0; m < nm; m++) {
+              poly_3mm_omp_lam5(j, l, m, dot);
+            }
+            poly_3mm_omp_lam6(j, l, dot);
+          }
+        }
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for (Index_type i = 0; i < ni; i++) {
+          for (Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY7;
+            for (Index_type j = 0; j < nj; j++) {
+              poly_3mm_omp_lam8(i, l, j, dot);
+            }
+            poly_3mm_omp_lam9(i, l, dot);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
 #if defined(USE_RAJA_OMP_COLLAPSE)

@@ -251,6 +251,64 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      auto poly_2mm_omp_lam2 = [=](Index_type i, Index_type j, 
+                                   Index_type k, Real_type &dot) {
+                                 POLYBENCH_2MM_BODY2;
+                               };
+      auto poly_2mm_omp_lam3 = [=](Index_type i, Index_type j, 
+                                   Real_type &dot) {
+                                 POLYBENCH_2MM_BODY3;
+                               };
+      auto poly_2mm_omp_lam5 = [=](Index_type i, Index_type l, 
+                                   Index_type j, Real_type &dot) {
+                                 POLYBENCH_2MM_BODY5;
+                               };
+      auto poly_2mm_omp_lam6 = [=](Index_type i, Index_type l, 
+                                   Real_type &dot) {
+                                 POLYBENCH_2MM_BODY6;
+                               };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for (Index_type i = 0; i < ni; i++ ) {
+          for(Index_type j = 0; j < nj; j++) {
+            POLYBENCH_2MM_BODY1;
+            for (Index_type k = 0; k < nk; k++) {
+              poly_2mm_omp_lam2(i, j, k, dot);
+            }
+            poly_2mm_omp_lam3(i, j, dot);
+          }
+        }
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for(Index_type i = 0; i < ni; i++) {
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_2MM_BODY4;
+            for (Index_type j = 0; j < nj; j++) {
+              poly_2mm_omp_lam5(i, l, j, dot);
+            }
+            poly_2mm_omp_lam6(i, l, dot);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
 #if defined(USE_RAJA_OMP_COLLAPSE)
