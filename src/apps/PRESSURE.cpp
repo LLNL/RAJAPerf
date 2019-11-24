@@ -64,10 +64,10 @@ void PRESSURE::runKernel(VariantID vid)
 
   PRESSURE_DATA_SETUP_CPU;
 
-  auto pressure1_lam = [=](int i) {
+  auto pressure_lam1 = [=](int i) {
                          PRESSURE_BODY1;
                        };
-  auto pressure2_lam = [=](int i) {
+  auto pressure_lam2 = [=](int i) {
                          PRESSURE_BODY2;
                        };
   
@@ -101,10 +101,10 @@ void PRESSURE::runKernel(VariantID vid)
         RAJA::region<RAJA::seq_region>( [=]() {
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure1_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure2_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end sequential region (for single-source code)
 
@@ -152,12 +152,12 @@ void PRESSURE::runKernel(VariantID vid)
 
           #pragma omp for nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
-            pressure1_lam(i);
+            pressure_lam1(i);
           }
 
           #pragma omp for nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
-            pressure2_lam(i);
+            pressure_lam2(i);
           }
 
         } // end omp parallel region
@@ -176,10 +176,10 @@ void PRESSURE::runKernel(VariantID vid)
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure1_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure2_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end omp parallel region
 

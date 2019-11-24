@@ -62,11 +62,15 @@ void EOS::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  EOS_DATA_SETUP_CPU;
+
+  auto eos_lam = [=](Index_type i) {
+                   EOS_BODY;
+                 };
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      EOS_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -84,15 +88,11 @@ void EOS::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)     
     case RAJA_Seq : {
 
-      EOS_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          EOS_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), eos_lam);
 
       }
       stopTimer();
@@ -103,8 +103,6 @@ void EOS::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
     case Base_OpenMP : {
-
-      EOS_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -120,17 +118,29 @@ void EOS::runKernel(VariantID vid)
       break;
     }
 
-    case RAJA_OpenMP : {
+    case OpenMP_Lambda : {
 
-      EOS_DATA_SETUP_CPU;
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          eos_lam(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case RAJA_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          EOS_BODY;
-        });
+          RAJA::RangeSegment(ibegin, iend), eos_lam);
 
       }
       stopTimer();
