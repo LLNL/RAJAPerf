@@ -31,7 +31,9 @@ namespace polybench
   ResReal_ptr w = m_w; \
   ResReal_ptr x = m_x; \
   ResReal_ptr y = m_y; \
-  ResReal_ptr z = m_z; 
+  ResReal_ptr z = m_z; \
+\
+  const Index_type n = m_n;
 
   
 POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
@@ -96,9 +98,27 @@ void POLYBENCH_GEMVER::runKernel(VariantID vid)
 {
 
   const Index_type run_reps = getRunReps();
-  const Index_type n = m_n;
 
   POLYBENCH_GEMVER_DATA_SETUP_CPU;
+
+  auto poly_gemver_base_lam1 = [=](Index_type i, Index_type j) {
+                                 POLYBENCH_GEMVER_BODY1;
+                               };
+  auto poly_gemver_base_lam3 = [=](Index_type i, Index_type j, Real_type &dot) {
+                                 POLYBENCH_GEMVER_BODY3;
+                               };
+  auto poly_gemver_base_lam4 = [=](Index_type i, Real_type &dot) {
+                                 POLYBENCH_GEMVER_BODY4;
+                               };
+  auto poly_gemver_base_lam5 = [=](Index_type i) {
+                                 POLYBENCH_GEMVER_BODY5;
+                               };
+  auto poly_gemver_base_lam7 = [=](Index_type i, Index_type j, Real_type &dot) {
+                                 POLYBENCH_GEMVER_BODY7;
+                                };
+  auto poly_gemver_base_lam8 = [=](Index_type i, Real_type &dot) {
+                                 POLYBENCH_GEMVER_BODY8;
+                               };
 
   POLYBENCH_GEMVER_VIEWS_RAJA;
 
@@ -269,6 +289,47 @@ void POLYBENCH_GEMVER::runKernel(VariantID vid)
             POLYBENCH_GEMVER_BODY7;
           }
           POLYBENCH_GEMVER_BODY8;
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < n; i++ ) {
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam1(i, j);
+          }
+        }
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < n; i++ ) {
+          POLYBENCH_GEMVER_BODY2;
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam3(i, j, dot);
+          }
+          poly_gemver_base_lam4(i, dot);
+        }
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < n; i++ ) {
+          poly_gemver_base_lam5(i);
+        }
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < n; i++ ) {
+          POLYBENCH_GEMVER_BODY6;
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam7(i, j, dot);
+          }
+          poly_gemver_base_lam8(i, dot);
         }
 
       }

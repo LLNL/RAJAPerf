@@ -34,7 +34,13 @@ namespace polybench
   ResReal_ptr D = m_D; \
   ResReal_ptr E = m_E; \
   ResReal_ptr F = m_F; \
-  ResReal_ptr G = m_G; 
+  ResReal_ptr G = m_G; \
+\
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl; \
+  const Index_type nm = m_nm;
   
   
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
@@ -91,11 +97,6 @@ void POLYBENCH_3MM::setUp(VariantID vid)
 void POLYBENCH_3MM::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
-  const Index_type nm = m_nm;
 
   POLYBENCH_3MM_DATA_SETUP_CPU;
 

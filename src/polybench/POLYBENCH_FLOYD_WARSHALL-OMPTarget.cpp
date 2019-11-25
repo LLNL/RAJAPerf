@@ -27,6 +27,7 @@ namespace polybench
 \
   Real_ptr pin; \
   Real_ptr pout; \
+  const Index_type N = m_N; \
 \
   allocAndInitOpenMPDeviceData(pin, m_pin, m_N * m_N, did, hid); \
   allocAndInitOpenMPDeviceData(pout, m_pout, m_N * m_N, did, hid);
@@ -41,8 +42,6 @@ namespace polybench
 void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
-
 
   if ( vid == Base_OpenMPTarget ) {
 

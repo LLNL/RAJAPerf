@@ -30,6 +30,11 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl; \
+\
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -78,11 +83,6 @@ __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
 void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
-
 
   if ( vid == Base_CUDA ) {
 

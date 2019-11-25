@@ -33,6 +33,12 @@ namespace polybench
   Real_ptr F; \
   Real_ptr G; \
 \
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl; \
+  const Index_type nm = m_nm; \
+\
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(C, m_C, m_nj * m_nm, did, hid); \

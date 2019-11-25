@@ -70,7 +70,6 @@ namespace polybench
 void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type n = m_n;
 
   if ( vid == Base_OpenMPTarget ) {
 

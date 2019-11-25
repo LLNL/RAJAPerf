@@ -84,11 +84,24 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
 
   POLYBENCH_FDTD_2D_DATA_SETUP_CPU;
 
-  POLYBENCH_FDTD_2D_VIEWS_RAJA;
-
-  // IMPORTANT: This lambda definition must use capture by reference to
+  // IMPORTANT: This first lambda definition must use capture by reference to
   //            get the correct result (the scalar vaiable 't' used in
   //            the lambda expression gets modified by the kernel).
+  auto poly_fdtd2d_base_lam1 = [&](Index_type j) {
+                                 POLYBENCH_FDTD_2D_BODY1;
+                               };
+  auto poly_fdtd2d_base_lam2 = [=](Index_type i, Index_type j) {
+                                 POLYBENCH_FDTD_2D_BODY2;
+                               };
+  auto poly_fdtd2d_base_lam3 = [=](Index_type i, Index_type j) {
+                                 POLYBENCH_FDTD_2D_BODY3;
+                               };
+  auto poly_fdtd2d_base_lam4 = [=](Index_type i, Index_type j) {
+                                 POLYBENCH_FDTD_2D_BODY4;
+                               };
+
+  POLYBENCH_FDTD_2D_VIEWS_RAJA;
+
   auto poly_fdtd2d_lam1 = [&](Index_type j) {
                             POLYBENCH_FDTD_2D_BODY1_RAJA;
                           };
@@ -159,9 +172,6 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
 
           RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny), 
             poly_fdtd2d_lam1
-//          [=](Index_type j) {
-//            POLYBENCH_FDTD_2D_BODY1_RAJA;
-//          }
           );
 
           RAJA::kernel<EXEC_POL234>(
@@ -230,6 +240,44 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (t = 0; t < tsteps; ++t) {
+
+          #pragma omp parallel for
+          for (Index_type j = 0; j < ny; j++) {
+            poly_fdtd2d_base_lam1(j);
+          }
+          #pragma omp parallel for
+          for (Index_type i = 1; i < nx; i++) {
+            for (Index_type j = 0; j < ny; j++) {
+              poly_fdtd2d_base_lam2(i, j);
+            }
+          }
+          #pragma omp parallel for
+          for (Index_type i = 0; i < nx; i++) {
+            for (Index_type j = 1; j < ny; j++) {
+              poly_fdtd2d_base_lam3(i, j);
+            }
+          }
+          #pragma omp parallel for
+          for (Index_type i = 0; i < nx - 1; i++) {
+            for (Index_type j = 0; j < ny - 1; j++) {
+              poly_fdtd2d_base_lam4(i, j);
+            }
+          }
+
+        }  // tstep loop
+
+      }  // run_reps
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       using EXEC_POL1 = RAJA::omp_parallel_for_exec;
@@ -249,10 +297,7 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
         for (t = 0; t < tsteps; ++t) {
 
           RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
-//          poly_fdtd2d_lam1
-            [=](Index_type j) {
-              POLYBENCH_FDTD_2D_BODY1_RAJA;
-            }
+            poly_fdtd2d_lam1
           );
 
           RAJA::kernel<EXEC_POL234>(

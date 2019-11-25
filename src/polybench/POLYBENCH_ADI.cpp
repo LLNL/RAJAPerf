@@ -96,6 +96,31 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 
   POLYBENCH_ADI_DATA_SETUP_CPU;
 
+  auto poly_adi_base_lam2 = [=](Index_type i) {
+                              POLYBENCH_ADI_BODY2;
+                            };
+  auto poly_adi_base_lam3 = [=](Index_type i, Index_type j) {
+                              POLYBENCH_ADI_BODY3;
+                            };
+  auto poly_adi_base_lam4 = [=](Index_type i) {
+                              POLYBENCH_ADI_BODY4;
+                            };
+  auto poly_adi_base_lam5 = [=](Index_type i, Index_type k) {
+                              POLYBENCH_ADI_BODY5;
+                            };
+  auto poly_adi_base_lam6 = [=](Index_type i) {
+                              POLYBENCH_ADI_BODY6;
+                            };
+  auto poly_adi_base_lam7 = [=](Index_type i, Index_type j) {
+                              POLYBENCH_ADI_BODY7;
+                            };
+  auto poly_adi_base_lam8 = [=](Index_type i) {
+                              POLYBENCH_ADI_BODY8;
+                            };
+  auto poly_adi_base_lam9 = [=](Index_type i, Index_type k) {
+                              POLYBENCH_ADI_BODY9;
+                            };
+
   POLYBENCH_ADI_VIEWS_RAJA;
 
   auto poly_adi_lam2 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
@@ -247,6 +272,45 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
             for (Index_type k = n-2; k >= 1; --k) {
               POLYBENCH_ADI_BODY9;
             }  
+          }
+
+        }  // tstep loop
+
+      }  // run_reps
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 1; t <= tsteps; ++t) {
+
+          #pragma omp parallel for
+          for (Index_type i = 1; i < n-1; ++i) {
+            poly_adi_base_lam2(i);
+            for (Index_type j = 1; j < n-1; ++j) {
+              poly_adi_base_lam3(i, j);
+            }
+            poly_adi_base_lam4(i);
+            for (Index_type k = n-2; k >= 1; --k) {
+              poly_adi_base_lam5(i, k);
+            }
+          }
+
+          #pragma omp parallel for
+          for (Index_type i = 1; i < n-1; ++i) {
+            poly_adi_base_lam6(i);
+            for (Index_type j = 1; j < n-1; ++j) {
+              poly_adi_base_lam7(i, j);
+            }
+            poly_adi_base_lam8(i);
+            for (Index_type k = n-2; k >= 1; --k) {
+              poly_adi_base_lam9(i, k);
+            }
           }
 
         }  // tstep loop

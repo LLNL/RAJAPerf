@@ -33,7 +33,12 @@ namespace polybench
   ResReal_ptr C = m_C; \
   ResReal_ptr D = m_D; \
   Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; 
+  Real_type beta = m_beta; \
+\
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl;
 
   
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
@@ -93,10 +98,6 @@ void POLYBENCH_2MM::setUp(VariantID vid)
 void POLYBENCH_2MM::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
 
   POLYBENCH_2MM_DATA_SETUP_CPU;
 
