@@ -99,6 +99,31 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
   POLYBENCH_3MM_DATA_SETUP_CPU;
 
+  auto poly_3mm_base_lam2 = [=] (Index_type i, Index_type j, Index_type k,
+                                 Real_type &dot) {
+                              POLYBENCH_3MM_BODY2;
+                            };
+  auto poly_3mm_base_lam3 = [=] (Index_type i, Index_type j,
+                                 Real_type &dot) {
+                              POLYBENCH_3MM_BODY3;
+                            };
+  auto poly_3mm_base_lam5 = [=] (Index_type j, Index_type l, Index_type m,
+                                 Real_type &dot) {
+                               POLYBENCH_3MM_BODY5;
+                            };
+  auto poly_3mm_base_lam6 = [=] (Index_type j, Index_type l,
+                                 Real_type &dot) {
+                              POLYBENCH_3MM_BODY6;
+                            };
+  auto poly_3mm_base_lam8 = [=] (Index_type i, Index_type l, Index_type j,
+                                 Real_type &dot) {
+                              POLYBENCH_3MM_BODY8;
+                            };
+  auto poly_3mm_base_lam9 = [=] (Index_type i, Index_type l,
+                                 Real_type &dot) {
+                              POLYBENCH_3MM_BODY9;
+                            };
+
   POLYBENCH_3MM_VIEWS_RAJA;
 
   auto poly_3mm_lam1 = [=] (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/,
@@ -303,31 +328,6 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 
     case OpenMP_Lambda : {
 
-      auto poly_3mm_omp_lam2 = [=] (Index_type i, Index_type j, Index_type k,
-                                    Real_type &dot) {
-                                 POLYBENCH_3MM_BODY2_RAJA;
-                               };
-      auto poly_3mm_omp_lam3 = [=] (Index_type i, Index_type j,
-                                    Real_type &dot) {
-                                 POLYBENCH_3MM_BODY3_RAJA;
-                               };
-      auto poly_3mm_omp_lam5 = [=] (Index_type j, Index_type l, Index_type m,
-                                    Real_type &dot) {
-                                  POLYBENCH_3MM_BODY5_RAJA;
-                               };
-      auto poly_3mm_omp_lam6 = [=] (Index_type j, Index_type l,
-                                    Real_type &dot) {
-                                 POLYBENCH_3MM_BODY6_RAJA;
-                               };
-      auto poly_3mm_omp_lam8 = [=] (Index_type i, Index_type l, Index_type j,
-                                    Real_type &dot) {
-                                 POLYBENCH_3MM_BODY8_RAJA;
-                               };
-      auto poly_3mm_omp_lam9 = [=] (Index_type i, Index_type l,
-                                    Real_type &dot) {
-                                 POLYBENCH_3MM_BODY9_RAJA;
-                               };
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -340,9 +340,9 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           for (Index_type j = 0; j < nj; j++) {
             POLYBENCH_3MM_BODY1;
             for (Index_type k = 0; k < nk; k++) {
-              poly_3mm_omp_lam2(i, j, k, dot);
+              poly_3mm_base_lam2(i, j, k, dot);
             }
-            poly_3mm_omp_lam3(i, j, dot);
+            poly_3mm_base_lam3(i, j, dot);
           }
         }
 
@@ -355,9 +355,9 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY4;
             for (Index_type m = 0; m < nm; m++) {
-              poly_3mm_omp_lam5(j, l, m, dot);
+              poly_3mm_base_lam5(j, l, m, dot);
             }
-            poly_3mm_omp_lam6(j, l, dot);
+            poly_3mm_base_lam6(j, l, dot);
           }
         }
 
@@ -370,9 +370,9 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
           for (Index_type l = 0; l < nl; l++) {
             POLYBENCH_3MM_BODY7;
             for (Index_type j = 0; j < nj; j++) {
-              poly_3mm_omp_lam8(i, l, j, dot);
+              poly_3mm_base_lam8(i, l, j, dot);
             }
-            poly_3mm_omp_lam9(i, l, dot);
+            poly_3mm_base_lam9(i, l, dot);
           }
         }
 

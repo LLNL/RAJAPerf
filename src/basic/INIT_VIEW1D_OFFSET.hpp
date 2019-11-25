@@ -30,6 +30,10 @@
 #define INIT_VIEW1D_OFFSET_BODY_RAJA  \
   view(i) = v;
 
+#define INIT_VIEW1D_OFFSET_VIEW_RAJA  \
+  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
+  ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
+
 
 #include "common/KernelBase.hpp"
 

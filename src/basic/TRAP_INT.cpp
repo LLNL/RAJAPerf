@@ -78,6 +78,11 @@ void TRAP_INT::runKernel(VariantID vid)
 
   TRAP_INT_DATA_SETUP_CPU;
 
+  auto trapint_base_lam = [=](Index_type i) -> Real_type {
+                            Real_type x = x0 + i*h;
+                            return trap_int_func(x, y, xp, yp);
+                          };
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -149,14 +154,9 @@ void TRAP_INT::runKernel(VariantID vid)
 
         Real_type sumx = m_sumx_init;
 
-        auto trapint_lam = [=](Index_type i) -> Real_type {
-                             Real_type x = x0 + i*h;
-                             return trap_int_func(x, y, xp, yp);
-                           };
-
         #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          sumx += trapint_lam(i);
+          sumx += trapint_base_lam(i);
         }
 
         m_sumx += sumx * h;

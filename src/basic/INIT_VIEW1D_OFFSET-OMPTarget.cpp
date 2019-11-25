@@ -33,10 +33,7 @@ namespace basic
   Real_ptr a; \
   const Real_type v = m_val; \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-\
-  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
-  ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
+  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid);
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_a, a, iend, hid, did); \
@@ -70,6 +67,8 @@ void INIT_VIEW1D_OFFSET::runOpenMPTargetVariant(VariantID vid)
   } else if ( vid == RAJA_OpenMPTarget ) {
 
      INIT_VIEW1D_OFFSET_DATA_SETUP_OMP_TARGET;
+
+     INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
      startTimer();
      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

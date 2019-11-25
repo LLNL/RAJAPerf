@@ -53,6 +53,10 @@ void DOT::runKernel(VariantID vid)
 
   DOT_DATA_SETUP_CPU;
 
+  auto dot_base_lam = [=](Index_type i) -> Real_type {
+                        return a[i] * b[i];
+                      };
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -124,13 +128,9 @@ void DOT::runKernel(VariantID vid)
 
         Real_type dot = m_dot_init;
 
-        auto dot_lam = [=](Index_type i) -> Real_type {
-                         return a[i] * b[i];
-                       };
-
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          dot += dot_lam(i);
+          dot += dot_base_lam(i);
         }
 
         m_dot += dot;

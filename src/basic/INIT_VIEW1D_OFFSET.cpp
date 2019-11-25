@@ -21,10 +21,7 @@ namespace basic
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CPU \
   Real_ptr a = m_a; \
-  const Real_type v = m_val; \
-\
-  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
-  ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
+  const Real_type v = m_val;
 
 
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
@@ -51,6 +48,12 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
   const Index_type iend = getRunSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
+
+  auto initview1doffset_base_lam = [=](Index_type i) {
+                                     INIT_VIEW1D_OFFSET_BODY;
+                                   };
+
+  INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
   auto initview1doffset_lam = [=](Index_type i) {
                                 INIT_VIEW1D_OFFSET_BODY_RAJA;
@@ -113,7 +116,7 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          initview1doffset_lam(i);
+          initview1doffset_base_lam(i);
         }
 
       }

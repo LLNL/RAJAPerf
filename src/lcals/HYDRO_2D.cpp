@@ -86,6 +86,16 @@ void HYDRO_2D::runKernel(VariantID vid)
 
   HYDRO_2D_DATA_SETUP_CPU;
 
+  auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
+                             HYDRO_2D_BODY1;
+                           };
+  auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
+                             HYDRO_2D_BODY2;
+                           };
+  auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
+                             HYDRO_2D_BODY3;
+                           };
+
   HYDRO_2D_VIEWS_RAJA;
 
   auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
@@ -215,21 +225,21 @@ void HYDRO_2D::runKernel(VariantID vid)
           #pragma omp for nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_lam1(k, j);
+              hydro2d_base_lam1(k, j);
             }
           }
 
           #pragma omp for nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_lam2(k, j);
+              hydro2d_base_lam2(k, j);
             }
           }
 
           #pragma omp for nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_lam3(k, j);
+              hydro2d_base_lam3(k, j);
             }
           }
 

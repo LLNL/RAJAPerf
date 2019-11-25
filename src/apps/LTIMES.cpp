@@ -70,6 +70,11 @@ void LTIMES::runKernel(VariantID vid)
 
   LTIMES_DATA_SETUP_CPU;
 
+  auto ltimes_base_lam = [=](Index_type d, Index_type z, 
+                             Index_type g, Index_type m) {
+                           LTIMES_BODY;
+                         };
+
   LTIMES_VIEWS_RANGES_RAJA;
 
   auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
@@ -157,11 +162,6 @@ void LTIMES::runKernel(VariantID vid)
 
     case OpenMP_Lambda : {
 
-      auto ltimes_omp_lam = [=](Index_type d, Index_type z, 
-                                Index_type g, Index_type m) {
-                              LTIMES_BODY;
-                            };
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -170,7 +170,7 @@ void LTIMES::runKernel(VariantID vid)
           for (Index_type g = 0; g < num_g; ++g ) {
             for (Index_type m = 0; m < num_m; ++m ) {
               for (Index_type d = 0; d < num_d; ++d ) {
-                ltimes_omp_lam(d, z, g, m);
+                ltimes_base_lam(d, z, g, m);
               }
             }
           }
