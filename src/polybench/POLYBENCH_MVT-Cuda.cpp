@@ -32,6 +32,7 @@ namespace polybench
   Real_ptr y1; \
   Real_ptr y2; \
   Real_ptr A; \
+  const Index_type N = m_N; \
 \
   allocAndInitCudaDeviceData(x1, m_x1, N); \
   allocAndInitCudaDeviceData(x2, m_x2, N); \
@@ -82,7 +83,6 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
 void POLYBENCH_MVT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
 
   if ( vid == Base_CUDA ) {
 

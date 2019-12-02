@@ -21,7 +21,9 @@ namespace polybench
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_CPU \
   ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit;
+  ResReal_ptr B = m_Binit; \
+  const Index_type N = m_N; \
+  const Index_type tsteps = m_tsteps;
 
 #define POLYBENCH_HEAT_3D_DATA_RESET_CPU \
   m_Ainit = m_A; \
@@ -98,10 +100,15 @@ void POLYBENCH_HEAT_3D::setUp(VariantID vid)
 void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
 
   POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
+
+  auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, Index_type k) {
+                                 POLYBENCH_HEAT_3D_BODY1;
+                               };
+  auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j, Index_type k) {
+                                 POLYBENCH_HEAT_3D_BODY2;
+                               };
 
   POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
@@ -197,6 +204,41 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 0; t < tsteps; ++t) {
+
+          #pragma omp parallel for collapse(2)
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
+                poly_heat3d_base_lam1(i, j, k);
+              }
+            }
+          }
+
+          #pragma omp parallel for collapse(2)
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
+                poly_heat3d_base_lam2(i, j, k);
+              }
+            }
+          }
+
+        }
+
+      }
+      stopTimer();
+
+      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

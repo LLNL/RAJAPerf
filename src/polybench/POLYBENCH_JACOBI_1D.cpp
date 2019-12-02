@@ -21,7 +21,9 @@ namespace polybench
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_CPU \
   ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit;
+  ResReal_ptr B = m_Binit; \
+  const Index_type N = m_N; \
+  const Index_type tsteps = m_tsteps;
 
 #define POLYBENCH_JACOBI_1D_DATA_RESET_CPU \
   m_Ainit = m_A; \
@@ -88,8 +90,6 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
 void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
 
   POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
 
@@ -168,6 +168,30 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
           #pragma omp parallel for
           for (Index_type i = 1; i < N-1; ++i ) {
             POLYBENCH_JACOBI_1D_BODY2;
+          }
+        }
+
+      }
+      stopTimer();
+
+      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 0; t < tsteps; ++t) {
+          #pragma omp parallel for
+          for (Index_type i = 1; i < N-1; ++i ) {
+            poly_jacobi1d_lam1(i);
+          }
+          #pragma omp parallel for
+          for (Index_type i = 1; i < N-1; ++i ) {
+            poly_jacobi1d_lam2(i);
           }
         }
 

@@ -35,6 +35,7 @@ namespace polybench
   Real_ptr y1; \
   Real_ptr y2; \
   Real_ptr A; \
+  const Index_type N = m_N; \
 \
   allocAndInitOpenMPDeviceData(x1, m_x1, N, did, hid); \
   allocAndInitOpenMPDeviceData(x2, m_x2, N, did, hid); \
@@ -56,7 +57,6 @@ namespace polybench
 void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
 
   if ( vid == Base_OpenMPTarget ) {
 

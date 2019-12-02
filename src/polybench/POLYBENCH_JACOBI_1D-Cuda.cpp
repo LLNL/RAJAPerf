@@ -29,6 +29,8 @@ namespace polybench
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA \
   Real_ptr A; \
   Real_ptr B; \
+  const Index_type N = m_N; \
+  const Index_type tsteps = m_tsteps; \
 \
   allocAndInitCudaDeviceData(A, m_Ainit, m_N); \
   allocAndInitCudaDeviceData(B, m_Binit, m_N);
@@ -63,8 +65,6 @@ __global__ void poly_jacobi_1D_2(Real_ptr A, Real_ptr B, Index_type N)
 void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
 
   if ( vid == Base_CUDA ) {
 
