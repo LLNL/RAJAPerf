@@ -64,10 +64,10 @@ void PRESSURE::runKernel(VariantID vid)
 
   PRESSURE_DATA_SETUP_CPU;
 
-  auto pressure1_lam = [=](int i) {
+  auto pressure_lam1 = [=](int i) {
                          PRESSURE_BODY1;
                        };
-  auto pressure2_lam = [=](int i) {
+  auto pressure_lam2 = [=](int i) {
                          PRESSURE_BODY2;
                        };
   
@@ -101,10 +101,10 @@ void PRESSURE::runKernel(VariantID vid)
         RAJA::region<RAJA::seq_region>( [=]() {
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure1_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
           RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure2_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end sequential region (for single-source code)
 
@@ -142,6 +142,32 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel
+        {
+
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            pressure_lam1(i);
+          }
+
+          #pragma omp for nowait
+          for (Index_type i = ibegin; i < iend; ++i ) {
+            pressure_lam2(i);
+          }
+
+        } // end omp parallel region
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();
@@ -150,10 +176,10 @@ void PRESSURE::runKernel(VariantID vid)
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure1_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
           RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure2_lam);
+            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end omp parallel region
 

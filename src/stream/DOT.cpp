@@ -53,6 +53,10 @@ void DOT::runKernel(VariantID vid)
 
   DOT_DATA_SETUP_CPU;
 
+  auto dot_base_lam = [=](Index_type i) -> Real_type {
+                        return a[i] * b[i];
+                      };
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -107,6 +111,26 @@ void DOT::runKernel(VariantID vid)
         #pragma omp parallel for reduction(+:dot)
         for (Index_type i = ibegin; i < iend; ++i ) {
           DOT_BODY;
+        }
+
+        m_dot += dot;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
+
+        #pragma omp parallel for reduction(+:dot)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          dot += dot_base_lam(i);
         }
 
         m_dot += dot;

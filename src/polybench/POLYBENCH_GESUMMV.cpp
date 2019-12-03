@@ -90,6 +90,15 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 
   POLYBENCH_GESUMMV_DATA_SETUP_CPU;
 
+  auto poly_gesummv_base_lam2 = [=](Index_type i, Index_type j, 
+                                    Real_type& tmpdot, Real_type& ydot) {
+                                  POLYBENCH_GESUMMV_BODY2;
+                                };
+  auto poly_gesummv_base_lam3 = [=](Index_type i,
+                                    Real_type& tmpdot, Real_type& ydot) {
+                                  POLYBENCH_GESUMMV_BODY3;
+                                };
+
   POLYBENCH_GESUMMV_VIEWS_RAJA;
 
   auto poly_gesummv_lam1 = [=](Index_type /*i*/, Index_type /*j*/, 
@@ -177,6 +186,26 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
             POLYBENCH_GESUMMV_BODY2;
           }
           POLYBENCH_GESUMMV_BODY3;
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_GESUMMV_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_gesummv_base_lam2(i, j, tmpdot, ydot);
+          }
+          poly_gesummv_base_lam3(i, tmpdot, ydot);
         }
 
       }

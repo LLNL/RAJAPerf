@@ -33,7 +33,12 @@ namespace polybench
   ResReal_ptr C = m_C; \
   ResReal_ptr D = m_D; \
   Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; 
+  Real_type beta = m_beta; \
+\
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl;
 
   
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
@@ -93,12 +98,25 @@ void POLYBENCH_2MM::setUp(VariantID vid)
 void POLYBENCH_2MM::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
 
   POLYBENCH_2MM_DATA_SETUP_CPU;
+
+  auto poly_2mm_base_lam2 = [=](Index_type i, Index_type j,
+                                Index_type k, Real_type &dot) {
+                              POLYBENCH_2MM_BODY2;
+                            };
+  auto poly_2mm_base_lam3 = [=](Index_type i, Index_type j,
+                                Real_type &dot) {
+                              POLYBENCH_2MM_BODY3;
+                            };
+  auto poly_2mm_base_lam5 = [=](Index_type i, Index_type l,
+                                Index_type j, Real_type &dot) {
+                              POLYBENCH_2MM_BODY5;
+                            };
+  auto poly_2mm_base_lam6 = [=](Index_type i, Index_type l,
+                                Real_type &dot) {
+                              POLYBENCH_2MM_BODY6;
+                            };
 
   POLYBENCH_2MM_VIEWS_RAJA;
 
@@ -242,6 +260,47 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
               POLYBENCH_2MM_BODY5;
             }
             POLYBENCH_2MM_BODY6;
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for (Index_type i = 0; i < ni; i++ ) {
+          for(Index_type j = 0; j < nj; j++) {
+            POLYBENCH_2MM_BODY1;
+            for (Index_type k = 0; k < nk; k++) {
+              poly_2mm_base_lam2(i, j, k, dot);
+            }
+            poly_2mm_base_lam3(i, j, dot);
+          }
+        }
+
+#if defined(USE_OMP_COLLAPSE)
+        #pragma omp parallel for collapse(2)
+#else
+        #pragma omp parallel for
+#endif
+        for(Index_type i = 0; i < ni; i++) {
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_2MM_BODY4;
+            for (Index_type j = 0; j < nj; j++) {
+              poly_2mm_base_lam5(i, l, j, dot);
+            }
+            poly_2mm_base_lam6(i, l, dot);
           }
         }
 

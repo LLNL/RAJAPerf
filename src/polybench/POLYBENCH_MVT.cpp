@@ -24,7 +24,8 @@ namespace polybench
   ResReal_ptr x2 = m_x2; \
   ResReal_ptr y1 = m_y1; \
   ResReal_ptr y2 = m_y2; \
-  ResReal_ptr A = m_A;
+  ResReal_ptr A = m_A; \
+  const Index_type N = m_N;
 
   
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
@@ -81,9 +82,21 @@ void POLYBENCH_MVT::setUp(VariantID vid)
 void POLYBENCH_MVT::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
 
   POLYBENCH_MVT_DATA_SETUP_CPU;
+
+  auto poly_mvt_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                              POLYBENCH_MVT_BODY2;
+                             };
+  auto poly_mvt_base_lam3 = [=] (Index_type i, Real_type &dot) {
+                              POLYBENCH_MVT_BODY3;
+                            };
+  auto poly_mvt_base_lam5 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                              POLYBENCH_MVT_BODY5;
+                            };
+  auto poly_mvt_base_lam6 = [=] (Index_type i, Real_type &dot) {
+                              POLYBENCH_MVT_BODY6;
+                            };
 
   POLYBENCH_MVT_VIEWS_RAJA;
 
@@ -215,6 +228,40 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
               POLYBENCH_MVT_BODY5;
             }
             POLYBENCH_MVT_BODY6;
+          }
+
+        } // end omp parallel region
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel
+        {
+
+          #pragma omp for nowait
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_MVT_BODY1;
+            for (Index_type j = 0; j < N; ++j ) {
+              poly_mvt_base_lam2(i, j, dot);
+            }
+            poly_mvt_base_lam3(i, dot);
+          }
+
+          #pragma omp for nowait
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_MVT_BODY4;
+            for (Index_type j = 0; j < N; ++j ) {
+              poly_mvt_base_lam5(i, j, dot);
+            }
+            poly_mvt_base_lam6(i, dot);
           }
 
         } // end omp parallel region

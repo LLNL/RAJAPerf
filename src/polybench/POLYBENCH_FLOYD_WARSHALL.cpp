@@ -26,7 +26,8 @@ namespace polybench
 
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU \
   ResReal_ptr pin = m_pin; \
-  ResReal_ptr pout = m_pout;
+  ResReal_ptr pout = m_pout; \
+  const Index_type N = m_N;
 
   
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
@@ -80,9 +81,13 @@ void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
 void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
 
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
+
+  auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
+                                         Index_type j) {
+                                       POLYBENCH_FLOYD_WARSHALL_BODY;
+                                     };
 
   POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
 
@@ -159,6 +164,30 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
           for (Index_type i = 0; i < N; ++i) {  
             for (Index_type j = 0; j < N; ++j) {
               POLYBENCH_FLOYD_WARSHALL_BODY;
+            }
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type k = 0; k < N; ++k) {
+#if defined(USE_OMP_COLLAPSE)
+          #pragma omp parallel for collapse(2)
+#else
+          #pragma omp parallel for
+#endif
+          for (Index_type i = 0; i < N; ++i) {
+            for (Index_type j = 0; j < N; ++j) {
+              poly_floydwarshall_base_lam(k, i, j);
             }
           }
         }

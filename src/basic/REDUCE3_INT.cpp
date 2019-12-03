@@ -59,6 +59,10 @@ void REDUCE3_INT::runKernel(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP_CPU;
 
+  auto init3_base_lam = [&](Index_type i) -> Int_type {
+                          return vec[i];
+                        };
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -125,6 +129,34 @@ void REDUCE3_INT::runKernel(VariantID vid)
                                  reduction(max:vmax)
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE3_INT_BODY;
+        }
+
+        m_vsum += vsum;
+        m_vmin = RAJA_MIN(m_vmin, vmin);
+        m_vmax = RAJA_MAX(m_vmax, vmax);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Int_type vsum = m_vsum_init;
+        Int_type vmin = m_vmin_init;
+        Int_type vmax = m_vmax_init;
+
+        #pragma omp parallel for reduction(+:vsum), \
+                                 reduction(min:vmin), \
+                                 reduction(max:vmax)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          vsum += init3_base_lam(i);
+          vmin = RAJA_MIN(vmin, init3_base_lam(i));
+          vmax = RAJA_MAX(vmax, init3_base_lam(i));
         }
 
         m_vsum += vsum;

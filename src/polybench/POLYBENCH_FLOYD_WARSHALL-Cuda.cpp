@@ -25,6 +25,8 @@ namespace polybench
   Real_ptr pin; \
   Real_ptr pout; \
 \
+  const Index_type N = m_N; \
+\
   allocAndInitCudaDeviceData(pin, m_pin, m_N * m_N); \
   allocAndInitCudaDeviceData(pout, m_pout, m_N * m_N);
 
@@ -49,8 +51,6 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
 void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
-
 
   if ( vid == Base_CUDA ) {
 

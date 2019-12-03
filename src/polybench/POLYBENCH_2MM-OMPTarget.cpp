@@ -33,6 +33,11 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 \
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl; \
+\
   allocAndInitOpenMPDeviceData(tmp, m_tmp, m_ni * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
@@ -52,10 +57,6 @@ namespace polybench
 void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
 
   if ( vid == Base_OpenMPTarget ) {
 

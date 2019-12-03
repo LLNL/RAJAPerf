@@ -32,6 +32,8 @@ namespace polybench
 \
   Real_ptr A; \
   Real_ptr B; \
+  const Index_type N = m_N; \
+  const Index_type tsteps = m_tsteps; \
 \
   allocAndInitOpenMPDeviceData(A, m_Ainit, m_N, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_Binit, m_N, did, hid);
@@ -47,8 +49,6 @@ namespace polybench
 void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
 
   if ( vid == Base_OpenMPTarget ) {
 

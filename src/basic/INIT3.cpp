@@ -110,6 +110,22 @@ void INIT3::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          init3_lam(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       startTimer();

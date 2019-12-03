@@ -23,7 +23,9 @@ namespace polybench
   ResReal_ptr tmp = m_tmp; \
   ResReal_ptr y = m_y; \
   ResReal_ptr x = m_x; \
-  ResReal_ptr A = m_A;
+  ResReal_ptr A = m_A; \
+\
+  const Index_type N = m_N;
 
 
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
@@ -79,30 +81,42 @@ void POLYBENCH_ATAX::setUp(VariantID vid)
 void POLYBENCH_ATAX::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
 
   POLYBENCH_ATAX_DATA_SETUP_CPU;
+
+  auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                               POLYBENCH_ATAX_BODY2;
+                             };
+  auto poly_atax_base_lam3 = [=] (Index_type i, Real_type &dot) {
+                               POLYBENCH_ATAX_BODY3;
+                              };
+  auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
+                               POLYBENCH_ATAX_BODY5;
+                              };
+  auto poly_atax_base_lam6 = [=] (Index_type j, Real_type &dot) {
+                               POLYBENCH_ATAX_BODY6;
+                              };
 
   POLYBENCH_ATAX_VIEWS_RAJA;
 
   auto poly_atax_lam1 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-                             POLYBENCH_ATAX_BODY1_RAJA;
-                            };
-  auto poly_atax_lam2 =  [=] (Index_type i, Index_type j, Real_type &dot) {
-                              POLYBENCH_ATAX_BODY2_RAJA;
-                            };
+                          POLYBENCH_ATAX_BODY1_RAJA;
+                         };
+  auto poly_atax_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                          POLYBENCH_ATAX_BODY2_RAJA;
+                        };
   auto poly_atax_lam3 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
-                             POLYBENCH_ATAX_BODY3_RAJA;
-                            };
+                          POLYBENCH_ATAX_BODY3_RAJA;
+                         };
   auto poly_atax_lam4 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-                             POLYBENCH_ATAX_BODY4_RAJA;
-                            };
+                          POLYBENCH_ATAX_BODY4_RAJA;
+                         };
   auto poly_atax_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
-                             POLYBENCH_ATAX_BODY5_RAJA;
-                            };
+                          POLYBENCH_ATAX_BODY5_RAJA;
+                         };
   auto poly_atax_lam6 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
-                             POLYBENCH_ATAX_BODY6_RAJA;
-                            };
+                          POLYBENCH_ATAX_BODY6_RAJA;
+                         };
 
   switch ( vid ) {
 
@@ -216,6 +230,35 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
             POLYBENCH_ATAX_BODY5;
           }
           POLYBENCH_ATAX_BODY6;
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_ATAX_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_atax_base_lam2(i, j, dot);
+          }
+          poly_atax_base_lam3(i, dot);
+        }
+
+        #pragma omp parallel for
+        for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY4;
+          for (Index_type i = 0; i < N; ++i ) {
+            poly_atax_base_lam5(i, j, dot);
+          }
+          poly_atax_base_lam6(j, dot);
         }
 
       }

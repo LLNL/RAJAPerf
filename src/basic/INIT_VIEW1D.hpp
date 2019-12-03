@@ -30,6 +30,11 @@
 #define INIT_VIEW1D_BODY_RAJA  \
   view(i) = v;
 
+#define INIT_VIEW1D_VIEW_RAJA \
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
+  const RAJA::Layout<1> my_layout(iend); \
+  ViewType view(a, my_layout);
+
 
 #include "common/KernelBase.hpp"
 

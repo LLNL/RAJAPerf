@@ -31,10 +31,7 @@ namespace basic
   Real_ptr a; \
   const Real_type v = m_val; \
 \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-\
-  using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
-  ViewType view(a, RAJA::make_offset_layout<1>({{1}}, {{iend+1}}));
+  allocAndInitCudaDeviceData(a, m_a, iend);
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_a, a, iend); \
@@ -78,6 +75,8 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
   } else if ( vid == RAJA_CUDA ) {
 
     INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA;
+
+    INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

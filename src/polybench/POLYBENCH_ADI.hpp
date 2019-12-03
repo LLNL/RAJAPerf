@@ -64,21 +64,6 @@
 #define RAJAPerf_POLYBENCH_ADI_HPP
 
 
-#define POLYBENCH_ADI_BODY1 \
-  DX = 1.0/(Real_type)n; \
-  DY = 1.0/(Real_type)n; \
-  DT = 1.0/(Real_type)tsteps; \
-  B1 = 2.0; \
-  B2 = 1.0; \
-  mul1 = B1 * DT / (DX * DX); \
-  mul2 = B2 * DT / (DY * DY); \
-  a = -mul1 / 2.0; \
-  b = 1.0 + mul1; \
-  c = a; \
-  d = -mul2 /2.0; \
-  e = 1.0 + mul2; \
-  f = d; 
-
 #define POLYBENCH_ADI_BODY2 \
   V[0 * n + i] = 1.0; \
   P[i * n + 0] = 0.0; \

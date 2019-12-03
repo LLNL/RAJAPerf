@@ -32,10 +32,19 @@ namespace polybench
   const Index_type n = m_n; \
   const Index_type tsteps = m_tsteps; \
 \
-  Real_type DX,DY,DT; \
-  Real_type B1,B2; \
-  Real_type mul1,mul2; \
-  Real_type a,b,c,d,e,f; \
+  Real_type DX = 1.0/(Real_type)n; \
+  Real_type DY = 1.0/(Real_type)n; \
+  Real_type DT = 1.0/(Real_type)tsteps; \
+  Real_type B1 = 2.0; \
+  Real_type B2 = 1.0; \
+  Real_type mul1 = B1 * DT / (DX * DX); \
+  Real_type mul2 = B2 * DT / (DY * DY); \
+  Real_type a = -mul1 / 2.0; \
+  Real_type b = 1.0 + mul1; \
+  Real_type c = a; \
+  Real_type d = -mul2 /2.0; \
+  Real_type e = 1.0 + mul2; \
+  Real_type f = d; \
 \
   Real_ptr U = m_U; \
   Real_ptr V = m_V; \
@@ -65,8 +74,6 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      POLYBENCH_ADI_BODY1;
 
       for (Index_type t = 1; t <= tsteps; ++t) { 
 
@@ -125,8 +132,6 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      POLYBENCH_ADI_BODY1;
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 

@@ -22,11 +22,7 @@ namespace basic
 
 #define INIT_VIEW1D_DATA_SETUP_CPU \
   Real_ptr a = m_a; \
-  const Real_type v = m_val; \
-\
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
-  const RAJA::Layout<1> my_layout(iend); \
-  ViewType view(a, my_layout);
+  const Real_type v = m_val;
 
 
 INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
@@ -53,6 +49,12 @@ void INIT_VIEW1D::runKernel(VariantID vid)
   const Index_type iend = getRunSize();
 
   INIT_VIEW1D_DATA_SETUP_CPU;
+
+  auto initview1d_base_lam = [=](Index_type i) {
+                               INIT_VIEW1D_BODY;
+                             };
+
+  INIT_VIEW1D_VIEW_RAJA;
 
   auto initview1d_lam = [=](Index_type i) {
                           INIT_VIEW1D_BODY_RAJA;
@@ -100,6 +102,22 @@ void INIT_VIEW1D::runKernel(VariantID vid)
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INIT_VIEW1D_BODY;
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          initview1d_base_lam(i);
         }
 
       }

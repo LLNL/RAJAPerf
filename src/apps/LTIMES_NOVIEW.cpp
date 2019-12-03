@@ -154,6 +154,28 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        #pragma omp parallel for
+        for (Index_type z = 0; z < num_z; ++z ) {
+          for (Index_type g = 0; g < num_g; ++g ) {
+            for (Index_type m = 0; m < num_m; ++m ) {
+              for (Index_type d = 0; d < num_d; ++d ) {
+                ltimesnoview_lam(d, z, g, m);
+              }
+            }
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
       using EXEC_POL =

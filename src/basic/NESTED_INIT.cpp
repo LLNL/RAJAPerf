@@ -137,6 +137,31 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
+    case OpenMP_Lambda : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+#if 0
+// using collapse here doesn't appear to yield a performance benefit
+          #pragma omp parallel for collapse(3)
+#else
+          #pragma omp parallel for
+#endif
+          for (Index_type k = 0; k < nk; ++k ) {
+            for (Index_type j = 0; j < nj; ++j ) {
+              for (Index_type i = 0; i < ni; ++i ) {
+                nestedinit_lam(i, j, k);
+              }
+            }
+          }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_OpenMP : {
 
 #if 0
