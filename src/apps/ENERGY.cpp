@@ -140,7 +140,42 @@ void ENERGY::runKernel(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam1(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam2(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam3(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam4(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam5(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam6(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
