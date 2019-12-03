@@ -297,7 +297,7 @@ void POLYBENCH_GEMVER::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -78,7 +78,26 @@ void DOT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          dot += dot_base_lam(i);
+        }
+
+        m_dot += dot;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -121,7 +140,7 @@ void DOT::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

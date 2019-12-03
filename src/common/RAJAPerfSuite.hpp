@@ -178,12 +178,13 @@ enum VariantID {
 
   Base_Seq = 0,
 #if defined(RUN_RAJA_SEQ)
+  Lambda_Seq,
   RAJA_Seq,
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   Base_OpenMP,
-  OpenMP_Lambda,
+  Lambda_OpenMP,
   RAJA_OpenMP,
 #endif
 

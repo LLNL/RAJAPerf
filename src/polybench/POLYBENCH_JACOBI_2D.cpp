@@ -213,7 +213,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       break;
     }
   
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

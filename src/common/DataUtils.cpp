@@ -122,7 +122,7 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
 // First touch...
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == OpenMP_Lambda ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) {
@@ -165,7 +165,7 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 // first touch...
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP || 
-       vid == OpenMP_Lambda ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) { 
@@ -191,7 +191,7 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
 // first touch...
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == OpenMP_Lambda ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) {
@@ -219,7 +219,7 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 // First touch...
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == OpenMP_Lambda ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) {
@@ -253,7 +253,7 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP ||
-       vid == OpenMP_Lambda || 
+       vid == Lambda_OpenMP || 
        vid == RAJA_OpenMP ) {
     #pragma omp parallel for
     for (int i = 0; i < len; ++i) { 
