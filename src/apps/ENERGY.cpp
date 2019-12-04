@@ -19,27 +19,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define ENERGY_DATA_SETUP_CPU \
-  ResReal_ptr e_new = m_e_new; \
-  ResReal_ptr e_old = m_e_old; \
-  ResReal_ptr delvc = m_delvc; \
-  ResReal_ptr p_new = m_p_new; \
-  ResReal_ptr p_old = m_p_old; \
-  ResReal_ptr q_new = m_q_new; \
-  ResReal_ptr q_old = m_q_old; \
-  ResReal_ptr work = m_work; \
-  ResReal_ptr compHalfStep = m_compHalfStep; \
-  ResReal_ptr pHalfStep = m_pHalfStep; \
-  ResReal_ptr bvc = m_bvc; \
-  ResReal_ptr pbvc = m_pbvc; \
-  ResReal_ptr ql_old = m_ql_old; \
-  ResReal_ptr qq_old = m_qq_old; \
-  ResReal_ptr vnewc = m_vnewc; \
-  const Real_type rho0 = m_rho0; \
-  const Real_type e_cut = m_e_cut; \
-  const Real_type emin = m_emin; \
-  const Real_type q_cut = m_q_cut;
-
 
 ENERGY::ENERGY(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY, params)
@@ -82,7 +61,7 @@ void ENERGY::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ENERGY_DATA_SETUP_CPU;
+  ENERGY_DATA_SETUP;
   
   auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;

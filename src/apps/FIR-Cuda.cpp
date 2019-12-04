@@ -36,11 +36,6 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  Real_ptr in; \
-  Real_ptr out; \
-\
-  const Index_type coefflen = m_coefflen; \
-\
   allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
   allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
   cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
@@ -64,11 +59,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 #else  // use global memry for coefficients 
 
 #define FIR_DATA_SETUP_CUDA \
-  Real_ptr in; \
-  Real_ptr out; \
   Real_ptr coeff; \
-\
-  const Index_type coefflen = m_coefflen; \
 \
   allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
   allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
@@ -101,6 +92,8 @@ void FIR::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize() - m_coefflen;
+
+  FIR_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

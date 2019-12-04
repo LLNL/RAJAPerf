@@ -30,26 +30,6 @@ namespace apps
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr e_new; \
-  Real_ptr e_old; \
-  Real_ptr delvc; \
-  Real_ptr p_new; \
-  Real_ptr p_old; \
-  Real_ptr q_new; \
-  Real_ptr q_old; \
-  Real_ptr work; \
-  Real_ptr compHalfStep; \
-  Real_ptr pHalfStep; \
-  Real_ptr bvc; \
-  Real_ptr pbvc; \
-  Real_ptr ql_old; \
-  Real_ptr qq_old; \
-  Real_ptr vnewc; \
-  const Real_type rho0 = m_rho0; \
-  const Real_type e_cut = m_e_cut; \
-  const Real_type emin = m_emin; \
-  const Real_type q_cut = m_q_cut; \
-\
   allocAndInitOpenMPDeviceData(e_new, m_e_new, iend, did, hid); \
   allocAndInitOpenMPDeviceData(e_old, m_e_old, iend, did, hid); \
   allocAndInitOpenMPDeviceData(delvc, m_delvc, iend, did, hid); \
@@ -90,6 +70,8 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  ENERGY_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

@@ -20,18 +20,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define VOL3D_DATA_SETUP_CPU \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_ptr z = m_z; \
-  ResReal_ptr vol = m_vol; \
-\
-  const Real_type vnormq = m_vnormq;
-\
-  Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
-  Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
-
 
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
@@ -75,7 +63,7 @@ void VOL3D::runKernel(VariantID vid)
   const Index_type ibegin = m_domain->fpz;
   const Index_type iend = m_domain->lpz+1;
 
-  VOL3D_DATA_SETUP_CPU;
+  VOL3D_DATA_SETUP;
 
   NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
   NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;

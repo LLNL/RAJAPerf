@@ -25,15 +25,6 @@ namespace apps
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr phidat; \
-  Real_ptr elldat; \
-  Real_ptr psidat; \
-\
-  Index_type num_d = m_num_d; \
-  Index_type num_z = m_num_z; \
-  Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m; \
-\
   allocAndInitOpenMPDeviceData(phidat, m_phidat, m_philen, did, hid); \
   allocAndInitOpenMPDeviceData(elldat, m_elldat, m_elllen, did, hid); \
   allocAndInitOpenMPDeviceData(psidat, m_psidat, m_psilen, did, hid);
@@ -48,6 +39,8 @@ namespace apps
 void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  LTIMES_NOVIEW_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

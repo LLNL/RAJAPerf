@@ -28,16 +28,6 @@ namespace apps
 
 
 #define PRESSURE_DATA_SETUP_CUDA \
-  Real_ptr compression; \
-  Real_ptr bvc; \
-  Real_ptr p_new; \
-  Real_ptr e_old; \
-  Real_ptr vnewc; \
-  const Real_type cls = m_cls; \
-  const Real_type p_cut = m_p_cut; \
-  const Real_type pmin = m_pmin; \
-  const Real_type eosvmax = m_eosvmax; \
-\
   allocAndInitCudaDeviceData(compression, m_compression, iend); \
   allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
   allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
@@ -80,6 +70,8 @@ void PRESSURE::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  PRESSURE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

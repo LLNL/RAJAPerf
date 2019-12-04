@@ -20,21 +20,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define DEL_DOT_VEC_2D_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr xdot = m_xdot; \
-  ResReal_ptr ydot = m_ydot; \
-  ResReal_ptr div = m_div; \
-\
-  const Real_type ptiny = m_ptiny; \
-  const Real_type half = m_half; \
-\
-  ResReal_ptr x1,x2,x3,x4 ; \
-  ResReal_ptr y1,y2,y3,y4 ; \
-  ResReal_ptr fx1,fx2,fx3,fx4 ; \
-  ResReal_ptr fy1,fy2,fy3,fy4 ;
-
 
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
@@ -81,14 +66,12 @@ void DEL_DOT_VEC_2D::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
 
-  DEL_DOT_VEC_2D_DATA_SETUP_CPU;
+  DEL_DOT_VEC_2D_DATA_SETUP;
 
   NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
   NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
   NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
   NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-  DEL_DOT_VEC_2D_DATA_INDEX;
 
   auto deldotvec2d_base_lam = [=](Index_type ii) {
                                 DEL_DOT_VEC_2D_BODY_INDEX;

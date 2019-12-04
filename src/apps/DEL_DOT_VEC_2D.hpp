@@ -40,8 +40,21 @@
 #ifndef RAJAPerf_Apps_DEL_DOT_VEC_2D_HPP
 #define RAJAPerf_Apps_DEL_DOT_VEC_2D_HPP
 
-
-#define DEL_DOT_VEC_2D_DATA_INDEX \
+#define DEL_DOT_VEC_2D_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr xdot = m_xdot; \
+  Real_ptr ydot = m_ydot; \
+  Real_ptr div = m_div; \
+\
+  const Real_type ptiny = m_ptiny; \
+  const Real_type half = m_half; \
+\
+  Real_ptr x1,x2,x3,x4 ; \
+  Real_ptr y1,y2,y3,y4 ; \
+  Real_ptr fx1,fx2,fx3,fx4 ; \
+  Real_ptr fy1,fy2,fy3,fy4 ; \
+\
   Index_ptr real_zones = m_domain->real_zones;
 
 #define DEL_DOT_VEC_2D_BODY_INDEX \

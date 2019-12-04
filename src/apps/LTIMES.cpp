@@ -20,17 +20,6 @@ namespace apps
 {
 
 
-#define LTIMES_DATA_SETUP_CPU \
-  ResReal_ptr phidat = m_phidat; \
-  ResReal_ptr elldat = m_elldat; \
-  ResReal_ptr psidat = m_psidat; \
-\
-  Index_type num_d = m_num_d; \
-  Index_type num_z = m_num_z; \
-  Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m;
-
-
 LTIMES::LTIMES(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES, params)
 {
@@ -68,7 +57,7 @@ void LTIMES::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  LTIMES_DATA_SETUP_CPU;
+  LTIMES_DATA_SETUP;
 
   auto ltimes_base_lam = [=](Index_type d, Index_type z, 
                              Index_type g, Index_type m) {
