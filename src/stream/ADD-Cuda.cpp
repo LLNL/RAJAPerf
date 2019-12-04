@@ -28,10 +28,6 @@ namespace stream
 
 
 #define ADD_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr b; \
-  Real_ptr c; \
-\
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
   allocAndInitCudaDeviceData(c, m_c, iend);
@@ -57,6 +53,8 @@ void ADD::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  ADD_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

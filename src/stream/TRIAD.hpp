@@ -17,6 +17,11 @@
 #ifndef RAJAPerf_Stream_TRIAD_HPP
 #define RAJAPerf_Stream_TRIAD_HPP
 
+#define TRIAD_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr b = m_b; \
+  Real_ptr c = m_c; \
+  Real_type alpha = m_alpha;
 
 #define TRIAD_BODY  \
   a[i] = b[i] + alpha * c[i] ;

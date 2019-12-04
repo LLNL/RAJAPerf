@@ -20,11 +20,6 @@ namespace stream
 {
 
 
-#define DOT_DATA_SETUP_CPU \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b;
-
-
 DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
@@ -51,7 +46,7 @@ void DOT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  DOT_DATA_SETUP_CPU;
+  DOT_DATA_SETUP;
 
   auto dot_base_lam = [=](Index_type i) -> Real_type {
                         return a[i] * b[i];

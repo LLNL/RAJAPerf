@@ -17,6 +17,9 @@
 #ifndef RAJAPerf_Stream_DOT_HPP
 #define RAJAPerf_Stream_DOT_HPP
 
+#define DOT_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr b = m_b;
 
 #define DOT_BODY  \
   dot += a[i] * b[i] ;

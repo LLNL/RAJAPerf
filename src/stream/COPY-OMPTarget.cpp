@@ -30,9 +30,6 @@ namespace stream
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr a; \
-  Real_ptr c; \
-\
   allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
   allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
 
@@ -47,6 +44,8 @@ void COPY::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  COPY_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

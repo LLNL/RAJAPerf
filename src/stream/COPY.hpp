@@ -17,6 +17,9 @@
 #ifndef RAJAPerf_Stream_COPY_HPP
 #define RAJAPerf_Stream_COPY_HPP
 
+#define COPY_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr c = m_c;
 
 #define COPY_BODY  \
   c[i] = a[i] ;
