@@ -20,14 +20,6 @@ namespace basic
 {
 
 
-#define IF_QUAD_DATA_SETUP_CPU \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  ResReal_ptr x1 = m_x1; \
-  ResReal_ptr x2 = m_x2;
-
-
 IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
@@ -54,7 +46,7 @@ void IF_QUAD::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  IF_QUAD_DATA_SETUP_CPU;
+  IF_QUAD_DATA_SETUP;
 
   auto ifquad_lam = [=](Index_type i) {
                       IF_QUAD_BODY;

@@ -20,14 +20,6 @@ namespace basic
 {
 
 
-#define INIT3_DATA_SETUP_CPU \
-  ResReal_ptr out1 = m_out1; \
-  ResReal_ptr out2 = m_out2; \
-  ResReal_ptr out3 = m_out3; \
-  ResReal_ptr in1 = m_in1; \
-  ResReal_ptr in2 = m_in2;
-
-
 INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
@@ -54,7 +46,7 @@ void INIT3::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  INIT3_DATA_SETUP_CPU;
+  INIT3_DATA_SETUP;
 
   auto init3_lam = [=](Index_type i) {
                      INIT3_BODY;

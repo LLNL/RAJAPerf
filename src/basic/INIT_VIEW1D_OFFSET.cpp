@@ -19,10 +19,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_OFFSET_DATA_SETUP_CPU \
-  Real_ptr a = m_a; \
-  const Real_type v = m_val;
-
 
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D_OFFSET, params)
@@ -47,7 +43,7 @@ void INIT_VIEW1D_OFFSET::runKernel(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = getRunSize()+1;
 
-  INIT_VIEW1D_OFFSET_DATA_SETUP_CPU;
+  INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   auto initview1doffset_base_lam = [=](Index_type i) {
                                      INIT_VIEW1D_OFFSET_BODY;

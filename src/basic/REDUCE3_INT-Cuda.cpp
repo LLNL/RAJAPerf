@@ -28,8 +28,6 @@ namespace basic
 
 
 #define REDUCE3_INT_DATA_SETUP_CUDA \
-  Int_ptr vec; \
-\
   allocAndInitCudaDeviceData(vec, m_vec, iend);
 
 #define REDUCE3_INT_DATA_TEARDOWN_CUDA \
@@ -71,8 +69,8 @@ __global__ void reduce3int(Int_ptr vec,
 #if 1 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
     RAJA::atomicAdd<RAJA::cuda_atomic>( vsum, psum[ 0 ] );
-    RAJA::atomicAdd<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
-    RAJA::atomicAdd<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
+    RAJA::atomicMin<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
+    RAJA::atomicMax<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
   }
 #else // this doesn't work due to data races
   if ( threadIdx.x == 0 ) {
@@ -89,6 +87,8 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

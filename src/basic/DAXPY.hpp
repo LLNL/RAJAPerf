@@ -17,6 +17,10 @@
 #ifndef RAJAPerf_Basic_DAXPY_HPP
 #define RAJAPerf_Basic_DAXPY_HPP
 
+#define DAXPY_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_type a = m_a;
 
 #define DAXPY_BODY  \
   y[i] += a * x[i] ;

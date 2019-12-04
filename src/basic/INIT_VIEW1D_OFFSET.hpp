@@ -24,6 +24,10 @@
 #define RAJAPerf_Basic_INIT_VIEW1D_OFFSET_HPP
 
 
+#define INIT_VIEW1D_OFFSET_DATA_SETUP \
+  Real_ptr a = m_a; \
+  const Real_type v = m_val;
+
 #define INIT_VIEW1D_OFFSET_BODY  \
   a[i-ibegin] = v;
 

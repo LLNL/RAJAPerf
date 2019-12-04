@@ -29,6 +29,13 @@
 #define RAJAPerf_Basic_TRAP_INT_HPP
 
 
+#define TRAP_INT_DATA_SETUP \
+  Real_type x0 = m_x0; \
+  Real_type xp = m_xp; \
+  Real_type y = m_y; \
+  Real_type yp = m_yp; \
+  Real_type h = m_h;
+
 #define TRAP_INT_BODY \
   Real_type x = x0 + i*h; \
   sumx += trap_int_func(x, y, xp, yp);

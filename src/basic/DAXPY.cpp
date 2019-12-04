@@ -20,12 +20,6 @@ namespace basic
 {
 
 
-#define DAXPY_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  Real_type a = m_a; 
-
-
 DAXPY::DAXPY(const RunParams& params)
   : KernelBase(rajaperf::Basic_DAXPY, params)
 {
@@ -50,7 +44,7 @@ void DAXPY::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  DAXPY_DATA_SETUP_CPU;
+  DAXPY_DATA_SETUP;
 
   auto daxpy_lam = [=](Index_type i) {
                      DAXPY_BODY;

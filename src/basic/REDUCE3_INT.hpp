@@ -30,6 +30,9 @@
 #define RAJAPerf_Basic_REDUCE3_INT_HPP
 
 
+#define REDUCE3_INT_DATA_SETUP \
+  Int_ptr vec = m_vec; \
+
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \
   vmin = RAJA_MIN(vmin, vec[i]) ; \

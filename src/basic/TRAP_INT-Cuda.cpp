@@ -43,12 +43,7 @@ Real_type trap_int_func(Real_type x,
   const size_t block_size = 256;
 
 
-#define TRAP_INT_DATA_SETUP_CUDA \
-  Real_type x0 = m_x0; \
-  Real_type xp = m_xp; \
-  Real_type y = m_y; \
-  Real_type yp = m_yp; \
-  Real_type h = m_h;
+#define TRAP_INT_DATA_SETUP_CUDA  // nothing to do here...
 
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
@@ -96,6 +91,8 @@ void TRAP_INT::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
