@@ -98,7 +98,28 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type z = 0; z < num_z; ++z ) {
+          for (Index_type g = 0; g < num_g; ++g ) {
+            for (Index_type m = 0; m < num_m; ++m ) {
+              for (Index_type d = 0; d < num_d; ++d ) {
+                ltimesnoview_lam(d, z, g, m);
+              }
+            }
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =
@@ -154,7 +175,7 @@ void LTIMES_NOVIEW::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

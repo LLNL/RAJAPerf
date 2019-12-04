@@ -64,7 +64,7 @@ void FIR::runKernel(VariantID vid)
 
   FIR_DATA_SETUP_CPU;
 
-  auto fir_lam = [=](int i) {
+  auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
   
@@ -85,7 +85,22 @@ void FIR::runKernel(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+           fir_lam(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -118,7 +133,7 @@ void FIR::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

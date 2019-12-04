@@ -64,10 +64,10 @@ void PRESSURE::runKernel(VariantID vid)
 
   PRESSURE_DATA_SETUP_CPU;
 
-  auto pressure_lam1 = [=](int i) {
+  auto pressure_lam1 = [=](Index_type i) {
                          PRESSURE_BODY1;
                        };
-  auto pressure_lam2 = [=](int i) {
+  auto pressure_lam2 = [=](Index_type i) {
                          PRESSURE_BODY2;
                        };
   
@@ -92,7 +92,26 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       for (Index_type i = ibegin; i < iend; ++i ) {
+         pressure_lam1(i);
+       }
+
+       for (Index_type i = ibegin; i < iend; ++i ) {
+         pressure_lam2(i);
+       }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -142,7 +161,7 @@ void PRESSURE::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -139,7 +139,36 @@ void HYDRO_2D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam1(k, j);
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam2(k, j);
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam3(k, j);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXECPOL =
@@ -214,7 +243,7 @@ void HYDRO_2D::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

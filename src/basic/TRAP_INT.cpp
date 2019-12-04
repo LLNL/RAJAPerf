@@ -104,7 +104,26 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sumx = m_sumx_init;
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          sumx += trapint_base_lam(i);
+        }
+
+        m_sumx += sumx * h;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -113,7 +132,7 @@ void TRAP_INT::runKernel(VariantID vid)
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           TRAP_INT_BODY;
         });
 
@@ -147,7 +166,7 @@ void TRAP_INT::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -175,7 +194,7 @@ void TRAP_INT::runKernel(VariantID vid)
         RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           TRAP_INT_BODY;
         });
 

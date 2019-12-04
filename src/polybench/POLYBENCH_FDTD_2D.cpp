@@ -151,7 +151,41 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (t = 0; t < tsteps; ++t) {
+
+          for (Index_type j = 0; j < ny; j++) {
+            poly_fdtd2d_base_lam1(j);
+          }
+          for (Index_type i = 1; i < nx; i++) {
+            for (Index_type j = 0; j < ny; j++) {
+              poly_fdtd2d_base_lam2(i, j);
+            }
+          }
+          for (Index_type i = 0; i < nx; i++) {
+            for (Index_type j = 1; j < ny; j++) {
+              poly_fdtd2d_base_lam3(i, j);
+            }
+          }
+          for (Index_type i = 0; i < nx - 1; i++) {
+            for (Index_type j = 0; j < ny - 1; j++) {
+              poly_fdtd2d_base_lam4(i, j);
+            }
+          }
+
+        }  // tstep loop
+
+      }  // run_reps
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL1 = RAJA::loop_exec;
@@ -240,7 +274,7 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

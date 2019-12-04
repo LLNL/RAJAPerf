@@ -56,7 +56,7 @@ void IF_QUAD::runKernel(VariantID vid)
 
   IF_QUAD_DATA_SETUP_CPU;
 
-  auto ifquad_lam = [=](int i) {
+  auto ifquad_lam = [=](Index_type i) {
                       IF_QUAD_BODY;
                     };
 
@@ -76,7 +76,23 @@ void IF_QUAD::runKernel(VariantID vid)
 
       break;
     }
+
 #if defined(RUN_RAJA_SEQ)     
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          ifquad_lam(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -109,7 +125,7 @@ void IF_QUAD::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

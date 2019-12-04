@@ -203,12 +203,13 @@ static const std::string VariantNames [] =
 
   std::string("Base_Seq"),
 #if defined(RUN_RAJA_SEQ)
+  std::string("Lambda_Seq"),
   std::string("RAJA_Seq"),
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Base_OpenMP"),
-  std::string("OpenMP_Lambda"),
+  std::string("Lambda_OpenMP"),
   std::string("RAJA_OpenMP"),
 #endif
 

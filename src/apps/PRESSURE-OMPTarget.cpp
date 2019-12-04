@@ -95,12 +95,12 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY1;
         });
 
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY2;
         });
 

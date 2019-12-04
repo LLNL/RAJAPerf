@@ -19,6 +19,9 @@ namespace rajaperf
 namespace basic
 {
 
+//#define USE_OMP_COLLAPSE
+#undef USE_OMP_COLLAPSE
+
 
 #define NESTED_INIT_DATA_SETUP_CPU \
   ResReal_ptr array = m_array; \
@@ -81,7 +84,26 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+          for (Index_type k = 0; k < nk; ++k ) {
+            for (Index_type j = 0; j < nj; ++j ) {
+              for (Index_type i = 0; i < ni; ++i ) {
+                nestedinit_lam(i, j, k);
+              }
+            }
+          }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL = 
@@ -117,8 +139,7 @@ void NESTED_INIT::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#if 0
-// using collapse here doesn't appear to yield a performance benefit
+#if defined(USE_OMP_COLLAPSE)
           #pragma omp parallel for collapse(3)
 #else
           #pragma omp parallel for
@@ -137,13 +158,12 @@ void NESTED_INIT::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#if 0
-// using collapse here doesn't appear to yield a performance benefit
+#if defined(USE_OMP_COLLAPSE)
           #pragma omp parallel for collapse(3)
 #else
           #pragma omp parallel for
@@ -164,8 +184,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-#if 0
-// To compare OpenMP collapse with RAJA-based OpenMP, use this policy
+#if defined(USE_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,

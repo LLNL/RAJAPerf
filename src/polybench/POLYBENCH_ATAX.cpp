@@ -149,6 +149,32 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 
 
 #if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_ATAX_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_atax_base_lam2(i, j, dot);
+          }
+          poly_atax_base_lam3(i, dot);
+        }
+
+        for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY4;
+          for (Index_type i = 0; i < N; ++i ) {
+            poly_atax_base_lam5(i, j, dot);
+          }
+          poly_atax_base_lam6(j, dot);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
 
     case RAJA_Seq : {
 
@@ -238,7 +264,7 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

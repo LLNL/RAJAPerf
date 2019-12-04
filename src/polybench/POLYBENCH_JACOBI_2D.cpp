@@ -139,7 +139,36 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 0; t < tsteps; ++t) {
+
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              poly_jacobi2d_base_lam1(i, j);
+            }
+          }
+
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              poly_jacobi2d_base_lam2(i, j);
+            }
+          }
+
+        }
+
+      }
+      stopTimer();
+
+      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =
@@ -213,7 +242,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       break;
     }
   
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

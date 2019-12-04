@@ -88,7 +88,32 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Int_type vsum = m_vsum_init;
+        Int_type vmin = m_vmin_init;
+        Int_type vmax = m_vmax_init;
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          vsum += init3_base_lam(i);
+          vmin = RAJA_MIN(vmin, init3_base_lam(i));
+          vmax = RAJA_MAX(vmax, init3_base_lam(i));
+        }
+
+        m_vsum += vsum;
+        m_vmin = RAJA_MIN(m_vmin, vmin);
+        m_vmax = RAJA_MAX(m_vmax, vmax);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -141,7 +166,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

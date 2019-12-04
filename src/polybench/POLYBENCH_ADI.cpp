@@ -187,7 +187,44 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 1; t <= tsteps; ++t) {
+
+          for (Index_type i = 1; i < n-1; ++i) {
+            poly_adi_base_lam2(i);
+            for (Index_type j = 1; j < n-1; ++j) {
+              poly_adi_base_lam3(i, j);
+            }
+            poly_adi_base_lam4(i);
+            for (Index_type k = n-2; k >= 1; --k) {
+              poly_adi_base_lam5(i, k);
+            }
+          }
+
+          for (Index_type i = 1; i < n-1; ++i) {
+            poly_adi_base_lam6(i);
+            for (Index_type j = 1; j < n-1; ++j) {
+              poly_adi_base_lam7(i, j);
+            }
+            poly_adi_base_lam8(i);
+            for (Index_type k = n-2; k >= 1; --k) {
+              poly_adi_base_lam9(i, k);
+            }
+          }
+
+        }  // tstep loop
+
+      }  // run_reps
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =
@@ -282,7 +319,7 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

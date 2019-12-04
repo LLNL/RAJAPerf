@@ -208,7 +208,48 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < ni; i++ )  {
+          for (Index_type j = 0; j < nj; j++) {
+            POLYBENCH_3MM_BODY1;
+            for (Index_type k = 0; k < nk; k++) {
+              poly_3mm_base_lam2(i, j, k, dot);
+            }
+            poly_3mm_base_lam3(i, j, dot);
+          }
+        }
+
+        for (Index_type j = 0; j < nj; j++) {
+          for (Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY4;
+            for (Index_type m = 0; m < nm; m++) {
+              poly_3mm_base_lam5(j, l, m, dot);
+            }
+            poly_3mm_base_lam6(j, l, dot);
+          }
+        }
+
+        for (Index_type i = 0; i < ni; i++) {
+          for (Index_type l = 0; l < nl; l++) {
+            POLYBENCH_3MM_BODY7;
+            for (Index_type j = 0; j < nj; j++) {
+              poly_3mm_base_lam8(i, l, j, dot);
+            }
+            poly_3mm_base_lam9(i, l, dot);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =
@@ -327,7 +368,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
       break;
     }
 
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

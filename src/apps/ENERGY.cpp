@@ -84,22 +84,22 @@ void ENERGY::runKernel(VariantID vid)
 
   ENERGY_DATA_SETUP_CPU;
   
-  auto energy_lam1 = [=](int i) {
+  auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
-  auto energy_lam2 = [=](int i) {
+  auto energy_lam2 = [=](Index_type i) {
                        ENERGY_BODY2;
                      };
-  auto energy_lam3 = [=](int i) {
+  auto energy_lam3 = [=](Index_type i) {
                        ENERGY_BODY3;
                      };
-  auto energy_lam4 = [=](int i) {
+  auto energy_lam4 = [=](Index_type i) {
                        ENERGY_BODY4;
                      };
-  auto energy_lam5 = [=](int i) {
+  auto energy_lam5 = [=](Index_type i) {
                        ENERGY_BODY5;
                      };
-  auto energy_lam6 = [=](int i) {
+  auto energy_lam6 = [=](Index_type i) {
                        ENERGY_BODY6;
                      };
 
@@ -140,7 +140,42 @@ void ENERGY::runKernel(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam1(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam2(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam3(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam4(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam5(i);
+        }
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          energy_lam6(i);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       startTimer();
@@ -221,7 +256,7 @@ void ENERGY::runKernel(VariantID vid)
       break;
     }
   
-    case OpenMP_Lambda : {
+    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
