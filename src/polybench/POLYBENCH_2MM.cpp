@@ -178,7 +178,38 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < ni; i++ ) {
+          for(Index_type j = 0; j < nj; j++) {
+            POLYBENCH_2MM_BODY1;
+            for (Index_type k = 0; k < nk; k++) {
+              poly_2mm_base_lam2(i, j, k, dot);
+            }
+            poly_2mm_base_lam3(i, j, dot);
+          }
+        }
+
+        for(Index_type i = 0; i < ni; i++) {
+          for(Index_type l = 0; l < nl; l++) {
+            POLYBENCH_2MM_BODY4;
+            for (Index_type j = 0; j < nj; j++) {
+              poly_2mm_base_lam5(i, l, j, dot);
+            }
+            poly_2mm_base_lam6(i, l, dot);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =

@@ -145,8 +145,29 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
 
-#if defined(RUN_RAJA_SEQ)      
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < ni; ++i ) {
+          for (Index_type j = 0; j < nj; ++j ) {
+            POLYBENCH_GEMM_BODY1;
+            poly_gemm_base_lam2(i, j);
+            for (Index_type k = 0; k < nk; ++k ) {
+              poly_gemm_base_lam3(i, j, k, dot);
+            }
+            poly_gemm_base_lam4(i, j, dot);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =
@@ -187,7 +208,6 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
     }
 
 #endif // RUN_RAJA_SEQ
-
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {

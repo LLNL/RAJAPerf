@@ -136,7 +136,26 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_GESUMMV_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_gesummv_base_lam2(i, j, tmpdot, ydot);
+          }
+          poly_gesummv_base_lam3(i, tmpdot, ydot);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =

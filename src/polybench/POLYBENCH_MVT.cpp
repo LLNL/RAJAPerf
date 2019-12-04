@@ -151,7 +151,34 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_MVT_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_mvt_base_lam2(i, j, dot);
+          }
+          poly_mvt_base_lam3(i, dot);
+        }
+
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_MVT_BODY4;
+          for (Index_type j = 0; j < N; ++j ) {
+            poly_mvt_base_lam5(i, j, dot);
+          }
+          poly_mvt_base_lam6(i, dot);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =

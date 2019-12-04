@@ -117,7 +117,26 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_SEQ)      
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type k = 0; k < N; ++k) {
+          for (Index_type i = 0; i < N; ++i) {
+            for (Index_type j = 0; j < N; ++j) {
+              poly_floydwarshall_base_lam(k, i, j);
+            }
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL =

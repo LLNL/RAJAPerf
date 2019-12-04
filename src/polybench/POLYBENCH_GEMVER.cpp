@@ -190,7 +190,44 @@ void POLYBENCH_GEMVER::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type i = 0; i < n; i++ ) {
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam1(i, j);
+          }
+        }
+
+        for (Index_type i = 0; i < n; i++ ) {
+          POLYBENCH_GEMVER_BODY2;
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam3(i, j, dot);
+          }
+          poly_gemver_base_lam4(i, dot);
+        }
+
+        for (Index_type i = 0; i < n; i++ ) {
+          poly_gemver_base_lam5(i);
+        }
+
+        for (Index_type i = 0; i < n; i++ ) {
+          POLYBENCH_GEMVER_BODY6;
+          for (Index_type j = 0; j < n; j++) {
+            poly_gemver_base_lam7(i, j, dot);
+          }
+          poly_gemver_base_lam8(i, dot);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
     case RAJA_Seq : {
 
       using EXEC_POL1 =
