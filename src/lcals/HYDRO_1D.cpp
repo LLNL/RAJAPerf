@@ -20,16 +20,6 @@ namespace lcals
 {
 
 
-#define HYDRO_1D_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr z = m_z; \
-\
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t;
-
-
 HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
@@ -60,7 +50,7 @@ void HYDRO_1D::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  HYDRO_1D_DATA_SETUP_CPU;
+  HYDRO_1D_DATA_SETUP;
 
   auto hydro1d_lam = [=](Index_type i) {
                        HYDRO_1D_BODY;

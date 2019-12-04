@@ -28,17 +28,6 @@ namespace lcals
 
 
 #define INT_PREDICT_DATA_SETUP_CUDA \
-  Real_ptr px; \
-  Real_type dm22 = m_dm22; \
-  Real_type dm23 = m_dm23; \
-  Real_type dm24 = m_dm24; \
-  Real_type dm25 = m_dm25; \
-  Real_type dm26 = m_dm26; \
-  Real_type dm27 = m_dm27; \
-  Real_type dm28 = m_dm28; \
-  Real_type c0 = m_c0; \
-  const Index_type offset = m_offset; \
-\
   allocAndInitCudaDeviceData(px, m_px, m_array_length);
 
 #define INT_PREDICT_DATA_TEARDOWN_CUDA \
@@ -64,6 +53,8 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  INT_PREDICT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

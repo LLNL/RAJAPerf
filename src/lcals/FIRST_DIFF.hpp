@@ -18,6 +18,10 @@
 #define RAJAPerf_Basic_FIRST_DIFF_HPP
 
 
+#define FIRST_DIFF_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y;
+
 #define FIRST_DIFF_BODY  \
   x[i] = y[i+1] - y[i];
 

@@ -18,6 +18,15 @@
 #define RAJAPerf_Basic_HYDRO_1D_HPP
 
 
+#define HYDRO_1D_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z; \
+\
+  const Real_type q = m_q; \
+  const Real_type r = m_r; \
+  const Real_type t = m_t;
+
 #define HYDRO_1D_BODY  \
   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
 

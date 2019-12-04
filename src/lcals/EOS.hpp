@@ -20,6 +20,16 @@
 #define RAJAPerf_Basic_EOS_HPP
 
 
+#define EOS_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z; \
+  Real_ptr u = m_u; \
+\
+  const Real_type q = m_q; \
+  const Real_type r = m_r; \
+  const Real_type t = m_t;
+
 #define EOS_BODY  \
   x[i] = u[i] + r*( z[i] + r*y[i] ) + \
                 t*( u[i+3] + r*( u[i+2] + r*u[i+1] ) + \

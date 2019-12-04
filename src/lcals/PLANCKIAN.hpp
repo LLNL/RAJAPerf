@@ -19,6 +19,13 @@
 #define RAJAPerf_Basic_PLANCKIAN_HPP
 
 
+#define PLANCKIAN_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr u = m_u; \
+  Real_ptr v = m_v; \
+  Real_ptr w = m_w;
+
 #define PLANCKIAN_BODY  \
   y[i] = u[i] / v[i]; \
   w[i] = x[i] / ( exp( y[i] ) - 1.0 );

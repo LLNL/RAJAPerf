@@ -30,13 +30,6 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr z; \
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t; \
-\
   allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(z, m_z, m_array_length, did, hid);
@@ -53,6 +46,8 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  HYDRO_1D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

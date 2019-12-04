@@ -25,25 +25,6 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr zadat; \
-  Real_ptr zbdat; \
-  Real_ptr zmdat; \
-  Real_ptr zpdat; \
-  Real_ptr zqdat; \
-  Real_ptr zrdat; \
-  Real_ptr zudat; \
-  Real_ptr zvdat; \
-  Real_ptr zzdat; \
-\
-  Real_ptr zroutdat; \
-  Real_ptr zzoutdat; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type jn = m_jn; \
-  const Index_type kn = m_kn; \
-\
   allocAndInitOpenMPDeviceData(zadat, m_za, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(zbdat, m_zb, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(zmdat, m_zm, m_array_length, did, hid); \
@@ -80,6 +61,8 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
   const Index_type kend = m_kn - 1;
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
+
+  HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

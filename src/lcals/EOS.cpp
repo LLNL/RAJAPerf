@@ -20,17 +20,6 @@ namespace lcals
 {
 
 
-#define EOS_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr z = m_z; \
-  ResReal_ptr u = m_u; \
-\
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t;
-
-
 EOS::EOS(const RunParams& params)
   : KernelBase(rajaperf::Lcals_EOS, params)
 {
@@ -62,7 +51,7 @@ void EOS::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  EOS_DATA_SETUP_CPU;
+  EOS_DATA_SETUP;
 
   auto eos_lam = [=](Index_type i) {
                    EOS_BODY;

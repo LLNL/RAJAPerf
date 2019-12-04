@@ -20,11 +20,6 @@ namespace lcals
 {
 
 
-#define FIRST_DIFF_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y;
-
-
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
@@ -49,7 +44,7 @@ void FIRST_DIFF::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  FIRST_DIFF_DATA_SETUP_CPU;
+  FIRST_DIFF_DATA_SETUP;
 
   auto firstdiff_lam = [=](Index_type i) {
                          FIRST_DIFF_BODY;

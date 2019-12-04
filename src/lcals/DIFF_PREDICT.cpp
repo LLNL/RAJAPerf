@@ -20,12 +20,6 @@ namespace lcals
 {
 
 
-#define DIFF_PREDICT_DATA_SETUP_CPU \
-  ResReal_ptr px = m_px; \
-  ResReal_ptr cx = m_cx; \
-  const Index_type offset = m_offset;
-
-
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
@@ -52,7 +46,7 @@ void DIFF_PREDICT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  DIFF_PREDICT_DATA_SETUP_CPU;
+  DIFF_PREDICT_DATA_SETUP;
 
   auto diffpredict_lam = [=](Index_type i) {
                            DIFF_PREDICT_BODY;
