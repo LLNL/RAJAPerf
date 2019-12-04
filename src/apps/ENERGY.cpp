@@ -84,22 +84,22 @@ void ENERGY::runKernel(VariantID vid)
 
   ENERGY_DATA_SETUP_CPU;
   
-  auto energy_lam1 = [=](int i) {
+  auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
-  auto energy_lam2 = [=](int i) {
+  auto energy_lam2 = [=](Index_type i) {
                        ENERGY_BODY2;
                      };
-  auto energy_lam3 = [=](int i) {
+  auto energy_lam3 = [=](Index_type i) {
                        ENERGY_BODY3;
                      };
-  auto energy_lam4 = [=](int i) {
+  auto energy_lam4 = [=](Index_type i) {
                        ENERGY_BODY4;
                      };
-  auto energy_lam5 = [=](int i) {
+  auto energy_lam5 = [=](Index_type i) {
                        ENERGY_BODY5;
                      };
-  auto energy_lam6 = [=](int i) {
+  auto energy_lam6 = [=](Index_type i) {
                        ENERGY_BODY6;
                      };
 

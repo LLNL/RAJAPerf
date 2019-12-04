@@ -56,7 +56,7 @@ void IF_QUAD::runKernel(VariantID vid)
 
   IF_QUAD_DATA_SETUP_CPU;
 
-  auto ifquad_lam = [=](int i) {
+  auto ifquad_lam = [=](Index_type i) {
                       IF_QUAD_BODY;
                     };
 

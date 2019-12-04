@@ -69,7 +69,7 @@ Index_type COUPLE::getItsPerRep() const
 
 void COUPLE::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->lrn;
+  Index_type max_loop_index = m_domain->lrn;
 
   allocAndInitData(m_t0, max_loop_index, vid);
   allocAndInitData(m_t1, max_loop_index, vid);
@@ -121,7 +121,7 @@ void COUPLE::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(kmin, kmax), [=](int k) {
+          RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
         }); 
 
@@ -157,7 +157,7 @@ void COUPLE::runKernel(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(kmin, kmax), [=](int k) {
+          RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
         }); 
 
@@ -195,7 +195,7 @@ void COUPLE::runKernel(VariantID vid)
 
 void COUPLE::updateChecksum(VariantID vid)
 {
-  int max_loop_index = m_domain->lrn;
+  Index_type max_loop_index = m_domain->lrn;
 
   checksum[vid] += calcChecksum(m_t0, max_loop_index);
   checksum[vid] += calcChecksum(m_t1, max_loop_index);

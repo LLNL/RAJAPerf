@@ -64,7 +64,7 @@ void FIR::runKernel(VariantID vid)
 
   FIR_DATA_SETUP_CPU;
 
-  auto fir_lam = [=](int i) {
+  auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
   
