@@ -27,28 +27,6 @@ namespace polybench
 const size_t block_size = 256;
 
 #define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  const Index_type n = m_n; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_type DX = 1.0/(Real_type)n; \
-  Real_type DY = 1.0/(Real_type)n; \
-  Real_type DT = 1.0/(Real_type)tsteps; \
-  Real_type B1 = 2.0; \
-  Real_type B2 = 1.0; \
-  Real_type mul1 = B1 * DT / (DX * DX); \
-  Real_type mul2 = B2 * DT / (DY * DY); \
-  Real_type a = -mul1 / 2.0; \
-  Real_type b = 1.0 + mul1; \
-  Real_type c = a; \
-  Real_type d = -mul2 /2.0; \
-  Real_type e = 1.0 + mul2; \
-  Real_type f = d; \
-\
-  Real_ptr U; \
-  Real_ptr V; \
-  Real_ptr P; \
-  Real_ptr Q; \
-\
   allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
   allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
   allocAndInitCudaDeviceData(P, m_P, m_n * m_n); \
@@ -102,6 +80,8 @@ __global__ void adi2(const Index_type n,
 void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_ADI_DATA_SETUP;
   
   if ( vid == Base_CUDA ) {
 

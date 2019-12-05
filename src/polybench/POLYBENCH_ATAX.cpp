@@ -19,14 +19,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ATAX_DATA_SETUP_CPU \
-  ResReal_ptr tmp = m_tmp; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr A = m_A; \
-\
-  const Index_type N = m_N;
-
 
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
@@ -82,7 +74,7 @@ void POLYBENCH_ATAX::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_ATAX_DATA_SETUP_CPU;
+  POLYBENCH_ATAX_DATA_SETUP;
 
   auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
                                POLYBENCH_ATAX_BODY2;

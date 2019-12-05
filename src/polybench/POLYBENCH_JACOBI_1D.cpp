@@ -19,18 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_JACOBI_1D_DATA_SETUP_CPU \
-  ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit; \
-  const Index_type N = m_N; \
-  const Index_type tsteps = m_tsteps;
-
-#define POLYBENCH_JACOBI_1D_DATA_RESET_CPU \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B; 
-  
+ 
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
@@ -91,7 +80,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
+  POLYBENCH_JACOBI_1D_DATA_SETUP;
 
   auto poly_jacobi1d_lam1 = [=] (Index_type i) {
                               POLYBENCH_JACOBI_1D_BODY1;
@@ -121,7 +110,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }
@@ -147,7 +136,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }
@@ -172,7 +161,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }
@@ -202,7 +191,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }
@@ -228,7 +217,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }
@@ -253,7 +242,7 @@ void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }

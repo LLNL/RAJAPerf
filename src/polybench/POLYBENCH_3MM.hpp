@@ -42,6 +42,22 @@
 #ifndef RAJAPerf_POLYBENCH_3MM_HPP
 #define RAJAPerf_POLYBENCH_3MM_HPP
 
+#define POLYBENCH_3MM_DATA_SETUP \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C; \
+  Real_ptr D = m_D; \
+  Real_ptr E = m_E; \
+  Real_ptr F = m_F; \
+  Real_ptr G = m_G; \
+\
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl; \
+  const Index_type nm = m_nm;
+
+
 #define POLYBENCH_3MM_BODY1 \
   Real_type dot = 0.0;
 

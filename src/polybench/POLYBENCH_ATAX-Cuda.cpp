@@ -27,13 +27,6 @@ namespace polybench
   const size_t block_size = 256;
 
 #define POLYBENCH_ATAX_DATA_SETUP_CUDA \
-  Real_ptr tmp; \
-  Real_ptr y; \
-  Real_ptr x; \
-  Real_ptr A; \
-\
-  const Index_type N = m_N; \
-\
   allocAndInitCudaDeviceData(tmp, m_tmp, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
   allocAndInitCudaDeviceData(x, m_x, N); \
@@ -80,6 +73,8 @@ __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
 void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_ATAX_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

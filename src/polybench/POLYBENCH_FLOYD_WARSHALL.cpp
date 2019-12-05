@@ -24,12 +24,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU \
-  ResReal_ptr pin = m_pin; \
-  ResReal_ptr pout = m_pout; \
-  const Index_type N = m_N;
-
-  
+ 
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FLOYD_WARSHALL, params)
 {
@@ -82,7 +77,7 @@ void POLYBENCH_FLOYD_WARSHALL::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CPU;
+  POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
   auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
                                          Index_type j) {

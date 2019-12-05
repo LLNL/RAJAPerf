@@ -36,6 +36,19 @@
 #ifndef RAJAPerf_POLYBENCH_FDTD_2D_HPP
 #define RAJAPerf_POLYBENCH_FDTD_2D_HPP
 
+
+#define POLYBENCH_FDTD_2D_DATA_SETUP \
+  Index_type t = 0; \
+  const Index_type nx = m_nx; \
+  const Index_type ny = m_ny; \
+  const Index_type tsteps = m_tsteps; \
+\
+  Real_ptr fict = m_fict; \
+  Real_ptr ex = m_ex; \
+  Real_ptr ey = m_ey; \
+  Real_ptr hz = m_hz;
+
+
 #define POLYBENCH_FDTD_2D_BODY1 \
   ey[j + 0*ny] = fict[t];
 

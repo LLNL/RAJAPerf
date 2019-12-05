@@ -24,6 +24,19 @@
 #ifndef RAJAPerf_POLYBENCH_GEMM_HPP
 #define RAJAPerf_POLYBENCH_GEMM_HPP
 
+#define POLYBENCH_GEMM_DATA_SETUP \
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+\
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+\
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C;
+
+
 #define POLYBENCH_GEMM_BODY1 \
   Real_type dot = 0.0;
 

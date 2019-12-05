@@ -26,21 +26,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_2MM_DATA_SETUP_CPU \
-  ResReal_ptr tmp = m_tmp; \
-  ResReal_ptr A = m_A; \
-  ResReal_ptr B = m_B; \
-  ResReal_ptr C = m_C; \
-  ResReal_ptr D = m_D; \
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-  const Index_type nl = m_nl;
-
-  
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
@@ -99,7 +84,7 @@ void POLYBENCH_2MM::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_2MM_DATA_SETUP_CPU;
+  POLYBENCH_2MM_DATA_SETUP;
 
   auto poly_2mm_base_lam2 = [=](Index_type i, Index_type j,
                                 Index_type k, Real_type &dot) {

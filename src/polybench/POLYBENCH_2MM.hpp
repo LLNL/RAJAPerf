@@ -32,9 +32,24 @@
 ///
 
 
-
 #ifndef RAJAPerf_POLYBENCH_2MM_HPP
 #define RAJAPerf_POLYBENCH_2MM_HPP
+
+
+#define POLYBENCH_2MM_DATA_SETUP \
+  Real_ptr tmp = m_tmp; \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C; \
+  Real_ptr D = m_D; \
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+\
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+  const Index_type nl = m_nl;
+
 
 #define POLYBENCH_2MM_BODY1 \
   Real_type dot = 0.0;

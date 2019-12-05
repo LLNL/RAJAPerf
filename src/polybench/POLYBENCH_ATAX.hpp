@@ -26,6 +26,14 @@
 #ifndef RAJAPerf_POLYBENCH_ATAX_HPP
 #define RAJAPerf_POLYBENCH_ATAX_HPP
 
+#define POLYBENCH_ATAX_DATA_SETUP \
+  Real_ptr tmp = m_tmp; \
+  Real_ptr y = m_y; \
+  Real_ptr x = m_x; \
+  Real_ptr A = m_A; \
+\
+  const Index_type N = m_N;
+
 
 #define POLYBENCH_ATAX_BODY1 \
   y[i] = 0.0; \

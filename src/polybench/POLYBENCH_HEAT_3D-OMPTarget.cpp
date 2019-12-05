@@ -25,11 +25,6 @@ namespace polybench
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr A; \
-  Real_ptr B; \
-  const Index_type N = m_N; \
-  const Index_type tsteps = m_tsteps; \
-\
   allocAndInitOpenMPDeviceData(A, m_Ainit, m_N*m_N*m_N, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_Binit, m_N*m_N*m_N, did, hid);
 
@@ -44,6 +39,8 @@ namespace polybench
 void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_HEAT_3D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

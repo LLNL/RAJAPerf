@@ -19,19 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_GEMM_DATA_SETUP_CPU \
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  ResReal_ptr A = m_A; \
-  ResReal_ptr B = m_B; \
-  ResReal_ptr C = m_C;
 
-  
 POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMM, params)
 {
@@ -88,7 +76,7 @@ void POLYBENCH_GEMM::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_GEMM_DATA_SETUP_CPU;
+  POLYBENCH_GEMM_DATA_SETUP;
 
   auto poly_gemm_base_lam2 = [=](Index_type i, Index_type j) {
                                POLYBENCH_GEMM_BODY2;

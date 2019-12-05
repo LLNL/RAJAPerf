@@ -19,15 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_MVT_DATA_SETUP_CPU \
-  ResReal_ptr x1 = m_x1; \
-  ResReal_ptr x2 = m_x2; \
-  ResReal_ptr y1 = m_y1; \
-  ResReal_ptr y2 = m_y2; \
-  ResReal_ptr A = m_A; \
-  const Index_type N = m_N;
-
-  
+ 
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   : KernelBase(rajaperf::Polybench_MVT, params)
 {
@@ -83,7 +75,7 @@ void POLYBENCH_MVT::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_MVT_DATA_SETUP_CPU;
+  POLYBENCH_MVT_DATA_SETUP;
 
   auto poly_mvt_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
                               POLYBENCH_MVT_BODY2;

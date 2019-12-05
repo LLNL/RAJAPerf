@@ -22,17 +22,6 @@ namespace polybench
 {
 
 #define POLYBENCH_GEMM_DATA_SETUP_CUDA \
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  Real_ptr A; \
-  Real_ptr B; \
-  Real_ptr C; \
-\
   allocAndInitCudaDeviceData(A, m_A, ni*nk); \
   allocAndInitCudaDeviceData(B, m_B, nk*nj); \
   allocAndInitCudaDeviceData(C, m_C, ni*nj);
@@ -64,6 +53,8 @@ __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
 void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_GEMM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

@@ -19,18 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_JACOBI_2D_DATA_SETUP_CPU \
-  ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit; \
-  const Index_type N = m_N; \
-  const Index_type tsteps = m_tsteps;
 
-#define POLYBENCH_JACOBI_2D_DATA_RESET_CPU \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B; 
-  
 POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_2D, params)
 {
@@ -90,7 +79,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_JACOBI_2D_DATA_SETUP_CPU;
+  POLYBENCH_JACOBI_2D_DATA_SETUP;
 
   auto poly_jacobi2d_base_lam1 = [=](Index_type i, Index_type j) {
                                    POLYBENCH_JACOBI_2D_BODY1;
@@ -133,7 +122,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
@@ -164,7 +153,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
@@ -202,7 +191,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
@@ -237,7 +226,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
@@ -268,7 +257,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
@@ -306,7 +295,7 @@ void POLYBENCH_JACOBI_2D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET_CPU;
+      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }
