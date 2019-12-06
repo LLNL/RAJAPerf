@@ -108,6 +108,8 @@ using Real_ptr = Real_type*;
 #if defined(RP_USE_COMPLEX)
 ///
 using Complex_type = std::complex<Real_type>;
+
+using Complex_ptr = Complex_type*;
 #endif
 
 
