@@ -57,244 +57,25 @@ void HYDRO_2D::setUp(VariantID vid)
 
 void HYDRO_2D::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type kbeg = 1;
-  const Index_type kend = m_kn - 1;
-  const Index_type jbeg = 1;
-  const Index_type jend = m_jn - 1;
-
-  HYDRO_2D_DATA_SETUP;
-
-  auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY1;
-                           };
-  auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY2;
-                           };
-  auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY3;
-                           };
-
-  HYDRO_2D_VIEWS_RAJA;
-
-  auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY1_RAJA;
-                      };
-  auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY2_RAJA;
-                      };
-  auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY3_RAJA;
-                      };
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY1;
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY2;
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY3;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam1(k, j);
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam2(k, j);
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam3(k, j);
-          }
-        }
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
-
-    case RAJA_Seq : {
-
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::Lambda<0>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam1); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam2); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam3); 
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel
-        {
-
-          #pragma omp for nowait
-	  for (Index_type k = kbeg; k < kend; ++k ) {
-	    for (Index_type j = jbeg; j < jend; ++j ) {
-	      HYDRO_2D_BODY1;
-	    }
-	  }
-
-          #pragma omp for nowait
-	  for (Index_type k = kbeg; k < kend; ++k ) {
-	    for (Index_type j = jbeg; j < jend; ++j ) {
-	      HYDRO_2D_BODY2;
-	    }
-	  }
-
-          #pragma omp for nowait
-	  for (Index_type k = kbeg; k < kend; ++k ) {
-	    for (Index_type j = jbeg; j < jend; ++j ) {
-	      HYDRO_2D_BODY3;
-	    }
-	  }
-
-        } // end omp parallel region
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel
-        {
-
-          #pragma omp for nowait
-          for (Index_type k = kbeg; k < kend; ++k ) {
-            for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_base_lam1(k, j);
-            }
-          }
-
-          #pragma omp for nowait
-          for (Index_type k = kbeg; k < kend; ++k ) {
-            for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_base_lam2(k, j);
-            }
-          }
-
-          #pragma omp for nowait
-          for (Index_type k = kbeg; k < kend; ++k ) {
-            for (Index_type j = jbeg; j < jend; ++j ) {
-              hydro2d_base_lam3(k, j);
-            }
-          }
-
-        } // end omp parallel region
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_for_nowait_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::Lambda<0>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::region<RAJA::omp_parallel_region>( [=]() {
-
-          RAJA::kernel<EXECPOL>(
-                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                         RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam1); 
-
-          RAJA::kernel<EXECPOL>(
-                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                         RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam2); 
-
-          RAJA::kernel<EXECPOL>(
-                       RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                         RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam3); 
-
-        }); // end omp parallel region 
-
-      }
-      stopTimer();
-
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif
