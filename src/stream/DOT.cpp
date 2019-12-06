@@ -42,136 +42,24 @@ void DOT::setUp(VariantID vid)
 
 void DOT::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
-
-  DOT_DATA_SETUP;
-
-  auto dot_base_lam = [=](Index_type i) -> Real_type {
-                        return a[i] * b[i];
-                      };
-
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type dot = m_dot_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          DOT_BODY;
-        }
-
-         m_dot += dot;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type dot = m_dot_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          dot += dot_base_lam(i);
-        }
-
-        m_dot += dot;
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
 
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          DOT_BODY;
-        });
-
-        m_dot += static_cast<Real_type>(dot.get());
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type dot = m_dot_init;
-
-        #pragma omp parallel for reduction(+:dot)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          DOT_BODY;
-        }
-
-        m_dot += dot;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type dot = m_dot_init;
-
-        #pragma omp parallel for reduction(+:dot)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          dot += dot_base_lam(i);
-        }
-
-        m_dot += dot;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> dot(m_dot_init);
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          DOT_BODY;
-        });
-
-        m_dot += dot;
-
-      }
-      stopTimer();
-
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif
