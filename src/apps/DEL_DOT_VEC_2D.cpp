@@ -62,120 +62,25 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
 
 void DEL_DOT_VEC_2D::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = m_domain->n_real_zones;
-
-  DEL_DOT_VEC_2D_DATA_SETUP;
-
-  NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-  NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-  NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-  NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
-  auto deldotvec2d_base_lam = [=](Index_type ii) {
-                                DEL_DOT_VEC_2D_BODY_INDEX;
-                                DEL_DOT_VEC_2D_BODY;
-                              };
-
-  RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
-
-  auto deldotvec2d_lam = [=](Index_type i) {
-                           DEL_DOT_VEC_2D_BODY;
-                         };
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-          DEL_DOT_VEC_2D_BODY_INDEX;
-          DEL_DOT_VEC_2D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-          deldotvec2d_base_lam(ii);
-        }
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
-
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for 
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-          DEL_DOT_VEC_2D_BODY_INDEX;
-          DEL_DOT_VEC_2D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
-          deldotvec2d_base_lam(ii);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(zones, deldotvec2d_lam);
-
-      }
-      stopTimer();
-
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif

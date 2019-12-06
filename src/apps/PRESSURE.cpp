@@ -47,153 +47,25 @@ void PRESSURE::setUp(VariantID vid)
 
 void PRESSURE::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
 
-  PRESSURE_DATA_SETUP;
-
-  auto pressure_lam1 = [=](Index_type i) {
-                         PRESSURE_BODY1;
-                       };
-  auto pressure_lam2 = [=](Index_type i) {
-                         PRESSURE_BODY2;
-                       };
-  
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY1;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY2;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-       for (Index_type i = ibegin; i < iend; ++i ) {
-         pressure_lam1(i);
-       }
-
-       for (Index_type i = ibegin; i < iend; ++i ) {
-         pressure_lam2(i);
-       }
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
-
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::region<RAJA::seq_region>( [=]() {
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
-
-        }); // end sequential region (for single-source code)
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel
-        {
-
-          #pragma omp for nowait
-          for (Index_type i = ibegin; i < iend; ++i ) {
-            PRESSURE_BODY1;
-          }
-
-          #pragma omp for nowait
-          for (Index_type i = ibegin; i < iend; ++i ) {
-            PRESSURE_BODY2;
-          }
-
-        } // end omp parallel region
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel
-        {
-
-          #pragma omp for nowait
-          for (Index_type i = ibegin; i < iend; ++i ) {
-            pressure_lam1(i);
-          }
-
-          #pragma omp for nowait
-          for (Index_type i = ibegin; i < iend; ++i ) {
-            pressure_lam2(i);
-          }
-
-        } // end omp parallel region
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::region<RAJA::omp_parallel_region>( [=]() {
-
-          RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
-
-          RAJA::forall<RAJA::omp_for_nowait_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
-
-        }); // end omp parallel region
-
-      }
-      stopTimer();
-
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif
