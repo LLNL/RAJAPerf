@@ -19,20 +19,6 @@ namespace rajaperf
 namespace basic
 {
 
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-Real_type trap_int_func(Real_type x,
-                        Real_type y,
-                        Real_type xp,
-                        Real_type yp)
-{
-   Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sqrt(denom);
-   return denom;
-}
-
 
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
@@ -64,137 +50,25 @@ void TRAP_INT::setUp(VariantID vid)
 
 void TRAP_INT::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
-
-  TRAP_INT_DATA_SETUP;
-
-  auto trapint_base_lam = [=](Index_type i) -> Real_type {
-                            Real_type x = x0 + i*h;
-                            return trap_int_func(x, y, xp, yp);
-                          };
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type sumx = m_sumx_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRAP_INT_BODY;
-        }
-
-        m_sumx += sumx * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type sumx = m_sumx_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          sumx += trapint_base_lam(i);
-        }
-
-        m_sumx += sumx * h;
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
 
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
-
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type sumx = m_sumx_init;
-
-        #pragma omp parallel for reduction(+:sumx)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRAP_INT_BODY;
-        }
-
-        m_sumx += sumx * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type sumx = m_sumx_init;
-
-        #pragma omp parallel for reduction(+:sumx)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          sumx += trapint_base_lam(i);
-        }
-
-        m_sumx += sumx * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
-
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
-
-      }
-      stopTimer();
-
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif

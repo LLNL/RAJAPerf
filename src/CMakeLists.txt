@@ -47,22 +47,31 @@ blt_add_executable(
   apps/VOL3D.cpp
   apps/VOL3D-OMPTarget.cpp
   basic/DAXPY.cpp
+  basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
   basic/IF_QUAD.cpp
+  basic/IF_QUAD-Seq.cpp
   basic/IF_QUAD-OMPTarget.cpp
   basic/INIT3.cpp
+  basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp
   basic/INIT_VIEW1D.cpp
+  basic/INIT_VIEW1D-Seq.cpp
   basic/INIT_VIEW1D-OMPTarget.cpp
   basic/INIT_VIEW1D_OFFSET.cpp
+  basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
   basic/MULADDSUB.cpp
+  basic/MULADDSUB-Seq.cpp
   basic/MULADDSUB-OMPTarget.cpp
   basic/NESTED_INIT.cpp
+  basic/NESTED_INIT-Seq.cpp
   basic/NESTED_INIT-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
+  basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
   basic/TRAP_INT.cpp
+  basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
   lcals/DIFF_PREDICT.cpp
   lcals/DIFF_PREDICT-OMPTarget.cpp

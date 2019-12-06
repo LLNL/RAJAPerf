@@ -49,168 +49,25 @@ void REDUCE3_INT::setUp(VariantID vid)
 
 void REDUCE3_INT::runKernel(VariantID vid)
 {
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
-
-  REDUCE3_INT_DATA_SETUP;
-
-  auto init3_base_lam = [&](Index_type i) -> Int_type {
-                          return vec[i];
-                        };
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          REDUCE3_INT_BODY;
-        }
-
-        m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
-        }
-
-        m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
-
-      }
-      stopTimer();
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
 
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
-        RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
-        RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          REDUCE3_INT_BODY_RAJA;
-        });
-
-        m_vsum += static_cast<Int_type>(vsum.get());
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
-
-        #pragma omp parallel for reduction(+:vsum), \
-                                 reduction(min:vmin), \
-                                 reduction(max:vmax)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          REDUCE3_INT_BODY;
-        }
-
-        m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
-
-        #pragma omp parallel for reduction(+:vsum), \
-                                 reduction(min:vmin), \
-                                 reduction(max:vmax)
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
-        }
-
-        m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(m_vsum_init);
-        RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
-        RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          REDUCE3_INT_BODY_RAJA;
-        });
-
-        m_vsum += static_cast<Int_type>(vsum.get());
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
-
-      }
-      stopTimer();
-
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif
