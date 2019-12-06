@@ -30,19 +30,6 @@ namespace polybench
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Index_type n = m_n; \
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-  Real_ptr A; \
-  Real_ptr u1; \
-  Real_ptr v1; \
-  Real_ptr u2; \
-  Real_ptr v2; \
-  Real_ptr w; \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr z; \
-\
   allocAndInitOpenMPDeviceData(A, m_A, m_n * m_n, did, hid); \
   allocAndInitOpenMPDeviceData(u1, m_u1, m_n, did, hid); \
   allocAndInitOpenMPDeviceData(v1, m_v1, m_n, did, hid); \
@@ -70,6 +57,8 @@ namespace polybench
 void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_GEMVER_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

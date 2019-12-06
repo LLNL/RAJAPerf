@@ -17,6 +17,10 @@
 #ifndef RAJAPerf_Stream_ADD_HPP
 #define RAJAPerf_Stream_ADD_HPP
 
+#define ADD_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr b = m_b; \
+  Real_ptr c = m_c;
 
 #define ADD_BODY  \
   c[i] = a[i] + b[i]; 

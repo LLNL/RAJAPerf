@@ -30,16 +30,6 @@ namespace polybench
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Index_type t = 0; \
-  const Index_type nx = m_nx; \
-  const Index_type ny = m_ny; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_ptr fict; \
-  Real_ptr ex; \
-  Real_ptr ey; \
-  Real_ptr hz; \
-\
   allocAndInitOpenMPDeviceData(hz, m_hz, m_nx * m_ny, did, hid); \
   allocAndInitOpenMPDeviceData(ex, m_ex, m_nx * m_ny, did, hid); \
   allocAndInitOpenMPDeviceData(ey, m_ey, m_nx * m_ny, did, hid); \
@@ -56,6 +46,8 @@ namespace polybench
 void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_FDTD_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

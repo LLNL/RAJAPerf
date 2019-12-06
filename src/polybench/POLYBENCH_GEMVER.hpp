@@ -37,6 +37,22 @@
 #ifndef RAJAPerf_POLYBENCH_GEMVER_HPP
 #define RAJAPerf_POLYBENCH_GEMVER_HPP
 
+#define POLYBENCH_GEMVER_DATA_SETUP \
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+  Real_ptr A = m_A; \
+  Real_ptr u1 = m_u1; \
+  Real_ptr v1 = m_v1; \
+  Real_ptr u2 = m_u2; \
+  Real_ptr v2 = m_v2; \
+  Real_ptr w = m_w; \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z; \
+\
+  const Index_type n = m_n;
+
+
 #define POLYBENCH_GEMVER_BODY1 \
   A[j + i*n] += u1[i] * v1[j] + u2[i] * v2[j];
 

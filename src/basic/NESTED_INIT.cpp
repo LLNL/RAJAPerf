@@ -23,13 +23,6 @@ namespace basic
 #undef USE_OMP_COLLAPSE
 
 
-#define NESTED_INIT_DATA_SETUP_CPU \
-  ResReal_ptr array = m_array; \
-  Index_type ni = m_ni; \
-  Index_type nj = m_nj; \
-  Index_type nk = m_nk;
-
-
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
@@ -57,7 +50,7 @@ void NESTED_INIT::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  NESTED_INIT_DATA_SETUP_CPU;
+  NESTED_INIT_DATA_SETUP;
 
   auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
                           NESTED_INIT_BODY;

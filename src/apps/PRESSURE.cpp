@@ -19,17 +19,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_DATA_SETUP_CPU \
-  ResReal_ptr compression = m_compression; \
-  ResReal_ptr bvc = m_bvc; \
-  ResReal_ptr p_new = m_p_new; \
-  ResReal_ptr e_old  = m_e_old; \
-  ResReal_ptr vnewc  = m_vnewc; \
-  const Real_type cls = m_cls; \
-  const Real_type p_cut = m_p_cut; \
-  const Real_type pmin = m_pmin; \
-  const Real_type eosvmax = m_eosvmax; 
-   
 
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
@@ -62,7 +51,7 @@ void PRESSURE::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  PRESSURE_DATA_SETUP_CPU;
+  PRESSURE_DATA_SETUP;
 
   auto pressure_lam1 = [=](Index_type i) {
                          PRESSURE_BODY1;

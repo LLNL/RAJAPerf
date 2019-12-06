@@ -32,21 +32,6 @@ namespace apps
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_ptr xdot = m_xdot; \
-  Real_ptr ydot = m_ydot; \
-  Real_ptr div = m_div; \
-  Index_ptr real_zones; \
-\
-  const Real_type ptiny = m_ptiny; \
-  const Real_type half = m_half; \
-\
-  Real_ptr x1,x2,x3,x4 ; \
-  Real_ptr y1,y2,y3,y4 ; \
-  Real_ptr fx1,fx2,fx3,fx4 ; \
-  Real_ptr fy1,fy2,fy3,fy4 ; \
-\
   allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(xdot, m_xdot, m_array_length, did, hid); \
@@ -69,6 +54,8 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
+
+  DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

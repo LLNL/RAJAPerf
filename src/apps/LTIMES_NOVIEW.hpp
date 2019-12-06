@@ -26,6 +26,15 @@
 #ifndef RAJAPerf_Apps_LTIMES_NOVIEW_HPP
 #define RAJAPerf_Apps_LTIMES_NOVIEW_HPP
 
+#define LTIMES_NOVIEW_DATA_SETUP \
+  Real_ptr phidat = m_phidat; \
+  Real_ptr elldat = m_elldat; \
+  Real_ptr psidat = m_psidat; \
+\
+  Index_type num_d = m_num_d; \
+  Index_type num_z = m_num_z; \
+  Index_type num_g = m_num_g; \
+  Index_type num_m = m_num_m;
 
 #define LTIMES_NOVIEW_BODY \
   phidat[m+ (g * num_m) + (z * num_m * num_g)] += \

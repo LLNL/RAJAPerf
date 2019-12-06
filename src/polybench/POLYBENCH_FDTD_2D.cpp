@@ -19,16 +19,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_FDTD_2D_DATA_SETUP_CPU \
-  Index_type t = 0; \
-  const Index_type nx = m_nx; \
-  const Index_type ny = m_ny; \
-  const Index_type tsteps = m_tsteps; \
-\
-  ResReal_ptr fict = m_fict; \
-  ResReal_ptr ex = m_ex; \
-  ResReal_ptr ey = m_ey; \
-  ResReal_ptr hz = m_hz; 
 
 POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FDTD_2D, params)
@@ -82,7 +72,7 @@ void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  POLYBENCH_FDTD_2D_DATA_SETUP_CPU;
+  POLYBENCH_FDTD_2D_DATA_SETUP;
 
   // IMPORTANT: This first lambda definition must use capture by reference to
   //            get the correct result (the scalar vaiable 't' used in

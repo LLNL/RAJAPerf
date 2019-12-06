@@ -28,10 +28,6 @@ namespace lcals
 
 
 #define DIFF_PREDICT_DATA_SETUP_CUDA \
-  Real_ptr px; \
-  Real_ptr cx; \
-  const Index_type offset = m_offset; \
-\
   allocAndInitCudaDeviceData(px, m_px, m_array_length); \
   allocAndInitCudaDeviceData(cx, m_cx, m_array_length);
 
@@ -56,6 +52,8 @@ void DIFF_PREDICT::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  DIFF_PREDICT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

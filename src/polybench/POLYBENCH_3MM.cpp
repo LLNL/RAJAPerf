@@ -27,21 +27,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_3MM_DATA_SETUP_CPU \
-  ResReal_ptr A = m_A; \
-  ResReal_ptr B = m_B; \
-  ResReal_ptr C = m_C; \
-  ResReal_ptr D = m_D; \
-  ResReal_ptr E = m_E; \
-  ResReal_ptr F = m_F; \
-  ResReal_ptr G = m_G; \
-\
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-  const Index_type nl = m_nl; \
-  const Index_type nm = m_nm;
-  
   
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
@@ -98,7 +83,7 @@ void POLYBENCH_3MM::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  POLYBENCH_3MM_DATA_SETUP_CPU;
+  POLYBENCH_3MM_DATA_SETUP;
 
   auto poly_3mm_base_lam2 = [=] (Index_type i, Index_type j, Index_type k,
                                  Real_type &dot) {

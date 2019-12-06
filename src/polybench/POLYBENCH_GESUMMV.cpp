@@ -19,18 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_GESUMMV_DATA_SETUP_CPU \
-  const Index_type N = m_N; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr A = m_A; \
-  ResReal_ptr B = m_B;
-
-  
+ 
 POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GESUMMV, params)
 {
@@ -88,7 +77,7 @@ void POLYBENCH_GESUMMV::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_GESUMMV_DATA_SETUP_CPU;
+  POLYBENCH_GESUMMV_DATA_SETUP;
 
   auto poly_gesummv_base_lam2 = [=](Index_type i, Index_type j, 
                                     Real_type& tmpdot, Real_type& ydot) {

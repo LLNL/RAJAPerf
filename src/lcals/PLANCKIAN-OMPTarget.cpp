@@ -31,12 +31,6 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr u; \
-  Real_ptr v; \
-  Real_ptr w; \
-\
   allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
   allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid); \
   allocAndInitOpenMPDeviceData(u, m_u, iend, did, hid); \
@@ -57,6 +51,8 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

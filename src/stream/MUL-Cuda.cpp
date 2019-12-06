@@ -28,10 +28,6 @@ namespace stream
 
 
 #define MUL_DATA_SETUP_CUDA \
-  Real_ptr b; \
-  Real_ptr c; \
-  Real_type alpha = m_alpha; \
-\
   allocAndInitCudaDeviceData(b, m_b, iend); \
   allocAndInitCudaDeviceData(c, m_c, iend);
 
@@ -54,6 +50,8 @@ void MUL::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  MUL_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

@@ -43,6 +43,26 @@
 #define RAJAPerf_Basic_HYDRO_2D_HPP
 
 
+#define HYDRO_2D_DATA_SETUP \
+  Real_ptr zadat = m_za; \
+  Real_ptr zbdat = m_zb; \
+  Real_ptr zmdat = m_zm; \
+  Real_ptr zpdat = m_zp; \
+  Real_ptr zqdat = m_zq; \
+  Real_ptr zrdat = m_zr; \
+  Real_ptr zudat = m_zu; \
+  Real_ptr zvdat = m_zv; \
+  Real_ptr zzdat = m_zz; \
+\
+  Real_ptr zroutdat = m_zrout; \
+  Real_ptr zzoutdat = m_zzout; \
+\
+  const Real_type s = m_s; \
+  const Real_type t = m_t; \
+\
+  const Index_type kn = m_kn; \
+  const Index_type jn = m_jn;
+
 #define HYDRO_2D_BODY1  \
   zadat[j+k*jn] = ( zpdat[j-1+(k+1)*jn] + zqdat[j-1+(k+1)*jn] - \
                     zpdat[j-1+k*jn] - zqdat[j-1+k*jn] ) * \

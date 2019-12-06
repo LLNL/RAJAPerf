@@ -30,12 +30,6 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr out1; \
-  Real_ptr out2; \
-  Real_ptr out3; \
-  Real_ptr in1; \
-  Real_ptr in2; \
-\
   allocAndInitOpenMPDeviceData(out1, m_out1, iend, did, hid); \
   allocAndInitOpenMPDeviceData(out2, m_out2, iend, did, hid); \
   allocAndInitOpenMPDeviceData(out3, m_out3, iend, did, hid); \
@@ -58,6 +52,8 @@ void MULADDSUB::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  MULADDSUB_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

@@ -25,6 +25,12 @@
 #ifndef RAJAPerf_POLYBENCH_FLOYD_WARSHALL_HPP
 #define RAJAPerf_POLYBENCH_FLOYD_WARSHALL_HPP
 
+#define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP \
+  Real_ptr pin = m_pin; \
+  Real_ptr pout = m_pout; \
+  const Index_type N = m_N;
+
+
 #define POLYBENCH_FLOYD_WARSHALL_BODY \
   pout[j + i*N] = pin[j + i*N] < pin[k + i*N] + pin[j + k*N] ? \
                   pin[j + i*N] : pin[k + i*N] + pin[j + k*N];

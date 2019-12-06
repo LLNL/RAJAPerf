@@ -20,27 +20,6 @@ namespace lcals
 {
 
 
-#define HYDRO_2D_DATA_SETUP_CPU \
-  ResReal_ptr zadat = m_za; \
-  ResReal_ptr zbdat = m_zb; \
-  ResReal_ptr zmdat = m_zm; \
-  ResReal_ptr zpdat = m_zp; \
-  ResReal_ptr zqdat = m_zq; \
-  ResReal_ptr zrdat = m_zr; \
-  ResReal_ptr zudat = m_zu; \
-  ResReal_ptr zvdat = m_zv; \
-  ResReal_ptr zzdat = m_zz; \
-\
-  ResReal_ptr zroutdat = m_zrout; \
-  ResReal_ptr zzoutdat = m_zzout; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type kn = m_kn; \
-  const Index_type jn = m_jn;
-
-
 HYDRO_2D::HYDRO_2D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_2D, params)
 {
@@ -84,7 +63,7 @@ void HYDRO_2D::runKernel(VariantID vid)
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
-  HYDRO_2D_DATA_SETUP_CPU;
+  HYDRO_2D_DATA_SETUP;
 
   auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
                              HYDRO_2D_BODY1;

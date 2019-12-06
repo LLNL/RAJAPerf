@@ -68,6 +68,25 @@
 #ifndef RAJAPerf_Apps_COUPLE_HPP
 #define RAJAPerf_Apps_COUPLE_HPP
 
+#define COUPLE_DATA_SETUP \
+  Complex_ptr t0 = m_t0; \
+  Complex_ptr t1 = m_t1; \
+  Complex_ptr t2 = m_t2; \
+  Complex_ptr denac = m_denac; \
+  Complex_ptr denlw = m_denlw; \
+  const Real_type dt = m_dt; \
+  const Real_type c10 = m_c10; \
+  const Real_type fratio = m_fratio; \
+  const Real_type r_fratio = m_r_fratio; \
+  const Real_type c20 = m_c20; \
+  const Complex_type ireal = m_ireal; \
+ \
+  const Index_type imin = m_imin; \
+  const Index_type imax = m_imax; \
+  const Index_type jmin = m_jmin; \
+  const Index_type jmax = m_jmax; \
+  const Index_type kmin = m_kmin; \
+  const Index_type kmax = m_kmax;
 
 #define COUPLE_BODY \
 for (Index_type j = jmin; j < jmax; j++) { \

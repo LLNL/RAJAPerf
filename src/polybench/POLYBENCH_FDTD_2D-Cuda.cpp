@@ -27,16 +27,6 @@ namespace polybench
   const size_t block_size = 256;
 
 #define POLYBENCH_FDTD_2D_DATA_SETUP_CUDA \
-  Index_type t = 0; \
-  const Index_type nx = m_nx; \
-  const Index_type ny = m_ny; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_ptr fict; \
-  Real_ptr ex; \
-  Real_ptr ey; \
-  Real_ptr hz; \
-\
   allocAndInitCudaDeviceData(hz, m_hz, m_nx * m_ny); \
   allocAndInitCudaDeviceData(ex, m_ex, m_nx * m_ny); \
   allocAndInitCudaDeviceData(ey, m_ey, m_nx * m_ny); \
@@ -96,6 +86,8 @@ __global__ void poly_fdtd2d_4(Real_ptr hz, Real_ptr ex, Real_ptr ey,
 void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_FDTD_2D_DATA_SETUP; 
 
   if ( vid == Base_CUDA ) {
 

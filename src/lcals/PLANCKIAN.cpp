@@ -21,14 +21,6 @@ namespace lcals
 {
 
 
-#define PLANCKIAN_DATA_SETUP_CPU \
-  ResReal_ptr x = m_x; \
-  ResReal_ptr y = m_y; \
-  ResReal_ptr u = m_u; \
-  ResReal_ptr v = m_v; \
-  ResReal_ptr w = m_w;
-
-
 PLANCKIAN::PLANCKIAN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_PLANCKIAN, params)
 {
@@ -55,7 +47,7 @@ void PLANCKIAN::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  PLANCKIAN_DATA_SETUP_CPU;
+  PLANCKIAN_DATA_SETUP;
 
   auto planckian_lam = [=](Index_type i) {
                          PLANCKIAN_BODY;

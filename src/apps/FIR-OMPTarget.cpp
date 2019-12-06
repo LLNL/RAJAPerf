@@ -31,11 +31,7 @@ namespace apps
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr in; \
-  Real_ptr out; \
   Real_ptr coeff; \
-\
-  const Index_type coefflen = m_coefflen; \
 \
   allocAndInitOpenMPDeviceData(in, m_in, getRunSize(), did, hid); \
   allocAndInitOpenMPDeviceData(out, m_out, getRunSize(), did, hid); \
@@ -55,6 +51,8 @@ void FIR::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize() - m_coefflen;
+
+  FIR_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

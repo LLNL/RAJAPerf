@@ -28,9 +28,6 @@ namespace stream
 
 
 #define COPY_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  Real_ptr c; \
-\
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(c, m_c, iend);
 
@@ -54,6 +51,8 @@ void COPY::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  COPY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

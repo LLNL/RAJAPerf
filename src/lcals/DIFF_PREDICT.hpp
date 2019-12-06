@@ -38,6 +38,11 @@
 #define RAJAPerf_Basic_DIFF_PREDICT_HPP
 
 
+#define DIFF_PREDICT_DATA_SETUP \
+  Real_ptr px = m_px; \
+  Real_ptr cx = m_cx; \
+  const Index_type offset = m_offset;
+
 #define DIFF_PREDICT_BODY  \
   Real_type ar, br, cr; \
 \

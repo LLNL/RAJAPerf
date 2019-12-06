@@ -20,11 +20,6 @@ namespace basic
 {
 
 
-#define INIT_VIEW1D_DATA_SETUP_CPU \
-  Real_ptr a = m_a; \
-  const Real_type v = m_val;
-
-
 INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D, params)
 {
@@ -48,7 +43,7 @@ void INIT_VIEW1D::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  INIT_VIEW1D_DATA_SETUP_CPU;
+  INIT_VIEW1D_DATA_SETUP;
 
   auto initview1d_base_lam = [=](Index_type i) {
                                INIT_VIEW1D_BODY;

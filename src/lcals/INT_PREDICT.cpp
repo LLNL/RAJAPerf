@@ -20,19 +20,6 @@ namespace lcals
 {
 
 
-#define INT_PREDICT_DATA_SETUP_CPU \
-  ResReal_ptr px = m_px; \
-  Real_type dm22 = m_dm22; \
-  Real_type dm23 = m_dm23; \
-  Real_type dm24 = m_dm24; \
-  Real_type dm25 = m_dm25; \
-  Real_type dm26 = m_dm26; \
-  Real_type dm27 = m_dm27; \
-  Real_type dm28 = m_dm28; \
-  Real_type c0 = m_c0; \
-  const Index_type offset = m_offset;
-
-
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
@@ -68,7 +55,7 @@ void INT_PREDICT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  INT_PREDICT_DATA_SETUP_CPU;
+  INT_PREDICT_DATA_SETUP;
 
   auto intpredict_lam = [=](Index_type i) {
                           INT_PREDICT_BODY;

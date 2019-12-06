@@ -28,12 +28,6 @@ namespace basic
 
 
 #define MULADDSUB_DATA_SETUP_CUDA \
-  Real_ptr out1; \
-  Real_ptr out2; \
-  Real_ptr out3; \
-  Real_ptr in1; \
-  Real_ptr in2; \
-\
   allocAndInitCudaDeviceData(out1, m_out1, iend); \
   allocAndInitCudaDeviceData(out2, m_out2, iend); \
   allocAndInitCudaDeviceData(out3, m_out3, iend); \
@@ -66,6 +60,8 @@ void MULADDSUB::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  MULADDSUB_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

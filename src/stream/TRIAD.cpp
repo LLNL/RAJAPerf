@@ -20,13 +20,6 @@ namespace stream
 {
 
 
-#define TRIAD_DATA_SETUP_CPU \
-  ResReal_ptr a = m_a; \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  Real_type alpha = m_alpha;
-
-
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
@@ -52,7 +45,7 @@ void TRIAD::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  TRIAD_DATA_SETUP_CPU;
+  TRIAD_DATA_SETUP;
 
   auto triad_lam = [=](Index_type i) {
                      TRIAD_BODY;

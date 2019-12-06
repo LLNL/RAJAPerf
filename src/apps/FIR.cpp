@@ -21,16 +21,6 @@ namespace apps
 {
 
 
-#define FIR_DATA_SETUP_CPU \
-  ResReal_ptr in = m_in; \
-  ResReal_ptr out = m_out; \
-\
-  Real_type coeff[FIR_COEFFLEN]; \
-  std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));\
-\
-  const Index_type coefflen = m_coefflen;
-
-
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
@@ -62,7 +52,10 @@ void FIR::runKernel(VariantID vid)
 
   FIR_COEFF;
 
-  FIR_DATA_SETUP_CPU;
+  FIR_DATA_SETUP;
+
+  Real_type coeff[FIR_COEFFLEN];
+  std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));
 
   auto fir_lam = [=](Index_type i) {
                    FIR_BODY;

@@ -27,16 +27,6 @@ namespace polybench
   const size_t block_size = 256;
 
 #define POLYBENCH_GESUMMV_DATA_SETUP_CUDA \
-  const Index_type N = m_N; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr A; \
-  Real_ptr B; \
-\
   allocAndInitCudaDeviceData(x, m_x, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
   allocAndInitCudaDeviceData(A, m_A, N*N); \
@@ -71,6 +61,8 @@ __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
 void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_GESUMMV_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

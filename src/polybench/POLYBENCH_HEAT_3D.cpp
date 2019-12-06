@@ -19,18 +19,7 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_HEAT_3D_DATA_SETUP_CPU \
-  ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit; \
-  const Index_type N = m_N; \
-  const Index_type tsteps = m_tsteps;
-
-#define POLYBENCH_HEAT_3D_DATA_RESET_CPU \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B; 
-  
+ 
 POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_HEAT_3D, params)
 {
@@ -101,7 +90,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
 
-  POLYBENCH_HEAT_3D_DATA_SETUP_CPU;
+  POLYBENCH_HEAT_3D_DATA_SETUP;
 
   auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, Index_type k) {
                                  POLYBENCH_HEAT_3D_BODY1;
@@ -149,7 +138,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -183,7 +172,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -226,7 +215,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -264,7 +253,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -299,7 +288,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -340,7 +329,7 @@ void POLYBENCH_HEAT_3D::runKernel(VariantID vid)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET_CPU;
+      POLYBENCH_HEAT_3D_DATA_RESET;
       
       break;
     }

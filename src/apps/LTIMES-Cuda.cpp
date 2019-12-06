@@ -23,15 +23,6 @@ namespace apps
 
 
 #define LTIMES_DATA_SETUP_CUDA \
-  Real_ptr phidat; \
-  Real_ptr elldat; \
-  Real_ptr psidat; \
-\
-  Index_type num_d = m_num_d; \
-  Index_type num_z = m_num_z; \
-  Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m; \
-\
   allocAndInitCudaDeviceData(phidat, m_phidat, m_philen); \
   allocAndInitCudaDeviceData(elldat, m_elldat, m_elllen); \
   allocAndInitCudaDeviceData(psidat, m_psidat, m_psilen);
@@ -58,6 +49,8 @@ __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
 void LTIMES::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  LTIMES_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

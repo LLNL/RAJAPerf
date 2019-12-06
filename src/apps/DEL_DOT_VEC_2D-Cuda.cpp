@@ -30,21 +30,6 @@ namespace apps
 
 
 #define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr xdot; \
-  Real_ptr ydot; \
-  Real_ptr div; \
-  Index_ptr real_zones; \
-\
-  const Real_type ptiny = m_ptiny; \
-  const Real_type half = m_half; \
-\
-  Real_ptr x1,x2,x3,x4 ; \
-  Real_ptr y1,y2,y3,y4 ; \
-  Real_ptr fx1,fx2,fx3,fx4 ; \
-  Real_ptr fy1,fy2,fy3,fy4 ; \
-\
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
   allocAndInitCudaDeviceData(y, m_y, m_array_length); \
   allocAndInitCudaDeviceData(xdot, m_xdot, m_array_length); \
@@ -86,6 +71,8 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
+
+  DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

@@ -20,12 +20,6 @@ namespace stream
 {
 
 
-#define MUL_DATA_SETUP_CPU \
-  ResReal_ptr b = m_b; \
-  ResReal_ptr c = m_c; \
-  Real_type alpha = m_alpha;
-
-
 MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
@@ -51,7 +45,7 @@ void MUL::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  MUL_DATA_SETUP_CPU;
+  MUL_DATA_SETUP;
 
   auto mul_lam = [=](Index_type i) {
                    MUL_BODY;

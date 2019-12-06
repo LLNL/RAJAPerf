@@ -20,26 +20,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define COUPLE_DATA_SETUP_CPU \
-  ResComplex_ptr t0 = m_t0; \
-  ResComplex_ptr t1 = m_t1; \
-  ResComplex_ptr t2 = m_t2; \
-  ResComplex_ptr denac = m_denac; \
-  ResComplex_ptr denlw = m_denlw; \
-  const Real_type dt = m_dt; \
-  const Real_type c10 = m_c10; \
-  const Real_type fratio = m_fratio; \
-  const Real_type r_fratio = m_r_fratio; \
-  const Real_type c20 = m_c20; \
-  const Complex_type ireal = m_ireal; \
- \
-  const Index_type imin = m_imin; \
-  const Index_type imax = m_imax; \
-  const Index_type jmin = m_jmin; \
-  const Index_type jmax = m_jmax; \
-  const Index_type kmin = m_kmin; \
-  const Index_type kmax = m_kmax;
-
 
 COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
@@ -93,11 +73,11 @@ void COUPLE::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  COUPLE_DATA_SETUP;
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,8 +94,6 @@ void COUPLE::runKernel(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
-
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -134,7 +112,6 @@ void COUPLE::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -150,8 +127,6 @@ void COUPLE::runKernel(VariantID vid)
     }
 
     case RAJA_OpenMP : {
-
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -19,28 +19,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ADI_DATA_SETUP_CPU \
-  const Index_type n = m_n; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_type DX = 1.0/(Real_type)n; \
-  Real_type DY = 1.0/(Real_type)n; \
-  Real_type DT = 1.0/(Real_type)tsteps; \
-  Real_type B1 = 2.0; \
-  Real_type B2 = 1.0; \
-  Real_type mul1 = B1 * DT / (DX * DX); \
-  Real_type mul2 = B2 * DT / (DY * DY); \
-  Real_type a = -mul1 / 2.0; \
-  Real_type b = 1.0 + mul1; \
-  Real_type c = a; \
-  Real_type d = -mul2 /2.0; \
-  Real_type e = 1.0 + mul2; \
-  Real_type f = d; \
-\
-  ResReal_ptr U = m_U; \
-  ResReal_ptr V = m_V; \
-  ResReal_ptr P = m_P; \
-  ResReal_ptr Q = m_Q; 
 
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
@@ -94,7 +72,7 @@ void POLYBENCH_ADI::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  POLYBENCH_ADI_DATA_SETUP_CPU;
+  POLYBENCH_ADI_DATA_SETUP;
 
   auto poly_adi_base_lam2 = [=](Index_type i) {
                               POLYBENCH_ADI_BODY2;

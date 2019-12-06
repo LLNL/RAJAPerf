@@ -21,10 +21,6 @@ namespace basic
 {
 
 
-#define REDUCE3_INT_DATA_SETUP_CPU \
-  Int_ptr vec = m_vec; \
-
-
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
@@ -57,7 +53,7 @@ void REDUCE3_INT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  REDUCE3_INT_DATA_SETUP_CPU;
+  REDUCE3_INT_DATA_SETUP;
 
   auto init3_base_lam = [&](Index_type i) -> Int_type {
                           return vec[i];

@@ -22,24 +22,6 @@ namespace lcals
 {
 
 #define HYDRO_2D_DATA_SETUP_CUDA \
-  Real_ptr zadat; \
-  Real_ptr zbdat; \
-  Real_ptr zmdat; \
-  Real_ptr zpdat; \
-  Real_ptr zqdat; \
-  Real_ptr zrdat; \
-  Real_ptr zudat; \
-  Real_ptr zvdat; \
-  Real_ptr zzdat; \
-\
-  Real_ptr zroutdat; \
-  Real_ptr zzoutdat; \
-\
-  const Real_type s = m_s; \
-  const Real_type t = m_t; \
-\
-  const Index_type jn = m_jn; \
-  const Index_type kn = m_kn; \
 \
   allocAndInitCudaDeviceData(zadat, m_za, m_array_length); \
   allocAndInitCudaDeviceData(zbdat, m_zb, m_array_length); \
@@ -114,6 +96,8 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
   const Index_type kend = m_kn - 1;
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
+
+  HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

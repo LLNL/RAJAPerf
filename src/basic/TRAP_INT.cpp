@@ -34,14 +34,6 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-#define TRAP_INT_DATA_SETUP_CPU \
-  Real_type x0 = m_x0; \
-  Real_type xp = m_xp; \
-  Real_type y = m_y; \
-  Real_type yp = m_yp; \
-  Real_type h = m_h;
-
-
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
@@ -76,7 +68,7 @@ void TRAP_INT::runKernel(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  TRAP_INT_DATA_SETUP_CPU;
+  TRAP_INT_DATA_SETUP;
 
   auto trapint_base_lam = [=](Index_type i) -> Real_type {
                             Real_type x = x0 + i*h;
