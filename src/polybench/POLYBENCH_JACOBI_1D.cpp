@@ -78,172 +78,25 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
 
 void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
 {
-  const Index_type run_reps= getRunReps();
-
-  POLYBENCH_JACOBI_1D_DATA_SETUP;
-
-  auto poly_jacobi1d_lam1 = [=] (Index_type i) {
-                              POLYBENCH_JACOBI_1D_BODY1;
-                            };
-  auto poly_jacobi1d_lam2 = [=] (Index_type i) {
-                              POLYBENCH_JACOBI_1D_BODY2;
-                            };
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) { 
-
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            POLYBENCH_JACOBI_1D_BODY1;
-          }
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            POLYBENCH_JACOBI_1D_BODY2;
-          }
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
-      break;
-    }
-
-
+    case Base_Seq :
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          for (Index_type i = 1; i < N-1; ++i ) {
-            poly_jacobi1d_lam1(i);
-          }
-          for (Index_type i = 1; i < N-1; ++i ) {
-            poly_jacobi1d_lam2(i);
-          }
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
+    case Lambda_Seq :
+    case RAJA_Seq :
+#endif
+    {
+      runSeqVariant(vid);
       break;
     }
-
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
-            poly_jacobi1d_lam1
-          );
-
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1}, 
-            poly_jacobi1d_lam2
-          );
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
-      break;
-    }
-
-#endif // RUN_RAJA_SEQ
-
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            POLYBENCH_JACOBI_1D_BODY1;
-          }
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            POLYBENCH_JACOBI_1D_BODY2;
-          }
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            poly_jacobi1d_lam1(i);
-          }
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            poly_jacobi1d_lam2(i);
-          }
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::forall<RAJA::omp_parallel_for_exec> (RAJA::RangeSegment{1, N-1},
-            poly_jacobi1d_lam1
-          );
-
-          RAJA::forall<RAJA::omp_parallel_for_exec> (RAJA::RangeSegment{1, N-1},
-            poly_jacobi1d_lam2
-          );
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+      runOpenMPVariant(vid);
       break;
     }
 #endif
