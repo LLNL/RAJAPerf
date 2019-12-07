@@ -9,7 +9,6 @@
 #include "POLYBENCH_FLOYD_WARSHALL.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "common/DataUtils.hpp"
 
 #include <iostream>
 

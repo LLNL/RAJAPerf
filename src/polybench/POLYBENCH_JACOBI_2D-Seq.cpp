@@ -9,7 +9,6 @@
 #include "POLYBENCH_JACOBI_2D.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "common/DataUtils.hpp"
 
 #include <iostream>
 

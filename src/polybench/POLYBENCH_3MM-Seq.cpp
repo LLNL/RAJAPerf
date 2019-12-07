@@ -9,7 +9,6 @@
 #include "POLYBENCH_3MM.hpp"
 
 #include "RAJA/RAJA.hpp"
-#include "common/DataUtils.hpp"
 
 #include <iostream>
 #include <cstring>

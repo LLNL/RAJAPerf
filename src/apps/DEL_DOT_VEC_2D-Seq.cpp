@@ -11,7 +11,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include "AppsData.hpp"
-#include "common/DataUtils.hpp"
 
 #include <iostream>
 
