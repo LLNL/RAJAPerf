@@ -29,7 +29,9 @@ blt_add_library(
           POLYBENCH_ATAX-OMP.cpp
           POLYBENCH_ATAX-OMPTarget.cpp
           POLYBENCH_FDTD_2D.cpp
+          POLYBENCH_FDTD_2D-Seq.cpp
           POLYBENCH_FDTD_2D-Cuda.cpp
+          POLYBENCH_FDTD_2D-OMP.cpp
           POLYBENCH_FDTD_2D-OMPTarget.cpp
           POLYBENCH_FLOYD_WARSHALL.cpp
           POLYBENCH_FLOYD_WARSHALL-Seq.cpp
