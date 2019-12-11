@@ -57,7 +57,6 @@ public:
   ~INIT_VIEW1D_OFFSET();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 

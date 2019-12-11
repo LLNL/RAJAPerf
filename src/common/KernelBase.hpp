@@ -91,10 +91,22 @@ public:
 
   virtual void print(std::ostream& os) const; 
 
+  virtual void runKernel(VariantID vid);
+
   virtual void setUp(VariantID vid) = 0;
-  virtual void runKernel(VariantID vid) = 0;
   virtual void updateChecksum(VariantID vid) = 0;
   virtual void tearDown(VariantID vid) = 0;
+
+  virtual void runSeqVariant(VariantID vid) = 0;
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  virtual void runOpenMPVariant(VariantID vid) = 0;
+#endif
+#if defined(RAJA_ENABLE_CUDA)
+  virtual void runCudaVariant(VariantID vid) = 0;
+#endif
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  virtual void runOpenMPTargetVariant(VariantID vid) = 0;
+#endif
 
 protected:
   int num_exec[NumVariants];

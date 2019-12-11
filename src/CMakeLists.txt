@@ -114,6 +114,7 @@ blt_add_executable(
   polybench/POLYBENCH_ATAX-Seq.cpp
   polybench/POLYBENCH_ATAX-OMPTarget.cpp
   polybench/POLYBENCH_FDTD_2D.cpp
+  polybench/POLYBENCH_FDTD_2D-Seq.cpp
   polybench/POLYBENCH_FDTD_2D-OMPTarget.cpp
   polybench/POLYBENCH_FLOYD_WARSHALL.cpp
   polybench/POLYBENCH_FLOYD_WARSHALL-Seq.cpp

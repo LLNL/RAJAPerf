@@ -164,14 +164,14 @@ public:
   Index_type getItsPerRep() const;
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
+  void runKernel(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runSeqVariant(VariantID vid) {;}
+  void runOpenMPVariant(VariantID vid) {;}
+  void runCudaVariant(VariantID vid) {;}
+  void runOpenMPTargetVariant(VariantID vid) {;}
 
 private:
   Complex_ptr m_t0;

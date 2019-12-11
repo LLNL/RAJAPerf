@@ -44,57 +44,6 @@ void HYDRO_1D::setUp(VariantID vid)
   initData(m_t, vid);
 }
 
-void HYDRO_1D::runKernel(VariantID vid)
-{
-
-  switch ( vid ) {
-
-    case Base_Seq :
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq :
-    case RAJA_Seq :
-#endif
-    {
-      runSeqVariant(vid);
-      break;
-    }
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP :
-    case Lambda_OpenMP :
-    case RAJA_OpenMP :
-    {
-      runOpenMPVariant(vid);
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget :
-    {
-      runOpenMPTargetVariant(vid);
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA :
-    {
-      runCudaVariant(vid);
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
-}
-
 void HYDRO_1D::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_x, getRunSize());

@@ -62,7 +62,6 @@ public:
   ~REDUCE3_INT();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
