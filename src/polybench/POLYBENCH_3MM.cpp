@@ -11,9 +11,6 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-#include <cstring>
-
 
 namespace rajaperf 
 {

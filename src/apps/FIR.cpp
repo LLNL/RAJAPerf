@@ -12,9 +12,6 @@
 
 #include "common/DataUtils.hpp"
 
-#include <algorithm>
-#include <iostream>
-
 namespace rajaperf 
 {
 namespace apps

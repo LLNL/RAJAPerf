@@ -12,9 +12,6 @@
 
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-#include <cmath>
-
 namespace rajaperf 
 {
 namespace lcals

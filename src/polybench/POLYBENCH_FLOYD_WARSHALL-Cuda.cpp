@@ -14,8 +14,6 @@
 
 #include "common/CudaDataUtils.hpp"
 
-#include <iostream>
-
 namespace rajaperf 
 {
 namespace polybench

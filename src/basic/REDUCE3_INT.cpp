@@ -13,7 +13,6 @@
 #include "common/DataUtils.hpp"
 
 #include <limits>
-#include <iostream>
 
 namespace rajaperf 
 {

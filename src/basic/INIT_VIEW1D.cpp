@@ -12,8 +12,6 @@
 
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-
 namespace rajaperf
 {
 namespace basic
