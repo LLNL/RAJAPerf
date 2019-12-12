@@ -12,8 +12,8 @@ RAJA Performance Suite
 
 [![Build Status](https://travis-ci.org/LLNL/RAJAPerf.svg?branch=develop)](https://travis-ci.org/LLNL/RAJAPerf)
 
-The RAJA performance suite is designed to explore performance of loop-based 
-computational kernels found in HPC applications. In particular, it
+The RAJA performance suite is developed to explore performance of loop-based 
+computational kernels found in HPC applications. Specifically, it
 is used to assess, monitor, and compare runtime performance of kernels 
 implemented using RAJA and variants implemented using standard or 
 vendor-supported parallel programming models directly. Each kernel in the 
@@ -66,15 +66,18 @@ submodules. For example,
 > cd RAJAPerf
 > git checkout <some branch name>
 > git submodule init
-> git submodule update
+> git submodule update --recursive
 ```
+
+Note that the `--recursive` will update submodules within submodules, similar
+to usage with the `git clone` as described above.
 
 RAJA and the Performance Suite are built together using the same CMake
 configuration. For convenience, we include scripts in the `scripts`
 directory that invoke corresponding configuration files (CMake cache files) 
 in the RAJA submodule. For example, the `scripts/lc-builds` directory 
 contains scripts that show how we build code for testing on platforms in
-the Livermore Computing Center. Each build script creates a 
+the Lawrence Livermore Computing Center. Each build script creates a 
 descriptively-named build space directory in the top-level Performance Suite 
 directory and runs CMake with a configuration appropriate for the platform and 
 compilers used. After CMake completes, enter the build directory and type 
@@ -255,14 +258,22 @@ consistent.
 Each kernel in the suite is implemented in a class whose header and 
 implementation files live in the directory named for the group
 in which the kernel lives. The kernel class is responsible for implementing
-all operations needed to execute and record execution timing and result 
-checksum information for each variant of the kernel. 
+all operations needed to manage data, execute and record execution timing and 
+result checksum information for each variant of the kernel. 
+To properly plug in to the Perf Suite framework, the kernel class must 
+inherit from the `KernelBase` base class that defines the interface for 
+a kernel in the suite.
 
-Continuing with our example, we add 'Foo' class header and implementation 
-files 'Foo.hpp', 'Foo.cpp' (CPU variants), `Foo-Cuda.cpp` (CUDA variants), 
-and `Foo-OMPTarget.cpp` (OpenMP target variants) to the 'src/bar' directory. 
-The class must inherit from the 'KernelBase' base class that defines the 
-interface for kernels in the suite. 
+Continuing with our example, we add a 'Foo' class header file 'Foo.hpp', 
+and multiple implementation files described in the following sections: 
+  * 'Foo.cpp' contains the methods to setup and teardown the memory for the
+    'Foo kernel, and compute and record a checksum on the result after it 
+    executes;
+  * 'Foo-Seq.cpp' contains CPU variants of the kernel;
+  * 'Foo-OMP.cpp' contains OpenMP CPU multithreading variants of the kernel;
+  * 'Foo-Cuda.cpp' contains CUDA GPU variants of the kernel; and
+  * 'Foo-OMPTarget.cpp' contains OpenMP target offload variants of the kernel.
+
 
 #### Kernel class header
 
@@ -298,10 +309,11 @@ public:
   ~Foo();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid); 
 
@@ -319,7 +331,7 @@ The kernel object header has a uniquely-named header file include guard and
 the class is nested within the 'rajaperf' and 'bar' namespaces. The 
 constructor takes a reference to a 'RunParams' object, which contains the
 input parameters for running the suite -- we'll say more about this later. 
-The four methods that take a variant ID argument must be provided as they are
+The seven methods that take a variant ID argument must be provided as they are
 pure virtual in the KernelBase class. Their names are descriptive of what they
 do and we'll provide more details when we describe the class implementation
 next.
@@ -327,13 +339,13 @@ next.
 #### Kernel class implementation
 
 All kernels in the suite follow a similar implementation pattern for 
-consistency and ease of understanding. Here we describe several steps and 
-conventions that must be followed to ensure that all kernels interact with
-the performance suite machinery in the same way:
+consistency and ease of analysis and understanding. Here, we describe several 
+steps and conventions that must be followed to ensure that all kernels 
+interact with the performance suite machinery in the same way:
 
 1. Initialize the 'KernelBase' class object with KernelID, default size, and default repetition count in the `class constructor`.
-2. Implement data allocation and initialization operation for each kernel variant in the `setUp` method.
-3. Implement kernel execution for each variant in the `RunKernel` method.
+2. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
+3. Implement kernel execution for the associated variants in the `run` methods.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
 
@@ -388,15 +400,17 @@ utility methods to allocate, initialize, deallocate, and copy data, and compute
 checksums defined in the `DataUtils.hpp` `CudaDataUtils.hpp`, and 
 `OpenMPTargetDataUtils.hpp` header files in the 'common' directory.
 
-##### runKernel() method
+##### run methods
 
-The 'runKernel()' method executes the kernel for the variant defined by the 
-variant ID argument. The method is also responsible for calling base class 
-methods to start and stop execution timers for the loop variant. A typical 
-kernel execution code section may look like:
+Which files contain which 'run' methods and associated variant implementations 
+is described above. Each method take a variant ID argument which identifies
+the variant to be run for each programming model back-end. Each method is also 
+responsible for calling base class methods to start and stop execution timers 
+when a loop variant is run. A typical kernel execution code section may look 
+like:
 
 ```cpp
-void Foo::runKernel(VariantID vid)
+void Foo::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   // ...
@@ -408,8 +422,8 @@ void Foo::runKernel(VariantID vid)
       // Declare data for baseline sequential variant of kernel...
 
       startTimer();
-      for (SampIndex_type irep = 0; irep < run_reps; ++irep) {
-         // Implementation of kernel variant...
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+         // Implementation of Base_Seq kernel variant...
       }
       stopTimer();
 
@@ -418,25 +432,29 @@ void Foo::runKernel(VariantID vid)
       break; 
     }
 
-    // case statements for other CPU kernel variants.... 
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget :
-    {
-      runOpenMPTargetVariant(vid);
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        // Implementation of Lambda_Seq kernel variant... 
+      }
+      stopTimer();
+
       break;
     }
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA :
-    {
-      runCudaVariant(vid);
+    case RAJA_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        // Implementation of RAJA_Seq kernel variant...
+      }
+      stopTimer();
+
       break;
     }
-#endif
+#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
@@ -449,18 +467,17 @@ void Foo::runKernel(VariantID vid)
 All kernel implementation files are organized in this way. So following this
 pattern will keep all new additions consistent. 
 
-Note: There are three source files for each kernel: 'Foo.cpp' contains CPU 
-variants, `Foo-Cuda.cpp` contains CUDA variants, and `Foo-OMPTarget.cpp` 
-constains OpenMP target variants. The reason for this is that it makes it 
-easier to apply unique compiler flags to different variants and to manage
-compilation and linking issues that arise when some kernel variants are
-combined in the same translation unit.
+Note: As described earlier, there are five source files for each kernel.
+The reason for this is that it makes it easier to apply unique compiler flags 
+to different variants and to manage compilation and linking issues that arise 
+when some kernel variants are combined in the same translation unit.
 
 Note: for convenience, we make heavy use of macros to define data 
 declarations and kernel bodies in the suite. This significantly reduces
 the amount of redundant code required to implement multiple variants
-of each kernel. The kernel class implementation files in the suite 
-provide many examples of the basic pattern we use.
+of each kernel and make sure things are the same as much as possible. 
+The kernel class implementation files in the suite provide many examples of 
+the basic pattern we use.
 
 ##### updateChecksum() method
 

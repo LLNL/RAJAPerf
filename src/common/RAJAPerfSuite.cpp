@@ -36,6 +36,7 @@
 
 //
 // Polybench kernels...
+//
 #include "polybench/POLYBENCH_2MM.hpp"
 #include "polybench/POLYBENCH_3MM.hpp"
 #include "polybench/POLYBENCH_ADI.hpp"
@@ -49,8 +50,6 @@
 #include "polybench/POLYBENCH_JACOBI_1D.hpp"
 #include "polybench/POLYBENCH_JACOBI_2D.hpp"
 #include "polybench/POLYBENCH_MVT.hpp"
-
-//
 
 //
 // Stream kernels...
