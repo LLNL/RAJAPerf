@@ -101,6 +101,9 @@ blt_add_executable(
   lcals/PLANCKIAN.cpp
   lcals/PLANCKIAN-Seq.cpp
   lcals/PLANCKIAN-OMPTarget.cpp
+  lcals/TRIDIAG_ELIM.cpp
+  lcals/TRIDIAG_ELIM-Seq.cpp
+  lcals/TRIDIAG_ELIM-OMPTarget.cpp
   polybench/POLYBENCH_2MM.cpp
   polybench/POLYBENCH_2MM-Seq.cpp
   polybench/POLYBENCH_2MM-OMPTarget.cpp

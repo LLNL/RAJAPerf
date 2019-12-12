@@ -33,6 +33,7 @@
 #include "lcals/HYDRO_2D.hpp"
 #include "lcals/INT_PREDICT.hpp"
 #include "lcals/PLANCKIAN.hpp"
+#include "lcals/TRIDIAG_ELIM.hpp"
 
 //
 // Polybench kernels...
@@ -141,6 +142,7 @@ static const std::string KernelNames [] =
   std::string("Lcals_HYDRO_2D"),
   std::string("Lcals_INT_PREDICT"),
   std::string("Lcals_PLANCKIAN"),
+  std::string("Lcals_TRIDIAG_ELIM"),
 
 //
 // Polybench kernels...
@@ -363,6 +365,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Lcals_PLANCKIAN : {
        kernel = new lcals::PLANCKIAN(run_params);
+       break;
+    }
+    case Lcals_TRIDIAG_ELIM : {
+       kernel = new lcals::TRIDIAG_ELIM(run_params);
        break;
     }
 

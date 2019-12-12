@@ -43,5 +43,10 @@ blt_add_library(
           PLANCKIAN-Cuda.cpp 
           PLANCKIAN-OMP.cpp 
           PLANCKIAN-OMPTarget.cpp 
+          TRIDIAG_ELIM.cpp 
+          TRIDIAG_ELIM-Seq.cpp 
+          TRIDIAG_ELIM-Cuda.cpp 
+          TRIDIAG_ELIM-OMP.cpp 
+          TRIDIAG_ELIM-OMPTarget.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

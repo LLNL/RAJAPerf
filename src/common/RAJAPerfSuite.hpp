@@ -118,6 +118,7 @@ enum KernelID {
   Lcals_HYDRO_2D,
   Lcals_INT_PREDICT,
   Lcals_PLANCKIAN,
+  Lcals_TRIDIAG_ELIM,
 
 //
 // Polybench kernels...
