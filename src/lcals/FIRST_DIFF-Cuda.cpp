@@ -28,11 +28,11 @@ namespace lcals
 
 
 #define FIRST_DIFF_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length);
+  allocAndInitCudaDeviceData(x, m_x, m_N); \
+  allocAndInitCudaDeviceData(y, m_y, m_N);
 
 #define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
+  getCudaDeviceData(m_x, x, m_N); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 

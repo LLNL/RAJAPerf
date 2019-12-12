@@ -30,8 +30,8 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid);
+  allocAndInitOpenMPDeviceData(x, m_x, m_N, did, hid); \
+  allocAndInitOpenMPDeviceData(y, m_y, m_N, did, hid);
 
 #define FIRST_DIFF_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_x, x, iend, hid, did); \

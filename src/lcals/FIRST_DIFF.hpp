@@ -9,7 +9,7 @@
 ///
 /// FIRST_DIFF kernel reference implementation:
 ///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
+/// for (Index_type i = 0; i < N-1; ++i ) {
 ///   x[i] = y[i+1] - y[i];
 /// }
 ///
@@ -56,7 +56,7 @@ private:
   Real_ptr m_x;
   Real_ptr m_y;
 
-  Index_type m_array_length;
+  Index_type m_N;
 };
 
 } // end namespace lcals

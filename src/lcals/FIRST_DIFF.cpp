@@ -31,9 +31,9 @@ FIRST_DIFF::~FIRST_DIFF()
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  m_array_length = getRunSize()+1; 
-  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
-  allocAndInitData(m_y, m_array_length, vid);
+  m_N = getRunSize()+1; 
+  allocAndInitDataConst(m_x, m_N, 0.0, vid);
+  allocAndInitData(m_y, m_N, vid);
 }
 
 void FIRST_DIFF::updateChecksum(VariantID vid)
