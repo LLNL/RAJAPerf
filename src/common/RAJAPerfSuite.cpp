@@ -29,6 +29,7 @@
 #include "lcals/DIFF_PREDICT.hpp"
 #include "lcals/EOS.hpp"
 #include "lcals/FIRST_DIFF.hpp"
+#include "lcals/FIRST_SUM.hpp"
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/HYDRO_2D.hpp"
 #include "lcals/INT_PREDICT.hpp"
@@ -138,6 +139,7 @@ static const std::string KernelNames [] =
   std::string("Lcals_DIFF_PREDICT"),
   std::string("Lcals_EOS"),
   std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_FIRST_SUM"),
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_HYDRO_2D"),
   std::string("Lcals_INT_PREDICT"),
@@ -349,6 +351,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Lcals_FIRST_DIFF : {
        kernel = new lcals::FIRST_DIFF(run_params);
+       break;
+    }
+    case Lcals_FIRST_SUM : {
+       kernel = new lcals::FIRST_SUM(run_params);
        break;
     }
     case Lcals_HYDRO_1D : {

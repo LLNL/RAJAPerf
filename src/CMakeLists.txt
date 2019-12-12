@@ -89,6 +89,9 @@ blt_add_executable(
   lcals/FIRST_DIFF.cpp
   lcals/FIRST_DIFF-Seq.cpp
   lcals/FIRST_DIFF-OMPTarget.cpp
+  lcals/FIRST_SUM.cpp
+  lcals/FIRST_SUM-Seq.cpp
+  lcals/FIRST_SUM-OMPTarget.cpp
   lcals/HYDRO_1D.cpp
   lcals/HYDRO_1D-Seq.cpp
   lcals/HYDRO_1D-OMPTarget.cpp
