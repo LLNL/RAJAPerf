@@ -198,6 +198,11 @@ enum VariantID {
   RAJA_CUDA,
 #endif
 
+#if defined(RAJA_ENABLE_HIP)
+  Base_HIP,
+  RAJA_HIP,
+#endif
+
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };
