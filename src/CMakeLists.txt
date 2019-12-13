@@ -92,6 +92,9 @@ blt_add_executable(
   lcals/FIRST_SUM.cpp
   lcals/FIRST_SUM-Seq.cpp
   lcals/FIRST_SUM-OMPTarget.cpp
+  lcals/GEN_LIN_RECUR.cpp
+  lcals/GEN_LIN_RECUR-Seq.cpp
+  lcals/GEN_LIN_RECUR-OMPTarget.cpp
   lcals/HYDRO_1D.cpp
   lcals/HYDRO_1D-Seq.cpp
   lcals/HYDRO_1D-OMPTarget.cpp

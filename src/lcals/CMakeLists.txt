@@ -28,6 +28,11 @@ blt_add_library(
           FIRST_SUM-Cuda.cpp 
           FIRST_SUM-OMP.cpp 
           FIRST_SUM-OMPTarget.cpp 
+          GEN_LIN_RECUR.cpp 
+          GEN_LIN_RECUR-Seq.cpp 
+          GEN_LIN_RECUR-Cuda.cpp
+          GEN_LIN_RECUR-OMP.cpp
+          GEN_LIN_RECUR-OMPTarget.cpp
           HYDRO_1D.cpp 
           HYDRO_1D-Seq.cpp 
           HYDRO_1D-Cuda.cpp
