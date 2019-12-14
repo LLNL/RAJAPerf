@@ -23,6 +23,11 @@ blt_add_library(
           FIRST_DIFF-Cuda.cpp 
           FIRST_DIFF-OMP.cpp 
           FIRST_DIFF-OMPTarget.cpp 
+          FIRST_MIN.cpp 
+          FIRST_MIN-Seq.cpp 
+          FIRST_MIN-Cuda.cpp 
+          FIRST_MIN-OMP.cpp 
+          FIRST_MIN-OMPTarget.cpp 
           FIRST_SUM.cpp 
           FIRST_SUM-Seq.cpp 
           FIRST_SUM-Cuda.cpp 

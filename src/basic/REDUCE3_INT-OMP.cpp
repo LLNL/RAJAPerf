@@ -29,9 +29,9 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  auto init3_lam = [=](Index_type i) -> Int_type {
-                     return vec[i];
-                   };
+  auto init3_base_lam = [=](Index_type i) -> Int_type {
+                          return vec[i];
+                        };
 
   switch ( vid ) {
 
@@ -74,9 +74,9 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
                                  reduction(min:vmin), \
                                  reduction(max:vmax)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_lam(i);
-          vmin = RAJA_MIN(vmin, init3_lam(i));
-          vmax = RAJA_MAX(vmax, init3_lam(i));
+          vsum += init3_base_lam(i);
+          vmin = RAJA_MIN(vmin, init3_base_lam(i));
+          vmax = RAJA_MAX(vmax, init3_base_lam(i));
         }
 
         m_vsum += vsum;

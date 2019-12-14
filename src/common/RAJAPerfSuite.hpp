@@ -114,6 +114,7 @@ enum KernelID {
   Lcals_DIFF_PREDICT,
   Lcals_EOS,
   Lcals_FIRST_DIFF,
+  Lcals_FIRST_MIN,
   Lcals_FIRST_SUM,
   Lcals_GEN_LIN_RECUR,
   Lcals_HYDRO_1D,
