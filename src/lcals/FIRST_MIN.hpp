@@ -21,6 +21,7 @@
 #ifndef RAJAPerf_Lcals_FIRST_MIN_HPP
 #define RAJAPerf_Lcals_FIRST_MIN_HPP
 
+#include "RAJA/util/macros.hpp"
 
 #define FIRST_MIN_DATA_SETUP \
   Real_ptr x = m_x;
@@ -42,15 +43,16 @@ struct MyMinLoc {
   rajaperf::Index_type loc; 
 };
 
+#define FIRST_MIN_MINLOC_COMPARE \
+MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
+  return a.val < b.val ? a : b ; \
+}
+
 #define FIRST_MIN_MINLOC_INIT \
   MyMinLoc mymin; \
   mymin.val = m_xmin_init; \
   mymin.loc = m_initloc;
   
-#define FIRST_MIN_MINLOC_COMPARE \
-  MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
-    return a.val < b.val ? a : b ; \
-  }
 
 
 #include "common/KernelBase.hpp"

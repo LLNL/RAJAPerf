@@ -33,16 +33,37 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
-#if 0
-__global__ void first_min(Real_ptr x, Real_ptr y,
+__global__ void first_min(Real_ptr x,
+                          MyMinLoc* dminloc,
                           Index_type iend) 
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     FIRST_MIN_BODY; 
-   }
+  extern __shared__ MyMinLoc minloc[ ];
+
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  minloc[ threadIdx.x ] = *dminloc;
+
+  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+    MyMinLoc& mymin = minloc[ threadIdx.x ];
+    FIRST_MIN_BODY;
+  }
+  __syncthreads();
+
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      if ( minloc[ threadIdx.x + i].val < minloc[ threadIdx.x ].val ) {
+        minloc[ threadIdx.x ] = minloc[ threadIdx.x + i]; 
+      }
+    }
+     __syncthreads();
+  }
+ 
+  if ( threadIdx.x == 0 ) {
+    if ( minloc[ 0 ].val < (*dminloc).val ) {
+      *dminloc = minloc[ 0 ];
+    }
+  } 
 }
-#endif
 
 
 void FIRST_MIN::runCudaVariant(VariantID vid)
@@ -54,23 +75,36 @@ void FIRST_MIN::runCudaVariant(VariantID vid)
   FIRST_MIN_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-#if 0
 
     FIRST_MIN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+       FIRST_MIN_MINLOC_INIT;
+    
+       MyMinLoc* dminloc;
+       cudaErrchk( cudaMalloc( (void**)&dminloc, sizeof(MyMinLoc) ) );
+       cudaErrchk( cudaMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
+                               cudaMemcpyHostToDevice ) );
+
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_diff<<<grid_size, block_size>>>( x, y,
-                                              iend ); 
+       first_min<<<grid_size, block_size, 
+                   sizeof(MyMinLoc)*block_size>>>( x, 
+                                                   dminloc,
+                                                   iend ); 
+
+       cudaErrchk( cudaMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
+                               cudaMemcpyDeviceToHost ) );
+       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+
+       cudaErrchk( cudaFree( dminloc ) );
 
     }
     stopTimer();
 
     FIRST_MIN_DATA_TEARDOWN_CUDA;
 
-#endif
   } else if ( vid == RAJA_CUDA ) {
 
     FIRST_MIN_DATA_SETUP_CUDA;
