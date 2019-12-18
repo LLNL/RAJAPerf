@@ -98,7 +98,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ATOMIC_PI = 0,
+  Basic_DAXPY,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,

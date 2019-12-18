@@ -13,6 +13,7 @@
 //
 // Basic kernels...
 //
+#include "basic/ATOMIC_PI.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
@@ -125,6 +126,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ATOMIC_PI"),
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
@@ -305,6 +307,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ATOMIC_PI : {
+       kernel = new basic::ATOMIC_PI(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
