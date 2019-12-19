@@ -23,6 +23,18 @@
 #ifndef RAJAPerf_POLYBENCH_GESUMMV_HPP
 #define RAJAPerf_POLYBENCH_GESUMMV_HPP
 
+#define POLYBENCH_GESUMMV_DATA_SETUP \
+  const Index_type N = m_N; \
+\
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+\
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B;
+
+
 #define POLYBENCH_GESUMMV_BODY1 \
   Real_type tmpdot = 0.0; \
   Real_type ydot = 0.0;
@@ -79,9 +91,11 @@ public:
 
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+  
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

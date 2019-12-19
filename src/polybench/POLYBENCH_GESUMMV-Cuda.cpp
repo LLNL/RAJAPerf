@@ -27,16 +27,6 @@ namespace polybench
   const size_t block_size = 256;
 
 #define POLYBENCH_GESUMMV_DATA_SETUP_CUDA \
-  const Index_type N = m_N; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_ptr A; \
-  Real_ptr B; \
-\
   allocAndInitCudaDeviceData(x, m_x, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
   allocAndInitCudaDeviceData(A, m_A, N*N); \
@@ -72,6 +62,8 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  POLYBENCH_GESUMMV_DATA_SETUP;
+
   if ( vid == Base_CUDA ) {
 
     POLYBENCH_GESUMMV_DATA_SETUP_CUDA;
@@ -100,7 +92,8 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, 
+                                   RAJA::cuda_block_x_loop,
             RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0>,
               RAJA::statement::For<1, RAJA::seq_exec,

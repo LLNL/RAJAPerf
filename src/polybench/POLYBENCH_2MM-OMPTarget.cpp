@@ -25,14 +25,6 @@ namespace polybench
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr tmp; \
-  Real_ptr A; \
-  Real_ptr B; \
-  Real_ptr C; \
-  Real_ptr D; \
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
   allocAndInitOpenMPDeviceData(tmp, m_tmp, m_ni * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
@@ -52,10 +44,8 @@ namespace polybench
 void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
+
+  POLYBENCH_2MM_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
@@ -120,7 +110,8 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, nk}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+            Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
         [=](Index_type i, Index_type j, Index_type k, Real_type &dot) {
@@ -137,7 +128,8 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
                          RAJA::RangeSegment{0, nj}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
+            Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
         },
         [=](Index_type i, Index_type l, Index_type j, Real_type &dot) {

@@ -22,17 +22,6 @@ namespace polybench
 {
 
 #define POLYBENCH_GEMM_DATA_SETUP_CUDA \
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  Real_ptr A; \
-  Real_ptr B; \
-  Real_ptr C; \
-\
   allocAndInitCudaDeviceData(A, m_A, ni*nk); \
   allocAndInitCudaDeviceData(B, m_B, nk*nj); \
   allocAndInitCudaDeviceData(C, m_C, ni*nj);
@@ -53,16 +42,19 @@ __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
    Index_type j = threadIdx.x;
 
    POLYBENCH_GEMM_BODY1;
+   POLYBENCH_GEMM_BODY2;
    for (Index_type k = 0; k < nk; ++k ) {
-     POLYBENCH_GEMM_BODY2;
+     POLYBENCH_GEMM_BODY3;
    }
-   POLYBENCH_GEMM_BODY3;
+   POLYBENCH_GEMM_BODY4;
 }
 
 
 void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_GEMM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
@@ -95,10 +87,11 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
           RAJA::statement::For<0, RAJA::cuda_block_y_loop,
             RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0>,
+              RAJA::statement::Lambda<1>,
               RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<1>
+                RAJA::statement::Lambda<2>
               >,
-              RAJA::statement::Lambda<2>
+              RAJA::statement::Lambda<3>
             >
           >
         >
@@ -115,14 +108,21 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
 
           RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
 
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
+          [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j, Index_type k, 
+                          Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
+          },
+          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                          Real_type& dot) {
+            POLYBENCH_GEMM_BODY4_RAJA;
           }
         );
 

@@ -30,8 +30,6 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Int_ptr vec; \
-\
   allocAndInitOpenMPDeviceData(vec, m_vec, iend, did, hid);
 
 #define REDUCE3_INT_DATA_TEARDOWN_OMP_TARGET \
@@ -43,6 +41,8 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

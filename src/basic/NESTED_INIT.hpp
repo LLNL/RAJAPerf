@@ -22,6 +22,12 @@
 #define RAJAPerf_Basic_NESTED_INIT_HPP
 
 
+#define NESTED_INIT_DATA_SETUP \
+  Real_ptr array = m_array; \
+  Index_type ni = m_ni; \
+  Index_type nj = m_nj; \
+  Index_type nk = m_nk;
+
 #define NESTED_INIT_BODY  \
   array[i+ni*(j+nj*k)] = 0.00000001 * i * j * k ;
 
@@ -44,10 +50,11 @@ public:
   ~NESTED_INIT();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

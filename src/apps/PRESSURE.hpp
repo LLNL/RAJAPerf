@@ -24,6 +24,17 @@
 #ifndef RAJAPerf_Apps_PRESSURE_HPP
 #define RAJAPerf_Apps_PRESSURE_HPP
 
+#define PRESSURE_DATA_SETUP \
+  Real_ptr compression = m_compression; \
+  Real_ptr bvc = m_bvc; \
+  Real_ptr p_new = m_p_new; \
+  Real_ptr e_old  = m_e_old; \
+  Real_ptr vnewc  = m_vnewc; \
+  const Real_type cls = m_cls; \
+  const Real_type p_cut = m_p_cut; \
+  const Real_type pmin = m_pmin; \
+  const Real_type eosvmax = m_eosvmax;
+
 
 #define PRESSURE_BODY1 \
   bvc[i] = cls * (compression[i] + 1.0);
@@ -53,10 +64,11 @@ public:
   ~PRESSURE();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

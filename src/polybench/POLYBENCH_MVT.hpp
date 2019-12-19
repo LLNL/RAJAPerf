@@ -24,6 +24,15 @@
 #ifndef RAJAPerf_POLYBENCH_MVT_HPP
 #define RAJAPerf_POLYBENCH_MVT_HPP
 
+#define POLYBENCH_MVT_DATA_SETUP \
+  Real_ptr x1 = m_x1; \
+  Real_ptr x2 = m_x2; \
+  Real_ptr y1 = m_y1; \
+  Real_ptr y2 = m_y2; \
+  Real_ptr A = m_A; \
+  const Index_type N = m_N;
+
+
 #define POLYBENCH_MVT_BODY1 \
   Real_type dot = 0.0;
 
@@ -96,9 +105,11 @@ public:
 
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

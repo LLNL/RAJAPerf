@@ -19,6 +19,12 @@
 #ifndef RAJAPerf_Basic_MULADDSUB_HPP
 #define RAJAPerf_Basic_MULADDSUB_HPP
 
+#define MULADDSUB_DATA_SETUP \
+  Real_ptr out1 = m_out1; \
+  Real_ptr out2 = m_out2; \
+  Real_ptr out3 = m_out3; \
+  Real_ptr in1 = m_in1; \
+  Real_ptr in2 = m_in2;
 
 #define MULADDSUB_BODY  \
   out1[i] = in1[i] * in2[i] ; \
@@ -44,10 +50,11 @@ public:
   ~MULADDSUB();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

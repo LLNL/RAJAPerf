@@ -39,29 +39,53 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_HYDRO_2D_HPP
-#define RAJAPerf_Basic_HYDRO_2D_HPP
+#ifndef RAJAPerf_Lcals_HYDRO_2D_HPP
+#define RAJAPerf_Lcals_HYDRO_2D_HPP
 
+
+#define HYDRO_2D_DATA_SETUP \
+  Real_ptr zadat = m_za; \
+  Real_ptr zbdat = m_zb; \
+  Real_ptr zmdat = m_zm; \
+  Real_ptr zpdat = m_zp; \
+  Real_ptr zqdat = m_zq; \
+  Real_ptr zrdat = m_zr; \
+  Real_ptr zudat = m_zu; \
+  Real_ptr zvdat = m_zv; \
+  Real_ptr zzdat = m_zz; \
+\
+  Real_ptr zroutdat = m_zrout; \
+  Real_ptr zzoutdat = m_zzout; \
+\
+  const Real_type s = m_s; \
+  const Real_type t = m_t; \
+\
+  const Index_type kn = m_kn; \
+  const Index_type jn = m_jn;
 
 #define HYDRO_2D_BODY1  \
-  za[j+k*jn] = ( zp[j-1+(k+1)*jn] + zq[j-1+(k+1)*jn] - zp[j-1+k*jn] - zq[j-1+k*jn] ) * \
-               ( zr[j+k*jn] + zr[j-1+k*jn] ) / ( zm[j-1+k*jn] + zm[j-1+(k+1)*jn] ); \
-  zb[j+k*jn] = ( zp[j-1+k*jn] + zq[j-1+k*jn] - zp[j+k*jn] - zq[j+k*jn] ) * \
-               ( zr[j+k*jn] + zr[j+(k-1)*jn] ) / ( zm[j+k*jn] + zm[j-1+k*jn] );
+  zadat[j+k*jn] = ( zpdat[j-1+(k+1)*jn] + zqdat[j-1+(k+1)*jn] - \
+                    zpdat[j-1+k*jn] - zqdat[j-1+k*jn] ) * \
+                  ( zrdat[j+k*jn] + zrdat[j-1+k*jn] ) / \
+                  ( zmdat[j-1+k*jn] + zmdat[j-1+(k+1)*jn] ); \
+  zbdat[j+k*jn] = ( zpdat[j-1+k*jn] + zqdat[j-1+k*jn] - \
+                    zpdat[j+k*jn] - zqdat[j+k*jn] ) * \
+                  ( zrdat[j+k*jn] + zrdat[j+(k-1)*jn] ) / \
+                  ( zmdat[j+k*jn] + zmdat[j-1+k*jn] );
 
 #define HYDRO_2D_BODY2 \
-  zu[j+k*jn] += s*( za[j+k*jn] * ( zz[j+k*jn] - zz[j+1+k*jn] ) - \
-                    za[j-1+k*jn] * ( zz[j+k*jn] - zz[j-1+k*jn] ) - \
-                    zb[j+k*jn] * ( zz[j+k*jn] - zz[j+(k-1)*jn] ) + \
-                    zb[j+(k+1)*jn] * ( zz[j+k*jn] - zz[j+(k+1)*jn] ) ); \
-  zv[j+k*jn] += s*( za[j+k*jn] * ( zr[j+k*jn] - zr[j+1+k*jn] ) - \
-                    za[j-1+k*jn] * ( zr[j+k*jn] - zr[j-1+k*jn] ) - \
-                    zb[j+k*jn] * ( zr[j+k*jn] - zr[j+(k-1)*jn] ) + \
-                    zb[j+(k+1)*jn] * ( zr[j+k*jn] - zr[j+(k+1)*jn] ) );
+  zudat[j+k*jn] += s*( zadat[j+k*jn] * ( zzdat[j+k*jn] - zzdat[j+1+k*jn] ) - \
+                    zadat[j-1+k*jn] * ( zzdat[j+k*jn] - zzdat[j-1+k*jn] ) - \
+                    zbdat[j+k*jn] * ( zzdat[j+k*jn] - zzdat[j+(k-1)*jn] ) + \
+                    zbdat[j+(k+1)*jn] * ( zzdat[j+k*jn] - zzdat[j+(k+1)*jn] ) ); \
+  zvdat[j+k*jn] += s*( zadat[j+k*jn] * ( zrdat[j+k*jn] - zrdat[j+1+k*jn] ) - \
+                    zadat[j-1+k*jn] * ( zrdat[j+k*jn] - zrdat[j-1+k*jn] ) - \
+                    zbdat[j+k*jn] * ( zrdat[j+k*jn] - zrdat[j+(k-1)*jn] ) + \
+                    zbdat[j+(k+1)*jn] * ( zrdat[j+k*jn] - zrdat[j+(k+1)*jn] ) );
 
 #define HYDRO_2D_BODY3 \
-  zrout[j+k*jn] = zr[j+k*jn] + t*zu[j+k*jn]; \
-  zzout[j+k*jn] = zz[j+k*jn] + t*zv[j+k*jn]; \
+  zroutdat[j+k*jn] = zrdat[j+k*jn] + t*zudat[j+k*jn]; \
+  zzoutdat[j+k*jn] = zzdat[j+k*jn] + t*zvdat[j+k*jn]; \
 
 
 #define HYDRO_2D_VIEWS_RAJA \
@@ -121,10 +145,11 @@ public:
   ~HYDRO_2D();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

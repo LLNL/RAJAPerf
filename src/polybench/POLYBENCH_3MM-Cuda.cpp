@@ -22,14 +22,6 @@ namespace polybench
 {
 
 #define POLYBENCH_3MM_DATA_SETUP_CUDA \
-  Real_ptr A = m_A; \
-  Real_ptr B = m_B; \
-  Real_ptr C = m_C; \
-  Real_ptr D = m_D; \
-  Real_ptr E = m_E; \
-  Real_ptr F = m_F; \
-  Real_ptr G = m_G; \
-\
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
   allocAndInitCudaDeviceData(C, m_C, m_nj * m_nm); \
@@ -92,12 +84,8 @@ __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
 void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
-  const Index_type nm = m_nm;
 
+  POLYBENCH_3MM_DATA_SETUP;
   
   if ( vid == Base_CUDA ) {
 
@@ -156,13 +144,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nk}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type k, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY2_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY3_RAJA;
         }
 
@@ -174,13 +165,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nm}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*j*/, Index_type /*l*/, Index_type /*m*/, Real_type &dot) {
+        [=] __device__ (Index_type /*j*/, Index_type /*l*/, Index_type /*m*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type j, Index_type l, Index_type m, Real_type &dot) {
+        [=] __device__ (Index_type j, Index_type l, Index_type m, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY5_RAJA;
         },
-        [=] __device__ (Index_type j, Index_type l, Index_type /*m*/, Real_type &dot) {
+        [=] __device__ (Index_type j, Index_type l, Index_type /*m*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY6_RAJA;
         }
 
@@ -192,13 +186,16 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nj}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY7_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type j, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY8_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_3MM_BODY9_RAJA;
         }
 

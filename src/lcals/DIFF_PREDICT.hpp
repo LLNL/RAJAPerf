@@ -34,9 +34,14 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_DIFF_PREDICT_HPP
-#define RAJAPerf_Basic_DIFF_PREDICT_HPP
+#ifndef RAJAPerf_Lcals_DIFF_PREDICT_HPP
+#define RAJAPerf_Lcals_DIFF_PREDICT_HPP
 
+
+#define DIFF_PREDICT_DATA_SETUP \
+  Real_ptr px = m_px; \
+  Real_ptr cx = m_cx; \
+  const Index_type offset = m_offset;
 
 #define DIFF_PREDICT_BODY  \
   Real_type ar, br, cr; \
@@ -80,10 +85,11 @@ public:
   ~DIFF_PREDICT();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

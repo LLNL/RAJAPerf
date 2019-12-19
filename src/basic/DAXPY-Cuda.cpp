@@ -28,10 +28,6 @@ namespace basic
 
 
 #define DAXPY_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_type a = m_a; \
-\
   allocAndInitCudaDeviceData(x, m_x, iend); \
   allocAndInitCudaDeviceData(y, m_y, iend);
 
@@ -56,6 +52,8 @@ void DAXPY::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  DAXPY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

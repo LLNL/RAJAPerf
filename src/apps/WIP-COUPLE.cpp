@@ -20,26 +20,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define COUPLE_DATA_SETUP_CPU \
-  ResComplex_ptr t0 = m_t0; \
-  ResComplex_ptr t1 = m_t1; \
-  ResComplex_ptr t2 = m_t2; \
-  ResComplex_ptr denac = m_denac; \
-  ResComplex_ptr denlw = m_denlw; \
-  const Real_type dt = m_dt; \
-  const Real_type c10 = m_c10; \
-  const Real_type fratio = m_fratio; \
-  const Real_type r_fratio = m_r_fratio; \
-  const Real_type c20 = m_c20; \
-  const Complex_type ireal = m_ireal; \
- \
-  const Index_type imin = m_imin; \
-  const Index_type imax = m_imax; \
-  const Index_type jmin = m_jmin; \
-  const Index_type jmax = m_jmax; \
-  const Index_type kmin = m_kmin; \
-  const Index_type kmax = m_kmax;
-
 
 COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
@@ -69,7 +49,7 @@ Index_type COUPLE::getItsPerRep() const
 
 void COUPLE::setUp(VariantID vid)
 {
-  int max_loop_index = m_domain->lrn;
+  Index_type max_loop_index = m_domain->lrn;
 
   allocAndInitData(m_t0, max_loop_index, vid);
   allocAndInitData(m_t1, max_loop_index, vid);
@@ -93,11 +73,11 @@ void COUPLE::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  COUPLE_DATA_SETUP;
+
   switch ( vid ) {
 
     case Base_Seq : {
-
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,13 +95,11 @@ void COUPLE::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 
-      COUPLE_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(kmin, kmax), [=](int k) {
+          RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
         }); 
 
@@ -134,7 +112,6 @@ void COUPLE::runKernel(VariantID vid)
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP : {
-      COUPLE_DATA_SETUP_CPU;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -151,13 +128,11 @@ void COUPLE::runKernel(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      COUPLE_DATA_SETUP_CPU;
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(kmin, kmax), [=](int k) {
+          RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
         }); 
 
@@ -195,7 +170,7 @@ void COUPLE::runKernel(VariantID vid)
 
 void COUPLE::updateChecksum(VariantID vid)
 {
-  int max_loop_index = m_domain->lrn;
+  Index_type max_loop_index = m_domain->lrn;
 
   checksum[vid] += calcChecksum(m_t0, max_loop_index);
   checksum[vid] += calcChecksum(m_t1, max_loop_index);

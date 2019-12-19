@@ -30,16 +30,6 @@ namespace apps
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr compression; \
-  Real_ptr bvc; \
-  Real_ptr p_new; \
-  Real_ptr e_old; \
-  Real_ptr vnewc; \
-  const Real_type cls = m_cls; \
-  const Real_type p_cut = m_p_cut; \
-  const Real_type pmin = m_pmin; \
-  const Real_type eosvmax = m_eosvmax; \
-\
   allocAndInitOpenMPDeviceData(compression, m_compression, iend, did, hid); \
   allocAndInitOpenMPDeviceData(bvc, m_bvc, iend, did, hid); \
   allocAndInitOpenMPDeviceData(p_new, m_p_new, iend, did, hid); \
@@ -60,7 +50,9 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
-
+  
+  PRESSURE_DATA_SETUP;
+  
   if ( vid == Base_OpenMPTarget ) {
 
     PRESSURE_DATA_SETUP_OMP_TARGET;
@@ -95,12 +87,12 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY1;
         });
 
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-          RAJA::RangeSegment(ibegin, iend), [=](int i) {
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           PRESSURE_BODY2;
         });
 

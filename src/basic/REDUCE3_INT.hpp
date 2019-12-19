@@ -30,6 +30,9 @@
 #define RAJAPerf_Basic_REDUCE3_INT_HPP
 
 
+#define REDUCE3_INT_DATA_SETUP \
+  Int_ptr vec = m_vec; \
+
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \
   vmin = RAJA_MIN(vmin, vec[i]) ; \
@@ -59,10 +62,11 @@ public:
   ~REDUCE3_INT();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

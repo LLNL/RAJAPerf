@@ -28,20 +28,7 @@ namespace basic
 
 
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
-  Real_ptr a; \
-  const Real_type v = m_val; \
-\
   allocAndInitCudaDeviceData(a, m_a, iend);
-
-#define INIT_VIEW1D_DATA_RAJA_SETUP_CUDA \
-  Real_ptr a; \
-  const Real_type v = m_val; \
-\
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-\
-  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
-  const RAJA::Layout<1> my_layout(iend); \
-  ViewType view(a, my_layout);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_a, a, iend); \
@@ -64,6 +51,8 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
+  INIT_VIEW1D_DATA_SETUP;
+
   if ( vid == Base_CUDA ) {
 
     INIT_VIEW1D_DATA_SETUP_CUDA;
@@ -83,7 +72,9 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-    INIT_VIEW1D_DATA_RAJA_SETUP_CUDA;
+    INIT_VIEW1D_DATA_SETUP_CUDA;
+
+    INIT_VIEW1D_VIEW_RAJA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

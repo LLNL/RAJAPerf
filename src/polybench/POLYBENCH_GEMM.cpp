@@ -11,27 +11,13 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-
 
 namespace rajaperf 
 {
 namespace polybench
 {
 
-#define POLYBENCH_GEMM_DATA_SETUP_CPU \
-  const Index_type ni = m_ni; \
-  const Index_type nj = m_nj; \
-  const Index_type nk = m_nk; \
-\
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
-  ResReal_ptr A = m_A; \
-  ResReal_ptr B = m_B; \
-  ResReal_ptr C = m_C;
 
-  
 POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMM, params)
 {
@@ -73,7 +59,6 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
 
 POLYBENCH_GEMM::~POLYBENCH_GEMM() 
 {
-
 }
 
 void POLYBENCH_GEMM::setUp(VariantID vid)
@@ -82,183 +67,6 @@ void POLYBENCH_GEMM::setUp(VariantID vid)
   allocAndInitData(m_A, m_ni * m_nk, vid);
   allocAndInitData(m_B, m_nk * m_nj, vid);
   allocAndInitDataConst(m_C, m_ni * m_nj, 0.0, vid);
-}
-
-void POLYBENCH_GEMM::runKernel(VariantID vid)
-{
-  const Index_type run_reps= getRunReps();
-
-  switch ( vid ) {
-
-    case Base_Seq : {
-
-      POLYBENCH_GEMM_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = 0; i < ni; ++i ) { 
-          for (Index_type j = 0; j < nj; ++j ) {
-            POLYBENCH_GEMM_BODY1;
-            for (Index_type k = 0; k < nk; ++k ) {
-               POLYBENCH_GEMM_BODY2;
-            }
-            POLYBENCH_GEMM_BODY3;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-
-#if defined(RUN_RAJA_SEQ)      
-    case RAJA_Seq : {
-
-      POLYBENCH_GEMM_DATA_SETUP_CPU;
-
-      POLYBENCH_GEMM_VIEWS_RAJA;
-
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<0>,
-              RAJA::statement::For<2, RAJA::loop_exec,
-                RAJA::statement::Lambda<1>
-              >,
-              RAJA::statement::Lambda<2>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel_param<EXEC_POL>(
-     
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni},
-                            RAJA::RangeSegment{0, nj},
-                            RAJA::RangeSegment{0, nk} ),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
-
-          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
-            POLYBENCH_GEMM_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j, Index_type k, Real_type& dot) {
-            POLYBENCH_GEMM_BODY2_RAJA;
-          },
-          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
-            POLYBENCH_GEMM_BODY3_RAJA;
-          }
-        );
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-#endif // RUN_RAJA_SEQ
-
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      POLYBENCH_GEMM_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for collapse(2)
-        for (Index_type i = 0; i < ni; ++i ) { 
-          for (Index_type j = 0; j < nj; ++j ) {
-            POLYBENCH_GEMM_BODY1;
-            for (Index_type k = 0; k < nk; ++k ) {
-              POLYBENCH_GEMM_BODY2;
-            }
-            POLYBENCH_GEMM_BODY3;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      POLYBENCH_GEMM_DATA_SETUP_CPU;
-
-      POLYBENCH_GEMM_VIEWS_RAJA;
-
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
-                                    RAJA::ArgList<0, 1>,
-            RAJA::statement::Lambda<0>,
-            RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
-            >,
-            RAJA::statement::Lambda<2>
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel_param<EXEC_POL>(
-     
-          RAJA::make_tuple( RAJA::RangeSegment{0, ni},
-                            RAJA::RangeSegment{0, nj},
-                            RAJA::RangeSegment{0, nk} ),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
-
-          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
-            POLYBENCH_GEMM_BODY1_RAJA;
-          },
-          [=](Index_type i, Index_type j, Index_type k, Real_type& dot) {
-            POLYBENCH_GEMM_BODY2_RAJA;
-          },
-          [=](Index_type i, Index_type j, Index_type /*k*/, Real_type& dot) {
-            POLYBENCH_GEMM_BODY3_RAJA;
-          }
-        );
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget :
-    {
-      runOpenMPTargetVariant(vid);
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA :
-    {
-      runCudaVariant(vid);
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
 }
 
 void POLYBENCH_GEMM::updateChecksum(VariantID vid)

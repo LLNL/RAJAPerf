@@ -69,6 +69,17 @@
 #ifndef RAJAPerf_Apps_VOL3D_HPP
 #define RAJAPerf_Apps_VOL3D_HPP
 
+#define VOL3D_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z; \
+  Real_ptr vol = m_vol; \
+\
+  const Real_type vnormq = m_vnormq; \
+\
+  Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
+  Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
 
 #define VOL3D_BODY \
   Real_type x71 = x7[i] - x1[i] ; \
@@ -152,10 +163,11 @@ public:
   Index_type getItsPerRep() const;
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

@@ -25,11 +25,6 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr array = m_array; \
-  Index_type ni = m_ni; \
-  Index_type nj = m_nj; \
-  Index_type nk = m_nk; \
-\
   allocAndInitOpenMPDeviceData(array, m_array, m_array_length, did, hid);
 
 #define NESTED_INIT_DATA_TEARDOWN_OMP_TARGET \
@@ -40,6 +35,8 @@ namespace basic
 void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

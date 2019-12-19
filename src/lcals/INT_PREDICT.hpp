@@ -21,9 +21,21 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_INT_PREDICT_HPP
-#define RAJAPerf_Basic_INT_PREDICT_HPP
+#ifndef RAJAPerf_Lcals_INT_PREDICT_HPP
+#define RAJAPerf_Lcals_INT_PREDICT_HPP
 
+
+#define INT_PREDICT_DATA_SETUP \
+  Real_ptr px = m_px; \
+  Real_type dm22 = m_dm22; \
+  Real_type dm23 = m_dm23; \
+  Real_type dm24 = m_dm24; \
+  Real_type dm25 = m_dm25; \
+  Real_type dm26 = m_dm26; \
+  Real_type dm27 = m_dm27; \
+  Real_type dm28 = m_dm28; \
+  Real_type c0 = m_c0; \
+  const Index_type offset = m_offset;
 
 #define INT_PREDICT_BODY  \
   px[i] = dm28*px[i + offset * 12] + dm27*px[i + offset * 11] + \
@@ -52,10 +64,11 @@ public:
   ~INT_PREDICT();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

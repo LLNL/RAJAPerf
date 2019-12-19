@@ -64,20 +64,29 @@
 #define RAJAPerf_POLYBENCH_ADI_HPP
 
 
-#define POLYBENCH_ADI_BODY1 \
-  DX = 1.0/(Real_type)n; \
-  DY = 1.0/(Real_type)n; \
-  DT = 1.0/(Real_type)tsteps; \
-  B1 = 2.0; \
-  B2 = 1.0; \
-  mul1 = B1 * DT / (DX * DX); \
-  mul2 = B2 * DT / (DY * DY); \
-  a = -mul1 / 2.0; \
-  b = 1.0 + mul1; \
-  c = a; \
-  d = -mul2 /2.0; \
-  e = 1.0 + mul2; \
-  f = d; 
+#define POLYBENCH_ADI_DATA_SETUP \
+  const Index_type n = m_n; \
+  const Index_type tsteps = m_tsteps; \
+\
+  Real_type DX = 1.0/(Real_type)n; \
+  Real_type DY = 1.0/(Real_type)n; \
+  Real_type DT = 1.0/(Real_type)tsteps; \
+  Real_type B1 = 2.0; \
+  Real_type B2 = 1.0; \
+  Real_type mul1 = B1 * DT / (DX * DX); \
+  Real_type mul2 = B2 * DT / (DY * DY); \
+  Real_type a = -mul1 / 2.0; \
+  Real_type b = 1.0 + mul1; \
+  Real_type c = a; \
+  Real_type d = -mul2 /2.0; \
+  Real_type e = 1.0 + mul2; \
+  Real_type f = d; \
+\
+  Real_ptr U = m_U; \
+  Real_ptr V = m_V; \
+  Real_ptr P = m_P; \
+  Real_ptr Q = m_Q;
+
 
 #define POLYBENCH_ADI_BODY2 \
   V[0 * n + i] = 1.0; \
@@ -179,9 +188,11 @@ public:
 
  
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

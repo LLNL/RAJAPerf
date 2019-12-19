@@ -30,10 +30,6 @@ namespace lcals
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr px; \
-  Real_ptr cx; \
-  const Index_type offset = m_offset; \
-\
   allocAndInitOpenMPDeviceData(px, m_px, m_array_length, did, hid); \
   allocAndInitOpenMPDeviceData(cx, m_cx, m_array_length, did, hid);
 
@@ -48,6 +44,8 @@ void DIFF_PREDICT::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  DIFF_PREDICT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

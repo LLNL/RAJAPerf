@@ -22,11 +22,6 @@ namespace basic
 {
 
 #define NESTED_INIT_DATA_SETUP_CUDA \
-  Real_ptr array; \
-  Index_type ni = m_ni; \
-  Index_type nj = m_nj; \
-  Index_type nk = m_nk; \
-\
   allocAndInitCudaDeviceData(array, m_array, m_array_length);
 
 #define NESTED_INIT_DATA_TEARDOWN_CUDA \
@@ -47,6 +42,8 @@ __global__ void nested_init(Real_ptr array,
 void NESTED_INIT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

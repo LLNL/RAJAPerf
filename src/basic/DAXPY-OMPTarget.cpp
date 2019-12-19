@@ -30,10 +30,6 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  Real_ptr x; \
-  Real_ptr y; \
-  Real_type a = m_a; \
-\
   allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
   allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid);
 
@@ -48,6 +44,8 @@ void DAXPY::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  DAXPY_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

@@ -22,14 +22,6 @@ namespace polybench
 {
 
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
-  Real_ptr tmp; \
-  Real_ptr A; \
-  Real_ptr B; \
-  Real_ptr C; \
-  Real_ptr D; \
-  Real_type alpha = m_alpha; \
-  Real_type beta = m_beta; \
-\
   allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
@@ -78,11 +70,8 @@ __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
 void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ni = m_ni;
-  const Index_type nj = m_nj;
-  const Index_type nk = m_nk;
-  const Index_type nl = m_nl;
 
+  POLYBENCH_2MM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
@@ -136,13 +125,16 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nk}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type k, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY2_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type j, Index_type /*k*/, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY3_RAJA;
         }
       );
@@ -153,13 +145,16 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
                          RAJA::RangeSegment{0, nj}),
         RAJA::make_tuple(static_cast<Real_type>(0.0)),
 
-        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type j, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY5_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+        [=] __device__ (Index_type i, Index_type l, Index_type /*j*/, 
+                        Real_type &dot) {
           POLYBENCH_2MM_BODY6_RAJA;
         }
       );

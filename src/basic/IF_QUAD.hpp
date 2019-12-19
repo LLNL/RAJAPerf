@@ -25,8 +25,12 @@
 #ifndef RAJAPerf_Basic_IF_QUAD_HPP
 #define RAJAPerf_Basic_IF_QUAD_HPP
 
-#include "common/KernelBase.hpp"
-
+#define IF_QUAD_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr b = m_b; \
+  Real_ptr c = m_c; \
+  Real_ptr x1 = m_x1; \
+  Real_ptr x2 = m_x2;
 
 #define IF_QUAD_BODY  \
   Real_type s = b[i]*b[i] - 4.0*a[i]*c[i]; \
@@ -39,6 +43,7 @@
     x1[i] = 0.0; \
   }
 
+#include "common/KernelBase.hpp"
 
 namespace rajaperf 
 {
@@ -56,10 +61,11 @@ public:
   ~IF_QUAD();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

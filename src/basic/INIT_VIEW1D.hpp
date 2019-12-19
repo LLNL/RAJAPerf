@@ -24,11 +24,20 @@
 #define RAJAPerf_Basic_INIT_VIEW1D_HPP
 
 
+#define INIT_VIEW1D_DATA_SETUP \
+  Real_ptr a = m_a; \
+  const Real_type v = m_val;
+
 #define INIT_VIEW1D_BODY  \
   a[i] = v;
 
 #define INIT_VIEW1D_BODY_RAJA  \
   view(i) = v;
+
+#define INIT_VIEW1D_VIEW_RAJA \
+  using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
+  const RAJA::Layout<1> my_layout(iend); \
+  ViewType view(a, my_layout);
 
 
 #include "common/KernelBase.hpp"
@@ -49,10 +58,11 @@ public:
   ~INIT_VIEW1D();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

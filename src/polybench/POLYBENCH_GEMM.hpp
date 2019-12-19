@@ -24,25 +24,42 @@
 #ifndef RAJAPerf_POLYBENCH_GEMM_HPP
 #define RAJAPerf_POLYBENCH_GEMM_HPP
 
+#define POLYBENCH_GEMM_DATA_SETUP \
+  const Index_type ni = m_ni; \
+  const Index_type nj = m_nj; \
+  const Index_type nk = m_nk; \
+\
+  Real_type alpha = m_alpha; \
+  Real_type beta = m_beta; \
+\
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C;
+
+
 #define POLYBENCH_GEMM_BODY1 \
-  C[j + i*nj] *= beta; \
   Real_type dot = 0.0;
 
 #define POLYBENCH_GEMM_BODY2 \
-  dot += alpha * A[k + i*nk] * B[j + k*nj];  
+  C[j + i*nj] *= beta;
 
 #define POLYBENCH_GEMM_BODY3 \
+  dot += alpha * A[k + i*nk] * B[j + k*nj];  
+
+#define POLYBENCH_GEMM_BODY4 \
   C[j + i*nj] = dot;
 
 
 #define POLYBENCH_GEMM_BODY1_RAJA \
-  Cview(i, j) *= beta; \
   dot = 0.0;
 
 #define POLYBENCH_GEMM_BODY2_RAJA \
-  dot += alpha * Aview(i, k) * Bview(k, j);  
+  Cview(i, j) *= beta;
 
 #define POLYBENCH_GEMM_BODY3_RAJA \
+  dot += alpha * Aview(i, k) * Bview(k, j);  
+
+#define POLYBENCH_GEMM_BODY4_RAJA \
   Cview(i, j) = dot;
 
 
@@ -75,9 +92,11 @@ public:
 
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

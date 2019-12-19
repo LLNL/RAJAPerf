@@ -18,6 +18,13 @@
 #define RAJAPerf_Basic_INIT3_HPP
 
 
+#define INIT3_DATA_SETUP \
+  Real_ptr out1 = m_out1; \
+  Real_ptr out2 = m_out2; \
+  Real_ptr out3 = m_out3; \
+  Real_ptr in1 = m_in1; \
+  Real_ptr in2 = m_in2;
+
 #define INIT3_BODY  \
   out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
 
@@ -40,10 +47,11 @@ public:
   ~INIT3();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

@@ -22,9 +22,6 @@ namespace polybench
 {
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_CUDA \
-  Real_ptr A; \
-  Real_ptr B; \
-\
   allocAndInitCudaDeviceData(A, m_Ainit, m_N*m_N*m_N); \
   allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N*m_N);
 
@@ -62,8 +59,8 @@ __global__ void poly_heat_3D_2(Real_ptr A, Real_ptr B, Index_type N)
 void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
+
+  POLYBENCH_HEAT_3D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

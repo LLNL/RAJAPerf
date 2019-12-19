@@ -87,6 +87,26 @@
 #ifndef RAJAPerf_Apps_ENERGY_HPP
 #define RAJAPerf_Apps_ENERGY_HPP
 
+#define ENERGY_DATA_SETUP \
+  Real_ptr e_new = m_e_new; \
+  Real_ptr e_old = m_e_old; \
+  Real_ptr delvc = m_delvc; \
+  Real_ptr p_new = m_p_new; \
+  Real_ptr p_old = m_p_old; \
+  Real_ptr q_new = m_q_new; \
+  Real_ptr q_old = m_q_old; \
+  Real_ptr work = m_work; \
+  Real_ptr compHalfStep = m_compHalfStep; \
+  Real_ptr pHalfStep = m_pHalfStep; \
+  Real_ptr bvc = m_bvc; \
+  Real_ptr pbvc = m_pbvc; \
+  Real_ptr ql_old = m_ql_old; \
+  Real_ptr qq_old = m_qq_old; \
+  Real_ptr vnewc = m_vnewc; \
+  const Real_type rho0 = m_rho0; \
+  const Real_type e_cut = m_e_cut; \
+  const Real_type emin = m_emin; \
+  const Real_type q_cut = m_q_cut;
 
 #define ENERGY_BODY1 \
   e_new[i] = e_old[i] - 0.5 * delvc[i] * \
@@ -175,10 +195,11 @@ public:
   ~ENERGY();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

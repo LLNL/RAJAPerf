@@ -27,15 +27,6 @@ namespace polybench
   const size_t block_size = 256;
 
 #define POLYBENCH_FDTD_2D_DATA_SETUP_CUDA \
-  const Index_type nx = m_nx; \
-  const Index_type ny = m_ny; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_ptr fict; \
-  Real_ptr ex; \
-  Real_ptr ey; \
-  Real_ptr hz; \
-\
   allocAndInitCudaDeviceData(hz, m_hz, m_nx * m_ny); \
   allocAndInitCudaDeviceData(ex, m_ex, m_nx * m_ny); \
   allocAndInitCudaDeviceData(ey, m_ey, m_nx * m_ny); \
@@ -96,6 +87,8 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  POLYBENCH_FDTD_2D_DATA_SETUP; 
+
   if ( vid == Base_CUDA ) {
 
     POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
@@ -103,7 +96,7 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (Index_type t = 0; t < tsteps; ++t) {
+      for (t = 0; t < tsteps; ++t) {
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
         poly_fdtd2d_1<<<grid_size1, block_size>>>(ey, fict, ny, t);
@@ -145,7 +138,7 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (Index_type t = 0; t < tsteps; ++t) {
+      for (t = 0; t < tsteps; ++t) {
 
         RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
          [=] __device__ (Index_type j) {

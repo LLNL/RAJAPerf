@@ -30,15 +30,6 @@ namespace polybench
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  const Index_type nx = m_nx; \
-  const Index_type ny = m_ny; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_ptr fict; \
-  Real_ptr ex; \
-  Real_ptr ey; \
-  Real_ptr hz; \
-\
   allocAndInitOpenMPDeviceData(hz, m_hz, m_nx * m_ny, did, hid); \
   allocAndInitOpenMPDeviceData(ex, m_ex, m_nx * m_ny, did, hid); \
   allocAndInitOpenMPDeviceData(ey, m_ey, m_nx * m_ny, did, hid); \
@@ -56,6 +47,8 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  POLYBENCH_FDTD_2D_DATA_SETUP;
+
   if ( vid == Base_OpenMPTarget ) {
 
     POLYBENCH_FDTD_2D_DATA_SETUP_OMP_TARGET;
@@ -63,7 +56,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (Index_type t = 0; t < tsteps; ++t) {
+      for (t = 0; t < tsteps; ++t) {
 
         #pragma omp target is_device_ptr(ey,fict) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
@@ -121,7 +114,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (Index_type t = 0; t < tsteps; ++t) {
+      for (t = 0; t < tsteps; ++t) {
 
         RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
          [=] (Index_type j) {

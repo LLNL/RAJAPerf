@@ -28,14 +28,11 @@ namespace lcals
 
 
 #define FIRST_DIFF_DATA_SETUP_CUDA \
-  Real_ptr x; \
-  Real_ptr y; \
-\
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length);
+  allocAndInitCudaDeviceData(x, m_x, m_N); \
+  allocAndInitCudaDeviceData(y, m_y, m_N);
 
 #define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
+  getCudaDeviceData(m_x, x, m_N); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 
@@ -54,6 +51,8 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
+  FIRST_DIFF_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 

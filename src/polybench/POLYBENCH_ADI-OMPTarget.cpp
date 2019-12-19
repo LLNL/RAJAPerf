@@ -29,18 +29,6 @@ namespace polybench
 #define POLYBENCH_ADI_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
-  const Index_type n = m_n; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_type DX,DY,DT; \
-  Real_type B1,B2; \
-  Real_type mul1,mul2; \
-  Real_type a,b,c,d,e,f; \
-\
-  Real_ptr U = m_U; \
-  Real_ptr V = m_V; \
-  Real_ptr P = m_P; \
-  Real_ptr Q = m_Q; \
 \
   allocAndInitOpenMPDeviceData(U, m_U, m_n * m_n, did, hid); \
   allocAndInitOpenMPDeviceData(V, m_V, m_n * m_n, did, hid); \
@@ -59,14 +47,14 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  POLYBENCH_ADI_DATA_SETUP;
+
   if ( vid == Base_OpenMPTarget ) {
 
     POLYBENCH_ADI_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      POLYBENCH_ADI_BODY1;
 
       for (Index_type t = 1; t <= tsteps; ++t) { 
 
@@ -125,8 +113,6 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      POLYBENCH_ADI_BODY1;
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 

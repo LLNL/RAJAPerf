@@ -15,9 +15,16 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_PLANCKIAN_HPP
-#define RAJAPerf_Basic_PLANCKIAN_HPP
+#ifndef RAJAPerf_Lcals_PLANCKIAN_HPP
+#define RAJAPerf_Lcals_PLANCKIAN_HPP
 
+
+#define PLANCKIAN_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_ptr u = m_u; \
+  Real_ptr v = m_v; \
+  Real_ptr w = m_w;
 
 #define PLANCKIAN_BODY  \
   y[i] = u[i] / v[i]; \
@@ -42,10 +49,11 @@ public:
   ~PLANCKIAN();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

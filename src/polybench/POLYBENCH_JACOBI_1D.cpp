@@ -11,24 +11,13 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-
 
 namespace rajaperf 
 {
 namespace polybench
 {
 
-#define POLYBENCH_JACOBI_1D_DATA_SETUP_CPU \
-  ResReal_ptr A = m_Ainit; \
-  ResReal_ptr B = m_Binit;
-
-#define POLYBENCH_JACOBI_1D_DATA_RESET_CPU \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B; 
-  
+ 
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
@@ -83,155 +72,6 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
   allocAndInitData(m_Binit, m_N, vid);
   allocAndInitDataConst(m_A, m_N, 0.0, vid);
   allocAndInitDataConst(m_B, m_N, 0.0, vid);
-}
-
-void POLYBENCH_JACOBI_1D::runKernel(VariantID vid)
-{
-  const Index_type run_reps= getRunReps();
-  const Index_type N = m_N;
-  const Index_type tsteps = m_tsteps;
-
-  switch ( vid ) {
-
-    case Base_Seq : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) { 
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            POLYBENCH_JACOBI_1D_BODY1;
-          }
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            POLYBENCH_JACOBI_1D_BODY2;
-          }
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
-
-      break;
-    }
-
-
-#if defined(RUN_RAJA_SEQ)      
-    case RAJA_Seq : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::forall<RAJA::loop_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY1;
-          });
-
-          RAJA::forall<RAJA::loop_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY2;
-          });
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
-
-      break;
-    }
-
-#endif // RUN_RAJA_SEQ
-
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case Base_OpenMP : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            POLYBENCH_JACOBI_1D_BODY1;
-          }
-          #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) {
-            POLYBENCH_JACOBI_1D_BODY2;
-          }
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      POLYBENCH_JACOBI_1D_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY1;
-          });
-
-          RAJA::forall<RAJA::omp_parallel_for_exec> ( 
-            RAJA::RangeSegment{1, N-1}, [=] (Index_type i) {
-              POLYBENCH_JACOBI_1D_BODY2;
-          });
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET_CPU;
-
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget :
-    {
-      runOpenMPTargetVariant(vid);
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA :
-    {
-      runCudaVariant(vid);
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  POLYBENCH_JACOBI_1D : Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
 }
 
 void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid)

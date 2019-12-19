@@ -17,6 +17,10 @@
 #ifndef RAJAPerf_Stream_ADD_HPP
 #define RAJAPerf_Stream_ADD_HPP
 
+#define ADD_DATA_SETUP \
+  Real_ptr a = m_a; \
+  Real_ptr b = m_b; \
+  Real_ptr c = m_c;
 
 #define ADD_BODY  \
   c[i] = a[i] + b[i]; 
@@ -40,10 +44,11 @@ public:
   ~ADD();
 
   void setUp(VariantID vid);
-  void runKernel(VariantID vid); 
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 

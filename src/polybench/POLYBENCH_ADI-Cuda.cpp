@@ -27,24 +27,10 @@ namespace polybench
 const size_t block_size = 256;
 
 #define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  const Index_type n = m_n; \
-  const Index_type tsteps = m_tsteps; \
-\
-  Real_type DX,DY,DT; \
-  Real_type B1,B2; \
-  Real_type mul1,mul2; \
-  Real_type a,b,c,d,e,f; \
-\
-  Real_ptr U; \
-  Real_ptr V; \
-  Real_ptr P; \
-  Real_ptr Q; \
-\
   allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
   allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
   allocAndInitCudaDeviceData(P, m_P, m_n * m_n); \
   allocAndInitCudaDeviceData(Q, m_Q, m_n * m_n); 
-
 
 #define POLYBENCH_ADI_TEARDOWN_CUDA \
   getCudaDeviceData(m_U, U, m_n * m_n); \
@@ -94,6 +80,8 @@ __global__ void adi2(const Index_type n,
 void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  POLYBENCH_ADI_DATA_SETUP;
   
   if ( vid == Base_CUDA ) {
 
@@ -103,8 +91,6 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type t = 1; t <= tsteps; ++t) {
-
-        POLYBENCH_ADI_BODY1;
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-1, block_size);
 
@@ -132,7 +118,8 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, 
+                                   RAJA::cuda_block_x_loop,
             RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0>,
               RAJA::statement::For<1, RAJA::seq_exec,
@@ -149,8 +136,6 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      POLYBENCH_ADI_BODY1;
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 

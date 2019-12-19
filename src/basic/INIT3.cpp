@@ -12,20 +12,10 @@
 
 #include "common/DataUtils.hpp"
 
-#include <iostream>
-
 namespace rajaperf 
 {
 namespace basic
 {
-
-
-#define INIT3_DATA_SETUP_CPU \
-  ResReal_ptr out1 = m_out1; \
-  ResReal_ptr out2 = m_out2; \
-  ResReal_ptr out3 = m_out3; \
-  ResReal_ptr in1 = m_in1; \
-  ResReal_ptr in2 = m_in2;
 
 
 INIT3::INIT3(const RunParams& params)
@@ -46,115 +36,6 @@ void INIT3::setUp(VariantID vid)
   allocAndInitDataConst(m_out3, getRunSize(), 0.0, vid);
   allocAndInitData(m_in1, getRunSize(), vid);
   allocAndInitData(m_in2, getRunSize(), vid);
-}
-
-void INIT3::runKernel(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
-
-  switch ( vid ) {
-
-    case Base_Seq : {
-
-      INIT3_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INIT3_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-#if defined(RUN_RAJA_SEQ)     
-    case RAJA_Seq : {
-
-      INIT3_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT3_BODY;
-        });
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
-    case Base_OpenMP : {
-
-      INIT3_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INIT3_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      INIT3_DATA_SETUP_CPU;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::omp_parallel_for_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          INIT3_BODY;
-        });
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case Base_OpenMPTarget :
-    case RAJA_OpenMPTarget :
-    {
-      runOpenMPTargetVariant(vid);
-      break;
-    }
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case Base_CUDA :
-    case RAJA_CUDA :
-    {
-      runCudaVariant(vid);
-      break;
-    }
-#endif
-
-    default : {
-      std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
-    }
-
-  }
-
 }
 
 void INIT3::updateChecksum(VariantID vid)
