@@ -7,23 +7,25 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// FIRST_DIFF kernel reference implementation:
+/// ATOMIC_PI kernel reference implementation:
 ///
-/// for (Index_type i = 0; i < N-1; ++i ) {
-///   x[i] = y[i+1] - y[i];
+/// const int N = ...;  -- num [0, 1] sub-intervals used in Riemann integration
+/// const double dx = 1.0 / double(num_bins);
+///
+/// double pi = 0.0;
+/// for (Index_type i = 0; i < N; ++i ) {
+///   double x = (double(i) + 0.5) * dx;
+///   pi += dx / (1.0 + x * x);
 /// }
+/// pi *= 4.0;
 ///
 
-#ifndef RAJAPerf_Lcals_FIRST_DIFF_HPP
-#define RAJAPerf_Lcals_FIRST_DIFF_HPP
+#ifndef RAJAPerf_Basic_ATOMIC_PI_HPP
+#define RAJAPerf_Basic_ATOMIC_PI_HPP
 
-
-#define FIRST_DIFF_DATA_SETUP \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y;
-
-#define FIRST_DIFF_BODY  \
-  x[i] = y[i+1] - y[i];
+#define ATOMIC_PI_DATA_SETUP \
+  Real_type dx = m_dx; \
+  Real_ptr pi = m_pi;
 
 
 #include "common/KernelBase.hpp"
@@ -32,16 +34,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace lcals
+namespace basic
 {
 
-class FIRST_DIFF : public KernelBase
+class ATOMIC_PI : public KernelBase
 {
 public:
 
-  FIRST_DIFF(const RunParams& params);
+  ATOMIC_PI(const RunParams& params);
 
-  ~FIRST_DIFF();
+  ~ATOMIC_PI();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -53,13 +55,12 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-
-  Index_type m_N;
+  Real_type m_dx;
+  Real_ptr m_pi;
+  Real_type m_pi_init;
 };
 
-} // end namespace lcals
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard

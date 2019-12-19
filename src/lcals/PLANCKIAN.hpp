@@ -15,8 +15,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_PLANCKIAN_HPP
-#define RAJAPerf_Basic_PLANCKIAN_HPP
+#ifndef RAJAPerf_Lcals_PLANCKIAN_HPP
+#define RAJAPerf_Lcals_PLANCKIAN_HPP
 
 
 #define PLANCKIAN_DATA_SETUP \

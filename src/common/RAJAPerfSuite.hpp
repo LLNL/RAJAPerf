@@ -98,7 +98,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ATOMIC_PI = 0,
+  Basic_DAXPY,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
@@ -114,10 +115,14 @@ enum KernelID {
   Lcals_DIFF_PREDICT,
   Lcals_EOS,
   Lcals_FIRST_DIFF,
+  Lcals_FIRST_MIN,
+  Lcals_FIRST_SUM,
+  Lcals_GEN_LIN_RECUR,
   Lcals_HYDRO_1D,
   Lcals_HYDRO_2D,
   Lcals_INT_PREDICT,
   Lcals_PLANCKIAN,
+  Lcals_TRIDIAG_ELIM,
 
 //
 // Polybench kernels...

@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "FIRST_DIFF.hpp"
+#include "FIRST_MIN.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,34 +18,39 @@ namespace lcals
 {
 
 
-FIRST_DIFF::FIRST_DIFF(const RunParams& params)
-  : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
+FIRST_MIN::FIRST_MIN(const RunParams& params)
+  : KernelBase(rajaperf::Lcals_FIRST_MIN, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(16000);
+   setDefaultSize(1000000);
+// setDefaultReps(1000);
+// Set reps to low value until we resolve RAJA omp-target
+// reduction performance issues
+   setDefaultReps(100);
 }
 
-FIRST_DIFF::~FIRST_DIFF() 
+FIRST_MIN::~FIRST_MIN() 
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid)
+void FIRST_MIN::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
+  m_N = getRunSize(); 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
-  allocAndInitData(m_y, m_N, vid);
+  m_x[ m_N / 2 ] = -1.0e+10;
+  m_xmin_init = m_x[0];
+  m_initloc = 0;
+  m_minloc = -1;
 }
 
-void FIRST_DIFF::updateChecksum(VariantID vid)
+void FIRST_MIN::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += static_cast<long double>(m_minloc);
 }
 
-void FIRST_DIFF::tearDown(VariantID vid)
+void FIRST_MIN::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_x);
-  deallocData(m_y);
 }
 
 } // end namespace lcals

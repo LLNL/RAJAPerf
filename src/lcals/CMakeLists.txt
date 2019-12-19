@@ -23,6 +23,21 @@ blt_add_library(
           FIRST_DIFF-Cuda.cpp 
           FIRST_DIFF-OMP.cpp 
           FIRST_DIFF-OMPTarget.cpp 
+          FIRST_MIN.cpp 
+          FIRST_MIN-Seq.cpp 
+          FIRST_MIN-Cuda.cpp 
+          FIRST_MIN-OMP.cpp 
+          FIRST_MIN-OMPTarget.cpp 
+          FIRST_SUM.cpp 
+          FIRST_SUM-Seq.cpp 
+          FIRST_SUM-Cuda.cpp 
+          FIRST_SUM-OMP.cpp 
+          FIRST_SUM-OMPTarget.cpp 
+          GEN_LIN_RECUR.cpp 
+          GEN_LIN_RECUR-Seq.cpp 
+          GEN_LIN_RECUR-Cuda.cpp
+          GEN_LIN_RECUR-OMP.cpp
+          GEN_LIN_RECUR-OMPTarget.cpp
           HYDRO_1D.cpp 
           HYDRO_1D-Seq.cpp 
           HYDRO_1D-Cuda.cpp
@@ -43,5 +58,10 @@ blt_add_library(
           PLANCKIAN-Cuda.cpp 
           PLANCKIAN-OMP.cpp 
           PLANCKIAN-OMPTarget.cpp 
+          TRIDIAG_ELIM.cpp 
+          TRIDIAG_ELIM-Seq.cpp 
+          TRIDIAG_ELIM-Cuda.cpp 
+          TRIDIAG_ELIM-OMP.cpp 
+          TRIDIAG_ELIM-OMPTarget.cpp 
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

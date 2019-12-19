@@ -53,6 +53,9 @@ blt_add_executable(
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
+  basic/ATOMIC_PI.cpp
+  basic/ATOMIC_PI-Seq.cpp
+  basic/ATOMIC_PI-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -89,6 +92,15 @@ blt_add_executable(
   lcals/FIRST_DIFF.cpp
   lcals/FIRST_DIFF-Seq.cpp
   lcals/FIRST_DIFF-OMPTarget.cpp
+  lcals/FIRST_MIN.cpp
+  lcals/FIRST_MIN-Seq.cpp
+  lcals/FIRST_MIN-OMPTarget.cpp
+  lcals/FIRST_SUM.cpp
+  lcals/FIRST_SUM-Seq.cpp
+  lcals/FIRST_SUM-OMPTarget.cpp
+  lcals/GEN_LIN_RECUR.cpp
+  lcals/GEN_LIN_RECUR-Seq.cpp
+  lcals/GEN_LIN_RECUR-OMPTarget.cpp
   lcals/HYDRO_1D.cpp
   lcals/HYDRO_1D-Seq.cpp
   lcals/HYDRO_1D-OMPTarget.cpp
@@ -101,6 +113,9 @@ blt_add_executable(
   lcals/PLANCKIAN.cpp
   lcals/PLANCKIAN-Seq.cpp
   lcals/PLANCKIAN-OMPTarget.cpp
+  lcals/TRIDIAG_ELIM.cpp
+  lcals/TRIDIAG_ELIM-Seq.cpp
+  lcals/TRIDIAG_ELIM-OMPTarget.cpp
   polybench/POLYBENCH_2MM.cpp
   polybench/POLYBENCH_2MM-Seq.cpp
   polybench/POLYBENCH_2MM-OMPTarget.cpp

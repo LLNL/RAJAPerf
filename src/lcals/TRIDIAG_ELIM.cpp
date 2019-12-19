@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "FIRST_DIFF.hpp"
+#include "TRIDIAG_ELIM.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,34 +18,39 @@ namespace lcals
 {
 
 
-FIRST_DIFF::FIRST_DIFF(const RunParams& params)
-  : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
+TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
+  : KernelBase(rajaperf::Lcals_TRIDIAG_ELIM, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(16000);
+   setDefaultSize(200000);
+   setDefaultReps(5000);
 }
 
-FIRST_DIFF::~FIRST_DIFF() 
+TRIDIAG_ELIM::~TRIDIAG_ELIM() 
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid)
+void TRIDIAG_ELIM::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
-  allocAndInitDataConst(m_x, m_N, 0.0, vid);
+  m_N = getRunSize();
+
+  allocAndInitDataConst(m_xout, m_N, 0.0, vid);
+  allocAndInitData(m_xin, m_N, vid);
   allocAndInitData(m_y, m_N, vid);
+  allocAndInitData(m_z, m_N, vid);
 }
 
-void FIRST_DIFF::updateChecksum(VariantID vid)
+void TRIDIAG_ELIM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_xout, getRunSize());
 }
 
-void FIRST_DIFF::tearDown(VariantID vid)
+void TRIDIAG_ELIM::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_x);
+  deallocData(m_xout);
+  deallocData(m_xin);
   deallocData(m_y);
+  deallocData(m_z);
 }
 
 } // end namespace lcals

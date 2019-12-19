@@ -7,23 +7,26 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// FIRST_DIFF kernel reference implementation:
+/// FIRST_SUM kernel reference implementation:
 ///
-/// for (Index_type i = 0; i < N-1; ++i ) {
-///   x[i] = y[i+1] - y[i];
+/// Note: kernel is altered to enable parallelism (original used 'x[i-1]'
+///       on the right-hand side).
+///
+/// for (Index_type i = 1; i < N; ++i ) {
+///   x[i] = y[i-1] + y[i];
 /// }
 ///
 
-#ifndef RAJAPerf_Lcals_FIRST_DIFF_HPP
-#define RAJAPerf_Lcals_FIRST_DIFF_HPP
+#ifndef RAJAPerf_Lcals_FIRST_SUM_HPP
+#define RAJAPerf_Lcals_FIRST_SUM_HPP
 
 
-#define FIRST_DIFF_DATA_SETUP \
+#define FIRST_SUM_DATA_SETUP \
   Real_ptr x = m_x; \
   Real_ptr y = m_y;
 
-#define FIRST_DIFF_BODY  \
-  x[i] = y[i+1] - y[i];
+#define FIRST_SUM_BODY  \
+  x[i] = y[i-1] + y[i];
 
 
 #include "common/KernelBase.hpp"
@@ -35,13 +38,13 @@ class RunParams;
 namespace lcals
 {
 
-class FIRST_DIFF : public KernelBase
+class FIRST_SUM : public KernelBase
 {
 public:
 
-  FIRST_DIFF(const RunParams& params);
+  FIRST_SUM(const RunParams& params);
 
-  ~FIRST_DIFF();
+  ~FIRST_SUM();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

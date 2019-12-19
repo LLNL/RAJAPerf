@@ -16,8 +16,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_EOS_HPP
-#define RAJAPerf_Basic_EOS_HPP
+#ifndef RAJAPerf_Lcals_EOS_HPP
+#define RAJAPerf_Lcals_EOS_HPP
 
 
 #define EOS_DATA_SETUP \

@@ -14,8 +14,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_HYDRO_1D_HPP
-#define RAJAPerf_Basic_HYDRO_1D_HPP
+#ifndef RAJAPerf_Lcals_HYDRO_1D_HPP
+#define RAJAPerf_Lcals_HYDRO_1D_HPP
 
 
 #define HYDRO_1D_DATA_SETUP \

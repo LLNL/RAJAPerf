@@ -34,8 +34,8 @@
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_DIFF_PREDICT_HPP
-#define RAJAPerf_Basic_DIFF_PREDICT_HPP
+#ifndef RAJAPerf_Lcals_DIFF_PREDICT_HPP
+#define RAJAPerf_Lcals_DIFF_PREDICT_HPP
 
 
 #define DIFF_PREDICT_DATA_SETUP \

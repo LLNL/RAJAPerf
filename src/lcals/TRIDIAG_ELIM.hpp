@@ -7,23 +7,28 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// FIRST_DIFF kernel reference implementation:
+/// TRIDIAG_ELIM kernel reference implementation:
 ///
-/// for (Index_type i = 0; i < N-1; ++i ) {
-///   x[i] = y[i+1] - y[i];
+/// Note: kernel is altered to enable parallelism (original did not have
+///       separate input and output arrays for 'x').
+///
+/// for (Index_type i = 1; i < N; ++i ) {
+///   xout[i] = z[i] * ( y[i] - xin[i-1] );
 /// }
 ///
 
-#ifndef RAJAPerf_Lcals_FIRST_DIFF_HPP
-#define RAJAPerf_Lcals_FIRST_DIFF_HPP
+#ifndef RAJAPerf_Lcals_TRIDIAG_ELIM_HPP
+#define RAJAPerf_Lcals_TRIDIAG_ELIM_HPP
 
 
-#define FIRST_DIFF_DATA_SETUP \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y;
+#define TRIDIAG_ELIM_DATA_SETUP \
+  Real_ptr xout = m_xout; \
+  Real_ptr xin = m_xin; \
+  Real_ptr y = m_y; \
+  Real_ptr z = m_z;
 
-#define FIRST_DIFF_BODY  \
-  x[i] = y[i+1] - y[i];
+#define TRIDIAG_ELIM_BODY  \
+  xout[i] = z[i] * ( y[i] - xin[i-1] );
 
 
 #include "common/KernelBase.hpp"
@@ -35,13 +40,13 @@ class RunParams;
 namespace lcals
 {
 
-class FIRST_DIFF : public KernelBase
+class TRIDIAG_ELIM : public KernelBase
 {
 public:
 
-  FIRST_DIFF(const RunParams& params);
+  TRIDIAG_ELIM(const RunParams& params);
 
-  ~FIRST_DIFF();
+  ~TRIDIAG_ELIM();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -53,8 +58,10 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
-  Real_ptr m_x;
+  Real_ptr m_xout;
+  Real_ptr m_xin;
   Real_ptr m_y;
+  Real_ptr m_z;
 
   Index_type m_N;
 };
