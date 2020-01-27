@@ -232,6 +232,29 @@ static const std::string VariantNames [] =
   std::string("RAJA_CUDA"),
 #endif
 
+#if defined(RUN_KOKKOS)
+#if defined(RUN_RAJA_SEQ)
+  std::string("Kokkos_Lambda_Seq"),
+  std::string("Kokkos_Functor_Seq"),
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  std::string("Kokkos_Lambda_OpenMP"),
+  std::string("Kokkos_Functor_OpenMP"),
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  std::string("Kokkos_Lambda_OMPTarget"),
+  std::string("Kokkos_Functor_OMPTarget"),
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  std::string("Kokkos_Lambda_CUDA"),
+  std::string("Kokkos_Functor_CUDA"),
+#endif
+
+#endif // RUN_KOKKOS
+
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames

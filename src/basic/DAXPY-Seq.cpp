@@ -17,6 +17,13 @@ namespace rajaperf
 namespace basic
 {
 
+struct DaxpyFunctor {
+  Real_ptr y;
+  Real_ptr x;
+  Real_type a;
+  DaxpyFunctor(Real_ptr m_x, Real_ptr m_y, Real_type m_a) { DAXPY_DATA_SETUP; }
+  void operator()(Index_type i) const { DAXPY_BODY; }
+};
 
 void DAXPY::runSeqVariant(VariantID vid)
 {
@@ -78,6 +85,31 @@ void DAXPY::runSeqVariant(VariantID vid)
     }
 #endif
 
+#if defined(RUN_KOKKOS)
+#if defined(RUN_RAJA_SEQ)
+    case Kokkos_Lambda_Seq: {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+                             [=](Index_type i) { DAXPY_BODY; });
+      }
+      stopTimer();
+      
+      break;
+    }
+    case Kokkos_Functor_Seq: {
+      DaxpyFunctor daxpy_functor_instance(y,x,a);                                
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+                             daxpy_functor_instance);
+      }
+      stopTimer();
+      
+      break;
+    }
+#endif // RUN_KOKKOS
+#endif // RUN_RAJA_SEQ
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }

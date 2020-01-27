@@ -15,6 +15,10 @@
 
 #include "RAJA/config.hpp"
 
+#if defined(RUN_KOKKOS)
+#include "Kokkos_Core.hpp"
+#endif
+
 #include <string>
 
 namespace rajaperf
@@ -203,6 +207,27 @@ enum VariantID {
   RAJA_CUDA,
 #endif
 
+#if defined(RUN_KOKKOS)
+#if defined(RUN_RAJA_SEQ)
+  Kokkos_Lambda_Seq,
+  Kokkos_Functor_Seq,
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  Kokkos_Lambda_OpenMP,
+  Kokkos_Functor_OpenMP,
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+  Kokkos_Lambda_OMPTarget,
+  Kokkos_Functor_OMPTarget,
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  Kokkos_Lambda_CUDA,
+  Kokkos_Functor_CUDA,
+#endif
+#endif // RUN_KOKKOS
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };

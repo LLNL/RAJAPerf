@@ -259,7 +259,9 @@ void Executor::setupSuite()
       }
 
     } // kernel and variant input both look good
-
+#if defined(RUN_KOKKOS)
+    Kokkos::initialize(); 
+#endif
   } // if kernel input looks good
 
 }
@@ -422,6 +424,9 @@ void Executor::outputRunData()
 
   filename = out_fprefix + "-fom.csv";
   writeFOMReport(filename);
+#if defined(RUN_KOKKOS)
+    Kokkos::finalize(); // TODO DZP: should this be here? 
+#endif
 }
 
 
