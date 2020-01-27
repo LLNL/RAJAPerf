@@ -12,6 +12,7 @@ cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
+option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
 # Initialize the BLT build system
@@ -104,6 +105,17 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 
 # Make sure RAJA flag propagate
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
+
+if(ENABLE_KOKKOS)
+  add_definitions(-DRUN_KOKKOS)
+
+  add_subdirectory(tpl/kokkos)
+
+  get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${KOKKOS_INCLUDE_DIRS})
+  list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
+endif()
+
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.
