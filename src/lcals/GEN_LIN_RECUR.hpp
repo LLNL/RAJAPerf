@@ -9,12 +9,12 @@
 ///
 /// GEN_LIN_RECUR kernel reference implementation:
 ///
-/// Note: kernel is altered to enable parallelism and reproducibility 
+/// Note: kernel is altered to enable parallelism and reproducibility
 ///       (in original, stb5 is a scalar). In the future, this may be
 ///       changed to use atomics. --RDH
 ///
 /// Index_type kb5i = 0;
-/// 
+///
 /// for (Index_type k = 0; k < N; ++k ) {
 ///   b5[k+kb5i] = sa[k] + stb5[k]*sb[k];
 ///   stb5[k] = b5[k+kb5i] - stb5[k];
@@ -52,7 +52,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -74,6 +74,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

@@ -9,22 +9,23 @@
 blt_add_library(
   NAME basic
   SOURCES ATOMIC_PI.cpp
-          ATOMIC_PI-Seq.cpp 
-          ATOMIC_PI-Cuda.cpp 
-          ATOMIC_PI-OMP.cpp 
-          ATOMIC_PI-OMPTarget.cpp 
+          ATOMIC_PI-Seq.cpp
+          ATOMIC_PI-Hip.cpp
+          ATOMIC_PI-Cuda.cpp
+          ATOMIC_PI-OMP.cpp
+          ATOMIC_PI-OMPTarget.cpp
           DAXPY.cpp
-          DAXPY-Seq.cpp 
-          DAXPY-Hip.cpp 
-          DAXPY-Cuda.cpp 
-          DAXPY-OMP.cpp 
-          DAXPY-OMPTarget.cpp 
-          IF_QUAD.cpp 
-          IF_QUAD-Seq.cpp 
-          IF_QUAD-Hip.cpp 
-          IF_QUAD-Cuda.cpp 
-          IF_QUAD-OMP.cpp 
-          IF_QUAD-OMPTarget.cpp 
+          DAXPY-Seq.cpp
+          DAXPY-Hip.cpp
+          DAXPY-Cuda.cpp
+          DAXPY-OMP.cpp
+          DAXPY-OMPTarget.cpp
+          IF_QUAD.cpp
+          IF_QUAD-Seq.cpp
+          IF_QUAD-Hip.cpp
+          IF_QUAD-Cuda.cpp
+          IF_QUAD-OMP.cpp
+          IF_QUAD-OMPTarget.cpp
           INIT3.cpp
           INIT3-Seq.cpp
           INIT3-Hip.cpp
@@ -45,10 +46,10 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
-          MULADDSUB-Hip.cpp 
-          MULADDSUB-Cuda.cpp 
-          MULADDSUB-OMP.cpp 
-          MULADDSUB-OMPTarget.cpp 
+          MULADDSUB-Hip.cpp
+          MULADDSUB-Cuda.cpp
+          MULADDSUB-OMP.cpp
+          MULADDSUB-OMPTarget.cpp
           NESTED_INIT.cpp
           NESTED_INIT-Seq.cpp
           NESTED_INIT-Hip.cpp
@@ -63,9 +64,9 @@ blt_add_library(
           REDUCE3_INT-OMPTarget.cpp
           TRAP_INT.cpp
           TRAP_INT-Seq.cpp
-          TRAP_INT-Hip.cpp 
-          TRAP_INT-Cuda.cpp 
-          TRAP_INT-OMPTarget.cpp 
-          TRAP_INT-OMP.cpp 
+          TRAP_INT-Hip.cpp
+          TRAP_INT-Cuda.cpp
+          TRAP_INT-OMPTarget.cpp
+          TRAP_INT-OMP.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
