@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "FIRST_DIFF.hpp"
+#include "FIRST_SUM.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,30 +18,30 @@ namespace lcals
 {
 
 
-FIRST_DIFF::FIRST_DIFF(const RunParams& params)
-  : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
+FIRST_SUM::FIRST_SUM(const RunParams& params)
+  : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
    setDefaultSize(100000);
    setDefaultReps(16000);
 }
 
-FIRST_DIFF::~FIRST_DIFF() 
+FIRST_SUM::~FIRST_SUM() 
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid)
+void FIRST_SUM::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
+  m_N = getRunSize(); 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }
 
-void FIRST_DIFF::updateChecksum(VariantID vid)
+void FIRST_SUM::updateChecksum(VariantID vid)
 {
   checksum[vid] += calcChecksum(m_x, getRunSize());
 }
 
-void FIRST_DIFF::tearDown(VariantID vid)
+void FIRST_SUM::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_x);

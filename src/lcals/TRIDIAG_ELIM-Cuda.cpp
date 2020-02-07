@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "FIRST_DIFF.hpp"
+#include "TRIDIAG_ELIM.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -27,68 +27,72 @@ namespace lcals
   const size_t block_size = 256;
 
 
-#define FIRST_DIFF_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N); \
-  allocAndInitCudaDeviceData(y, m_y, m_N);
+#define TRIDIAG_ELIM_DATA_SETUP_CUDA \
+  allocAndInitCudaDeviceData(xout, m_xout, m_N); \
+  allocAndInitCudaDeviceData(xin, m_xin, m_N); \
+  allocAndInitCudaDeviceData(y, m_y, m_N); \
+  allocAndInitCudaDeviceData(z, m_z, m_N);
 
-#define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_N); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
+#define TRIDIAG_ELIM_DATA_TEARDOWN_CUDA \
+  getCudaDeviceData(m_xout, xout, m_N); \
+  deallocCudaDeviceData(xout); \
+  deallocCudaDeviceData(xin); \
+  deallocCudaDeviceData(y); \
+  deallocCudaDeviceData(z);
 
-__global__ void first_diff(Real_ptr x, Real_ptr y,
-                           Index_type iend) 
+__global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
+                    Index_type N) 
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     FIRST_DIFF_BODY; 
+   if (i > 0 && i < N) {
+     TRIDIAG_ELIM_BODY; 
    }
 }
 
 
-void FIRST_DIFF::runCudaVariant(VariantID vid)
+void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type ibegin = 1;
+  const Index_type iend = m_N;
 
-  FIRST_DIFF_DATA_SETUP;
+  TRIDIAG_ELIM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    FIRST_DIFF_DATA_SETUP_CUDA;
+    TRIDIAG_ELIM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_diff<<<grid_size, block_size>>>( x, y,
-                                              iend ); 
+       eos<<<grid_size, block_size>>>( xout, xin, y, z,
+                                       iend ); 
 
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
+    TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == RAJA_CUDA ) {
 
-    FIRST_DIFF_DATA_SETUP_CUDA;
+    TRIDIAG_ELIM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         FIRST_DIFF_BODY;
+         TRIDIAG_ELIM_BODY;
        });
 
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
+    TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
+     std::cout << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

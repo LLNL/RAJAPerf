@@ -13,6 +13,7 @@
 //
 // Basic kernels...
 //
+#include "basic/ATOMIC_PI.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
@@ -29,10 +30,14 @@
 #include "lcals/DIFF_PREDICT.hpp"
 #include "lcals/EOS.hpp"
 #include "lcals/FIRST_DIFF.hpp"
+#include "lcals/FIRST_MIN.hpp"
+#include "lcals/FIRST_SUM.hpp"
+#include "lcals/GEN_LIN_RECUR.hpp"
 #include "lcals/HYDRO_1D.hpp"
 #include "lcals/HYDRO_2D.hpp"
 #include "lcals/INT_PREDICT.hpp"
 #include "lcals/PLANCKIAN.hpp"
+#include "lcals/TRIDIAG_ELIM.hpp"
 
 //
 // Polybench kernels...
@@ -121,6 +126,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ATOMIC_PI"),
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
@@ -137,10 +143,14 @@ static const std::string KernelNames [] =
   std::string("Lcals_DIFF_PREDICT"),
   std::string("Lcals_EOS"),
   std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_FIRST_MIN"),
+  std::string("Lcals_FIRST_SUM"),
+  std::string("Lcals_GEN_LIN_RECUR"),
   std::string("Lcals_HYDRO_1D"),
   std::string("Lcals_HYDRO_2D"),
   std::string("Lcals_INT_PREDICT"),
   std::string("Lcals_PLANCKIAN"),
+  std::string("Lcals_TRIDIAG_ELIM"),
 
 //
 // Polybench kernels...
@@ -302,6 +312,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ATOMIC_PI : {
+       kernel = new basic::ATOMIC_PI(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -354,6 +368,18 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
+    case Lcals_FIRST_MIN : {
+       kernel = new lcals::FIRST_MIN(run_params);
+       break;
+    }
+    case Lcals_FIRST_SUM : {
+       kernel = new lcals::FIRST_SUM(run_params);
+       break;
+    }
+    case Lcals_GEN_LIN_RECUR : {
+       kernel = new lcals::GEN_LIN_RECUR(run_params);
+       break;
+    }
     case Lcals_HYDRO_1D : {
        kernel = new lcals::HYDRO_1D(run_params);
        break;
@@ -368,6 +394,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Lcals_PLANCKIAN : {
        kernel = new lcals::PLANCKIAN(run_params);
+       break;
+    }
+    case Lcals_TRIDIAG_ELIM : {
+       kernel = new lcals::TRIDIAG_ELIM(run_params);
        break;
     }
 

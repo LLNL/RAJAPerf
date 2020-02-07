@@ -29,7 +29,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  auto init3_base_lam = [&](Index_type i) -> Int_type {
+  auto init3_base_lam = [=](Index_type i) -> Int_type {
                           return vec[i];
                         };
 

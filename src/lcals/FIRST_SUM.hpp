@@ -7,28 +7,26 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HYDRO_1D kernel reference implementation:
+/// FIRST_SUM kernel reference implementation:
 ///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+/// Note: kernel is altered to enable parallelism (original used 'x[i-1]'
+///       on the right-hand side).
+///
+/// for (Index_type i = 1; i < N; ++i ) {
+///   x[i] = y[i-1] + y[i];
 /// }
 ///
 
-#ifndef RAJAPerf_Lcals_HYDRO_1D_HPP
-#define RAJAPerf_Lcals_HYDRO_1D_HPP
+#ifndef RAJAPerf_Lcals_FIRST_SUM_HPP
+#define RAJAPerf_Lcals_FIRST_SUM_HPP
 
 
-#define HYDRO_1D_DATA_SETUP \
+#define FIRST_SUM_DATA_SETUP \
   Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_ptr z = m_z; \
-\
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t;
+  Real_ptr y = m_y;
 
-#define HYDRO_1D_BODY  \
-  x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+#define FIRST_SUM_BODY  \
+  x[i] = y[i-1] + y[i];
 
 
 #include "common/KernelBase.hpp"
@@ -40,13 +38,13 @@ class RunParams;
 namespace lcals
 {
 
-class HYDRO_1D : public KernelBase
+class FIRST_SUM : public KernelBase
 {
 public:
 
-  HYDRO_1D(const RunParams& params);
+  FIRST_SUM(const RunParams& params);
 
-  ~HYDRO_1D();
+  ~FIRST_SUM();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -55,19 +53,13 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_x;
   Real_ptr m_y;
-  Real_ptr m_z;
 
-  Real_type m_q;
-  Real_type m_r;
-  Real_type m_t;
-
-  Index_type m_array_length; 
+  Index_type m_N;
 };
 
 } // end namespace lcals

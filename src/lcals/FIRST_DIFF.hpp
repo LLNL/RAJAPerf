@@ -9,13 +9,13 @@
 ///
 /// FIRST_DIFF kernel reference implementation:
 ///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
+/// for (Index_type i = 0; i < N-1; ++i ) {
 ///   x[i] = y[i+1] - y[i];
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_FIRST_DIFF_HPP
-#define RAJAPerf_Basic_FIRST_DIFF_HPP
+#ifndef RAJAPerf_Lcals_FIRST_DIFF_HPP
+#define RAJAPerf_Lcals_FIRST_DIFF_HPP
 
 
 #define FIRST_DIFF_DATA_SETUP \
@@ -57,7 +57,7 @@ private:
   Real_ptr m_x;
   Real_ptr m_y;
 
-  Index_type m_array_length;
+  Index_type m_N;
 };
 
 } // end namespace lcals

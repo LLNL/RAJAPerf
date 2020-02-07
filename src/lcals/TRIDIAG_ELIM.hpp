@@ -7,28 +7,28 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HYDRO_1D kernel reference implementation:
+/// TRIDIAG_ELIM kernel reference implementation:
 ///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+/// Note: kernel is altered to enable parallelism (original did not have
+///       separate input and output arrays for 'x').
+///
+/// for (Index_type i = 1; i < N; ++i ) {
+///   xout[i] = z[i] * ( y[i] - xin[i-1] );
 /// }
 ///
 
-#ifndef RAJAPerf_Lcals_HYDRO_1D_HPP
-#define RAJAPerf_Lcals_HYDRO_1D_HPP
+#ifndef RAJAPerf_Lcals_TRIDIAG_ELIM_HPP
+#define RAJAPerf_Lcals_TRIDIAG_ELIM_HPP
 
 
-#define HYDRO_1D_DATA_SETUP \
-  Real_ptr x = m_x; \
+#define TRIDIAG_ELIM_DATA_SETUP \
+  Real_ptr xout = m_xout; \
+  Real_ptr xin = m_xin; \
   Real_ptr y = m_y; \
-  Real_ptr z = m_z; \
-\
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t;
+  Real_ptr z = m_z;
 
-#define HYDRO_1D_BODY  \
-  x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+#define TRIDIAG_ELIM_BODY  \
+  xout[i] = z[i] * ( y[i] - xin[i-1] );
 
 
 #include "common/KernelBase.hpp"
@@ -40,13 +40,13 @@ class RunParams;
 namespace lcals
 {
 
-class HYDRO_1D : public KernelBase
+class TRIDIAG_ELIM : public KernelBase
 {
 public:
 
-  HYDRO_1D(const RunParams& params);
+  TRIDIAG_ELIM(const RunParams& params);
 
-  ~HYDRO_1D();
+  ~TRIDIAG_ELIM();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -55,19 +55,15 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
-  Real_ptr m_x;
+  Real_ptr m_xout;
+  Real_ptr m_xin;
   Real_ptr m_y;
   Real_ptr m_z;
 
-  Real_type m_q;
-  Real_type m_r;
-  Real_type m_t;
-
-  Index_type m_array_length; 
+  Index_type m_N;
 };
 
 } // end namespace lcals

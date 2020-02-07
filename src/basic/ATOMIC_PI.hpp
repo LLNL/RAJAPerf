@@ -7,28 +7,25 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// HYDRO_1D kernel reference implementation:
+/// ATOMIC_PI kernel reference implementation:
 ///
-/// for (Index_type i = ibegin; i < iend; ++i ) {
-///   x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+/// const int N = ...;  -- num [0, 1] sub-intervals used in Riemann integration
+/// const double dx = 1.0 / double(num_bins);
+///
+/// double pi = 0.0;
+/// for (Index_type i = 0; i < N; ++i ) {
+///   double x = (double(i) + 0.5) * dx;
+///   pi += dx / (1.0 + x * x);
 /// }
+/// pi *= 4.0;
 ///
 
-#ifndef RAJAPerf_Lcals_HYDRO_1D_HPP
-#define RAJAPerf_Lcals_HYDRO_1D_HPP
+#ifndef RAJAPerf_Basic_ATOMIC_PI_HPP
+#define RAJAPerf_Basic_ATOMIC_PI_HPP
 
-
-#define HYDRO_1D_DATA_SETUP \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_ptr z = m_z; \
-\
-  const Real_type q = m_q; \
-  const Real_type r = m_r; \
-  const Real_type t = m_t;
-
-#define HYDRO_1D_BODY  \
-  x[i] = q + y[i]*( r*z[i+10] + t*z[i+11] );
+#define ATOMIC_PI_DATA_SETUP \
+  Real_type dx = m_dx; \
+  Real_ptr pi = m_pi;
 
 
 #include "common/KernelBase.hpp"
@@ -37,16 +34,16 @@ namespace rajaperf
 {
 class RunParams;
 
-namespace lcals
+namespace basic
 {
 
-class HYDRO_1D : public KernelBase
+class ATOMIC_PI : public KernelBase
 {
 public:
 
-  HYDRO_1D(const RunParams& params);
+  ATOMIC_PI(const RunParams& params);
 
-  ~HYDRO_1D();
+  ~ATOMIC_PI();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -55,22 +52,15 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-  Real_ptr m_z;
-
-  Real_type m_q;
-  Real_type m_r;
-  Real_type m_t;
-
-  Index_type m_array_length; 
+  Real_type m_dx;
+  Real_ptr m_pi;
+  Real_type m_pi_init;
 };
 
-} // end namespace lcals
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard
