@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 #################################################################################
 
-BUILD_SUFFIX=lc_blueos-nvcc10-clang-upstream-2019.08.15
+BUILD_SUFFIX=lc_blueos-nvcc10-clang9.0.0
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -18,7 +18,7 @@ module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-upstream-2019.08.15/bin/clang++ \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-9.0.0/bin/clang++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
