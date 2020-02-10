@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
 # See the RAJAPerf/COPYRIGHT file for details.
 #
@@ -70,8 +70,8 @@ if (ENABLE_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 5)
-set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 2)
+set(RAJA_PERFSUITE_VERSION_MINOR 7)
+set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 
