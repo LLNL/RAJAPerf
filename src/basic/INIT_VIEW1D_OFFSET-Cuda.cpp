@@ -39,8 +39,8 @@ __global__ void initview1d_offset(Real_ptr a,
                                   const Index_type ibegin,
                                   const Index_type iend) 
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x + ibegin;
+   if (i < iend+ibegin) {
      INIT_VIEW1D_OFFSET_BODY; 
    }
 }
@@ -49,7 +49,7 @@ __global__ void initview1d_offset(Real_ptr a,
 void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
+  const Index_type ibegin = 1;
   const Index_type iend = getRunSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
