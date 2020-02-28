@@ -1,5 +1,5 @@
 [comment]: # (#################################################################)
-[comment]: # (Copyright 2017-19, Lawrence Livermore National Security, LLC)
+[comment]: # (Copyright 2017-20, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
 [comment]: # (See the RAJA/COPYRIGHT file for details.)
 [comment]: #
@@ -563,7 +563,7 @@ in earlier sections for adding a new kernel above.
 The RAJA Performance Suite is intended to be a work-in-progress, with new
 kernels and variants added over time. We encourage interested parties to 
 contribute to it so that C++ compiler optimizations and support for programming
-models like RAJA continue to improve.
+models like RAJA continue to improve. 
 
 The Suite developers follow the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) development model. Folks wishing to contribute to the Suite, should include their work in a feature branch created from the RAJA `develop` 
 branch. Then, create a pull request with the `develop` branch as the 
@@ -571,11 +571,14 @@ destination when it is ready to be reviewed. The `develop` branch contains the
 latest work in RAJA Performance Suite. Periodically, we will merge the
 develop branch into the `master` branch and tag a new release.
 
+If you would like to contribute to the RAJA Performance Suitea, or have 
+questions about doing so, please contact one of its developers. See below.
+
 * * *
 
 # Authors
 
-The RAJA Performance Suite was originally developed by:
+The primary developer of the RAJA Performance Suite:
 
   * Rich Hornung (hornung1@llnl.gov)
 
