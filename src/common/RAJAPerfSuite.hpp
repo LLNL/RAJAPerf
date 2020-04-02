@@ -219,8 +219,8 @@ enum VariantID {
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)  
-  Kokkos_Lambda_OMPTarget,
-  Kokkos_Functor_OMPTarget,
+  Kokkos_Lambda_OpenMPTarget,
+  Kokkos_Functor_OpenMPTarget,
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

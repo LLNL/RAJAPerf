@@ -244,8 +244,8 @@ static const std::string VariantNames [] =
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)  
-  std::string("Kokkos_Lambda_OMPTarget"),
-  std::string("Kokkos_Functor_OMPTarget"),
+  std::string("Kokkos_Lambda_OpenMPTarget"),
+  std::string("Kokkos_Functor_OpenMPTarget"),
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)

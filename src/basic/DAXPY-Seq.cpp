@@ -85,31 +85,6 @@ void DAXPY::runSeqVariant(VariantID vid)
     }
 #endif
 
-#if defined(RUN_KOKKOS)
-#if defined(RUN_RAJA_SEQ)
-    case Kokkos_Lambda_Seq: {
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-                             [=](Index_type i) { DAXPY_BODY; });
-      }
-      stopTimer();
-      
-      break;
-    }
-    case Kokkos_Functor_Seq: {
-      DaxpyFunctor daxpy_functor_instance(y,x,a);                                
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-                             daxpy_functor_instance);
-      }
-      stopTimer();
-      
-      break;
-    }
-#endif // RUN_KOKKOS
-#endif // RUN_RAJA_SEQ
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }

@@ -122,6 +122,41 @@ void KernelBase::runKernel(VariantID vid)
     }
 #endif
 
+#if defined(RUN_KOKKOS)
+    case Kokkos_Lambda_Seq :
+    case Kokkos_Functor_Seq :
+    {
+      runKokkosSeqVariant(vid);
+      break;
+    }
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case Kokkos_Lambda_OpenMP :
+    case Kokkos_Functor_OpenMP :
+    {
+      runKokkosOpenMPVariant(vid);
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case Kokkos_Lambda_OpenMPTarget :
+    case Kokkos_Functor_OpenMPTarget :
+    {
+      runKokkosOpenMPTargetVariant(vid);
+      break;
+    }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case Kokkos_Lambda_CUDA :
+    case Kokkos_Functor_CUDA :
+    {
+      runKokkosCudaVariant(vid);
+      break;
+    }
+#endif
+#endif // RUN_KOKKOS
     default : {
       std::cout << "\n  " << getName() 
                 << " : Unknown variant id = " << vid << std::endl;
