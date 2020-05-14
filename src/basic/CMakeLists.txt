@@ -15,7 +15,6 @@ blt_add_library(
           ATOMIC_PI-OMPTarget.cpp 
           DAXPY.cpp
           DAXPY-Seq.cpp 
-          DAXPY-KokkosSeq.cpp 
           DAXPY-Cuda.cpp 
           DAXPY-OMP.cpp 
           DAXPY-OMPTarget.cpp 
