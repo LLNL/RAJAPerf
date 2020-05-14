@@ -6,6 +6,8 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../basic)
+
 blt_add_library(
   NAME basic-kokkos
   SOURCES 

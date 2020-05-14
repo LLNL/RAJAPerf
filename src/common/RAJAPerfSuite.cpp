@@ -330,14 +330,17 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    /**
     case Basic_ATOMIC_PI : {
        kernel = new basic::ATOMIC_PI(run_params);
        break;
     }
+    */
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
     }
+		       /**
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
@@ -370,7 +373,8 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::TRAP_INT(run_params);
        break;
     }
-
+    */
+/** DZP: big comment block for unimplemented
 //
 // Lcals kernels...
 //
@@ -534,7 +538,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::VOL3D(run_params);
        break;
     }
-
+*/
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

@@ -9,19 +9,22 @@
 include_directories(.)
 
 add_subdirectory(common)
-add_subdirectory(apps)
+#add_subdirectory(apps)
 add_subdirectory(basic)
-add_subdirectory(lcals)
-add_subdirectory(polybench)
-add_subdirectory(stream)
+add_subdirectory(basic-kokkos)
+#add_subdirectory(lcals)
+#add_subdirectory(polybench)
+#add_subdirectory(stream)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
-    apps
+	#apps
     basic
-    lcals
-    polybench
-    stream)
+    basic-kokkos
+    #lcals
+    #polybench
+    #stream
+    )
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
 if(ENABLE_TARGET_OPENMP)
