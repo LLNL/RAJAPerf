@@ -4,6 +4,3 @@
 [submodule "blt"]
 	path = blt
 	url = https://github.com/LLNL/blt.git
-[submodule "tpl/RAJA"]
-	path = tpl/RAJA
-	url = https://github.com/LLNL/RAJA.git
