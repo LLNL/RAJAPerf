@@ -20,7 +20,13 @@
 #define DAXPY_DATA_SETUP \
   Real_ptr x = m_x; \
   Real_ptr y = m_y; \
-  Real_type a = m_a;
+  Real_type a = m_a; \
+  RAJA_INDEX_VALUE_T(I, int, "I");\
+  using vector_t = RAJA::StreamVector<Real_type, 2>;\
+  using VecI = RAJA::VectorIndex<I, vector_t>;\
+  RAJA::TypedView<Real_type, RAJA::Layout<1>, I> X(x, getRunSize()); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1>, I> Y(y, getRunSize()); \
+
 
 #define DAXPY_BODY  \
   y[i] += a * x[i] ;
