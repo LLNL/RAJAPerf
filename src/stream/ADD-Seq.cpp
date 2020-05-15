@@ -76,12 +76,31 @@ void ADD::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+
+    case RAJA_Vec : {
+
+      startTimer();
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::vector_exec<vector_t>>(RAJA::TypedRangeSegment<I>(ibegin, iend), 
+  	    [=](VecI i)
+	 {
+	     C[i] = A[i] + B[i];
+         });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
 
     default : {
       std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
     }
 
+#endif
   }
 
 }

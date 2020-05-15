@@ -35,15 +35,14 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid)
 
   POLYBENCH_GESUMMV_VIEWS_RAJA;
 
-  auto poly_gesummv_lam1 = [=](Index_type /*i*/, Index_type /*j*/, 
-                               Real_type& tmpdot, Real_type& ydot) {
+  auto poly_gesummv_lam1 = [=]( Real_type& tmpdot, Real_type& ydot) {
                                POLYBENCH_GESUMMV_BODY1_RAJA;
                               };
   auto poly_gesummv_lam2 = [=](Index_type i, Index_type j, 
                                Real_type& tmpdot, Real_type& ydot) {
                                POLYBENCH_GESUMMV_BODY2_RAJA;
                               };
-  auto poly_gesummv_lam3 = [=](Index_type i, Index_type /*j*/, 
+  auto poly_gesummv_lam3 = [=](Index_type i,
                                Real_type& tmpdot, Real_type& ydot) {
                                POLYBENCH_GESUMMV_BODY3_RAJA;
                               };
@@ -95,11 +94,11 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid)
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
             >,
-            RAJA::statement::Lambda<2>
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
           >
         >;
 

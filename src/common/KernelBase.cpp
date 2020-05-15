@@ -88,6 +88,7 @@ void KernelBase::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq :
     case RAJA_Seq :
+    case RAJA_Vec:
 #endif
     {
       runSeqVariant(vid);
