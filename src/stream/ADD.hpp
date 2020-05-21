@@ -22,7 +22,7 @@
   Real_ptr b = m_b; \
   Real_ptr c = m_c; \
   RAJA_INDEX_VALUE_T(I, int, "I");\
-  using vector_t = RAJA::StreamVector<Real_type, 2>;\
+  using vector_t = RAJA::StreamVector<Real_type, 16>;\
   using VecI = RAJA::VectorIndex<I, vector_t>;\
   RAJA::TypedView<Real_type, RAJA::Layout<1>, I> A(a, getRunSize()); \
   RAJA::TypedView<Real_type, RAJA::Layout<1>, I> B(b, getRunSize()); \
