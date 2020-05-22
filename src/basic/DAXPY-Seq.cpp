@@ -47,7 +47,7 @@ void DAXPY::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
+#if defined(RUN_RAJA_SEQ_ARGS)
     case Lambda_Seq : {
 
       startTimer();
@@ -63,7 +63,7 @@ void DAXPY::runSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case RAJA_Seq_Args : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,25 +76,6 @@ void DAXPY::runSeqVariant(VariantID vid)
 
       break;
     }
-
-    case RAJA_Vec : {
-
-      startTimer();
-
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::vector_exec<vector_t>>(RAJA::TypedRangeSegment<I>(ibegin, iend),
-            [=](VecI i)
-         {
-             Y[i] += a * X[i];
-         });
-
-      }
-      stopTimer();
-
-      break;
-    }
-
 #endif
 
     default : {

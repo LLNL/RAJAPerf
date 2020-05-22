@@ -11,8 +11,10 @@ project(RAJAPerfSuite CXX)
 cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ raw C loops." On)
+this, and all other variants, to run _only_ raw C loops." Off)
 
+option(ENABLE_RAJA_SEQUENTIAL_ARGS "Run sequential variants of RAJA kernels with extra ARG inputs. Disable
+this, and all other variants, to run _only_ raw C loops." On)
 #
 # Initialize the BLT build system
 #
@@ -21,7 +23,6 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2")
 set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
@@ -48,13 +49,6 @@ set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
 
 
-# exclude RAJA make targets from top-level build...
-add_subdirectory(tpl/RAJA)
-
-get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
-include_directories(${RAJA_INCLUDE_DIRS})
-
-
 #
 # Setup variables to pass to Perf suite
 #
@@ -65,7 +59,19 @@ include_directories(${RAJA_INCLUDE_DIRS})
 #
 if (ENABLE_RAJA_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
+  # exclude RAJA make targets from top-level build...
+  add_subdirectory(tpl/RAJA)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${RAJA_INCLUDE_DIRS})
+
+else(ENABLE_RAJA_SEQUENTIAL_ARGS)
+  add_definitions(-DRUN_RAJA_SEQ_ARGS)
+  # exclude RAJA make targets from top-level build...
+  add_subdirectory(tpl/RAJAvec)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAvec PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${RAJA_INCLUDE_DIRS})
 endif ()
+
 if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()

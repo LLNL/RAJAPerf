@@ -185,7 +185,11 @@ enum VariantID {
 #if defined(RUN_RAJA_SEQ)
   Lambda_Seq,
   RAJA_Seq,
-  RAJA_Vec,
+#endif
+
+#if defined(RUN_RAJA_SEQ_ARGS)
+  Lambda_Seq,
+  RAJA_Seq_Args,
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)

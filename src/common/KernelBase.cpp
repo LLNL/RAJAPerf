@@ -88,12 +88,20 @@ void KernelBase::runKernel(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq :
     case RAJA_Seq :
-    case RAJA_Vec:
-#endif
     {
       runSeqVariant(vid);
       break;
     }
+#endif
+
+#if defined(RUN_RAJA_SEQ_ARGS)
+    case Lambda_Seq :
+    case RAJA_Seq_Args :
+    {
+      runSeqVariant(vid);
+      break;
+    }
+#endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP :

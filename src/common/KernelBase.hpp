@@ -98,12 +98,15 @@ public:
   virtual void tearDown(VariantID vid) = 0;
 
   virtual void runSeqVariant(VariantID vid) = 0;
+
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   virtual void runOpenMPVariant(VariantID vid) = 0;
 #endif
+
 #if defined(RAJA_ENABLE_CUDA)
   virtual void runCudaVariant(VariantID vid) = 0;
 #endif
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid) = 0;
 #endif

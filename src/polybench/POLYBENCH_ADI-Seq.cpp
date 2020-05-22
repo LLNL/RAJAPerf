@@ -51,6 +51,35 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
 
   POLYBENCH_ADI_VIEWS_RAJA;
 
+#ifdef RUN_RAJA_SEQ
+  auto poly_adi_lam2 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY2_RAJA;
+                       };
+  auto poly_adi_lam3 = [=](Index_type i, Index_type j, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY3_RAJA;
+                       };
+  auto poly_adi_lam4 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY4_RAJA;
+                       };
+  auto poly_adi_lam5 = [=](Index_type i, Index_type /*j*/, Index_type k) {
+                         POLYBENCH_ADI_BODY5_RAJA;
+                       };
+  auto poly_adi_lam6 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY6_RAJA;
+                       };
+  auto poly_adi_lam7 = [=](Index_type i, Index_type j, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY7_RAJA;
+                       };
+  auto poly_adi_lam8 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
+                         POLYBENCH_ADI_BODY8_RAJA;
+                       };
+  auto poly_adi_lam9 = [=](Index_type i, Index_type /*j*/, Index_type k) {
+                         POLYBENCH_ADI_BODY9_RAJA;
+                       };
+
+#endif
+
+#ifdef RUN_RAJA_SEQ_ARGS
   auto poly_adi_lam2 = [=](Index_type i) {
                          POLYBENCH_ADI_BODY2_RAJA;
                        };
@@ -75,6 +104,7 @@ void POLYBENCH_ADI::runSeqVariant(VariantID vid)
   auto poly_adi_lam9 = [=](Index_type i, Index_type k) {
                          POLYBENCH_ADI_BODY9_RAJA;
                        };
+#endif
 
   switch ( vid ) {
 
