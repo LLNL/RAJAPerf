@@ -182,14 +182,9 @@ enum KernelID {
 enum VariantID {
 
   Base_Seq = 0,
-#if defined(RUN_RAJA_SEQ)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
   Lambda_Seq,
   RAJA_Seq,
-#endif
-
-#if defined(RUN_RAJA_SEQ_ARGS)
-  Lambda_Seq,
-  RAJA_Seq_Args,
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)

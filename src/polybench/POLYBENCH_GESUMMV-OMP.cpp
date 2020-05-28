@@ -38,6 +38,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_GESUMMV_VIEWS_RAJA;
 
+#ifdef RUN_RAJA_SEQ_ARGS
   auto poly_gesummv_lam1 = [=](Real_type& tmpdot, Real_type& ydot) {
                                POLYBENCH_GESUMMV_BODY1_RAJA;
                               };
@@ -48,6 +49,23 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
   auto poly_gesummv_lam3 = [=](Index_type i, Real_type& tmpdot, Real_type& ydot) {
                                POLYBENCH_GESUMMV_BODY3_RAJA;
                               };
+
+#else
+
+  auto poly_gesummv_lam1 = [=](Index_type /*i*/, Index_type /*j*/,
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY1_RAJA;
+                              };
+  auto poly_gesummv_lam2 = [=](Index_type i, Index_type j,
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY2_RAJA;
+                              };
+  auto poly_gesummv_lam3 = [=](Index_type i, Index_type /*j*/,
+                               Real_type& tmpdot, Real_type& ydot) {
+                               POLYBENCH_GESUMMV_BODY3_RAJA;
+                              };
+
+#endif
 
   switch ( vid ) {
 
@@ -91,6 +109,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
       break;
     }
 
+#ifdef RUN_RAJA_SEQ_ARGS
     case RAJA_OpenMP : {
 
       using EXEC_POL =
@@ -123,6 +142,42 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
       break;
     }
+
+#else
+
+    case RAJA_OpenMP : {
+
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >,
+            RAJA::statement::Lambda<2>
+          >
+        >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::kernel_param<EXEC_POL>(
+          RAJA::make_tuple( RAJA::RangeSegment{0, N},
+                            RAJA::RangeSegment{0, N} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
+                           static_cast<Real_type>(0.0)),
+
+          poly_gesummv_lam1,
+          poly_gesummv_lam2,
+          poly_gesummv_lam3
+        );
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
 
     default : {
       std::cout << "\n  POLYBENCH_GESUMMV : Unknown variant id = " << vid << std::endl;

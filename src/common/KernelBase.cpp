@@ -85,23 +85,14 @@ void KernelBase::runKernel(VariantID vid)
   switch ( vid ) {
 
     case Base_Seq :
-#if defined(RUN_RAJA_SEQ)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
     case Lambda_Seq :
     case RAJA_Seq :
+#endif
     {
       runSeqVariant(vid);
       break;
     }
-#endif
-
-#if defined(RUN_RAJA_SEQ_ARGS)
-    case Lambda_Seq :
-    case RAJA_Seq_Args :
-    {
-      runSeqVariant(vid);
-      break;
-    }
-#endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP :
@@ -112,6 +103,7 @@ void KernelBase::runKernel(VariantID vid)
       break;
     }
 #endif
+
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :

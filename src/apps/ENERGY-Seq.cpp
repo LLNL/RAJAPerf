@@ -82,7 +82,7 @@ void ENERGY::runSeqVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
     case Lambda_Seq : {
 
       startTimer();

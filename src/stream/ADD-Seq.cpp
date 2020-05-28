@@ -47,7 +47,6 @@ void ADD::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ_ARGS)
     case Lambda_Seq : {
 
       startTimer();
@@ -63,7 +62,29 @@ void ADD::runSeqVariant(VariantID vid)
       break;
     } 
 
-    case RAJA_Seq_Args : {
+#if defined(RUN_RAJA_SEQ_ARGS)
+
+    case RAJA_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), add_lam);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    default : {
+      std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
+    }
+
+#else
+
+    case RAJA_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

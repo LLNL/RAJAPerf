@@ -47,7 +47,8 @@ void DAXPY::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ_ARGS)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
+
     case Lambda_Seq : {
 
       startTimer();
@@ -63,7 +64,7 @@ void DAXPY::runSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq_Args : {
+    case RAJA_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

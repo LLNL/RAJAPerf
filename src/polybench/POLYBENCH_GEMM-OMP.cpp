@@ -41,6 +41,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_GEMM_VIEWS_RAJA;
 
+#ifdef RUN_RAJA_SEQ_ARGS
   auto poly_gemm_lam1 = [=](Real_type& dot) {
                             POLYBENCH_GEMM_BODY1_RAJA;
                            };
@@ -55,6 +56,25 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
                             Real_type& dot) {
                             POLYBENCH_GEMM_BODY4_RAJA;
                            };
+#else
+  auto poly_gemm_lam1 = [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/,
+                            Real_type& dot) {
+                            POLYBENCH_GEMM_BODY1_RAJA;
+                           };
+  auto poly_gemm_lam2 = [=](Index_type i, Index_type j, Index_type /*k*/,
+                            Real_type& /*dot*/) {
+                            POLYBENCH_GEMM_BODY2_RAJA;
+                           };
+  auto poly_gemm_lam3 = [=](Index_type i, Index_type j, Index_type k,
+                            Real_type& dot) {
+                            POLYBENCH_GEMM_BODY3_RAJA;
+                           };
+  auto poly_gemm_lam4 = [=](Index_type i, Index_type j, Index_type /*k*/,
+                            Real_type& dot) {
+                            POLYBENCH_GEMM_BODY4_RAJA;
+                           };
+
+#endif
 
   switch ( vid ) {
 
@@ -104,6 +124,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
       break;
     }
 
+#ifdef RUN_RAJA_SEQ_ARGS
     case RAJA_OpenMP : {
 
       using EXEC_POL =
@@ -141,6 +162,47 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
 
       break;
     }
+
+#else
+
+    case RAJA_OpenMP : {
+
+      using EXEC_POL =
+        RAJA::KernelPolicy<
+          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
+                                    RAJA::ArgList<0, 1>,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<1>,
+            RAJA::statement::For<2, RAJA::loop_exec,
+              RAJA::statement::Lambda<2>
+            >,
+            RAJA::statement::Lambda<3>
+          >
+        >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::kernel_param<EXEC_POL>(
+
+          RAJA::make_tuple( RAJA::RangeSegment{0, ni},
+                            RAJA::RangeSegment{0, nj},
+                            RAJA::RangeSegment{0, nk} ),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
+
+          poly_gemm_lam1,
+          poly_gemm_lam2,
+          poly_gemm_lam3,
+          poly_gemm_lam4
+
+        );
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
 
     default : {
       std::cout << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;

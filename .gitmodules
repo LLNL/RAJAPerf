@@ -7,3 +7,6 @@
 [submodule "tpl/RAJAvec"]
 	path = tpl/RAJAvec
 	url = https://github.com/LLNL/RAJA.git
+[submodule "tpl/RAJAorig"]
+	path = tpl/RAJAorig
+	url = https://github.com/LLNL/RAJA.git

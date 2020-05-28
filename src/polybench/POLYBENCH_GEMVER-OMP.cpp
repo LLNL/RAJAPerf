@@ -49,6 +49,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_GEMVER_VIEWS_RAJA;
 
+#ifdef RUN_RAJA_SEQ_ARGS
   auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
                                POLYBENCH_GEMVER_BODY1_RAJA;
                               };
@@ -76,6 +77,38 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
                                Real_type &dot) {
                                POLYBENCH_GEMVER_BODY8_RAJA;
                               };
+
+#else
+
+  auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
+                               POLYBENCH_GEMVER_BODY1_RAJA;
+                              };
+  auto poly_gemver_lam2 = [=] (Index_type /* i */, Index_type /* j */,
+                               Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY2_RAJA;
+                              };
+  auto poly_gemver_lam3 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY3_RAJA;
+                              };
+  auto poly_gemver_lam4 = [=] (Index_type i, Index_type /* j */,
+                               Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY4_RAJA;
+                              };
+  auto poly_gemver_lam5 = [=] (Index_type i) {
+                               POLYBENCH_GEMVER_BODY5_RAJA;
+                              };
+  auto poly_gemver_lam6 = [=] (Index_type i, Index_type /* j */,
+                               Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY6_RAJA;
+                              };
+  auto poly_gemver_lam7 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY7_RAJA;
+                              };
+  auto poly_gemver_lam8 = [=] (Index_type i, Index_type /* j */,
+                               Real_type &dot) {
+                               POLYBENCH_GEMVER_BODY8_RAJA;
+                              };
+#endif
 
   switch ( vid ) {
 
@@ -161,6 +194,8 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       break;
     }
 
+#ifdef RUN_RAJA_SEQ_ARGS
+
     case RAJA_OpenMP : {
 
       using EXEC_POL1 =
@@ -234,6 +269,72 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
 
       break;
     }
+
+#else
+
+    case RAJA_OpenMP : {
+
+      using EXEC_POL1 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<0>
+            >
+          >
+        >;
+
+      using EXEC_POL24 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+            RAJA::statement::Lambda<0>,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<1>
+            >,
+            RAJA::statement::Lambda<2>
+          >
+        >;
+
+      using EXEC_POL3 = RAJA::loop_exec;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                                                  RAJA::RangeSegment{0, n}),
+          poly_gemver_lam1
+        );
+
+        RAJA::kernel_param<EXEC_POL24>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                           RAJA::RangeSegment{0, n}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          poly_gemver_lam2,
+          poly_gemver_lam3,
+          poly_gemver_lam4
+        );
+
+        RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n},
+          poly_gemver_lam5
+        );
+
+        RAJA::kernel_param<EXEC_POL24>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, n},
+                           RAJA::RangeSegment{0, n}),
+          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+
+          poly_gemver_lam6,
+          poly_gemver_lam7,
+          poly_gemver_lam8
+
+        );
+      }
+      stopTimer();
+
+      break;
+    }
+
+#endif
 
     default : {
       std::cout << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
