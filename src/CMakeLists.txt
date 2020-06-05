@@ -179,7 +179,6 @@ blt_add_executable(
   common/RunParams.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
-
 else()
 blt_add_executable(
   NAME raja-perf.exe

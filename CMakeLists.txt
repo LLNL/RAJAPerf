@@ -15,6 +15,9 @@ this, and all other variants, to run _only_ raw C loops." On)
 
 option(ENABLE_RAJA_SEQUENTIAL_ARGS "Run sequential variants of RAJA kernels with extra ARG inputs. Disable
 this, and all other variants, to run _only_ raw C loops." Off)
+
+option(ENABLE_RAJA_SEQUENTIAL_ARGS_DEV "Run sequential variants of RAJA kernels with extra ARG inputs. Disable
+this, and all other variants, to run _only_ raw C loops." Off)
 #
 # Initialize the BLT build system
 #
@@ -60,8 +63,13 @@ if(ENABLE_RAJA_SEQUENTIAL)
 endif ()
 if(ENABLE_RAJA_SEQUENTIAL_ARGS)
   # exclude RAJA make targets from top-level build...
-  add_subdirectory(tpl/RAJAvec)
-  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAvec PROPERTY INCLUDE_DIRECTORIES)
+  if (ENABLE_RAJA_SEQUENTIAL_ARGS_DEV)
+    add_subdirectory(tpl/RAJAdev)
+    get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAdev PROPERTY INCLUDE_DIRECTORIES)
+  else ()
+    add_subdirectory(tpl/RAJAorig)
+    get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAorig PROPERTY INCLUDE_DIRECTORIES)
+  endif ()
   include_directories(${RAJA_INCLUDE_DIRS})
   add_definitions(-DRUN_RAJA_SEQ_ARGS)
 endif ()

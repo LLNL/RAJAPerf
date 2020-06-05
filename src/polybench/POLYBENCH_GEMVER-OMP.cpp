@@ -202,7 +202,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<0, RAJA::Segs<0,1>>
+              RAJA::statement::Lambda<0, RAJA::statement::Segs<0,1>>
             >
           >
         >;
@@ -210,11 +210,11 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       using EXEC_POL24 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0, RAJA::Params<0>>,                               
+            RAJA::statement::Lambda<0, RAJA::statement::Params<0>>,                               
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+              RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
             >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
+            RAJA::statement::Lambda<2, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>
           >
         >;
 
@@ -223,11 +223,11 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       using EXEC_POL5 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+            RAJA::statement::Lambda<0, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+              RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
             >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
+            RAJA::statement::Lambda<2, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>
           >
         >;
 
