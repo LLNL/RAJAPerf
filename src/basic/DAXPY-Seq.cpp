@@ -76,6 +76,25 @@ void DAXPY::runSeqVariant(VariantID vid)
 
       break;
     }
+
+    case RAJA_Vec : {
+
+      startTimer();
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::vector_exec<vector_t>>(RAJA::TypedRangeSegment<I>(ibegin, iend),
+            [=](VecI i)
+         {
+             Y[i] += a * X[i];
+         });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
 #endif
 
     default : {

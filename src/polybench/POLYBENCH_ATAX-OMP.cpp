@@ -42,22 +42,22 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_ATAX_VIEWS_RAJA;
 
-  auto poly_atax_lam1 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+  auto poly_atax_lam1 = [=] (Index_type i, Real_type &dot) {
                           POLYBENCH_ATAX_BODY1_RAJA;
                          };
   auto poly_atax_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
                           POLYBENCH_ATAX_BODY2_RAJA;
                         };
-  auto poly_atax_lam3 = [=] (Index_type i, Index_type /* j */, Real_type &dot) {
+  auto poly_atax_lam3 = [=] (Index_type i, Real_type &dot) {
                           POLYBENCH_ATAX_BODY3_RAJA;
                          };
-  auto poly_atax_lam4 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+  auto poly_atax_lam4 = [=] (Index_type j, Real_type &dot) {
                           POLYBENCH_ATAX_BODY4_RAJA;
                          };
   auto poly_atax_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
                           POLYBENCH_ATAX_BODY5_RAJA;
                          };
-  auto poly_atax_lam6 = [=] (Index_type /* i */, Index_type j, Real_type &dot) {
+  auto poly_atax_lam6 = [=] (Index_type j, Real_type &dot) {
                           POLYBENCH_ATAX_BODY6_RAJA;
                          };
 
@@ -126,22 +126,22 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
       using EXEC_POL1 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
              >,
-            RAJA::statement::Lambda<2>
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
           >
         >;
 
       using EXEC_POL2 =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
             RAJA::statement::For<0, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
             >,
-            RAJA::statement::Lambda<2>
+            RAJA::statement::Lambda<2, RAJA::Segs<1>, RAJA::Params<0>>
           >
         >;
 
@@ -150,9 +150,9 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
        
         RAJA::kernel_param<EXEC_POL1>(
-          RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                           RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, N),
+                           RAJA::RangeSegment(0, N)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam1,
           poly_atax_lam2,
@@ -161,9 +161,9 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
         );
 
         RAJA::kernel_param<EXEC_POL2>(
-          RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                           RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::make_tuple(RAJA::RangeSegment(0, N),
+                           RAJA::RangeSegment(0, N)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam4,
           poly_atax_lam5,
