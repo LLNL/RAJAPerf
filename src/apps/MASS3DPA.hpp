@@ -21,7 +21,8 @@ Real_ptr B = m_B; \
 Real_ptr Bt = m_Bt; \
 Real_ptr D = m_D; \
 Real_ptr X = m_X; \
-Real_ptr Y = m_Y;
+Real_ptr Y = m_Y; \
+Index_type NE = m_NE; 
 
 #include "common/KernelBase.hpp"
 
@@ -51,10 +52,10 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
-  void runSeqVariant(VariantID vid) {printf("TODO \n: "); }
-  void runOpenMPVariant(VariantID vid) {printf(" TODO \n: "); }
+  void runSeqVariant(VariantID vid);
+  void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid) {printf(" TODO \n: "); }
+  void runOpenMPTargetVariant(VariantID vid);
 
 private:
 

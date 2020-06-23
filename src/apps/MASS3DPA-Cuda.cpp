@@ -186,7 +186,7 @@ void MASS3DPA::runCudaVariant(VariantID vid)
 
       dim3 nthreads_per_block(Q1D, Q1D, 1);
 
-      Mass3DPA<<<m_NE, nthreads_per_block>>>(m_NE, B, Bt, D, X, Y);
+      Mass3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
 
     }
     stopTimer();
