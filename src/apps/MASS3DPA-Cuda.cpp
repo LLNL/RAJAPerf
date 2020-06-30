@@ -53,6 +53,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   constexpr int M1D = D1D > Q1D ? D1D : Q1D;
   constexpr int M2D = M1D*M1D;
 
+  //Element Index
   const int e = blockIdx.x;
 
   //Basis functions sampled at quadrature points in 1D
@@ -66,16 +67,17 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   double r_z[Q1D];
   double r_z2[D1D];
 
+  //Copy basis functions sampled at qpts
+  //to shared memory 
   { const int y = threadIdx.y;
     { const int x = threadIdx.x;
 
       const int id = (y * M1D) + x;
-      // Fetch Q <--> D maps
       if (id < DQ1D) {
         s_B[id]  = B[id];
         s_Bt[id]  = Bt[id];
       }
-      // Initialize our Z axis
+
       for (int qz = 0; qz < Q1D; ++qz) {
         r_z[qz] = 0;
       }
@@ -141,7 +143,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
     // Iterate over xy planes to compute solution
     for (int dz = 0; dz < D1D; ++dz) {
 
-      // Place xy plane in @shared memory
+      // Place xy plane in shared memory
       { const int qy = threadIdx.y;
         { const int qx = threadIdx.x;
           if ((qx < Q1D) && (qy < Q1D)) {
@@ -149,6 +151,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
           }
         }
       }
+
       // Finalize solution in xy plane
       {const int dy = threadIdx.y;
         {const int dx = threadIdx.x;
