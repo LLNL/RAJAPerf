@@ -40,11 +40,6 @@ void TRAP_INT::runSeqVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
-  auto trapint_base_lam = [=](Index_type i) -> Real_type {
-                            Real_type x = x0 + i*h;
-                            return trap_int_func(x, y, xp, yp);
-                          };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -68,6 +63,11 @@ void TRAP_INT::runSeqVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
+
+      auto trapint_base_lam = [=](Index_type i) -> Real_type {
+                                Real_type x = x0 + i*h;
+                                return trap_int_func(x, y, xp, yp);
+                              };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -29,10 +29,6 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  auto init3_base_lam = [=](Index_type i) -> Int_type {
-                          return vec[i];
-                        };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -63,6 +59,10 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto reduce3int_base_lam = [=](Index_type i) -> Int_type {
+                                   return vec[i];
+                                 };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -74,15 +74,15 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
                                  reduction(min:vmin), \
                                  reduction(max:vmax)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
+          vsum += reduce3int_base_lam(i);
+          vmin = RAJA_MIN(vmin, reduce3int_base_lam(i));
+          vmax = RAJA_MAX(vmax, reduce3int_base_lam(i));
         }
 
         m_vsum += vsum;
         m_vmin = RAJA_MIN(m_vmin, vmin);
         m_vmax = RAJA_MAX(m_vmax, vmax);
-
+  
       }
       stopTimer();
 
@@ -93,7 +93,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+  
         RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
