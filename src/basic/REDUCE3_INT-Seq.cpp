@@ -56,7 +56,7 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
     case Lambda_Seq : {
 
       startTimer();

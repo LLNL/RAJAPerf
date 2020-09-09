@@ -62,7 +62,7 @@ void ADD::runSeqVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ_ARGS)
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
 
     case RAJA_Seq : {
 

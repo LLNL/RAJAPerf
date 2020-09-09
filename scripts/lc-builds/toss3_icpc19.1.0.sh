@@ -9,19 +9,27 @@
 #################################################################################
 
 BUILD_SUFFIX=lc_toss3-icpc-19.1.0
-RAJA_HOSTCONFIG=../tpl/RAJA$1/host-configs/lc-builds/toss3/icpc_X_gcc8headers.cmake
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
-mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
+mkdir build_${BUILD_SUFFIX}_$1 && cd build_${BUILD_SUFFIX}_$1
 
 module load cmake/3.14.5
 
 if [ "$1" == "orig" ]; then
     argO="On"
     argV="Off"
-else
+    argD="Off"
+    RAJA_HOSTCONFIG=../tpl/RAJAorig/host-configs/lc-builds/toss3/clang_X.cmake
+elif [ "$1" == "origExt" ]; then
     argO="Off"
     argV="On"
+    argD="Off"
+    RAJA_HOSTCONFIG=../tpl/RAJAorig/host-configs/lc-builds/toss3/clang_X.cmake
+else
+    argO="Off"
+    argV="Off"
+    argD="On"
+    RAJA_HOSTCONFIG=../tpl/RAJAdev/host-configs/lc-builds/toss3/clang_X.cmake
 fi
 
 cmake \
@@ -29,7 +37,7 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/intel/intel-19.1.0/bin/icpc \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
-  -DENABLE_RAJA_SEQUENTIAL=$argO -DENABLE_RAJA_SEQUENTIAL_ARGS=$argV \
-  -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
+  -DENABLE_RAJA_SEQUENTIAL=$argO -DENABLE_RAJA_SEQUENTIAL_ARGS=$argV -DENABLE_RAJA_SEQUENTIAL_ARGS_DEV=$argD \
+  -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX}_$1 \
   "$@" \
   ..

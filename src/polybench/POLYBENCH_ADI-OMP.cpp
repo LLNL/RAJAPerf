@@ -55,7 +55,7 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
   POLYBENCH_ADI_VIEWS_RAJA;
 
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
   auto poly_adi_lam2 = [=](Index_type i) {
                          POLYBENCH_ADI_BODY2_RAJA;
                        };
@@ -188,20 +188,36 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
       break;
     }
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
 
     case RAJA_OpenMP : {
 
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<0, RAJA::Segs<0>>,
+#else
             RAJA::statement::Lambda<0, RAJA::statement::Segs<0>>,
+#endif
             RAJA::statement::For<1, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
+#else
               RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1>>
+#endif
             >,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<2, RAJA::Segs<0>>,
+#else
             RAJA::statement::Lambda<2, RAJA::statement::Segs<0>>,
+#endif
             RAJA::statement::For<2, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
+#else
               RAJA::statement::Lambda<3, RAJA::statement::Segs<0,2>>
+#endif
             >
           >
         >;

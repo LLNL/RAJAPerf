@@ -11,7 +11,7 @@ project(RAJAPerfSuite CXX)
 cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
-this, and all other variants, to run _only_ raw C loops." On)
+this, and all other variants, to run _only_ raw C loops." Off)
 
 option(ENABLE_RAJA_SEQUENTIAL_ARGS "Run sequential variants of RAJA kernels with extra ARG inputs. Disable
 this, and all other variants, to run _only_ raw C loops." Off)
@@ -23,6 +23,7 @@ this, and all other variants, to run _only_ raw C loops." Off)
 #
 message(STATUS ${ENABLE_RAJA_SEQUENTIAL})
 message(STATUS ${ENABLE_RAJA_SEQUENTIAL_ARGS})
+message(STATUS ${ENABLE_RAJA_SEQUENTIAL_ARGS_DEV})
 
 if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
@@ -43,8 +44,9 @@ set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
 set(ENABLE_TBB Off CACHE BOOL "")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 #
-# Setup variables to pass to Perf suite
+#Setup variables to pass to Perf suite
 #
 
 #
@@ -63,15 +65,17 @@ if(ENABLE_RAJA_SEQUENTIAL)
 endif ()
 if(ENABLE_RAJA_SEQUENTIAL_ARGS)
   # exclude RAJA make targets from top-level build...
-  if (ENABLE_RAJA_SEQUENTIAL_ARGS_DEV)
-    add_subdirectory(tpl/RAJAdev)
-    get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAdev PROPERTY INCLUDE_DIRECTORIES)
-  else ()
-    add_subdirectory(tpl/RAJAorig)
-    get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAorig PROPERTY INCLUDE_DIRECTORIES)
-  endif ()
+  add_subdirectory(tpl/RAJAorig)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAorig PROPERTY INCLUDE_DIRECTORIES)
   include_directories(${RAJA_INCLUDE_DIRS})
   add_definitions(-DRUN_RAJA_SEQ_ARGS)
+endif ()
+if(ENABLE_RAJA_SEQUENTIAL_ARGS_DEV)
+  # exclude RAJA make targets from top-level build...
+  add_subdirectory(tpl/RAJAdev)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAdev PROPERTY INCLUDE_DIRECTORIES)
+  add_definitions(-DRUN_RAJA_SEQ_ARGS_DEV)
+  include_directories(${RAJA_INCLUDE_DIRS})
 endif ()
 
 set(RAJA_USE_CHRONO On CACHE BOOL "")
@@ -79,7 +83,6 @@ set(RAJA_USE_CHRONO On CACHE BOOL "")
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
-
 
 if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)

@@ -62,7 +62,7 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_3MM_VIEWS_RAJA;
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
   auto poly_3mm_lam1 = [=] ( Real_type &dot) {
                               POLYBENCH_3MM_BODY1_RAJA;
                             };
@@ -251,7 +251,7 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
       break;
     }
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
     case RAJA_OpenMP : {
 
 #if defined(USE_RAJA_OMP_COLLAPSE)
@@ -259,11 +259,23 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                     RAJA::ArgList<0, 1>,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<0, RAJA::Params<0>>,
+#else
             RAJA::statement::Lambda<0, RAJA::statement::Params<0>>,
+#endif
             RAJA::statement::For<2, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+#else
               RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1,2>, RAJA::statement::Params<0>>
+#endif
             >,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
+#else
             RAJA::statement::Lambda<2, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
+#endif
           >
         >;
 #else
@@ -271,11 +283,23 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<0, RAJA::Params<0>>,
+#else
               RAJA::statement::Lambda<0, RAJA::statement::Params<0>>,
+#endif
               RAJA::statement::For<2, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+#else
                 RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1,2>, RAJA::statement::Params<0>>
+#endif
               >,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
+#else
               RAJA::statement::Lambda<2, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
+#endif
             >
           >
         >;

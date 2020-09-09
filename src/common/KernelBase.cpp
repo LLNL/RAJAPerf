@@ -85,7 +85,7 @@ void KernelBase::runKernel(VariantID vid)
   switch ( vid ) {
 
     case Base_Seq :
-#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS)
+#if defined(RUN_RAJA_SEQ) || defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
     case Lambda_Seq :
     case RAJA_Seq :
 #endif

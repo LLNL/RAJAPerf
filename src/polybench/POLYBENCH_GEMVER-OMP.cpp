@@ -49,7 +49,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_GEMVER_VIEWS_RAJA;
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
   auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
                                POLYBENCH_GEMVER_BODY1_RAJA;
                               };
@@ -194,7 +194,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       break;
     }
 
-#ifdef RUN_RAJA_SEQ_ARGS
+#if defined(RUN_RAJA_SEQ_ARGS) || defined(RUN_RAJA_SEQ_ARGS_DEV)
 
     case RAJA_OpenMP : {
 
@@ -202,7 +202,11 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<0, RAJA::Segs<0,1>>
+#else
               RAJA::statement::Lambda<0, RAJA::statement::Segs<0,1>>
+#endif
             >
           >
         >;
@@ -210,11 +214,23 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       using EXEC_POL24 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<0, RAJA::Params<0>>,                               
+#else
             RAJA::statement::Lambda<0, RAJA::statement::Params<0>>,                               
+#endif
             RAJA::statement::For<1, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+#else
               RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
+#endif
             >,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
+#else
             RAJA::statement::Lambda<2, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>
+#endif
           >
         >;
 
@@ -223,11 +239,23 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       using EXEC_POL5 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+#else
             RAJA::statement::Lambda<0, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>,
+#endif
             RAJA::statement::For<1, RAJA::loop_exec,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+#else
               RAJA::statement::Lambda<1, RAJA::statement::Segs<0,1>, RAJA::statement::Params<0>>
+#endif
             >,
+#ifdef RUN_RAJA_SEQ_ARGS_DEV
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
+#else
             RAJA::statement::Lambda<2, RAJA::statement::Segs<0>, RAJA::statement::Params<0>>
+#endif
           >
         >;
 
