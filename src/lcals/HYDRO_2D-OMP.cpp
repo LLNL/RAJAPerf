@@ -30,28 +30,6 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
   HYDRO_2D_DATA_SETUP;
 
-  auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY1;
-                           };
-  auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY2;
-                           };
-  auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY3;
-                           };
-
-  HYDRO_2D_VIEWS_RAJA;
-
-  auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY1_RAJA;
-                      };
-  auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY2_RAJA;
-                      };
-  auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY3_RAJA;
-                      };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -93,6 +71,16 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY1;
+                               };
+      auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY2;
+                               };
+      auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY3;
+                               };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -129,6 +117,18 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
     }
 
     case RAJA_OpenMP : {
+
+      HYDRO_2D_VIEWS_RAJA;
+
+      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY1_RAJA;
+                          };
+      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY2_RAJA;
+                          };
+      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY3_RAJA;
+                          };
 
       using EXECPOL =
         RAJA::KernelPolicy<

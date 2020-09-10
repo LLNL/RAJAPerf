@@ -54,7 +54,7 @@ void INT_PREDICT::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          INT_PREDICT_BODY;
+          intpredict_lam(i);
         }
 
       }
