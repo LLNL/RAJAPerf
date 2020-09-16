@@ -26,56 +26,6 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
 
   POLYBENCH_GEMVER_DATA_SETUP;
 
-  auto poly_gemver_base_lam1 = [=](Index_type i, Index_type j) {
-                                 POLYBENCH_GEMVER_BODY1;
-                               };
-  auto poly_gemver_base_lam3 = [=](Index_type i, Index_type j, Real_type &dot) {
-                                 POLYBENCH_GEMVER_BODY3;
-                               };
-  auto poly_gemver_base_lam4 = [=](Index_type i, Real_type &dot) {
-                                 POLYBENCH_GEMVER_BODY4;
-                               };
-  auto poly_gemver_base_lam5 = [=](Index_type i) {
-                                 POLYBENCH_GEMVER_BODY5;
-                               };
-  auto poly_gemver_base_lam7 = [=](Index_type i, Index_type j, Real_type &dot) {
-                                 POLYBENCH_GEMVER_BODY7;
-                                };
-  auto poly_gemver_base_lam8 = [=](Index_type i, Real_type &dot) {
-                                 POLYBENCH_GEMVER_BODY8;
-                               };
-
-  POLYBENCH_GEMVER_VIEWS_RAJA;
-
-  auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
-                               POLYBENCH_GEMVER_BODY1_RAJA;
-                              };
-  auto poly_gemver_lam2 = [=] (Index_type /* i */, Index_type /* j */, 
-                               Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY2_RAJA;
-                              };
-  auto poly_gemver_lam3 = [=] (Index_type i, Index_type j, Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY3_RAJA;
-                              };
-  auto poly_gemver_lam4 = [=] (Index_type i, Index_type /* j */, 
-                               Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY4_RAJA;
-                              };
-  auto poly_gemver_lam5 = [=] (Index_type i) {
-                               POLYBENCH_GEMVER_BODY5_RAJA;
-                              };
-  auto poly_gemver_lam6 = [=] (Index_type i, Index_type /* j */, 
-                               Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY6_RAJA;
-                              };
-  auto poly_gemver_lam7 = [=] (Index_type i, Index_type j, Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY7_RAJA;
-                              };
-  auto poly_gemver_lam8 = [=] (Index_type i, Index_type /* j */, 
-                               Real_type &dot) {
-                               POLYBENCH_GEMVER_BODY8_RAJA;
-                              };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -118,6 +68,27 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto poly_gemver_base_lam1 = [=](Index_type i, Index_type j) {
+                                     POLYBENCH_GEMVER_BODY1;
+                                   };
+      auto poly_gemver_base_lam3 = [=](Index_type i, Index_type j, 
+                                       Real_type &dot) {
+                                     POLYBENCH_GEMVER_BODY3;
+                                   };
+      auto poly_gemver_base_lam4 = [=](Index_type i, Real_type &dot) {
+                                     POLYBENCH_GEMVER_BODY4;
+                                   };
+      auto poly_gemver_base_lam5 = [=](Index_type i) {
+                                     POLYBENCH_GEMVER_BODY5;
+                                   };
+      auto poly_gemver_base_lam7 = [=](Index_type i, Index_type j, 
+                                       Real_type &dot) {
+                                     POLYBENCH_GEMVER_BODY7;
+                                    };
+      auto poly_gemver_base_lam8 = [=](Index_type i, Real_type &dot) {
+                                     POLYBENCH_GEMVER_BODY8;
+                                   };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -155,27 +126,65 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
+      POLYBENCH_GEMVER_VIEWS_RAJA;
+
+      auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
+                                   POLYBENCH_GEMVER_BODY1_RAJA;
+                                  };
+      auto poly_gemver_lam2 = [=] (Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY2_RAJA;
+                                  };
+      auto poly_gemver_lam3 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY3_RAJA;
+                                  };
+      auto poly_gemver_lam4 = [=] (Index_type i, Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY4_RAJA;
+                                  };
+      auto poly_gemver_lam5 = [=] (Index_type i) {
+                                   POLYBENCH_GEMVER_BODY5_RAJA;
+                                  };
+      auto poly_gemver_lam6 = [=] (Index_type i, Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY6_RAJA;
+                                  };
+      auto poly_gemver_lam7 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY7_RAJA;
+                                  };
+      auto poly_gemver_lam8 = [=] (Index_type i, Real_type &dot) {
+                                   POLYBENCH_GEMVER_BODY8_RAJA;
+                                  };
+
       using EXEC_POL1 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<0>
+              RAJA::statement::Lambda<0, RAJA::Segs<0,1>>
             >
           >
         >;
 
-      using EXEC_POL24 =
+      using EXEC_POL2 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<0, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
             >,
-            RAJA::statement::Lambda<2>
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
           >
         >;
 
       using EXEC_POL3 = RAJA::loop_exec;
+
+      using EXEC_POL4 =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::loop_exec,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
+          >
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -185,7 +194,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam1
         );
         
-        RAJA::kernel_param<EXEC_POL24>( 
+        RAJA::kernel_param<EXEC_POL2>( 
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),
@@ -199,7 +208,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam5
         );
 
-        RAJA::kernel_param<EXEC_POL24>( 
+        RAJA::kernel_param<EXEC_POL4>( 
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::make_tuple(static_cast<Real_type>(0.0)),

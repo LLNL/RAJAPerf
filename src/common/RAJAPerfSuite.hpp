@@ -132,10 +132,10 @@ enum KernelID {
   Polybench_ADI,
   Polybench_ATAX,
   Polybench_FDTD_2D,
-#if 0  // RDH OFF
   Polybench_FLOYD_WARSHALL,
   Polybench_GEMM,
   Polybench_GEMVER,
+#if 0  // RDH OFF
   Polybench_GESUMMV,
   Polybench_HEAT_3D,
   Polybench_JACOBI_1D,

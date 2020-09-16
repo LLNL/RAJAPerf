@@ -32,17 +32,6 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
-  auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
-                                         Index_type j) {
-                                       POLYBENCH_FLOYD_WARSHALL_BODY;
-                                     };
-
-  POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
-
-  auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, Index_type j) {
-                                  POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
-                                };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -71,6 +60,11 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
+                                             Index_type j) {
+                                           POLYBENCH_FLOYD_WARSHALL_BODY;
+                                         };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -94,6 +88,13 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
     }
 
     case RAJA_OpenMP : {
+
+      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
+
+      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, 
+                                        Index_type j) {
+                                      POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
+                                     };
 
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
