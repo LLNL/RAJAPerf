@@ -41,7 +41,7 @@ void INT_PREDICT::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          intpredict_lam(i);
+          INT_PREDICT_BODY;
         }
 
       }
