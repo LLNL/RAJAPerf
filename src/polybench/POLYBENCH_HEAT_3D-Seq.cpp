@@ -25,22 +25,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
-  auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                                 POLYBENCH_HEAT_3D_BODY1;
-                               };
-  auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                                 POLYBENCH_HEAT_3D_BODY2;
-                               };
-
-  POLYBENCH_HEAT_3D_VIEWS_RAJA;
-
-  auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                            POLYBENCH_HEAT_3D_BODY1_RAJA;
-                          };
-  auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                            POLYBENCH_HEAT_3D_BODY2_RAJA;
-                          };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -79,6 +63,15 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, 
+                                       Index_type k) {
+                                     POLYBENCH_HEAT_3D_BODY1;
+                                   };
+      auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j, 
+                                       Index_type k) {
+                                     POLYBENCH_HEAT_3D_BODY2;
+                                   };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -111,6 +104,15 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      POLYBENCH_HEAT_3D_VIEWS_RAJA;
+
+      auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
+                                POLYBENCH_HEAT_3D_BODY1_RAJA;
+                              };
+      auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
+                                POLYBENCH_HEAT_3D_BODY2_RAJA;
+                              };
 
       using EXEC_POL =
         RAJA::KernelPolicy<

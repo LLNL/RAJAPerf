@@ -161,9 +161,9 @@ static const std::string KernelNames [] =
   std::string("Polybench_ATAX"),
   std::string("Polybench_FDTD_2D"),
   std::string("Polybench_FLOYD_WARSHALL"),
+#if 0  // RDH OFF 
   std::string("Polybench_GEMM"),
   std::string("Polybench_GEMVER"),
-#if 0  // RDH OFF 
   std::string("Polybench_GESUMMV"),
   std::string("Polybench_HEAT_3D"),
   std::string("Polybench_JACOBI_1D"),
@@ -425,6 +425,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_FLOYD_WARSHALL(run_params);
        break;
     }
+#if 0 //  RDH_OFF
     case Polybench_GEMM : {
        kernel = new polybench::POLYBENCH_GEMM(run_params);
        break;
@@ -433,7 +434,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_GEMVER(run_params);
        break;
     }
-#if 0 //  RDH_OFF
     case Polybench_GESUMMV : {
        kernel = new polybench::POLYBENCH_GESUMMV(run_params);
        break;

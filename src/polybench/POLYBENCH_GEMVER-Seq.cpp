@@ -197,7 +197,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL2>( 
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_gemver_lam2,
           poly_gemver_lam3,
@@ -211,7 +211,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL4>( 
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_gemver_lam6,
           poly_gemver_lam7,

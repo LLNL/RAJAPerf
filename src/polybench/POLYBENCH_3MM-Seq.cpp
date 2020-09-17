@@ -194,7 +194,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nj},
                            RAJA::RangeSegment{0, nk}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_3mm_lam1,
           poly_3mm_lam2,
@@ -206,7 +206,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
           RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                            RAJA::RangeSegment{0, nl},
                            RAJA::RangeSegment{0, nm}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_3mm_lam4,
           poly_3mm_lam5,
@@ -218,7 +218,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nl},
                            RAJA::RangeSegment{0, nj}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_3mm_lam7,
           poly_3mm_lam8,

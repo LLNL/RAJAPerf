@@ -25,22 +25,6 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
 
   POLYBENCH_JACOBI_2D_DATA_SETUP;
 
-  auto poly_jacobi2d_base_lam1 = [=](Index_type i, Index_type j) {
-                                   POLYBENCH_JACOBI_2D_BODY1;
-                                 };
-  auto poly_jacobi2d_base_lam2 = [=](Index_type i, Index_type j) {
-                                   POLYBENCH_JACOBI_2D_BODY2;
-                                 };
-
-  POLYBENCH_JACOBI_2D_VIEWS_RAJA;
-
-  auto poly_jacobi2d_lam1 = [=](Index_type i, Index_type j) {
-                              POLYBENCH_JACOBI_2D_BODY1_RAJA;
-                            };
-  auto poly_jacobi2d_lam2 = [=](Index_type i, Index_type j) {
-                              POLYBENCH_JACOBI_2D_BODY2_RAJA;
-                            };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -75,6 +59,13 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto poly_jacobi2d_base_lam1 = [=](Index_type i, Index_type j) {
+                                       POLYBENCH_JACOBI_2D_BODY1;
+                                     };
+      auto poly_jacobi2d_base_lam2 = [=](Index_type i, Index_type j) {
+                                       POLYBENCH_JACOBI_2D_BODY2;
+                                     };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -103,6 +94,15 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      POLYBENCH_JACOBI_2D_VIEWS_RAJA;
+
+      auto poly_jacobi2d_lam1 = [=](Index_type i, Index_type j) {
+                                  POLYBENCH_JACOBI_2D_BODY1_RAJA;
+                                };
+      auto poly_jacobi2d_lam2 = [=](Index_type i, Index_type j) {
+                                  POLYBENCH_JACOBI_2D_BODY2_RAJA;
+                                };
 
       using EXEC_POL =
         RAJA::KernelPolicy<

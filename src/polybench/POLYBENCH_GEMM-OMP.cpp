@@ -127,7 +127,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),  // variable for dot
+          RAJA::tuple<Real_type>{0.0},  // variable for dot
 
           poly_gemm_lam1,
           poly_gemm_lam2,

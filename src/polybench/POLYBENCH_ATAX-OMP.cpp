@@ -155,7 +155,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam1,
           poly_atax_lam2,
@@ -166,7 +166,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam4,
           poly_atax_lam5,
