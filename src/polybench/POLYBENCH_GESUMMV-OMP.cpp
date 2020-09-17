@@ -111,7 +111,8 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
-          RAJA::tuple<Real_type>{0.0, 0.0},
+          RAJA::make_tuple(static_cast<Real_type>(0.0), 
+                           static_cast<Real_type>(0.0)),
 
           poly_gesummv_lam1,
           poly_gesummv_lam2,
