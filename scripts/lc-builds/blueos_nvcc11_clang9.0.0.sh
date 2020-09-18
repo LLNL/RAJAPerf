@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
-# and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# Copyright (c) 2016-20, Lawrence Livermore National Security, LLC
+# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
-#################################################################################
+###############################################################################
 
-BUILD_SUFFIX=lc_blueos-nvcc10-clang9.0.0
+#
+## NOTE: After building code, you need to load the cuda 11 module to run
+##       your code
+#
+
+BUILD_SUFFIX=lc_blueos-nvcc11-clang9.0.0
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -22,9 +26,10 @@ cmake \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
-  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-10.2.89 \
-  -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-10.2.89/bin/nvcc \
+  -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-11.0.2 \
+  -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-11.0.2/bin/nvcc \
   -DCUDA_ARCH=sm_70 \
+  -DCMAKE_CUDA_STANDARD="14" \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..

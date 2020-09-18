@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
-# and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# Copyright (c) 2016-20, Lawrence Livermore National Security, LLC
+# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
-#################################################################################
+###############################################################################
 
-BUILD_SUFFIX=lc_blueos-nvcc10-gcc7.3.1
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_gcc_X.cmake
+BUILD_SUFFIX=lc_blueos-nvcc10-clang10.0.0
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -18,7 +17,7 @@ module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-7.3.1/bin/g++ \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-10.0.0/bin/clang++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
