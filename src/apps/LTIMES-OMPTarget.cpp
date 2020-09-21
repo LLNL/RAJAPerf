@@ -77,7 +77,7 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<1, 2, 3>, // z, g, m
           RAJA::statement::For<0, RAJA::seq_exec,         // d
-            RAJA::statement::Lambda<0>
+            RAJA::statement::Lambda<0, RAJA::Segs<0,1,2,3>>
           >
         >
       >;

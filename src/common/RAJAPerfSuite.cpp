@@ -168,8 +168,6 @@ static const std::string KernelNames [] =
   std::string("Polybench_JACOBI_1D"),
   std::string("Polybench_JACOBI_2D"),
   std::string("Polybench_MVT"),
-#if 0  // RDH OFF 
-#endif
 
 //
 // Stream kernels...
@@ -453,8 +451,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new polybench::POLYBENCH_MVT(run_params);
        break;
     }
-#if 0 //  RDH_OFF
-#endif
 
 //
 // Stream kernels...

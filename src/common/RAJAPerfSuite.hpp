@@ -140,8 +140,6 @@ enum KernelID {
   Polybench_JACOBI_1D,
   Polybench_JACOBI_2D,
   Polybench_MVT,
-#if 0  // RDH OFF
-#endif
 
 //
 // Stream kernels...

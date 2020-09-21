@@ -148,7 +148,7 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
           [=] __device__ (Real_type &dot) {
             POLYBENCH_MVT_BODY4_RAJA;
