@@ -87,7 +87,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
           RAJA::statement::For<0, RAJA::cuda_block_y_loop,
             RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
               >,
@@ -110,8 +110,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
           [=] __device__ (Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j,
-                          Real_type& dot) {
+          [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
           [=] __device__ (Index_type i, Index_type j, Index_type k, 
