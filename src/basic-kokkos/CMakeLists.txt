@@ -13,6 +13,7 @@ blt_add_library(
   SOURCES 
           DAXPY-KokkosSeq.cpp
 	  DAXPY-KokkosOMP.cpp
+	  DAXPY-KokkosCuda.cpp
 	  ATOMIC_PI-KokkosOMP.cpp
 	  ATOMIC_PI-KokkosSeq.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}

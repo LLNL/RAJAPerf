@@ -21,6 +21,14 @@ namespace rajaperf
 namespace basic
 {
 
+struct DaxpyCudaFunctor {
+  Real_ptr x;
+  Real_ptr y;
+  Real_type a;
+  DaxpyCudaFunctor(Real_ptr m_x, Real_ptr m_y, Real_type m_a) : DAXPY_FUNCTOR_CONSTRUCT {  }
+  KOKKOS_FUNCTION void operator()(Index_type i) const { DAXPY_BODY; }
+};
+
   //
   // Define thread block size for CUDA execution
   //
@@ -36,50 +44,40 @@ namespace basic
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 
-__global__ void daxpy(Real_ptr y, Real_ptr x, 
-                      Real_type a, 
-                      Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     DAXPY_BODY; 
-   }
-}
 
-
-void DAXPY::runCudaVariant(VariantID vid)
+void DAXPY::runKokkosCudaVariant(VariantID vid)
 {
+#if defined(RUN_KOKKOS)
+#if defined(RAJA_ENABLE_CUDA)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
   DAXPY_DATA_SETUP;
-
-  if ( vid == Base_CUDA ) {
-
+  if ( vid == Kokkos_Functor_CUDA) {
     DAXPY_DATA_SETUP_CUDA;
+    DaxpyCudaFunctor daxpy_functor_instance(y,x,a);                                
 
     startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep)    {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      daxpy<<<grid_size, block_size>>>( y, x, a,
-                                        iend ); 
+        Kokkos::parallel_for("perfsuite.kokkos.seq.functor", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+                             daxpy_functor_instance);
 
     }
     stopTimer();
 
     DAXPY_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     DAXPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+	    Kokkos::parallel_for("perfsuite.kokkos.cuda.lambda",
+        Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend), [=] __device__ (Index_type i) {
         DAXPY_BODY;
       });
 
@@ -91,6 +89,8 @@ void DAXPY::runCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
   }
+#endif // RAJA_ENABLE_CUDA
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic
