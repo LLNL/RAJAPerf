@@ -27,6 +27,9 @@
   Real_type dx = m_dx; \
   Real_ptr pi = m_pi;
 
+#define ATOMIC_PI_FUNCTOR_CONSTRUCT \
+  dx(m_dx), \
+  pi(m_pi)
 
 #include "common/KernelBase.hpp"
 
@@ -53,6 +56,12 @@ public:
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
+#ifdef RUN_KOKKOS
+  void runKokkosSeqVariant(VariantID vid);
+  void runKokkosOpenMPVariant(VariantID vid);
+  void runKokkosCudaVariant(VariantID vid);
+  void runKokkosOpenMPTargetVariant(VariantID vid);
+#endif
 
 private:
   Real_type m_dx;

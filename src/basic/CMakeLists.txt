@@ -9,11 +9,11 @@
 blt_add_library(
   NAME basic
   SOURCES 
-  #        ATOMIC_PI.cpp
-  #        ATOMIC_PI-Seq.cpp 
-  #        ATOMIC_PI-Cuda.cpp 
-  #       ATOMIC_PI-OMP.cpp 
-  #       ATOMIC_PI-OMPTarget.cpp 
+          ATOMIC_PI.cpp
+          ATOMIC_PI-Seq.cpp 
+          ATOMIC_PI-Cuda.cpp 
+          ATOMIC_PI-OMP.cpp 
+          ATOMIC_PI-OMPTarget.cpp 
           DAXPY.cpp
           DAXPY-Seq.cpp 
           DAXPY-Cuda.cpp 
