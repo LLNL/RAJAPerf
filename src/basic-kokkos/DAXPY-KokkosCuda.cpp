@@ -61,7 +61,7 @@ void DAXPY::runKokkosCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep)    {
 
-        Kokkos::parallel_for("perfsuite.kokkos.seq.functor", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+        Kokkos::parallel_for("perfsuite.kokkos.cuda.functor", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
                              daxpy_functor_instance);
 
     }
