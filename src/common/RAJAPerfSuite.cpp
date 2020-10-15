@@ -330,12 +330,12 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
-    /**
+    
     case Basic_ATOMIC_PI : {
        kernel = new basic::ATOMIC_PI(run_params);
        break;
     }
-    */
+    
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;

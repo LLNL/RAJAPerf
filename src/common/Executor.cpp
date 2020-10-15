@@ -234,7 +234,7 @@ void Executor::setupSuite()
          kid != run_kern.end(); ++kid) {
 /// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do 
 /// complex numbers in GPU code
-      if ( *kid != Apps_COUPLE ) {
+      if ( /** *kid != Apps_COUPLE */ true ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
     }
