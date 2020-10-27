@@ -68,6 +68,7 @@ void POLYBENCH_FDTD_2D::setUp(VariantID vid)
   allocAndInitData(m_fict, m_tsteps, vid);
 }
 
+<<<<<<< HEAD
 void POLYBENCH_FDTD_2D::runKernel(VariantID vid)
 {
   const Index_type run_reps = getRunReps();

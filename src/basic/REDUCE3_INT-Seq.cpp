@@ -27,10 +27,6 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  auto init3_base_lam = [=](Index_type i) -> Int_type {
-                          return vec[i];
-                        };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -58,6 +54,10 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
+
+      auto init3_base_lam = [=](Index_type i) -> Int_type {
+                              return vec[i];
+                            };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

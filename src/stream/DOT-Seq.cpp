@@ -26,10 +26,6 @@ void DOT::runSeqVariant(VariantID vid)
 
   DOT_DATA_SETUP;
 
-  auto dot_base_lam = [=](Index_type i) -> Real_type {
-                        return a[i] * b[i];
-                      };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -53,6 +49,10 @@ void DOT::runSeqVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
+
+      auto dot_base_lam = [=](Index_type i) -> Real_type {
+                            return a[i] * b[i];
+                          };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
