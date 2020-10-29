@@ -626,12 +626,12 @@ as Git submodules. These packages are covered by various permissive licenses.
 A summary listing follows. See the license included with each package for
 full details.
 
-PackageName: BLT 
-PackageHomePage: https://github.com/LLNL/blt/ 
+PackageName: BLT  
+PackageHomePage: https://github.com/LLNL/blt/  
 PackageLicenseDeclared: BSD-3-Clause
 
-PackageName: RAJA 
-PackageHomePage: http://github.com/LLNL/RAJA/ 
+PackageName: RAJA  
+PackageHomePage: http://github.com/LLNL/RAJA/  
 PackageLicenseDeclared: BSD-3-Clause 
 
 * * *
