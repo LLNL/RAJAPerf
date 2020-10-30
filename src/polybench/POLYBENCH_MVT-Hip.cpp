@@ -106,13 +106,14 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, RAJA::hip_block_x_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, 
+                                   RAJA::hip_block_x_loop,
             RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0>,
+              RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1>
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
               >,
-              RAJA::statement::Lambda<2>
+              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
             >
           >
         >
@@ -126,15 +127,15 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
-          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
+          [=] __device__ (Real_type &dot) {
             POLYBENCH_MVT_BODY1_RAJA;
           },
           [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_MVT_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
+          [=] __device__ (Index_type i, Real_type &dot) {
             POLYBENCH_MVT_BODY3_RAJA;
           }
 
@@ -143,15 +144,15 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
-          RAJA::make_tuple(static_cast<Real_type>(0.0)),
+          RAJA::tuple<Real_type>{0.0},
 
-          [=] __device__ (Index_type /* i */, Index_type /* j */, Real_type &dot) {
+          [=] __device__ (Real_type &dot) {
             POLYBENCH_MVT_BODY4_RAJA;
           },
           [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
             POLYBENCH_MVT_BODY5_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /* j */, Real_type &dot) {
+          [=] __device__ (Index_type i, Real_type &dot) {
             POLYBENCH_MVT_BODY6_RAJA;
           }
 

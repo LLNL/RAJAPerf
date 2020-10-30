@@ -121,16 +121,16 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::Tile<0, RAJA::statement::tile_fixed<block_size>, 
+          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, 
                                    RAJA::hip_block_x_loop,
             RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0>,
+              RAJA::statement::Lambda<0, RAJA::Segs<0>>,
               RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1>
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
               >,
-              RAJA::statement::Lambda<2>,
+              RAJA::statement::Lambda<2, RAJA::Segs<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<3>
+                RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
               >
             >
           >
@@ -147,16 +147,16 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
+          [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_ADI_BODY3_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY4_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
+          [=] __device__ (Index_type i, Index_type k) {
             POLYBENCH_ADI_BODY5_RAJA;
           }
         );
@@ -166,16 +166,16 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type j, Index_type /*k*/) {
+          [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_ADI_BODY7_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY8_RAJA;
           },
-          [=] __device__ (Index_type i, Index_type /*j*/, Index_type k) {
+          [=] __device__ (Index_type i, Index_type k) {
             POLYBENCH_ADI_BODY9_RAJA;
           }
         );
