@@ -76,7 +76,7 @@ void KernelBase::recordExecTime()
 
   RAJA::Timer::ElapsedType exec_time = timer.elapsed();
   min_time[running_variant] = std::min(min_time[running_variant], exec_time);
-  max_time[running_variant] = std::max(min_time[running_variant], exec_time);
+  max_time[running_variant] = std::max(max_time[running_variant], exec_time);
   tot_time[running_variant] += exec_time;
 }
 

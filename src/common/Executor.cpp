@@ -36,7 +36,6 @@ Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
-  cout << "\n\nReading command line input..." << endl;
 }
 
 

@@ -25,10 +25,10 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-include(blt/SetupBLT.cmake)
-
 set(CMAKE_CXX_STANDARD 11)
 set(BLT_CXX_STANDARD 11)
+
+include(blt/SetupBLT.cmake)
 
 #
 # Define RAJA settings...
@@ -70,7 +70,7 @@ if (ENABLE_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 7)
+set(RAJA_PERFSUITE_VERSION_MINOR 8)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)

@@ -12,7 +12,7 @@
 /// const Real_type val = ...;
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i] = val;
+///   a[i] = (i+1) * val;
 /// }
 ///
 /// RAJA variants use a "View" and "Layout" to do the same thing. These 
@@ -29,10 +29,10 @@
   const Real_type v = m_val;
 
 #define INIT_VIEW1D_BODY  \
-  a[i] = v;
+  a[i] = (i+1) * v;
 
 #define INIT_VIEW1D_BODY_RAJA  \
-  view(i) = v;
+  view(i) = (i+1) * v;
 
 #define INIT_VIEW1D_VIEW_RAJA \
   using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \

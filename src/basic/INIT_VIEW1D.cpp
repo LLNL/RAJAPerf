@@ -32,7 +32,7 @@ INIT_VIEW1D::~INIT_VIEW1D()
 void INIT_VIEW1D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
-  m_val = 0.123;
+  m_val = 0.00000123;
 }
 
 void INIT_VIEW1D::updateChecksum(VariantID vid)
