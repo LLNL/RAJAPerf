@@ -29,10 +29,6 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
 
   FIRST_MIN_DATA_SETUP;
 
-  auto firstmin_base_lam = [=](Index_type i) -> Real_type {
-                             return x[i];
-                           };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -59,6 +55,10 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
     }
 
     case Lambda_OpenMP : {
+
+      auto firstmin_base_lam = [=](Index_type i) -> Real_type {
+                                 return x[i];
+                               };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -27,58 +27,6 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_ADI_DATA_SETUP;
 
-  auto poly_adi_base_lam2 = [=](Index_type i) {
-                              POLYBENCH_ADI_BODY2;
-                            };
-  auto poly_adi_base_lam3 = [=](Index_type i, Index_type j) {
-                              POLYBENCH_ADI_BODY3;
-                            };
-  auto poly_adi_base_lam4 = [=](Index_type i) {
-                              POLYBENCH_ADI_BODY4;
-                            };
-  auto poly_adi_base_lam5 = [=](Index_type i, Index_type k) {
-                              POLYBENCH_ADI_BODY5;
-                            };
-  auto poly_adi_base_lam6 = [=](Index_type i) {
-                              POLYBENCH_ADI_BODY6;
-                            };
-  auto poly_adi_base_lam7 = [=](Index_type i, Index_type j) {
-                              POLYBENCH_ADI_BODY7;
-                            };
-  auto poly_adi_base_lam8 = [=](Index_type i) {
-                              POLYBENCH_ADI_BODY8;
-                            };
-  auto poly_adi_base_lam9 = [=](Index_type i, Index_type k) {
-                              POLYBENCH_ADI_BODY9;
-                            };
-
-  POLYBENCH_ADI_VIEWS_RAJA;
-
-  auto poly_adi_lam2 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY2_RAJA;
-                       };
-  auto poly_adi_lam3 = [=](Index_type i, Index_type j, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY3_RAJA;
-                       };
-  auto poly_adi_lam4 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY4_RAJA;
-                       };
-  auto poly_adi_lam5 = [=](Index_type i, Index_type /*j*/, Index_type k) {
-                         POLYBENCH_ADI_BODY5_RAJA;
-                       };
-  auto poly_adi_lam6 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY6_RAJA;
-                       };
-  auto poly_adi_lam7 = [=](Index_type i, Index_type j, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY7_RAJA;
-                       };
-  auto poly_adi_lam8 = [=](Index_type i, Index_type /*j*/, Index_type /*k*/) {
-                         POLYBENCH_ADI_BODY8_RAJA;
-                       };
-  auto poly_adi_lam9 = [=](Index_type i, Index_type /*j*/, Index_type k) {
-                         POLYBENCH_ADI_BODY9_RAJA;
-                       };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -122,6 +70,31 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto poly_adi_base_lam2 = [=](Index_type i) {
+                                  POLYBENCH_ADI_BODY2;
+                                };
+      auto poly_adi_base_lam3 = [=](Index_type i, Index_type j) {
+                                  POLYBENCH_ADI_BODY3;
+                                };
+      auto poly_adi_base_lam4 = [=](Index_type i) {
+                                  POLYBENCH_ADI_BODY4;
+                                };
+      auto poly_adi_base_lam5 = [=](Index_type i, Index_type k) {
+                                  POLYBENCH_ADI_BODY5;
+                                };
+      auto poly_adi_base_lam6 = [=](Index_type i) {
+                                  POLYBENCH_ADI_BODY6;
+                                };
+      auto poly_adi_base_lam7 = [=](Index_type i, Index_type j) {
+                                  POLYBENCH_ADI_BODY7;
+                                };
+      auto poly_adi_base_lam8 = [=](Index_type i) {
+                                  POLYBENCH_ADI_BODY8;
+                                };
+      auto poly_adi_base_lam9 = [=](Index_type i, Index_type k) {
+                                  POLYBENCH_ADI_BODY9;
+                                };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -161,16 +134,43 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
 
     case RAJA_OpenMP : {
 
+      POLYBENCH_ADI_VIEWS_RAJA;
+
+      auto poly_adi_lam2 = [=](Index_type i) {
+                             POLYBENCH_ADI_BODY2_RAJA;
+                           };
+      auto poly_adi_lam3 = [=](Index_type i, Index_type j) {
+                             POLYBENCH_ADI_BODY3_RAJA;
+                           };
+      auto poly_adi_lam4 = [=](Index_type i) {
+                             POLYBENCH_ADI_BODY4_RAJA;
+                           };
+      auto poly_adi_lam5 = [=](Index_type i, Index_type k) {
+                             POLYBENCH_ADI_BODY5_RAJA;
+                           };
+      auto poly_adi_lam6 = [=](Index_type i) {
+                             POLYBENCH_ADI_BODY6_RAJA;
+                           };
+      auto poly_adi_lam7 = [=](Index_type i, Index_type j) {
+                             POLYBENCH_ADI_BODY7_RAJA;
+                           };
+      auto poly_adi_lam8 = [=](Index_type i) {
+                             POLYBENCH_ADI_BODY8_RAJA;
+                           };
+      auto poly_adi_lam9 = [=](Index_type i, Index_type k) {
+                             POLYBENCH_ADI_BODY9_RAJA;
+                           };
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
             >,
-            RAJA::statement::Lambda<2>,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>>,
             RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<3>
+              RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
             >
           >
         >;

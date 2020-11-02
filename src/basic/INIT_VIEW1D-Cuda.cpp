@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend);
+  allocAndInitCudaDeviceData(a, m_a, getRunSize());
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
+  getCudaDeviceData(m_a, a, getRunSize()); \
   deallocCudaDeviceData(a);
 
 __global__ void initview1d(Real_ptr a, 

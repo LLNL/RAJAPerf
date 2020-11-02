@@ -16,6 +16,8 @@
 
 #include "AppsData.hpp"
 
+#include "camp/resource.hpp"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -111,7 +113,10 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
+    camp::resources::Resource working_res{camp::resources::Cuda()};
+    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
+                                             m_domain->n_real_zones,
+                                             working_res);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

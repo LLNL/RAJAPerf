@@ -24,17 +24,6 @@ void LTIMES::runSeqVariant(VariantID vid)
 
   LTIMES_DATA_SETUP;
 
-  auto ltimes_base_lam = [=](Index_type d, Index_type z, 
-                             Index_type g, Index_type m) {
-                           LTIMES_BODY;
-                         };
-
-  LTIMES_VIEWS_RANGES_RAJA;
-
-  auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
-                      LTIMES_BODY_RAJA;
-                    };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -61,6 +50,11 @@ void LTIMES::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto ltimes_base_lam = [=](Index_type d, Index_type z, 
+                                 Index_type g, Index_type m) {
+                               LTIMES_BODY;
+                             };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -81,6 +75,13 @@ void LTIMES::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      LTIMES_VIEWS_RANGES_RAJA;
+
+      auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
+                          LTIMES_BODY_RAJA;
+                        };
+
 
       using EXEC_POL = 
         RAJA::KernelPolicy<

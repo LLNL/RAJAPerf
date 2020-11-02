@@ -569,7 +569,7 @@ The Suite developers follow the [GitFlow](http://nvie.com/posts/a-successful-git
 branch. Then, create a pull request with the `develop` branch as the 
 destination when it is ready to be reviewed. The `develop` branch contains the 
 latest work in RAJA Performance Suite. Periodically, we will merge the
-develop branch into the `master` branch and tag a new release.
+develop branch into the `main` branch and tag a new release.
 
 If you would like to contribute to the RAJA Performance Suitea, or have 
 questions about doing so, please contact one of its developers. See below.
@@ -626,13 +626,13 @@ as Git submodules. These packages are covered by various permissive licenses.
 A summary listing follows. See the license included with each package for
 full details.
 
-PackageName: BLT
-PackageHomePage: https://github.com/LLNL/blt/
+PackageName: BLT  
+PackageHomePage: https://github.com/LLNL/blt/  
 PackageLicenseDeclared: BSD-3-Clause
 
-PackageName: RAJA
-PackageHomePage: http://github.com/LLNL/RAJA/
-PackageLicenseDeclared: BSD-3-Clause
+PackageName: RAJA  
+PackageHomePage: http://github.com/LLNL/RAJA/  
+PackageLicenseDeclared: BSD-3-Clause 
 
 * * *
 
