@@ -23,15 +23,6 @@ namespace apps
 
 
 #define LTIMES_NOVIEW_DATA_SETUP_HIP \
-  Real_ptr phidat; \
-  Real_ptr elldat; \
-  Real_ptr psidat; \
-\
-  Index_type num_d = m_num_d; \
-  Index_type num_z = m_num_z; \
-  Index_type num_g = m_num_g; \
-  Index_type num_m = m_num_m; \
-\
   allocAndInitHipDeviceData(phidat, m_phidat, m_philen); \
   allocAndInitHipDeviceData(elldat, m_elldat, m_elllen); \
   allocAndInitHipDeviceData(psidat, m_psidat, m_psilen);
@@ -58,6 +49,8 @@ __global__ void ltimes_noview(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
 void LTIMES_NOVIEW::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+
+  LTIMES_NOVIEW_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
