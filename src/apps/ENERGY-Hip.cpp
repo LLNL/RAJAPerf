@@ -206,6 +206,7 @@ void ENERGY::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::region<RAJA::seq_region>( [=]() {
+
         RAJA::forall< RAJA::hip_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
@@ -235,7 +236,9 @@ void ENERGY::runHipVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
-      });
+
+      });  // end sequential region (for single-source code) 
+
     }
     stopTimer();
 
