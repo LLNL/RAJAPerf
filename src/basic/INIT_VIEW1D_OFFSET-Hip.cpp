@@ -40,7 +40,7 @@ __global__ void initview1d_offset(Real_ptr a,
                                   const Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x + ibegin;
-   if (i < iend+ibegin) {
+   if (i >= ibegin && i < iend) {
      INIT_VIEW1D_OFFSET_BODY;
    }
 }
