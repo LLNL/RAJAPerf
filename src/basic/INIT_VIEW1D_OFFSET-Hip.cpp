@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend);
+  allocAndInitHipDeviceData(a, m_a, getRunSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_a, a, iend); \
+  getHipDeviceData(m_a, a, getRunSize()); \
   deallocHipDeviceData(a);
 
 __global__ void initview1d_offset(Real_ptr a,
@@ -39,7 +39,7 @@ __global__ void initview1d_offset(Real_ptr a,
                                   const Index_type ibegin,
                                   const Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x + ibegin;
+   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i >= ibegin && i < iend) {
      INIT_VIEW1D_OFFSET_BODY;
    }
