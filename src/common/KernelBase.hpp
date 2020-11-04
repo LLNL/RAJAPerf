@@ -67,6 +67,11 @@ public:
       cudaDeviceSynchronize();
     }
 #endif
+#if defined(RAJA_ENABLE_HIP)
+    if ( running_variant == Base_HIP || running_variant == RAJA_HIP ) {
+      hipDeviceSynchronize();
+    }
+#endif
     timer.start(); 
   }
 
@@ -75,6 +80,11 @@ public:
 #if defined(RAJA_ENABLE_CUDA)
     if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
       cudaDeviceSynchronize();
+    }
+#endif
+#if defined(RAJA_ENABLE_HIP)
+    if ( running_variant == Base_HIP || running_variant == RAJA_HIP ) {
+      hipDeviceSynchronize();
     }
 #endif
     timer.stop(); recordExecTime(); 
@@ -103,6 +113,9 @@ public:
 #endif
 #if defined(RAJA_ENABLE_CUDA)
   virtual void runCudaVariant(VariantID vid) = 0;
+#endif
+#if defined(RAJA_ENABLE_HIP)
+  virtual void runHipVariant(VariantID vid) = 0;
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid) = 0;

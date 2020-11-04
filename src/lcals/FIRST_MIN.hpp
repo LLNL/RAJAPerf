@@ -38,9 +38,9 @@
 
 #include "common/RPTypes.hpp"
 
-struct MyMinLoc { 
-  rajaperf::Real_type val; 
-  rajaperf::Index_type loc; 
+struct MyMinLoc {
+  rajaperf::Real_type val;
+  rajaperf::Index_type loc;
 };
 
 #define FIRST_MIN_MINLOC_COMPARE \
@@ -52,12 +52,12 @@ MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
   MyMinLoc mymin; \
   mymin.val = m_xmin_init; \
   mymin.loc = m_initloc;
-  
+
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -79,11 +79,12 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
   Real_ptr m_x;
-  Real_type m_xmin_init; 
+  Real_type m_xmin_init;
   Index_type m_initloc;
   Index_type m_minloc;
 
