@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-19, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -104,7 +104,9 @@ void PRESSURE::runHipVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
       RAJA::region<RAJA::seq_region>( [=]() {
+
         RAJA::forall< RAJA::hip_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
@@ -113,7 +115,9 @@ void PRESSURE::runHipVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });
-      });
+
+      });  // end sequential region (for single-source code)
+
     }
     stopTimer();
 
