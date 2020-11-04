@@ -18,7 +18,15 @@ is used to assess, monitor, and compare runtime performance of kernels
 implemented using RAJA and variants implemented using standard or 
 vendor-supported parallel programming models directly. Each kernel in the 
 suite appears in multiple RAJA and non-RAJA (i.e., baseline) variants using 
-parallel programming models such as OpenMP and CUDA.
+various parallel programming models supported as RAJA back-ends. Current kernel
+variants include:
+
+  * Sequential
+  * OpenMP CPU multithreading
+  * CUDA  (NVIDIA GPUs)
+  * HIP   (AMD GPUs)
+  * OpenMP target offload
+
 
 The kernels originate from various HPC benchmark suites and applications. 
 Kernels are partitioned into "groups" --  each group
