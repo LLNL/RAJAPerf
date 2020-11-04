@@ -23,7 +23,6 @@ namespace apps
 
 
 #define LTIMES_NOVIEW_DATA_SETUP_CUDA \
-\
   allocAndInitCudaDeviceData(phidat, m_phidat, m_philen); \
   allocAndInitCudaDeviceData(elldat, m_elldat, m_elllen); \
   allocAndInitCudaDeviceData(psidat, m_psidat, m_psilen);
