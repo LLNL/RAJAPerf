@@ -21,8 +21,25 @@ namespace basic
 ATOMIC_PI::ATOMIC_PI(const RunParams& params)
   : KernelBase(rajaperf::Basic_ATOMIC_PI, params)
 {
-   setDefaultSize(3000);
-   setDefaultReps(10000);
+  setDefaultSize(3000);
+  setDefaultReps(10000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 ATOMIC_PI::~ATOMIC_PI() 

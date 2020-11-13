@@ -29,6 +29,23 @@ LTIMES::LTIMES(const RunParams& params)
   setDefaultSize(m_num_d_default * m_num_m_default * 
                  m_num_g_default * m_num_z_default);
   setDefaultReps(50);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 LTIMES::~LTIMES() 
