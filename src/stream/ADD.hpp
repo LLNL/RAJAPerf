@@ -25,7 +25,6 @@
 #define ADD_BODY  \
   c[i] = a[i] + b[i]; 
 
-
 #include "common/KernelBase.hpp"
 
 namespace rajaperf 

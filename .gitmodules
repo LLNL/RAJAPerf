@@ -7,3 +7,7 @@
 [submodule "tpl/RAJA"]
 	path = tpl/RAJA
 	url = https://github.com/LLNL/RAJA.git
+[submodule "tpl/RAJAvec"]
+	path = tpl/RAJAvec
+	url = https://github.com/LLNL/RAJA.git
+	branch = feature/kunen1/vector
