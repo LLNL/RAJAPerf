@@ -340,11 +340,12 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::DAXPY(run_params);
        break;
     }
-		       /**
+		       
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
-    }
+}
+    /**
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;

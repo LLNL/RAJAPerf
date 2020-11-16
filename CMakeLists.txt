@@ -87,7 +87,7 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
@@ -106,9 +106,11 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 # Make sure RAJA flag propagate
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
+# ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
 
+# ENABLE_CUDA IS A RAJA PERFSUITE OPTION
   if(ENABLE_CUDA)
     set(Kokkos_ENABLE_CUDA ON)
     set(Kokkos_ARCH_VOLTA70 ON) #TODO: better

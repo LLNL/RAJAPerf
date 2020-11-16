@@ -19,11 +19,11 @@ blt_add_library(
           DAXPY-Cuda.cpp 
           DAXPY-OMP.cpp 
           DAXPY-OMPTarget.cpp 
-  #       IF_QUAD.cpp 
-  #       IF_QUAD-Seq.cpp 
-  #       IF_QUAD-Cuda.cpp 
-  #       IF_QUAD-OMP.cpp 
-  #       IF_QUAD-OMPTarget.cpp 
+         IF_QUAD.cpp 
+         IF_QUAD-Seq.cpp 
+         IF_QUAD-Cuda.cpp 
+         IF_QUAD-OMP.cpp 
+         IF_QUAD-OMPTarget.cpp 
   #       INIT3.cpp
   #       INIT3-Seq.cpp
   #       INIT3-Cuda.cpp
