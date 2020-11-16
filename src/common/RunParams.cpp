@@ -8,8 +8,6 @@
 
 #include "RunParams.hpp"
 
-#include "RAJAPerfSuite.hpp"
-
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>

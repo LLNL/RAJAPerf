@@ -51,8 +51,26 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
       run_reps = 10;
       break;
   }
+
   setDefaultSize( m_tsteps * (m_ny + 3 * m_nx*m_ny) );
   setDefaultReps(run_reps);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D() 

@@ -23,11 +23,12 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     running_variant(NumVariants)
 {
   for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
+     checksum[ivar] = 0.0;
      num_exec[ivar] = 0;
      min_time[ivar] = std::numeric_limits<double>::max();
      max_time[ivar] = -std::numeric_limits<double>::max();
      tot_time[ivar] = 0.0;
-     checksum[ivar] = 0.0;
+     has_variant_to_run[ivar] = false;
   }
 }
 
@@ -49,6 +50,11 @@ Index_type KernelBase::getRunReps() const
   } else {
     return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
   } 
+}
+
+void KernelBase::setVariantDefined(VariantID vid) 
+{
+  has_variant_to_run[vid] = isVariantAvailable(vid); 
 }
 
 
@@ -82,61 +88,64 @@ void KernelBase::recordExecTime()
 
 void KernelBase::runKernel(VariantID vid)
 {
+  if ( !has_variant_to_run[vid] ) {
+    return;
+  }
+
   switch ( vid ) {
 
     case Base_Seq :
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq :
     case RAJA_Seq :
-#endif
-#if defined(RUN_RAJA_VEC)
-    case RAJA_Vec :
-#endif
     {
+#if defined(RUN_RAJA_SEQ)
       runSeqVariant(vid);
+#endif
       break;
     }
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case Base_OpenMP :
     case Lambda_OpenMP :
     case RAJA_OpenMP :
     {
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
       runOpenMPVariant(vid);
+#endif
       break;
     }
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :
     {
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
       runOpenMPTargetVariant(vid);
+#endif
       break;
     }
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
     case Base_CUDA :
     case RAJA_CUDA :
     {
+#if defined(RAJA_ENABLE_CUDA)
       runCudaVariant(vid);
+#endif
       break;
     }
-#endif
 
-#if defined(RAJA_ENABLE_HIP)
     case Base_HIP :
     case RAJA_HIP :
     {
+#if defined(RAJA_ENABLE_HIP)
       runHipVariant(vid);
+#endif
       break;
     }
-#endif
 
     default : {
+#if 0
       std::cout << "\n  " << getName() 
                 << " : Unknown variant id = " << vid << std::endl;
+#endif
     }
 
   }

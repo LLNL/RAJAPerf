@@ -58,6 +58,10 @@ public:
   double getTotTime(VariantID vid) { return tot_time[vid]; }
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
+  bool hasVariantToRun(VariantID vid) const { return has_variant_to_run[vid]; }
+
+  void setVariantDefined(VariantID vid);
+
   void execute(VariantID vid);
 
   void startTimer() 
@@ -122,16 +126,9 @@ public:
 #endif
 
 protected:
-  int num_exec[NumVariants];
-
   const RunParams& run_params;
 
-  RAJA::Timer::ElapsedType min_time[NumVariants];
-  RAJA::Timer::ElapsedType max_time[NumVariants];
-  RAJA::Timer::ElapsedType tot_time[NumVariants];
-
   Checksum_type checksum[NumVariants];
-
 
 private:
   KernelBase() = delete;
@@ -141,12 +138,20 @@ private:
   KernelID    kernel_id;
   std::string name;
 
-  RAJA::Timer timer;
-
   Index_type default_size;
   Index_type default_reps;
 
   VariantID running_variant; 
+
+  int num_exec[NumVariants];
+
+  RAJA::Timer timer;
+
+  RAJA::Timer::ElapsedType min_time[NumVariants];
+  RAJA::Timer::ElapsedType max_time[NumVariants];
+  RAJA::Timer::ElapsedType tot_time[NumVariants];
+
+  bool has_variant_to_run[NumVariants];
 };
 
 }  // closing brace for rajaperf namespace

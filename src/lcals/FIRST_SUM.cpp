@@ -21,8 +21,25 @@ namespace lcals
 FIRST_SUM::FIRST_SUM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(16000);
+  setDefaultSize(100000);
+  setDefaultReps(16000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP ); 
 }
 
 FIRST_SUM::~FIRST_SUM() 

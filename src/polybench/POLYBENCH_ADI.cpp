@@ -48,8 +48,26 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       run_reps = 20;
       break;
   }
+
   setDefaultSize( m_tsteps * 2*m_n*(m_n+m_n) );
   setDefaultReps(run_reps);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 POLYBENCH_ADI::~POLYBENCH_ADI() 
