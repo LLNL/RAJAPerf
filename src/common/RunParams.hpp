@@ -13,8 +13,7 @@
 #include <vector>
 #include <iosfwd>
 
-
-#include "common/DataUtils.hpp"
+#include "RAJAPerfSuite.hpp"
 
 namespace rajaperf
 {

@@ -8,8 +8,6 @@
 
 #include "RunParams.hpp"
 
-#include "RAJAPerfSuite.hpp"
-
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -111,6 +109,8 @@ void RunParams::print(std::ostream& str) const
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
+  std::cout << "\n\nReading command line input..." << std::endl;
+
   for (int i = 1; i < argc; ++i) {
 
     std::string opt(argv[i]);

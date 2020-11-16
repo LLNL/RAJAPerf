@@ -26,17 +26,6 @@ void LTIMES::runOpenMPVariant(VariantID vid)
 
   LTIMES_DATA_SETUP;
 
-  auto ltimes_base_lam = [=](Index_type d, Index_type z, 
-                             Index_type g, Index_type m) {
-                           LTIMES_BODY;
-                         };
-
-  LTIMES_VIEWS_RANGES_RAJA;
-
-  auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
-                      LTIMES_BODY_RAJA;
-                    };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -63,6 +52,11 @@ void LTIMES::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto ltimes_base_lam = [=](Index_type d, Index_type z, 
+                                 Index_type g, Index_type m) {
+                               LTIMES_BODY;
+                             };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -84,6 +78,12 @@ void LTIMES::runOpenMPVariant(VariantID vid)
     }
 
     case RAJA_OpenMP : {
+
+      LTIMES_VIEWS_RANGES_RAJA;
+
+      auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
+                          LTIMES_BODY_RAJA;
+                        };
 
       using EXEC_POL = 
         RAJA::KernelPolicy<

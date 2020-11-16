@@ -171,6 +171,7 @@ public:
   void runSeqVariant(VariantID vid) {(void) vid;}
   void runOpenMPVariant(VariantID vid) {(void) vid;}
   void runCudaVariant(VariantID vid) {(void) vid;}
+  void runHipVariant(VariantID vid) {(void) vid;}
   void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
 
 private:

@@ -52,6 +52,23 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   setDefaultSize( m_N*m_N*m_N );
   setDefaultReps(run_reps);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL() 

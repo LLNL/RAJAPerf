@@ -26,16 +26,6 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
 
   INIT_VIEW1D_DATA_SETUP;
 
-  auto initview1d_base_lam = [=](Index_type i) {
-                               INIT_VIEW1D_BODY;
-                             };
-
-  INIT_VIEW1D_VIEW_RAJA;
-
-  auto initview1d_lam = [=](Index_type i) {
-                          INIT_VIEW1D_BODY_RAJA;
-                        };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -56,6 +46,10 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto initview1d_base_lam = [=](Index_type i) {
+                                   INIT_VIEW1D_BODY;
+                                 };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,6 +64,12 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      INIT_VIEW1D_VIEW_RAJA;
+
+      auto initview1d_lam = [=](Index_type i) {
+                              INIT_VIEW1D_BODY_RAJA;
+                            };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
