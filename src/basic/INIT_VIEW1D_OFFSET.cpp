@@ -21,8 +21,25 @@ namespace basic
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D_OFFSET, params)
 {
-   setDefaultSize(500000);
-   setDefaultReps(5000);
+  setDefaultSize(500000);
+  setDefaultReps(5000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET() 

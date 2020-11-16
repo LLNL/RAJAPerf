@@ -21,8 +21,25 @@ namespace lcals
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(4000);
+  setDefaultSize(100000);
+  setDefaultReps(4000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 INT_PREDICT::~INT_PREDICT() 
