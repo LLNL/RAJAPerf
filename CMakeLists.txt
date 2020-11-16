@@ -13,9 +13,15 @@ cmake_minimum_required(VERSION 3.9)
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
 
+option(ENABLE_RAJA_VECTORIZATION "Run vectorized variants of RAJA kernels. Disable
+this, and all other variants, to run _only_ raw C loops." Off)
+
 #
 # Initialize the BLT build system
 #
+
+message(STATUS ${ENABLE_RAJA_SEQUENTIAL})
+message(STATUS ${ENABLE_RAJA_VECTORIZATION})
 
 if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
@@ -48,12 +54,6 @@ set(RAJA_DATA_ALIGN 64)
 
 
 # exclude RAJA make targets from top-level build...
-add_subdirectory(tpl/RAJA)
-
-get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
-include_directories(${RAJA_INCLUDE_DIRS})
-
-
 #
 # Setup variables to pass to Perf suite
 #
@@ -63,14 +63,23 @@ include_directories(${RAJA_INCLUDE_DIRS})
 # performance issues in the xl compiler.
 #
 if (ENABLE_RAJA_SEQUENTIAL)
+  add_subdirectory(tpl/RAJA)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${RAJA_INCLUDE_DIRS})
   add_definitions(-DRUN_RAJA_SEQ)
+endif ()
+if(ENABLE_RAJA_VECTORIZATION)
+  add_subdirectory(tpl/RAJAvec)
+  get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJAvec PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${RAJA_INCLUDE_DIRS})
+  add_definitions(-DRUN_RAJA_VEC)
 endif ()
 if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 8)
+set(RAJA_PERFSUITE_VERSION_MINOR 9)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
