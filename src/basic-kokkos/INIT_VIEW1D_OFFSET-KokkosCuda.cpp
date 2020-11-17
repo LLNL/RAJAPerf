@@ -34,16 +34,16 @@ namespace basic
   getCudaDeviceData(m_a, a, getRunSize()); \
   deallocCudaDeviceData(a);
 
-__global__ void initview1d_offset(Real_ptr a, 
-                                  Real_type v,
-                                  const Index_type ibegin,
-                                  const Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i >= ibegin && i < iend) {
-     INIT_VIEW1D_OFFSET_BODY; 
-   }
-}
+//__global__ void initview1d_offset(Real_ptr a, 
+//                                  Real_type v,
+//                                  const Index_type ibegin,
+//                                  const Index_type iend) 
+//{
+//   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+//   if (i >= ibegin && i < iend) {
+//     INIT_VIEW1D_OFFSET_BODY; 
+//   }
+//}
 
 
 void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
@@ -62,9 +62,9 @@ void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      initview1d_offset<<<grid_size, block_size>>>( a, v,
-                                                    ibegin,
-                                                    iend ); 
+      //initview1d_offset<<<grid_size, block_size>>>( a, v,
+      //                                              ibegin,
+      //                                              iend ); 
 
     }
     stopTimer();

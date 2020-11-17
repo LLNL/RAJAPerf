@@ -394,7 +394,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::IF_QUAD(run_params);
        break;
 }
-    /**
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;
@@ -423,7 +422,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::TRAP_INT(run_params);
        break;
     }
-    */
 /** DZP: big comment block for unimplemented
 //
 // Lcals kernels...

@@ -65,8 +65,8 @@ void IF_QUAD::runKokkosCudaVariant(VariantID vid)
 
 	// QUESTION: Should "RAJA_DIVIDE_CEILING_INT be changed?
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                          iend );
+       //ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
+       //                                   iend );
 
     }
     stopTimer();

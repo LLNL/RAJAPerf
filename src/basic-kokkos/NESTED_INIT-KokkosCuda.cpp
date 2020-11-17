@@ -28,15 +28,15 @@ namespace basic
   getCudaDeviceData(m_array, array, m_array_length); \
   deallocCudaDeviceData(array);
 
-__global__ void nested_init(Real_ptr array,
-                            Index_type ni, Index_type nj)
-{
-   Index_type i = threadIdx.x;
-   Index_type j = blockIdx.y;
-   Index_type k = blockIdx.z;
-
-   NESTED_INIT_BODY;
-}
+//__global__ void nested_init(Real_ptr array,
+//                            Index_type ni, Index_type nj)
+//{
+//   Index_type i = threadIdx.x;
+//   Index_type j = blockIdx.y;
+//   Index_type k = blockIdx.z;
+//
+//   NESTED_INIT_BODY;
+//}
 
 
 void NESTED_INIT::runKokkosCudaVariant(VariantID vid)
@@ -55,8 +55,8 @@ void NESTED_INIT::runKokkosCudaVariant(VariantID vid)
       dim3 nthreads_per_block(ni, 1, 1);
       dim3 nblocks(1, nj, nk);
 
-      nested_init<<<nblocks, nthreads_per_block>>>(array,
-                                                   ni, nj);
+      //nested_init<<<nblocks, nthreads_per_block>>>(array,
+      //                                             ni, nj);
 
     }
     stopTimer();

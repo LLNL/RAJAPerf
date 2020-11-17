@@ -34,52 +34,52 @@ namespace basic
   deallocCudaDeviceData(vec);
 
 
-__global__ void reduce3int(Int_ptr vec,
-                           Int_ptr vsum, Int_type vsum_init,
-                           Int_ptr vmin, Int_type vmin_init,
-                           Int_ptr vmax, Int_type vmax_init,
-                           Index_type iend) 
-{
-  extern __shared__ Int_type psum[ ];
-  Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
-  Int_type* pmax = (Int_type*)&psum[ 2 * blockDim.x ];
-
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-
-  psum[ threadIdx.x ] = vsum_init;
-  pmin[ threadIdx.x ] = vmin_init;
-  pmax[ threadIdx.x ] = vmax_init;
-
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
-    psum[ threadIdx.x ] += vec[ i ];
-    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
-    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
-  }
-  __syncthreads();
-
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) { 
-    if ( threadIdx.x < i ) { 
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
-      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( vsum, psum[ 0 ] );
-    RAJA::atomicMin<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
-    RAJA::atomicMax<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *vsum += psum[ 0 ];
-    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
-    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
-  }
-#endif
-}
+//__global__ void reduce3int(Int_ptr vec,
+//                           Int_ptr vsum, Int_type vsum_init,
+//                           Int_ptr vmin, Int_type vmin_init,
+//                           Int_ptr vmax, Int_type vmax_init,
+//                           Index_type iend) 
+//{
+//  extern __shared__ Int_type psum[ ];
+//  Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
+//  Int_type* pmax = (Int_type*)&psum[ 2 * blockDim.x ];
+//
+//  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+//
+//  psum[ threadIdx.x ] = vsum_init;
+//  pmin[ threadIdx.x ] = vmin_init;
+//  pmax[ threadIdx.x ] = vmax_init;
+//
+//  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+//    psum[ threadIdx.x ] += vec[ i ];
+//    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
+//    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
+//  }
+//  __syncthreads();
+//
+//  for ( i = blockDim.x / 2; i > 0; i /= 2 ) { 
+//    if ( threadIdx.x < i ) { 
+//      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
+//      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
+//      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
+//    }
+//     __syncthreads();
+//  }
+//
+//#if 1 // serialized access to shared data;
+//  if ( threadIdx.x == 0 ) {
+//    RAJA::atomicAdd<RAJA::cuda_atomic>( vsum, psum[ 0 ] );
+//    RAJA::atomicMin<RAJA::cuda_atomic>( vmin, pmin[ 0 ] );
+//    RAJA::atomicMax<RAJA::cuda_atomic>( vmax, pmax[ 0 ] );
+//  }
+//#else // this doesn't work due to data races
+//  if ( threadIdx.x == 0 ) {
+//    *vsum += psum[ 0 ];
+//    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
+//    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
+//  }
+//#endif
+//}
 
 
 void REDUCE3_INT::runKokkosCudaVariant(VariantID vid)
@@ -109,12 +109,12 @@ void REDUCE3_INT::runKokkosCudaVariant(VariantID vid)
       initCudaDeviceData(vmax, &m_vmax_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      reduce3int<<<grid_size, block_size, 
-                   3*sizeof(Int_type)*block_size>>>(vec, 
-                                                    vsum, m_vsum_init,
-                                                    vmin, m_vmin_init,
-                                                    vmax, m_vmax_init,
-                                                    iend ); 
+      //reduce3int<<<grid_size, block_size, 
+      //             3*sizeof(Int_type)*block_size>>>(vec, 
+      //                                              vsum, m_vsum_init,
+      //                                              vmin, m_vmin_init,
+      //                                              vmax, m_vmax_init,
+      //                                              iend ); 
 
       Int_type lsum;
       Int_ptr plsum = &lsum;

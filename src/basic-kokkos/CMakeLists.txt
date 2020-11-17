@@ -31,10 +31,10 @@ blt_add_library(
           INIT_VIEW1D-KokkosCuda.cpp
           INIT_VIEW1D-KokkosOMP.cpp
           INIT_VIEW1D-KokkosOMPTarget.cpp
-          INIT_VIEW1D_KokkosOFFSET-Seq.cpp
-          INIT_VIEW1D_KokkosOFFSET-Cuda.cpp
-          INIT_VIEW1D_KokkosOFFSET-OMP.cpp
-          INIT_VIEW1D_KokkosOFFSET-OMPTarget.cpp
+          INIT_VIEW1D_OFFSET-KokkosSeq.cpp
+          INIT_VIEW1D_OFFSET-KokkosCuda.cpp
+          INIT_VIEW1D_OFFSET-KokkosOMP.cpp
+          INIT_VIEW1D_OFFSET-KokkosOMPTarget.cpp
           MULADDSUB-KokkosSeq.cpp
           MULADDSUB-KokkosCuda.cpp
           MULADDSUB-KokkosOMP.cpp

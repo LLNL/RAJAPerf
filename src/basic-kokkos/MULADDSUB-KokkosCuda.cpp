@@ -44,15 +44,15 @@ namespace basic
   deallocCudaDeviceData(in1); \
   deallocCudaDeviceData(in2);
 
-__global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
-                          Real_ptr in1, Real_ptr in2, 
-                          Index_type iend) 
-{
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     MULADDSUB_BODY; 
-   }
-}
+//__global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
+//                          Real_ptr in1, Real_ptr in2, 
+//                          Index_type iend) 
+//{
+//   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+//   if (i < iend) {
+//     MULADDSUB_BODY; 
+//   }
+//}
 
 
 void MULADDSUB::runKokkosCudaVariant(VariantID vid)
@@ -71,8 +71,8 @@ void MULADDSUB::runKokkosCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
-                                             iend ); 
+       //muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
+       //                                      iend ); 
 
     }
     stopTimer();
