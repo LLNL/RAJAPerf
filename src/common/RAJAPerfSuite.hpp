@@ -105,45 +105,45 @@ enum KernelID {
   Basic_ATOMIC_PI = 0,
   Basic_DAXPY,
   Basic_IF_QUAD,
-  //Basic_INIT3,
-  //Basic_INIT_VIEW1D,
-  //Basic_INIT_VIEW1D_OFFSET,
-  //Basic_MULADDSUB,
-  //Basic_NESTED_INIT,
-  //Basic_REDUCE3_INT,
-  //Basic_TRAP_INT,
+  Basic_INIT3,
+  Basic_INIT_VIEW1D,
+  Basic_INIT_VIEW1D_OFFSET,
+  Basic_MULADDSUB,
+  Basic_NESTED_INIT,
+  Basic_REDUCE3_INT,
+  Basic_TRAP_INT,
 
 //
 // Lcals kernels...
 //
-  //Lcals_DIFF_PREDICT,
-  //Lcals_EOS,
-  //Lcals_FIRST_DIFF,
-  //Lcals_FIRST_MIN,
-  //Lcals_FIRST_SUM,
-  //Lcals_GEN_LIN_RECUR,
-  //Lcals_HYDRO_1D,
-  //Lcals_HYDRO_2D,
-  //Lcals_INT_PREDICT,
-  //Lcals_PLANCKIAN,
-  //Lcals_TRIDIAG_ELIM,
+  Lcals_DIFF_PREDICT,
+  Lcals_EOS,
+  Lcals_FIRST_DIFF,
+  Lcals_FIRST_MIN,
+  Lcals_FIRST_SUM,
+  Lcals_GEN_LIN_RECUR,
+  Lcals_HYDRO_1D,
+  Lcals_HYDRO_2D,
+  Lcals_INT_PREDICT,
+  Lcals_PLANCKIAN,
+  Lcals_TRIDIAG_ELIM,
 
 //
 // Polybench kernels...
 //
-  //Polybench_2MM,
-  //Polybench_3MM,
-  //Polybench_ADI,
-  //Polybench_ATAX,
-  //Polybench_FDTD_2D,
-  //Polybench_FLOYD_WARSHALL,
-  //Polybench_GEMM,
-  //Polybench_GEMVER,
-  //Polybench_GESUMMV,
-  //Polybench_HEAT_3D,
-  //Polybench_JACOBI_1D,
-  //Polybench_JACOBI_2D,
-  //Polybench_MVT,
+  Polybench_2MM,
+  Polybench_3MM,
+  Polybench_ADI,
+  Polybench_ATAX,
+  Polybench_FDTD_2D,
+  Polybench_FLOYD_WARSHALL,
+  Polybench_GEMM,
+  Polybench_GEMVER,
+  Polybench_GESUMMV,
+  Polybench_HEAT_3D,
+  Polybench_JACOBI_1D,
+  Polybench_JACOBI_2D,
+  Polybench_MVT,
 
 //
 // Stream kernels...
@@ -202,28 +202,20 @@ enum VariantID {
   Base_HIP,
   RAJA_HIP,
 
-#if defined(RUN_KOKKOS)
-#if defined(RUN_RAJA_SEQ)
   Kokkos_Lambda_Seq,
   Kokkos_Functor_Seq,
-#endif
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   Kokkos_Lambda_OpenMP,
   Kokkos_Functor_OpenMP,
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)  
   Kokkos_Lambda_OpenMPTarget,
   Kokkos_Functor_OpenMPTarget,
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
   Kokkos_Lambda_CUDA,
   Kokkos_Functor_CUDA,
-#endif
-#endif // RUN_KOKKOS
+
   NumVariants // Keep this one last and NEVER comment out (!!)
+
 
 };
 

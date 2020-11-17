@@ -16,6 +16,7 @@ blt_add_library(
 	  DAXPY-KokkosCuda.cpp
 	  ATOMIC_PI-KokkosOMP.cpp
 	  ATOMIC_PI-KokkosSeq.cpp
+	  ATOMIC_PI-KokkosCuda.cpp
 	  IF_QUAD-KokkosSeq.cpp
 	  IF_QUAD-KokkosOMP.cpp
 	  IF_QUAD-KokkosCuda.cpp
