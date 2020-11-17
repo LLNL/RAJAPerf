@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-//#if defined(RAJA_ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA)
 
 #include "common/CudaDataUtils.hpp"
 
@@ -122,4 +122,4 @@ void ATOMIC_PI::runKokkosCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RUN_KOKKOS
-//#endif  // RAJA_ENABLE_CUDA
+#endif  // RAJA_ENABLE_CUDA

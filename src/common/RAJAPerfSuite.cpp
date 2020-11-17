@@ -227,28 +227,18 @@ static const std::string VariantNames [] =
   std::string("Base_HIP"),
   std::string("RAJA_HIP"),
 
-#if defined(RUN_KOKKOS)
-#if defined(RUN_RAJA_SEQ)
   std::string("Kokkos_Lambda_Seq"),
   std::string("Kokkos_Functor_Seq"),
-#endif
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Kokkos_Lambda_OpenMP"),
   std::string("Kokkos_Functor_OpenMP"),
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)  
+
   std::string("Kokkos_Lambda_OpenMPTarget"),
   std::string("Kokkos_Functor_OpenMPTarget"),
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
   std::string("Kokkos_Lambda_CUDA"),
   std::string("Kokkos_Functor_CUDA"),
-#endif
-
-#endif // RUN_KOKKOS
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -328,6 +318,13 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_Seq ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_Seq || 
+       vid == Kokkos_Functor_Seq ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
+
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -336,6 +333,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_OpenMP || 
+       vid == Kokkos_Functor_OpenMP ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
@@ -343,6 +346,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_OpenMPTarget || 
+       vid == Kokkos_Functor_OpenMPTarget ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -350,6 +359,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_CUDA ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_CUDA || 
+       vid == Kokkos_Functor_CUDA ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
