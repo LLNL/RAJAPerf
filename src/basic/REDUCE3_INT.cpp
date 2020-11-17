@@ -23,11 +23,28 @@ namespace basic
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
-   setDefaultSize(1000000);
-// setDefaultReps(5000);
+  setDefaultSize(1000000);
+//setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target 
 // reduction performance issues
-   setDefaultReps(100);
+  setDefaultReps(100);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 REDUCE3_INT::~REDUCE3_INT() 

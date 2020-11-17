@@ -211,31 +211,21 @@ static const std::string VariantNames [] =
 {
 
   std::string("Base_Seq"),
-#if defined(RUN_RAJA_SEQ)
   std::string("Lambda_Seq"),
   std::string("RAJA_Seq"),
-#endif
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   std::string("Base_OpenMP"),
   std::string("Lambda_OpenMP"),
   std::string("RAJA_OpenMP"),
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)  
   std::string("Base_OMPTarget"),
   std::string("RAJA_OMPTarget"),
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
   std::string("Base_CUDA"),
   std::string("RAJA_CUDA"),
-#endif
 
-#if defined(RAJA_ENABLE_HIP)
   std::string("Base_HIP"),
   std::string("RAJA_HIP"),
-#endif
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -245,7 +235,7 @@ static const std::string VariantNames [] =
 /*
  *******************************************************************************
  *
- * \brief Return group name associated with GroupID enum value.
+ * Return group name associated with GroupID enum value.
  *
  *******************************************************************************
  */
@@ -258,7 +248,7 @@ const std::string& getGroupName(GroupID sid)
 /*
  *******************************************************************************
  *
- * \brief Return kernel name associated with KernelID enum value.
+ * Return kernel name associated with KernelID enum value.
  *
  *******************************************************************************
  */
@@ -273,7 +263,7 @@ std::string getKernelName(KernelID kid)
 /*
  *******************************************************************************
  *
- * \brief Return full kernel name associated with KernelID enum value.
+ * Return full kernel name associated with KernelID enum value.
  *
  *******************************************************************************
  */
@@ -286,13 +276,67 @@ const std::string& getFullKernelName(KernelID kid)
 /*
  *******************************************************************************
  *
- * \brief Return variant name associated with VariantID enum value.
+ * Return variant name associated with VariantID enum value.
  *
  *******************************************************************************
  */
 const std::string& getVariantName(VariantID vid)
 {
   return VariantNames[vid];
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if variant associated with VariantID enum value is available 
+ * to run; else false.
+ *
+ *******************************************************************************
+ */
+bool isVariantAvailable(VariantID vid)
+{
+  bool ret_val = false;
+
+  if ( vid == Base_Seq ) {
+    ret_val = true;
+  }
+#if defined(RUN_RAJA_SEQ)
+  if ( vid == Lambda_Seq || 
+       vid == RAJA_Seq ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  if ( vid == Base_OpenMP || 
+       vid == Lambda_OpenMP || 
+       vid == RAJA_OpenMP ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  if ( vid == Base_OpenMPTarget || 
+       vid == RAJA_OpenMPTarget ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  if ( vid == Base_CUDA || 
+       vid == RAJA_CUDA ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  if ( vid == Base_HIP || 
+       vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+  return ret_val;
 }
 
 /*

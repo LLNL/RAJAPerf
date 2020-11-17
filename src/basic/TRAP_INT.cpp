@@ -21,8 +21,25 @@ namespace basic
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(2000);
+  setDefaultSize(100000);
+  setDefaultReps(2000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 TRAP_INT::~TRAP_INT() 

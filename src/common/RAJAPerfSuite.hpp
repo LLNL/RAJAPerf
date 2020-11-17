@@ -182,31 +182,21 @@ enum KernelID {
 enum VariantID {
 
   Base_Seq = 0,
-#if defined(RUN_RAJA_SEQ)
   Lambda_Seq,
   RAJA_Seq,
-#endif
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   Base_OpenMP,
   Lambda_OpenMP,
   RAJA_OpenMP,
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)  
   Base_OpenMPTarget,
   RAJA_OpenMPTarget,
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
   Base_CUDA,
   RAJA_CUDA,
-#endif
 
-#if defined(RAJA_ENABLE_HIP)
   Base_HIP,
   RAJA_HIP,
-#endif
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
@@ -252,6 +242,16 @@ const std::string& getFullKernelName(KernelID kid);
  *******************************************************************************
  */
 const std::string& getVariantName(VariantID vid); 
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return true if variant associated with VariantID enum value is 
+ *        available * to run; else false.
+ *
+ *******************************************************************************
+ */
+bool isVariantAvailable(VariantID vid);
 
 /*!
  *******************************************************************************
