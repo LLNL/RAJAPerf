@@ -77,6 +77,8 @@
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
+#include "kokkos-mechanics/ViewAllocate.hpp"
+
 
 #include <iostream>
 
@@ -139,56 +141,58 @@ static const std::string KernelNames [] =
 
 //
 // Lcals kernels...
+////
+//  std::string("Lcals_DIFF_PREDICT"),
+//  std::string("Lcals_EOS"),
+//  std::string("Lcals_FIRST_DIFF"),
+//  std::string("Lcals_FIRST_MIN"),
+//  std::string("Lcals_FIRST_SUM"),
+//  std::string("Lcals_GEN_LIN_RECUR"),
+//  std::string("Lcals_HYDRO_1D"),
+//  std::string("Lcals_HYDRO_2D"),
+//  std::string("Lcals_INT_PREDICT"),
+//  std::string("Lcals_PLANCKIAN"),
+//  std::string("Lcals_TRIDIAG_ELIM"),
 //
-  std::string("Lcals_DIFF_PREDICT"),
-  std::string("Lcals_EOS"),
-  std::string("Lcals_FIRST_DIFF"),
-  std::string("Lcals_FIRST_MIN"),
-  std::string("Lcals_FIRST_SUM"),
-  std::string("Lcals_GEN_LIN_RECUR"),
-  std::string("Lcals_HYDRO_1D"),
-  std::string("Lcals_HYDRO_2D"),
-  std::string("Lcals_INT_PREDICT"),
-  std::string("Lcals_PLANCKIAN"),
-  std::string("Lcals_TRIDIAG_ELIM"),
+////
+//// Polybench kernels...
+////
+//  std::string("Polybench_2MM"),
+//  std::string("Polybench_3MM"),
+//  std::string("Polybench_ADI"),
+//  std::string("Polybench_ATAX"),
+//  std::string("Polybench_FDTD_2D"),
+//  std::string("Polybench_FLOYD_WARSHALL"),
+//  std::string("Polybench_GEMM"),
+//  std::string("Polybench_GEMVER"),
+//  std::string("Polybench_GESUMMV"),
+//  std::string("Polybench_HEAT_3D"),
+//  std::string("Polybench_JACOBI_1D"),
+//  std::string("Polybench_JACOBI_2D"),
+//  std::string("Polybench_MVT"),
+//
+////
+//// Stream kernels...
+////
+//  std::string("Stream_ADD"),
+//  std::string("Stream_COPY"),
+//  std::string("Stream_DOT"),
+//  std::string("Stream_MUL"),
+//  std::string("Stream_TRIAD"),
+//
+////
+//// Apps kernels...
+////
+//  std::string("Apps_COUPLE"),
+//  std::string("Apps_DEL_DOT_VEC_2D"),
+//  std::string("Apps_ENERGY"),
+//  std::string("Apps_FIR"),
+//  std::string("Apps_LTIMES"),
+//  std::string("Apps_LTIMES_NOVIEW"),
+//  std::string("Apps_PRESSURE"),
+//  std::string("Apps_VOL3D"),
 
-//
-// Polybench kernels...
-//
-  std::string("Polybench_2MM"),
-  std::string("Polybench_3MM"),
-  std::string("Polybench_ADI"),
-  std::string("Polybench_ATAX"),
-  std::string("Polybench_FDTD_2D"),
-  std::string("Polybench_FLOYD_WARSHALL"),
-  std::string("Polybench_GEMM"),
-  std::string("Polybench_GEMVER"),
-  std::string("Polybench_GESUMMV"),
-  std::string("Polybench_HEAT_3D"),
-  std::string("Polybench_JACOBI_1D"),
-  std::string("Polybench_JACOBI_2D"),
-  std::string("Polybench_MVT"),
-
-//
-// Stream kernels...
-//
-  std::string("Stream_ADD"),
-  std::string("Stream_COPY"),
-  std::string("Stream_DOT"),
-  std::string("Stream_MUL"),
-  std::string("Stream_TRIAD"),
-
-//
-// Apps kernels...
-//
-  std::string("Apps_COUPLE"),
-  std::string("Apps_DEL_DOT_VEC_2D"),
-  std::string("Apps_ENERGY"),
-  std::string("Apps_FIR"),
-  std::string("Apps_LTIMES"),
-  std::string("Apps_LTIMES_NOVIEW"),
-  std::string("Apps_PRESSURE"),
-  std::string("Apps_VOL3D"),
+  std::string("KokkosMechanics_ViewAllocate"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -602,6 +606,12 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 */
+		       
+    case KokkosMechanics_ViewAllocate : {
+       kernel = new kokkos_mechanics::ViewAllocate(run_params);
+       break;
+    }
+		       
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

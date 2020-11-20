@@ -166,6 +166,9 @@ enum KernelID {
   //Apps_PRESSURE,
   //Apps_VOL3D,
 
+  // Kokkos Mechanics Tests
+  KokkosMechanics_ViewAllocate, 
+
   NumKernels // Keep this one last and NEVER comment out (!!)
 
 };
