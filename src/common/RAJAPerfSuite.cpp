@@ -78,6 +78,7 @@
 #include "apps/VOL3D.hpp"
 
 #include "kokkos-mechanics/ViewAllocate.hpp"
+#include "kokkos-mechanics/ViewStreamAdd.hpp"
 
 
 #include <iostream>
@@ -193,6 +194,7 @@ static const std::string KernelNames [] =
 //  std::string("Apps_VOL3D"),
 
   std::string("KokkosMechanics_ViewAllocate"),
+  std::string("KokkosMechanics_ViewStreamAdd"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -612,6 +614,10 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 		       
+    case KokkosMechanics_ViewStreamAdd: {
+       kernel = new kokkos_mechanics::ViewStreamAdd(run_params);
+       break;
+    }
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

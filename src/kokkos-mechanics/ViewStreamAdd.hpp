@@ -7,15 +7,29 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// ViewAllocate kernel reference implementation:
+/// ViewStreamAdd kernel reference implementation:
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   y[i] += a * x[i] ;
 /// }
 ///
 
-#ifndef RAJAPerf_Basic_ViewAllocate_HPP
-#define RAJAPerf_Basic_ViewAllocate_HPP
+#ifndef RAJAPerf_Basic_ViewStreamAdd_HPP
+#define RAJAPerf_Basic_ViewStreamAdd_HPP
+
+#define ViewStreamAdd_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_type a = m_a;
+
+#define ViewStreamAdd_FUNCTOR_CONSTRUCT \
+  x(m_x),\
+  y(m_y), \
+  a(m_a)
+
+#define ViewStreamAdd_BODY  \
+  y[i] += a * x[i] ;
+
 
 #include "common/KernelBase.hpp"
 
@@ -26,13 +40,13 @@ class RunParams;
 namespace kokkos_mechanics
 {
 
-class ViewAllocate : public KernelBase
+class ViewStreamAdd : public KernelBase
 {
 public:
 
-  ViewAllocate(const RunParams& params);
+  ViewStreamAdd(const RunParams& params);
 
-  ~ViewAllocate();
+  ~ViewStreamAdd();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -48,6 +62,11 @@ public:
   void runKokkosOpenMPVariant(VariantID vid);
   void runKokkosCudaVariant(VariantID vid);
   void runKokkosOpenMPTargetVariant(VariantID vid);
+private:
+  using VT=Kokkos::View<float*, Kokkos::HostSpace>;
+  VT h_a;
+  VT h_b;
+  VT h_c;
 };
 
 } // end namespace basic

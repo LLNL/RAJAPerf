@@ -168,6 +168,7 @@ enum KernelID {
 
   // Kokkos Mechanics Tests
   KokkosMechanics_ViewAllocate, 
+  KokkosMechanics_ViewStreamAdd, 
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

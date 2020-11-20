@@ -12,5 +12,9 @@ blt_add_library(
           ViewAllocate-Stubs.cpp
           ViewAllocate-KokkosSeq.cpp
           ViewAllocate-KokkosCuda.cpp
+  	  ViewStreamAdd.cpp
+          ViewStreamAdd-Stubs.cpp
+          ViewStreamAdd-KokkosSeq.cpp
+          ViewStreamAdd-KokkosCuda.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

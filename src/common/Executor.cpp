@@ -44,6 +44,9 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+#if defined(RUN_KOKKOS)
+  Kokkos::finalize(); // TODO DZP: should this be here? 
+#endif
 }
 
 
@@ -453,9 +456,6 @@ void Executor::outputRunData()
 
   filename = out_fprefix + "-fom.csv";
   writeFOMReport(filename);
-#if defined(RUN_KOKKOS)
-    Kokkos::finalize(); // TODO DZP: should this be here? 
-#endif
 }
 
 
