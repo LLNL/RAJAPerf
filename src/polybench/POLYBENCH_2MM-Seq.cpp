@@ -145,7 +145,6 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
               RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
             >
           >
-         >
         >;
 
       startTimer();
