@@ -79,22 +79,24 @@ void ADD::runSeqVariant(VariantID vid)
 
     case RAJA_Vec : {
 
+      ADD_DATA_VEC_SETUP;
+
+      auto add_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                       ADD_VEC_BODY;
+                 };
+
       startTimer();
-
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::vector_exec<vector_t>>(RAJA::TypedRangeSegment<I>(ibegin, iend), 
-  	    [=](VecI i)
-	 {
-	     C[i] = A[i] + B[i];
-         });
+        
+        RAJA::forall<RAJA::vector_exec<vector_t>>(
+          RAJA::TypedRangeSegment<I>(ibegin, iend), add_vec_lam);
 
       }
       stopTimer();
 
       break;
     }
-
+#endif //RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;

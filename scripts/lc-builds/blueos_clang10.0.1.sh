@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
-# and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# Copyright (c) 2016-20, Lawrence Livermore National Security, LLC
+# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
-#################################################################################
+###############################################################################
 
-BUILD_SUFFIX=lc_toss3-pgi-19.7
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/pgi_X.cmake
+BUILD_SUFFIX=lc_blueos-clang-10.0.1
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clang_X.cmake
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
@@ -18,9 +17,9 @@ module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/pgi/pgi-19.7/bin/pgc++ \
+  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-10.0.1/bin/clang++ \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
-  ..
+  .. 

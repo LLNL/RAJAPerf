@@ -24,40 +24,6 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
 
   POLYBENCH_ATAX_DATA_SETUP;
 
-  auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
-                               POLYBENCH_ATAX_BODY2;
-                             };
-  auto poly_atax_base_lam3 = [=] (Index_type i, Real_type &dot) {
-                               POLYBENCH_ATAX_BODY3;
-                              };
-  auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
-                               POLYBENCH_ATAX_BODY5;
-                              };
-  auto poly_atax_base_lam6 = [=] (Index_type j, Real_type &dot) {
-                               POLYBENCH_ATAX_BODY6;
-                              };
-
-  POLYBENCH_ATAX_VIEWS_RAJA;
-
-  auto poly_atax_lam1 = [=] (Index_type i, Real_type &dot) {
-                          POLYBENCH_ATAX_BODY1_RAJA;
-                         };
-  auto poly_atax_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
-                          POLYBENCH_ATAX_BODY2_RAJA;
-                        };
-  auto poly_atax_lam3 = [=] (Index_type i, Real_type &dot) {
-                          POLYBENCH_ATAX_BODY3_RAJA;
-                         };
-  auto poly_atax_lam4 = [=] (Index_type j, Real_type &dot) {
-                          POLYBENCH_ATAX_BODY4_RAJA;
-                         };
-  auto poly_atax_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
-                          POLYBENCH_ATAX_BODY5_RAJA;
-                         };
-  auto poly_atax_lam6 = [=] (Index_type j, Real_type &dot) {
-                          POLYBENCH_ATAX_BODY6_RAJA;
-                         };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -91,6 +57,23 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, 
+                                      Real_type &dot) {
+                                   POLYBENCH_ATAX_BODY2;
+                                 };
+      auto poly_atax_base_lam3 = [=] (Index_type i, 
+                                      Real_type &dot) {
+                                   POLYBENCH_ATAX_BODY3;
+                                  };
+      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , 
+                                      Real_type &dot) {
+                                   POLYBENCH_ATAX_BODY5;
+                                  };
+      auto poly_atax_base_lam6 = [=] (Index_type j, 
+                                      Real_type &dot) {
+                                   POLYBENCH_ATAX_BODY6;
+                                  };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -117,6 +100,27 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      POLYBENCH_ATAX_VIEWS_RAJA;
+
+      auto poly_atax_lam1 = [=] (Index_type i, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY1_RAJA;
+                             };
+      auto poly_atax_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY2_RAJA;
+                             };
+      auto poly_atax_lam3 = [=] (Index_type i, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY3_RAJA;
+                             };
+      auto poly_atax_lam4 = [=] (Index_type j, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY4_RAJA;
+                             };
+      auto poly_atax_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
+                              POLYBENCH_ATAX_BODY5_RAJA;
+                             };
+      auto poly_atax_lam6 = [=] (Index_type j, Real_type &dot) {
+                              POLYBENCH_ATAX_BODY6_RAJA;
+                             };
 
       using EXEC_POL1 =
         RAJA::KernelPolicy<
@@ -145,8 +149,8 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::kernel_param<EXEC_POL1>( 
-          RAJA::make_tuple(RAJA::RangeSegment(0, N), 
-                           RAJA::RangeSegment(0, N)),
+          RAJA::make_tuple(RAJA::RangeSegment{0, N}, 
+                           RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam1,
@@ -156,8 +160,8 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
         );
         
         RAJA::kernel_param<EXEC_POL2>( 
-          RAJA::make_tuple(RAJA::RangeSegment(0, N),
-                           RAJA::RangeSegment(0, N)),
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
+                           RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
 
           poly_atax_lam4,

@@ -32,6 +32,15 @@
 #define ADD_BODY  \
   c[i] = a[i] + b[i]; 
 
+#define ADD_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> A(a, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> B(b, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> C(c, iend); 
+
+#define ADD_VEC_BODY \
+ C(i) = A(i) + B(i);
 
 #include "common/KernelBase.hpp"
 
@@ -57,6 +66,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

@@ -30,10 +30,10 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid);
+  allocAndInitOpenMPDeviceData(a, m_a, getRunSize(), did, hid);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_a, a, iend, hid, did); \
+  getOpenMPDeviceData(m_a, a, getRunSize(), hid, did); \
   deallocOpenMPDeviceData(a, did);
 
 

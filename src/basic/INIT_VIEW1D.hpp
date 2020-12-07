@@ -12,7 +12,7 @@
 /// const Real_type val = ...;
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i] = val;
+///   a[i] = (i+1) * val;
 /// }
 ///
 /// RAJA variants use a "View" and "Layout" to do the same thing. These 
@@ -29,16 +29,30 @@
   const Real_type v = m_val;
 
 #define INIT_VIEW1D_BODY  \
-  a[i] = v;
+  a[i] = (i+1) * v;
 
 #define INIT_VIEW1D_BODY_RAJA  \
-  view(i) = v;
+  view(i) = (i+1) * v;
 
 #define INIT_VIEW1D_VIEW_RAJA \
   using ViewType = RAJA::View<Real_type, RAJA::Layout<1, Index_type, 0> >; \
   const RAJA::Layout<1> my_layout(iend); \
   ViewType view(a, my_layout);
 
+#define INIT_VIEW1D_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> Aview(a, iend);
+
+#define INIT_VIEW1D_VEC_BODY  \
+  RAJA::forall<RAJA::vector_exec<vector_t>> (RAJA::TypedRangeSegment<I>(ibegin, iend),\
+  [=](RAJA::VectorIndex<I, vector_t> i) { \
+    vector_t A(0); \
+    for(int j = 0; j < i.size(); ++j) { \
+      A.set(j, (**i + j + 1) * v); \
+    } \
+    Aview(i) = A; \
+  });
 
 #include "common/KernelBase.hpp"
 
@@ -64,6 +78,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

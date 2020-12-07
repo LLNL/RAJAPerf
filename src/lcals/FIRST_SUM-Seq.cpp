@@ -76,6 +76,19 @@ void FIRST_SUM::runSeqVariant(VariantID vid)
 
       break;
     }
+
+    case RAJA_Vec : {
+
+      FIRST_SUM_VEC_SETUP;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        FIRST_SUM_VEC_BODY;
+      }
+      stopTimer();
+
+      break;
+    }
 #endif // RUN_RAJA_SEQ
 
     default : {

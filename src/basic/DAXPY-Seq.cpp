@@ -79,23 +79,47 @@ void DAXPY::runSeqVariant(VariantID vid)
 
     case RAJA_Vec : {
 
+#if(0)
+      DAXPY_DATA_VEC_SETUP;
+
+      auto daxpy_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                       DAXPY_VEC_BODY;
+                    };
       startTimer();
-
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::vector_exec<vector_t>>(RAJA::TypedRangeSegment<I>(ibegin, iend),
-            [=](VecI i)
-         {
-             Y[i] += a * X[i];
-         });
-
+        RAJA::forall<RAJA::vector_exec<vector_t>>(
+          RAJA::TypedRangeSegment<I>(ibegin, iend), daxpy_vec_lam);
       }
       stopTimer();
+#endif
 
+#if(0)
+      DAXPY_DATA_VEC_SETUP2;
+
+      auto daxpy_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                       DAXPY_VEC_BODY2;
+                    };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        RAJA::forall<RAJA::vector_exec<vector_t>>(
+          RAJA::TypedRangeSegment<I>(ibegin, iend), daxpy_vec_lam);
+      }
+      stopTimer();
+#endif
+
+#if(1)
+      DAXPY_DATA_VEC_SETUP3;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        DAXPY_VEC_BODY3;
+      }
+      stopTimer();
+#endif
       break;
     }
-
-#endif
+#endif //RUN_RAJA_VEC
 
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;

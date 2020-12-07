@@ -24,29 +24,6 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid)
 
   POLYBENCH_GESUMMV_DATA_SETUP;
 
-  auto poly_gesummv_base_lam2 = [=](Index_type i, Index_type j, 
-                                    Real_type& tmpdot, Real_type& ydot) {
-                                  POLYBENCH_GESUMMV_BODY2;
-                                };
-  auto poly_gesummv_base_lam3 = [=](Index_type i,
-                                    Real_type& tmpdot, Real_type& ydot) {
-                                  POLYBENCH_GESUMMV_BODY3;
-                                };
-
-  POLYBENCH_GESUMMV_VIEWS_RAJA;
-
-  auto poly_gesummv_lam1 = [=]( Real_type& tmpdot, Real_type& ydot) {
-                               POLYBENCH_GESUMMV_BODY1_RAJA;
-                              };
-  auto poly_gesummv_lam2 = [=](Index_type i, Index_type j, 
-                               Real_type& tmpdot, Real_type& ydot) {
-                               POLYBENCH_GESUMMV_BODY2_RAJA;
-                              };
-  auto poly_gesummv_lam3 = [=](Index_type i,
-                               Real_type& tmpdot, Real_type& ydot) {
-                               POLYBENCH_GESUMMV_BODY3_RAJA;
-                              };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -72,6 +49,15 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto poly_gesummv_base_lam2 = [=](Index_type i, Index_type j, 
+                                        Real_type& tmpdot, Real_type& ydot) {
+                                      POLYBENCH_GESUMMV_BODY2;
+                                    };
+      auto poly_gesummv_base_lam3 = [=](Index_type i,
+                                        Real_type& tmpdot, Real_type& ydot) {
+                                      POLYBENCH_GESUMMV_BODY3;
+                                    };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -91,12 +77,26 @@ void POLYBENCH_GESUMMV::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
+      POLYBENCH_GESUMMV_VIEWS_RAJA;
+
+      auto poly_gesummv_lam1 = [=](Real_type& tmpdot, Real_type& ydot) {
+                                   POLYBENCH_GESUMMV_BODY1_RAJA;
+                                  };
+      auto poly_gesummv_lam2 = [=](Index_type i, Index_type j, 
+                                   Real_type& tmpdot, Real_type& ydot) {
+                                   POLYBENCH_GESUMMV_BODY2_RAJA;
+                                  };
+      auto poly_gesummv_lam3 = [=](Index_type i,
+                                   Real_type& tmpdot, Real_type& ydot) {
+                                   POLYBENCH_GESUMMV_BODY3_RAJA;
+                                  };
+
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
             RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
             RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
+              RAJA::statement::Lambda<1, RAJA::Segs<0, 1>, RAJA::Params<0,1>>
             >,
             RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
           >

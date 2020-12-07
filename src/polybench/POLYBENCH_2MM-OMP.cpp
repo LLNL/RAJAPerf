@@ -34,48 +34,6 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_2MM_DATA_SETUP;
 
-  auto poly_2mm_base_lam2 = [=](Index_type i, Index_type j,
-                                Index_type k, Real_type &dot) {
-                              POLYBENCH_2MM_BODY2;
-                            };
-  auto poly_2mm_base_lam3 = [=](Index_type i, Index_type j,
-                                Real_type &dot) {
-                              POLYBENCH_2MM_BODY3;
-                            };
-  auto poly_2mm_base_lam5 = [=](Index_type i, Index_type l,
-                                Index_type j, Real_type &dot) {
-                              POLYBENCH_2MM_BODY5;
-                            };
-  auto poly_2mm_base_lam6 = [=](Index_type i, Index_type l,
-                                Real_type &dot) {
-                              POLYBENCH_2MM_BODY6;
-                            };
-
-  POLYBENCH_2MM_VIEWS_RAJA;
-
-  auto poly_2mm_lam1 = [=](Real_type &dot) {
-                         POLYBENCH_2MM_BODY1_RAJA;
-                       };
-  auto poly_2mm_lam2 = [=](Index_type i, Index_type j, Index_type k, 
-                           Real_type &dot) {
-                         POLYBENCH_2MM_BODY2_RAJA;
-                       };
-  auto poly_2mm_lam3 = [=](Index_type i, Index_type j,
-                           Real_type &dot) {
-                         POLYBENCH_2MM_BODY3_RAJA;
-                       };
-  auto poly_2mm_lam4 = [=](Real_type &dot) {
-                         POLYBENCH_2MM_BODY4_RAJA;
-                       };
-  auto poly_2mm_lam5 = [=](Index_type i, Index_type l, Index_type j, 
-                           Real_type &dot) {
-                         POLYBENCH_2MM_BODY5_RAJA;
-                       };
-  auto poly_2mm_lam6 = [=](Index_type i, Index_type l,
-                           Real_type &dot) {
-                         POLYBENCH_2MM_BODY6_RAJA;
-                       };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -121,6 +79,23 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto poly_2mm_base_lam2 = [=](Index_type i, Index_type j,
+                                    Index_type k, Real_type &dot) {
+                                  POLYBENCH_2MM_BODY2;
+                                };
+      auto poly_2mm_base_lam3 = [=](Index_type i, Index_type j,
+                                    Real_type &dot) {
+                                  POLYBENCH_2MM_BODY3;
+                                };
+      auto poly_2mm_base_lam5 = [=](Index_type i, Index_type l,
+                                    Index_type j, Real_type &dot) {
+                                  POLYBENCH_2MM_BODY5;
+                                };
+      auto poly_2mm_base_lam6 = [=](Index_type i, Index_type l,
+                                    Real_type &dot) {
+                                  POLYBENCH_2MM_BODY6;
+                                };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -162,6 +137,31 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
 
     case RAJA_OpenMP : {
 
+      POLYBENCH_2MM_VIEWS_RAJA;
+
+      auto poly_2mm_lam1 = [=](Real_type &dot) {
+                             POLYBENCH_2MM_BODY1_RAJA;
+                           };
+      auto poly_2mm_lam2 = [=](Index_type i, Index_type j, Index_type k, 
+                               Real_type &dot) {
+                             POLYBENCH_2MM_BODY2_RAJA;
+                           };
+      auto poly_2mm_lam3 = [=](Index_type i, Index_type j,
+                               Real_type &dot) {
+                             POLYBENCH_2MM_BODY3_RAJA;
+                           };
+      auto poly_2mm_lam4 = [=](Real_type &dot) {
+                             POLYBENCH_2MM_BODY4_RAJA;
+                           };
+      auto poly_2mm_lam5 = [=](Index_type i, Index_type l, Index_type j, 
+                               Real_type &dot) {
+                             POLYBENCH_2MM_BODY5_RAJA;
+                           };
+      auto poly_2mm_lam6 = [=](Index_type i, Index_type l,
+                               Real_type &dot) {
+                             POLYBENCH_2MM_BODY6_RAJA;
+                           };
+
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -193,10 +193,10 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::kernel_param<EXEC_POL>( 
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nj),
-                           RAJA::RangeSegment(0, nk)),
-          RAJA::tuple<Real_type> {0.0},
+          RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                           RAJA::RangeSegment{0, nj},
+                           RAJA::RangeSegment{0, nk}),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_2mm_lam1,
           poly_2mm_lam2,
@@ -204,10 +204,10 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
         );
 
         RAJA::kernel_param<EXEC_POL>( 
-          RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                           RAJA::RangeSegment(0, nl),
-                           RAJA::RangeSegment(0, nj)),
-          RAJA::tuple<Real_type> {0.0},
+          RAJA::make_tuple(RAJA::RangeSegment{0, ni},
+                           RAJA::RangeSegment{0, nl},
+                           RAJA::RangeSegment{0, nj}),
+          RAJA::tuple<Real_type>{0.0},
 
           poly_2mm_lam4,
           poly_2mm_lam5,

@@ -76,6 +76,26 @@ void MUL::runSeqVariant(VariantID vid)
 
       break;
     }
+
+    case RAJA_Vec : {
+
+      MUL_DATA_VEC_SETUP;
+
+      auto mul_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                       MUL_VEC_BODY;
+                 };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::vector_exec<vector_t>>(
+          RAJA::TypedRangeSegment<I>(ibegin, iend), mul_vec_lam);
+
+      }
+      stopTimer();
+
+      break;
+    }
 #endif // RUN_RAJA_SEQ
 
     default : {

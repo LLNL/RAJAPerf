@@ -36,7 +36,6 @@ Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
-  cout << "\n\nReading command line input..." << endl;
 }
 
 
@@ -57,10 +56,10 @@ void Executor::setupSuite()
 
   cout << "\nSetting up suite based on input..." << endl;
 
-  typedef list<string> Slist;
-  typedef vector<string> Svector;
-  typedef set<KernelID> KIDset;
-  typedef set<VariantID> VIDset;
+  using Slist = list<string>;
+  using Svector = vector<string>;
+  using KIDset = set<KernelID>;
+  using VIDset = set<VariantID>;
 
   //
   // Determine which kernels to execute from input.
@@ -147,6 +146,18 @@ void Executor::setupSuite()
 
 
   //
+  // Assemble set of available variants to run 
+  // (based on compile-time configuration).
+  //
+  VIDset available_var;
+  for (size_t iv = 0; iv < NumVariants; ++iv) {
+    VariantID vid = static_cast<VariantID>(iv);
+    if ( isVariantAvailable( vid ) ) {
+       available_var.insert( vid );
+    }
+  }
+
+  //
   // Determine variants to execute from input.
   // run_var will be non-duplicated ordered set of IDs of variants to run.
   //
@@ -157,11 +168,12 @@ void Executor::setupSuite()
   if ( variant_input.empty() ) {
 
     //
-    // No variants specified in input options, run them all.
+    // No variants specified in input options, run all available.
     // Also, set reference variant if specified.
     //
-    for (size_t iv = 0; iv < NumVariants; ++iv) {
-      VariantID vid = static_cast<VariantID>(iv);
+    for (VIDset::iterator vid_it = available_var.begin();
+         vid_it != available_var.end(); ++vid_it) {
+      VariantID vid = *vid_it;
       run_var.insert( vid );
       if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
         reference_vid = vid;
@@ -171,46 +183,47 @@ void Executor::setupSuite()
     //
     // Set reference variant if not specified.
     //
-    if ( run_params.getReferenceVariant().empty() ) {
-      reference_vid = VariantID::Base_Seq;
+    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
+      reference_vid = *run_var.begin();
     }
 
   } else {
 
     //
-    // Add reference variant to run variants if specified
-    //
-    for (size_t iv = 0; iv < NumVariants; ++iv) {
-      VariantID vid = static_cast<VariantID>(iv);
-      if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-        run_var.insert(vid);
-        reference_vid = vid; 
-      }
-    }
-
-    //
-    // Need to parse input to determine which variants to run
+    // Parse input to determine which variants to run:
+    //   - variants to run will be the intersection of available variants
+    //     and those specified in input
+    //   - reference variant will be set to specified input if available
+    //     and variant will be run; else first variant that will be run.
     // 
-
-    //
-    // Search input for matching variant names.
-    //
     // Assemble invalid input for warning message.
     //
+
     Svector invalid;
 
     for (size_t it = 0; it < variant_input.size(); ++it) {
       bool found_it = false;
 
-      for (size_t iv = 0; iv < NumVariants && !found_it; ++iv) {
-        VariantID vid = static_cast<VariantID>(iv);
+      for (VIDset::iterator vid_it = available_var.begin();
+         vid_it != available_var.end(); ++vid_it) {
+        VariantID vid = *vid_it;
         if ( getVariantName(vid) == variant_input[it] ) {
           run_var.insert(vid);
+          if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+            reference_vid = vid;
+          }
           found_it = true;
         }
       }
 
       if ( !found_it )  invalid.push_back(variant_input[it]);
+    }
+
+    //
+    // Set reference variant if not specified.
+    //
+    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
+      reference_vid = *run_var.begin();
     }
 
     run_params.setInvalidVariantInput(invalid);
@@ -317,7 +330,7 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
-    str << "\nThe following kernels and variants will be run:\n"; 
+    str << "\nThe following kernels and variants (when available) will be run:\n"; 
 
     str << "\nVariants"
         << "\n--------\n";
@@ -347,15 +360,23 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRunning warmup kernel variants...\n";
+  cout << "\n\nRun warmup kernel...\n";
 
   KernelBase* warmup_kernel = new basic::DAXPY(run_params);
 
   for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    VariantID vid = variant_ids[iv];
     if ( run_params.showProgress() ) {
-      cout << "Warmup Kernel " <<  getVariantName(variant_ids[iv]) << endl;
+      if ( warmup_kernel->hasVariantToRun(vid) ) {
+        cout << "   Running ";
+      } else {
+        cout << "   No ";
+      }
+      cout << getVariantName(vid) << " variant" << endl;
     }
-    warmup_kernel->execute( variant_ids[iv] );
+    if ( warmup_kernel->hasVariantToRun(vid) ) {
+      warmup_kernel->execute(vid);
+    }
   }
 
   delete warmup_kernel;
@@ -372,15 +393,23 @@ void Executor::runSuite()
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       if ( run_params.showProgress() ) {
-        std::cout << "\n   Running kernel -- " << kernel->getName() << "\n"; 
+        std::cout << "\nRun kernel -- " << kernel->getName() << "\n"; 
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+         VariantID vid = variant_ids[iv];
          KernelBase* kern = kernels[ik];
          if ( run_params.showProgress() ) {
-           cout << kern->getName() << " " <<  getVariantName(variant_ids[iv]) << endl;
-         }  
-         kernels[ik]->execute( variant_ids[iv] );
+           if ( kern->hasVariantToRun(vid) ) {
+             cout << "   Running ";
+           } else {
+             cout << "   No ";
+           }
+           cout << getVariantName(vid) << " variant" << endl;
+         }
+         if ( kern->hasVariantToRun(vid) ) {
+           kernels[ik]->execute(vid);
+         }
       } // loop over variants 
 
     } // loop over kernels
@@ -484,8 +513,18 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
       file <<left<< setw(kercol_width) << kern->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
-        file << sepchr <<right<< setw(varcol_width[iv]) << setprecision(prec) 
-             << std::fixed << getReportDataEntry(mode, kern, vid);
+        file << sepchr <<right<< setw(varcol_width[iv]);
+        if ( (mode == CSVRepMode::Speedup) &&
+             (!kern->hasVariantToRun(reference_vid) || 
+              !kern->hasVariantToRun(vid)) ) {
+          file << "Not run";
+        } else if ( (mode == CSVRepMode::Timing) && 
+                    !kern->hasVariantToRun(vid) ) {
+          file << "Not run";
+        } else {
+          file << setprecision(prec) << std::fixed 
+               << getReportDataEntry(mode, kern, vid);
+        }
       }
       file << endl;
     }
@@ -810,7 +849,12 @@ void Executor::writeChecksumReport(const string& filename)
                << showpoint << setprecision(prec) 
                <<left<< setw(checksum_width) << vcheck_sum
                <<left<< setw(checksum_width) << diff << endl;
+        } else {
+          file <<left<< setw(namecol_width) << getVariantName(vid) 
+               <<left<< setw(checksum_width) << "Not Run" 
+               <<left<< setw(checksum_width) << "Not Run" << endl;
         }
+
       }
 
       file << endl;
@@ -856,8 +900,13 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
     }
     case CSVRepMode::Speedup : { 
       if ( haveReferenceVariant() ) {
-        retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
-#if 0 // RDH DEBUG
+        if ( kern->hasVariantToRun(reference_vid) && 
+             kern->hasVariantToRun(vid) ) {
+          retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+        } else {
+          retval = 0.0;
+        }
+#if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
         cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
         cout << "\tref_time, tot_time, retval = " 
              << kern->getTotTime(reference_vid) << " , "
@@ -903,7 +952,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
 
   }  // iterate over variant ids to run
 
-#if 0 // RDH for debugging...
+#if 0 //  RDH DEBUG   (leave this here, it's useful for debugging!)
   cout << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];

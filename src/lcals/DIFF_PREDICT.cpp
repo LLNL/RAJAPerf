@@ -21,8 +21,25 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(2000);
+  setDefaultSize(100000);
+  setDefaultReps(2000);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 DIFF_PREDICT::~DIFF_PREDICT() 

@@ -23,9 +23,18 @@
   Real_ptr c = m_c; \
   Real_type alpha = m_alpha;
 
+#define TRIAD_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type>, I> A(a, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type>, I> B(b, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type>, I> C(c, iend); 
+
 #define TRIAD_BODY  \
   a[i] = b[i] + alpha * c[i] ;
 
+#define TRIAD_VEC_BODY \
+ A(i) = B(i) + alpha * C(i);
 
 #include "common/KernelBase.hpp"
 
@@ -51,6 +60,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

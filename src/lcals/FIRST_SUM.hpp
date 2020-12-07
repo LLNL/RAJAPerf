@@ -25,13 +25,28 @@
   Real_ptr x = m_x; \
   Real_ptr y = m_y;
 
+#define FIRST_SUM_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using element_t = RAJA::StreamVector<Real_type,2>::element_type; \
+  element_t X[iend], Y[iend]; \
+  for(int i = 0; i < iend; ++i) { \
+    X[i] = x[i]; \
+    Y[i] = y[i]; \
+  }
+
+#define FIRST_SUM_VEC_BODY \
+  for(int i = 1; i < iend; ++i) { \
+    X[i] = Y[i-1] + Y[i]; \
+    x[i] = X[i]; \
+  }
+
 #define FIRST_SUM_BODY  \
   x[i] = y[i-1] + y[i];
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -53,6 +68,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

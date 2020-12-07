@@ -76,6 +76,25 @@ void INIT3::runSeqVariant(VariantID vid)
 
       break;
     }
+
+    case RAJA_Vec : {
+      INIT3_VEC_SETUP;
+
+      auto init3_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                        INIT3_VEC_BODY;
+                     };
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::forall<RAJA::vector_exec<vector_t>>(
+          RAJA::TypedRangeSegment<I>(ibegin, iend), init3_vec_lam);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
 #endif // RUN_RAJA_SEQ
 
     default : {

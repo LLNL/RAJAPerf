@@ -28,12 +28,6 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
 
   ATOMIC_PI_DATA_SETUP;
 
-  auto atomicpi_base_lam = [=](Index_type i) {
-                             double x = (double(i) + 0.5) * dx;
-                             #pragma omp atomic
-                             *pi += dx / (1.0 + x * x);
-                           };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -57,6 +51,12 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
     }
 
     case Lambda_OpenMP : {
+
+      auto atomicpi_base_lam = [=](Index_type i) {
+                                 double x = (double(i) + 0.5) * dx;
+                                 #pragma omp atomic
+                                 *pi += dx / (1.0 + x * x);
+                               };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
