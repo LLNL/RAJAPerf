@@ -102,7 +102,6 @@ void ADD::runSeqVariant(VariantID vid)
       std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
     }
 
-#endif
   }
 
 }
