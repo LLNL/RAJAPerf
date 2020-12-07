@@ -184,6 +184,7 @@ enum VariantID {
   Base_Seq = 0,
   Lambda_Seq,
   RAJA_Seq,
+  RAJA_Vec,
 
   Base_OpenMP,
   Lambda_OpenMP,

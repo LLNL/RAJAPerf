@@ -31,6 +31,19 @@
   out2[i] = in1[i] + in2[i] ; \
   out3[i] = in1[i] - in2[i] ;
 
+#define MULADDSUB_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> O1(out1, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> O2(out2, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> O3(out3, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> I1(in1, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> I2(in2, iend); 
+
+#define MULADDSUB_VEC_BODY \
+  O1(i) = I1(i) * I2(i); \
+  O2(i) = I1(i) + I2(i); \
+  O3(i) = I1(i) - I2(i);
 
 #include "common/KernelBase.hpp"
 

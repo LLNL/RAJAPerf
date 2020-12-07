@@ -213,6 +213,7 @@ static const std::string VariantNames [] =
   std::string("Base_Seq"),
   std::string("Lambda_Seq"),
   std::string("RAJA_Seq"),
+  std::string("RAJA_Vec"),
 
   std::string("Base_OpenMP"),
   std::string("Lambda_OpenMP"),
@@ -302,7 +303,8 @@ bool isVariantAvailable(VariantID vid)
   }
 #if defined(RUN_RAJA_SEQ)
   if ( vid == Lambda_Seq || 
-       vid == RAJA_Seq ) {
+       vid == RAJA_Seq ||
+       vid == RAJA_Vec) {
     ret_val = true;
   }
 #endif

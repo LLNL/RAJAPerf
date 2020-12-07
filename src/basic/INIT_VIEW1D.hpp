@@ -39,6 +39,20 @@
   const RAJA::Layout<1> my_layout(iend); \
   ViewType view(a, my_layout);
 
+#define INIT_VIEW1D_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type, 0>, I> Aview(a, iend);
+
+#define INIT_VIEW1D_VEC_BODY  \
+  RAJA::forall<RAJA::vector_exec<vector_t>> (RAJA::TypedRangeSegment<I>(ibegin, iend),\
+  [=](RAJA::VectorIndex<I, vector_t> i) { \
+    vector_t A(0); \
+    for(int j = 0; j < i.size(); ++j) { \
+      A.set(j, (**i + j + 1) * v); \
+    } \
+    Aview(i) = A; \
+  });
 
 #include "common/KernelBase.hpp"
 

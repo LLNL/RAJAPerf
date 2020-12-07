@@ -19,7 +19,7 @@ if [ "$1" == "seq" ]; then
     argV="Off"
     RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/clang_X.cmake
 else
-    argS="Off"
+    argS="On"
     argV="On"
     RAJA_HOSTCONFIG=../tpl/RAJAvec/host-configs/lc-builds/toss3/clang_X.cmake
 fi
@@ -28,9 +28,9 @@ fi
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-10.0.1/bin/clang++ \
+  -DCMAKE_CXX_FLAGS=-ffp-contract=fast \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
-  -DENABLE_RAJA_SEQUENTIAL=$argS\
   -DENABLE_RAJA_VECTORIZATION=$argV \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \

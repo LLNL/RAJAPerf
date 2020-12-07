@@ -26,24 +26,9 @@ void ADD::runSeqVariant(VariantID vid)
 
   ADD_DATA_SETUP;
 
-#ifdef RUN_RAJA_VEC
-  using vector_t = RAJA::StreamVector<double,2>;
-  using index_t = ptrdiff_t;
-
-  RAJA::View<double, RAJA::Layout<1>> A(a, iend);
-  RAJA::View<double, RAJA::Layout<1>> B(b, iend);
-  RAJA::View<double, RAJA::Layout<1>> C(c, iend);
-
-  auto add_lam = [=](RAJA::VectorIndex<index_t, vector_t> i) {
-                   C(i) = A(i) + B(i);
-                 };
-#else
-
   auto add_lam = [=](Index_type i) {
                    ADD_BODY;
                  };
-
-#endif
 
   switch ( vid ) {
 
@@ -91,24 +76,27 @@ void ADD::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
-#if defined(RUN_RAJA_VEC)
     case RAJA_Vec : {
+
+      ADD_DATA_VEC_SETUP;
+
+      auto add_vec_lam = [=](RAJA::VectorIndex<I, vector_t> i) {
+                       ADD_VEC_BODY;
+                 };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         
         RAJA::forall<RAJA::vector_exec<vector_t>>(
-          RAJA::TypedRangeSegment<index_t>(ibegin, iend), add_lam);
+          RAJA::TypedRangeSegment<I>(ibegin, iend), add_vec_lam);
 
       }
       stopTimer();
 
       break;
     }
-    
-#endif //RUN_RAJA_VEC
+#endif //RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;

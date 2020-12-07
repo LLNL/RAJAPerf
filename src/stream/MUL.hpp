@@ -22,9 +22,17 @@
   Real_ptr c = m_c; \
   Real_type alpha = m_alpha;
 
+#define MUL_DATA_VEC_SETUP \
+  RAJA_INDEX_VALUE_T(I, Int_type, "I"); \
+  using vector_t = RAJA::StreamVector<Real_type, 2>; \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type>, I> B(b, iend); \
+  RAJA::TypedView<Real_type, RAJA::Layout<1, Int_type>, I> C(c, iend); 
+
 #define MUL_BODY  \
   b[i] = alpha * c[i] ;
 
+#define MUL_VEC_BODY \
+ B(i) = alpha * C(i);
 
 #include "common/KernelBase.hpp"
 

@@ -82,6 +82,19 @@ void INIT_VIEW1D::runSeqVariant(VariantID vid)
 
       break;
     }
+
+    case RAJA_Vec : {
+
+      INIT_VIEW1D_DATA_VEC_SETUP;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        INIT_VIEW1D_VEC_BODY;
+      }
+      stopTimer();
+
+      break;
+    }
 #endif // RUN_RAJA_SEQ
 
     default : {

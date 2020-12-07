@@ -27,6 +27,7 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
+  setVariantDefined( RAJA_Vec );
 
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
