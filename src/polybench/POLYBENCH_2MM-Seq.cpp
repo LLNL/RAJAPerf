@@ -177,6 +177,19 @@ void POLYBENCH_2MM::runSeqVariant(VariantID vid)
       break;
     }
 
+    case RAJA_Vec : {
+
+      POLYBENCH_2MM_DATA_VEC_SETUP; 
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        POLYBENCH_2MM_VEC_BODY1;
+      }
+      stopTimer();
+
+      break;
+
+    }
 #endif // RUN_RAJA_SEQ
 
     default : {
