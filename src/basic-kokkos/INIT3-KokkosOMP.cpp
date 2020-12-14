@@ -14,13 +14,15 @@
 
 namespace rajaperf 
 {
+// Refers to both Kokkos and Raja namespaces; we are defining methods on a class in ..
+// DAVID - help completing this comment!
+//
 namespace basic
 {
 
-
 void INIT3::runKokkosOpenMPVariant(VariantID vid)
 {
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+//#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -32,61 +34,69 @@ void INIT3::runKokkosOpenMPVariant(VariantID vid)
                      INIT3_BODY;
                    };
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
-    case Base_OpenMP : {
+#if defined(RUN_OPENMP)
+
+//    case Base_OpenMP : {
+//
+//      startTimer();
+//      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+//
+//        #pragma omp parallel for
+//        for (Index_type i = ibegin; i < iend; ++i ) {
+//          INIT3_BODY;
+//        }
+//
+//      }
+//      stopTimer();
+//
+//      break;
+//    }
+//
+//    case Lambda_OpenMP : {
+//
+//      startTimer();
+//      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+//
+//        #pragma omp parallel for
+//        for (Index_type i = ibegin; i < iend; ++i ) {
+//          init3_lam(i);
+//        }
+//
+//      }
+//      stopTimer();
+//
+//      break;
+//    }
+
+
+
+      case Kokkos_Lambda_OpenMP: {      
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INIT3_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        #pragma omp parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          init3_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+/*
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), init3_lam);
-
+*/
+      Kokkos::parallel_for("Init3_OMP", Kokkos::RangePolicy<Kokkos::OpenMP>(ibegin, iend),
+	[=] (Index_type i) {INIT3_BODY});   
       }
       stopTimer();
 
       break;
     }
+#endif // RUN_OPENMP
 
     default : {
       std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
     }
-
   }
 
-#endif
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

@@ -30,47 +30,55 @@ void INIT3::runKokkosSeqVariant(VariantID vid)
                      INIT3_BODY;
                    };
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
-
+       
       startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      for(RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INIT3_BODY;
+        for(Index_type i = ibegin; i < iend; ++i) {
+	  INIT3_BODY;
         }
 
       }
       stopTimer();
 
       break;
-    }
+}
 
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
 
+    case Lambda_Seq : {
+      
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          init3_lam(i);
+        
+        for (Index_type i = ibegin; i < iend; ++i) {
+	  init3_lam(i);
         }
 
-      }
-      stopTimer();
 
-      break;
     }
+    stopTimer();  
+   
+    break;
+}
 
-    case RAJA_Seq : {
+// Nota bene -- Conversion of Raja code begins here
+    case Kokkos_Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), init3_lam);
-
+//        RAJA::forall<RAJA::simd_exec>(
+//          RAJA::RangeSegment(ibegin, iend), init3_lam);
+          
+         // Kokkos translation
+        Kokkos::parallel_for("Init3_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+		[=] (Index_type i) {INIT3_BODY});
       }
       stopTimer();
 
@@ -83,6 +91,8 @@ void INIT3::runKokkosSeqVariant(VariantID vid)
     }
 
   }
+
+#endif // RUN_KOKKOS
 
 }
 

@@ -26,6 +26,8 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
 
   INIT_VIEW1D_DATA_SETUP;
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -63,7 +65,8 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    // AJP began modificaiton here
+    case Kokkos_Lambda_Seq : {
 
       INIT_VIEW1D_VIEW_RAJA;
 
@@ -74,8 +77,11 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
+//        RAJA::forall<RAJA::simd_exec>(
+//          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
+         //Kokkos translation
+         Kokkos::parallel_for("InitView1D_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin,iend),
+             [=] (Index_type i) {INIT_VIEW1D_BODY_RAJA});
 
       }
       stopTimer();
@@ -90,6 +96,7 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
 
   }
 
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

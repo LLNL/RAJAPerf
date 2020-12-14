@@ -63,7 +63,11 @@ void INIT3::runKokkosCudaVariant(VariantID vid)
 
   INIT3_DATA_SETUP;
 
+#if defined(RUN_KOKKOS)
+
   if ( vid == Base_CUDA ) {
+
+#if defined(RUN_CUDA)
 
     INIT3_DATA_SETUP_CUDA;
 
@@ -79,26 +83,35 @@ void INIT3::runKokkosCudaVariant(VariantID vid)
 
     INIT3_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+// AJP modified lines below
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     INIT3_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        INIT3_BODY;
-      });
+//      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+//        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+//        INIT3_BODY;
+//      });
+
+	Kokkos::parallel_for("Kokkos INIT3 Cuda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+		//Here, the function executes on the device / GPU
+		[=] __device__ (Index_type i) {INIT3_BODY});
 
     }
     stopTimer();
 
     INIT3_DATA_TEARDOWN_CUDA;
 
+#endif // RUN_CUDA
+
   } else {
      std::cout << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
   }
+
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic
