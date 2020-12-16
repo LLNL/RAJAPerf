@@ -12,7 +12,8 @@ blt_add_library(
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
-          DAXPY-OMP.cpp
+          DAXPY-Sycl.cpp
+	  DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
           IF_QUAD.cpp
           IF_QUAD-Seq.cpp

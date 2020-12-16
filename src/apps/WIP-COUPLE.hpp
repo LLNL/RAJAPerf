@@ -170,6 +170,7 @@ public:
   void runOpenMPVariant(VariantID vid) {(void) vid;}
   void runCudaVariant(VariantID vid) {(void) vid;}
   void runHipVariant(VariantID vid) {(void) vid;}
+  void runSyclVariant(VariantID vid) {};
   void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
 
 private:

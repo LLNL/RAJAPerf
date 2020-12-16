@@ -10,6 +10,7 @@
 
 #include "RunParams.hpp"
 
+#include "RAJA/RAJA.hpp"
 #include <cmath>
 
 namespace rajaperf {
@@ -89,6 +90,10 @@ void KernelBase::setVariantDefined(VariantID vid)
 void KernelBase::execute(VariantID vid) 
 {
   running_variant = vid;
+
+#if defined(RAJA_ENABLE_SYCL)
+  ::RAJA::sycl::detail::setQueue(&qu);
+#endif
 
   resetTimer();
 
@@ -172,6 +177,15 @@ void KernelBase::runKernel(VariantID vid)
     {
 #if defined(RAJA_ENABLE_HIP)
       runHipVariant(vid);
+#endif
+      break;
+    }
+
+    case Base_SYCL :
+    case RAJA_SYCL :
+    {
+#if defined(RAJA_ENABLE_SYCL)
+      runSyclVariant(vid);
 #endif
       break;
     }
