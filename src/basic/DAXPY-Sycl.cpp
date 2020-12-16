@@ -75,7 +75,6 @@ void DAXPY::runSyclVariant(VariantID vid)
 
     qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
-
     DAXPY_DATA_TEARDOWN_SYCL;
 
   } else if ( vid == RAJA_SYCL ) {
