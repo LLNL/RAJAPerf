@@ -51,14 +51,9 @@ void DAXPY::runSyclVariant(VariantID vid)
 
   DAXPY_DATA_SETUP;
 
-  std::cout << " Queue ptr = " << &qu << '\n';
-
   if ( vid == Base_SYCL ) {
 
     DAXPY_DATA_SETUP_SYCL;
-
-std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -78,13 +73,8 @@ std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
       });
     }
 
-std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-std::cout << "Time difference DAXPY = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
-std::cout << "Time difference DAXPY = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
     qu.wait(); // Wait for computation to finish before stopping timer
     stopTimer();
-
     DAXPY_DATA_TEARDOWN_SYCL;
 
   } else if ( vid == RAJA_SYCL ) {
