@@ -43,6 +43,9 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Seq.cpp
   apps/PRESSURE-OMPTarget.cpp
+  apps/HALOEXCHANGE.cpp
+  apps/HALOEXCHANGE-Seq.cpp
+  apps/HALOEXCHANGE-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
