@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import csv
 from datetime import datetime
 import os
@@ -9,7 +11,6 @@ import xml
 # xmlformatter:
 # https://www.freeformatter.com/xml-formatter.html#ad-output
 
-#infile = "/Users/ajpowel/Desktop/kokkos_perf_test/watchr/RAJAPerf-timing.csv"
 
 infile = "./RAJAPerf-timing.csv"
 
@@ -17,11 +18,6 @@ def read_infile(infile):
     """STUB"""
     with open(infile, newline='') as csvfile:
         rps_reader = csv.reader(csvfile, delimiter=',')
-        for row in rps_reader:
-            # The join() method is a string method and returns a string in
-            # which
-            # the elements of sequence have been joined by str separator.
-            print(', '.join(row))
 
 
 
@@ -45,7 +41,7 @@ perf_report.set("name", name)
 
 perf_report.set("time-units", time_units)
 
-print(ET.tostring(perf_report))
+#print(ET.tostring(perf_report))
 
 perf_root = ET.SubElement(perf_report, 'timing')
 
@@ -53,7 +49,7 @@ perf_root.set("end-time",date)
 
 perf_root.set("name", "kokkos_perf_suite")
 
-print(ET.tostring(perf_report))
+#print(ET.tostring(perf_report))
 
 # b'<performance-report time-units="seconds" date="2020-12-16T14:34:40"
 # name="RAJAPerf-timing.csv"><timing end-time="2020-12-16T14:34:40"
@@ -67,7 +63,6 @@ test_suite_list = []
 with open(infile, newline='') as csvfile:
     rps_reader = csv.reader(csvfile, delimiter=',')
     for row in rps_reader:
-        #print(', '.join(row))
         test_suite_list.append(row)
 
 
@@ -138,7 +133,7 @@ def create_RPS_xml_report(suite_name, suite_data_list):
                 aggregate_results_dict[variant_name] = 0.0
             # sums values of all the basic kernels
             aggregate_results_dict[variant_name] += float(timing)
-    print(aggregate_results_dict)
+    #print(aggregate_results_dict)
 
     suite_root = ET.SubElement(perf_root, "timing")
     associate_timings_with_xml(suite_root, aggregate_results_dict, suite_name)
@@ -165,9 +160,13 @@ def run():
     for key in heirarch_dict.keys():
         create_RPS_xml_report(key, heirarch_dict[key])
 
-    print(heirarch_dict["KokkosMechanics"])
+	# Aided in debugging
+    #print(heirarch_dict["KokkosMechanics"])
 
-    print(ET.tostring(perf_report))
+    # Prints xml to screen as string
+	#print(ET.tostring(perf_report))
+
+    ET.dump(perf_report)
 
 
 if __name__ == "__main__":
