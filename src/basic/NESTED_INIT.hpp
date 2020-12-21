@@ -58,7 +58,10 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
-
+    void runKokkosSeqVariant(VariantID vid);
+    void runKokkosOpenMPVariant(VariantID vid);
+    void runKokkosCudaVariant(VariantID vid);
+    void runKokkosOpenMPTargetVariant(VariantID vid);
 private:
   Index_type m_array_length;
 

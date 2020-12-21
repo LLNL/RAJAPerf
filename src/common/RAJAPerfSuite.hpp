@@ -15,6 +15,10 @@
 
 #include "RAJA/config.hpp"
 
+#if defined(RUN_KOKKOS)
+#include "Kokkos_Core.hpp"
+#endif
+
 #include <string>
 
 namespace rajaperf
@@ -112,55 +116,59 @@ enum KernelID {
 //
 // Lcals kernels...
 //
-  Lcals_DIFF_PREDICT,
-  Lcals_EOS,
-  Lcals_FIRST_DIFF,
-  Lcals_FIRST_MIN,
-  Lcals_FIRST_SUM,
-  Lcals_GEN_LIN_RECUR,
-  Lcals_HYDRO_1D,
-  Lcals_HYDRO_2D,
-  Lcals_INT_PREDICT,
-  Lcals_PLANCKIAN,
-  Lcals_TRIDIAG_ELIM,
+//  Lcals_DIFF_PREDICT,
+//  Lcals_EOS,
+//  Lcals_FIRST_DIFF,
+//  Lcals_FIRST_MIN,
+//  Lcals_FIRST_SUM,
+//  Lcals_GEN_LIN_RECUR,
+//  Lcals_HYDRO_1D,
+//  Lcals_HYDRO_2D,
+//  Lcals_INT_PREDICT,
+//  Lcals_PLANCKIAN,
+//  Lcals_TRIDIAG_ELIM,
 
 //
 // Polybench kernels...
 //
-  Polybench_2MM,
-  Polybench_3MM,
-  Polybench_ADI,
-  Polybench_ATAX,
-  Polybench_FDTD_2D,
-  Polybench_FLOYD_WARSHALL,
-  Polybench_GEMM,
-  Polybench_GEMVER,
-  Polybench_GESUMMV,
-  Polybench_HEAT_3D,
-  Polybench_JACOBI_1D,
-  Polybench_JACOBI_2D,
-  Polybench_MVT,
+//  Polybench_2MM,
+//  Polybench_3MM,
+//  Polybench_ADI,
+//  Polybench_ATAX,
+//  Polybench_FDTD_2D,
+//  Polybench_FLOYD_WARSHALL,
+//  Polybench_GEMM,
+//  Polybench_GEMVER,
+//  Polybench_GESUMMV,
+//  Polybench_HEAT_3D,
+//  Polybench_JACOBI_1D,
+//  Polybench_JACOBI_2D,
+//  Polybench_MVT,
 
 //
 // Stream kernels...
 //
-  Stream_ADD,
-  Stream_COPY,
-  Stream_DOT,
-  Stream_MUL,
-  Stream_TRIAD,
+  //Stream_ADD,
+  //Stream_COPY,
+  //Stream_DOT,
+  //Stream_MUL,
+  //Stream_TRIAD,
 
 //
 // Apps kernels...
 //
-  Apps_COUPLE,
-  Apps_DEL_DOT_VEC_2D,
-  Apps_ENERGY,
-  Apps_FIR,
-  Apps_LTIMES,
-  Apps_LTIMES_NOVIEW,
-  Apps_PRESSURE,
-  Apps_VOL3D,
+  //Apps_COUPLE,
+  //Apps_DEL_DOT_VEC_2D,
+  //Apps_ENERGY,
+  //Apps_FIR,
+  //Apps_LTIMES,
+  //Apps_LTIMES_NOVIEW,
+  //Apps_PRESSURE,
+  //Apps_VOL3D,
+
+  // Kokkos Mechanics Tests
+  KokkosMechanics_ViewAllocate, 
+  KokkosMechanics_ViewStreamAdd, 
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -198,7 +206,20 @@ enum VariantID {
   Base_HIP,
   RAJA_HIP,
 
+  Kokkos_Lambda_Seq,
+  Kokkos_Functor_Seq,
+
+  Kokkos_Lambda_OpenMP,
+  Kokkos_Functor_OpenMP,
+
+  Kokkos_Lambda_OpenMPTarget,
+  Kokkos_Functor_OpenMPTarget,
+
+  Kokkos_Lambda_CUDA,
+  Kokkos_Functor_CUDA,
+
   NumVariants // Keep this one last and NEVER comment out (!!)
+
 
 };
 

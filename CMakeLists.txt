@@ -7,11 +7,11 @@
 ###############################################################################
 
 project(RAJAPerfSuite CXX)
-
 cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
+option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
 # Initialize the BLT build system
@@ -24,10 +24,12 @@ endif()
 set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
+set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+set(CMAKE_CUDA_HOST_LINK_LAUNCHER ${CMAKE_CUDA_COMPILER})
+include(blt/SetupBLT.cmake)
 
-set(CMAKE_CXX_STANDARD 11)
-set(BLT_CXX_STANDARD 11)
-
+set(CMAKE_CXX_STANDARD 14)
+set(BLT_CXX_STANDARD 14)
 include(blt/SetupBLT.cmake)
 
 #
@@ -89,7 +91,7 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
@@ -112,6 +114,42 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 # Make sure RAJA flag propagate
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
+
+# ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
+if(ENABLE_KOKKOS)
+  add_definitions(-DRUN_KOKKOS)
+
+# ENABLE_CUDA IS A RAJA PERFSUITE OPTION
+  if(ENABLE_CUDA)
+    set(Kokkos_ENABLE_CUDA ON)
+    set(Kokkos_ARCH_VOLTA70 ON) #TODO: better
+    enable_language(CUDA)
+  endif()
+  if(ENABLE_OPENMP)
+    set(Kokkos_ENABLE_OPENMP ON)
+  endif()
+
+  add_subdirectory(tpl/kokkos)
+  if(ENABLE_CUDA)
+	  #get_target_property(kokkos_core_files kokkoscore SOURCES)
+	  #get_target_property(kokkos_container_files kokkoscontainers SOURCES)
+	  ##message(STATUS "KOKKOS FILES: ${kokkos_core_files}")
+	  #foreach(kokkos_core_file IN LISTS kokkos_core_files)
+	  #        set_source_files_properties(${kokkos_core_file} PROPERTIES COMPILE_LANGUAGE CUDA)
+	  #        get_source_file_property(local ${kokkos_core_file} LANGUAGE) 
+	  #        set(remote "")
+	  #        #get_source_file_property(remote ${kokkos_core_file} DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tpl/kokkos/core/src LANGUAGE) 
+	  #        message(STATUS "Kokkos file: ${kokkos_core_file} ${local} ${remote}")
+	  #        
+	  #endforeach()
+    #set_target_properties(kokkoscore kokkoscontainers PROPERTIES LANGUAGE CUDA)
+  endif()
+  get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${KOKKOS_INCLUDE_DIRS})
+  
+  list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
+endif()
+
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.

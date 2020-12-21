@@ -77,6 +77,9 @@
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
+#include "kokkos-mechanics/ViewAllocate.hpp"
+#include "kokkos-mechanics/ViewStreamAdd.hpp"
+
 
 #include <iostream>
 
@@ -139,56 +142,59 @@ static const std::string KernelNames [] =
 
 //
 // Lcals kernels...
+////
+//  std::string("Lcals_DIFF_PREDICT"),
+//  std::string("Lcals_EOS"),
+//  std::string("Lcals_FIRST_DIFF"),
+//  std::string("Lcals_FIRST_MIN"),
+//  std::string("Lcals_FIRST_SUM"),
+//  std::string("Lcals_GEN_LIN_RECUR"),
+//  std::string("Lcals_HYDRO_1D"),
+//  std::string("Lcals_HYDRO_2D"),
+//  std::string("Lcals_INT_PREDICT"),
+//  std::string("Lcals_PLANCKIAN"),
+//  std::string("Lcals_TRIDIAG_ELIM"),
 //
-  std::string("Lcals_DIFF_PREDICT"),
-  std::string("Lcals_EOS"),
-  std::string("Lcals_FIRST_DIFF"),
-  std::string("Lcals_FIRST_MIN"),
-  std::string("Lcals_FIRST_SUM"),
-  std::string("Lcals_GEN_LIN_RECUR"),
-  std::string("Lcals_HYDRO_1D"),
-  std::string("Lcals_HYDRO_2D"),
-  std::string("Lcals_INT_PREDICT"),
-  std::string("Lcals_PLANCKIAN"),
-  std::string("Lcals_TRIDIAG_ELIM"),
+////
+//// Polybench kernels...
+////
+//  std::string("Polybench_2MM"),
+//  std::string("Polybench_3MM"),
+//  std::string("Polybench_ADI"),
+//  std::string("Polybench_ATAX"),
+//  std::string("Polybench_FDTD_2D"),
+//  std::string("Polybench_FLOYD_WARSHALL"),
+//  std::string("Polybench_GEMM"),
+//  std::string("Polybench_GEMVER"),
+//  std::string("Polybench_GESUMMV"),
+//  std::string("Polybench_HEAT_3D"),
+//  std::string("Polybench_JACOBI_1D"),
+//  std::string("Polybench_JACOBI_2D"),
+//  std::string("Polybench_MVT"),
+//
+////
+//// Stream kernels...
+////
+//  std::string("Stream_ADD"),
+//  std::string("Stream_COPY"),
+//  std::string("Stream_DOT"),
+//  std::string("Stream_MUL"),
+//  std::string("Stream_TRIAD"),
+//
+////
+//// Apps kernels...
+////
+//  std::string("Apps_COUPLE"),
+//  std::string("Apps_DEL_DOT_VEC_2D"),
+//  std::string("Apps_ENERGY"),
+//  std::string("Apps_FIR"),
+//  std::string("Apps_LTIMES"),
+//  std::string("Apps_LTIMES_NOVIEW"),
+//  std::string("Apps_PRESSURE"),
+//  std::string("Apps_VOL3D"),
 
-//
-// Polybench kernels...
-//
-  std::string("Polybench_2MM"),
-  std::string("Polybench_3MM"),
-  std::string("Polybench_ADI"),
-  std::string("Polybench_ATAX"),
-  std::string("Polybench_FDTD_2D"),
-  std::string("Polybench_FLOYD_WARSHALL"),
-  std::string("Polybench_GEMM"),
-  std::string("Polybench_GEMVER"),
-  std::string("Polybench_GESUMMV"),
-  std::string("Polybench_HEAT_3D"),
-  std::string("Polybench_JACOBI_1D"),
-  std::string("Polybench_JACOBI_2D"),
-  std::string("Polybench_MVT"),
-
-//
-// Stream kernels...
-//
-  std::string("Stream_ADD"),
-  std::string("Stream_COPY"),
-  std::string("Stream_DOT"),
-  std::string("Stream_MUL"),
-  std::string("Stream_TRIAD"),
-
-//
-// Apps kernels...
-//
-  std::string("Apps_COUPLE"),
-  std::string("Apps_DEL_DOT_VEC_2D"),
-  std::string("Apps_ENERGY"),
-  std::string("Apps_FIR"),
-  std::string("Apps_LTIMES"),
-  std::string("Apps_LTIMES_NOVIEW"),
-  std::string("Apps_PRESSURE"),
-  std::string("Apps_VOL3D"),
+  std::string("KokkosMechanics_ViewAllocate"),
+  std::string("KokkosMechanics_ViewStreamAdd"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -226,6 +232,19 @@ static const std::string VariantNames [] =
 
   std::string("Base_HIP"),
   std::string("RAJA_HIP"),
+
+  std::string("Kokkos_Lambda_Seq"),
+  std::string("Kokkos_Functor_Seq"),
+
+  std::string("Kokkos_Lambda_OpenMP"),
+  std::string("Kokkos_Functor_OpenMP"),
+
+
+  std::string("Kokkos_Lambda_OpenMPTarget"),
+  std::string("Kokkos_Functor_OpenMPTarget"),
+
+  std::string("Kokkos_Lambda_CUDA"),
+  std::string("Kokkos_Functor_CUDA"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -305,6 +324,13 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_Seq ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_Seq || 
+       vid == Kokkos_Functor_Seq ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
+
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -313,6 +339,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_OpenMP || 
+       vid == Kokkos_Functor_OpenMP ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
@@ -320,6 +352,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_OpenMPTarget || 
+       vid == Kokkos_Functor_OpenMPTarget ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -327,6 +365,12 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_CUDA ) {
     ret_val = true;
   }
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda_CUDA || 
+       vid == Kokkos_Functor_CUDA ) {
+    ret_val = true;
+  }
+#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
@@ -356,18 +400,21 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    
     case Basic_ATOMIC_PI : {
        kernel = new basic::ATOMIC_PI(run_params);
        break;
     }
+    
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
     }
+		       
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
-    }
+}
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;
@@ -396,7 +443,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::TRAP_INT(run_params);
        break;
     }
-
+/** DZP: big comment block for unimplemented
 //
 // Lcals kernels...
 //
@@ -560,7 +607,17 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::VOL3D(run_params);
        break;
     }
-
+*/
+		       
+    case KokkosMechanics_ViewAllocate : {
+       kernel = new kokkos_mechanics::ViewAllocate(run_params);
+       break;
+    }
+		       
+    case KokkosMechanics_ViewStreamAdd: {
+       kernel = new kokkos_mechanics::ViewStreamAdd(run_params);
+       break;
+    }
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

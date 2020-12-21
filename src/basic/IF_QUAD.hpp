@@ -70,6 +70,11 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  void runKokkosSeqVariant(VariantID vid);
+  void runKokkosOpenMPVariant(VariantID vid);
+  void runKokkosCudaVariant(VariantID vid);
+  void runKokkosOpenMPTargetVariant(VariantID vid);
+
 private:
   Real_ptr m_a;
   Real_ptr m_b;

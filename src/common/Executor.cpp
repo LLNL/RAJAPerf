@@ -44,6 +44,9 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+#if defined(RUN_KOKKOS)
+  Kokkos::finalize(); // TODO DZP: should this be here? 
+#endif
 }
 
 
@@ -247,7 +250,7 @@ void Executor::setupSuite()
          kid != run_kern.end(); ++kid) {
 /// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do 
 /// complex numbers in GPU code
-      if ( *kid != Apps_COUPLE ) {
+      if ( /** *kid != Apps_COUPLE */ true ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
     }
@@ -272,7 +275,9 @@ void Executor::setupSuite()
       }
 
     } // kernel and variant input both look good
-
+#if defined(RUN_KOKKOS)
+    Kokkos::initialize(); 
+#endif
   } // if kernel input looks good
 
 }
