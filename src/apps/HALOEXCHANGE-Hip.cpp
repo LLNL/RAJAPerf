@@ -95,6 +95,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           buffer += len;
         }
       }
+      synchronize();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -109,6 +110,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           buffer += len;
         }
       }
+      synchronize();
 
     }
     stopTimer();
@@ -139,6 +141,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           buffer += len;
         }
       }
+      synchronize();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -155,6 +158,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           buffer += len;
         }
       }
+      synchronize();
 
     }
     stopTimer();
