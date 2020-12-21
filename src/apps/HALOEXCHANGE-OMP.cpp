@@ -33,12 +33,10 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        // packing
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
-          // pack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             #pragma omp parallel for
@@ -47,16 +45,12 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
             }
             buffer += len;
           }
-          // send single message
         }
 
-        // unpacking
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          // recv single message
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
-          // unpack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             #pragma omp parallel for
@@ -78,12 +72,10 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        // packing
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
-          // pack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
@@ -95,16 +87,12 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
             }
             buffer += len;
           }
-          // send single message
         }
 
-        // unpacking
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          // recv single message
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
-          // unpack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
@@ -131,12 +119,10 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        // packing
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
-          // pack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=](Index_type i) {
@@ -147,16 +133,12 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
                 haloexchange_pack_base_lam );
             buffer += len;
           }
-          // send single message
         }
 
-        // unpacking
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          // recv single message
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
-          // unpack
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=](Index_type i) {
