@@ -18,6 +18,7 @@ namespace basic
 {
 
 
+
 void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -25,6 +26,10 @@ void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
   const Index_type iend = getRunSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
+
+
+#if defined(RUN_KOKKOS)
+
 
   switch ( vid ) {
 
@@ -63,7 +68,9 @@ void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+	// Conversion of Raja code to Kokkos starts here
+	//
+    case Kokkos_Lambda_Seq : {
 
       INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
@@ -74,8 +81,10 @@ void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
+//        RAJA::forall<RAJA::simd_exec>(
+//          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
+	Kokkos::parallel_for("INIT_VIEW1D_OFFSET_SEQ Kokkos", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend), [=] (Index_type i) {INIT_VIEW1D_OFFSET_BODY_RAJA});
+
 
       }
       stopTimer();
@@ -90,6 +99,7 @@ void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
 
   }
 
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

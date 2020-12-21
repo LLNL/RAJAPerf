@@ -16,69 +16,87 @@ namespace rajaperf
 {
 namespace basic
 {
-struct AtomicPIFunctor {
-  Real_type dx;
-  Real_ptr pi;
-
-  AtomicPIFunctor(Real_type m_dx, Real_ptr m_pi) : ATOMIC_PI_FUNCTOR_CONSTRUCT {}
-};
 
 
-void ATOMIC_PI::runKokkosSeqVariant(VariantID vid)
+void ATOMIC_PI::runSeqVariant(VariantID vid)
 {
-
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+
   ATOMIC_PI_DATA_SETUP;
 
-#if defined(RUN_KOKKOS) && defined(RUN_OPENMP)
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
-    case Kokkos_Functor_OpenMP : {
-
-      startTimer();
-      //for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      //  *pi = m_pi_init;
-      //  RAJA::forall<RAJA::omp_parallel_for_exec>( 
-      //    RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-      //      double x = (double(i) + 0.5) * dx;
-      //      RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
-      //  });
-      //  *pi *= 4.0;
-
-      //}
-      stopTimer();
-
-      break;
-    }
-    case Kokkos_Lambda_OpenMP : {
+    case Base_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         *pi = m_pi_init;
-
-        Kokkos::parallel_for("name",Kokkos::RangePolicy<Kokkos::OpenMP>(ibegin, iend), KOKKOS_LAMBDA(Index_type i){
-          double x = ((double(i) + 0.5) * dx);
-          Kokkos::atomic_add(pi, dx / (1.0 + x * x));
-	});
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          double x = (double(i) + 0.5) * dx;
+          *pi += dx / (1.0 + x * x);
+        }
         *pi *= 4.0;
+
       }
       stopTimer();
 
       break;
     }
 
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
+
+      auto atomicpi_base_lam = [=](Index_type i) {
+                                 double x = (double(i) + 0.5) * dx;
+                                 *pi += dx / (1.0 + x * x);
+                               };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        *pi = m_pi_init;
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          atomicpi_base_lam(i);
+        }
+        *pi *= 4.0;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case RAJA_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+   
+        *pi = m_pi_init;
+        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
+          [=](Index_type i) {
+            double x = (double(i) + 0.5) * dx;
+            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
+        });
+        *pi *= 4.0;
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif	//RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
     }
 
   }
-
-#endif
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

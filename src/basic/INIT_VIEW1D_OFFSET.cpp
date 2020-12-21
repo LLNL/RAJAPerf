@@ -40,6 +40,11 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda_Seq );
+  setVariantDefined( Kokkos_Lambda_OpenMP );
+  setVariantDefined( Kokkos_Lambda_CUDA );
+
 }
 
 INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET() 
