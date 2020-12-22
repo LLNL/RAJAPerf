@@ -77,7 +77,7 @@ void INIT3::runKokkosSeqVariant(VariantID vid)
 //          RAJA::RangeSegment(ibegin, iend), init3_lam);
           
          // Kokkos translation
-        Kokkos::parallel_for("Init3_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("INIT3-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 		[=] (Index_type i) {INIT3_BODY});
       }
       stopTimer();

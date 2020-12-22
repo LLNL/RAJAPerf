@@ -37,14 +37,15 @@ void DAXPY::runKokkosSeqVariant(VariantID vid)
                      DAXPY_BODY;
                    };
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
-#if defined(RUN_KOKKOS)
 #if defined(RUN_RAJA_SEQ)
     case Kokkos_Lambda_Seq: {
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
                              [=](Index_type i) { DAXPY_BODY; });
       }
       stopTimer();
@@ -55,14 +56,13 @@ void DAXPY::runKokkosSeqVariant(VariantID vid)
       DaxpyFunctor daxpy_functor_instance(y,x,a);                                
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("perfsuite.kokkos.seq.lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Functor_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
                              daxpy_functor_instance);
       }
       stopTimer();
       
       break;
     }
-#endif // RUN_KOKKOS
 #endif // RUN_RAJA_SEQ
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
@@ -70,6 +70,7 @@ void DAXPY::runKokkosSeqVariant(VariantID vid)
 
   }
 
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

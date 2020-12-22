@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void ATOMIC_PI::runSeqVariant(VariantID vid)
+void ATOMIC_PI::runKokkosSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -71,17 +71,24 @@ void ATOMIC_PI::runSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case Kokkos_Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
    
         *pi = m_pi_init;
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
-          [=](Index_type i) {
-            double x = (double(i) + 0.5) * dx;
-            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
-        });
+//      RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
+//          [=](Index_type i) {
+//            double x = (double(i) + 0.5) * dx;
+//            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
+//        });
+		
+		Kokkos::parallel_for("ATOMIC_PI-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+		[=] (Index_type i) {
+			double x = (double(i) + 0.5) * dx;
+			Kokkos::atomic_add(pi, dx / (1.0 + x * x));
+		});
+
         *pi *= 4.0;
 
       }

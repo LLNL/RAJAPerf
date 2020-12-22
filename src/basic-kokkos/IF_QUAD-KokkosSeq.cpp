@@ -19,7 +19,6 @@ namespace basic
 
 
 // Kokkos-ify here
-//void IF_QUAD::runSeqVariant(VariantID vid)
 
 void IF_QUAD::runKokkosSeqVariant(VariantID vid)
 {
@@ -38,10 +37,6 @@ void IF_QUAD::runKokkosSeqVariant(VariantID vid)
 
   switch ( vid ) {
 
-  // AJP added (following DAXPY example) --
-
-//#if defined(RUN_KOKKOS)
-//#if defined(RUN_OPENMP)
 
 
 #if defined(RUN_RAJA_SEQ)     
@@ -55,7 +50,8 @@ void IF_QUAD::runKokkosSeqVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), ifquad_lam);
 */
 	// Translation 
-	Kokkos::parallel_for("Quad", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+	Kokkos::parallel_for("IF_QUAD_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+
 		[=] (Index_type i) {IF_QUAD_BODY});
 
       }
@@ -72,8 +68,6 @@ void IF_QUAD::runKokkosSeqVariant(VariantID vid)
   }
 
 #endif // RUN_KOKKOS
-
-
 
 
 }

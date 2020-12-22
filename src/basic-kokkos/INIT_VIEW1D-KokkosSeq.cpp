@@ -80,7 +80,7 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
 //        RAJA::forall<RAJA::simd_exec>(
 //          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
          //Kokkos translation
-         Kokkos::parallel_for("InitView1D_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin,iend),
+         Kokkos::parallel_for("INIT_VIEW1D_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin,iend),
              [=] (Index_type i) {INIT_VIEW1D_BODY_RAJA});
 
       }

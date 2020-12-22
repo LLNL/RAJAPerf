@@ -83,7 +83,7 @@ void INIT_VIEW1D_OFFSET::runKokkosSeqVariant(VariantID vid)
 
 //        RAJA::forall<RAJA::simd_exec>(
 //          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
-	Kokkos::parallel_for("INIT_VIEW1D_OFFSET_SEQ Kokkos", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend), [=] (Index_type i) {INIT_VIEW1D_OFFSET_BODY_RAJA});
+	Kokkos::parallel_for("INIT_VIEW1D_OFFSET_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend), [=] (Index_type i) {INIT_VIEW1D_OFFSET_BODY_RAJA});
 
 
       }
