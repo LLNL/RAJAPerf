@@ -15,6 +15,12 @@
 #include "common/RunParams.hpp"
 
 #include "RAJA/util/Timer.hpp"
+#if defined(RAJA_ENABLE_CUDA)
+#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
+#endif
+#if defined(RAJA_ENABLE_HIP)
+#include "RAJA/policy/hip/raja_hiperrchk.hpp"
+#endif
 
 #include <string>
 #include <iostream>
@@ -67,13 +73,15 @@ public:
   void synchronize()
   {
 #if defined(RAJA_ENABLE_CUDA)
-    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
-      cudaDeviceSynchronize();
+    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ||
+         running_variant == RAJA_WORKGROUP_CUDA ) {
+      cudaErrchk( cudaDeviceSynchronize() );
     }
 #endif
 #if defined(RAJA_ENABLE_HIP)
-    if ( running_variant == Base_HIP || running_variant == RAJA_HIP ) {
-      hipDeviceSynchronize();
+    if ( running_variant == Base_HIP || running_variant == RAJA_HIP ||
+         running_variant == RAJA_WORKGROUP_HIP ) {
+      hipErrchk( hipDeviceSynchronize() );
     }
 #endif
   }

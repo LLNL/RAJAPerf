@@ -69,9 +69,13 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
 
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
+  setVariantDefined( RAJA_WORKGROUP_CUDA );
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+  setVariantDefined( RAJA_WORKGROUP_HIP );
+#endif
 }
 
 HALOEXCHANGE::~HALOEXCHANGE()

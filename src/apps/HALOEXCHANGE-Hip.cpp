@@ -165,6 +165,85 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
 
     HALOEXCHANGE_DATA_TEARDOWN_HIP;
 
+#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+
+  } else if ( vid == RAJA_WORKGROUP_HIP ) {
+
+    HALOEXCHANGE_DATA_SETUP_HIP;
+
+    using workgroup_policy = RAJA::WorkGroupPolicy <
+                                 RAJA::hip_work_async<workgroup_block_size>,
+                                 RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
+                                 RAJA::constant_stride_array_of_objects >;
+
+    using workpool = RAJA::WorkPool< workgroup_policy,
+                                     int,
+                                     RAJA::xargs<>,
+                                     pinned_allocator<char> >;
+
+    using workgroup = RAJA::WorkGroup< workgroup_policy,
+                                       int,
+                                       RAJA::xargs<>,
+                                       pinned_allocator<char> >;
+
+    using worksite = RAJA::WorkSite< workgroup_policy,
+                                     int,
+                                     RAJA::xargs<>,
+                                     pinned_allocator<char> >;
+
+    startTimer();
+    {
+      workpool pool_pack  (pinned_allocator<char>{});
+      workpool pool_unpack(pinned_allocator<char>{});
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Real_ptr buffer = buffers[l];
+          Int_ptr list = pack_index_lists[l];
+          Index_type  len  = pack_index_list_lengths[l];
+          for (Index_type v = 0; v < num_vars; ++v) {
+            Real_ptr var = vars[v];
+            auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
+                  HALOEXCHANGE_PACK_BODY;
+                };
+            pool_pack.enqueue(
+                RAJA::TypedRangeSegment<Index_type>(0, len),
+                haloexchange_pack_base_lam );
+            buffer += len;
+          }
+        }
+        workgroup group_pack = pool_pack.instantiate();
+        worksite site_pack = group_pack.run();
+        synchronize();
+
+        for (Index_type l = 0; l < num_neighbors; ++l) {
+          Real_ptr buffer = buffers[l];
+          Int_ptr list = unpack_index_lists[l];
+          Index_type  len  = unpack_index_list_lengths[l];
+          for (Index_type v = 0; v < num_vars; ++v) {
+            Real_ptr var = vars[v];
+            auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
+                  HALOEXCHANGE_UNPACK_BODY;
+                };
+            pool_unpack.enqueue(
+                RAJA::TypedRangeSegment<Index_type>(0, len),
+                haloexchange_unpack_base_lam );
+            buffer += len;
+          }
+        }
+        workgroup group_unpack = pool_unpack.instantiate();
+        worksite site_unpack = group_unpack.run();
+        synchronize();
+
+      }
+    }
+    stopTimer();
+
+    HALOEXCHANGE_DATA_TEARDOWN_HIP;
+
+#endif
+
   } else {
      std::cout << "\n HALOEXCHANGE : Unknown Hip variant id = " << vid << std::endl;
   }

@@ -17,6 +17,15 @@
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
 
+#include <limits>
+#include <new>
+
+#if defined(RAJA_ENABLE_CUDA)
+#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
+#endif
+#if defined(RAJA_ENABLE_HIP)
+#include "RAJA/policy/hip/raja_hiperrchk.hpp"
+#endif
 
 namespace rajaperf
 {
@@ -151,6 +160,65 @@ long double calcChecksum(Real_ptr d, int len,
 ///
 long double calcChecksum(Complex_ptr d, int len, 
                          Real_type scale_factor = 1.0);
+
+
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
+
+  template < typename T >
+  struct pinned_allocator
+  {
+    using value_type = T;
+
+    pinned_allocator() = default;
+
+    template < typename U >
+    constexpr pinned_allocator(pinned_allocator<U> const&) noexcept
+    { }
+
+    /*[[nodiscard]]*/
+    value_type* allocate(size_t num)
+    {
+      if (num > std::numeric_limits<size_t>::max() / sizeof(value_type)) {
+        throw std::bad_alloc();
+      }
+
+      value_type *ptr = nullptr;
+  #if defined(RAJA_ENABLE_CUDA)
+      cudaErrchk( cudaMallocHost((void **)&ptr, num*sizeof(value_type)) );
+  #elif defined(RAJA_ENABLE_HIP)
+      hipErrchk( hipHostMalloc((void **)&ptr, num*sizeof(value_type)) );
+  #endif
+
+      if (!ptr) {
+        throw std::bad_alloc();
+      }
+
+      return ptr;
+    }
+
+    void deallocate(value_type* ptr, size_t) noexcept
+    {
+  #if defined(RAJA_ENABLE_CUDA)
+      cudaErrchk( cudaFreeHost(ptr) );
+  #elif defined(RAJA_ENABLE_HIP)
+      hipErrchk( hipHostFree(ptr) );
+  #endif
+    }
+  };
+
+  template <typename T, typename U, typename Resource>
+  bool operator==(pinned_allocator<T> const&, pinned_allocator<U> const&)
+  {
+    return true;
+  }
+
+  template <typename T, typename U, typename Resource>
+  bool operator!=(pinned_allocator<T> const& lhs, pinned_allocator<U> const& rhs)
+  {
+    return !(lhs == rhs);
+  }
+
+#endif
 
 }  // closing brace for rajaperf namespace
 
