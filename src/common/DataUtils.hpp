@@ -19,12 +19,13 @@
 
 #include <limits>
 #include <new>
+#include <type_traits>
 
 #if defined(RAJA_ENABLE_CUDA)
-#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
+#include "RAJA/policy/cuda/MemUtils_CUDA.hpp"
 #endif
 #if defined(RAJA_ENABLE_HIP)
-#include "RAJA/policy/hip/raja_hiperrchk.hpp"
+#include "RAJA/policy/hip/MemUtils_HIP.hpp"
 #endif
 
 namespace rajaperf
@@ -162,18 +163,46 @@ long double calcChecksum(Complex_ptr d, int len,
                          Real_type scale_factor = 1.0);
 
 
-#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
+/*!
+ * \brief Holds a RajaPool object and provides access to it via a
+ *        std allocator compliant type.
+ */
+template < typename RajaPool >
+struct RAJAPoolAllocatorHolder
+{
 
+  /*!
+   * \brief Std allocator compliant type that uses the pool owned by
+   *        the RAJAPoolAllocatorHolder that it came from.
+   *
+   * Note that this must not outlive the RAJAPoolAllocatorHolder
+   * used to create it.
+   */
   template < typename T >
-  struct pinned_allocator
+  struct Allocator
   {
     using value_type = T;
+    using propagate_on_container_copy_assignment = std::true_type;
+    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_swap = std::true_type;
 
-    pinned_allocator() = default;
+    Allocator() = default;
+
+    Allocator(Allocator const&) = default;
+    Allocator(Allocator &&) = default;
+
+    Allocator& operator=(Allocator const&) = default;
+    Allocator& operator=(Allocator &&) = default;
 
     template < typename U >
-    constexpr pinned_allocator(pinned_allocator<U> const&) noexcept
+    constexpr Allocator(Allocator<U> const& other) noexcept
+      : m_pool_ptr(other.get_impl())
     { }
+
+    Allocator select_on_container_copy_construction()
+    {
+      return *this;
+    }
 
     /*[[nodiscard]]*/
     value_type* allocate(size_t num)
@@ -183,11 +212,9 @@ long double calcChecksum(Complex_ptr d, int len,
       }
 
       value_type *ptr = nullptr;
-  #if defined(RAJA_ENABLE_CUDA)
-      cudaErrchk( cudaMallocHost((void **)&ptr, num*sizeof(value_type)) );
-  #elif defined(RAJA_ENABLE_HIP)
-      hipErrchk( hipHostMalloc((void **)&ptr, num*sizeof(value_type)) );
-  #endif
+      if (m_pool_ptr != nullptr) {
+        ptr = m_pool_ptr->template malloc<value_type>(num);
+      }
 
       if (!ptr) {
         throw std::bad_alloc();
@@ -198,27 +225,60 @@ long double calcChecksum(Complex_ptr d, int len,
 
     void deallocate(value_type* ptr, size_t) noexcept
     {
-  #if defined(RAJA_ENABLE_CUDA)
-      cudaErrchk( cudaFreeHost(ptr) );
-  #elif defined(RAJA_ENABLE_HIP)
-      hipErrchk( hipHostFree(ptr) );
-  #endif
+      if (m_pool_ptr != nullptr) {
+        m_pool_ptr->free(ptr);
+      }
     }
+
+    RajaPool* const& get_impl() const
+    {
+      return m_pool_ptr;
+    }
+
+    template <typename U>
+    friend inline bool operator==(Allocator const& lhs, Allocator<U> const& rhs)
+    {
+      return lhs.get_impl() == rhs.get_impl();
+    }
+
+    template <typename U>
+    friend inline bool operator!=(Allocator const& lhs, Allocator<U> const& rhs)
+    {
+      return !(lhs == rhs);
+    }
+
+  private:
+    friend RAJAPoolAllocatorHolder;
+
+    RajaPool* m_pool_ptr = nullptr;
+
+    constexpr Allocator(RajaPool* pool_ptr) noexcept
+      : m_pool_ptr(pool_ptr)
+    { }
   };
 
-  template <typename T, typename U, typename Resource>
-  bool operator==(pinned_allocator<T> const&, pinned_allocator<U> const&)
+  template < typename T >
+  Allocator<T> getAllocator()
   {
-    return true;
+    return Allocator<T>(&m_pool);
   }
 
-  template <typename T, typename U, typename Resource>
-  bool operator!=(pinned_allocator<T> const& lhs, pinned_allocator<U> const& rhs)
+  RAJAPoolAllocatorHolder()
   {
-    return !(lhs == rhs);
+    // manually allocate to force pool to allocate an arena
+    char* ptr = m_pool.template malloc<char>(1);
+    m_pool.free(ptr);
   }
 
-#endif
+  ~RAJAPoolAllocatorHolder()
+  {
+    // manually free memory arenas, as this is not done automatically
+    m_pool.free_chunks();
+  }
+
+private:
+  RajaPool m_pool;
+};
 
 }  // closing brace for rajaperf namespace
 

@@ -171,6 +171,11 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
 
     HALOEXCHANGE_DATA_SETUP_HIP;
 
+    using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
+    using Allocator = AllocatorHolder::Allocator<char>;
+
+    AllocatorHolder allocatorHolder;
+
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<workgroup_block_size>,
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
@@ -179,22 +184,22 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
     using workpool = RAJA::WorkPool< workgroup_policy,
                                      int,
                                      RAJA::xargs<>,
-                                     pinned_allocator<char> >;
+                                     Allocator >;
 
     using workgroup = RAJA::WorkGroup< workgroup_policy,
                                        int,
                                        RAJA::xargs<>,
-                                       pinned_allocator<char> >;
+                                       Allocator >;
 
     using worksite = RAJA::WorkSite< workgroup_policy,
                                      int,
                                      RAJA::xargs<>,
-                                     pinned_allocator<char> >;
+                                     Allocator >;
 
     startTimer();
     {
-      workpool pool_pack  (pinned_allocator<char>{});
-      workpool pool_unpack(pinned_allocator<char>{});
+      workpool pool_pack  (allocatorHolder.template getAllocator<char>());
+      workpool pool_unpack(allocatorHolder.template getAllocator<char>());
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
