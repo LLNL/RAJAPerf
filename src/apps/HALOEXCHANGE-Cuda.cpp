@@ -179,19 +179,35 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
                                  RAJA::constant_stride_array_of_objects >;
 
     using workpool = RAJA::WorkPool< workgroup_policy,
-                                     int,
+                                     Index_type,
                                      RAJA::xargs<>,
                                      Allocator >;
 
     using workgroup = RAJA::WorkGroup< workgroup_policy,
-                                       int,
+                                       Index_type,
                                        RAJA::xargs<>,
                                        Allocator >;
 
     using worksite = RAJA::WorkSite< workgroup_policy,
-                                     int,
+                                     Index_type,
                                      RAJA::xargs<>,
                                      Allocator >;
+
+    // do a warmup to avoid timing one-time allocations
+    {
+      workpool pool(allocatorHolder.template getAllocator<char>());
+      for (Index_type l = 0; l < num_neighbors; ++l) {
+        Index_type len = pack_index_list_lengths[l];
+        for (Index_type v = 0; v < num_vars; ++v) {
+          pool.enqueue(
+              RAJA::TypedRangeSegment<Index_type>(0, len),
+              [=] __device__ (Index_type) { });
+        }
+      }
+      workgroup group = pool.instantiate();
+      worksite site = group.run();
+      synchronize();
+    }
 
     startTimer();
     {
@@ -203,7 +219,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
-          Index_type  len  = pack_index_list_lengths[l];
+          Index_type len = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
@@ -222,7 +238,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
+          Index_type len = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {

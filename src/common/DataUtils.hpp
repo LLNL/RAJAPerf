@@ -263,13 +263,6 @@ struct RAJAPoolAllocatorHolder
     return Allocator<T>(&m_pool);
   }
 
-  RAJAPoolAllocatorHolder()
-  {
-    // manually allocate to force pool to allocate an arena
-    char* ptr = m_pool.template malloc<char>(1);
-    m_pool.free(ptr);
-  }
-
   ~RAJAPoolAllocatorHolder()
   {
     // manually free memory arenas, as this is not done automatically
