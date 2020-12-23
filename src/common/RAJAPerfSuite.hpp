@@ -74,6 +74,7 @@ enum GroupID {
   Polybench,
   Stream,
   Apps,
+  Algorithm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -162,6 +163,11 @@ enum KernelID {
   Apps_LTIMES_NOVIEW,
   Apps_PRESSURE,
   Apps_VOL3D,
+
+//
+// Algorithm kernels...
+//
+  Algorithm_SORT,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 

@@ -67,6 +67,15 @@ void allocAndInitDataRandSign(Real_ptr& ptr, int len,
                               VariantID vid = NumVariants);
 
 /*!
+ * \brief Allocate and initialize aligned Real_type data array with random
+ *        values.
+ *
+ * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
+ */
+void allocAndInitDataRandValue(Real_ptr& ptr, int len,
+                               VariantID vid = NumVariants);
+
+/*!
  * \brief Allocate and initialize aligned Complex_type data array.
  */
 void allocAndInitData(Complex_ptr& ptr, int len,
@@ -121,6 +130,14 @@ void initDataRandSign(Real_ptr& ptr, int len,
                       VariantID vid = NumVariants);
 
 /*!
+ * \brief Initialize Real_type data array with random values.
+ *
+ * Array entries are initialized with random values in the interval [0.0, 1.0].
+ */
+void initDataRandValue(Real_ptr& ptr, int len,
+                       VariantID vid = NumVariants);
+
+/*!
  * \brief Initialize Complex_type data array.
  *
  * Real and imaginary array entries are initialized in the same way as the 
@@ -149,7 +166,7 @@ void initData(Real_type& d,
 long double calcChecksum(Real_ptr d, int len, 
                          Real_type scale_factor = 1.0);
 ///
-long double calcChecksum(Complex_ptr d, int len, 
+long double calcChecksum(Complex_ptr d, int len,
                          Real_type scale_factor = 1.0);
 
 }  // closing brace for rajaperf namespace
