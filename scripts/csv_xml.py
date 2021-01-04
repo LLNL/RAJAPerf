@@ -41,8 +41,6 @@ perf_report.set("name", name)
 
 perf_report.set("time-units", time_units)
 
-#print(ET.tostring(perf_report))
-
 perf_root = ET.SubElement(perf_report, 'timing')
 
 perf_root.set("end-time",date)
@@ -114,7 +112,6 @@ def associate_timings_with_xml(xml_element, timing_dict, suite_or_test_name):
     for key, value in timing_dict.items():
         xml_element.set(key, str(value))
     xml_element.set("name", suite_or_test_name.strip())
-    xml_element.set("count", str(1))
 
 
 
