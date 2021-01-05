@@ -28,6 +28,8 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
                           NESTED_INIT_BODY;
                         };
 
+#if defined RUN_KOKKOS
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -69,9 +71,9 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case Kokkos_Lambda_Seq : {
 
-      using EXEC_POL = 
+/*      using EXEC_POL = 
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::loop_exec,    // k
             RAJA::statement::For<1, RAJA::loop_exec,  // j
@@ -79,17 +81,27 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
                 RAJA::statement::Lambda<0>
               >
             >
-          >
-        >;
 
+
+          >
+        >
+;
+*/
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
-                                                 RAJA::RangeSegment(0, nk)),
-                                nestedinit_lam
-                              );
+
+	// There are tuning knobs in MDRange to optimize performance
+	// 
+	Kokkos::parallel_for("NESTED_INIT KokkosSeq", Kokkos::MDRangePolicy<Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, Kokkos::Serial>({0,0,0}, {ni, nj, nk}),
+		nestedinit_lam
+); 	
+
+//        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+//                                                 RAJA::RangeSegment(0, nj),
+//                                                 RAJA::RangeSegment(0, nk)),
+//                                nestedinit_lam
+//                              );
 
       }
       stopTimer();
@@ -103,7 +115,7 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
     }
 
   }
-
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

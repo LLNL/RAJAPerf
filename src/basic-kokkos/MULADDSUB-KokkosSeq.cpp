@@ -30,6 +30,9 @@ void MULADDSUB::runKokkosSeqVariant(VariantID vid)
                    MULADDSUB_BODY;
                  };
 
+
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -63,13 +66,18 @@ void MULADDSUB::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case Kokkos_Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), mas_lam);
+//        RAJA::forall<RAJA::simd_exec>(
+//          RAJA::RangeSegment(ibegin, iend), mas_lam);
+//
+//		Kokkos translation
+//		If SIMD really matters , consider using Kokkos SIMD
+		Kokkos::parallel_for("MULTISUB-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+			[=] (Index_type i) {MULADDSUB_BODY});
 
       }
       stopTimer();
@@ -83,7 +91,7 @@ void MULADDSUB::runKokkosSeqVariant(VariantID vid)
     }
 
   }
-
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

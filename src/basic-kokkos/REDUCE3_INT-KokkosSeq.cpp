@@ -27,6 +27,8 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -82,11 +84,11 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case Kokkos_Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+/*
         RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
@@ -99,7 +101,28 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
         m_vsum += static_cast<Int_type>(vsum.get());
         m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
         m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+*/
+		// These values are initilized elsewhere by RPS
+		Int_type max_value = m_vmax_init;
+		Int_type min_value = m_vmin_init;
+		Int_type sum = m_vsum_init;
 
+
+		// KOKKOS_LAMBDA IS A PRE-PROCESSOR DIRECTIVE;
+		// It makes the capture clause on the lambda work for Host and Device
+		parallel_reduce("REDUCE3-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+			
+			[=](const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum){
+		  Int_type vec_i = vec[i];
+		  if (vec_i > tl_max) tl_max = vec_i;
+		  if (vec_i < tl_min) tl_min = vec_i;
+          tl_sum += vec_i;
+		  }, Kokkos::Max<Int_type>(max_value), Kokkos::Min<Int_type>(min_value), sum);
+
+        m_vsum += static_cast<Int_type>(sum);
+        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(min_value));
+        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(max_value));
+	
       }
       stopTimer();
 
@@ -112,7 +135,7 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
     }
 
   }
-
+#endif // RUN_KOKKOS
 }
 
 } // end namespace basic

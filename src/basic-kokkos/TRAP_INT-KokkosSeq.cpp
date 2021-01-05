@@ -40,6 +40,8 @@ void TRAP_INT::runKokkosSeqVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -86,19 +88,32 @@ void TRAP_INT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case Kokkos_Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
+//        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
 
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
+//       RAJA::forall<RAJA::loop_exec>(
+//          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+//          TRAP_INT_BODY;
+//
+//          Begin Kokkos translation
+//          A RAJA reduce translates into a Kokkoss::parallel_reduce
+//          To perform the translation:
+		// Declare and initialize variables
+		// To perform a reduction, you need: 1) an initial value; 2) iterate
+		// over an iterable; 3) to be able to extract the result at the end of
+		// the reduction (in this case, trap_integral_val)
 
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
+		Real_type trap_integral_val = m_sumx_init;
+
+		Kokkos::parallel_reduce("TRAP_INT_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+			[=] (const int64_t i, Real_type& sumx) {TRAP_INT_BODY}, trap_integral_val
+			);
+
+        m_sumx += static_cast<Real_type>(trap_integral_val) * h;
 
       }
       stopTimer();
@@ -112,7 +127,7 @@ void TRAP_INT::runKokkosSeqVariant(VariantID vid)
     }
 
   }
-
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

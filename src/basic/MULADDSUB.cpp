@@ -40,6 +40,12 @@ MULADDSUB::MULADDSUB(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda_Seq );
+  setVariantDefined( Kokkos_Lambda_OpenMP );
+  setVariantDefined( Kokkos_Lambda_CUDA );
+
+
 }
 
 MULADDSUB::~MULADDSUB() 
