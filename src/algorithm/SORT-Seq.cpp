@@ -47,7 +47,7 @@ void SORT::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::sort<RAJA::loop_exec>(SORT_RAJA_ARGS);
+        RAJA::sort<RAJA::loop_exec>(SORT_STD_ARGS);
 
       }
       stopTimer();

@@ -21,9 +21,6 @@
 #define SORT_STD_ARGS  \
   x + iend*irep + ibegin, x + iend*irep + iend
 
-#define SORT_RAJA_ARGS  \
-  x + iend*irep + ibegin, x + iend*irep + iend
-
 
 #include "common/KernelBase.hpp"
 

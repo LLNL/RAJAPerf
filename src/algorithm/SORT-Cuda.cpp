@@ -50,7 +50,7 @@ void SORT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(SORT_RAJA_ARGS);
+      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(SORT_STD_ARGS);
 
     }
     stopTimer();
