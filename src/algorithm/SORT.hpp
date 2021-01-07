@@ -50,7 +50,10 @@ public:
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runOpenMPTargetVariant(VariantID vid)
+  {
+    std::cout << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
+  }
 
 private:
   Real_ptr m_x;

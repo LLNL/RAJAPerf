@@ -13,6 +13,5 @@ blt_add_library(
           SORT-Hip.cpp
           SORT-Cuda.cpp
           SORT-OMP.cpp
-          SORT-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
