@@ -78,6 +78,11 @@
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
+//
+// Algorithm kernels...
+//
+#include "algorithm/SORT.hpp"
+
 
 #include <iostream>
 
@@ -103,6 +108,7 @@ static const std::string GroupNames [] =
   std::string("Polybench"),
   std::string("Stream"),
   std::string("Apps"),
+  std::string("Algorithm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -191,6 +197,11 @@ static const std::string KernelNames [] =
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
+
+//
+// Algorithm kernels...
+//
+  std::string("Algorithm_SORT"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -564,6 +575,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+
+//
+// Algorithm kernels...
+//
+    case Algorithm_SORT: {
+       kernel = new algorithm::SORT(run_params);
        break;
     }
 

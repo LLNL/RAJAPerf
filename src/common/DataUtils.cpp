@@ -75,6 +75,14 @@ void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
   initDataRandSign(ptr, len, vid);
 }
 
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+{
+  ptr =
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
+                                           len*sizeof(Real_type));
+  initDataRandValue(ptr, len, vid);
+}
+
 void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 {
   // Should we do this differently for alignment?? If so, change dealloc()
@@ -242,6 +250,34 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 }
 
 /*
+ * Initialize Real_type data array with random values.
+ */
+void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+{
+  (void) vid;
+
+// First touch...
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
+       vid == RAJA_OpenMP ) {
+    #pragma omp parallel for
+    for (int i = 0; i < len; ++i) {
+      ptr[i] = 0.0;
+    };
+  }
+#endif
+
+  srand(4793);
+
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = Real_type(rand())/RAND_MAX;
+  };
+
+  incDataInitCount();
+}
+
+/*
  * Initialize Complex_type data array.
  */
 void initData(Complex_ptr& ptr, int len, VariantID vid)
@@ -315,7 +351,5 @@ long double calcChecksum(const Complex_ptr ptr, int len,
   }
   return tchk;
 }
-
-
 
 }  // closing brace for rajaperf namespace
