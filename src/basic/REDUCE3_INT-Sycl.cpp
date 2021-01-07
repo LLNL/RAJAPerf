@@ -52,7 +52,6 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
 
   if (0) {// vid == Base_SYCL_ ) {
 
-
   } else if ( vid == RAJA_SYCL ) {
 
     REDUCE3_INT_DATA_SETUP_SYCL;
