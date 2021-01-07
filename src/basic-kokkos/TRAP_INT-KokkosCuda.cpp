@@ -94,6 +94,8 @@ void TRAP_INT::runKokkosCudaVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
+#if defined RUN_KOKKOS
+
   if ( vid == Base_CUDA ) {
 
     TRAP_INT_DATA_SETUP_CUDA;
@@ -126,23 +128,37 @@ void TRAP_INT::runKokkosCudaVariant(VariantID vid)
 
     TRAP_INT_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     TRAP_INT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        TRAP_INT_BODY;
-      });
+		//	Begin Kokkos translation
+		//	A RAJA reduce translates into a
+		//	Kokkoss::parallel_reduce
+		//	To perform the translation:
+		//	Declare and initialize variables
+		//	To perform a reduction, you need:
+		//	1) an initial value;
+		//	2) iterate over an iterable;
+		//	3) to be able to extract the result at the end of the reduction (in this case, trap_integral_val)
 
-      m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
-    }
+		Real_type trap_integral_val = m_sumx_init;
+
+		parallel_reduce("TRAP_INT_KokkosCuda Kokkos_Lambda_Seq",
+						Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+						[=] __device__ (const int64_t i, Real_type& sumx) {
+							TRAP_INT_BODY},
+						trap_integral_val
+						);
+
+        m_sumx += static_cast<Real_type>(trap_integral_val) * h;
+
+      }
     stopTimer();
 
     TRAP_INT_DATA_TEARDOWN_CUDA;
@@ -150,6 +166,7 @@ void TRAP_INT::runKokkosCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

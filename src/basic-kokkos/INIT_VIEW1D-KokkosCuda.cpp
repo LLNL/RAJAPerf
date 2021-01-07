@@ -53,6 +53,8 @@ void INIT_VIEW1D::runKokkosCudaVariant(VariantID vid)
 
   INIT_VIEW1D_DATA_SETUP;
 
+#if defined(RUN_KOKKOS)
+
   if ( vid == Base_CUDA ) {
 
     INIT_VIEW1D_DATA_SETUP_CUDA;
@@ -70,7 +72,8 @@ void INIT_VIEW1D::runKokkosCudaVariant(VariantID vid)
 
     INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+// AJP modified lines below 
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     INIT_VIEW1D_DATA_SETUP_CUDA;
 
@@ -79,10 +82,14 @@ void INIT_VIEW1D::runKokkosCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        INIT_VIEW1D_BODY_RAJA;
-      });
+//      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+//        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+//        INIT_VIEW1D_BODY_RAJA;
+//      });
+
+	Kokkos::parallel_for("INIT_VIEW1D-KokkosCuda Kokkos-Lambda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+		// Here, the function executes on the device / GPU
+		[=] __device__ (Index_type i) {INIT_VIEW1D_BODY_RAJA});
 
     }
     stopTimer();
@@ -92,6 +99,7 @@ void INIT_VIEW1D::runKokkosCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
   }
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

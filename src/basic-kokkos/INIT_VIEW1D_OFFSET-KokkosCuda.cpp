@@ -54,6 +54,8 @@ void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
+#if defined (RUN_KOKKOS)
+
   if ( vid == Base_CUDA ) {
 
     INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA;
@@ -71,7 +73,7 @@ void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
 
     INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA;
 
@@ -80,10 +82,13 @@ void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        INIT_VIEW1D_OFFSET_BODY_RAJA;
-      });
+
+	Kokkos::parallel_for("INIT_VIEW1D_OFFSET-KokkosCuda Kokkos_Lambda",
+						 Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+						 [=] __device__ (Index_type i) {
+						 INIT_VIEW1D_OFFSET_BODY_RAJA;
+						 }
+);
 
     }
     stopTimer();
@@ -99,3 +104,4 @@ void INIT_VIEW1D_OFFSET::runKokkosCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
+#endif //RUN_KOKKOS

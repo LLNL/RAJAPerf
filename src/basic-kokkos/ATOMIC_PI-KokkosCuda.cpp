@@ -97,7 +97,7 @@ void ATOMIC_PI::runKokkosCudaVariant(VariantID vid)
       });
 */
 
-	Kokkos::parallel_for("Atomic_PI Cuda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+	Kokkos::parallel_for("ATOMIC_PI-KokkosCuda Kokkkos_Lambda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
 	    // Here, function executes on the device / GPU, and copies by VALUE
 	    // the "[=] __device__" indicates "KOKKOS_LAMBDA";
 	    // KOKKOS_LAMBDA = #define KOKKOS_LAMBDA[=]__device__

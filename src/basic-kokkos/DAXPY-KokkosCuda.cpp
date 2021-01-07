@@ -47,13 +47,14 @@ struct DaxpyCudaFunctor {
 
 void DAXPY::runKokkosCudaVariant(VariantID vid)
 {
-#if defined(RUN_KOKKOS)
-#if defined(RAJA_ENABLE_CUDA)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
   DAXPY_DATA_SETUP;
+
+#if defined(RUN_KOKKOS)
+
   if ( vid == Kokkos_Functor_CUDA) {
     DAXPY_DATA_SETUP_CUDA;
     DaxpyCudaFunctor daxpy_functor_instance(y,x,a);                                
@@ -76,7 +77,7 @@ void DAXPY::runKokkosCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-	    Kokkos::parallel_for("perfsuite.kokkos.cuda.lambda",
+	    Kokkos::parallel_for("DAXPY-KokkosCuda Kokkos_Lambda",
         Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend), [=] __device__ (Index_type i) {
         DAXPY_BODY;
       });
@@ -89,7 +90,6 @@ void DAXPY::runKokkosCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
   }
-#endif // RAJA_ENABLE_CUDA
 #endif // RUN_KOKKOS
 }
 

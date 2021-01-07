@@ -89,7 +89,7 @@ void IF_QUAD::runKokkosCudaVariant(VariantID vid)
 //       });
 
 
-  Kokkos::parallel_for("Kokks IF_QUAD Cuda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+  Kokkos::parallel_for("IF_QUAD-KokkosCuda Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
 	// Here, the function executes on the device / GPU
   	[=] __device__ (Index_type i) {IF_QUAD_BODY});
   	//KOKKOS_LAMBDA (Index_type i) {IF_QUAD_BODY});

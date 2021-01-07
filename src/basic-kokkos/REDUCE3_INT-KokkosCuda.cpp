@@ -90,6 +90,8 @@ void REDUCE3_INT::runKokkosCudaVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
+#if defined RUN_KOKKOS
+
   if ( vid == Base_CUDA ) {
 
     REDUCE3_INT_DATA_SETUP_CUDA;
@@ -140,25 +142,42 @@ void REDUCE3_INT::runKokkosCudaVariant(VariantID vid)
     deallocCudaDeviceData(vmin);
     deallocCudaDeviceData(vmax);
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     REDUCE3_INT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+/*
       RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
       RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
+*/
+	
+	 Int_type max_value = m_vmax_init;
+	 Int_type min_value = m_vmin_init;
+	 Int_type sum = m_vsum_init;
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        REDUCE3_INT_BODY_RAJA;
-      });
+	// KOKKOS_LAMBDA IS A PRE-PROCESSOR DIRECTIVE
+	// It makes the capture clause on the lambda work for Host and Device
 
-      m_vsum += static_cast<Int_type>(vsum.get());
-      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+	parallel_reduce("REDUCE3-KokkosCuda Kokkos_Lambda_Seq",
+					Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+					[=] __device__ (const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum) {
+					Int_type vec_i = vec[i];
+					if (vec_i > tl_max) tl_max = vec_i;
+					if (vec_i < tl_min) tl_min= vec_i;
+					tl_sum += vec_i;
+					},
+					Kokkos::Max<Int_type>(max_value),
+					Kokkos::Min<Int_type>(min_value),
+					sum);
+
+
+      m_vsum += static_cast<Int_type>(sum);
+      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(min_value));
+      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(max_value));
 
     }
     stopTimer();
@@ -168,6 +187,7 @@ void REDUCE3_INT::runKokkosCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic
