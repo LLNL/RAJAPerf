@@ -13,5 +13,10 @@ blt_add_library(
           SORT-Hip.cpp
           SORT-Cuda.cpp
           SORT-OMP.cpp
+          SORTPAIRS.cpp
+          SORTPAIRS-Seq.cpp
+          SORTPAIRS-Hip.cpp
+          SORTPAIRS-Cuda.cpp
+          SORTPAIRS-OMP.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

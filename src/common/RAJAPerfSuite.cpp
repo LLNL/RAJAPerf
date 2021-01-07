@@ -82,6 +82,7 @@
 // Algorithm kernels...
 //
 #include "algorithm/SORT.hpp"
+#include "algorithm/SORTPAIRS.hpp"
 
 
 #include <iostream>
@@ -202,6 +203,7 @@ static const std::string KernelNames [] =
 // Algorithm kernels...
 //
   std::string("Algorithm_SORT"),
+  std::string("Algorithm_SORTPAIRS"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -583,6 +585,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
+       break;
+    }
+    case Algorithm_SORTPAIRS: {
+       kernel = new algorithm::SORTPAIRS(run_params);
        break;
     }
 
