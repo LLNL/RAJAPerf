@@ -121,12 +121,13 @@ if(ENABLE_KOKKOS)
 
 # ENABLE_CUDA IS A RAJA PERFSUITE OPTION
   if(ENABLE_CUDA)
-    set(Kokkos_ENABLE_CUDA ON)
-    set(Kokkos_ARCH_VOLTA70 ON) #TODO: better
+	  set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Docstring")
+	  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Docstring")
+	  set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
     enable_language(CUDA)
   endif()
   if(ENABLE_OPENMP)
-    set(Kokkos_ENABLE_OPENMP ON)
+    set(Kokkos_ENABLE_OPENMP CACHE BOOL ON)
   endif()
 
   add_subdirectory(tpl/kokkos)

@@ -9,7 +9,7 @@
 #include "TRAP_INT.hpp"
 
 #include "RAJA/RAJA.hpp"
-
+#include <Kokkos_Core.hpp>
 #if defined(RAJA_ENABLE_CUDA)
 
 #include "common/CudaDataUtils.hpp"
@@ -24,8 +24,7 @@ namespace basic
 //
 // Function used in TRAP_INT loop.
 //
-RAJA_INLINE
-RAJA_DEVICE
+KOKKOS_INLINE_FUNCTION
 Real_type trap_int_func(Real_type x,
                         Real_type y,
                         Real_type xp,
@@ -151,7 +150,7 @@ void TRAP_INT::runKokkosCudaVariant(VariantID vid)
 
 		parallel_reduce("TRAP_INT_KokkosCuda Kokkos_Lambda_Seq",
 						Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
-						[=] __device__ (const int64_t i, Real_type& sumx) {
+						KOKKOS_LAMBDA (const int64_t i, Real_type& sumx) {
 							TRAP_INT_BODY},
 						trap_integral_val
 						);
