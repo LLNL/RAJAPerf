@@ -76,7 +76,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
     stopTimer();
 
     NESTED_INIT_DATA_TEARDOWN_SYCL;
-/*
+
   } else if ( vid == RAJA_SYCL ) {
 
     NESTED_INIT_DATA_SETUP_SYCL;
@@ -110,7 +110,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
     stopTimer();
 
     NESTED_INIT_DATA_TEARDOWN_SYCL;
-*/
+
   } else {
      std::cout << "\n  NESTED_INIT : Unknown Sycl variant id = " << vid << std::endl;
   }
