@@ -13,6 +13,7 @@ blt_add_library(
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 
           DEL_DOT_VEC_2D-Cuda.cpp 
+	  DEL_DOT_VEC_2D-Sycl.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
           DIFFUSION3DPA.cpp
@@ -25,12 +26,14 @@ blt_add_library(
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 
           ENERGY-Cuda.cpp 
+	  ENERGY-Sycl.cpp 
           ENERGY-OMP.cpp 
           ENERGY-OMPTarget.cpp 
           FIR.cpp
           FIR-Seq.cpp
           FIR-Hip.cpp
           FIR-Cuda.cpp
+	  FIR-Sycl.cpp
           FIR-OMP.cpp
           FIR-OMPTarget.cpp
           HALOEXCHANGE.cpp
@@ -49,12 +52,14 @@ blt_add_library(
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp
           LTIMES-Cuda.cpp
+	  LTIMES-Sycl.cpp
           LTIMES-OMP.cpp
           LTIMES-OMPTarget.cpp
           LTIMES_NOVIEW.cpp
           LTIMES_NOVIEW-Seq.cpp
           LTIMES_NOVIEW-Hip.cpp
           LTIMES_NOVIEW-Cuda.cpp
+	  LTIMES_NOVIEW-Sycl.cpp
           LTIMES_NOVIEW-OMP.cpp
           LTIMES_NOVIEW-OMPTarget.cpp
           MASS3DPA.cpp
@@ -67,12 +72,14 @@ blt_add_library(
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 
           PRESSURE-Cuda.cpp 
+	  PRESSURE-Sycl.cpp 
           PRESSURE-OMP.cpp 
           PRESSURE-OMPTarget.cpp 
           VOL3D.cpp
           VOL3D-Seq.cpp
           VOL3D-Hip.cpp 
           VOL3D-Cuda.cpp 
+	  VOL3D-Sycl.cpp 
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
           WIP-COUPLE.cpp
