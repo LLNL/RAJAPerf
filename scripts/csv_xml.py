@@ -58,7 +58,7 @@ perf_root.set("name", "kokkos_perf_suite")
 # create hierarchy
 
 test_suite_list = []
-with open(infile, newline='') as csvfile:
+with open(infile) as csvfile:
     rps_reader = csv.reader(csvfile, delimiter=',')
     for row in rps_reader:
         test_suite_list.append(row)
