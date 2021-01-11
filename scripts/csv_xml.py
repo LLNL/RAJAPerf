@@ -16,7 +16,7 @@ infile = "./RAJAPerf-timing.csv"
 
 def read_infile(infile):
     """STUB"""
-    with open(infile, newline='') as csvfile:
+    with open(infile) as csvfile:
         rps_reader = csv.reader(csvfile, delimiter=',')
 
 
