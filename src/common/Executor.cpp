@@ -346,6 +346,11 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
+#if defined(RUN_KOKKOS)
+    Kokkos::Tools::declareMetadata("replication_factor",std::to_string(run_params.getRepFactor()));
+    Kokkos::Tools::declareMetadata("size_factor",std::to_string(run_params.getSizeFactor()));
+#endif
+
     str << "\nThe following kernels and variants (when available) will be run:\n"; 
 
     str << "\nVariants"
