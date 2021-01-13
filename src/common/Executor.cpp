@@ -285,9 +285,11 @@ void Executor::setupSuite()
     auto events = Kokkos::Tools::Experimental::get_callbacks();
     auto push = events.push_region;
     auto pop = events.pop_region;
+    auto metadata = events.declare_metadata;
     Kokkos::Tools::Experimental::pause_tools();
     Kokkos::Tools::Experimental::set_push_region_callback(push);
     Kokkos::Tools::Experimental::set_pop_region_callback(pop);
+    Kokkos::Tools::Experimental::set_declare_metadata_callback(metadata);
 #endif
   } // if kernel input looks good
 
@@ -345,6 +347,12 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
+
+#if defined(RUN_KOKKOS)
+    std::cout << "DECLARING METADATA HERRRRRRE\n";
+    Kokkos::Tools::declareMetadata("replication_factor",std::to_string(run_params.getRepFactor()));
+    Kokkos::Tools::declareMetadata("size_factor",std::to_string(run_params.getSizeFactor()));
+#endif
 
     str << "\nThe following kernels and variants (when available) will be run:\n"; 
 
