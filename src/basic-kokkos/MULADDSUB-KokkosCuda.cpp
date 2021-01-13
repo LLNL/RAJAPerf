@@ -63,6 +63,8 @@ void MULADDSUB::runKokkosCudaVariant(VariantID vid)
 
   MULADDSUB_DATA_SETUP;
 
+#if defined RUN_KOKKOS
+
   if ( vid == Base_CUDA ) {
 
     MULADDSUB_DATA_SETUP_CUDA;
@@ -79,17 +81,19 @@ void MULADDSUB::runKokkosCudaVariant(VariantID vid)
 
     MULADDSUB_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     MULADDSUB_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         MULADDSUB_BODY;
-       });
+		Kokkos::parallel_for("MULTISUB-KokkosCuda Kokkos_Lambda_CUDA",
+							 Kokkos::RangePolicy<Kokkos::Cuda>(ibegin, iend),
+							 [=] __device__ (Index_type i) {
+							 MULADDSUB_BODY
+							}
+);
 
     }
     stopTimer();
@@ -99,6 +103,7 @@ void MULADDSUB::runKokkosCudaVariant(VariantID vid)
   } else {
      std::cout << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;
   }
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

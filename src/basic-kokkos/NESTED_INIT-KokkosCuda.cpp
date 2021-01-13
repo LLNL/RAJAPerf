@@ -45,6 +45,14 @@ void NESTED_INIT::runKokkosCudaVariant(VariantID vid)
 
   NESTED_INIT_DATA_SETUP;
 
+  auto nestedinit_lam = [=] __device__  (Index_type i, Index_type j, Index_type k) {
+                          NESTED_INIT_BODY;
+                        };
+
+
+
+#if defined RUN_KOKKOS
+
   if ( vid == Base_CUDA ) {
 
     NESTED_INIT_DATA_SETUP_CUDA;
@@ -63,10 +71,10 @@ void NESTED_INIT::runKokkosCudaVariant(VariantID vid)
 
     NESTED_INIT_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if ( vid == Kokkos_Lambda_CUDA ) {
 
     NESTED_INIT_DATA_SETUP_CUDA;
-
+/*
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
@@ -80,25 +88,48 @@ void NESTED_INIT::runKokkosCudaVariant(VariantID vid)
         >
       >;
 
+*/
 
     startTimer();
+
+	std::cout << "ni "<< ni << std::endl;
+	std::cout << "nj "<< nj << std::endl;
+	std::cout << "nk "<< nk << std::endl;
+
+	
+	std::cout << "m_array_length " << m_array_length << std::endl;
+	std::cout << "m_array " << std::hex << m_array << std::hex << std::endl;
+	
+
+
+
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                               RAJA::RangeSegment(0, nj),
-                                               RAJA::RangeSegment(0, nk)),
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
-        NESTED_INIT_BODY;
-      });
+//      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+//                                               RAJA::RangeSegment(0, nj),
+//                                               RAJA::RangeSegment(0, nk)),
+//        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+//        NESTED_INIT_BODY;
+      
+		Kokkos::parallel_for("NESTED_INIT Kokkos_Lambda_Cuda",
+							 Kokkos::MDRangePolicy<Kokkos::Rank<3,
+							 Kokkos::Iterate::Right,
+							 Kokkos::Iterate::Right>,
+							 Kokkos::Cuda>({0,0,0}, {ni, nj, nk}),
+							 nestedinit_lam);
 
     }
     stopTimer();
+	// Checks for errors
+	Kokkos::fence();
 
     NESTED_INIT_DATA_TEARDOWN_CUDA;
 
   } else {
      std::cout << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
   }
+
+#endif //RUN_KOKKOS
 }
 
 } // end namespace basic

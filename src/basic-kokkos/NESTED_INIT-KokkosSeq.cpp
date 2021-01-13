@@ -94,8 +94,8 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
 	// There are tuning knobs in MDRange to optimize performance
 	// 
 	Kokkos::parallel_for("NESTED_INIT KokkosSeq", Kokkos::MDRangePolicy<Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, Kokkos::Serial>({0,0,0}, {ni, nj, nk}),
-		nestedinit_lam
-); 	
+		nestedinit_lam);
+ 	
 
 //        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
 //                                                 RAJA::RangeSegment(0, nj),
