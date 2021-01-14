@@ -23,7 +23,7 @@ def read_infile(infile):
 
 def get_date():
     """STUB"""
-    date = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    date = datetime.now().strftime("%-Y-%m-%dT%H:%M:%S")
     return date
 
 
@@ -31,7 +31,7 @@ date = get_date()
 
 perf_report = ET.Element("performance-report")
 
-name ="RAJAPerf-timing.csv"
+name ="RAJAPerf" + date + ".xml"
 
 time_units="seconds"
 
