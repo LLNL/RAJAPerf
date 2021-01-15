@@ -41,11 +41,7 @@ void NESTED_INIT::runKokkosCudaVariant(VariantID vid) {
 
   NESTED_INIT_DATA_SETUP;
 
-  auto nestedinit_lam =
-      KOKKOS_LAMBDA(Index_type i, Index_type j, Index_type k) {
-    auto ind = i + ni * (j + nj * k);
-    NESTED_INIT_BODY;
-  };
+ 
 
 #if defined RUN_KOKKOS
 
