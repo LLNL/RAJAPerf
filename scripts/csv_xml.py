@@ -110,7 +110,7 @@ def associate_timings_with_xml(xml_element, timing_dict, suite_or_test_name):
     timing_dict = a map of variant names to test run times
     """
     for key, value in timing_dict.items():
-        xml_element.set(key, str(value))
+        xml_element.set(key.lower(), str(value))
     xml_element.set("name", suite_or_test_name.strip())
 
 
