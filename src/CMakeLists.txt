@@ -184,7 +184,8 @@ blt_add_executable(
   common/RunParams.cpp
   algorithm/SORT.cpp
   algorithm/SORT-Seq.cpp
-  algorithm/SORT-OMPTarget.cpp
+  algorithm/SORTPAIRS.cpp
+  algorithm/SORTPAIRS-Seq.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 
