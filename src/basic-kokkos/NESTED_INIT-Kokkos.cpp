@@ -231,7 +231,7 @@ void moveDataToHostFromKokkosView(PointedAt* kokkos_ptr, ExistingView my_view, B
 
 //////////////////////////////////////////////////////////////////////////////
 
-void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
+void NESTED_INIT::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -285,9 +285,9 @@ void NESTED_INIT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-// Kokkos_Lambda_Seq variant
+// Kokkos_Lambda variant
 
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
   	  // Wrap the nested init array pointer in a Kokkos View
       // In  a Kokkos View, array arguments for array boundaries go from outmost

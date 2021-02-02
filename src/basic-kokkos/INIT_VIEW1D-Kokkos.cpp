@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
+void INIT_VIEW1D::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -66,7 +66,7 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
     }
 
     // AJP began modificaiton here
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       INIT_VIEW1D_VIEW_RAJA;
 
@@ -80,7 +80,7 @@ void INIT_VIEW1D::runKokkosSeqVariant(VariantID vid)
 //        RAJA::forall<RAJA::simd_exec>(
 //          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
          //Kokkos translation
-         Kokkos::parallel_for("INIT_VIEW1D_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin,iend),
+         Kokkos::parallel_for("INIT_VIEW1D_KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin,iend),
              [=] (Index_type i) {INIT_VIEW1D_BODY_RAJA});
 
       }

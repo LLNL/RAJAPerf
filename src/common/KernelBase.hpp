@@ -126,16 +126,7 @@ public:
 #endif
 
 #if defined(RUN_KOKKOS)
-  virtual void runKokkosSeqVariant(VariantID vid) = 0;
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  virtual void runKokkosOpenMPVariant(VariantID vid) = 0;
-#endif
-#if defined(RAJA_ENABLE_CUDA)
-  virtual void runKokkosCudaVariant(VariantID vid) = 0;
-#endif
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-  virtual void runKokkosOpenMPTargetVariant(VariantID vid) = 0;
-#endif
+  virtual void runKokkosVariant(VariantID vid) = 0;
 #endif // RUN_KOKKOS
 
 protected:

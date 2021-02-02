@@ -25,7 +25,7 @@ struct DaxpyFunctor {
   void operator()(Index_type i) const { DAXPY_BODY; }
 };
 
-void DAXPY::runKokkosSeqVariant(VariantID vid)
+void DAXPY::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -42,10 +42,10 @@ void DAXPY::runKokkosSeqVariant(VariantID vid)
   switch ( vid ) {
 
 #if defined(RUN_RAJA_SEQ)
-    case Kokkos_Lambda_Seq: {
+    case Kokkos_Lambda: {
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
                              [=](Index_type i) { DAXPY_BODY; });
       }
       stopTimer();

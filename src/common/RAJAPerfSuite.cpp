@@ -233,18 +233,8 @@ static const std::string VariantNames [] =
   std::string("Base_HIP"),
   std::string("RAJA_HIP"),
 
-  std::string("Kokkos_Lambda_Seq"),
-  std::string("Kokkos_Functor_Seq"),
-
-  std::string("Kokkos_Lambda_OpenMP"),
-  std::string("Kokkos_Functor_OpenMP"),
-
-
-  std::string("Kokkos_Lambda_OpenMPTarget"),
-  std::string("Kokkos_Functor_OpenMPTarget"),
-
-  std::string("Kokkos_Lambda_CUDA"),
-  std::string("Kokkos_Functor_CUDA"),
+  std::string("Kokkos_Lambda"),
+  std::string("Kokkos_Functor"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -325,8 +315,8 @@ bool isVariantAvailable(VariantID vid)
     ret_val = true;
   }
 #if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda_Seq || 
-       vid == Kokkos_Functor_Seq ) {
+  if ( vid == Kokkos_Lambda || 
+       vid == Kokkos_Functor ) {
     ret_val = true;
   }
 #endif // RUN_KOKKOS

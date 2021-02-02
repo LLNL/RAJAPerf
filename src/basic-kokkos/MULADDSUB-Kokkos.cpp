@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void MULADDSUB::runKokkosSeqVariant(VariantID vid)
+void MULADDSUB::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -66,7 +66,7 @@ void MULADDSUB::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,7 +76,7 @@ void MULADDSUB::runKokkosSeqVariant(VariantID vid)
 //
 //		Kokkos translation
 //		If SIMD really matters , consider using Kokkos SIMD
-		Kokkos::parallel_for("MULTISUB-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+		Kokkos::parallel_for("MULTISUB-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 			[=] (Index_type i) {MULADDSUB_BODY});
 
       }

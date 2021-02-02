@@ -206,17 +206,8 @@ enum VariantID {
   Base_HIP,
   RAJA_HIP,
 
-  Kokkos_Lambda_Seq,
-  Kokkos_Functor_Seq,
-
-  Kokkos_Lambda_OpenMP,
-  Kokkos_Functor_OpenMP,
-
-  Kokkos_Lambda_OpenMPTarget,
-  Kokkos_Functor_OpenMPTarget,
-
-  Kokkos_Lambda_CUDA,
-  Kokkos_Functor_CUDA,
+  Kokkos_Lambda,
+  Kokkos_Functor,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

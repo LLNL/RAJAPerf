@@ -20,7 +20,7 @@ namespace basic
 
 // Kokkos-ify here
 
-void IF_QUAD::runKokkosSeqVariant(VariantID vid)
+void IF_QUAD::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -41,7 +41,7 @@ void IF_QUAD::runKokkosSeqVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)     
 
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -50,7 +50,7 @@ void IF_QUAD::runKokkosSeqVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), ifquad_lam);
 */
 	// Translation 
-	Kokkos::parallel_for("IF_QUAD_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+	Kokkos::parallel_for("IF_QUAD_KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 
 		[=] (Index_type i) {IF_QUAD_BODY});
 

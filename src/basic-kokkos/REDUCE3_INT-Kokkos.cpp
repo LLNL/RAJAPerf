@@ -19,7 +19,7 @@ namespace basic
 {
 
 
-void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
+void REDUCE3_INT::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -84,7 +84,7 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -110,7 +110,7 @@ void REDUCE3_INT::runKokkosSeqVariant(VariantID vid)
 
 		// KOKKOS_LAMBDA IS A PRE-PROCESSOR DIRECTIVE;
 		// It makes the capture clause on the lambda work for Host and Device
-		parallel_reduce("REDUCE3-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+		parallel_reduce("REDUCE3-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 			
 			[=](const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum){
 		  Int_type vec_i = vec[i];

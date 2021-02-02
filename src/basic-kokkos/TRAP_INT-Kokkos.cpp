@@ -32,7 +32,7 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-void TRAP_INT::runKokkosSeqVariant(VariantID vid)
+void TRAP_INT::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -88,7 +88,7 @@ void TRAP_INT::runKokkosSeqVariant(VariantID vid)
       break;
     }
 
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -109,7 +109,7 @@ void TRAP_INT::runKokkosSeqVariant(VariantID vid)
 
 		Real_type trap_integral_val = m_sumx_init;
 
-		Kokkos::parallel_reduce("TRAP_INT_KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+		Kokkos::parallel_reduce("TRAP_INT_KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 			[=] (const int64_t i, Real_type& sumx) {TRAP_INT_BODY}, trap_integral_val
 			);
 

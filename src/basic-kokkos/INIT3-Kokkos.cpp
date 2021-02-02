@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void INIT3::runKokkosSeqVariant(VariantID vid)
+void INIT3::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -68,7 +68,7 @@ void INIT3::runKokkosSeqVariant(VariantID vid)
 }
 
 // Nota bene -- Conversion of Raja code begins here
-    case Kokkos_Lambda_Seq : {
+    case Kokkos_Lambda : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -77,7 +77,7 @@ void INIT3::runKokkosSeqVariant(VariantID vid)
 //          RAJA::RangeSegment(ibegin, iend), init3_lam);
           
          // Kokkos translation
-        Kokkos::parallel_for("INIT3-KokkosSeq Kokkos_Lambda_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("INIT3-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
 		[=] (Index_type i) {INIT3_BODY});
       }
       stopTimer();

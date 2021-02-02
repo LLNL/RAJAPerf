@@ -58,10 +58,10 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 #ifdef RUN_KOKKOS
-  void runKokkosSeqVariant(VariantID vid);
-  void runKokkosOpenMPVariant(VariantID vid);
-  void runKokkosCudaVariant(VariantID vid);
-  void runKokkosOpenMPTargetVariant(VariantID vid);
+  void runKokkosVariant(VariantID vid);
+  
+  
+  
 #endif
 
 private:
