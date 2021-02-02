@@ -24,9 +24,9 @@ ATOMIC_PI::ATOMIC_PI(const RunParams& params)
   setDefaultSize(3000);
   setDefaultReps(10000);
 
-  setVariantDefined( Kokkos_Lambda_Seq );
-  setVariantDefined( Kokkos_Lambda_OpenMP );
-  setVariantDefined( Kokkos_Lambda_CUDA );
+  setVariantDefined( Kokkos_Lambda );
+
+
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

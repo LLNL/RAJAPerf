@@ -25,9 +25,9 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setDefaultReps(1800);
 
 
-  setVariantDefined( Kokkos_Lambda_Seq );
-  setVariantDefined( Kokkos_Lambda_OpenMP );
-  setVariantDefined( Kokkos_Lambda_CUDA );
+  setVariantDefined( Kokkos_Lambda );
+
+
 
 
   setVariantDefined( Base_Seq );

@@ -77,8 +77,6 @@
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
-#include "kokkos-mechanics/ViewAllocate.hpp"
-#include "kokkos-mechanics/ViewStreamAdd.hpp"
 
 
 #include <iostream>
@@ -192,9 +190,6 @@ static const std::string KernelNames [] =
 //  std::string("Apps_LTIMES_NOVIEW"),
 //  std::string("Apps_PRESSURE"),
 //  std::string("Apps_VOL3D"),
-
-  std::string("KokkosMechanics_ViewAllocate"),
-  std::string("KokkosMechanics_ViewStreamAdd"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -329,12 +324,6 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
-#if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda_OpenMP || 
-       vid == Kokkos_Functor_OpenMP ) {
-    ret_val = true;
-  }
-#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
@@ -342,12 +331,6 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
   }
-#if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda_OpenMPTarget || 
-       vid == Kokkos_Functor_OpenMPTarget ) {
-    ret_val = true;
-  }
-#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
@@ -355,12 +338,6 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_CUDA ) {
     ret_val = true;
   }
-#if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda_CUDA || 
-       vid == Kokkos_Functor_CUDA ) {
-    ret_val = true;
-  }
-#endif // RUN_KOKKOS
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
@@ -599,15 +576,6 @@ KernelBase* getKernelObject(KernelID kid,
     }
 */
 		       
-    case KokkosMechanics_ViewAllocate : {
-       kernel = new kokkos_mechanics::ViewAllocate(run_params);
-       break;
-    }
-		       
-    case KokkosMechanics_ViewStreamAdd: {
-       kernel = new kokkos_mechanics::ViewStreamAdd(run_params);
-       break;
-    }
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

@@ -12,7 +12,7 @@ add_subdirectory(common)
 #add_subdirectory(apps)
 add_subdirectory(basic)
 add_subdirectory(basic-kokkos)
-add_subdirectory(kokkos-mechanics)
+#add_subdirectory(kokkos-mechanics)
 #add_subdirectory(lcals)
 #add_subdirectory(polybench)
 #add_subdirectory(stream)
@@ -22,7 +22,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
 	#apps
     basic
     basic-kokkos
-    kokkos-mechanics
+    #kokkos-mechanics
     #lcals
     #polybench
     #stream

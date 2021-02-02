@@ -52,7 +52,7 @@ void DAXPY::runKokkosVariant(VariantID vid)
       
       break;
     }
-    case Kokkos_Functor_Seq: {
+    case Kokkos_Functor: {
       DaxpyFunctor daxpy_functor_instance(y,x,a);                                
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
