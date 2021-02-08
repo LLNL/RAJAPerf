@@ -21,6 +21,11 @@ namespace rajaperf
 namespace apps
 {
 
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
+
 #define HALOEXCHANGE_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
@@ -98,7 +103,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
 
     HALOEXCHANGE_DATA_SETUP_OMP_TARGET;
 
-    using EXEC_POL = RAJA::omp_target_parallel_exec;
+    using EXEC_POL = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
