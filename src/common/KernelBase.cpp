@@ -95,6 +95,11 @@ void KernelBase::runKernel(VariantID vid)
   switch ( vid ) {
 
     case Base_Seq :
+    {
+      runSeqVariant(vid);
+      break;
+    }
+
     case Lambda_Seq :
     case RAJA_Seq :
     {
