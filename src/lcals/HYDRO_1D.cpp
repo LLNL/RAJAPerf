@@ -56,6 +56,9 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 HYDRO_1D::~HYDRO_1D()

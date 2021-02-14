@@ -53,6 +53,9 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 FIRST_DIFF::~FIRST_DIFF()

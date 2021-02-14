@@ -57,6 +57,9 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 GEN_LIN_RECUR::~GEN_LIN_RECUR()
