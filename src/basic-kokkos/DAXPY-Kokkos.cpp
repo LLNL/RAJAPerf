@@ -33,9 +33,22 @@ void DAXPY::runKokkosVariant(VariantID vid)
 
   DAXPY_DATA_SETUP;
 
+        // Declare KokkosViews for the pointers that will be wrapped.  Find out
+        // which pointers in the KERNEL_NAME.hpp files
+  // Wrap pointers x and y in separate KokkosViews
+  // This is for one dimension; one dimensional things are indexed to iend.
+  
+  auto x_view = getViewFromPointer(x, iend);
+
+  auto y_view = getViewFromPointer(y, iend);
+
+
+
   auto daxpy_lam = [=](Index_type i) {
                      DAXPY_BODY;
                    };
+
+
 
 #if defined(RUN_KOKKOS)
 
@@ -44,9 +57,11 @@ void DAXPY::runKokkosVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Kokkos_Lambda: {
       startTimer();
+
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-                             [=](Index_type i) { DAXPY_BODY; });
+        Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                             KOKKOS_LAMBDA(Index_type i) { y_view[i] += a * x_view[i];}
+                             );
       }
       stopTimer();
       
@@ -69,6 +84,16 @@ void DAXPY::runKokkosVariant(VariantID vid)
     }
 
   }
+
+  // Moving data back to the host
+
+  moveDataToHostFromKokkosView(x, x_view, iend);
+  
+  moveDataToHostFromKokkosView(y, y_view, iend);
+
+
+
+
 
 #endif // RUN_KOKKOS
 }
