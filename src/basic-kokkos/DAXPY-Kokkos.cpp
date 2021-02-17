@@ -33,10 +33,12 @@ void DAXPY::runKokkosVariant(VariantID vid)
 
   DAXPY_DATA_SETUP;
 
-        // Declare KokkosViews for the pointers that will be wrapped.  Find out
-        // which pointers in the KERNEL_NAME.hpp files
+  // Declare KokkosViews for the pointers that will be wrapped.
+  // Get pointer names in the KERNEL_NAME.hpp file
   // Wrap pointers x and y in separate KokkosViews
-  // This is for one dimension; one dimensional things are indexed to iend.
+  // This is a one dimension array
+  // One dimensional arrays are indexed to iend (RAJAPerfSuite convention)
+  // New template-based machinery in /rajaperf/src/common/RAJAPerfSuite.hpp 
   
   auto x_view = getViewFromPointer(x, iend);
 
@@ -56,13 +58,23 @@ void DAXPY::runKokkosVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case Kokkos_Lambda: {
+	  
+	  Kokkos::fence();
+
       startTimer();
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                             KOKKOS_LAMBDA(Index_type i) { y_view[i] += a * x_view[i];}
+                            // Increment y_view (pointer wrapped in KokksView)
+                            // by product of a and ith entry of x_view
+                            // DAXPY_BODY substituted with the
+                            // calculation defined in DAXPY.hpp
+							KOKKOS_LAMBDA(Index_type i) { y_view[i] += a * x_view[i];}
                              );
       }
+	  // Kokkos fence
+	  Kokkos::fence();
+
       stopTimer();
       
       break;
@@ -75,7 +87,9 @@ void DAXPY::runKokkosVariant(VariantID vid)
                              daxpy_functor_instance);
       }
       stopTimer();
-      
+     
+
+   
       break;
     }
 #endif // RUN_RAJA_SEQ
@@ -85,7 +99,7 @@ void DAXPY::runKokkosVariant(VariantID vid)
 
   }
 
-  // Moving data back to the host
+  // Moving all data (i.e., pointer, KokkosView-wrapped ponter) back to the host from the device
 
   moveDataToHostFromKokkosView(x, x_view, iend);
   

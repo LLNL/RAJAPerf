@@ -75,6 +75,8 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
     // See the basic NESTED_INIT.hpp file for defnition of NESTED_INIT
 
     auto array_kokkos_view = getViewFromPointer(array, nk, nj, ni);
+    
+    Kokkos::fence();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -103,6 +105,9 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
             array_kokkos_view(k, j, i) = 0.00000001 * i * j * k;
           });
     }
+
+    Kokkos::fence();
+
     stopTimer();
     // "Moves" mirror data from GPU to CPU (void, i.e., no retrun type).  In
     // this moving of data back to Host, the layout is changed back to Layout

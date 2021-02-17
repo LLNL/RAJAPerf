@@ -55,7 +55,9 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
 
     case Kokkos_Lambda : {
 
+	  Kokkos::fence();
       startTimer();
+
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 /*        RAJA::forall<RAJA::loop_exec>(
@@ -79,6 +81,8 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
         }});
 
       }
+
+	  Kokkos::fence();
       stopTimer();
 
       break;
