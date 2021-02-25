@@ -41,10 +41,10 @@ namespace stream
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     ADD_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    ADD_BODY;
+  }
 }
 
 
@@ -66,6 +66,26 @@ void ADD::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((add), dim3(grid_size), dim3(block_size), 0, 0,  c, a, b,
                                       iend );
+
+    }
+    stopTimer();
+
+    ADD_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    ADD_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto add_lambda = [=] __device__ (Index_type i) {
+        ADD_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(add_lambda)>,
+        grid_size, block_size, 0, 0, ibegin, iend, add_lambda);
 
     }
     stopTimer();
