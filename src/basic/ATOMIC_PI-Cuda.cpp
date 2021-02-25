@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -34,8 +34,8 @@ namespace basic
   deallocCudaDeviceData(pi);
 
 __global__ void atomic_pi(Real_ptr pi,
-                          Real_type dx, 
-                          Index_type iend) 
+                          Real_type dx,
+                          Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
@@ -61,9 +61,33 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       initCudaDeviceData(pi, &m_pi_init, 1);
- 
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      atomic_pi<<<grid_size, block_size>>>( pi, dx, iend ); 
+      atomic_pi<<<grid_size, block_size>>>( pi, dx, iend );
+
+      getCudaDeviceData(m_pi, pi, 1);
+      *m_pi *= 4.0;
+
+    }
+    stopTimer();
+
+    ATOMIC_PI_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    ATOMIC_PI_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initCudaDeviceData(pi, &m_pi_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+          double x = (double(i) + 0.5) * dx;
+          RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
+      });
 
       getCudaDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;

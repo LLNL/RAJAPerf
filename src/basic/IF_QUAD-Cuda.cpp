@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -47,10 +47,10 @@ __global__ void ifquad(Real_ptr x1, Real_ptr x2,
                        Real_ptr a, Real_ptr b, Real_ptr c,
                        Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     IF_QUAD_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    IF_QUAD_BODY;
+  }
 }
 
 
@@ -69,9 +69,26 @@ void IF_QUAD::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c,
-                                          iend );
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      ifquad<<<grid_size, block_size>>>( x1, x2, a, b, c, iend );
+
+    }
+    stopTimer();
+
+    IF_QUAD_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    IF_QUAD_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        IF_QUAD_BODY;
+      });
 
     }
     stopTimer();
@@ -85,10 +102,10 @@ void IF_QUAD::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         IF_QUAD_BODY;
-       });
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        IF_QUAD_BODY;
+      });
 
     }
     stopTimer();
