@@ -186,8 +186,8 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<0, RAJA::hip_block_x_loop,
-            RAJA::statement::For<1, RAJA::hip_thread_y_loop,
+          RAJA::statement::For<0, RAJA::hip_block_x_direct,
+            RAJA::statement::For<1, RAJA::hip_thread_y_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>

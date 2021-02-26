@@ -112,8 +112,8 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
               RAJA::statement::For<2, RAJA::seq_exec,
