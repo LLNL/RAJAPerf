@@ -72,11 +72,25 @@ __device__ Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
 /*!
  * \brief Simple multi-dimensional hip kernel that runs a lambda.
  */
+template < typename I_Index, typename J_Index, typename Lambda >
+__global__ void lambda_hip_kernel(Index_type ibegin, Index_type iend,
+                                  Index_type jbegin, Index_type jend,
+                                  Lambda body)
+{
+  Index_type i = ibegin + lambda_hip_get_index<I_Index>();
+  Index_type j = jbegin + lambda_hip_get_index<J_Index>();
+  if (i < iend) {
+    if (j < jend) {
+      body(i, j);
+    }
+  }
+}
+///
 template < typename I_Index, typename J_Index, typename K_Index, typename Lambda >
 __global__ void lambda_hip_kernel(Index_type ibegin, Index_type iend,
-                                   Index_type jbegin, Index_type jend,
-                                   Index_type kbegin, Index_type kend,
-                                   Lambda body)
+                                  Index_type jbegin, Index_type jend,
+                                  Index_type kbegin, Index_type kend,
+                                  Lambda body)
 {
   Index_type i = ibegin + lambda_hip_get_index<I_Index>();
   Index_type j = jbegin + lambda_hip_get_index<J_Index>();
