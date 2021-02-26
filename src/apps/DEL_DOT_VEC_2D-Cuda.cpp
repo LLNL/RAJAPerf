@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -48,7 +48,7 @@ namespace apps
   deallocCudaDeviceData(div); \
   deallocCudaDeviceData(real_zones);
 
-__global__ void deldotvec2d(Real_ptr div, 
+__global__ void deldotvec2d(Real_ptr div,
                             const Real_ptr x1, const Real_ptr x2,
                             const Real_ptr x3, const Real_ptr x4,
                             const Real_ptr y1, const Real_ptr y2,
@@ -90,7 +90,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      deldotvec2d<<<grid_size, block_size>>>(div, 
+      deldotvec2d<<<grid_size, block_size>>>(div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -98,6 +98,33 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
                                              real_zones,
                                              half, ptiny,
                                              iend);
+
+    }
+    stopTimer();
+
+    DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
+
+    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        0, iend,
+        [=] __device__ (Index_type ii) {
+
+        DEL_DOT_VEC_2D_BODY_INDEX;
+        DEL_DOT_VEC_2D_BODY;
+      });
 
     }
     stopTimer();
