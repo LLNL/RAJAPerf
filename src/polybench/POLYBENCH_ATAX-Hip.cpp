@@ -4,7 +4,7 @@
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_ATAX.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -96,6 +96,46 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
 
     POLYBENCH_ATAX_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    POLYBENCH_ATAX_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
+
+      auto poly_atax_1_lambda = [=] __device__ (Index_type i) {
+
+        POLYBENCH_ATAX_BODY1;
+        for (Index_type j = 0; j < N; ++j ) {
+          POLYBENCH_ATAX_BODY2;
+        }
+        POLYBENCH_ATAX_BODY3;
+      };
+
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_atax_1_lambda)>,
+        grid_size, block_size, 0, 0,
+        0, N, poly_atax_1_lambda);
+
+      auto poly_atax_2_lambda = [=] __device__ (Index_type j) {
+
+        POLYBENCH_ATAX_BODY4;
+        for (Index_type i = 0; i < N; ++i ) {
+          POLYBENCH_ATAX_BODY5;
+        }
+        POLYBENCH_ATAX_BODY6;
+      };
+
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_atax_2_lambda)>,
+        grid_size, block_size, 0, 0,
+        0, N, poly_atax_2_lambda);
+
+    }
+    stopTimer();
+
+    POLYBENCH_ATAX_TEARDOWN_HIP;
+
   } else if (vid == RAJA_HIP) {
 
     POLYBENCH_ATAX_DATA_SETUP_HIP;
@@ -105,8 +145,8 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, 
-                                   RAJA::hip_block_x_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
+                                   RAJA::hip_block_x_direct,
             RAJA::statement::For<0, RAJA::hip_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
               RAJA::statement::For<1, RAJA::seq_exec,
@@ -121,8 +161,8 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
     using EXEC_POL2 =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, 
-                                   RAJA::hip_block_x_loop,
+          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>,
+                                   RAJA::hip_block_x_direct,
             RAJA::statement::For<1, RAJA::hip_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
               RAJA::statement::For<0, RAJA::seq_exec,
@@ -137,7 +177,7 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL1>( 
+      RAJA::kernel_param<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
@@ -154,7 +194,7 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL2>( 
+      RAJA::kernel_param<EXEC_POL2>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
@@ -186,4 +226,4 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+
