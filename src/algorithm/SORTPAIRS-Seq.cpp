@@ -10,6 +10,9 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <algorithm>
+#include <vector>
+#include <utility>
 #include <iostream>
 
 namespace rajaperf
@@ -28,6 +31,36 @@ void SORTPAIRS::runSeqVariant(VariantID vid)
 
   switch ( vid ) {
 
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        using pair_type = std::pair<Real_type, Real_type>;
+
+        std::vector<pair_type> vector_of_pairs;
+        vector_of_pairs.reserve(iend-ibegin);
+
+        for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
+          vector_of_pairs.emplace_back(x[iend*irep + iemp], i[iend*irep + iemp]);
+        }
+
+        std::sort(vector_of_pairs.begin(), vector_of_pairs.end(),
+            [](pair_type const& lhs, pair_type const& rhs) {
+              return lhs.first < rhs.first;
+            });
+
+        for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
+          pair_type& pair = vector_of_pairs[iemp - ibegin];
+          x[iend*irep + iemp] = pair.first;
+          i[iend*irep + iemp] = pair.second;
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
 

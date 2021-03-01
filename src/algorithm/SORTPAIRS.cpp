@@ -24,6 +24,7 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
    setDefaultSize(100000);
    setDefaultReps(50);
 
+  setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
 
   setVariantDefined( RAJA_OpenMP );
