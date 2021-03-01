@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -26,7 +26,7 @@ LTIMES::LTIMES(const RunParams& params)
   m_num_g_default = 32;
   m_num_m_default = 25;
 
-  setDefaultSize(m_num_d_default * m_num_m_default * 
+  setDefaultSize(m_num_d_default * m_num_m_default *
                  m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
@@ -42,22 +42,24 @@ LTIMES::LTIMES(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-LTIMES::~LTIMES() 
+LTIMES::~LTIMES()
 {
 }
 
 void LTIMES::setUp(VariantID vid)
 {
   m_num_z = run_params.getSizeFactor() * m_num_z_default;
-  m_num_g = m_num_g_default;  
-  m_num_m = m_num_m_default;  
-  m_num_d = m_num_d_default;  
+  m_num_g = m_num_g_default;
+  m_num_m = m_num_m_default;
+  m_num_d = m_num_d_default;
 
   m_philen = m_num_m * m_num_g * m_num_z;
   m_elllen = m_num_d * m_num_m;
@@ -76,7 +78,7 @@ void LTIMES::updateChecksum(VariantID vid)
 void LTIMES::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_phidat);
   deallocData(m_elldat);
   deallocData(m_psidat);
