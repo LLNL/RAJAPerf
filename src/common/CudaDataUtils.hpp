@@ -41,31 +41,31 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
  * \brief Getters for cuda kernel indices.
  */
 template < typename Index >
-__device__ Index_type lambda_cuda_get_index();
+__device__ inline Index_type lambda_cuda_get_index();
 
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_thread_x_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_x_direct>() {
   return threadIdx.x;
 }
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_thread_y_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_y_direct>() {
   return threadIdx.y;
 }
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_thread_z_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_z_direct>() {
   return threadIdx.z;
 }
 
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_block_x_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_x_direct>() {
   return blockIdx.x;
 }
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() {
   return blockIdx.y;
 }
 template < >
-__device__ Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
   return blockIdx.z;
 }
 
