@@ -39,10 +39,10 @@ namespace stream
 __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
                     Index_type iend)
 {
-  ndex_type i = blockIdx.x * blockDim.x + threadIdx.x;
-  f (i < iend) {
-   MUL_BODY;
-
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    MUL_BODY;
+  }
 }
 
 void MUL::runCudaVariant(VariantID vid)
