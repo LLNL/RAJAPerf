@@ -27,6 +27,10 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
+  //Declare KokkosView that will wrap the pointer
+
+  //auto 
+
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {

@@ -26,6 +26,11 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid)
 
   ATOMIC_PI_DATA_SETUP;
 
+  // Declare Kokkos View that will wrap the pointer defined in ATOMIC_PI.hpp
+  auto pi_view = getViewFromPointer(pi );
+
+
+
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
@@ -72,26 +77,36 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid)
     }
 
     case Kokkos_Lambda : {
-
+      // Ensure all upstream calculations have been completed before starting
+      // the timer
+      Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-   
-        *pi = m_pi_init;
+  
+        // Here, making a pointer of pi defined in ATOMIC_PI.hpp; we will use a
+        // KokkosView instead
+        // *pi = m_pi_init;
 //      RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
 //          [=](Index_type i) {
 //            double x = (double(i) + 0.5) * dx;
 //            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
 //        });
 		
-		Kokkos::parallel_for("ATOMIC_PI-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-		[=] (Index_type i) {
-			double x = (double(i) + 0.5) * dx;
-			Kokkos::atomic_add(pi, dx / (1.0 + x * x));
-		});
+		Kokkos::parallel_for("ATOMIC_PI-Kokkos Kokkos_Lambda",
+                             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                             KOKKOS_LAMBDA(Index_type i) {
+                             // Original ATOMIC_PI kernel reference implementation
+                             // defined in ATOMIC_PI.hpp
+                             double x = (double(i) + 0.5) * dx;
+                             Kokkos::atomic_add(pi_view, dx / (1.0 + x * x));
+                             });
 
-        *pi *= 4.0;
+        //*pi *= 4.0;
+        pi_view *= 4.0;
 
       }
+
+      Kokkos::fence();
       stopTimer();
 
       break;
@@ -104,6 +119,8 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid)
 
   }
 #endif //RUN_KOKKOS
+
+  moveDataToHostFromKokkosView(pi, pi_view, iend);
 }
 
 } // end namespace basic

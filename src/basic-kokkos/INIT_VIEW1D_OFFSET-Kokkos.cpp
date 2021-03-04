@@ -27,6 +27,8 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
+  auto a_view = getViewFromPointer(a, iend);
+
 
 #if defined(RUN_KOKKOS)
 
@@ -72,21 +74,34 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
 	//
     case Kokkos_Lambda : {
 
-      INIT_VIEW1D_OFFSET_VIEW_RAJA;
+      //INIT_VIEW1D_OFFSET_VIEW_RAJA;
 
-      auto initview1doffset_lam = [=](Index_type i) {
+      /*auto initview1doffset_lam = [=](Index_type i) {
                                     INIT_VIEW1D_OFFSET_BODY_RAJA;
                                   };
 
+*/
+ 
+      // Set a fence
+      Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 //        RAJA::forall<RAJA::simd_exec>(
 //          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
-	Kokkos::parallel_for("INIT_VIEW1D_OFFSET_KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend), [=] (Index_type i) {INIT_VIEW1D_OFFSET_BODY_RAJA});
+          Kokkos::parallel_for("INIT_VIEW1D_OFFSET_Kokkos Kokkos_Lambda", 
+                               Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend), 
+                               KOKKOS_LAMBDA (Index_type i) {
+                               //INIT_VIEW1D_OFFSET_BODY_RAJA
+                               //Instead, use the INIT_VIEW1D_OFFSET_BODY
+                               //definition:
+                               //a[i-ibegin] = i * v;
+                               a_view[i-ibegin] = i * v;
+                               });
 
 
       }
+      Kokkos::fence();
       stopTimer();
 
       break;
@@ -100,6 +115,12 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
   }
 
 #endif // RUN_KOKKOS
+
+  // Move data from Kokkos View back to Host
+  moveDataToHostFromKokkosView(a, a_view, iend);
+
+
+
 }
 
 } // end namespace basic

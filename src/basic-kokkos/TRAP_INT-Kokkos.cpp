@@ -40,6 +40,11 @@ void TRAP_INT::runKokkosVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
+// Declare KokkosViews that will wrap a pointer - not relevant in this case
+// ...?
+
+
+
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
