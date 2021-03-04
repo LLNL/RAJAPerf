@@ -95,6 +95,7 @@ void TRAP_INT::runKokkosVariant(VariantID vid)
 
     case Kokkos_Lambda : {
 
+      Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -114,13 +115,16 @@ void TRAP_INT::runKokkosVariant(VariantID vid)
 
 		Real_type trap_integral_val = m_sumx_init;
 
-		Kokkos::parallel_reduce("TRAP_INT_KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-			[=] (const int64_t i, Real_type& sumx) {TRAP_INT_BODY}, trap_integral_val
-			);
+		Kokkos::parallel_reduce("TRAP_INT_Kokkos Kokkos_Lambda",
+                                Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                                KOKKOS_LAMBDA(const int64_t i, Real_type& sumx) {TRAP_INT_BODY},
+                                trap_integral_val
+                                );
 
         m_sumx += static_cast<Real_type>(trap_integral_val) * h;
 
       }
+      Kokkos::fence();
       stopTimer();
 
       break;
