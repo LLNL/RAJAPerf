@@ -29,7 +29,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
   //Declare KokkosView that will wrap the pointer
 
-  //auto 
+  auto vec_view = getViewFromPointer(vec, iend); 
 
 #if defined(RUN_KOKKOS)
 
@@ -90,6 +90,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
     case Kokkos_Lambda : {
 
+      Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 /*
@@ -107,6 +108,8 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
         m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
 */
 		// These values are initilized elsewhere by RPS
+        // These variables were declared to Kokkos-ify the parallel_reduce
+        // construct:
 		Int_type max_value = m_vmax_init;
 		Int_type min_value = m_vmin_init;
 		Int_type sum = m_vsum_init;
@@ -114,20 +117,23 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
 		// KOKKOS_LAMBDA IS A PRE-PROCESSOR DIRECTIVE;
 		// It makes the capture clause on the lambda work for Host and Device
-		parallel_reduce("REDUCE3-KokkosSeq Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
-			
-			[=](const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum){
-		  Int_type vec_i = vec[i];
-		  if (vec_i > tl_max) tl_max = vec_i;
-		  if (vec_i < tl_min) tl_min = vec_i;
-          tl_sum += vec_i;
-		  }, Kokkos::Max<Int_type>(max_value), Kokkos::Min<Int_type>(min_value), sum);
-
-        m_vsum += static_cast<Int_type>(sum);
-        m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(min_value));
-        m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(max_value));
+		parallel_reduce("REDUCE3-Kokkos Kokkos_Lambda",
+                         Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+			             KOKKOS_LAMBDA(const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum){
+                             Int_type vec_i = vec_view[i];
+		                         if (vec_i > tl_max) tl_max = vec_i;
+		                         if (vec_i < tl_min) tl_min = vec_i;
+                              tl_sum += vec_i;
+                              },
+                              Kokkos::Max<Int_type>(max_value),
+                              Kokkos::Min<Int_type>(min_value),
+                              sum);
+            m_vsum += static_cast<Int_type>(sum);
+            m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(min_value));
+            m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(max_value));
 	
       }
+      Kokkos::fence();
       stopTimer();
 
       break;
@@ -140,6 +146,8 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
   }
 #endif // RUN_KOKKOS
+
+  moveDataToHostFromKokkosView(vec, vec_view, iend);
 }
 
 } // end namespace basic
