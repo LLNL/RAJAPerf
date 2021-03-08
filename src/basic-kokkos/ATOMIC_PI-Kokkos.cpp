@@ -12,14 +12,10 @@
 
 #include <iostream>
 
-namespace rajaperf 
-{
-namespace basic
-{
+namespace rajaperf {
+namespace basic {
 
-
-void ATOMIC_PI::runKokkosVariant(VariantID vid)
-{
+void ATOMIC_PI::runKokkosVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
@@ -27,100 +23,100 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid)
   ATOMIC_PI_DATA_SETUP;
 
   // Declare Kokkos View that will wrap the pointer defined in ATOMIC_PI.hpp
-  auto pi_view = getViewFromPointer(pi );
-
-
+  auto pi_view = getViewFromPointer(pi, 1);
 
 #if defined(RUN_KOKKOS)
 
-  switch ( vid ) {
+  switch (vid) {
 
-    case Base_Seq : {
+  case Base_Seq: {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          double x = (double(i) + 0.5) * dx;
-          *pi += dx / (1.0 + x * x);
-        }
-        *pi *= 4.0;
-
+      *pi = m_pi_init;
+      for (Index_type i = ibegin; i < iend; ++i) {
+        double x = (double(i) + 0.5) * dx;
+        *pi += dx / (1.0 + x * x);
       }
-      stopTimer();
-
-      break;
+      *pi *= 4.0;
     }
+    stopTimer();
+
+    break;
+  }
 
 #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
+  case Lambda_Seq: {
 
-      auto atomicpi_base_lam = [=](Index_type i) {
-                                 double x = (double(i) + 0.5) * dx;
-                                 *pi += dx / (1.0 + x * x);
-                               };
+    auto atomicpi_base_lam = [=](Index_type i) {
+      double x = (double(i) + 0.5) * dx;
+      *pi += dx / (1.0 + x * x);
+    };
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          atomicpi_base_lam(i);
-        }
-        *pi *= 4.0;
-
+      *pi = m_pi_init;
+      for (Index_type i = ibegin; i < iend; ++i) {
+        atomicpi_base_lam(i);
       }
-      stopTimer();
-
-      break;
+      *pi *= 4.0;
     }
+    stopTimer();
 
-    case Kokkos_Lambda : {
-      // Ensure all upstream calculations have been completed before starting
-      // the timer
-      Kokkos::fence();
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        // Here, making a pointer of pi defined in ATOMIC_PI.hpp; we will use a
-        // KokkosView instead
-        // *pi = m_pi_init;
-//      RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
-//          [=](Index_type i) {
-//            double x = (double(i) + 0.5) * dx;
-//            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
-//        });
-		
-		Kokkos::parallel_for("ATOMIC_PI-Kokkos Kokkos_Lambda",
-                             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                             KOKKOS_LAMBDA(Index_type i) {
-                             // Original ATOMIC_PI kernel reference implementation
-                             // defined in ATOMIC_PI.hpp
-                             double x = (double(i) + 0.5) * dx;
-                             Kokkos::atomic_add(pi_view, dx / (1.0 + x * x));
-                             });
-
-        //*pi *= 4.0;
-        pi_view *= 4.0;
-
-      }
-
-      Kokkos::fence();
-      stopTimer();
-
-      break;
-    }
-#endif	//RUN_RAJA_SEQ
-
-    default : {
-      std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
-    }
-
+    break;
   }
-#endif //RUN_KOKKOS
 
-  moveDataToHostFromKokkosView(pi, pi_view, iend);
+  case Kokkos_Lambda: {
+    // Ensure all upstream calculations have been completed before starting
+    // the timer
+    Kokkos::fence();
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      // Here, making a pointer of pi defined in ATOMIC_PI.hpp; we will use a
+      // KokkosView instead
+      // *pi = m_pi_init;
+      //      RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
+      //          [=](Index_type i) {
+      //            double x = (double(i) + 0.5) * dx;
+      //            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
+      //        });
+      *pi = m_pi_init;
+      auto pi_view = getViewFromPointer(pi, 1);
+
+      Kokkos::parallel_for(
+          "ATOMIC_PI-Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i) {
+            // Original ATOMIC_PI kernel reference implementation
+            // defined in ATOMIC_PI.hpp
+            double x = (double(i) + 0.5) * dx;
+            Kokkos::atomic_add(&pi_view(0), dx / (1.0 + x * x));
+          });
+
+      moveDataToHostFromKokkosView(pi, pi_view, 1);
+      *pi *= 4.0;
+      //*m_pi += *pi;
+      //*pi *= 4.0;
+      // pi_view *= 4.0;
+    }
+
+    Kokkos::fence();
+    stopTimer();
+
+    break;
+  }
+#endif // RUN_RAJA_SEQ
+
+  default: {
+    std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
+  }
+  }
+#endif // RUN_KOKKOS
+
+  // moveDataToHostFromKokkosView(pi, pi_view, 1);
 }
 
 } // end namespace basic
