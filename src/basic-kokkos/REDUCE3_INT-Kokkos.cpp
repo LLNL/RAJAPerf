@@ -58,7 +58,6 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto init3_base_lam = [=](Index_type i) -> Int_type {
@@ -110,13 +109,12 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 		// These values are initilized elsewhere by RPS
         // These variables were declared to Kokkos-ify the parallel_reduce
         // construct:
+#ifndef RAJA_ENABLE_TARGET_OPENMP
 		Int_type max_value = m_vmax_init;
 		Int_type min_value = m_vmin_init;
 		Int_type sum = m_vsum_init;
 
 
-		// KOKKOS_LAMBDA IS A PRE-PROCESSOR DIRECTIVE;
-		// It makes the capture clause on the lambda work for Host and Device
 		parallel_reduce("REDUCE3-Kokkos Kokkos_Lambda",
                          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
 			             KOKKOS_LAMBDA(const int64_t i, Int_type& tl_max, Int_type& tl_min, Int_type& tl_sum){
@@ -131,14 +129,13 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
             m_vsum += static_cast<Int_type>(sum);
             m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(min_value));
             m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(max_value));
-	
+#endif	
       }
       Kokkos::fence();
       stopTimer();
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;

@@ -68,7 +68,6 @@ void TRAP_INT::runKokkosVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto trapint_base_lam = [=](Index_type i) -> Real_type {
@@ -129,7 +128,6 @@ void TRAP_INT::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;

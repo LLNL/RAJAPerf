@@ -46,7 +46,6 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
     break;
   }
 
-#if defined(RUN_RAJA_SEQ)
   case Lambda_Seq: {
 
     startTimer();
@@ -116,7 +115,6 @@ void NESTED_INIT::runKokkosVariant(VariantID vid) {
 
     break;
   }
-#endif // RUN_RAJA_SEQ
 
   default: {
     std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;

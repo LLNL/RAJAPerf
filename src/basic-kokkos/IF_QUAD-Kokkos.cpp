@@ -51,7 +51,6 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
 
 
 
-#if defined(RUN_RAJA_SEQ)     
 
     case Kokkos_Lambda : {
 
@@ -88,7 +87,6 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
       break;
 
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;

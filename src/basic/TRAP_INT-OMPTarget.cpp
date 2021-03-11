@@ -86,14 +86,14 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
+      //RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        TRAP_INT_BODY;
-      });
+      //RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+      //  RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+      //  TRAP_INT_BODY;
+      //});
 
-      m_sumx += static_cast<Real_type>(sumx.get()) * h;
+      //m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
     }
     stopTimer();

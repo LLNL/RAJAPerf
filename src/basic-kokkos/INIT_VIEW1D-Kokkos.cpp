@@ -51,7 +51,6 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto initview1d_base_lam = [=](Index_type i) {
@@ -108,7 +107,6 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;

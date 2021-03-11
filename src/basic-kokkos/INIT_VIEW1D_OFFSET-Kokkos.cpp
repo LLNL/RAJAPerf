@@ -50,7 +50,6 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto initview1doffset_base_lam = [=](Index_type i) {
@@ -106,7 +105,6 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;

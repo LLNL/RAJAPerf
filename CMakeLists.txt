@@ -55,7 +55,6 @@ add_subdirectory(tpl/RAJA)
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
-
 #
 # Setup variables to pass to Perf suite
 #
@@ -118,6 +117,18 @@ set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 # ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
+  if(ENABLE_TARGET_OPENMP)
+    set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")	
+    set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
+    set(CMAKE_CXX_STANDARD 17)
+    set(RAJA_ENABLE_TARGET_OPENMP ON CACHE BOOL "Docstring")
+    if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+      if(NOT EXPERIMENTAL_BUILD)
+	      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
+      endif()
+    endif()
+    #add_definitions(-DRAJA_ENABLE_TARGET_OPENMP)
+  endif()
 
 # ENABLE_CUDA IS A RAJA PERFSUITE OPTION
   if(ENABLE_CUDA)

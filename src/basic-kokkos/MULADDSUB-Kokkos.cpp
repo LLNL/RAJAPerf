@@ -61,7 +61,6 @@ void MULADDSUB::runKokkosVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
@@ -108,7 +107,6 @@ void MULADDSUB::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
