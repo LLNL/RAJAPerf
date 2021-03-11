@@ -14,6 +14,7 @@ blt_add_library(
           POLYBENCH_2MM-Cuda.cpp
           POLYBENCH_2MM-OMP.cpp
           POLYBENCH_2MM-OMPTarget.cpp
+	  POLYBENCH_2MM-Sycl.cpp
           POLYBENCH_3MM.cpp
           POLYBENCH_3MM-Seq.cpp
           POLYBENCH_3MM-Hip.cpp

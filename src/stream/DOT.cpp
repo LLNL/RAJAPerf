@@ -52,6 +52,9 @@ DOT::DOT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+//  setVariantDefined( Base_SYCL );
+//  setVariantDefined( RAJA_SYCL );
 }
 
 DOT::~DOT()
