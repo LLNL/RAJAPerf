@@ -309,14 +309,14 @@ bool isVariantAvailable(VariantID vid)
        vid == RAJA_Seq ) {
     ret_val = true;
   }
+#endif
+
 #if defined(RUN_KOKKOS)
   if ( vid == Kokkos_Lambda || 
        vid == Kokkos_Functor ) {
     ret_val = true;
   }
 #endif // RUN_KOKKOS
-
-#endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   if ( vid == Base_OpenMP || 

@@ -190,7 +190,7 @@ void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
   using device_view_type = typename Kokkos::View<
       typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
       typename Kokkos::DefaultExecutionSpace::memory_space>;
-
+  
   // When copying data, we can either change the Layout or the memory_space
   // (host or device), but we cannot change both!
   // Here, we are mirroring data on the host to the device, i.e., Layout is
@@ -210,6 +210,7 @@ void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
 
   // Layout is optimal for gpu, but located on CPU
   mirror_view_type cpu_to_gpu_mirror = Kokkos::create_mirror_view(my_view);
+  //auto mirror_view_type cpu_to_gpu_mirror = Kokkos::create_mirror_view(my_view);
 
   // We need to deep_copy our existing data, the contents of
   // pointer_holder, into the mirror_view;

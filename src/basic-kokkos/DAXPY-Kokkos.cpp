@@ -56,7 +56,6 @@ void DAXPY::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-#if defined(RUN_RAJA_SEQ)
     case Kokkos_Lambda: {
 	  
 	  Kokkos::fence();
@@ -92,7 +91,6 @@ void DAXPY::runKokkosVariant(VariantID vid)
    
       break;
     }
-#endif // RUN_RAJA_SEQ
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }

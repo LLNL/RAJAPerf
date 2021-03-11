@@ -63,7 +63,6 @@ void INIT3::runKokkosVariant(VariantID vid)
       break;
 }
 
-#if defined(RUN_RAJA_SEQ)
 
     case Lambda_Seq : {
       
@@ -105,7 +104,6 @@ void INIT3::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;

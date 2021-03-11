@@ -46,7 +46,6 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
     break;
   }
 
-#if defined(RUN_RAJA_SEQ)
   case Lambda_Seq: {
 
     auto atomicpi_base_lam = [=](Index_type i) {
@@ -84,7 +83,7 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
       //            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
       //        });
       *pi = m_pi_init;
-      auto pi_view = getViewFromPointer(pi, 1);
+      pi_view = getViewFromPointer(pi, 1);
 
       Kokkos::parallel_for(
           "ATOMIC_PI-Kokkos Kokkos_Lambda",
@@ -108,7 +107,6 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
 
     break;
   }
-#endif // RUN_RAJA_SEQ
 
   default: {
     std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
