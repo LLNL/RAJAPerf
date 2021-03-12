@@ -85,6 +85,19 @@ if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
+#
+# Are we using Caliper
+#
+set(ENABLE_CALIPER off CACHE BOOL "")
+set(RAJAPERF_USE_CALIPER off)
+if (ENABLE_CALIPER)
+   find_package(caliper REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
+   set(RAJAPERF_USE_CALIPER on)
+   add_definitions(-DRAJAPERF_USE_CALIPER)
+   message(STATUS "Using Caliper")
+endif ()
+
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 

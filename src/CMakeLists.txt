@@ -8,6 +8,11 @@
 
 include_directories(.)
 
+if(RAJAPERF_USE_CALIPER)
+   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   include_directories(${caliper_INCLUDE_DIR})
+endif ()
+
 add_subdirectory(common)
 add_subdirectory(apps)
 add_subdirectory(basic)
@@ -187,3 +192,5 @@ blt_add_executable(
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
 endif()
+
+

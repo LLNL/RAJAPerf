@@ -16,6 +16,11 @@
 
 #include "RAJA/util/Timer.hpp"
 
+#ifdef RAJAPERF_USE_CALIPER
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#endif
+
 #include <string>
 #include <iostream>
 

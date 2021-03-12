@@ -31,7 +31,11 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
   switch ( vid ) {
 
     case Base_OpenMP : {
-
+#ifdef RAJAPERF_USE_CALIPER
+      printf("Caliper marking ATOMIC_PI:BASE_OpenMP\n");                  
+      CALI_MARK_BEGIN("ATOMIC_PI:BASE_OpenMP");
+#endif
+      printf("start ATOMIC_PI:BASE_OpenMP\n");
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -46,7 +50,9 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
 
       }
       stopTimer();
-
+#ifdef RAJAPERF_USE_CALIPER
+      CALI_MARK_END("ATOMIC_PI:BASE_OpenMP");
+#endif
       break;
     }
 
