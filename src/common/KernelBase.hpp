@@ -19,6 +19,18 @@
 #ifdef RAJAPERF_USE_CALIPER
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
+
+#define CALI_START \
+    std::string kstr = getName() + ":" + getVariantName(running_variant); \
+    CALI_MARK_BEGIN(kstr.c_str());
+
+#define CALI_STOP \
+    std::string kstr = getName() + ":" + getVariantName(running_variant); \
+    CALI_MARK_END(kstr.c_str());
+
+#else
+#define CALI_START
+#define CALI_STOP
 #endif
 
 #include <string>
@@ -81,6 +93,7 @@ public:
       hipDeviceSynchronize();
     }
 #endif
+    CALI_START;
     timer.start(); 
   }
 
@@ -96,7 +109,9 @@ public:
       hipDeviceSynchronize();
     }
 #endif
-    timer.stop(); recordExecTime(); 
+    timer.stop(); 
+    CALI_STOP;
+    recordExecTime(); 
   }
 
   void resetTimer() { timer.reset(); }
