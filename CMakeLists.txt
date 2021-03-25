@@ -28,8 +28,8 @@ set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
 set(CMAKE_CUDA_HOST_LINK_LAUNCHER ${CMAKE_CUDA_COMPILER})
 include(blt/SetupBLT.cmake)
 
-set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(BLT_CXX_STANDARD 17)
 include(blt/SetupBLT.cmake)
 
 #
@@ -81,7 +81,8 @@ if (ENABLE_OPENMP)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
-endif() 
+endif()
+# HIP is used with AMD / VEGA GPU
 if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
@@ -114,9 +115,19 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 
+# HACKS TO FIX COMPILATION ISSUES
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
+
+
+
 # ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
+  if(ENABLE_HIP)
+    set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds with AMD HIP require a ... build...AJP FINISH")	
+    set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
+    #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE /ascldap/users/ajpowel/RAJAPerf/amd_build/compiler_unscrewer)
+  endif()
   if(ENABLE_TARGET_OPENMP)
     set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")	
     set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
@@ -127,6 +138,13 @@ if(ENABLE_KOKKOS)
 	      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
       endif()
     endif()
+
+
+
+
+
+
+
     #add_definitions(-DRAJA_ENABLE_TARGET_OPENMP)
   endif()
 
@@ -138,7 +156,8 @@ if(ENABLE_KOKKOS)
     enable_language(CUDA)
   endif()
   if(ENABLE_OPENMP)
-    set(Kokkos_ENABLE_OPENMP CACHE BOOL ON)
+    #set(Kokkos_ENABLE_OPENMP CACHE BOOL ON)
+    set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Docstring")
   endif()
 
   add_subdirectory(tpl/kokkos)

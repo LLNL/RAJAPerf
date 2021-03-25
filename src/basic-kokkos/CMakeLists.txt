@@ -24,3 +24,17 @@ blt_add_library(
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
 
+# Diagnostics
+message (STATUS "${RAJA_PERFSUITE_DEPENDS}")
+#blt_print_target_properties(TARGET basic-kokkos)
+#blt_print_target_properties(TARGET kokkos)
+
+#kokkoscore;kokkoscontainers;kokkosalgorithms
+#blt_print_target_properties(TARGET kokkoscore)
+#blt_print_target_properties(TARGET kokkoscontainers)
+#blt_print_target_properties(TARGET kokkosalgorithms)
+
+blt_print_target_properties(TARGET RAJA)
+
+get_source_file_property(blah ATOMIC_PI-Kokkos.cpp HIP_SOURCE_PROPERTY_FORMAT)
+message (STATUS "DOGS1 - ${blah}")

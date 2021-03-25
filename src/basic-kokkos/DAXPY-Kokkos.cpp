@@ -82,7 +82,7 @@ void DAXPY::runKokkosVariant(VariantID vid)
       DaxpyFunctor daxpy_functor_instance(y,x,a);                                
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("DAXPY-KokkosSeq Kokkos_Functor_Seq", Kokkos::RangePolicy<Kokkos::Serial>(ibegin, iend),
+        Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Functor", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                              daxpy_functor_instance);
       }
       stopTimer();
