@@ -63,7 +63,8 @@ void DAXPY::runKokkosVariant(VariantID vid)
       startTimer();
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Lambda", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+        Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Lambda",
+                             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                             // Increment y_view (pointer wrapped in KokksView)
                             // by product of a and ith entry of x_view
                             // DAXPY_BODY substituted with the
@@ -78,19 +79,21 @@ void DAXPY::runKokkosVariant(VariantID vid)
       
       break;
     }
-    case Kokkos_Functor: {
+/*    case Kokkos_Functor: {
       DaxpyFunctor daxpy_functor_instance(y,x,a);                                
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Functor", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                              daxpy_functor_instance);
       }
+
       stopTimer();
      
 
    
       break;
     }
+*/
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }
