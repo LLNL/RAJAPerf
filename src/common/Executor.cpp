@@ -49,6 +49,29 @@ Executor::~Executor()
 #endif
 }
 
+// New functions for Kokkos to register new group and kernel IDs
+
+/*
+groupID Executor::registerGroup(std::string)
+{
+   
+
+   return getNewGroupID();
+
+}
+
+kernelID Executor::registerKernel(std::string, groupID groupName, KernelBase*)
+{
+
+  return getNewKernelID();
+}
+
+*/
+
+
+
+
+
 
 void Executor::setupSuite()
 {

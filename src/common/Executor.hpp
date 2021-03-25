@@ -43,6 +43,18 @@ public:
   
   void outputRunData();
 
+  // Interface for adding new Kokkos groups and kernels 
+/*
+  using groupID = int;
+  using kernelID = int;
+
+
+  groupID registerGroup(std::string groupName);
+
+  kernelID registerKernel(std::string, groupID groupName, KernelBase*);
+*/
+
+
 private:
   Executor() = delete;
 
@@ -71,6 +83,27 @@ private:
   void writeFOMReport(const std::string& filename);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
   
+  // Kokkos add group and kernel ID functions
+ /* 
+  inline groupID getNewGroupID() {
+          // The newGroupID will be shared amongst invocations of this
+          // function.
+        static groupID newGroupID;
+
+        return newGroupID++;
+
+  }
+
+  inline kernelID getNewKernelID() {
+        
+        static kernelID newKernelID;
+        return newKernelID++;
+
+  }
+
+*/
+
+  // Data members
   RunParams run_params;
   std::vector<KernelBase*> kernels;  
   std::vector<VariantID>   variant_ids;
