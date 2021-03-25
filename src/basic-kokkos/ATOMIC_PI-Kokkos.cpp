@@ -82,7 +82,15 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
       //            double x = (double(i) + 0.5) * dx;
       //            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
       //        });
+      //
+      // Initializing a value, pi, on the host
       *pi = m_pi_init;
+      // This is an assignment statement! Not a declaration.
+      // David made this assignment because of the structure of the
+      // computation.
+      // We're moving the data in the pointer to the device (GPU)
+      // IT IS IMPORTANT TO REALISE WHEN YOUR VARIABLE / DATA ARE BEING
+      // REINITIALIZED
       pi_view = getViewFromPointer(pi, 1);
 
       Kokkos::parallel_for(
@@ -92,9 +100,16 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
             // Original ATOMIC_PI kernel reference implementation
             // defined in ATOMIC_PI.hpp
             double x = (double(i) + 0.5) * dx;
+            // Make a reference to the 0th element of a 1D view with one
+            // element
+            // Atomic operation is an uninterruptable, single operation; e.g.,
+            // addition, multiplication, division, etc. All of these atomic
+            // operations are architecture dependent. Atomics are advantageous
+            // from a correctness point of view
             Kokkos::atomic_add(&pi_view(0), dx / (1.0 + x * x));
           });
-
+      // Moving the data on the device (held in the KokkosView) BACK to the
+      // pointer, pi.
       moveDataToHostFromKokkosView(pi, pi_view, 1);
       *pi *= 4.0;
       //*m_pi += *pi;
