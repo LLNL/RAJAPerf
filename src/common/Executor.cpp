@@ -51,22 +51,112 @@ Executor::~Executor()
 
 // New functions for Kokkos to register new group and kernel IDs
 
-/*
-groupID Executor::registerGroup(std::string)
+
+Executor::groupID Executor::registerGroup(std::string groupName)
 {
    
-
+   auto checkIfGroupExists = kernelsPerGroup.find(groupName);
+   if (checkIfGroupExists == kernelsPerGroup.end()){
+      kernelsPerGroup[groupName] = kernelSet();
+}
+ else {
+	// TODO: ERROR CONDITION
+	
+}
    return getNewGroupID();
 
 }
 
-kernelID Executor::registerKernel(std::string, groupID groupName, KernelBase*)
+// New function
+Executor::kernelID Executor::registerKernel(std::string kernelName, std::string groupName, KernelBase* kernel)
 {
+  
 
-  return getNewKernelID();
+  auto checkIfKernelExists = allKernels.find(kernelName);
+  if (checkIfKernelExists == allKernels.end()) {
+     allKernels[kernelName] = kernel;
+} 
+  else {
+	// TODO: ERROR CONDITION  
+    return getNewKernelID();
+}
+   // Add the kernel to its group
+   auto checkIfGroupExists = kernelsPerGroup.find(groupName);
+   if (checkIfGroupExists == kernelsPerGroup.end()){
+	 // If group does not exist, ERROR CONDITION
 }
 
-*/
+else {
+  // 
+  checkIfGroupExists -> second.insert(kernel);
+
+}
+return getNewKernelID();
+}
+
+
+std::vector<KernelBase*>  Executor::lookUpKernelByName(std::string kernelOrGroupName){
+
+	// The vector / list return type, std::vector<KernelBase*>  will contain 
+	// either all of the kernels with  a given  kernel name or group name
+	// We have two maps (defined in Executor.hpp): kernelMap allKernels, groupMap kernelsPerGroup, 
+	// STEPS:
+	// 1) declare new vector that will contain the string data:
+	// 2) LOGIC:
+	// 	i) check to see if the kernel / group requested on the 
+	// 	"./rajaperf.exe -k" line (you can pass either a specific kernel or a
+	// 	kernel group
+	
+   std::vector<KernelBase*> kernelsByNameVect ;
+
+        // If kernelName is groupName , then add that set of kernels in the
+        // group to the vector
+        // else if kernelName is kernel, then add the kernel to the vector
+        // else if kernelName is horse stuff, then say so
+        //
+        //
+        // Declare iterator against which you can test equivalence
+        auto checkLookUpGroupNameIterator =  kernelsPerGroup.find(kernelOrGroupName);
+        auto checkLookUpKernelNameIterator = allKernels.find(kernelOrGroupName);
+
+        // Check to see if groupName NOT in kernelsPerGroup;
+        // end() iterates to the end 
+        if (checkLookUpGroupNameIterator != kernelsPerGroup.end()) {
+                //cout << " STEP 1" << endl;
+                
+                // when using the arrow, you get a key, value pair.
+                // YOu can access either member by "first" or "second"
+
+                auto groupSetForTests = checkLookUpGroupNameIterator -> second;
+
+                for (auto item: groupSetForTests) {
+                        kernelsByNameVect.push_back(item);
+                        }
+        }
+
+        else if (checkLookUpKernelNameIterator != allKernels.end()) {
+
+                auto kernelSetForTests = checkLookUpKernelNameIterator -> second;
+
+                        kernelsByNameVect.push_back(kernelSetForTests);
+
+
+        }
+
+        else {
+
+                //TODO: ERROR CASE;
+
+                exit(1);
+
+
+        }
+
+	
+return kernelsByNameVect;
+	
+ 
+}
 
 
 

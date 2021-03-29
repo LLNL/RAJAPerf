@@ -44,16 +44,26 @@ public:
   void outputRunData();
 
   // Interface for adding new Kokkos groups and kernels 
-/*
+
   using groupID = int;
+  using kernelSet = std::set<KernelBase*>;
+  using kernelMap = std::map<std::string, KernelBase*>;
+  using groupMap =  std::map<std::string, kernelSet>;
   using kernelID = int;
 
+  ///////////////////////////////////////////////////
+  //
+  // Logic:
+  // Need the full set of kernels
+  // Associate group names (e.g., lcals, basic) with kernel sets
+  // Interface to add new kernels (e.g., DAXPY) and groups (basic) 
+  // for Kokkos Performance Testing 
 
   groupID registerGroup(std::string groupName);
 
-  kernelID registerKernel(std::string, groupID groupName, KernelBase*);
-*/
+  kernelID registerKernel(std::string, std::string groupName, KernelBase*);
 
+  std::vector<KernelBase*> lookUpKernelByName(std::string kernelOrGroupName);
 
 private:
   Executor() = delete;
@@ -83,8 +93,9 @@ private:
   void writeFOMReport(const std::string& filename);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
   
-  // Kokkos add group and kernel ID functions
- /* 
+ // Kokkos add group and kernel ID inline functions
+ // Provisional Design for Kokkos
+ 
   inline groupID getNewGroupID() {
           // The newGroupID will be shared amongst invocations of this
           // function.
@@ -101,7 +112,7 @@ private:
 
   }
 
-*/
+
 
   // Data members
   RunParams run_params;
@@ -109,6 +120,11 @@ private:
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;
+
+  kernelMap allKernels;
+  groupMap kernelsPerGroup;
+
+
 };
 
 }  // closing brace for rajaperf namespace
