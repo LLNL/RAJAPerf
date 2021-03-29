@@ -14,5 +14,6 @@ blt_add_library(
           OutputUtils.cpp 
           RAJAPerfSuite.cpp 
           RunParams.cpp
+  INCLUDES ${PROJECT_BINARY_DIR}/include/
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
   )

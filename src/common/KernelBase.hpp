@@ -19,14 +19,19 @@
 #ifdef RAJAPERF_USE_CALIPER
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
+#include <adiak.hpp>
 
 #define CALI_START \
-    std::string kstr = getName() + ":" + getVariantName(running_variant); \
-    CALI_MARK_BEGIN(kstr.c_str());
+    if(doCaliperTiming) { \
+      std::string kstr = getName() + ":" + getVariantName(running_variant); \
+      CALI_MARK_BEGIN(kstr.c_str()); \
+    }
 
 #define CALI_STOP \
-    std::string kstr = getName() + ":" + getVariantName(running_variant); \
-    CALI_MARK_END(kstr.c_str());
+    if(doCaliperTiming) { \
+      std::string kstr = getName() + ":" + getVariantName(running_variant); \
+      CALI_MARK_END(kstr.c_str()); \
+    }
 
 #else
 #define CALI_START
@@ -80,6 +85,11 @@ public:
   void setVariantDefined(VariantID vid);
 
   void execute(VariantID vid);
+
+#ifdef RAJAPERF_USE_CALIPER
+  void caliperOn() { doCaliperTiming = true; }
+  void caliperOff() { doCaliperTiming = false; } 
+#endif
 
   void startTimer() 
   { 
@@ -172,6 +182,10 @@ private:
   RAJA::Timer::ElapsedType tot_time[NumVariants];
 
   bool has_variant_to_run[NumVariants];
+
+#ifdef RAJAPERF_USE_CALIPER
+  bool doCaliperTiming = true; // warmup can use this to exclude timing
+#endif
 };
 
 }  // closing brace for rajaperf namespace

@@ -53,6 +53,13 @@ add_subdirectory(tpl/RAJA)
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
+# the following only for diagnostic purposes
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
 
 #
 # Setup variables to pass to Perf suite
@@ -96,6 +103,14 @@ if (ENABLE_CALIPER)
    set(RAJAPERF_USE_CALIPER on)
    add_definitions(-DRAJAPERF_USE_CALIPER)
    message(STATUS "Using Caliper")
+   find_package(adiak REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS adiak)
+   message(STATUS "Using Adiak")
+   if (ENABLE_CUDA)
+      # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
+      # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
+      set_target_properties(adiak PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+   endif ()
 endif ()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
@@ -108,7 +123,7 @@ if (ENABLE_CUDA)
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
-elseif (ENABLE_HIP)
+  elseif (ENABLE_HIP)
   set(RAJAPERF_COMPILER "${HIP_HIPCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${HIP_HIPCC_FLAGS}")
@@ -119,9 +134,11 @@ else()
   list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
+#configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
+#  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
+message(STATUS "PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR}")
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
-
+   ${PROJECT_BINARY_DIR}/include/rajaperf_config.hpp)
 # Make sure RAJA flag propagate
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})

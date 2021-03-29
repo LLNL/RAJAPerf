@@ -27,6 +27,9 @@
 
 #include <unistd.h>
 
+#ifdef RAJAPERF_USE_CALIPER
+#include "rajaperf_config.hpp"
+#endif
 
 namespace rajaperf {
 
@@ -36,6 +39,16 @@ Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
+#ifdef RAJAPERF_USE_CALIPER
+   adiak::init(NULL);
+   adiak::user();
+   adiak::launchdate();
+   adiak::libraries();
+   adiak::cmdline();
+   adiak::clustername();
+   struct configuration  cc;
+   adiak::value("perfsuite_version",cc.perfsuite_version);
+#endif
 }
 
 
@@ -44,6 +57,9 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+  
+  adiak::fini();
+  //adiak::clean();  // do this at program exit
 }
 
 
@@ -375,7 +391,13 @@ void Executor::runSuite()
       cout << getVariantName(vid) << " variant" << endl;
     }
     if ( warmup_kernel->hasVariantToRun(vid) ) {
+#ifdef RAJAPERF_USE_CALIPER
+      warmup_kernel->caliperOff();
+#endif
       warmup_kernel->execute(vid);
+#ifdef RAJAPERF_USE_CALIPER
+      warmup_kernel->caliperOn();
+#endif
     }
   }
 

@@ -10,7 +10,9 @@ include_directories(.)
 
 if(RAJAPERF_USE_CALIPER)
    message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
    include_directories(${caliper_INCLUDE_DIR})
+   include_directories(${adiak_INCLUDE_DIRS})
 endif ()
 
 add_subdirectory(common)
@@ -189,8 +191,12 @@ else()
 blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
+  INCLUDES ${PROJECT_BINARY_DIR}/include
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
 endif()
 
+
+message(STATUS "RAJA_VERSION_MAJORPP ${RAJA_VERSION_MAJOR}")
+blt_print_target_properties(TARGET raja-perf.exe)
 

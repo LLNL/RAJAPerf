@@ -19,11 +19,13 @@ module load caliper-2.5.0-gcc-8.3.1-cu3vy3k
 
 CALIPER_PREFIX=/usr/WS2/holger/spack/opt/spack/linux-rhel7-power9le/gcc-8.3.1/caliper-2.5.0-cu3vy3kjwjerpdm6xis2kauhz4s6wto2/
 
+ADIAK_PREFIX=/usr/WS2/holger/spack/opt/spack/linux-rhel7-power9le/gcc-8.3.1/adiak-0.2.1-hsv444o7ofb6s2znkvvnh6hcmr774g73/
+
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-8.3.1/bin/g++ \
   -C ${RAJA_HOSTCONFIG} \
-  -DCMAKE_PREFIX_PATH="${CALIPER_PREFIX}/share/cmake/caliper" \
+  -DCMAKE_PREFIX_PATH="${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak" \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=On \
   -DCMAKE_CUDA_FLAGS="-Xcompiler -mno-float128" \

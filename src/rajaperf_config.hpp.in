@@ -27,41 +27,24 @@
 namespace rajaperf {
 
 struct configuration {
-
-// Version of RAJA Perf Suite (ex: 0.1.0)
-static const std::string perfsuite_version =
-"@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_MINOR@" + std::string(".") +
-"@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
-
-// Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version = 
-std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
-std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
-
-// Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
-static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
-static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
-		
-// Compiler used to build (ex: gcc-4.9.3)
-static const std::string compiler = "@RAJAPERF_COMPILER@";
-
-// Command options used to build (ex: -Ofast -mavx)
-static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
-		
-// Name of user who ran code
-std::string user_run;
-
-// Date, time code was run
-std::string date_run;
-
-// Systype and machine code ran on (ex: chaos_5_x64_64)
-std::string systype_run;
-std::string machine_run;
-		
+static constexpr const char perfsuite_version[] = "@CMAKE_PROJECT_VERSION@";
+static constexpr const char raja_version[] = "@RAJA_LOADED@";
+static constexpr const char cmake_build_type[] = "@CMAKE_BUILD_TYPE@";
+static constexpr const char compiler[] = "@RAJAPERF_COMPILER@"; 
+static constexpr const char compiler_flags[] = "@CMAKE_CXX_FLAGS@"; 
+static constexpr const char compiler_flags_release[] = "@CMAKE_CXX_FLAGS_RELEASE@"; 
+static constexpr const char compiler_flags_relwithdebinfo[] = "@CMAKE_CXX_FLAGS_RELWITHDEBINFO@"; 
+static constexpr const char compiler_flags_debug[] = "@CMAKE_CXX_FLAGS_DEBUG@"; 
+static constexpr const char cuda_compiler_version[] = "@CMAKE_CUDA_COMPILER_VERSION@"; 
+static constexpr const char cuda_flags[] = "@CMAKE_CUDA_FLAGS@"; 
+static constexpr const char cuda_flags_release[] = "@CMAKE_CUDA_FLAGS_RELEASE@"; 
+static constexpr const char cuda_flags_relwithdebinfo[] = "@CMAKE_CUDA_FLAGS_RELWITHDEBINFO@"; 
+static constexpr const char cuda_flags_debug[] = "@CMAKE_CUDA_FLAGS_DEBUG@"; 
+static constexpr const char systype_build[] = "@RAJAPERF_BUILD_SYSTYPE@"; 
+static constexpr const char machine_build[] = "@RAJAPERF_BUILD_HOST@"; 
 };
 
 } // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard
+
