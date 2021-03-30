@@ -48,6 +48,16 @@ Executor::Executor(int argc, char** argv)
    adiak::clustername();
    struct configuration  cc;
    adiak::value("perfsuite_version",cc.perfsuite_version);
+   adiak::value("raja_version",cc.raja_version);
+   adiak::value("cmake_build_type",cc.cmake_build_type);
+   adiak::value("compiler",cc.compiler);
+   adiak::value("compiler_flags",cc.compiler_flags);
+   adiak::value("compiler_flags_release",cc.compiler_flags_release);
+   adiak::value("cuda_compiler_version",cc.cuda_compiler_version);
+   adiak::value("cuda_flags",cc.cuda_flags);
+   adiak::value("cuda_flags_release",cc.cuda_flags_release);
+   adiak::value("systype_build",cc.systype_build);
+   adiak::value("machine_build",cc.machine_build);
 #endif
 }
 

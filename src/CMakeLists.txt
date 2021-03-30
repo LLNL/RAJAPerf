@@ -196,7 +196,5 @@ blt_add_executable(
   )
 endif()
 
-
-message(STATUS "RAJA_VERSION_MAJORPP ${RAJA_VERSION_MAJOR}")
-blt_print_target_properties(TARGET raja-perf.exe)
+#blt_print_target_properties(TARGET raja-perf.exe)
 
