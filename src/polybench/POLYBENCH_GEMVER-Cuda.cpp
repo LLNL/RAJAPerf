@@ -4,7 +4,7 @@
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GEMVER.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -35,7 +35,7 @@ const size_t block_size = 256;
   allocAndInitCudaDeviceData(w, m_w, m_n); \
   allocAndInitCudaDeviceData(x, m_x, m_n); \
   allocAndInitCudaDeviceData(y, m_y, m_n); \
-  allocAndInitCudaDeviceData(z, m_z, m_n); 
+  allocAndInitCudaDeviceData(z, m_z, m_n);
 
 
 #define POLYBENCH_GEMVER_TEARDOWN_CUDA \
@@ -48,26 +48,26 @@ const size_t block_size = 256;
   deallocCudaDeviceData(w); \
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); 
+  deallocCudaDeviceData(z);
 
-__global__ void poly_gemmver_1(Real_ptr A, 
-                               Real_ptr u1, Real_ptr v1, 
+__global__ void poly_gemmver_1(Real_ptr A,
+                               Real_ptr u1, Real_ptr v1,
                                Real_ptr u2, Real_ptr v2,
                                Index_type n)
 {
   Index_type i = blockIdx.y;
-  Index_type j = threadIdx.x; 
+  Index_type j = threadIdx.x;
 
   POLYBENCH_GEMVER_BODY1;
 }
 
-__global__ void poly_gemmver_2(Real_ptr A, 
+__global__ void poly_gemmver_2(Real_ptr A,
                                Real_ptr x, Real_ptr y,
-                               Real_type beta, 
+                               Real_type beta,
                                Index_type n)
 {
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < n) { 
+  if (i < n) {
     POLYBENCH_GEMVER_BODY2;
     for (Index_type j = 0; j < n; ++j) {
       POLYBENCH_GEMVER_BODY3;
@@ -91,7 +91,7 @@ __global__ void poly_gemmver_4(Real_ptr A,
                                Index_type n)
 {
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < n) { 
+  if (i < n) {
     POLYBENCH_GEMVER_BODY6;
     for (Index_type j = 0; j < n; ++j) {
       POLYBENCH_GEMVER_BODY7;
@@ -105,8 +105,8 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  POLYBENCH_GEMVER_DATA_SETUP; 
-  
+  POLYBENCH_GEMVER_DATA_SETUP;
+
   if ( vid == Base_CUDA ) {
 
     POLYBENCH_GEMVER_DATA_SETUP_CUDA;
@@ -116,21 +116,70 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 
       dim3 nblocks(1, n, 1);
       dim3 nthreads_per_block(n, 1, 1);
-      poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2, 
+      poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2,
                                                       n);
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size); 
+      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
       poly_gemmver_2<<<grid_size, block_size>>>(A, x, y,
                                                 beta,
                                                 n);
 
       poly_gemmver_3<<<grid_size, block_size>>>(x, z,
-                                                n); 
+                                                n);
 
       poly_gemmver_4<<<grid_size, block_size>>>(A, x, w,
                                                 alpha,
                                                 n);
+
+    }
+    stopTimer();
+
+    POLYBENCH_GEMVER_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    POLYBENCH_GEMVER_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dim3 nblocks(1, n, 1);
+      dim3 nthreads_per_block(n, 1, 1);
+      lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                        <<<nblocks, nthreads_per_block>>>(
+        0, n, 0, n,
+        [=] __device__ (Index_type i, Index_type j) {
+          POLYBENCH_GEMVER_BODY1;
+      });
+
+      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
+
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        0, n,
+        [=] __device__ (Index_type i) {
+          POLYBENCH_GEMVER_BODY2;
+          for (Index_type j = 0; j < n; ++j) {
+            POLYBENCH_GEMVER_BODY3;
+          }
+          POLYBENCH_GEMVER_BODY4;
+      });
+
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        0, n,
+        [=] __device__ (Index_type i) {
+          POLYBENCH_GEMVER_BODY5;
+      });
+
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        0, n,
+        [=] __device__ (Index_type i) {
+          POLYBENCH_GEMVER_BODY6;
+          for (Index_type j = 0; j < n; ++j) {
+            POLYBENCH_GEMVER_BODY7;
+          }
+          POLYBENCH_GEMVER_BODY8;
+      });
 
     }
     stopTimer();
@@ -146,19 +195,19 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0>,
             >
           >
         >
       >;
 
-    using EXEC_POL2 = 
+    using EXEC_POL2 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, 
-                                   RAJA::cuda_block_x_loop,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
+                                   RAJA::cuda_block_x_direct,
             RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<1, RAJA::seq_exec,
@@ -169,14 +218,14 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
           >
         >
       >;
- 
+
     using EXEC_POL3 = RAJA::cuda_exec<block_size, true /*async*/>;
 
-    using EXEC_POL4 = 
+    using EXEC_POL4 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_loop,
+                                   RAJA::cuda_block_x_direct,
             RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
               RAJA::statement::For<1, RAJA::seq_exec,
@@ -187,7 +236,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
           >
         >
       >;
- 
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -235,7 +284,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY8_RAJA;
         }
       );
-    
+
     }
     stopTimer();
 
@@ -251,4 +300,4 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+

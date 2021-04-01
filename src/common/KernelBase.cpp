@@ -129,6 +129,7 @@ void KernelBase::runKernel(VariantID vid)
     }
 
     case Base_CUDA :
+    case Lambda_CUDA :
     case RAJA_CUDA :
     case RAJA_WORKGROUP_CUDA :
     {
@@ -139,6 +140,7 @@ void KernelBase::runKernel(VariantID vid)
     }
 
     case Base_HIP :
+    case Lambda_HIP :
     case RAJA_HIP :
     case RAJA_WORKGROUP_HIP :
     {

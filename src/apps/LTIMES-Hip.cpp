@@ -70,6 +70,33 @@ void LTIMES::runHipVariant(VariantID vid)
 
     LTIMES_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    LTIMES_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dim3 nthreads_per_block(num_m, num_g, 1);
+      dim3 nblocks(1, 1, num_z);
+
+      auto ltimes_lambda = [=] __device__ (Index_type z, Index_type g, Index_type m) {
+
+        for (Index_type d = 0; d < num_d; ++d ) {
+          LTIMES_BODY;
+        }
+      };
+
+      auto kernel = lambda_hip_kernel<RAJA::hip_block_z_direct, RAJA::hip_thread_y_direct, RAJA::hip_thread_x_direct, decltype(ltimes_lambda)>;
+      hipLaunchKernelGGL(kernel,
+        nblocks, nthreads_per_block, 0, 0,
+        0, num_z, 0, num_g, 0, num_m, ltimes_lambda);
+
+    }
+    stopTimer();
+
+    LTIMES_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     LTIMES_DATA_SETUP_HIP;
@@ -79,9 +106,9 @@ void LTIMES::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<1, RAJA::hip_block_z_loop,      //z 
-            RAJA::statement::For<2, RAJA::hip_thread_y_loop,    //g
-              RAJA::statement::For<3, RAJA::hip_thread_x_loop, //m
+          RAJA::statement::For<1, RAJA::hip_block_z_direct,      //z
+            RAJA::statement::For<2, RAJA::hip_thread_y_direct,    //g
+              RAJA::statement::For<3, RAJA::hip_thread_x_direct, //m
                 RAJA::statement::For<0, RAJA::seq_exec,       //d
                   RAJA::statement::Lambda<0>
                 >

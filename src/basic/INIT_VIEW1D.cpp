@@ -36,13 +36,15 @@ INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-INIT_VIEW1D::~INIT_VIEW1D() 
+INIT_VIEW1D::~INIT_VIEW1D()
 {
 }
 

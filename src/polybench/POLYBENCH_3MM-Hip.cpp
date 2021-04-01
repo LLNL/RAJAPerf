@@ -4,7 +4,7 @@
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_3MM.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -28,7 +28,7 @@ namespace polybench
   allocAndInitHipDeviceData(D, m_D, m_nm * m_nl); \
   allocAndInitHipDeviceData(E, m_E, m_ni * m_nj); \
   allocAndInitHipDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitHipDeviceData(G, m_G, m_ni * m_nl); 
+  allocAndInitHipDeviceData(G, m_G, m_ni * m_nl);
 
 
 #define POLYBENCH_3MM_TEARDOWN_HIP \
@@ -86,7 +86,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_3MM_DATA_SETUP;
-  
+
   if ( vid == Base_HIP ) {
 
     POLYBENCH_3MM_DATA_SETUP_HIP;
@@ -96,7 +96,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 
       dim3 nblocks1(1, ni, 1);
       dim3 nthreads_per_block1(nj, 1, 1);
-      hipLaunchKernelGGL((poly_3mm_1), dim3(nblocks1) , dim3(nthreads_per_block1), 0, 0, 
+      hipLaunchKernelGGL((poly_3mm_1), dim3(nblocks1) , dim3(nthreads_per_block1), 0, 0,
                                                     E, A, B,
                                                     nj, nk);
 
@@ -108,13 +108,73 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 
       dim3 nblocks3(1, ni, 1);
       dim3 nthreads_per_block3(nl, 1, 1);
-      hipLaunchKernelGGL((poly_3mm_3), dim3(nblocks3), dim3(nthreads_per_block3), 0, 0, 
+      hipLaunchKernelGGL((poly_3mm_3), dim3(nblocks3), dim3(nthreads_per_block3), 0, 0,
                                                     G, E, F,
                                                     nl, nj);
 
     }
     stopTimer();
-    
+
+    POLYBENCH_3MM_TEARDOWN_HIP;
+
+  } else if (vid == Lambda_HIP) {
+
+    POLYBENCH_3MM_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto poly_3mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
+
+        POLYBENCH_3MM_BODY1;
+        for (Index_type k=0; k < nk; ++k) {
+          POLYBENCH_3MM_BODY2;
+        }
+        POLYBENCH_3MM_BODY3;
+      };
+
+      dim3 nblocks1(1, ni, 1);
+      dim3 nthreads_per_block1(nj, 1, 1);
+      auto kernel1 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_3mm_1_lambda)>;
+      hipLaunchKernelGGL(kernel1,
+        nblocks1, nthreads_per_block1, 0, 0,
+        0, ni, 0, nj, poly_3mm_1_lambda);
+
+      auto poly_3mm_2_lambda = [=] __device__ (Index_type j, Index_type l) {
+
+        POLYBENCH_3MM_BODY4;
+        for (Index_type m=0; m < nm; ++m) {
+          POLYBENCH_3MM_BODY5;
+        }
+        POLYBENCH_3MM_BODY6;
+      };
+
+      dim3 nblocks2(1, nj, 1);
+      dim3 nthreads_per_block2(nl, 1, 1);
+      auto kernel2 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_3mm_2_lambda)>;
+      hipLaunchKernelGGL(kernel2,
+        nblocks2, nthreads_per_block2, 0, 0,
+        0, nj, 0, nl, poly_3mm_2_lambda);
+
+      auto poly_3mm_3_lambda = [=] __device__ (Index_type i, Index_type l) {
+
+        POLYBENCH_3MM_BODY7;
+        for (Index_type j=0; j < nj; ++j) {
+          POLYBENCH_3MM_BODY8;
+        }
+        POLYBENCH_3MM_BODY9;
+      };
+
+      dim3 nblocks3(1, ni, 1);
+      dim3 nthreads_per_block3(nl, 1, 1);
+      auto kernel3 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_3mm_3_lambda)>;
+      hipLaunchKernelGGL(kernel3,
+        nblocks3, nthreads_per_block3, 0, 0,
+        0, ni, 0, nl, poly_3mm_3_lambda);
+
+    }
+    stopTimer();
+
     POLYBENCH_3MM_TEARDOWN_HIP;
 
   } else if (vid == RAJA_HIP) {
@@ -126,8 +186,8 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<0, RAJA::hip_block_x_loop,
-            RAJA::statement::For<1, RAJA::hip_thread_y_loop,
+          RAJA::statement::For<0, RAJA::hip_block_x_direct,
+            RAJA::statement::For<1, RAJA::hip_thread_y_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
@@ -216,4 +276,4 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+

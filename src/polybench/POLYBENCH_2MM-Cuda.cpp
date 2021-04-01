@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -26,7 +26,7 @@ namespace polybench
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
   allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
   allocAndInitCudaDeviceData(C, m_C, m_nj * m_nl); \
-  allocAndInitCudaDeviceData(D, m_D, m_ni * m_nl); 
+  allocAndInitCudaDeviceData(D, m_D, m_ni * m_nl);
 
 
 #define POLYBENCH_2MM_TEARDOWN_CUDA \
@@ -47,7 +47,7 @@ __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
 
    POLYBENCH_2MM_BODY1;
    for (Index_type k=0; k < nk; ++k) {
-     POLYBENCH_2MM_BODY2;              
+     POLYBENCH_2MM_BODY2;
    }
    POLYBENCH_2MM_BODY3;
 }
@@ -95,6 +95,46 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 
     POLYBENCH_2MM_TEARDOWN_CUDA;
 
+  } else if (vid == Lambda_CUDA) {
+
+    POLYBENCH_2MM_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dim3 nblocks1(1, ni, 1);
+      dim3 nthreads_per_block1(nj, 1, 1);
+      lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                        <<<nblocks1, nthreads_per_block1>>>(
+        0, ni, 0, nj,
+        [=] __device__ (Index_type i, Index_type j) {
+
+        POLYBENCH_2MM_BODY1;
+        for (Index_type k=0; k < nk; ++k) {
+          POLYBENCH_2MM_BODY2;
+        }
+        POLYBENCH_2MM_BODY3;
+      });
+
+      dim3 nblocks2(1, ni, 1);
+      dim3 nthreads_per_block2(nl, 1, 1);
+      lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                        <<<nblocks2, nthreads_per_block2>>>(
+        0, ni, 0, nl,
+        [=] __device__ (Index_type i, Index_type l) {
+
+        POLYBENCH_2MM_BODY4;
+        for (Index_type j=0; j < nj; ++j) {
+          POLYBENCH_2MM_BODY5;
+        }
+        POLYBENCH_2MM_BODY6;
+      });
+
+    }
+    stopTimer();
+
+    POLYBENCH_2MM_TEARDOWN_CUDA;
+
   } else if (vid == RAJA_CUDA) {
 
     POLYBENCH_2MM_DATA_SETUP_CUDA;
@@ -104,8 +144,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
@@ -128,7 +168,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         [=] __device__ (Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k, 
+        [=] __device__ (Index_type i, Index_type j, Index_type k,
                         Real_type &dot) {
           POLYBENCH_2MM_BODY2_RAJA;
         },
@@ -138,7 +178,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL>( 
+      RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nj}),
@@ -147,7 +187,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         [=] __device__ (Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j, 
+        [=] __device__ (Index_type i, Index_type l, Index_type j,
                         Real_type &dot) {
           POLYBENCH_2MM_BODY5_RAJA;
         },
@@ -172,4 +212,4 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+
