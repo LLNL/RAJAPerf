@@ -69,6 +69,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
       poly_gemm<<<nblocks, nthreads_per_block>>>(C, A, B,
                                                  alpha, beta,
                                                  nj, nk);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

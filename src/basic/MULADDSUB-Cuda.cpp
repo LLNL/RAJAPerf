@@ -73,6 +73,7 @@ void MULADDSUB::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       muladdsub<<<grid_size, block_size>>>( out1, out2, out3, in1, in2,
                                             iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -92,6 +92,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           haloexchange_pack<<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }
@@ -106,6 +107,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
           haloexchange_unpack<<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }

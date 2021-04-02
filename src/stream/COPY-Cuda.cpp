@@ -64,6 +64,7 @@ void COPY::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       copy<<<grid_size, block_size>>>( c, a,
                                        iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

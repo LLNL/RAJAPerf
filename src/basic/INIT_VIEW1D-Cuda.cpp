@@ -62,6 +62,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       initview1d<<<grid_size, block_size>>>( a, v, iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

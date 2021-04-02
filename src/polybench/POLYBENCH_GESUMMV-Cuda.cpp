@@ -77,6 +77,7 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
                                               A, B,
                                               alpha, beta,
                                               N);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

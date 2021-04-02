@@ -57,6 +57,7 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
 
       nested_init<<<nblocks, nthreads_per_block>>>(array,
                                                    ni, nj);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

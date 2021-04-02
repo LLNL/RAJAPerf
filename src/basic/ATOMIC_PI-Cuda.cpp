@@ -64,6 +64,7 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       atomic_pi<<<grid_size, block_size>>>( pi, dx, iend );
+      cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;

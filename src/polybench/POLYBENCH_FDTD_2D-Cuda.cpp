@@ -100,14 +100,20 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
         poly_fdtd2d_1<<<grid_size1, block_size>>>(ey, fict, ny, t);
+        cudaErrchk( cudaGetLastError() );
 
         dim3 nblocks234(1, nx, 1);
         dim3 nthreads_per_block234(ny, 1, 1);
         poly_fdtd2d_2<<<nblocks234, nthreads_per_block234>>>(ey, hz, ny);
+        cudaErrchk( cudaGetLastError() );
 
         poly_fdtd2d_3<<<nblocks234, nthreads_per_block234>>>(ex, hz, ny);
 
+        cudaErrchk( cudaGetLastError() );
+
         poly_fdtd2d_4<<<nblocks234, nthreads_per_block234>>>(hz, ex, ey, nx, ny);
+
+        cudaErrchk( cudaGetLastError() );
 
       } // tstep loop
 

@@ -98,6 +98,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
                                              real_zones,
                                              half, ptiny,
                                              iend);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

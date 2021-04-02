@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -75,8 +75,10 @@ void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
         poly_jacobi_1D_1<<<grid_size, block_size>>>(A, B, N);
+        cudaErrchk( cudaGetLastError() );
 
         poly_jacobi_1D_2<<<grid_size, block_size>>>(A, B, N);
+        cudaErrchk( cudaGetLastError() );
 
       }
 
@@ -96,12 +98,12 @@ void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });
@@ -123,4 +125,4 @@ void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+

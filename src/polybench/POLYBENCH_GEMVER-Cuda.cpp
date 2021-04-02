@@ -118,19 +118,23 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
       dim3 nthreads_per_block(n, 1, 1);
       poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2,
                                                       n);
+      cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
       poly_gemmver_2<<<grid_size, block_size>>>(A, x, y,
                                                 beta,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
       poly_gemmver_3<<<grid_size, block_size>>>(x, z,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
       poly_gemmver_4<<<grid_size, block_size>>>(A, x, w,
                                                 alpha,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -64,6 +64,7 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
       ltimes_noview<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
                                                      num_d, num_g, num_m);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

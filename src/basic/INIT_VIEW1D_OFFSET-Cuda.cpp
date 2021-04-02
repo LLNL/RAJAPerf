@@ -65,6 +65,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
       initview1d_offset<<<grid_size, block_size>>>( a, v,
                                                     ibegin,
                                                     iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -112,16 +112,19 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
        hydro_2d1<<<nblocks, nthreads_per_block>>>(zadat, zbdat,
                                                   zpdat, zqdat, zrdat, zmdat,
                                                   jn, kn);
+       cudaErrchk( cudaGetLastError() );
 
        hydro_2d2<<<nblocks, nthreads_per_block>>>(zudat, zvdat,
                                                   zadat, zbdat, zzdat, zrdat,
                                                   s,
                                                   jn, kn);
+       cudaErrchk( cudaGetLastError() );
 
        hydro_2d3<<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
                                                   zrdat, zudat, zzdat, zvdat,
                                                   t,
                                                   jn, kn);
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
