@@ -85,6 +85,7 @@ void TRIAD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         TRIAD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -92,6 +92,7 @@ void INIT3::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT3_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

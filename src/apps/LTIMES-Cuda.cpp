@@ -90,6 +90,7 @@ void LTIMES::runCudaVariant(VariantID vid)
           LTIMES_BODY;
         }
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

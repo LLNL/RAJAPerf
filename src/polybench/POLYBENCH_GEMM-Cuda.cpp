@@ -98,6 +98,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_GEMM_BODY4;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

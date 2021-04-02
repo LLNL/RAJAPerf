@@ -115,6 +115,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
         }
         POLYBENCH_ATAX_BODY3;
       });
+      cudaErrchk( cudaGetLastError() );
 
       lambda_cuda_forall<<<grid_size, block_size>>>(
         0, N,
@@ -126,6 +127,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
         }
         POLYBENCH_ATAX_BODY6;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -90,6 +90,7 @@ void IF_QUAD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         IF_QUAD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

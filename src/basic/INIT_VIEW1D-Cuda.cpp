@@ -81,6 +81,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

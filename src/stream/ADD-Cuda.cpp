@@ -85,6 +85,7 @@ void ADD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         ADD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

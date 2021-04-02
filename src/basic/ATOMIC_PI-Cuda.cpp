@@ -89,6 +89,7 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
           double x = (double(i) + 0.5) * dx;
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
+      cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;

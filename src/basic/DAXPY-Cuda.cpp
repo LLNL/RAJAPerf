@@ -83,6 +83,7 @@ void DAXPY::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         DAXPY_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

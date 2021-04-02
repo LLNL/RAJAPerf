@@ -84,6 +84,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

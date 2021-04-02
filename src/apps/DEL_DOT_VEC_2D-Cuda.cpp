@@ -126,6 +126,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

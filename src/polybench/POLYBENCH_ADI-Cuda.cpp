@@ -135,6 +135,7 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
              POLYBENCH_ADI_BODY5;
           }
         });
+        cudaErrchk( cudaGetLastError() );
 
         lambda_cuda_forall<<<grid_size, block_size>>>(
           1, n-1,
@@ -149,6 +150,7 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
             POLYBENCH_ADI_BODY9;
           }
         });
+        cudaErrchk( cudaGetLastError() );
       }  // tstep loop
 
     }

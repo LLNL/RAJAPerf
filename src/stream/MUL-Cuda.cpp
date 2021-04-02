@@ -82,6 +82,7 @@ void MUL::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         MUL_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
