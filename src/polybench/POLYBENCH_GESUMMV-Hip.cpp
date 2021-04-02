@@ -77,6 +77,7 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
                                               A, B,
                                               alpha, beta,
                                               N);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

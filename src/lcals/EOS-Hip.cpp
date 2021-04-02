@@ -70,6 +70,7 @@ void EOS::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((eos), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z, u,
                                        q, r, t,
                                        iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

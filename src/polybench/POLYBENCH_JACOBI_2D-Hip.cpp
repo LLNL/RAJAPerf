@@ -73,8 +73,10 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
         dim3 nthreads_per_block(N-2, 1, 1);
 
         hipLaunchKernelGGL((poly_jacobi_2D_1),dim3(nblocks), dim3(nthreads_per_block),0,0,A, B, N);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_jacobi_2D_2),dim3(nblocks), dim3(nthreads_per_block),0,0,A, B, N);
+        hipErrchk( hipGetLastError() );
 
       }
 
@@ -104,6 +106,7 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel1,
           nblocks, nthreads_per_block, 0, 0,
           1, N-1, 1, N-1, poly_jacobi_2D_1_kernel);
+        hipErrchk( hipGetLastError() );
 
         auto poly_jacobi_2D_2_kernel = [=] __device__ (Index_type i, Index_type j) {
 
@@ -114,6 +117,7 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel2,
           nblocks, nthreads_per_block, 0, 0,
           1, N-1, 1, N-1, poly_jacobi_2D_2_kernel);
+        hipErrchk( hipGetLastError() );
 
       }
 

@@ -112,6 +112,7 @@ void TRAP_INT::runHipVariant(VariantID vid)
                                                 h,
                                                 sumx,
                                                 iend);
+      hipErrchk( hipGetLastError() );
 
       Real_type lsumx;
       Real_ptr plsumx = &lsumx;

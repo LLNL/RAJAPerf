@@ -57,6 +57,7 @@ void NESTED_INIT::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((nested_init), dim3(nblocks), dim3(nthreads_per_block), 0, 0, array,
                                                    ni, nj);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -81,6 +82,7 @@ void NESTED_INIT::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel,
         nblocks, nthreads_per_block, 0, 0,
         0, ni, 0, nj, 0, nk, nested_init_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

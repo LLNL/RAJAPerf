@@ -66,6 +66,7 @@ void DIFF_PREDICT::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((diff_predict), dim3(grid_size), dim3(block_size), 0, 0,  px, cx,
                                                 offset,
                                                 iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

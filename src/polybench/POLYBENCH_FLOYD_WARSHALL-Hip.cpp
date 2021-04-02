@@ -60,6 +60,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
         dim3 nthreads_per_block1(N, 1, 1);
         hipLaunchKernelGGL((poly_floyd_warshall),dim3(nblocks1), dim3(nthreads_per_block1),0,0,pout, pin,
                                                                k, N);
+        hipErrchk( hipGetLastError() );
 
       }
 
@@ -88,6 +89,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel,
           nblocks1, nthreads_per_block1,0,0,
           0, N, 0, N, poly_floyd_warshall_lambda);
+        hipErrchk( hipGetLastError() );
 
       }
 
