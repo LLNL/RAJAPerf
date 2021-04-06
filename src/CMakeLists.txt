@@ -16,7 +16,7 @@ add_subdirectory(basic-kokkos)
 #add_subdirectory(lcals)
 #add_subdirectory(polybench)
 #add_subdirectory(stream)
-add_subdirectory(algorithm)
+#add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
