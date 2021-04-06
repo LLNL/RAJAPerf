@@ -17,7 +17,11 @@ namespace rajaperf {
         SetUp m_setup;
         Execute m_execute;
         Checksum m_checksum;
-        using runData = decltype(m_setup(0, 0));
+        struct empty {
+        };
+        using runData_helper = decltype(m_setup(0, 0));
+        using runData = typename std::conditional<std::is_same<runData_helper, void>::value, empty, runData_helper>::type;
+        using is_empty = std::is_same<runData, empty>;
         runData rd;
     public:
         QuickKernelBase(std::string &name, const RunParams &params, SetUp se, Execute ex, Checksum ch) : KernelBase(
@@ -37,7 +41,16 @@ namespace rajaperf {
 
         Real_type m_y;
 
-        void setUp(VariantID vid) override { rd = m_setup(0, 0); }
+        void setUpHelper(std::true_type) {
+        }
+
+        void setUpHelper(std::false_type) {
+            rd = m_setup(0, 0);
+        }
+
+        void setUp(VariantID vid) override {
+            setUpHelper(is_empty());
+        }
 
         void updateChecksum(VariantID vid) override {
             checksum[vid] += m_y;
@@ -66,7 +79,6 @@ namespace rajaperf {
 #endif
 
 #if defined(RUN_KOKKOS)
-        using index_seq = std::make_index_sequence<std::tuple_size<runData>::value>;
 
         template<size_t... Is>
         void rkv_helper(std::index_sequence<Is...>) {
@@ -76,8 +88,26 @@ namespace rajaperf {
             }
         }
 
-        void runKokkosVariant(VariantID vid) override {
+        void rkv_helper(empty em) {
+            auto size = getRunSize();
+            for (int x = 0; x < getRunReps(); ++x) {
+                m_execute(x, size);
+            }
+        }
+
+        void rkv_switch_on_empty(std::false_type) {
+            using index_seq = typename
+            std::make_index_sequence<std::tuple_size<runData>::value>;
             rkv_helper(index_seq());
+        }
+
+        void rkv_switch_on_empty(std::true_type) {
+            rkv_helper(empty());
+
+        }
+
+        void runKokkosVariant(VariantID vid) override {
+            rkv_switch_on_empty(is_empty());
         }
 
 #endif // RUN_KOKKOS
