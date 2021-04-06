@@ -61,7 +61,7 @@ public:
 
   groupID registerGroup(std::string groupName);
 
-  kernelID registerKernel(std::string, std::string groupName, KernelBase*);
+  kernelID registerKernel(std::string, KernelBase*);
 
   std::vector<KernelBase*> lookUpKernelByName(std::string kernelOrGroupName);
 

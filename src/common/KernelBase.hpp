@@ -33,11 +33,13 @@ class KernelBase
 public:
 
   KernelBase(KernelID kid, const RunParams& params);
+  KernelBase(std::string& name, const RunParams& params);
 
   virtual ~KernelBase();
 
   KernelID     getKernelID() const { return kernel_id; }
   const std::string& getName() const { return name; }
+  void setName(const std::string& new_name) { name = new_name; }
 
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }

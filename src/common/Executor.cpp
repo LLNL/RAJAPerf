@@ -68,9 +68,10 @@ Executor::groupID Executor::registerGroup(std::string groupName)
 }
 
 // New function
-Executor::kernelID Executor::registerKernel(std::string kernelName, std::string groupName, KernelBase* kernel)
+Executor::kernelID Executor::registerKernel(std::string groupName, KernelBase* kernel)
 {
   
+  auto kernelName = kernel->getName();
 
   auto checkIfKernelExists = allKernels.find(kernelName);
   if (checkIfKernelExists == allKernels.end()) {
