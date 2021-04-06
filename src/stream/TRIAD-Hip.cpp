@@ -41,10 +41,10 @@ namespace stream
 __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
                       Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     TRIAD_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    TRIAD_BODY;
+  }
 }
 
 
@@ -63,9 +63,29 @@ void TRIAD::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((triad), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
-                                         iend );
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((triad), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
+                                        iend );
+
+    }
+    stopTimer();
+
+    TRIAD_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    TRIAD_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto triad_lambda = [=] __device__ (Index_type i) {
+        TRIAD_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(triad_lambda)>,
+        grid_size, block_size, 0, 0, ibegin, iend, triad_lambda);
 
     }
     stopTimer();
@@ -79,10 +99,10 @@ void TRIAD::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         TRIAD_BODY;
-       });
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        TRIAD_BODY;
+      });
 
     }
     stopTimer();

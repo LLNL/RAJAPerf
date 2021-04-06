@@ -190,7 +190,7 @@ void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
   using device_view_type = typename Kokkos::View<
       typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
       typename Kokkos::DefaultExecutionSpace::memory_space>;
-  
+
   // When copying data, we can either change the Layout or the memory_space
   // (host or device), but we cannot change both!
   // Here, we are mirroring data on the host to the device, i.e., Layout is
@@ -289,6 +289,7 @@ enum GroupID {
   Polybench,
   Stream,
   Apps,
+  Algorithm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -368,14 +369,21 @@ enum KernelID {
 //
 // Apps kernels...
 //
-  //Apps_COUPLE,
-  //Apps_DEL_DOT_VEC_2D,
-  //Apps_ENERGY,
-  //Apps_FIR,
-  //Apps_LTIMES,
-  //Apps_LTIMES_NOVIEW,
-  //Apps_PRESSURE,
-  //Apps_VOL3D,
+//Apps_COUPLE,
+//Apps_DEL_DOT_VEC_2D,
+//Apps_ENERGY,
+//Apps_FIR,
+//Apps_HALOEXCHANGE,
+//Apps_LTIMES,
+//Apps_LTIMES_NOVIEW,
+//Apps_PRESSURE,
+//Apps_VOL3D,
+
+//
+// Algorithm kernels...
+//
+//  Algorithm_SORT,
+//  Algorithm_SORTPAIRS,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -408,16 +416,19 @@ enum VariantID {
   RAJA_OpenMPTarget,
 
   Base_CUDA,
+  Lambda_CUDA,
   RAJA_CUDA,
+  RAJA_WORKGROUP_CUDA,
 
   Base_HIP,
+  Lambda_HIP,
   RAJA_HIP,
+  RAJA_WORKGROUP_HIP,
 
   Kokkos_Lambda,
   Kokkos_Functor,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
-
 
 };
 

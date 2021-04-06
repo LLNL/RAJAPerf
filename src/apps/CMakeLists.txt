@@ -27,6 +27,12 @@ blt_add_library(
           FIR-Cuda.cpp
           FIR-OMP.cpp
           FIR-OMPTarget.cpp
+          HALOEXCHANGE.cpp
+          HALOEXCHANGE-Seq.cpp
+          HALOEXCHANGE-Hip.cpp
+          HALOEXCHANGE-Cuda.cpp
+          HALOEXCHANGE-OMP.cpp
+          HALOEXCHANGE-OMPTarget.cpp
           LTIMES.cpp
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp

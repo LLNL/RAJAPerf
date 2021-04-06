@@ -12,7 +12,7 @@
 #include "common/DataUtils.hpp"
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -22,7 +22,7 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_2D, params)
 {
   SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_N=30;
@@ -62,22 +62,24 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_JACOBI_2D::~POLYBENCH_JACOBI_2D() 
+POLYBENCH_JACOBI_2D::~POLYBENCH_JACOBI_2D()
 {
 }
 

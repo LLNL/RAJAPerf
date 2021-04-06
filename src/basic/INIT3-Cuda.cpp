@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -44,14 +44,14 @@ namespace basic
   deallocCudaDeviceData(in1); \
   deallocCudaDeviceData(in2);
 
-__global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3, 
-                      Real_ptr in1, Real_ptr in2, 
-                      Index_type iend) 
+__global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3,
+                      Real_ptr in1, Real_ptr in2,
+                      Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT3_BODY; 
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    INIT3_BODY;
+  }
 }
 
 
@@ -71,8 +71,26 @@ void INIT3::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      init3<<<grid_size, block_size>>>( out1, out2, out3, in1, in2, 
-                                        iend ); 
+      init3<<<grid_size, block_size>>>( out1, out2, out3, in1, in2,
+                                        iend );
+
+    }
+    stopTimer();
+
+    INIT3_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    INIT3_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        INIT3_BODY;
+      });
 
     }
     stopTimer();

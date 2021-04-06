@@ -26,6 +26,85 @@ namespace rajaperf
 {
 
 /*!
+ * \brief Simple forall cuda kernel that runs a lambda.
+ */
+template < typename Lambda >
+__global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda body)
+{
+  Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    body(i);
+  }
+}
+
+/*!
+ * \brief Getters for cuda kernel indices.
+ */
+template < typename Index >
+__device__ inline Index_type lambda_cuda_get_index();
+
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_x_direct>() {
+  return threadIdx.x;
+}
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_y_direct>() {
+  return threadIdx.y;
+}
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_thread_z_direct>() {
+  return threadIdx.z;
+}
+
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_x_direct>() {
+  return blockIdx.x;
+}
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() {
+  return blockIdx.y;
+}
+template < >
+__device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
+  return blockIdx.z;
+}
+
+/*!
+ * \brief Simple kernel cuda kernel that runs a lambda.
+ */
+template < typename I_Index, typename J_Index, typename Lambda >
+__global__ void lambda_cuda_kernel(Index_type ibegin, Index_type iend,
+                                   Index_type jbegin, Index_type jend,
+                                   Lambda body)
+{
+  Index_type i = ibegin + lambda_cuda_get_index<I_Index>();
+  Index_type j = jbegin + lambda_cuda_get_index<J_Index>();
+  if (i < iend) {
+    if (j < jend) {
+      body(i, j);
+    }
+  }
+}
+///
+template < typename I_Index, typename J_Index, typename K_Index, typename Lambda >
+__global__ void lambda_cuda_kernel(Index_type ibegin, Index_type iend,
+                                   Index_type jbegin, Index_type jend,
+                                   Index_type kbegin, Index_type kend,
+                                   Lambda body)
+{
+  Index_type i = ibegin + lambda_cuda_get_index<I_Index>();
+  Index_type j = jbegin + lambda_cuda_get_index<J_Index>();
+  Index_type k = kbegin + lambda_cuda_get_index<K_Index>();
+  if (i < iend) {
+    if (j < jend) {
+      if (k < kend) {
+        body(i, j, k);
+      }
+    }
+  }
+}
+
+/*!
  * \brief Copy given hptr (host) data to CUDA device (dptr).
  *
  * Method assumes both host and device data arrays are allocated
@@ -34,7 +113,7 @@ namespace rajaperf
 template <typename T>
 void initCudaDeviceData(T& dptr, const T hptr, int len)
 {
-  cudaErrchk( cudaMemcpy( dptr, hptr, 
+  cudaErrchk( cudaMemcpy( dptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
                           cudaMemcpyHostToDevice ) );
 
@@ -42,7 +121,7 @@ void initCudaDeviceData(T& dptr, const T hptr, int len)
 }
 
 /*!
- * \brief Allocate CUDA device data array (dptr) and copy given hptr (host) 
+ * \brief Allocate CUDA device data array (dptr) and copy given hptr (host)
  * data to device array.
  */
 template <typename T>
@@ -63,7 +142,7 @@ void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
 template <typename T>
 void getCudaDeviceData(T& hptr, const T dptr, int len)
 {
-  cudaErrchk( cudaMemcpy( hptr, dptr, 
+  cudaErrchk( cudaMemcpy( hptr, dptr,
               len * sizeof(typename std::remove_pointer<T>::type),
               cudaMemcpyDeviceToHost ) );
 }
@@ -77,7 +156,6 @@ void deallocCudaDeviceData(T& dptr)
   cudaErrchk( cudaFree( dptr ) );
   dptr = 0;
 }
-
 
 }  // closing brace for rajaperf namespace
 

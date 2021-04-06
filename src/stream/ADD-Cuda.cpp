@@ -41,10 +41,10 @@ namespace stream
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     ADD_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    ADD_BODY;
+  }
 }
 
 
@@ -66,6 +66,24 @@ void ADD::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       add<<<grid_size, block_size>>>( c, a, b,
                                       iend );
+
+    }
+    stopTimer();
+
+    ADD_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    ADD_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        ADD_BODY;
+      });
 
     }
     stopTimer();

@@ -73,6 +73,32 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
 
     ATOMIC_PI_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    ATOMIC_PI_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(pi, &m_pi_init, 1);
+
+      auto atomic_pi_lambda = [=] __device__ (Index_type i) {
+          double x = (double(i) + 0.5) * dx;
+          RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(atomic_pi_lambda)>,
+          grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
+
+      getHipDeviceData(m_pi, pi, 1);
+      *m_pi *= 4.0;
+
+    }
+    stopTimer();
+
+    ATOMIC_PI_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     ATOMIC_PI_DATA_SETUP_HIP;

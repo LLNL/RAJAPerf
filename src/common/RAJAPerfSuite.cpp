@@ -72,11 +72,17 @@
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
+#include "apps/HALOEXCHANGE.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
+//
+// Algorithm kernels...
+//
+#include "algorithm/SORT.hpp"
+#include "algorithm/SORTPAIRS.hpp"
 
 
 #include <iostream>
@@ -103,6 +109,7 @@ static const std::string GroupNames [] =
   std::string("Polybench"),
   std::string("Stream"),
   std::string("Apps"),
+  std::string("Algorithm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -179,17 +186,23 @@ static const std::string KernelNames [] =
 //  std::string("Stream_MUL"),
 //  std::string("Stream_TRIAD"),
 //
-////
-//// Apps kernels...
-////
+// Apps kernels...
+//
 //  std::string("Apps_COUPLE"),
 //  std::string("Apps_DEL_DOT_VEC_2D"),
 //  std::string("Apps_ENERGY"),
 //  std::string("Apps_FIR"),
+//  std::string("Apps_HALOEXCHANGE"),
 //  std::string("Apps_LTIMES"),
 //  std::string("Apps_LTIMES_NOVIEW"),
 //  std::string("Apps_PRESSURE"),
 //  std::string("Apps_VOL3D"),
+
+//
+// Algorithm kernels...
+//
+//  std::string("Algorithm_SORT"),
+//  std::string("Algorithm_SORTPAIRS"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -223,10 +236,14 @@ static const std::string VariantNames [] =
   std::string("RAJA_OMPTarget"),
 
   std::string("Base_CUDA"),
+  std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
+  std::string("RAJA_WORKGROUP_CUDA"),
 
   std::string("Base_HIP"),
+  std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
+  std::string("RAJA_WORKGROUP_HIP"),
 
   std::string("Kokkos_Lambda"),
   std::string("Kokkos_Functor"),
@@ -312,7 +329,7 @@ bool isVariantAvailable(VariantID vid)
 #endif
 
 #if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda || 
+  if ( vid == Kokkos_Lambda ||
        vid == Kokkos_Functor ) {
     ret_val = true;
   }
@@ -334,15 +351,19 @@ bool isVariantAvailable(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-  if ( vid == Base_CUDA || 
-       vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA ||
+       vid == Lambda_CUDA ||
+       vid == RAJA_CUDA ||
+       vid == RAJA_WORKGROUP_CUDA ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  if ( vid == Base_HIP || 
-       vid == RAJA_HIP ) {
+  if ( vid == Base_HIP ||
+       vid == Lambda_HIP ||
+       vid == RAJA_HIP ||
+       vid == RAJA_WORKGROUP_HIP ) {
     ret_val = true;
   }
 #endif
@@ -367,21 +388,18 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
-    
     case Basic_ATOMIC_PI : {
        kernel = new basic::ATOMIC_PI(run_params);
        break;
     }
-    
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
     }
-		       
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
-}
+    }
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;
@@ -558,6 +576,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
+    case Apps_HALOEXCHANGE : {
+       kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -574,8 +596,19 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::VOL3D(run_params);
        break;
     }
+
+//
+// Algorithm kernels...
+//
+    case Algorithm_SORT: {
+       kernel = new algorithm::SORT(run_params);
+       break;
+    }
+    case Algorithm_SORTPAIRS: {
+       kernel = new algorithm::SORTPAIRS(run_params);
+       break;
+    }
 */
-		       
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }

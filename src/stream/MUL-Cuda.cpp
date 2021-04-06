@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -37,12 +37,12 @@ namespace stream
   deallocCudaDeviceData(c)
 
 __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
-                    Index_type iend) 
+                    Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     MUL_BODY; 
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    MUL_BODY;
+  }
 }
 
 void MUL::runCudaVariant(VariantID vid)
@@ -60,9 +60,27 @@ void MUL::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       mul<<<grid_size, block_size>>>( b, c, alpha,
-                                       iend ); 
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      mul<<<grid_size, block_size>>>( b, c, alpha,
+                                      iend );
+
+    }
+    stopTimer();
+
+    MUL_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    MUL_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        MUL_BODY;
+      });
 
     }
     stopTimer();
@@ -76,10 +94,10 @@ void MUL::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         MUL_BODY;
-       });
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        MUL_BODY;
+      });
 
     }
     stopTimer();
