@@ -127,6 +127,9 @@ private:
 
 };
 
+void free_register_group(Executor*, std::string);
+void free_register_kernel(Executor*, std::string, KernelBase*);
+
 }  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard

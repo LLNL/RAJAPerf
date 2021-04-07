@@ -20,10 +20,15 @@
 #endif
 
 #include <string>
-
 namespace rajaperf
 {
 
+class Executor; // forward declaration
+class KernelBase;
+
+void free_register_group(Executor*, std::string); // forward declaration
+void free_register_kernel(Executor*, std::string, KernelBase*); // forward declaration
+void make_perfsuite_executor(Executor* exec, int argc, char* argv[]);
 #if defined(RUN_KOKKOS)
 
 // Kokkos Design Spirit:

@@ -32,7 +32,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
   }
 }
 
-    KernelBase::KernelBase(std::string& name, const RunParams& params)
+    KernelBase::KernelBase(std::string name, const RunParams& params)
             : run_params(params),
               kernel_id(Basic_DAXPY), // TODO DZP: better
               name(name),

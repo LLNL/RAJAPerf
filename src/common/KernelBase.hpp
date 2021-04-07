@@ -39,7 +39,7 @@ class KernelBase
 public:
 
   KernelBase(KernelID kid, const RunParams& params);
-  KernelBase(std::string& name, const RunParams& params);
+  KernelBase(std::string name, const RunParams& params);
 
   virtual ~KernelBase();
 

@@ -1102,5 +1102,10 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
 }
 
 
-
+void free_register_group(Executor* exec, std::string groupName){
+   exec->registerGroup(groupName);
+}
+void free_register_kernel(Executor* exec, std::string groupName, KernelBase* kernel) {
+   exec->registerKernel(groupName, kernel);
+}
 }  // closing brace for rajaperf namespace
