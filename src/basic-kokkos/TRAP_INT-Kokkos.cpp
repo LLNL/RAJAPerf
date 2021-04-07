@@ -21,6 +21,8 @@ namespace basic
 // Function used in TRAP_INT loop.
 //
 RAJA_INLINE
+// 
+KOKKOS_FUNCTION
 Real_type trap_int_func(Real_type x,
                         Real_type y,
                         Real_type xp,
