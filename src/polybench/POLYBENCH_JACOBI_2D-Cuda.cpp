@@ -4,7 +4,7 @@
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//  
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_2D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -35,20 +35,20 @@ namespace polybench
 
 __global__ void poly_jacobi_2D_1(Real_ptr A, Real_ptr B, Index_type N)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+  Index_type i = 1 + blockIdx.y;
+  Index_type j = 1 + threadIdx.x;
 
-   if ( i > 0 && j > 0 && i < N-1 && j < N-1 ) {
-     POLYBENCH_JACOBI_2D_BODY1;
-   }
+  if ( i < N-1 && j < N-1 ) {
+    POLYBENCH_JACOBI_2D_BODY1;
+  }
 }
 
 __global__ void poly_jacobi_2D_2(Real_ptr A, Real_ptr B, Index_type N)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+   Index_type i = 1 + blockIdx.y;
+   Index_type j = 1 + threadIdx.x;
 
-   if ( i > 0 && j > 0 && i < N-1 && j < N-1 ) {
+   if ( i < N-1 && j < N-1 ) {
      POLYBENCH_JACOBI_2D_BODY2;
    }
 }
@@ -69,12 +69,47 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        dim3 nblocks(1, N, 1);
-        dim3 nthreads_per_block(N, 1, 1);
+        dim3 nblocks(1, N-2, 1);
+        dim3 nthreads_per_block(N-2, 1, 1);
 
         poly_jacobi_2D_1<<<nblocks, nthreads_per_block>>>(A, B, N);
 
         poly_jacobi_2D_2<<<nblocks, nthreads_per_block>>>(A, B, N);
+
+      }
+
+    }
+    stopTimer();
+
+    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      for (Index_type t = 0; t < tsteps; ++t) {
+
+        dim3 nblocks(1, N-2, 1);
+        dim3 nthreads_per_block(N-2, 1, 1);
+
+        lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                          <<<nblocks, nthreads_per_block>>>(
+          1, N-1, 1, N-1,
+          [=] __device__ (Index_type i, Index_type j) {
+
+          POLYBENCH_JACOBI_2D_BODY1;
+        });
+
+        lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                          <<<nblocks, nthreads_per_block>>>(
+          1, N-1, 1, N-1,
+          [=] __device__ (Index_type i, Index_type j) {
+
+          POLYBENCH_JACOBI_2D_BODY2;
+        });
 
       }
 
@@ -92,15 +127,15 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<0>
             >
           >
         >,
         RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_loop,
+          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
+            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
               RAJA::statement::Lambda<1>
             >
           >
@@ -139,4 +174,4 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+

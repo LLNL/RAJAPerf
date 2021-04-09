@@ -34,14 +34,14 @@ namespace basic
   getCudaDeviceData(m_a, a, getRunSize()); \
   deallocCudaDeviceData(a);
 
-__global__ void initview1d(Real_ptr a, 
+__global__ void initview1d(Real_ptr a,
                            Real_type v,
-                           const Index_type iend) 
+                           const Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT_VIEW1D_BODY; 
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    INIT_VIEW1D_BODY;
+  }
 }
 
 
@@ -60,10 +60,26 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       initview1d<<<grid_size, block_size>>>( a,
-                                              v, 
-                                              iend ); 
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      initview1d<<<grid_size, block_size>>>( a, v, iend );
+
+    }
+    stopTimer();
+
+    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    INIT_VIEW1D_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        INIT_VIEW1D_BODY;
+      });
 
     }
     stopTimer();

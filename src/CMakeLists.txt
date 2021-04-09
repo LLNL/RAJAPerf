@@ -16,6 +16,7 @@ add_subdirectory(basic-kokkos)
 #add_subdirectory(lcals)
 #add_subdirectory(polybench)
 #add_subdirectory(stream)
+#add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
@@ -26,12 +27,12 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     #lcals
     #polybench
     #stream
+    #algorithm
     )
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
 if(ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
-  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/basic)
 
 blt_add_executable(
   NAME raja-perf-omptarget.exe
@@ -193,6 +194,10 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  #algorithm/SORT.cpp
+  #algorithm/SORT-Seq.cpp
+  #algorithm/SORTPAIRS.cpp
+  #algorithm/SORTPAIRS-Seq.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

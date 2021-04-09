@@ -104,6 +104,35 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
 
     DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    DEL_DOT_VEC_2D_DATA_SETUP_HIP;
+
+    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto deldotvec2d_lambda = [=] __device__ (Index_type ii) {
+
+        DEL_DOT_VEC_2D_BODY_INDEX;
+        DEL_DOT_VEC_2D_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(deldotvec2d_lambda)>,
+        grid_size, block_size, 0, 0,
+        0, iend, deldotvec2d_lambda);
+
+    }
+    stopTimer();
+
+    DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     DEL_DOT_VEC_2D_DATA_SETUP_HIP;

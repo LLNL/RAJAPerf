@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -57,7 +57,7 @@ __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
    Index_type k = blockIdx.y;
    Index_type j = threadIdx.x;
    if (k > 0 && k < kn-1 && j > 0 && j < jn-1) {
-     HYDRO_2D_BODY1; 
+     HYDRO_2D_BODY1;
    }
 }
 
@@ -139,8 +139,8 @@ void HYDRO_2D::runHipVariant(VariantID vid)
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::HipKernelAsync<
-            RAJA::statement::For<0, RAJA::hip_block_y_loop,  // k
-              RAJA::statement::For<1, RAJA::hip_thread_x_loop,  // j
+            RAJA::statement::For<0, RAJA::hip_block_y_direct,  // k
+              RAJA::statement::For<1, RAJA::hip_thread_x_direct,  // j
                 RAJA::statement::Lambda<0>
               >
             >
@@ -176,7 +176,7 @@ void HYDRO_2D::runHipVariant(VariantID vid)
 
     HYDRO_2D_DATA_TEARDOWN_HIP;
 
-  } else { 
+  } else {
      std::cout << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }

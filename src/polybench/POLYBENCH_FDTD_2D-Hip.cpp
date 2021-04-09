@@ -4,7 +4,7 @@
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_FDTD_2D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -103,14 +103,68 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
 
         dim3 nblocks234(1, nx, 1);
         dim3 nthreads_per_block234(ny, 1, 1);
-        hipLaunchKernelGGL((poly_fdtd2d_2), dim3(nblocks234), dim3(nthreads_per_block234), 
+        hipLaunchKernelGGL((poly_fdtd2d_2), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, ey, hz, ny);
 
-        hipLaunchKernelGGL((poly_fdtd2d_3), dim3(nblocks234), dim3(nthreads_per_block234), 
+        hipLaunchKernelGGL((poly_fdtd2d_3), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, ex, hz, ny);
 
-        hipLaunchKernelGGL((poly_fdtd2d_4), dim3(nblocks234), dim3(nthreads_per_block234), 
+        hipLaunchKernelGGL((poly_fdtd2d_4), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, hz, ex, ey, nx, ny);
+
+      } // tstep loop
+
+    } // run_reps
+    stopTimer();
+
+    POLYBENCH_FDTD_2D_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    POLYBENCH_FDTD_2D_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      for (t = 0; t < tsteps; ++t) {
+
+        auto poly_fdtd2d_1_lambda = [=] __device__ (Index_type j) {
+            POLYBENCH_FDTD_2D_BODY1;
+        };
+
+        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
+        hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_fdtd2d_1_lambda)>,
+          grid_size1, block_size, 0, 0,
+          0, ny, poly_fdtd2d_1_lambda);
+
+        auto poly_fdtd2d_2_lambda = [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_FDTD_2D_BODY2;
+        };
+
+        dim3 nblocks234(1, nx, 1);
+        dim3 nthreads_per_block234(ny, 1, 1);
+        auto kernel2 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_fdtd2d_2_lambda)>;
+        hipLaunchKernelGGL(kernel2,
+          nblocks234, nthreads_per_block234, 0, 0,
+          1, nx, 0, ny, poly_fdtd2d_2_lambda);
+
+        auto poly_fdtd2d_3_lambda = [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_FDTD_2D_BODY3;
+        };
+
+        auto kernel3 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_fdtd2d_3_lambda)>;
+        hipLaunchKernelGGL(kernel3,
+          nblocks234, nthreads_per_block234, 0, 0,
+          0, nx, 1, ny, poly_fdtd2d_3_lambda);
+
+        auto poly_fdtd2d_4_lambda = [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_FDTD_2D_BODY4;
+        };
+
+        auto kernel4 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_fdtd2d_4_lambda)>;
+        hipLaunchKernelGGL(kernel4,
+          nblocks234, nthreads_per_block234, 0, 0,
+          0, nx-1, 0, ny-1, poly_fdtd2d_4_lambda);
 
       } // tstep loop
 
@@ -130,8 +184,8 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
     using EXEC_POL234 =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<0, RAJA::hip_block_y_loop,
-            RAJA::statement::For<1, RAJA::hip_thread_x_loop,
+          RAJA::statement::For<0, RAJA::hip_block_y_direct,
+            RAJA::statement::For<1, RAJA::hip_thread_x_direct,
               RAJA::statement::Lambda<0>
             >
           >
@@ -189,4 +243,4 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+

@@ -13,7 +13,7 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -41,19 +41,21 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D() 
+DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
 {
   delete m_domain;
 }
 
-Index_type DEL_DOT_VEC_2D::getItsPerRep() const 
-{ 
+Index_type DEL_DOT_VEC_2D::getItsPerRep() const
+{
   return m_domain->n_real_zones;
 }
 

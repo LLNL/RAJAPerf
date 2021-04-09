@@ -72,17 +72,96 @@
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
+#include "apps/HALOEXCHANGE.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
+//
+// Algorithm kernels...
+//
+#include "algorithm/SORT.hpp"
+#include "algorithm/SORTPAIRS.hpp"
 
 
 #include <iostream>
 
-namespace rajaperf
-{
+namespace rajaperf {
+    void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
+        RunParams run_params(argc, argv);
+        free_register_group(exec, std::string("Basic"));
+        free_register_group(exec, std::string("Lcals"));
+        free_register_group(exec, std::string("Polybench"));
+        free_register_group(exec, std::string("Stream"));
+        free_register_group(exec, std::string("Apps"));
+        free_register_group(exec, std::string("Algorithm"));
+
+        // Basic
+
+        free_register_kernel(exec, "Basic", new basic::ATOMIC_PI(run_params));
+        free_register_kernel(exec, "Basic", new basic::DAXPY(run_params));
+        free_register_kernel(exec, "Basic", new basic::IF_QUAD(run_params));
+        free_register_kernel(exec, "Basic", new basic::IF_QUAD(run_params));
+        free_register_kernel(exec, "Basic", new basic::INIT3(run_params));
+        free_register_kernel(exec, "Basic", new basic::INIT_VIEW1D(run_params));
+        free_register_kernel(exec, "Basic", new basic::INIT_VIEW1D_OFFSET(run_params));
+        free_register_kernel(exec, "Basic", new basic::MULADDSUB(run_params));
+        free_register_kernel(exec, "Basic", new basic::NESTED_INIT(run_params));
+        free_register_kernel(exec, "Basic", new basic::REDUCE3_INT(run_params));
+        free_register_kernel(exec, "Basic", new basic::TRAP_INT(run_params));
+        /**
+        // Lcals
+        free_register_kernel(exec, "Lcals", new lcals::DIFF_PREDICT(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::EOS(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::FIRST_DIFF(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::FIRST_MIN(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::FIRST_SUM(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::GEN_LIN_RECUR(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::HYDRO_1D(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::HYDRO_2D(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::INT_PREDICT(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::PLANCKIAN(run_params));
+        free_register_kernel(exec, "Lcals", new lcals::TRIDIAG_ELIM(run_params));
+
+        // Polybench
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_2MM(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_3MM(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_ADI(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_ATAX(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_FDTD_2D(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_FLOYD_WARSHALL(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_GEMM(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_GEMVER(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_GESUMMV(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_HEAT_3D(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_1D(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_2D(run_params));
+        free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_MVT(run_params));
+
+        // Stream
+        free_register_kernel(exec, "Stream", new stream::ADD(run_params));
+        free_register_kernel(exec, "Stream", new stream::COPY(run_params));
+        free_register_kernel(exec, "Stream", new stream::DOT(run_params));
+        free_register_kernel(exec, "Stream", new stream::MUL(run_params));
+        free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
+
+        // Apps
+        free_register_kernel(exec, "Apps", new apps::COUPLE(run_params));
+        free_register_kernel(exec, "Apps", new apps::DEL_DOT_VEC_2D(run_params));
+        free_register_kernel(exec, "Apps", new apps::ENERGY(run_params));
+        free_register_kernel(exec, "Apps", new apps::FIR(run_params));
+        free_register_kernel(exec, "Apps", new apps::HALOEXCHANGE(run_params));
+        free_register_kernel(exec, "Apps", new apps::LTIMES(run_params));
+        free_register_kernel(exec, "Apps", new apps::LTIMES_NOVIEW(run_params));
+        free_register_kernel(exec, "Apps", new apps::PRESSURE(run_params));
+        free_register_kernel(exec, "Apps", new apps::VOL3D(run_params));
+
+        // Algorithm
+        free_register_kernel(exec, "Algorithm", new algorithm::SORT(run_params));
+        free_register_kernel(exec, "Algorithm", new algorithm::SORTPAIRS(run_params));
+        */
+    }
 
 /*!
  *******************************************************************************
@@ -96,17 +175,18 @@ namespace rajaperf
  *
  *******************************************************************************
  */
-static const std::string GroupNames [] =
-{
-  std::string("Basic"),
-  std::string("Lcals"),
-  std::string("Polybench"),
-  std::string("Stream"),
-  std::string("Apps"),
+    static const std::string GroupNames[] =
+            {
+                    std::string("Basic"),
+                    std::string("Lcals"),
+                    std::string("Polybench"),
+                    std::string("Stream"),
+                    std::string("Apps"),
+                    std::string("Algorithm"),
 
-  std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
+                    std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
-}; // END GroupNames
+            }; // END GroupNames
 
 
 /*!
@@ -121,22 +201,22 @@ static const std::string GroupNames [] =
  *
  *******************************************************************************
  */
-static const std::string KernelNames [] =
-{
+    static const std::string KernelNames[] =
+            {
 
 //
 // Basic kernels...
 //
-  std::string("Basic_ATOMIC_PI"),
-  std::string("Basic_DAXPY"),
-  std::string("Basic_IF_QUAD"),
-  std::string("Basic_INIT3"),
-  std::string("Basic_INIT_VIEW1D"),
-  std::string("Basic_INIT_VIEW1D_OFFSET"),
-  std::string("Basic_MULADDSUB"),
-  std::string("Basic_NESTED_INIT"),
-  std::string("Basic_REDUCE3_INT"),
-  std::string("Basic_TRAP_INT"),
+                    std::string("Basic_ATOMIC_PI"),
+                    std::string("Basic_DAXPY"),
+                    std::string("Basic_IF_QUAD"),
+                    std::string("Basic_INIT3"),
+                    std::string("Basic_INIT_VIEW1D"),
+                    std::string("Basic_INIT_VIEW1D_OFFSET"),
+                    std::string("Basic_MULADDSUB"),
+                    std::string("Basic_NESTED_INIT"),
+                    std::string("Basic_REDUCE3_INT"),
+                    std::string("Basic_TRAP_INT"),
 
 //
 // Lcals kernels...
@@ -179,21 +259,27 @@ static const std::string KernelNames [] =
 //  std::string("Stream_MUL"),
 //  std::string("Stream_TRIAD"),
 //
-////
-//// Apps kernels...
-////
+// Apps kernels...
+//
 //  std::string("Apps_COUPLE"),
 //  std::string("Apps_DEL_DOT_VEC_2D"),
 //  std::string("Apps_ENERGY"),
 //  std::string("Apps_FIR"),
+//  std::string("Apps_HALOEXCHANGE"),
 //  std::string("Apps_LTIMES"),
 //  std::string("Apps_LTIMES_NOVIEW"),
 //  std::string("Apps_PRESSURE"),
 //  std::string("Apps_VOL3D"),
 
-  std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
+//
+// Algorithm kernels...
+//
+//  std::string("Algorithm_SORT"),
+//  std::string("Algorithm_SORTPAIRS"),
 
-}; // END KernelNames
+                    std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
+
+            }; // END KernelNames
 
 
 /*!
@@ -208,32 +294,36 @@ static const std::string KernelNames [] =
  *
  *******************************************************************************
  */
-static const std::string VariantNames [] =
-{
+    static const std::string VariantNames[] =
+            {
 
-  std::string("Base_Seq"),
-  std::string("Lambda_Seq"),
-  std::string("RAJA_Seq"),
+                    std::string("Base_Seq"),
+                    std::string("Lambda_Seq"),
+                    std::string("RAJA_Seq"),
 
-  std::string("Base_OpenMP"),
-  std::string("Lambda_OpenMP"),
-  std::string("RAJA_OpenMP"),
+                    std::string("Base_OpenMP"),
+                    std::string("Lambda_OpenMP"),
+                    std::string("RAJA_OpenMP"),
 
-  std::string("Base_OMPTarget"),
-  std::string("RAJA_OMPTarget"),
+                    std::string("Base_OMPTarget"),
+                    std::string("RAJA_OMPTarget"),
 
-  std::string("Base_CUDA"),
-  std::string("RAJA_CUDA"),
+                    std::string("Base_CUDA"),
+                    std::string("Lambda_CUDA"),
+                    std::string("RAJA_CUDA"),
+                    std::string("RAJA_WORKGROUP_CUDA"),
 
-  std::string("Base_HIP"),
-  std::string("RAJA_HIP"),
+                    std::string("Base_HIP"),
+                    std::string("Lambda_HIP"),
+                    std::string("RAJA_HIP"),
+                    std::string("RAJA_WORKGROUP_HIP"),
 
-  std::string("Kokkos_Lambda"),
-  std::string("Kokkos_Functor"),
+                    std::string("Kokkos_Lambda"),
+                    std::string("Kokkos_Functor"),
 
-  std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
+                    std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
-}; // END VariantNames
+            }; // END VariantNames
 
 
 /*
@@ -243,10 +333,9 @@ static const std::string VariantNames [] =
  *
  *******************************************************************************
  */
-const std::string& getGroupName(GroupID sid)
-{
-  return GroupNames[sid];
-}
+    const std::string &getGroupName(GroupID sid) {
+        return GroupNames[sid];
+    }
 
 
 /*
@@ -256,12 +345,11 @@ const std::string& getGroupName(GroupID sid)
  *
  *******************************************************************************
  */
-std::string getKernelName(KernelID kid)
-{
-  std::string::size_type pos = KernelNames[kid].find("_");
-  std::string kname(KernelNames[kid].substr(pos+1, std::string::npos));
-  return kname;
-}
+    std::string getKernelName(KernelID kid) {
+        std::string::size_type pos = KernelNames[kid].find("_");
+        std::string kname(KernelNames[kid].substr(pos + 1, std::string::npos));
+        return kname;
+    }
 
 
 /*
@@ -271,10 +359,9 @@ std::string getKernelName(KernelID kid)
  *
  *******************************************************************************
  */
-const std::string& getFullKernelName(KernelID kid)
-{
-  return KernelNames[kid];
-}
+    const std::string &getFullKernelName(KernelID kid) {
+        return KernelNames[kid];
+    }
 
 
 /*
@@ -284,10 +371,9 @@ const std::string& getFullKernelName(KernelID kid)
  *
  *******************************************************************************
  */
-const std::string& getVariantName(VariantID vid)
-{
-  return VariantNames[vid];
-}
+    const std::string &getVariantName(VariantID vid) {
+        return VariantNames[vid];
+    }
 
 /*!
  *******************************************************************************
@@ -297,58 +383,61 @@ const std::string& getVariantName(VariantID vid)
  *
  *******************************************************************************
  */
-bool isVariantAvailable(VariantID vid)
-{
-  bool ret_val = false;
+    bool isVariantAvailable(VariantID vid) {
+        bool ret_val = false;
 
-  if ( vid == Base_Seq ) {
-    ret_val = true;
-  }
+        if (vid == Base_Seq) {
+            ret_val = true;
+        }
 #if defined(RUN_RAJA_SEQ)
-  if ( vid == Lambda_Seq || 
-       vid == RAJA_Seq ) {
-    ret_val = true;
-  }
+        if (vid == Lambda_Seq ||
+            vid == RAJA_Seq) {
+            ret_val = true;
+        }
 #endif
 
 #if defined(RUN_KOKKOS)
-  if ( vid == Kokkos_Lambda || 
-       vid == Kokkos_Functor ) {
-    ret_val = true;
-  }
+        if (vid == Kokkos_Lambda ||
+            vid == Kokkos_Functor) {
+            ret_val = true;
+        }
 #endif // RUN_KOKKOS
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP || 
-       vid == Lambda_OpenMP || 
-       vid == RAJA_OpenMP ) {
-    ret_val = true;
-  }
+        if ( vid == Base_OpenMP ||
+             vid == Lambda_OpenMP ||
+             vid == RAJA_OpenMP ) {
+          ret_val = true;
+        }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  if ( vid == Base_OpenMPTarget || 
-       vid == RAJA_OpenMPTarget ) {
-    ret_val = true;
-  }
+        if ( vid == Base_OpenMPTarget ||
+             vid == RAJA_OpenMPTarget ) {
+          ret_val = true;
+        }
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-  if ( vid == Base_CUDA || 
-       vid == RAJA_CUDA ) {
-    ret_val = true;
-  }
+        if ( vid == Base_CUDA ||
+             vid == Lambda_CUDA ||
+             vid == RAJA_CUDA ||
+             vid == RAJA_WORKGROUP_CUDA ) {
+          ret_val = true;
+        }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  if ( vid == Base_HIP || 
-       vid == RAJA_HIP ) {
-    ret_val = true;
-  }
+        if ( vid == Base_HIP ||
+             vid == Lambda_HIP ||
+             vid == RAJA_HIP ||
+             vid == RAJA_WORKGROUP_HIP ) {
+          ret_val = true;
+        }
 #endif
 
-  return ret_val;
-}
+        return ret_val;
+    }
 
 /*
  *******************************************************************************
@@ -357,59 +446,55 @@ bool isVariantAvailable(VariantID vid)
  *
  *******************************************************************************
  */
-KernelBase* getKernelObject(KernelID kid,
-                            const RunParams& run_params)
-{
-  KernelBase* kernel = 0;
+    KernelBase *getKernelObject(KernelID kid,
+                                const RunParams &run_params) {
+        KernelBase *kernel = 0;
 
-  switch ( kid ) {
+        switch (kid) {
 
-    //
-    // Basic kernels...
-    //
-    
-    case Basic_ATOMIC_PI : {
-       kernel = new basic::ATOMIC_PI(run_params);
-       break;
-    }
-    
-    case Basic_DAXPY : {
-       kernel = new basic::DAXPY(run_params);
-       break;
-    }
-		       
-    case Basic_IF_QUAD : {
-       kernel = new basic::IF_QUAD(run_params);
-       break;
-}
-    case Basic_INIT3 : {
-       kernel = new basic::INIT3(run_params);
-       break;
-    }
-    case Basic_INIT_VIEW1D : {
-       kernel = new basic::INIT_VIEW1D(run_params);
-       break;
-    }
-    case Basic_INIT_VIEW1D_OFFSET : {
-       kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
-       break;
-    }
-    case Basic_MULADDSUB : {
-       kernel = new basic::MULADDSUB(run_params);
-       break;
-    }
-    case Basic_NESTED_INIT : {
-       kernel = new basic::NESTED_INIT(run_params);
-       break;
-    }
-    case Basic_REDUCE3_INT : {
-       kernel = new basic::REDUCE3_INT(run_params);
-       break;
-    }
-    case Basic_TRAP_INT : {
-       kernel = new basic::TRAP_INT(run_params);
-       break;
-    }
+            //
+            // Basic kernels...
+            //
+            case Basic_ATOMIC_PI : {
+                kernel = new basic::ATOMIC_PI(run_params);
+                break;
+            }
+            case Basic_DAXPY : {
+                kernel = new basic::DAXPY(run_params);
+                break;
+            }
+            case Basic_IF_QUAD : {
+                kernel = new basic::IF_QUAD(run_params);
+                break;
+            }
+            case Basic_INIT3 : {
+                kernel = new basic::INIT3(run_params);
+                break;
+            }
+            case Basic_INIT_VIEW1D : {
+                kernel = new basic::INIT_VIEW1D(run_params);
+                break;
+            }
+            case Basic_INIT_VIEW1D_OFFSET : {
+                kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+                break;
+            }
+            case Basic_MULADDSUB : {
+                kernel = new basic::MULADDSUB(run_params);
+                break;
+            }
+            case Basic_NESTED_INIT : {
+                kernel = new basic::NESTED_INIT(run_params);
+                break;
+            }
+            case Basic_REDUCE3_INT : {
+                kernel = new basic::REDUCE3_INT(run_params);
+                break;
+            }
+            case Basic_TRAP_INT : {
+                kernel = new basic::TRAP_INT(run_params);
+                break;
+            }
 /** DZP: big comment block for unimplemented
 //
 // Lcals kernels...
@@ -558,6 +643,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
+    case Apps_HALOEXCHANGE : {
+       kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -574,15 +663,26 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::VOL3D(run_params);
        break;
     }
-*/
-		       
-    default: {
-      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+
+//
+// Algorithm kernels...
+//
+    case Algorithm_SORT: {
+       kernel = new algorithm::SORT(run_params);
+       break;
     }
+    case Algorithm_SORTPAIRS: {
+       kernel = new algorithm::SORTPAIRS(run_params);
+       break;
+    }
+*/
+            default: {
+                std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+            }
 
-  } // end switch on kernel id
+        } // end switch on kernel id
 
-  return kernel;
-}
+        return kernel;
+    }
 
 }  // closing brace for rajaperf namespace
