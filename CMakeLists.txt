@@ -83,7 +83,8 @@ if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
 # HIP is used with AMD / VEGA GPU
-if (ENABLE_HIP)
+# Neatly separate RAJAPerf Suite and Kokkos handling of HIP
+if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
