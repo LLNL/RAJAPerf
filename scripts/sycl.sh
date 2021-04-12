@@ -35,4 +35,4 @@ cmake \
   "$@" \
   ..
 
-make -j 8
+make -j 18
