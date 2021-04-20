@@ -106,6 +106,7 @@ enum KernelID {
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
   Basic_MULADDSUB,
+  Basic_MAT_MAT_SHARED,
   Basic_NESTED_INIT,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
