@@ -12,20 +12,17 @@
 
 #include <iostream>
 
-namespace rajaperf
-{
-namespace basic
-{
+namespace rajaperf {
+namespace basic {
 
-template<typename BODY>
-inline void loop(const int st, const int end, BODY const &body){
-  for(int i=st; i<end; ++i){
+template <typename BODY>
+inline void seq_loop(const int st, const int end, BODY const &body) {
+  for (int i = st; i < end; ++i) {
     body(i);
   }
 }
 
-void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
-{
+void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
@@ -33,99 +30,124 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
   MAT_MAT_SHARED_DATA_SETUP;
 
   const int N = 1000;
-  const int Nx = (N-1)/TL_SZ+1;
-  const int Ny = (N-1)/TL_SZ+1;
+  const int Nx = (N - 1) / TL_SZ + 1;
+  const int Ny = (N - 1) / TL_SZ + 1;
 
-  switch ( vid ) {
+  switch (vid) {
 
-    case Base_Seq : {
+  case Base_Seq: {
 
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        //Write Sequential variant here
-        for(int by = 0; by < Ny; ++by){
-          for(int bx = 0; bx < Nx; ++bx){
+      // Write Sequential variant here
+      for (int by = 0; by < Ny; ++by) {
+        for (int bx = 0; bx < Nx; ++bx) {
 
-            MAT_MAT_SHARED_BODY_0
+          MAT_MAT_SHARED_BODY_0
 
-            for(int ty=0; ty<TL_SZ; ++ty){
-              for(int tx=0; tx<TL_SZ; ++tx){
-                MAT_MAT_SHARED_BODY_1
+          for (int ty = 0; ty < TL_SZ; ++ty) {
+            for (int tx = 0; tx < TL_SZ; ++tx) {
+              MAT_MAT_SHARED_BODY_1
+            }
+          }
+
+          // Sequential loop
+          for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+
+            for (int ty = 0; ty < TL_SZ; ++ty) {
+              for (int tx = 0; tx < TL_SZ; ++tx) {
+
+                MAT_MAT_SHARED_BODY_2
               }
             }
 
-            //Sequential loop
-            for(int k = 0; k < (TL_SZ + N - 1)/TL_SZ; ++k) {
+            // synchronize();
+            for (int ty = 0; ty < TL_SZ; ++ty) {
+              for (int tx = 0; tx < TL_SZ; ++tx) {
 
-              for(int ty=0; ty<TL_SZ; ++ty){
-                for(int tx=0; tx<TL_SZ; ++tx){
-
-                  MAT_MAT_SHARED_BODY_2
-
-                }
-              }
-
-              //synchronize();
-              for(int ty=0; ty<TL_SZ; ++ty){
-                for(int tx=0; tx<TL_SZ; ++tx){
-
-                  MAT_MAT_SHARED_BODY_3
-
-                }
-              }
-
-            }//Sequential loop
-
-            for(int ty=0; ty<TL_SZ; ++ty){
-              for(int tx=0; tx<TL_SZ; ++tx){
-                MAT_MAT_SHARED_BODY_4
+                MAT_MAT_SHARED_BODY_3
               }
             }
 
+          } // Sequential loop
+
+          for (int ty = 0; ty < TL_SZ; ++ty) {
+            for (int tx = 0; tx < TL_SZ; ++tx) {
+              MAT_MAT_SHARED_BODY_4
+            }
           }
         }
-
-      }//number of iterations
-      stopTimer();
-
-      break;
-    }
-
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (Index_type irep = 0; irep < run_reps; ++irep) {
-
-
       }
-      stopTimer();
 
-      break;
-    }
+    } // number of iterations
+    stopTimer();
 
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        //RAJA::forall<RAJA::simd_exec>(
-        //RAJA::RangeSegment(ibegin, iend), mas_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_SEQ
-
-    default : {
-      std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid << std::endl;
-    }
-
+    break;
   }
 
+#if defined(RUN_RAJA_SEQ)
+  case Lambda_Seq: {
+
+    startTimer();
+    for (Index_type irep = 0; irep < run_reps; ++irep) {
+
+      seq_loop(0, Ny, [&](int by) {
+        seq_loop(0, Nx, [&](int bx) {
+          MAT_MAT_SHARED_BODY_0
+
+          seq_loop(0, TL_SZ, [&](int ty) {
+            seq_loop(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_1 });
+          });
+
+          // Sequential loop
+          for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+
+            seq_loop(0, TL_SZ, [&](int ty) {
+              seq_loop(0, TL_SZ, [&](int tx) {
+                MAT_MAT_SHARED_BODY_2
+              });
+            });
+
+            // synchronize();
+            seq_loop(0, TL_SZ, [&](int ty) {
+              seq_loop(0, TL_SZ, [&](int tx) {
+                MAT_MAT_SHARED_BODY_3
+              });
+            });
+
+          } // Sequential loop
+
+          seq_loop(0, TL_SZ, [&](int ty) {
+            seq_loop(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_4 });
+          });
+        });
+      });
+    }
+    stopTimer();
+
+    break;
+  }
+
+  case RAJA_Seq: {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      // RAJA::forall<RAJA::simd_exec>(
+      // RAJA::RangeSegment(ibegin, iend), mas_lam);
+    }
+    stopTimer();
+
+    break;
+  }
+#endif // RUN_RAJA_SEQ
+
+  default: {
+    std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
+              << std::endl;
+  }
+  }
 }
 
 } // end namespace basic
