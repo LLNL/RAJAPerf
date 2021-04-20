@@ -21,8 +21,8 @@ namespace basic
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams& params)
   : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000);
+  setDefaultReps(500);
 
   setVariantDefined( Base_Seq );
   //setVariantDefined( Lambda_Seq );
@@ -50,9 +50,10 @@ MAT_MAT_SHARED::~MAT_MAT_SHARED()
 
 void MAT_MAT_SHARED::setUp(VariantID vid)
 {
-  allocAndInitData(m_A, getRunSize(), vid);
-  allocAndInitData(m_B, getRunSize(), vid);
-  allocAndInitData(m_C, getRunSize(), vid);
+  N = getRunSize();
+  allocAndInitData(m_A, N, vid);
+  allocAndInitData(m_B, N, vid);
+  allocAndInitData(m_C, N, vid);
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid)

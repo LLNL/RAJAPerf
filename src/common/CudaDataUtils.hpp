@@ -37,6 +37,12 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
   }
 }
 
+template < typename Lambda >
+__global__ void lambda_cuda(Lambda body)
+{
+    body();
+}
+
 /*!
  * \brief Getters for cuda kernel indices.
  */
