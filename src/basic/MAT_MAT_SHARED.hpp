@@ -29,26 +29,28 @@
  RAJA_TEAM_SHARED double Bs[TL_SZ][TL_SZ]; \
  RAJA_TEAM_SHARED double Cs[TL_SZ][TL_SZ];
 
-
 #define MAT_MAT_SHARED_BODY_1  \
   Cs[ty][tx] = 0;
 
 #define MAT_MAT_SHARED_BODY_2  \
-  const int Row = by*DEVICE_BLOCK_SIZE + ty; \
-  const int Col = bx*DEVICE_BLOCK_SIZE + tx; \
-  if (k*DEVICE_BLOCK_SIZE + tx < N && Row < N) \
-    As[ty][tx] = A[Row*N + k*DEVICE_BLOCK_SIZE + tx]; \
+  const int Row = by*TL_SZ + ty; \
+  const int Col = bx*TL_SZ + tx; \
+  if (k*TL_SZ + tx < N && Row < N) \
+    As[ty][tx] = A[Row*N + k*TL_SZ + tx]; \
   else \
    As[ty][tx] = 0.0; \
-  if (k*DEVICE_BLOCK_SIZE + ty < N && Col < N)              \
-    Bs[ty][tx] = Bview((k*DEVICE_BLOCK_SIZE + ty), Col); \
+  if (k*TL_SZ + ty < N && Col < N)  \
+    Bs[ty][tx] = B[(k*TL_SZ + ty)*N + Col]; \
   else \
-    Bs[ty][tx] = 0.0; \
+    Bs[ty][tx] = 0.0;
 
 #define MAT_MAT_SHARED_BODY_3 \
-  Cs[ty][tx] += As[ty][n] * Bs[n][tx];
+  for(int n = 0; n<TL_SZ; ++n) \
+    Cs[ty][tx] += As[ty][n] * Bs[n][tx];
 
 #define MAT_MAT_SHARED_BODY_4 \
+  const int Row = by*TL_SZ + ty; \
+  const int Col = bx*TL_SZ + tx; \
   if(Row < N && Col < N) \
     C[Col + N*Row] = Cs[ty][tx];
 

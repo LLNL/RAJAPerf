@@ -17,6 +17,12 @@ namespace rajaperf
 namespace basic
 {
 
+template<typename BODY>
+inline void loop(const int st, const int end, BODY const &body){
+  for(int i=st; i<end; ++i){
+    body(i);
+  }
+}
 
 void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
 {
@@ -26,11 +32,6 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
 
   MAT_MAT_SHARED_DATA_SETUP;
 
-  /*
-  auto mas_lam = [=](Index_type i) {
-    //MAT_MAT_SHARED_BODY;
-                 };
-  */
   const int N = 1000;
   const int Nx = (N-1)/TL_SZ+1;
   const int Ny = (N-1)/TL_SZ+1;
@@ -45,45 +46,45 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
         //Write Sequential variant here
         for(int by = 0; by < Ny; ++by){
           for(int bx = 0; bx < Nx; ++bx){
-            
+
             MAT_MAT_SHARED_BODY_0
-            
+
             for(int ty=0; ty<TL_SZ; ++ty){
               for(int tx=0; tx<TL_SZ; ++tx){
                 MAT_MAT_SHARED_BODY_1
               }
             }
-            
+
             //Sequential loop
-            for(k = 0; k < (TL_SZ + N - 1)/TL_SZ; ++k) {
-              
+            for(int k = 0; k < (TL_SZ + N - 1)/TL_SZ; ++k) {
+
               for(int ty=0; ty<TL_SZ; ++ty){
                 for(int tx=0; tx<TL_SZ; ++tx){
-                  
+
                   MAT_MAT_SHARED_BODY_2
-                  
+
                 }
               }
-              
+
               //synchronize();
               for(int ty=0; ty<TL_SZ; ++ty){
                 for(int tx=0; tx<TL_SZ; ++tx){
-                  
+
                   MAT_MAT_SHARED_BODY_3
 
                 }
               }
-              
+
             }//Sequential loop
-            
+
             for(int ty=0; ty<TL_SZ; ++ty){
               for(int tx=0; tx<TL_SZ; ++tx){
                 MAT_MAT_SHARED_BODY_4
               }
             }
-            
+
           }
-        }                
+        }
 
       }//number of iterations
       stopTimer();
@@ -97,9 +98,6 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid)
       startTimer();
       for (Index_type irep = 0; irep < run_reps; ++irep) {
 
-        //for (Index_type i = ibegin; i < iend; ++i ) {
-        //mas_lam(i);
-        //}
 
       }
       stopTimer();
