@@ -8,8 +8,6 @@
 
 #include "MAT_MAT_SHARED.hpp"
 
-#include "RAJA/RAJA.hpp"
-
 #include <iostream>
 
 namespace rajaperf {
@@ -104,16 +102,12 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
           for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
             seq_loop(0, TL_SZ, [&](int ty) {
-              seq_loop(0, TL_SZ, [&](int tx) {
-                MAT_MAT_SHARED_BODY_2
-              });
+              seq_loop(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_2 });
             });
 
             // synchronize();
             seq_loop(0, TL_SZ, [&](int ty) {
-              seq_loop(0, TL_SZ, [&](int tx) {
-                MAT_MAT_SHARED_BODY_3
-              });
+              seq_loop(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_3 });
             });
 
           } // Sequential loop
@@ -134,8 +128,66 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      // RAJA::forall<RAJA::simd_exec>(
-      // RAJA::RangeSegment(ibegin, iend), mas_lam);
+      RAJA::expt::launch<launch_policy>(
+          RAJA::expt::HOST,
+          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
+                                RAJA::expt::Threads(TL_SZ, TL_SZ)),
+          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+            RAJA::expt::loop<teams_y>(
+                ctx, RAJA::TypedRangeSegment<int>(0, Ny), [&](int by) {
+                  RAJA::expt::loop<teams_x>(
+                      ctx, RAJA::TypedRangeSegment<int>(0, Nx), [&](int bx) {
+                        MAT_MAT_SHARED_BODY_0
+
+                        RAJA::expt::loop<threads_y>(
+                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            [&](int ty) {
+                              RAJA::expt::loop<threads_x>(
+                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                  [&](int tx) {
+                                    MAT_MAT_SHARED_BODY_1
+                                  });
+                            });
+
+                        for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+
+                          RAJA::expt::loop<threads_y>(
+                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              [&](int ty) {
+                                RAJA::expt::loop<threads_x>(
+                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                    [&](int tx) {
+                                      MAT_MAT_SHARED_BODY_2
+                                    });
+                              });
+
+                          ctx.teamSync();
+
+                          RAJA::expt::loop<threads_y>(
+                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              [&](int ty) {
+                                RAJA::expt::loop<threads_x>(
+                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                    [&](int tx) {
+                                      MAT_MAT_SHARED_BODY_3
+                                    });
+                              });
+
+                          ctx.teamSync();
+                        }
+
+                        RAJA::expt::loop<threads_y>(
+                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            [&](int ty) {
+                              RAJA::expt::loop<threads_x>(
+                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                  [&](int tx) {
+                                    MAT_MAT_SHARED_BODY_4
+                                  });
+                            });
+                      });
+                });
+          }); // kernel
     }
     stopTimer();
 
