@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MULADDSUB.hpp"
+#include "MAT_MAT_SHARED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -16,112 +16,221 @@
 
 #include <iostream>
 
-namespace rajaperf
-{
-namespace basic
-{
+namespace rajaperf {
+namespace basic {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
-#define MULADDSUB_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(out1, m_out1, iend); \
-  allocAndInitHipDeviceData(out2, m_out2, iend); \
-  allocAndInitHipDeviceData(out3, m_out3, iend); \
-  allocAndInitHipDeviceData(in1, m_in1, iend); \
-  allocAndInitHipDeviceData(in2, m_in2, iend);
-
-#define MULADDSUB_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out1, out1, iend); \
-  getHipDeviceData(m_out2, out2, iend); \
-  getHipDeviceData(m_out3, out3, iend); \
-  deallocHipDeviceData(out1); \
-  deallocHipDeviceData(out2); \
-  deallocHipDeviceData(out3); \
-  deallocHipDeviceData(in1); \
-  deallocHipDeviceData(in2);
-
-__global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3,
-                          Real_ptr in1, Real_ptr in2,
-                          Index_type iend)
-{
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < iend) {
-    MULADDSUB_BODY;
-  }
+template <typename BODY>
+inline __device__ void block_x_direct(const int st, const int end,
+                                      BODY const &body) {
+  int bx = st + blockIdx.x;
+  if (bx < end)
+    body(bx);
 }
 
+template <typename BODY>
+inline __device__ void block_y_direct(const int st, const int end,
+                                      BODY const &body) {
+  int by = st + blockIdx.y;
+  if (by < end)
+    body(by);
+}
 
-void MULADDSUB::runHipVariant(VariantID vid)
-{
+template <typename BODY>
+inline __device__ void thread_x_direct(const int st, const int end,
+                                       BODY const &body) {
+  int tx = st + threadIdx.x;
+  if (tx < end)
+    body(tx);
+}
+
+template <typename BODY>
+inline __device__ void thread_y_direct(const int st, const int end,
+                                       BODY const &body) {
+  int ty = st + threadIdx.y;
+  if (ty < end)
+    body(ty);
+}
+
+#define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
+  allocAndInitHipDeviceData(A, m_A, getRunSize());                             \
+  allocAndInitHipDeviceData(B, m_B, getRunSize());                             \
+  allocAndInitHipDeviceData(C, m_C, getRunSize());
+
+#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
+  getHipDeviceData(m_A, A, getRunSize());                                      \
+  getHipDeviceData(m_B, B, getRunSize());                                      \
+  getHipDeviceData(m_C, C, iend);                                              \
+  deallocHipDeviceData(A);                                                     \
+  deallocHipDeviceData(B);                                                     \
+  deallocHipDeviceData(C);
+
+__global__ void mat_mat_shared(int N, Real_ptr C, Real_ptr A, Real_ptr B) {
+
+  int tx = threadIdx.x;
+  int ty = threadIdx.y;
+  int bx = blockIdx.x;
+  int by = blockIdx.y;
+
+  MAT_MAT_SHARED_BODY_0
+
+  MAT_MAT_SHARED_BODY_1
+
+  for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+
+    MAT_MAT_SHARED_BODY_2
+
+    __syncthreads();
+
+    MAT_MAT_SHARED_BODY_3
+
+    __syncthreads();
+  }
+
+  MAT_MAT_SHARED_BODY_4
+}
+
+void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  MULADDSUB_DATA_SETUP;
+  dim3 blockdim(TL_SZ, TL_SZ);
+  dim3 griddim(RAJA_DIVIDE_CEILING_INT(N, blockdim.x),
+               RAJA_DIVIDE_CEILING_INT(N, blockdim.y));
 
-  if ( vid == Base_HIP ) {
+  const int Nx = griddim.x;
+  const int Ny = griddim.y;
 
-    MULADDSUB_DATA_SETUP_HIP;
+  MAT_MAT_SHARED_DATA_SETUP;
+
+  if (vid == Base_HIP) {
+
+    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((muladdsub), dim3(grid_size), dim3(block_size), 0, 0,
-          out1, out2, out3, in1, in2, iend );
-
+      hipLaunchKernelGGL((mat_mat_shared), dim3(griddim), dim3(blockdim), 0, 0,
+                         N, A, B, C);
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_HIP;
+    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
-  } else if ( vid == Lambda_HIP ) {
+  } else if (vid == Lambda_HIP) {
 
-    MULADDSUB_DATA_SETUP_HIP;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      auto muladdsub_lambda = [=] __device__ (Index_type i) {
-        MULADDSUB_BODY;
-      };
-
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(muladdsub_lambda)>,
-        grid_size, block_size, 0, 0, ibegin, iend, muladdsub_lambda );
-
-    }
-    stopTimer();
-
-    MULADDSUB_DATA_TEARDOWN_HIP;
-
-  } else if ( vid == RAJA_HIP ) {
-
-    MULADDSUB_DATA_SETUP_HIP;
+    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        MULADDSUB_BODY;
+      lambda_hip<<<griddim, blockdim>>>([=] __device__() {
+        block_y_direct(0, Ny, [&](int by) {
+          block_x_direct(0, Nx, [&](int bx) {
+            MAT_MAT_SHARED_BODY_0
+
+            thread_y_direct(0, TL_SZ, [&](int ty) {
+              thread_x_direct(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_1 });
+            });
+
+            for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+
+              thread_y_direct(0, TL_SZ, [&](int ty) {
+                thread_x_direct(0, TL_SZ,
+                                [&](int tx) { MAT_MAT_SHARED_BODY_2 });
+              });
+
+              __syncthreads();
+              thread_y_direct(0, TL_SZ, [&](int ty) {
+                thread_x_direct(0, TL_SZ,
+                                [&](int tx) { MAT_MAT_SHARED_BODY_3 });
+              });
+
+              __syncthreads();
+            }
+
+            thread_y_direct(0, TL_SZ, [&](int ty) {
+              thread_x_direct(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_4 });
+            });
+          });
+        });
       });
-
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_HIP;
+    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
+
+  } else if (vid == RAJA_HIP) {
+
+    MAT_MAT_SHARED_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::expt::launch<launch_policy>(
+          RAJA::expt::DEVICE,
+          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
+                                RAJA::expt::Threads(TL_SZ, TL_SZ)),
+          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+            RAJA::expt::loop<teams_y>(
+                ctx, RAJA::TypedRangeSegment<int>(0, Ny), [&](int by) {
+                  RAJA::expt::loop<teams_x>(
+                      ctx, RAJA::TypedRangeSegment<int>(0, Nx), [&](int bx) {
+                        MAT_MAT_SHARED_BODY_0
+
+                        RAJA::expt::loop<threads_y>(
+                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            [&](int ty) {
+                              RAJA::expt::loop<threads_x>(
+                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                  [&](int tx) { MAT_MAT_SHARED_BODY_1 });
+                            });
+
+                        for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+
+                          RAJA::expt::loop<threads_y>(
+                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              [&](int ty) {
+                                RAJA::expt::loop<threads_x>(
+                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                    [&](int tx) { MAT_MAT_SHARED_BODY_2 });
+                              });
+
+                          ctx.teamSync();
+
+                          RAJA::expt::loop<threads_y>(
+                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              [&](int ty) {
+                                RAJA::expt::loop<threads_x>(
+                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                    [&](int tx) { MAT_MAT_SHARED_BODY_3 });
+                              });
+
+                          ctx.teamSync();
+                        }
+
+                        RAJA::expt::loop<threads_y>(
+                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            [&](int ty) {
+                              RAJA::expt::loop<threads_x>(
+                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                                  [&](int tx) { MAT_MAT_SHARED_BODY_4 });
+                            });
+                      });
+                });
+          }); // kernel
+    }
+    stopTimer();
+
+    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  MULADDSUB : Unknown Hip variant id = " << vid << std::endl;
+    std::cout << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
+              << std::endl;
   }
 }
 
 } // end namespace basic
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_HIP
+#endif // RAJA_ENABLE_HIP
