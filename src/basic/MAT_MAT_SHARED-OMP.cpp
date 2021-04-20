@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MULADDSUB.hpp"
+#include "MAT_MAT_SHARED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void MULADDSUB::runOpenMPVariant(VariantID vid)
+void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -26,12 +26,13 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  MULADDSUB_DATA_SETUP;
+  /*
+  MAT_MAT_SHARED_DATA_SETUP;
 
   auto mas_lam = [=](Index_type i) {
-                   MULADDSUB_BODY;
+                   MAT_MAT_SHARED_BODY;
                  };
-
+  */
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -39,10 +40,12 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+        /*
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          MULADDSUB_BODY;
+          MAT_MAT_SHARED_BODY;
         }
+        */
 
       }
       stopTimer();
@@ -55,10 +58,12 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+        /*
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           mas_lam(i);
         }
+        */
 
       }
       stopTimer();
@@ -71,8 +76,10 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+        /*
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), mas_lam);
+        */
 
       }
       stopTimer();
@@ -81,7 +88,7 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid << std::endl;
     }
 
   }

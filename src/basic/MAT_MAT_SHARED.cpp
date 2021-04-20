@@ -50,21 +50,22 @@ MAT_MAT_SHARED::~MAT_MAT_SHARED()
 
 void MAT_MAT_SHARED::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);
-  allocAndInitData(m_x, getRunSize(), vid);
-  initData(m_a);
+  allocAndInitData(m_A, getRunSize(), vid);
+  allocAndInitData(m_B, getRunSize(), vid);
+  allocAndInitData(m_C, getRunSize(), vid);
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, getRunSize());
+  checksum[vid] += calcChecksum(m_C, getRunSize());
 }
 
 void MAT_MAT_SHARED::tearDown(VariantID vid)
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
+  deallocData(m_A);
+  deallocData(m_B);
+  deallocData(m_C);
 }
 
 } // end namespace basic

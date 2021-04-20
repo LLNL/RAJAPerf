@@ -17,18 +17,45 @@
 #ifndef RAJAPerf_Basic_MAT_MAT_SHARED_HPP
 #define RAJAPerf_Basic_MAT_MAT_SHARED_HPP
 
-#define MAT_MAT_SHARED_DATA_SETUP \
-  Real_ptr x = m_x; \
-  Real_ptr y = m_y; \
-  Real_type a = m_a;
+#define TL_SZ 256
 
-#define MAT_MAT_SHARED_BODY  \
-  y[i] += a * x[i] ;
+#define MAT_MAT_SHARED_DATA_SETUP \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  Real_ptr C = m_C;
+
+#define MAT_MAT_SHARED_BODY_0  \
+ RAJA_TEAM_SHARED double As[TL_SZ][TL_SZ]; \
+ RAJA_TEAM_SHARED double Bs[TL_SZ][TL_SZ]; \
+ RAJA_TEAM_SHARED double Cs[TL_SZ][TL_SZ];
+
+
+#define MAT_MAT_SHARED_BODY_1  \
+  Cs[ty][tx] = 0;
+
+#define MAT_MAT_SHARED_BODY_2  \
+  const int Row = by*DEVICE_BLOCK_SIZE + ty; \
+  const int Col = bx*DEVICE_BLOCK_SIZE + tx; \
+  if (k*DEVICE_BLOCK_SIZE + tx < N && Row < N) \
+    As[ty][tx] = A[Row*N + k*DEVICE_BLOCK_SIZE + tx]; \
+  else \
+   As[ty][tx] = 0.0; \
+  if (k*DEVICE_BLOCK_SIZE + ty < N && Col < N)              \
+    Bs[ty][tx] = Bview((k*DEVICE_BLOCK_SIZE + ty), Col); \
+  else \
+    Bs[ty][tx] = 0.0; \
+
+#define MAT_MAT_SHARED_BODY_3 \
+  Cs[ty][tx] += As[ty][n] * Bs[n][tx];
+
+#define MAT_MAT_SHARED_BODY_4 \
+  if(Row < N && Col < N) \
+    C[Col + N*Row] = Cs[ty][tx];
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -54,9 +81,9 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
-  Real_ptr m_x;
-  Real_ptr m_y;
-  Real_type m_a;
+  Real_ptr m_A;
+  Real_ptr m_B;
+  Real_ptr m_C;
 };
 
 } // end namespace basic
