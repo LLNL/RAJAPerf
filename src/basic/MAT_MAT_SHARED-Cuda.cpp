@@ -20,62 +20,63 @@ namespace rajaperf {
 namespace basic {
 
 template <typename BODY>
-inline __device__ void block_x_direct(const int st, const int end,
+inline __device__ void block_x_direct(const Index_type st, const Index_type end,
                                       BODY const &body) {
-  int bx = st + blockIdx.x;
+  Index_type bx = st + blockIdx.x;
   if (bx < end)
     body(bx);
 }
 
 template <typename BODY>
-inline __device__ void block_y_direct(const int st, const int end,
+inline __device__ void block_y_direct(const Index_type st, const Index_type end,
                                       BODY const &body) {
-  int by = st + blockIdx.y;
+  Index_type by = st + blockIdx.y;
   if (by < end)
     body(by);
 }
 
 template <typename BODY>
-inline __device__ void thread_x_direct(const int st, const int end,
+inline __device__ void thread_x_direct(const Index_type st, const Index_type end,
                                        BODY const &body) {
-  int tx = st + threadIdx.x;
+  Index_type tx = st + threadIdx.x;
   if (tx < end)
     body(tx);
 }
 
 template <typename BODY>
-inline __device__ void thread_y_direct(const int st, const int end,
+inline __device__ void thread_y_direct(const Index_type st, const Index_type end,
                                        BODY const &body) {
-  int ty = st + threadIdx.y;
+  Index_type ty = st + threadIdx.y;
   if (ty < end)
     body(ty);
 }
 
 #define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(A, m_A, getRunSize());                            \
-  allocAndInitCudaDeviceData(B, m_B, getRunSize());                            \
-  allocAndInitCudaDeviceData(C, m_C, getRunSize());
+  const Index_type NN = getRunSize()*getRunSize();                             \
+  allocAndInitCudaDeviceData(A, m_A, NN);                                      \
+  allocAndInitCudaDeviceData(B, m_B, NN);                                      \
+  allocAndInitCudaDeviceData(C, m_C, NN);
 
 #define MAT_MAT_SHARED_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_A, A, getRunSize());                                     \
-  getCudaDeviceData(m_B, B, getRunSize());                                     \
-  getCudaDeviceData(m_C, C, iend);                                             \
+  getCudaDeviceData(m_A, A, NN);                                               \
+  getCudaDeviceData(m_B, B, NN);                                               \
+  getCudaDeviceData(m_C, C, NN);                                               \
   deallocCudaDeviceData(A);                                                    \
   deallocCudaDeviceData(B);                                                    \
   deallocCudaDeviceData(C);
 
-__global__ void mat_mat_shared(int N, Real_ptr C, Real_ptr A, Real_ptr B) {
+__global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A, Real_ptr B) {
 
-  int tx = threadIdx.x;
-  int ty = threadIdx.y;
-  int bx = blockIdx.x;
-  int by = blockIdx.y;
+  Index_type tx = threadIdx.x;
+  Index_type ty = threadIdx.y;
+  Index_type bx = blockIdx.x;
+  Index_type by = blockIdx.y;
 
   MAT_MAT_SHARED_BODY_0
 
   MAT_MAT_SHARED_BODY_1
 
-  for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+  for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
     MAT_MAT_SHARED_BODY_2
 
@@ -90,16 +91,16 @@ __global__ void mat_mat_shared(int N, Real_ptr C, Real_ptr A, Real_ptr B) {
 }
 
 void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
+
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type N = getRunSize();
 
   dim3 blockdim(TL_SZ, TL_SZ);
   dim3 griddim(RAJA_DIVIDE_CEILING_INT(N, blockdim.x),
                RAJA_DIVIDE_CEILING_INT(N, blockdim.y));
 
-  const int Nx = griddim.x;
-  const int Ny = griddim.y;
+  const Index_type Nx = griddim.x;
+  const Index_type Ny = griddim.y;
 
   MAT_MAT_SHARED_DATA_SETUP;
 
@@ -124,32 +125,32 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       lambda_cuda<<<griddim, blockdim>>>([=] __device__() {
-        block_y_direct(0, Ny, [&](int by) {
-          block_x_direct(0, Nx, [&](int bx) {
+        block_y_direct(0, Ny, [&](Index_type by) {
+          block_x_direct(0, Nx, [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0
 
-            thread_y_direct(0, TL_SZ, [&](int ty) {
-              thread_x_direct(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_1 });
+            thread_y_direct(0, TL_SZ, [&](Index_type ty) {
+              thread_x_direct(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 });
             });
 
-            for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+            for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
-              thread_y_direct(0, TL_SZ, [&](int ty) {
+              thread_y_direct(0, TL_SZ, [&](Index_type ty) {
                 thread_x_direct(0, TL_SZ,
-                                [&](int tx) { MAT_MAT_SHARED_BODY_2 });
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 });
               });
 
               __syncthreads();
-              thread_y_direct(0, TL_SZ, [&](int ty) {
+              thread_y_direct(0, TL_SZ, [&](Index_type ty) {
                 thread_x_direct(0, TL_SZ,
-                                [&](int tx) { MAT_MAT_SHARED_BODY_3 });
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 });
               });
 
               __syncthreads();
             }
 
-            thread_y_direct(0, TL_SZ, [&](int ty) {
-              thread_x_direct(0, TL_SZ, [&](int tx) { MAT_MAT_SHARED_BODY_4 });
+            thread_y_direct(0, TL_SZ, [&](Index_type ty) {
+              thread_x_direct(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 });
             });
           });
         });
@@ -167,56 +168,48 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::DEVICE,
-          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
-                                RAJA::expt::Threads(TL_SZ, TL_SZ)),
+          RAJA::expt::DEVICE, RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
+                             RAJA::expt::Threads(TL_SZ, TL_SZ)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
-            RAJA::expt::loop<teams_y>(
-                ctx, RAJA::TypedRangeSegment<int>(0, Ny), [&](int by) {
-                  RAJA::expt::loop<teams_x>(
-                      ctx, RAJA::TypedRangeSegment<int>(0, Nx), [&](int bx) {
+
+            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
+                RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+
                         MAT_MAT_SHARED_BODY_0
 
-                        RAJA::expt::loop<threads_y>(
-                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                            [&](int ty) {
-                              RAJA::expt::loop<threads_x>(
-                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                  [&](int tx) { MAT_MAT_SHARED_BODY_1 });
-                            });
+                 RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                   RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                     MAT_MAT_SHARED_BODY_1
+                   });
+                 });
 
-                        for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+                 for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
-                          RAJA::expt::loop<threads_y>(
-                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                              [&](int ty) {
-                                RAJA::expt::loop<threads_x>(
-                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                    [&](int tx) { MAT_MAT_SHARED_BODY_2 });
-                              });
+                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                          MAT_MAT_SHARED_BODY_2
+                       });
+                   });
 
-                          ctx.teamSync();
+                  ctx.teamSync();
 
-                          RAJA::expt::loop<threads_y>(
-                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                              [&](int ty) {
-                                RAJA::expt::loop<threads_x>(
-                                    ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                    [&](int tx) { MAT_MAT_SHARED_BODY_3 });
-                              });
+                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                    RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                        MAT_MAT_SHARED_BODY_3
+                    });
+                  });
 
-                          ctx.teamSync();
-                        }
+                  ctx.teamSync();
+                 }
 
-                        RAJA::expt::loop<threads_y>(
-                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                            [&](int ty) {
-                              RAJA::expt::loop<threads_x>(
-                                  ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                  [&](int tx) { MAT_MAT_SHARED_BODY_4 });
-                            });
-                      });
-                });
+                 RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                   RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                       MAT_MAT_SHARED_BODY_4
+                   });
+                 });
+
+              });
+            });
           }); // kernel
     }
     stopTimer();
