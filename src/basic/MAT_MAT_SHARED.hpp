@@ -154,7 +154,6 @@ private:
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;
-  int N;
 };
 
 } // end namespace basic

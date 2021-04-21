@@ -18,14 +18,14 @@ namespace basic {
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params) {
   setDefaultSize(1000);
-  setDefaultReps(500);
+  setDefaultReps(5);
 
   setVariantDefined(Base_Seq);
-  // setVariantDefined( Lambda_Seq );
-  // setVariantDefined( RAJA_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
 
   // setVariantDefined( Base_OpenMP );
-  // setVariantDefined( Lambda_OpenMP );
+  //setVariantDefined( Lambda_OpenMP );
   // setVariantDefined( RAJA_OpenMP );
 
   // setVariantDefined( Base_OpenMPTarget );
@@ -43,10 +43,10 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}
 
 void MAT_MAT_SHARED::setUp(VariantID vid) {
-  N = getRunSize();
-  allocAndInitData(m_A, N, vid);
-  allocAndInitData(m_B, N, vid);
-  allocAndInitData(m_C, N, vid);
+  const Index_type NN = getRunSize()*getRunSize();
+  allocAndInitData(m_A, NN, vid);
+  allocAndInitData(m_B, NN, vid);
+  allocAndInitData(m_C, NN, vid);
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid) {
