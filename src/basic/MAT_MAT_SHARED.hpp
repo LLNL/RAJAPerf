@@ -127,6 +127,13 @@ using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
                                        gpu_block_y_policy
 #endif
                                        >;
+#else
+using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_parallel_for_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                       ,
+                                       gpu_block_y_policy
+#endif
+                                       >;
 #endif
 
 namespace rajaperf {
