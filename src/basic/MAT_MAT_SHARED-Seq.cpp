@@ -21,15 +21,13 @@ inline void seq_loop(const int st, const int end, BODY const &body) {
 }
 
 void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
+
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
 
   MAT_MAT_SHARED_DATA_SETUP;
 
-  const int N = 1000;
-  const int Nx = (N - 1) / TL_SZ + 1;
-  const int Ny = (N - 1) / TL_SZ + 1;
+  const int Nx = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
+  const int Ny = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
 
   switch (vid) {
 
@@ -144,9 +142,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                             [&](int ty) {
                               RAJA::expt::loop<threads_x>(
                                   ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                  [&](int tx) {
-                                    MAT_MAT_SHARED_BODY_1
-                                  });
+                                  [&](int tx) { MAT_MAT_SHARED_BODY_1 });
                             });
 
                         for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
@@ -156,9 +152,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                               [&](int ty) {
                                 RAJA::expt::loop<threads_x>(
                                     ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                    [&](int tx) {
-                                      MAT_MAT_SHARED_BODY_2
-                                    });
+                                    [&](int tx) { MAT_MAT_SHARED_BODY_2 });
                               });
 
                           ctx.teamSync();
@@ -168,9 +162,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                               [&](int ty) {
                                 RAJA::expt::loop<threads_x>(
                                     ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                    [&](int tx) {
-                                      MAT_MAT_SHARED_BODY_3
-                                    });
+                                    [&](int tx) { MAT_MAT_SHARED_BODY_3 });
                               });
 
                           ctx.teamSync();
@@ -181,9 +173,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                             [&](int ty) {
                               RAJA::expt::loop<threads_x>(
                                   ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
-                                  [&](int tx) {
-                                    MAT_MAT_SHARED_BODY_4
-                                  });
+                                  [&](int tx) { MAT_MAT_SHARED_BODY_4 });
                             });
                       });
                 });
