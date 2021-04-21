@@ -35,11 +35,12 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();
+  const Index_type N = getRunSize();
 
   MAT_MAT_SHARED_DATA_SETUP;
 
-  const int Nx = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
-  const int Ny = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
+  const Index_type Nx = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
+  const Index_type Ny = RAJA_DIVIDE_CEILING_INT(N, TL_SZ);
 
   switch (vid) {
 
@@ -144,39 +145,39 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
 #if 0 // TODO Enable once we update RAJA
-      RAJA::expt::loop<omp_teams>(ctx, RAJA::TypedRangeSegment<int>(0, Ny), [&](int by) {
+      RAJA::expt::loop<omp_teams>(ctx, RAJA::RangeSegment(0, Ny), [&](int by) {
 #else
-            RAJA::expt::loop<teams_y>(ctx, RAJA::TypedRangeSegment<int>(0, Ny),
+            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny),
                                       [&](int by) {
 #endif
             RAJA::expt::loop<teams_x>(
-                ctx, RAJA::TypedRangeSegment<int>(0, Nx), [&](int bx) {
+                ctx, RAJA::RangeSegment(0, Nx), [&](int bx) {
                   MAT_MAT_SHARED_BODY_0
 
                   RAJA::expt::loop<threads_y>(
-                      ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ), [&](int ty) {
+                      ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
                         RAJA::expt::loop<threads_x>(
-                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            ctx, RAJA::RangeSegment(0, TL_SZ),
                             [&](int tx) { MAT_MAT_SHARED_BODY_1 });
                       });
 
                   for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
                     RAJA::expt::loop<threads_y>(
-                        ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                        ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](int ty) {
                           RAJA::expt::loop<threads_x>(
-                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
                               [&](int tx) { MAT_MAT_SHARED_BODY_2 });
                         });
 
                     ctx.teamSync();
 
                     RAJA::expt::loop<threads_y>(
-                        ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                        ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](int ty) {
                           RAJA::expt::loop<threads_x>(
-                              ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
                               [&](int tx) { MAT_MAT_SHARED_BODY_3 });
                         });
 
@@ -184,9 +185,9 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
                   }
 
                   RAJA::expt::loop<threads_y>(
-                      ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ), [&](int ty) {
+                      ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
                         RAJA::expt::loop<threads_x>(
-                            ctx, RAJA::TypedRangeSegment<int>(0, TL_SZ),
+                            ctx, RAJA::RangeSegment(0, TL_SZ),
                             [&](int tx) { MAT_MAT_SHARED_BODY_4 });
                       });
                 });
