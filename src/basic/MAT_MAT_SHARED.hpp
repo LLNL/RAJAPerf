@@ -32,8 +32,8 @@
 #define MAT_MAT_SHARED_BODY_1 Cs[ty][tx] = 0;
 
 #define MAT_MAT_SHARED_BODY_2                                                  \
-  const int Row = by * TL_SZ + ty;                                             \
-  const int Col = bx * TL_SZ + tx;                                             \
+  const Index_type Row = by * TL_SZ + ty;                                      \
+  const Index_type Col = bx * TL_SZ + tx;                                      \
   if (k * TL_SZ + tx < N && Row < N)                                           \
     As[ty][tx] = A[Row * N + k * TL_SZ + tx];                                  \
   else                                                                         \
@@ -44,12 +44,12 @@
     Bs[ty][tx] = 0.0;
 
 #define MAT_MAT_SHARED_BODY_3                                                  \
-  for (int n = 0; n < TL_SZ; ++n)                                              \
+  for (Index_type n = 0; n < TL_SZ; ++n)                                       \
     Cs[ty][tx] += As[ty][n] * Bs[n][tx];
 
 #define MAT_MAT_SHARED_BODY_4                                                  \
-  const int Row = by * TL_SZ + ty;                                             \
-  const int Col = bx * TL_SZ + tx;                                             \
+  const Index_type Row = by * TL_SZ + ty;                                      \
+  const Index_type Col = bx * TL_SZ + tx;                                      \
   if (Row < N && Col < N)                                                      \
     C[Col + N * Row] = Cs[ty][tx];
 
