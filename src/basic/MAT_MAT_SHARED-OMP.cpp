@@ -138,60 +138,49 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<omp_launch_policy>(
-          RAJA::expt::HOST,
-          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
+      RAJA::expt::launch<omp_launch_policy>(RAJA::expt::HOST,
+                   RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
                                 RAJA::expt::Threads(TL_SZ, TL_SZ)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-#if 0 // TODO Enable once we update RAJA
-      RAJA::expt::loop<omp_teams>(ctx, RAJA::RangeSegment(0, Ny), [&](int by) {
-#else
-            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny),
-                                      [&](int by) {
-#endif
-            RAJA::expt::loop<teams_x>(
-                ctx, RAJA::RangeSegment(0, Nx), [&](int bx) {
-                  MAT_MAT_SHARED_BODY_0
+           RAJA::expt::loop<omp_teams>(ctx, RAJA::RangeSegment(0, Ny), [&](int by) {
+            RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), [&](int bx) {
 
-                  RAJA::expt::loop<threads_y>(
-                      ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
-                        RAJA::expt::loop<threads_x>(
-                            ctx, RAJA::RangeSegment(0, TL_SZ),
-                            [&](int tx) { MAT_MAT_SHARED_BODY_1 });
-                      });
+                MAT_MAT_SHARED_BODY_0
 
-                  for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+                RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
+                  RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int tx) {
+                      MAT_MAT_SHARED_BODY_1
+                  });
+               });
 
-                    RAJA::expt::loop<threads_y>(
-                        ctx, RAJA::RangeSegment(0, TL_SZ),
-                        [&](int ty) {
-                          RAJA::expt::loop<threads_x>(
-                              ctx, RAJA::RangeSegment(0, TL_SZ),
-                              [&](int tx) { MAT_MAT_SHARED_BODY_2 });
-                        });
+              for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
-                    ctx.teamSync();
-
-                    RAJA::expt::loop<threads_y>(
-                        ctx, RAJA::RangeSegment(0, TL_SZ),
-                        [&](int ty) {
-                          RAJA::expt::loop<threads_x>(
-                              ctx, RAJA::RangeSegment(0, TL_SZ),
-                              [&](int tx) { MAT_MAT_SHARED_BODY_3 });
-                        });
-
-                    ctx.teamSync();
-                  }
-
-                  RAJA::expt::loop<threads_y>(
-                      ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
-                        RAJA::expt::loop<threads_x>(
-                            ctx, RAJA::RangeSegment(0, TL_SZ),
-                            [&](int tx) { MAT_MAT_SHARED_BODY_4 });
-                      });
+              RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
+                RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int tx) {
+                    MAT_MAT_SHARED_BODY_2
                 });
+              });
+
+              ctx.teamSync();
+
+              RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
+                RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int tx) {
+                    MAT_MAT_SHARED_BODY_3
+                });
+              });
+
+              ctx.teamSync();
+              }
+
+              RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int ty) {
+                RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](int tx) {
+                    MAT_MAT_SHARED_BODY_4
+                });
+              });
+
           });
+       });
     }); // kernel
   }
     stopTimer();
