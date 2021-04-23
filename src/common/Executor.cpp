@@ -15,6 +15,7 @@
 // Warmup kernel to run first to remove startup overheads in timings
 #include "basic/DAXPY.hpp"
 
+// Standard library includes
 #include <list>
 #include <vector>
 #include <string>
@@ -38,63 +39,150 @@ Executor::Executor(int argc, char** argv)
 {
 }
 
+/*
+ * https://www.delftstack.com/howto/cpp/cpp-tilde-operator/
+ *
+ * The destructor is a special member function that handles the deallocation of the class object’s resources.
+ * AS opposed to the class constructors, it has only one destructor function for a given class.
+ * The class destructor is declared with the same name as the class plus the prefix ~ tilde operator.
+ *...
+ * Generally, the class members are destroyed after the destructor function code is run;
+ * thus, we can demonstrate how the StringArray class instance goes out of scope and hence
+ * printing to the console the corresponding text.
+ *
+ */
+
+// Destructor for resource de-allocation
 
 Executor::~Executor()
 {
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+
+  // Pre-processor directives
 #if defined(RUN_KOKKOS)
-  Kokkos::finalize(); // TODO DZP: should this be here? 
+  Kokkos::finalize(); // TODO DZP: should this be here?  Good question.  AJP
 #endif
 }
 
 // New functions for Kokkos to register new group and kernel IDs
+// The return type is Executor::groupID
 
 
 Executor::groupID Executor::registerGroup(std::string groupName)
 {
-   
+   // find() method searches the string for the first occurrence of the sequence specified by its arguments.
+   // Recall, "kernelsPerGroup" is a mapping of kernel groups (e.g., basic) and their constituent kernels (e.g., DAXPY)
    auto checkIfGroupExists = kernelsPerGroup.find(groupName);
-   if (checkIfGroupExists == kernelsPerGroup.end()){
+
+
+    /* Recall, these items are defined in Executor.hpp:
+    using groupID = int;
+    using kernelID = int;
+    using kernelSet = std::set<KernelBase*>;                // data type: set of KernelBase* instances
+    using kernelMap = std::map<std::string, KernelBase*>;   // data type:  map of string kernel names to instances of KernelBase*
+    using groupMap =  std::map<std::string, kernelSet>;     // data type: map of groupNames to sets of kernels
+     ...
+     // "allKernels" is an instance of kernelMap, which is a "map" of all kernels and their ID's
+     kernelMap allKernels;
+
+     // "kernelsPerGroup" is an instance of "groupMap;" "kernelsPerGroup" maps kernels to their categories (e.g., basic, polybench, etc.)
+     groupMap kernelsPerGroup;
+
+    */
+
+    /*  end()
+ * Return iterator to end
+ * Returns an iterator referring to the past-the-end element in the vector container.
+ * The past-the-end element is the theoretical element that would follow the last element in the vector.
+ * It does not point to any element, and thus shall not be de-referenced.
+ * Because the ranges used by functions of the standard library do not include
+ * the element pointed by their closing iterator,
+ * this function is often used in combination with vector::begin to specify a range including all the elements in the container.
+ * If the container is empty, this function returns the same as vector::begin.
+ *
+ */
+
+
+    // HERE, WE ARE CHECKING THE CASE THAT THE groupNAME **IS NOT** IN THE MAP OBJECT
+    // Using the .end() idiom to check if I've fallen off the edge of the container without finding a match
+    if (checkIfGroupExists == kernelsPerGroup.end()){
+        // If groupName not found, set that groupName in kernelsPerGroup to an empty kernelSet obj
       kernelsPerGroup[groupName] = kernelSet();
 }
  else {
-	// TODO: ERROR CONDITION
+	// ERROR CONDITION:  DUPLICATING GROUPS
+	// Error lists exsiting group, and kills program.
+
+	std::cout << "The Group Name " <<  groupName << " already exists.  Program is exiting." << std::endl;
+
+	// In kernelsPerGroup, the Group Name is the first position / key value, and the second position / value type in the set
+   auto fullKernelSet = checkIfGroupExists->second;
+
+   // fullKernelSet is of type std::set<kernelBase*>
+
+   for (auto kernel: fullKernelSet) {
+
+       std::cout << kernel->getName() << std::endl;
+
+   }
+
+	exit(1);
 	
 }
+   // getNewGroupID() is an object of type Executor::groupID, an int
    return getNewGroupID();
+
 
 }
 
-// New function
+// New function with return type Executor::kernelID, returning getNewKernelID(); registerKernel is a new function in the Executor class
+//
+
 Executor::kernelID Executor::registerKernel(std::string groupName, KernelBase* kernel)
 {
-  
+  // declaring and setting kernelName to de-referenced kernel pointer obj, an instance of KernelBase*
   auto kernelName = kernel->getName();
-
+  // Recall, "allKernels" maps named kernels to their IDs
   auto checkIfKernelExists = allKernels.find(kernelName);
+  // Check if checkKernelExists value IS NOT in  the map of all kernels
   if (checkIfKernelExists == allKernels.end()) {
+      // if the kernel name IS NOT in the allKernels map, set kernelName to kernel, the KernelBase* instance
      allKernels[kernelName] = kernel;
 } 
   else {
-	// TODO: ERROR CONDITION  
-    return getNewKernelID();
-}
-   // Add the kernel to its group
+      // ERROR CONDITION:  if the kernel is found / exists, make the program exit
+
+      std::cout << "Kernel " << checkIfKernelExists->first << " already exists.  Program is exiting." << std::endl;
+
+      exit(1);
+  }
+  //////////////////////////////////////////////////////////////////////////////
+   // This error condition : adding a groupName before checking if the group associated with the kernel exists
+   // Declare and set checkIfGroupExists to the value of the string-type groupName in the kernelsPerGroup map
    auto checkIfGroupExists = kernelsPerGroup.find(groupName);
+   // LOGIC:  Check if checkIfGroupExists value is the same as the past-the-end element in the vector container, which
+   // does not have a value
+   // i.e., check for the case that the groupName DOES NOT exist with the ".end()" idiom;
    if (checkIfGroupExists == kernelsPerGroup.end()){
-	 // If group does not exist, ERROR CONDITION
+
 }
 
 else {
-  // 
+  // If the groupName DOES EXIST, then insert the kernel (instance of KernelBase*) at the second position of the
+  // allKernels map to associate the kernel and its groupNAme
+
   checkIfGroupExists -> second.insert(kernel);
 
 }
-return getNewKernelID();
+
+    // getNewKernelID is an obj of type Executor::kernelID
+    return getNewKernelID();
 }
 
+// AJP & DZP new function
+// AJP GOAL:  return a vector of all kernelBase* objects to be run by <WHICH METHODS??>
 
 std::vector<KernelBase*>  Executor::lookUpKernelByName(std::string kernelOrGroupName){
 
@@ -106,17 +194,21 @@ std::vector<KernelBase*>  Executor::lookUpKernelByName(std::string kernelOrGroup
 	// 2) LOGIC:
 	// 	i) check to see if the kernel / group requested on the 
 	// 	"./rajaperf.exe -k" line (you can pass either a specific kernel or a
-	// 	kernel group
-	
+	// 	kernel groupName, e.g., "Basic"
+
+	// Declaring the vector kernelsByNameVect of type std::vector<KernelBase*>;
+	// This variable will contain the set of kernels to run
    std::vector<KernelBase*> kernelsByNameVect ;
 
-        // If kernelName is groupName , then add that set of kernels in the
+        // CONDITIONS TO INCLUDE:
+        // 1)  If kernelName is groupName , then add that set of kernels in the
         // group to the vector
-        // else if kernelName is kernel, then add the kernel to the vector
-        // else if kernelName is horse stuff, then say so
-        //
-        //
-        // Declare iterator against which you can test equivalence
+
+        // 2) else if kernelName is kernel, then add the kernel to the vector
+        // 3) else if kernelName is horse stuff, then say so
+
+        // HINT:  Declare iterator against which you can test equivalence
+
         auto checkLookUpGroupNameIterator =  kernelsPerGroup.find(kernelOrGroupName);
         auto checkLookUpKernelNameIterator = allKernels.find(kernelOrGroupName);
 
@@ -126,8 +218,9 @@ std::vector<KernelBase*>  Executor::lookUpKernelByName(std::string kernelOrGroup
                 //cout << " STEP 1" << endl;
                 
                 // when using the arrow, you get a key, value pair.
-                // YOu can access either member by "first" or "second"
+                // You can access either member by "first" or "second"
 
+                // we have std::set of KernelBase*
                 auto groupSetForTests = checkLookUpGroupNameIterator -> second;
 
                 for (auto item: groupSetForTests) {
@@ -137,136 +230,217 @@ std::vector<KernelBase*>  Executor::lookUpKernelByName(std::string kernelOrGroup
 
         else if (checkLookUpKernelNameIterator != allKernels.end()) {
 
-                auto kernelSetForTests = checkLookUpKernelNameIterator -> second;
+                auto kernel = checkLookUpKernelNameIterator -> second;
 
-                        kernelsByNameVect.push_back(kernelSetForTests);
-
-
-        }
-
-        else {
-
-                //TODO: ERROR CASE;
-
-                exit(1);
+                        kernelsByNameVect.push_back(kernel);
 
 
         }
 
-	
-return kernelsByNameVect;
+
+	// kernelsByNameVect is an object of type std::vector<KernelBase*> that will be used by <void Executor::setupSuite()>
+    return kernelsByNameVect;
 	
  
 }
 
 
 
-
-
-
+//////////////////////////////////////////////////////////////////////////////////////
+// * AJP TASK:  change the setupSuite to use the allKernels (type:  kernelMap) and kernelsPerGroup (type: groupMap)
+// * maps;
+// * The goal here is to make a vector of the different instances of KernelBase*, kernel, that are to be run;
+// * The vector you'll need already exists!
+// * Hint: see line 375-ish for kernels.push_back;
+// */
+/////////////////////////////////////////////////////////////////////////////////////
 void Executor::setupSuite()
 {
+    // Initial handling of run parameters input
   RunParams::InputOpt in_state = run_params.getInputState();
+  // QUESTION -- In this first step, are we doing nothing (initially) if we have bad input?
+  // Should there be an else condition for this conditional?
   if ( in_state == RunParams::InfoRequest || in_state == RunParams::BadInput ) {
     return;
   }
 
   cout << "\nSetting up suite based on input..." << endl;
 
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // Declaring function type aliases
+
   using Slist = list<string>;
   using Svector = vector<string>;
+  // Set of kernel IDs, e.g., DAXPY, IF_QUAD
   using KIDset = set<KernelID>;
+  // "variants" include CUDA, OpenMPTarget, OpenMP, HIP, Serial
   using VIDset = set<VariantID>;
-
-  //
+  ///////////////////////////////////////////////////////////////////////////////////
   // Determine which kernels to execute from input.
   // run_kern will be non-duplicated ordered set of IDs of kernel to run.
-  //
+  // kernel_input is an object of type reference to Svector;
+  // kernel_input will contain the input for the kernels to run
   const Svector& kernel_input = run_params.getKernelInput();
 
+  // Declare run_kern of type KIDset; contains the set of kernels (KernelBase* instances to run)
   KIDset run_kern;
 
+  /* LOGIC
+  1) check if each of the inputs in matches a groupName;
+  2) if a match, add every kernel in that group to the vector that will be run;
+  3) if no match, check existing kernels
+  4) if a match, add that kernel
+  5) if no match, add that kernel to set the set of invalid kernels
+  */
+
+    Svector invalid;
+
+    // The case when the executable is passed no args
+    if (kernel_input.empty()) {
+        // your iterator does the deferencing for you, thus you don't need the input arrow, which is
+        // necessary for dereferencing
+
+        for (auto iter_input: allKernels) {
+            kernels.push_back(iter_input.second);
+        }
+    }
+    else {
+
+        for (auto kernelName: kernel_input) {
+            std::vector<KernelBase *> matchingKernelsVec = lookUpKernelByName(kernelName);
+            // if everything that matched is in the vector, and nothing matched, i.e., an empty vector,
+            // i.e., the kernel name was invalid
+
+            if (matchingKernelsVec.empty()) {
+                invalid.push_back(kernelName);
+            } else {
+
+                for (auto iter_kern: matchingKernelsVec) {
+                    kernels.push_back(iter_kern);
+
+                }
+            }
+        }
+    }
+
+/*
   if ( kernel_input.empty() ) {
 
     //
-    // No kernels specified in input, run them all...
+    // if No kernels specified in input, run them all...
     //
     for (size_t ik = 0; ik < NumKernels; ++ik) {
+        // here, inserting kernels to run; you must cast ik (of type size_t), the indexing variable, as a KernelID type
       run_kern.insert( static_cast<KernelID>(ik) );
     }
 
   } else {
 
-    //
-    // Need to parse input to determine which kernels to run
-    // 
 
-    // Make list copy of kernel input to manipulate
+    // Parse input to determine which kernels to run
+    // Make list of strings copy of kernel input for the parsing
     // (need to process potential group names and/or kernel names)
+
+    // Slist is a type alias for list<string>
+    // Populate list with the kernel_input, from the beginning index to the end
     Slist input(kernel_input.begin(), kernel_input.end());
 
-    //
+    // AJP code addition -- print list of inputs
+
+    for (auto idx: input )
+
+        std::cout << "Input parameters list:  " << idx << std:: endl;
+
     // Search input for matching group names.
-    // groups2run will contain names of groups to run.
-    //
+    // groups2run is a vector of strings (of type Svector, a type alias of vector<strings>) containing names
+    // of groups to run if passed in as input.
+
     Svector groups2run;
+    // Outer loop:  Iterate through the list of strings from the first to the last item
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
+      // inner loop:  iterate over NumGroups, a member of GroupID enum defined in RAJAPerfSuite.hpp
       for (size_t ig = 0; ig < NumGroups; ++ig) {
+          // declare a constant (immutable) string reference "group_name"
+          // Store the value at the the ig(th) index as a GroupID in group_name
         const string& group_name = getGroupName(static_cast<GroupID>(ig));
+        // if group_name is equal to the value the it(th)* index points to,
+        // push_back / append that group_name to groups2run vector of strings
         if ( group_name == *it ) {
           groups2run.push_back(group_name);
         }
       }
     }
 
-    // 
-    // If group name(s) found in input, assemble kernels in group(s) 
+    // If group name(s) found in input, assemble kernel sets for those group(s);
     // to run and remove those group name(s) from input list.
-    //
+    // Here, iterate the groups2run, and store the value at ig(th) index in
+    // an immutable/constant reference called gname (of type string)
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
       const string& gname(groups2run[ig]);
 
+      // NumKernels is always the last member of KernelID, an enum, declared in RAJAPerfSuite.hpp
+      // Iterate over NumKernels, casting the index ik to a KernelID type, and setting it to kid
+      //
       for (size_t ik = 0; ik < NumKernels; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
+        // if the group name DOES occur within the string full kernel name (npos means until the end of the string),
+        // insert the kid (of KernelID type) into the run_kern (of type KIDset)
         if ( getFullKernelName(kid).find(gname) != string::npos ) {
           run_kern.insert(kid);
         }
       }
-
+      // remember, gname is a const/immutable string reference containing group names as a string
       input.remove(gname);
     }
 
-    //
+
+
     // Look for matching names of individual kernels in remaining input.
-    // 
     // Assemble invalid input for warning message.
-    //
-    Svector invalid;
-
+    // Declare the vector "invalid" of type Svector (type alias for vector<string>) to hold ...
+    // Iterate over the input from beginning to the end item;
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
+        // initialize a boolean, "found_it" to false;
+        // why do we need this variable? AJP -- ANSWER HERE
       bool found_it = false;
-
+      // Iterate ik over NumKernels & TRUE;
+      // Iterate until you hit the end of the list , or until you find what you're looking for.
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
+          // cast the ik(th) value to a KernelID, and set equal to kid
         KernelID kid = static_cast<KernelID>(ik);
+        // if the kernel name (for a kid, of type KernelID) is equal to the value pointed at at the it(th) index
+        // OR if the full kernel name (for a kid) is equal to the value pointed at at the it(th) index
+        // insert that kid into the run_kern (of type KIDset) and set found_it boolean to true
         if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
           run_kern.insert(kid);
           found_it = true;
         }
       }
-
+      // ATTN: found_it depend on whether or not the kernel was found;
+      // if the kernel was NOT found, we want to push it back to the set of invalid;
+      // if found_it = false, push back the value pointed at at the it(th) index to the vector of strings, "&invalid,"
+      // which is of type Svector (a type alias)
       if ( !found_it )  invalid.push_back(*it); 
     }
-
+    //  Update the run_params obj with data in the invalid vector reference
     run_params.setInvalidKernelInput(invalid);
 
   }
 
-
   //
   // Assemble set of available variants to run 
   // (based on compile-time configuration).
-  //
+  // Recall, a variant will be:  base_seq, base_CUDA, Raja_lambda, kokkos_lambda, etc.
+
+  // Declare available_var as a VIDset
+*/
+
+  run_params.setInvalidKernelInput(invalid);
+
   VIDset available_var;
+  // iterate the NumVariants & static_cast value at iv(th) index to VariantID
+  // if the variant is available, insert vid into the VIDset
   for (size_t iv = 0; iv < NumVariants; ++iv) {
     VariantID vid = static_cast<VariantID>(iv);
     if ( isVariantAvailable( vid ) ) {
@@ -299,12 +473,16 @@ void Executor::setupSuite()
 
     //
     // Set reference variant if not specified.
-    //
+    // Here, this is where base_seq is set as the default baseline;
+    // the baseline that is used can be changed!
+    // e.g., kokkos_lambda
+
     if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
       reference_vid = *run_var.begin();
     }
 
   } else {
+
 
     //
     // Parse input to determine which variants to run:
@@ -347,12 +525,7 @@ void Executor::setupSuite()
 
   }
 
-  //
-  // Create kernel objects and variants to execute. If invalid input is not 
-  // empty for either case, then there were unmatched input items.
-  // 
-  // A message will be emitted later so user can sort it out...
-  //
+
 
   if ( !(run_params.getInvalidKernelInput().empty()) ) {
 
@@ -360,15 +533,17 @@ void Executor::setupSuite()
 
   } else { // kernel input looks good
 
-    for (KIDset::iterator kid = run_kern.begin(); 
+      // Get lists using David and Amy's new maps!
+
+/*    for (KIDset::iterator kid = run_kern.begin();
          kid != run_kern.end(); ++kid) {
 /// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do 
 /// complex numbers in GPU code
-      if ( /** *kid != Apps_COUPLE */ true ) {
+      if ( true ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
     }
-
+*/
     if ( !(run_params.getInvalidVariantInput().empty()) ) {
 
        run_params.setInputState(RunParams::BadInput);
@@ -408,7 +583,7 @@ void Executor::setupSuite()
   } // if kernel input looks good
 
 }
-
+////////////////////////////////////////////////////////////////////////////////////
 
 void Executor::reportRunSummary(ostream& str) const
 {
@@ -1100,7 +1275,8 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   }
 #endif
 }
-
+// TODO:  AJP and DZP talk these functions through;
+// is the arrow operator here acting as a pointer object to registerGroup, etc.?
 
 void free_register_group(Executor* exec, std::string groupName){
    exec->registerGroup(groupName);

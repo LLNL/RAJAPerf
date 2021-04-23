@@ -102,7 +102,6 @@ namespace rajaperf {
         free_register_kernel(exec, "Basic", new basic::ATOMIC_PI(run_params));
         free_register_kernel(exec, "Basic", new basic::DAXPY(run_params));
         free_register_kernel(exec, "Basic", new basic::IF_QUAD(run_params));
-        free_register_kernel(exec, "Basic", new basic::IF_QUAD(run_params));
         free_register_kernel(exec, "Basic", new basic::INIT3(run_params));
         free_register_kernel(exec, "Basic", new basic::INIT_VIEW1D(run_params));
         free_register_kernel(exec, "Basic", new basic::INIT_VIEW1D_OFFSET(run_params));

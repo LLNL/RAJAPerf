@@ -17,6 +17,7 @@ int main( int argc, char** argv )
   //rajaperf::Executor executor(argc, argv);
   rajaperf::Executor executor(argc, argv);
   rajaperf::make_perfsuite_executor(&executor, argc, argv);
+  //executor.registerKernel
   //rajaperf::RunParams params(argc, argv);
   //executor.registerGroup("Sparse");
 

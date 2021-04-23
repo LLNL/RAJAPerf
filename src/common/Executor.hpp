@@ -12,6 +12,7 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
+#include <map>
 #include <iosfwd>
 #include <utility>
 #include <set>
@@ -121,7 +122,11 @@ private:
 
   VariantID reference_vid;
 
+  // "allKernels" is an instance of kernelMap, which is a "map" of all kernels (as strings, e.g., DAXPY, to their
+  // kernelBase* instances; the string name will be the key (first), and the kernelBase* instance will be the value (second)
   kernelMap allKernels;
+  // "kernelsPerGroup" is an instance of "groupMap;" "kernelsPerGroup" maps kernels to their
+  // categories / parent class (e.g., basic, polybench, etc.)
   groupMap kernelsPerGroup;
 
 
