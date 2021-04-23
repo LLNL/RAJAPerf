@@ -6,7 +6,7 @@
 	url = https://github.com/LLNL/blt.git
 [submodule "tpl/RAJA"]
 	path = tpl/RAJA
-	url = https://github.com/LLNL/RAJA.git
+	url = https://github.com/ajpowelsnl/RAJA.git
 [submodule "tpl/kokkos"]
 	path = tpl/kokkos
 	url = https://github.com/kokkos/kokkos

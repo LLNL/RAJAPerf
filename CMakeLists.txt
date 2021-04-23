@@ -85,6 +85,7 @@ endif()
 # HIP is used with AMD / VEGA GPU
 # Neatly separate RAJAPerf Suite and Kokkos handling of HIP
 if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
+#if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
@@ -186,5 +187,5 @@ endif()
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.
-#
+# DZP, AJP, DB, DA fixes
 add_subdirectory(src)
