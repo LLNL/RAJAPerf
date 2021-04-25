@@ -52,7 +52,7 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
 
   if (0) {// vid == Base_SYCL_ ) {
 
-/*
+
   } else if ( vid == RAJA_SYCL ) {
 
     REDUCE3_INT_DATA_SETUP_SYCL;
@@ -64,7 +64,7 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
       RAJA::ReduceMin<RAJA::sycl_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::sycl_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::sycl_exec<block_size, true /*async*//*> >(
+      RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, false> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
@@ -77,7 +77,7 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
     stopTimer();
 
     REDUCE3_INT_DATA_TEARDOWN_SYCL;
-*/
+
   } else {
      std::cout << "\n  REDUCE3_INT : Unknown Sycl variant id = " << vid << std::endl;
   }

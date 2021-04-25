@@ -70,14 +70,14 @@ void INIT_VIEW1D::runSyclVariant(VariantID vid)
             }
           });
         });
-        qu.wait();
+//        qu.wait();
       }
       qu.wait(); // Wait for computation to finish before stopping timer
       stopTimer();
     }
 
     INIT_VIEW1D_DATA_TEARDOWN_SYCL;
-/*
+
   } else if ( vid == RAJA_SYCL ) {
 
     INIT_VIEW1D_DATA_SETUP_SYCL;
@@ -87,7 +87,7 @@ void INIT_VIEW1D::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<block_size  /*async*//*> >(
+      RAJA::forall< RAJA::sycl_exec<block_size  /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         INIT_VIEW1D_BODY_RAJA;
       });
@@ -97,7 +97,7 @@ void INIT_VIEW1D::runSyclVariant(VariantID vid)
     stopTimer();
 
     INIT_VIEW1D_DATA_TEARDOWN_SYCL;
-*/
+
   } else {
      std::cout << "\n  INIT_VIEW1D : Unknown Sycl variant id = " << vid << std::endl;
   }

@@ -78,7 +78,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
     }
 
     INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
-/*
+
   } else if ( vid == RAJA_SYCL ) {
 
     INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL;
@@ -88,7 +88,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<block_size, true /*async*//*> >(
+      RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, false /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY_RAJA;
       });
@@ -98,7 +98,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
     stopTimer();
 
     INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
-*/
+
   } else {
      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown Sycl variant id = " << vid << std::endl;
   }

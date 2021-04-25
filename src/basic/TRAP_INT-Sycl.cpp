@@ -62,7 +62,7 @@ void TRAP_INT::runSyclVariant(VariantID vid)
   TRAP_INT_DATA_SETUP;
 
   if (0) {// vid == Base_SYCL ) {
-/*
+
   } else if ( vid == RAJA_SYCL ) {
 
     TRAP_INT_DATA_SETUP_SYCL;
@@ -72,7 +72,7 @@ void TRAP_INT::runSyclVariant(VariantID vid)
 
       RAJA::ReduceSum<RAJA::sycl_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::sycl_exec<block_size, true /*async*//*> >(
+      RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, false /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         TRAP_INT_BODY;
       });
@@ -83,7 +83,7 @@ void TRAP_INT::runSyclVariant(VariantID vid)
     stopTimer();
 
     TRAP_INT_DATA_TEARDOWN_SYCL;
-*/
+
   } else {
      std::cout << "\n  TRAP_INT : Unknown Sycl variant id = " << vid << std::endl;
   }
