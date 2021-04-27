@@ -45,10 +45,11 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
+  void runSeqVariant(VariantID vid) {};
+  void runOpenMPVariant(VariantID vid) {};
+  void runCudaVariant(VariantID vid) {};
+  void runHipVariant(VariantID vid) {};
+  void runSyclVariant(VariantID vid) {};
   void runOpenMPTargetVariant(VariantID vid)
   {
     std::cout << "\n  SORTPAIRS : Unknown OMP Target variant id = " << vid << std::endl;

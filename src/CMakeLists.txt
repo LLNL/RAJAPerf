@@ -14,7 +14,7 @@ add_subdirectory(basic)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
-add_subdirectory(algorithm)
+#add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
@@ -22,8 +22,8 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     lcals
     polybench
-    stream
-    algorithm)
+    stream)
+#    algorithm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(ENABLE_TARGET_OPENMP)

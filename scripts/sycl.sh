@@ -30,8 +30,8 @@ cmake \
   -DENABLE_TARGET_OPENMP=Off \
   -DENABLE_ALL_WARNINGS=Off \
   -DENABLE_SYCL=On \
-  -DCMAKE_CXX_STANDARD=14 \
-  -DCMAKE_LINKER=dpcpp \
+  -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_LINKER=clang++ \
   "$@" \
   ..
 
