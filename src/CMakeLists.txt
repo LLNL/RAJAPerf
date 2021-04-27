@@ -33,7 +33,7 @@ list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
-
+include_directories(basic)
 blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
