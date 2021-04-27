@@ -60,7 +60,7 @@ void COPY::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class COPY>(cl::sycl::nd_range<1> (grid_size, block_size),
                                    [=] (cl::sycl::nd_item<1> item) {
 
@@ -73,7 +73,7 @@ void COPY::runSyclVariant(VariantID vid)
       });
     }
 
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     COPY_DATA_TEARDOWN_SYCL;
@@ -91,7 +91,7 @@ void COPY::runSyclVariant(VariantID vid)
        });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     COPY_DATA_TEARDOWN_SYCL;

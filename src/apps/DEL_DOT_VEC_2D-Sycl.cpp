@@ -75,7 +75,7 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class DelDotVec>(cl::sycl::nd_range<1> (grid_size, block_size),
                                         [=] (cl::sycl::nd_item<1> item) {
 
@@ -89,7 +89,7 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
     DEL_DOT_VEC_2D_DATA_TEARDOWN_SYCL;
@@ -103,7 +103,7 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
+    RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones, sycl_res);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,7 +114,7 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
        });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     DEL_DOT_VEC_2D_DATA_TEARDOWN_SYCL;

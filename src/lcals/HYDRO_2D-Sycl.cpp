@@ -73,7 +73,7 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      qu.submit([&] (cl::sycl::handler& h) { 
+      qu->submit([&] (cl::sycl::handler& h) { 
         h.parallel_for<class syclHydro2dBody1>(cl::sycl::range<2>(kn-2, jn-2),
                                                cl::sycl::id<2>(1, 1), // offset to start a idx 1
                                                [=] (cl::sycl::item<2> item ) {
@@ -84,7 +84,7 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) { 
+      qu->submit([&] (cl::sycl::handler& h) { 
         h.parallel_for<class syclHydro2dBody2>(cl::sycl::range<2>(kn-2, jn-2),
                                                cl::sycl::id<2>(1, 1), // offset to start a idx 1
                                                [=] (cl::sycl::item<2> item ) {
@@ -95,7 +95,7 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) { 
+      qu->submit([&] (cl::sycl::handler& h) { 
         h.parallel_for<class syclHydro2dBody3>(cl::sycl::range<2>(kn-2, jn-2),
                                                cl::sycl::id<2>(1, 1), // offset to start a idx 1
                                                [=] (cl::sycl::item<2> item ) {
@@ -107,7 +107,7 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
     HYDRO_2D_DATA_TEARDOWN_SYCL;
@@ -154,7 +154,7 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     HYDRO_2D_DATA_TEARDOWN_SYCL;

@@ -53,7 +53,7 @@ void LTIMES::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class LTIMES>(cl::sycl::nd_range<3> (
                                        cl::sycl::range<3>(num_z, num_g, num_m),
                                        cl::sycl::range<3>(1,1,1)),
@@ -69,7 +69,7 @@ void LTIMES::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait(); // Wait for computation to finish before stopping timer      
+    qu->wait(); // Wait for computation to finish before stopping timer      
     stopTimer();
 
     LTIMES_DATA_TEARDOWN_SYCL;
@@ -107,7 +107,7 @@ void LTIMES::runSyclVariant(VariantID vid)
         });
 
       }
-      qu.wait();
+      qu->wait();
       stopTimer();
 
       LTIMES_DATA_TEARDOWN_SYCL;

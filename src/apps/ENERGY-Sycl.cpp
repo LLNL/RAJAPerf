@@ -91,7 +91,7 @@ void ENERGY::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size); 
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Energy_1>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
 
@@ -103,7 +103,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Energy_2>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
             
@@ -115,7 +115,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Energy_3>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
 
@@ -126,7 +126,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Energy_4>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
 
@@ -138,7 +138,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Energy_5>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
 
@@ -150,7 +150,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu.submit([&] (cl::sycl::handler& h)
+      qu->submit([&] (cl::sycl::handler& h)
       {
         h.parallel_for<class Energy_6>(cl::sycl::nd_range<1> (grid_size, block_size),
                                        [=] (cl::sycl::nd_item<1> item) {
@@ -163,7 +163,7 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
     ENERGY_DATA_TEARDOWN_SYCL;
@@ -212,7 +212,7 @@ void ENERGY::runSyclVariant(VariantID vid)
       }); // end sequential region (for single-source code)
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     ENERGY_DATA_TEARDOWN_SYCL;

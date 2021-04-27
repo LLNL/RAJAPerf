@@ -61,7 +61,7 @@ void TRIAD::runSyclVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class TRIAD>(cl::sycl::nd_range<1> (grid_size, block_size),
                                     [=] (cl::sycl::nd_item<1> item) {
 
@@ -74,7 +74,7 @@ void TRIAD::runSyclVariant(VariantID vid)
       });
     }
 
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     TRIAD_DATA_TEARDOWN_SYCL;
@@ -92,7 +92,7 @@ void TRIAD::runSyclVariant(VariantID vid)
        });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     TRIAD_DATA_TEARDOWN_SYCL;

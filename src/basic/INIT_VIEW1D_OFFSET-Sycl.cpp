@@ -56,7 +56,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        qu.submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (cl::sycl::handler& h)
         {
           const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
@@ -71,9 +71,9 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
             }
           });
         });
-        qu.wait();
+        qu->wait();
       }
-      qu.wait(); // Wait for computation to finish before stopping timer
+      qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
     }
 
@@ -94,7 +94,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;

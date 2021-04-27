@@ -212,8 +212,8 @@ static const std::string KernelNames [] =
 //
 // Algorithm kernels...
 //
-  std::string("Algorithm_SORT"),
-  std::string("Algorithm_SORTPAIRS"),
+//  std::string("Algorithm_SORT"),
+//  std::string("Algorithm_SORTPAIRS"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -673,7 +673,7 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Algorithm kernels...
 //
-    case Algorithm_SORT: {
+/*    case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;
     }
@@ -681,7 +681,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::SORTPAIRS(run_params);
        break;
     }
-
+*/
     default: {
       std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
     }
@@ -692,7 +692,8 @@ KernelBase* getKernelObject(KernelID kid,
 }
 
 #if defined(RAJA_ENABLE_SYCL)
-cl::sycl::queue KernelBase::qu;
+camp::resources::Resource KernelBase::sycl_res{camp::resources::Sycl()};
+cl::sycl::queue* KernelBase::qu;
 #endif
 
 }  // closing brace for rajaperf namespace

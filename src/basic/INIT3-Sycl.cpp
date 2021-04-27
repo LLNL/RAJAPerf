@@ -68,7 +68,7 @@ void INIT3::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class Init3>(cl::sycl::nd_range<1>(grid_size, block_size),
                                     [=] (cl::sycl::nd_item<1> item ) {
 
@@ -80,7 +80,7 @@ void INIT3::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
     INIT3_DATA_TEARDOWN_SYCL;
@@ -98,7 +98,7 @@ void INIT3::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     INIT3_DATA_TEARDOWN_SYCL;

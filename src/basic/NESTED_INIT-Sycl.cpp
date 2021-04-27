@@ -56,7 +56,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(ni, block_size); 
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class NestedInit>(cl::sycl::nd_range<3> (
                                              cl::sycl::range<3> (nk, nj, grid_size),
                                              cl::sycl::range<3> (1, 1, block_size)),
@@ -72,7 +72,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
 
     NESTED_INIT_DATA_TEARDOWN_SYCL;
@@ -83,7 +83,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::SyclKernel<
+        RAJA::statement::SyclKernelAsync<
           RAJA::statement::For<2, RAJA::sycl_global_1<1>,      // k
             RAJA::statement::For<1, RAJA::sycl_global_2<1>,    // j
               RAJA::statement::For<0, RAJA::sycl_global_3<256>, // i
@@ -106,7 +106,7 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     NESTED_INIT_DATA_TEARDOWN_SYCL;

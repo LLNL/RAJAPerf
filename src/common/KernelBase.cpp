@@ -92,7 +92,7 @@ void KernelBase::execute(VariantID vid)
   running_variant = vid;
 
 #if defined(RAJA_ENABLE_SYCL)
-  ::RAJA::sycl::detail::setQueue(&qu);
+  ::RAJA::sycl::detail::setQueue(&sycl_res);
 #endif
 
   resetTimer();

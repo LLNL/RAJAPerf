@@ -54,7 +54,7 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size1 = block_size * RAJA_DIVIDE_CEILING_INT(N, block_size);
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class GenLin1>(cl::sycl::nd_range<1> (grid_size1, block_size),
                                       [=] (cl::sycl::nd_item<1> item) {
 
@@ -67,7 +67,7 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
       });
 
       const size_t grid_size2 = block_size * RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class GenLin2>(cl::sycl::nd_range<1> (grid_size2, block_size),
                                       [=] (cl::sycl::nd_item<1> item) {
 
@@ -79,7 +79,7 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     GEN_LIN_RECUR_DATA_TEARDOWN_SYCL;
@@ -102,7 +102,7 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
        });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     GEN_LIN_RECUR_DATA_TEARDOWN_SYCL;

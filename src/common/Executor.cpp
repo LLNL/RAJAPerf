@@ -58,6 +58,11 @@ void Executor::setupSuite()
 
   cout << "\nSetting up suite based on input..." << endl;
 
+  #if defined(RAJA_ENABLE_SYCL)
+//  const cl::sycl::queue &q = KernelBase::sycl_res.get<camp::resources::Sycl>().get_queue()
+  KernelBase::qu = KernelBase::sycl_res.get<camp::resources::Sycl>().get_queue();
+//  KernelBase::qu = &q;
+  #endif
   using Slist = list<string>;
   using Svector = vector<string>;
   using KIDset = set<KernelID>;

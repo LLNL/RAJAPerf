@@ -72,7 +72,7 @@ void VOL3D::runSyclVariant(VariantID vid)
  
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend - ibegin, block_size);
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class VOL3D>(cl::sycl::nd_range<1> (grid_size, block_size),
                                     [=] (cl::sycl::nd_item<1> item) {
 
@@ -85,7 +85,7 @@ void VOL3D::runSyclVariant(VariantID vid)
         });
       });
     }
-    qu.wait(); // Wait for computation to finish before stopping timer
+    qu->wait(); // Wait for computation to finish before stopping timer
     stopTimer();
  
     VOL3D_DATA_TEARDOWN_SYCL;
@@ -107,7 +107,7 @@ void VOL3D::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     VOL3D_DATA_TEARDOWN_SYCL;

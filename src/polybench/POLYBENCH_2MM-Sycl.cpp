@@ -77,7 +77,7 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        qu.submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (cl::sycl::handler& h)
         {
 
           h.parallel_for<class polybench2MM_1>(cl::sycl::nd_range<2> 
@@ -98,7 +98,7 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
           });
         });
 
-        qu.submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (cl::sycl::handler& h)
         {
 
           h.parallel_for<class polybench2MM_2>(cl::sycl::nd_range<2>
@@ -119,7 +119,7 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
           });
         });
       }
-      qu.wait(); // Wait for computation to finish before stopping timer
+      qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
     }
 
@@ -134,8 +134,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelNonTrivial<
-          RAJA::statement::For<0, RAJA::sycl_global_1<256>,
-            RAJA::statement::For<1, RAJA::sycl_global_2<256>,
+          RAJA::statement::For<0, RAJA::sycl_global_1<16>,
+            RAJA::statement::For<1, RAJA::sycl_global_2<16>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>

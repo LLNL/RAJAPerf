@@ -62,7 +62,7 @@ void ADD::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu.submit([&] (cl::sycl::handler& h) {
+      qu->submit([&] (cl::sycl::handler& h) {
         h.parallel_for<class ADD>(cl::sycl::nd_range<1> (grid_size, block_size),
                                   [=] (cl::sycl::nd_item<1> item) {
 
@@ -75,7 +75,7 @@ void ADD::runSyclVariant(VariantID vid)
       });
     }
 
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     ADD_DATA_TEARDOWN_SYCL;
@@ -93,7 +93,7 @@ void ADD::runSyclVariant(VariantID vid)
       });
 
     }
-    qu.wait();
+    qu->wait();
     stopTimer();
 
     ADD_DATA_TEARDOWN_SYCL;
