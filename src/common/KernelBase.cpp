@@ -131,7 +131,6 @@ void KernelBase::runKernel(VariantID vid)
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_WORKGROUP_CUDA :
     {
 #if defined(RAJA_ENABLE_CUDA)
       runCudaVariant(vid);
@@ -142,7 +141,6 @@ void KernelBase::runKernel(VariantID vid)
     case Base_HIP :
     case Lambda_HIP :
     case RAJA_HIP :
-    case RAJA_WORKGROUP_HIP :
     {
 #if defined(RAJA_ENABLE_HIP)
       runHipVariant(vid);

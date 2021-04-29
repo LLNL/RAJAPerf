@@ -239,12 +239,10 @@ static const std::string VariantNames [] =
   std::string("Base_CUDA"),
   std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
-  std::string("RAJA_WORKGROUP_CUDA"),
 
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
-  std::string("RAJA_WORKGROUP_HIP"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -344,8 +342,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
   if ( vid == Base_CUDA ||
        vid == Lambda_CUDA ||
-       vid == RAJA_CUDA ||
-       vid == RAJA_WORKGROUP_CUDA ) {
+       vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif
@@ -353,8 +350,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_HIP)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
-       vid == RAJA_HIP ||
-       vid == RAJA_WORKGROUP_HIP ) {
+       vid == RAJA_HIP ) {
     ret_val = true;
   }
 #endif

@@ -203,12 +203,10 @@ enum VariantID {
   Base_CUDA,
   Lambda_CUDA,
   RAJA_CUDA,
-  RAJA_WORKGROUP_CUDA,
 
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
-  RAJA_WORKGROUP_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
