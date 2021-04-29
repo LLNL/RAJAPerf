@@ -159,6 +159,7 @@ enum KernelID {
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
+  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_PRESSURE,

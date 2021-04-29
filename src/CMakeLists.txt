@@ -48,6 +48,9 @@ blt_add_executable(
   apps/HALOEXCHANGE.cpp
   apps/HALOEXCHANGE-Seq.cpp
   apps/HALOEXCHANGE-OMPTarget.cpp
+  apps/HALOEXCHANGE_FUSED.cpp
+  apps/HALOEXCHANGE_FUSED-Seq.cpp
+  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp

@@ -73,6 +73,7 @@
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
+#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
@@ -194,6 +195,7 @@ static const std::string KernelNames [] =
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
+  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_PRESSURE"),
@@ -565,6 +567,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_HALOEXCHANGE : {
        kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE_FUSED : {
+       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
        break;
     }
     case Apps_LTIMES : {
