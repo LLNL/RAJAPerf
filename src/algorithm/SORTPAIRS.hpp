@@ -19,8 +19,9 @@
   Real_ptr x = m_x;          \
   Real_ptr i = m_i;
 
-#define SORTPAIRS_RAJA_ARGS  \
-  x + iend*irep + ibegin, x + iend*irep + iend, i + iend*irep + ibegin
+#define RAJA_SORTPAIRS_ARGS  \
+  RAJA::make_span(x + iend*irep + ibegin, iend - ibegin), \
+  RAJA::make_span(i + iend*irep + ibegin, iend - ibegin)
 
 
 #include "common/KernelBase.hpp"
