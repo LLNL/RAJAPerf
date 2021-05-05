@@ -19,7 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-
 void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid) {
 
   MAT_MAT_SHARED_DATA_SETUP;
@@ -28,13 +27,10 @@ void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
     }
     stopTimer();
 
-
   } else if (vid == RAJA_OpenMPTarget) {
-
 
   } else {
     std::cout << "\n  MAT_MAT_SHARED : Unknown OMP Target variant id = " << vid

@@ -14,7 +14,8 @@ namespace rajaperf {
 namespace basic {
 
 template <typename BODY>
-inline void seq_loop(const Index_type st, const Index_type end, BODY const &body) {
+inline void seq_loop(const Index_type st, const Index_type end,
+                     BODY const &body) {
   for (Index_type i = st; i < end; ++i) {
     body(i);
   }
@@ -83,32 +84,74 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
 
-      seq_loop(0, Ny, [&](Index_type by) {
-        seq_loop(0, Nx, [&](Index_type bx) {
+      auto outer_y = [&](Index_type by) {
+        auto outer_x = [&](Index_type bx) {
           MAT_MAT_SHARED_BODY_0
 
-          seq_loop(0, TL_SZ, [&](Index_type ty) {
-            seq_loop(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 });
-          });
+          auto inner_y_1 = [&](Index_type ty) {
+            auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 };
+
+            for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+              if (tx < TL_SZ)
+                inner_x_1(tx);
+            }
+          };
+
+          for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+            if (ty < TL_SZ)
+              inner_y_1(ty);
+          }
 
           for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
-            seq_loop(0, TL_SZ, [&](Index_type ty) {
-              seq_loop(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 });
-            });
+            auto inner_y_2 = [&](Index_type ty) {
+              auto inner_x_2 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 };
 
-            seq_loop(0, TL_SZ, [&](Index_type ty) {
-              seq_loop(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 });
-            });
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+                inner_x_2(tx);
+              }
+            };
 
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              inner_y_2(ty);
+            }
+
+            auto inner_y_3 = [&](Index_type ty) {
+              auto inner_x_3 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 };
+
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+                inner_x_3(tx);
+              }
+            };
+
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              inner_y_3(ty);
+            }
           }
 
-          seq_loop(0, TL_SZ, [&](Index_type ty) {
-            seq_loop(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 });
-          });
-        });
-      });
-    }
+          auto inner_y_4 = [&](Index_type ty) {
+            auto inner_x_4 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 };
+
+            for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+              inner_x_4(tx);
+            }
+          };
+
+          for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+            inner_y_4(ty);
+          }
+        }; // outer_x
+
+        for (Index_type bx = 0; bx < Nx; ++bx) {
+          outer_x(bx);
+        }
+      };
+
+      for (Index_type by = 0; by < Ny; ++by) {
+        outer_y(by);
+      }
+
+    } // irep
     stopTimer();
 
     break;
@@ -124,47 +167,51 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
           RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
                                 RAJA::expt::Threads(TL_SZ, TL_SZ)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+            RAJA::expt::loop<
+                teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
+              RAJA::expt::loop<teams_x>(
+                  ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+                    MAT_MAT_SHARED_BODY_0
 
-            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
-              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+                    RAJA::expt::loop<threads_y>(
+                        ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                          RAJA::expt::loop<threads_x>(
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
+                              [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 });
+                        });
 
-                        MAT_MAT_SHARED_BODY_0
+                    for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
-              RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                    MAT_MAT_SHARED_BODY_1
-                });
-              });
+                      RAJA::expt::loop<threads_y>(
+                          ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type ty) {
+                            RAJA::expt::loop<threads_x>(
+                                ctx, RAJA::RangeSegment(0, TL_SZ),
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 });
+                          });
 
-              for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+                      ctx.teamSync();
 
-               RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                 RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                     MAT_MAT_SHARED_BODY_2
-                 });
-               });
+                      RAJA::expt::loop<threads_y>(
+                          ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type ty) {
+                            RAJA::expt::loop<threads_x>(
+                                ctx, RAJA::RangeSegment(0, TL_SZ),
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 });
+                          });
 
-               ctx.teamSync();
+                      ctx.teamSync();
+                    }
 
-               RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                 RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                     MAT_MAT_SHARED_BODY_3
-                       });
-                 });
-
-               ctx.teamSync();
-              }
-
-              RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                    MAT_MAT_SHARED_BODY_4
-                });
-             });
-
-          });
-        });
-
-      }); // kernel
+                    RAJA::expt::loop<threads_y>(
+                        ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                          RAJA::expt::loop<threads_x>(
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
+                              [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 });
+                        });
+                  });
+            });
+          }); // kernel
     }
     stopTimer();
 

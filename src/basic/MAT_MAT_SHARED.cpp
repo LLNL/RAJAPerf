@@ -21,29 +21,29 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setDefaultReps(50);
 
   setVariantDefined(Base_Seq);
-  setVariantDefined( Lambda_Seq );
-  setVariantDefined( RAJA_Seq );
+  setVariantDefined(Lambda_Seq);
+  setVariantDefined(RAJA_Seq);
 
-  setVariantDefined( Base_OpenMP );
-  setVariantDefined( Lambda_OpenMP );
-  setVariantDefined( RAJA_OpenMP );
+  setVariantDefined(Base_OpenMP);
+  setVariantDefined(Lambda_OpenMP);
+  setVariantDefined(RAJA_OpenMP);
 
   // setVariantDefined( Base_OpenMPTarget );
   // setVariantDefined( RAJA_OpenMPTarget );
 
-  setVariantDefined( Base_CUDA );
-  setVariantDefined( Lambda_CUDA );
-  setVariantDefined( RAJA_CUDA );
+  setVariantDefined(Base_CUDA);
+  setVariantDefined(Lambda_CUDA);
+  setVariantDefined(RAJA_CUDA);
 
-  setVariantDefined( Base_HIP );
-  setVariantDefined( Lambda_HIP );
-  setVariantDefined( RAJA_HIP );
+  setVariantDefined(Base_HIP);
+  setVariantDefined(Lambda_HIP);
+  setVariantDefined(RAJA_HIP);
 }
 
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}
 
 void MAT_MAT_SHARED::setUp(VariantID vid) {
-  const Index_type NN = getRunSize()*getRunSize();
+  const Index_type NN = getRunSize() * getRunSize();
   allocAndInitData(m_A, NN, vid);
   allocAndInitData(m_B, NN, vid);
   allocAndInitData(m_C, NN, vid);

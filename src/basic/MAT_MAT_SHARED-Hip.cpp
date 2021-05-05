@@ -36,36 +36,37 @@ inline __device__ void block_y_direct(const Index_type st, const Index_type end,
 }
 
 template <typename BODY>
-inline __device__ void thread_x_direct(const Index_type st, const Index_type end,
-                                       BODY const &body) {
+inline __device__ void thread_x_direct(const Index_type st,
+                                       const Index_type end, BODY const &body) {
   Index_type tx = st + threadIdx.x;
   if (tx < end)
     body(tx);
 }
 
 template <typename BODY>
-inline __device__ void thread_y_direct(const Index_type st, const Index_type end,
-                                       BODY const &body) {
+inline __device__ void thread_y_direct(const Index_type st,
+                                       const Index_type end, BODY const &body) {
   Index_type ty = st + threadIdx.y;
   if (ty < end)
     body(ty);
 }
 
-#define MAT_MAT_SHARED_DATA_SETUP_HIP                                         \
-  const Index_type NN = getRunSize()*getRunSize();                             \
-  allocAndInitHipDeviceData(A, m_A, NN);                                      \
-  allocAndInitHipDeviceData(B, m_B, NN);                                      \
+#define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
+  const Index_type NN = getRunSize() * getRunSize();                           \
+  allocAndInitHipDeviceData(A, m_A, NN);                                       \
+  allocAndInitHipDeviceData(B, m_B, NN);                                       \
   allocAndInitHipDeviceData(C, m_C, NN);
 
-#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                      \
-  getHipDeviceData(m_A, A, NN);                                               \
-  getHipDeviceData(m_B, B, NN);                                               \
-  getHipDeviceData(m_C, C, NN);                                               \
-  deallocHipDeviceData(A);                                                    \
-  deallocHipDeviceData(B);                                                    \
+#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
+  getHipDeviceData(m_A, A, NN);                                                \
+  getHipDeviceData(m_B, B, NN);                                                \
+  getHipDeviceData(m_C, C, NN);                                                \
+  deallocHipDeviceData(A);                                                     \
+  deallocHipDeviceData(B);                                                     \
   deallocHipDeviceData(C);
 
-__global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A, Real_ptr B) {
+__global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
+                               Real_ptr B) {
 
   Index_type tx = threadIdx.x;
   Index_type ty = threadIdx.y;
@@ -126,36 +127,92 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       lambda_hip<<<griddim, blockdim>>>([=] __device__() {
-
-        block_y_direct(0, Ny, [&](Index_type by) {
-          block_x_direct(0, Nx, [&](Index_type bx) {
+        auto outer_y = [&](Index_type by) {
+          auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0
 
-            thread_y_direct(0, TL_SZ, [&](Index_type ty) {
-              thread_x_direct(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 });
-            });
+            auto inner_y_1 = [&](Index_type ty) {
+              auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 };
+
+              {
+                Index_type tx = threadIdx.x;
+                if (tx < TL_SZ)
+                  inner_x_1(tx);
+              }
+            };
+
+            {
+              Index_type ty = threadIdx.y;
+              if (ty < TL_SZ)
+                inner_y_1(ty);
+            }
 
             for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
-              thread_y_direct(0, TL_SZ, [&](Index_type ty) {
-                thread_x_direct(0, TL_SZ,
-                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 });
-              });
+              auto inner_y_2 = [&](Index_type ty) {
+                auto inner_x_2 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 };
+
+                {
+                  Index_type tx = threadIdx.x;
+                  if (tx < TL_SZ)
+                    inner_x_2(tx);
+                }
+              };
+
+              {
+                Index_type ty = threadIdx.y;
+                if (ty < TL_SZ)
+                  inner_y_2(ty);
+              }
 
               __syncthreads();
-              thread_y_direct(0, TL_SZ, [&](Index_type ty) {
-                thread_x_direct(0, TL_SZ,
-                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 });
-              });
+
+              auto inner_y_3 = [&](Index_type ty) {
+                auto inner_x_3 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 };
+
+                {
+                  Index_type tx = threadIdx.x;
+                  if (tx < TL_SZ)
+                    inner_x_3(tx);
+                }
+              };
+
+              {
+                Index_type ty = threadIdx.y;
+                if (ty < TL_SZ)
+                  inner_y_3(ty);
+              }
 
               __syncthreads();
             }
 
-            thread_y_direct(0, TL_SZ, [&](Index_type ty) {
-              thread_x_direct(0, TL_SZ, [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 });
-            });
-          });
-        });
+            auto inner_y_4 = [&](Index_type ty) {
+              auto inner_x_4 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 };
+
+              {
+                Index_type tx = threadIdx.x;
+                if (tx < TL_SZ)
+                  inner_x_4(tx);
+              }
+            };
+
+            {
+              Index_type ty = threadIdx.y;
+              if (ty < TL_SZ)
+                inner_y_4(ty);
+            }
+          }; // outer_x
+
+          {
+            Index_type bx = blockIdx.x;
+            outer_x(bx);
+          }
+        };
+
+        {
+          Index_type by = blockIdx.y;
+          outer_y(by);
+        }
       });
     }
     stopTimer();
@@ -170,47 +227,53 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::DEVICE, RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
-                             RAJA::expt::Threads(TL_SZ, TL_SZ)),
+          RAJA::expt::DEVICE,
+          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
+                                RAJA::expt::Threads(TL_SZ, TL_SZ)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+            RAJA::expt::loop<
+                teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
+              RAJA::expt::loop<teams_x>(
+                  ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+                    MAT_MAT_SHARED_BODY_0
 
-            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
-                RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+                    RAJA::expt::loop<threads_y>(
+                        ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                          RAJA::expt::loop<threads_x>(
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
+                              [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 });
+                        });
 
-                        MAT_MAT_SHARED_BODY_0
+                    for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
-                 RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                   RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                     MAT_MAT_SHARED_BODY_1
-                   });
-                 });
+                      RAJA::expt::loop<threads_y>(
+                          ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type ty) {
+                            RAJA::expt::loop<threads_x>(
+                                ctx, RAJA::RangeSegment(0, TL_SZ),
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 });
+                          });
 
-                 for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+                      ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                          MAT_MAT_SHARED_BODY_2
-                       });
-                   });
+                      RAJA::expt::loop<threads_y>(
+                          ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type ty) {
+                            RAJA::expt::loop<threads_x>(
+                                ctx, RAJA::RangeSegment(0, TL_SZ),
+                                [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 });
+                          });
 
-                  ctx.teamSync();
+                      ctx.teamSync();
+                    }
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                    RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                        MAT_MAT_SHARED_BODY_3
-                    });
+                    RAJA::expt::loop<threads_y>(
+                        ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                          RAJA::expt::loop<threads_x>(
+                              ctx, RAJA::RangeSegment(0, TL_SZ),
+                              [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 });
+                        });
                   });
-
-                  ctx.teamSync();
-                 }
-
-                 RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                   RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                       MAT_MAT_SHARED_BODY_4
-                   });
-                 });
-
-              });
             });
           }); // kernel
     }
