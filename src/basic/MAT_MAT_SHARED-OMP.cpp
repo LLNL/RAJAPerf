@@ -15,24 +15,6 @@
 namespace rajaperf {
 namespace basic {
 
-template <typename BODY>
-inline void seq_loop(const Index_type st, const Index_type end,
-                     BODY const &body) {
-  for (Index_type i = st; i < end; ++i) {
-    body(i);
-  }
-}
-
-template <typename BODY>
-inline void par_loop(const Index_type st, const Index_type end,
-                     BODY const &body) {
-
-#pragma omp for
-  for (int i = st; i < end; ++i) {
-    body(i);
-  }
-}
-
 void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

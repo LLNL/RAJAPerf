@@ -19,38 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-template <typename BODY>
-inline __device__ void block_x_direct(const Index_type st, const Index_type end,
-                                      BODY const &body) {
-  Index_type bx = st + blockIdx.x;
-  if (bx < end)
-    body(bx);
-}
-
-template <typename BODY>
-inline __device__ void block_y_direct(const Index_type st, const Index_type end,
-                                      BODY const &body) {
-  Index_type by = st + blockIdx.y;
-  if (by < end)
-    body(by);
-}
-
-template <typename BODY>
-inline __device__ void thread_x_direct(const Index_type st,
-                                       const Index_type end, BODY const &body) {
-  Index_type tx = st + threadIdx.x;
-  if (tx < end)
-    body(tx);
-}
-
-template <typename BODY>
-inline __device__ void thread_y_direct(const Index_type st,
-                                       const Index_type end, BODY const &body) {
-  Index_type ty = st + threadIdx.y;
-  if (ty < end)
-    body(ty);
-}
-
 #define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
   const Index_type NN = getRunSize() * getRunSize();                           \
   allocAndInitCudaDeviceData(A, m_A, NN);                                      \

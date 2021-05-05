@@ -13,14 +13,6 @@
 namespace rajaperf {
 namespace basic {
 
-template <typename BODY>
-inline void seq_loop(const Index_type st, const Index_type end,
-                     BODY const &body) {
-  for (Index_type i = st; i < end; ++i) {
-    body(i);
-  }
-}
-
 void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 
   const Index_type run_reps = getRunReps();
