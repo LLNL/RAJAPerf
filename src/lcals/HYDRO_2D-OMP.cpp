@@ -40,21 +40,21 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY1;
 	    }
 	  }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY2;
 	    }
 	  }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY3;
@@ -87,21 +87,21 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam1(k, j);
             }
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam2(k, j);
             }
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam3(k, j);
@@ -132,7 +132,7 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
       using EXECPOL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_for_nowait_exec,  // k
+          RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >,  // k
             RAJA::statement::For<1, RAJA::loop_exec,  // j
               RAJA::statement::Lambda<0>
             >

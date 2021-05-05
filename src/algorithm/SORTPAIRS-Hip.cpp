@@ -53,7 +53,7 @@ void SORTPAIRS::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort_pairs< RAJA::hip_exec<block_size, true /*async*/> >(SORTPAIRS_RAJA_ARGS);
+      RAJA::sort_pairs< RAJA::hip_exec<block_size, true /*async*/> >(RAJA_SORTPAIRS_ARGS);
 
     }
     stopTimer();

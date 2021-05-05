@@ -50,7 +50,7 @@ void SORT::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::hip_exec<block_size, true /*async*/> >(SORT_STD_ARGS);
+      RAJA::sort< RAJA::hip_exec<block_size, true /*async*/> >(RAJA_SORT_ARGS);
 
     }
     stopTimer();
