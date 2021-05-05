@@ -172,13 +172,13 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
 
           {
             Index_type bx = blockIdx.x;
-            outer_x(bx);
+            if(bx < Nx) outer_x(bx);
           }
         };
 
         {
           Index_type by = blockIdx.y;
-          outer_y(by);
+          if(by < Ny) outer_y(by);
         }
       });
     }
