@@ -75,8 +75,10 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         dim3 nthreads_per_block(N-2, 1, 1);
 
         hipLaunchKernelGGL((poly_heat_3D_1),dim3(nblocks), dim3(nthreads_per_block),0,0,A, B, N);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_heat_3D_2),dim3(nblocks), dim3(nthreads_per_block),0,0,A, B, N);
+        hipErrchk( hipGetLastError() );
 
       }
 
@@ -106,6 +108,7 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel1,
           nblocks, nthreads_per_block, 0, 0,
           1, N-1, 1, N-1, 1, N-1, poly_heat_3D_1_lambda);
+        hipErrchk( hipGetLastError() );
 
         auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i, Index_type j, Index_type k) {
 
@@ -116,6 +119,7 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel2,
           nblocks, nthreads_per_block, 0, 0,
           1, N-1, 1, N-1, 1, N-1, poly_heat_3D_2_lambda);
+        hipErrchk( hipGetLastError() );
 
       }
 

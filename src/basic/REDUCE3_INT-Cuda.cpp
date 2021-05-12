@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -38,7 +38,7 @@ __global__ void reduce3int(Int_ptr vec,
                            Int_ptr vsum, Int_type vsum_init,
                            Int_ptr vmin, Int_type vmin_init,
                            Int_ptr vmax, Int_type vmax_init,
-                           Index_type iend) 
+                           Index_type iend)
 {
   extern __shared__ Int_type psum[ ];
   Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
@@ -57,8 +57,8 @@ __global__ void reduce3int(Int_ptr vec,
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) { 
-    if ( threadIdx.x < i ) { 
+  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
       psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
       pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
       pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
@@ -109,12 +109,13 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
       initCudaDeviceData(vmax, &m_vmax_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      reduce3int<<<grid_size, block_size, 
-                   3*sizeof(Int_type)*block_size>>>(vec, 
+      reduce3int<<<grid_size, block_size,
+                   3*sizeof(Int_type)*block_size>>>(vec,
                                                     vsum, m_vsum_init,
                                                     vmin, m_vmin_init,
                                                     vmax, m_vmax_init,
-                                                    iend ); 
+                                                    iend );
+      cudaErrchk( cudaGetLastError() );
 
       Int_type lsum;
       Int_ptr plsum = &lsum;

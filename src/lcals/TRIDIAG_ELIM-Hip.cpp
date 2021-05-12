@@ -68,6 +68,7 @@ void TRIDIAG_ELIM::runHipVariant(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        hipLaunchKernelGGL(eos, grid_size, block_size, 0, 0, xout, xin, y, z,
                                        iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

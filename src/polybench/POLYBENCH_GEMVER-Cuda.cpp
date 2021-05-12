@@ -118,19 +118,23 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
       dim3 nthreads_per_block(n, 1, 1);
       poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2,
                                                       n);
+      cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
       poly_gemmver_2<<<grid_size, block_size>>>(A, x, y,
                                                 beta,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
       poly_gemmver_3<<<grid_size, block_size>>>(x, z,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
       poly_gemmver_4<<<grid_size, block_size>>>(A, x, w,
                                                 alpha,
                                                 n);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -152,6 +156,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;
       });
+      cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
@@ -164,12 +169,14 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
           }
           POLYBENCH_GEMVER_BODY4;
       });
+      cudaErrchk( cudaGetLastError() );
 
       lambda_cuda_forall<<<grid_size, block_size>>>(
         0, n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
       });
+      cudaErrchk( cudaGetLastError() );
 
       lambda_cuda_forall<<<grid_size, block_size>>>(
         0, n,
@@ -180,6 +187,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
           }
           POLYBENCH_GEMVER_BODY8;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

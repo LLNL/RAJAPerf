@@ -114,6 +114,7 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
                                                     vmin, m_vmin_init,
                                                     vmax, m_vmax_init,
                                                     iend );
+      hipErrchk( hipGetLastError() );
 
       Int_type lsum;
       Int_ptr plsum = &lsum;

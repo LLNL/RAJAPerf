@@ -73,8 +73,10 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
         dim3 nthreads_per_block(N-2, 1, 1);
 
         poly_jacobi_2D_1<<<nblocks, nthreads_per_block>>>(A, B, N);
+        cudaErrchk( cudaGetLastError() );
 
         poly_jacobi_2D_2<<<nblocks, nthreads_per_block>>>(A, B, N);
+        cudaErrchk( cudaGetLastError() );
 
       }
 
@@ -102,6 +104,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
 
           POLYBENCH_JACOBI_2D_BODY1;
         });
+        cudaErrchk( cudaGetLastError() );
 
         lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
                           <<<nblocks, nthreads_per_block>>>(
@@ -110,6 +113,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
 
           POLYBENCH_JACOBI_2D_BODY2;
         });
+        cudaErrchk( cudaGetLastError() );
 
       }
 

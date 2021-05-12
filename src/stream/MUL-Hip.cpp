@@ -63,6 +63,7 @@ void MUL::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((mul), dim3(grid_size), dim3(block_size), 0, 0,  b, c, alpha,
                                       iend );
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -83,6 +84,7 @@ void MUL::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(lambda_hip_forall<decltype(mul_lambda)>,
         grid_size, block_size, 0, 0, ibegin, iend, mul_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

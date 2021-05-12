@@ -64,6 +64,7 @@ void LTIMES::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((ltimes), dim3(nblocks), dim3(nthreads_per_block), 0, 0, phidat, elldat, psidat,
                                               num_d, num_g, num_m);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -91,6 +92,7 @@ void LTIMES::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel,
         nblocks, nthreads_per_block, 0, 0,
         0, num_z, 0, num_g, 0, num_m, ltimes_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

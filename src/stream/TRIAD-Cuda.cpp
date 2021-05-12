@@ -66,6 +66,7 @@ void TRIAD::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       triad<<<grid_size, block_size>>>( a, b, c, alpha,
                                         iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -84,6 +85,7 @@ void TRIAD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         TRIAD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

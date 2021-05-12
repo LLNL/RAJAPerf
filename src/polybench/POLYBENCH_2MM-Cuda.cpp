@@ -84,11 +84,13 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       dim3 nthreads_per_block1(nj, 1, 1);
       poly_2mm_1<<<nblocks1, nthreads_per_block1>>>(tmp, A, B, alpha,
                                                     nj, nk);
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks2(1, ni, 1);
       dim3 nthreads_per_block2(nl, 1, 1);
       poly_2mm_2<<<nblocks2, nthreads_per_block2>>>(tmp, C, D, beta,
                                                     nl, nj);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -115,6 +117,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_2MM_BODY3;
       });
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks2(1, ni, 1);
       dim3 nthreads_per_block2(nl, 1, 1);
@@ -129,6 +132,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_2MM_BODY6;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

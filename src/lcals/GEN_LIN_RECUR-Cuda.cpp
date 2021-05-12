@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -40,18 +40,18 @@ namespace lcals
   deallocCudaDeviceData(sa); \
   deallocCudaDeviceData(sb);
 
-__global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5, 
+__global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
-                             Index_type N) 
+                             Index_type N)
 {
    Index_type k = blockIdx.x * blockDim.x + threadIdx.x;
    if (k < N) {
-     GEN_LIN_RECUR_BODY1; 
+     GEN_LIN_RECUR_BODY1;
    }
 }
 
-__global__ void genlinrecur2(Real_ptr b5, Real_ptr stb5, 
+__global__ void genlinrecur2(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
                              Index_type N)
@@ -77,14 +77,16 @@ void GEN_LIN_RECUR::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       genlinrecur1<<<grid_size1, block_size>>>( b5, stb5, sa, sb, 
+       genlinrecur1<<<grid_size1, block_size>>>( b5, stb5, sa, sb,
                                                  kb5i,
-                                                 N ); 
+                                                 N );
+       cudaErrchk( cudaGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       genlinrecur1<<<grid_size2, block_size>>>( b5, stb5, sa, sb, 
+       genlinrecur1<<<grid_size2, block_size>>>( b5, stb5, sa, sb,
                                                  kb5i,
-                                                 N ); 
+                                                 N );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

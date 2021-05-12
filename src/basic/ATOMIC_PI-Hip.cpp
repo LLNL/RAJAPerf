@@ -64,6 +64,7 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(atomic_pi,grid_size, block_size, 0, 0, pi, dx, iend );
+      hipErrchk( hipGetLastError() );
 
       getHipDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;
@@ -90,6 +91,7 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(lambda_hip_forall<decltype(atomic_pi_lambda)>,
           grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
+      hipErrchk( hipGetLastError() );
 
       getHipDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;

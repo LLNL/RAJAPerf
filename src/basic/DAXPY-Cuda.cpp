@@ -64,6 +64,7 @@ void DAXPY::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       daxpy<<<grid_size, block_size>>>( y, x, a,
                                         iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -82,6 +83,7 @@ void DAXPY::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         DAXPY_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

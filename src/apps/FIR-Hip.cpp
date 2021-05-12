@@ -110,11 +110,13 @@ void FIR::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
                                        coefflen,
                                        iend );
+       hipErrchk( hipGetLastError() );
 #else
        hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
                                        coeff,
                                        coefflen,
                                        iend );
+       hipErrchk( hipGetLastError() );
 #endif
 
     }

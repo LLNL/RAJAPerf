@@ -98,6 +98,7 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
                                              real_zones,
                                              half, ptiny,
                                              iend);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -127,6 +128,7 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(deldotvec2d_lambda)>,
         grid_size, block_size, 0, 0,
         0, iend, deldotvec2d_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

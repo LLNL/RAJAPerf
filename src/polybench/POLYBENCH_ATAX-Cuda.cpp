@@ -86,8 +86,10 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
       poly_atax_1<<<grid_size, block_size>>>(A, x, y, tmp, N);
+      cudaErrchk( cudaGetLastError() );
 
       poly_atax_2<<<grid_size, block_size>>>(A, tmp, y, N);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -113,6 +115,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
         }
         POLYBENCH_ATAX_BODY3;
       });
+      cudaErrchk( cudaGetLastError() );
 
       lambda_cuda_forall<<<grid_size, block_size>>>(
         0, N,
@@ -124,6 +127,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
         }
         POLYBENCH_ATAX_BODY6;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -66,6 +66,7 @@ void TRIAD::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((triad), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
                                         iend );
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -86,6 +87,7 @@ void TRIAD::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(lambda_hip_forall<decltype(triad_lambda)>,
         grid_size, block_size, 0, 0, ibegin, iend, triad_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -69,6 +69,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
       hipLaunchKernelGGL((poly_gemm), dim3(nblocks), dim3(nthreads_per_block), 0,0,C, A, B,
                                                  alpha, beta,
                                                  nj, nk);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -99,6 +100,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel,
         nblocks, nthreads_per_block, 0, 0,
         0, ni, 0, nj, poly_gemm_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
