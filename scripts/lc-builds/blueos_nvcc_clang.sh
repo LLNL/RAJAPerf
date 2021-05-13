@@ -51,5 +51,12 @@ cmake \
 
 echo
 echo "***********************************************************************"
+echo
 echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo
+echo "  Please note that you have to disable CUDA GPU hooks when you run" 
+echo "  the RAJA Perf Suite; for example,"
+echo 
+echo "    lrun -1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe"
+echo
 echo "***********************************************************************"
