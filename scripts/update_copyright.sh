@@ -53,7 +53,7 @@ for i in LICENSE RELEASE README.md
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/2017-20/2017-21/" $i.sed.bak > $i
+    sed "s/2017-2020/2017-2021/" $i.sed.bak > $i
 done
 
 #=============================================================================
