@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,25 +18,29 @@ namespace basic
 {
 
 
-void ATOMIC_PI::runSeqVariant(VariantID vid)
+void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 {
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   switch ( vid ) {
 
-    case Base_Seq : {
+    case Base_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         *pi = m_pi_init;
+        #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           double x = (double(i) + 0.5) * dx;
-          *pi += dx / (1.0 + x * x);
+          #pragma omp atomic
+          *pi += dx / (1.0 + x * x); 
         }
         *pi *= 4.0;
 
@@ -46,11 +50,11 @@ void ATOMIC_PI::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
+    case Lambda_OpenMP : {
 
       auto atomicpi_base_lam = [=](Index_type i) {
                                  double x = (double(i) + 0.5) * dx;
+                                 #pragma omp atomic
                                  *pi += dx / (1.0 + x * x);
                                };
 
@@ -58,6 +62,7 @@ void ATOMIC_PI::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         *pi = m_pi_init;
+        #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           atomicpi_base_lam(i);
         }
@@ -69,16 +74,16 @@ void ATOMIC_PI::runSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case RAJA_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-   
+
         *pi = m_pi_init;
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
-          [=](Index_type i) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>( 
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             double x = (double(i) + 0.5) * dx;
-            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
+            RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
         });
         *pi *= 4.0;
 
@@ -87,14 +92,14 @@ void ATOMIC_PI::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif
 
     default : {
-      std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#endif
 }
 
 } // end namespace basic

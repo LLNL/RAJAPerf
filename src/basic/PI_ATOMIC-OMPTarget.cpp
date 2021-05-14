@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -26,27 +26,27 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define ATOMIC_PI_DATA_SETUP_OMP_TARGET \
+#define PI_ATOMIC_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
   allocAndInitOpenMPDeviceData(pi, m_pi, 1, did, hid);
 
-#define ATOMIC_PI_DATA_TEARDOWN_OMP_TARGET \
+#define PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET \
   deallocOpenMPDeviceData(pi, did);
 
 
-void ATOMIC_PI::runOpenMPTargetVariant(VariantID vid)
+void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    ATOMIC_PI_DATA_SETUP_OMP_TARGET;
+    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,11 +67,11 @@ void ATOMIC_PI::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_OMP_TARGET;
+    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    ATOMIC_PI_DATA_SETUP_OMP_TARGET;
+    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -90,10 +90,10 @@ void ATOMIC_PI::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_OMP_TARGET;
+    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
   
   } else {
-     std::cout << "\n  ATOMIC_PI : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n  PI_ATOMIC : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
