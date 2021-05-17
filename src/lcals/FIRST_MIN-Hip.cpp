@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -93,6 +93,7 @@ void FIRST_MIN::runHipVariant(VariantID vid)
                    sizeof(MyMinLoc)*block_size, 0, x,
                                                    dminloc,
                                                    iend );
+       hipErrchk( hipGetLastError() );
 
        hipErrchk( hipMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
                                hipMemcpyDeviceToHost ) );

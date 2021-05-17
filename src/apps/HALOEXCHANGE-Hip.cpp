@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -92,6 +92,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           dim3 nblocks((len + block_size-1) / block_size);
           hipLaunchKernelGGL((haloexchange_pack), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
+          hipErrchk( hipGetLastError() );
           buffer += len;
         }
       }
@@ -107,6 +108,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
           dim3 nblocks((len + block_size-1) / block_size);
           hipLaunchKernelGGL((haloexchange_unpack), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
+          hipErrchk( hipGetLastError() );
           buffer += len;
         }
       }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -37,11 +37,11 @@ namespace lcals
   deallocCudaDeviceData(y);
 
 __global__ void first_sum(Real_ptr x, Real_ptr y,
-                          Index_type iend) 
+                          Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i > 0 && i < iend) {
-     FIRST_SUM_BODY; 
+     FIRST_SUM_BODY;
    }
 }
 
@@ -63,7 +63,8 @@ void FIRST_SUM::runCudaVariant(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        first_sum<<<grid_size, block_size>>>( x, y,
-                                              iend ); 
+                                              iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

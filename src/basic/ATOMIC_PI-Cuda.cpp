@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -64,6 +64,7 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       atomic_pi<<<grid_size, block_size>>>( pi, dx, iend );
+      cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;
@@ -88,6 +89,7 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
           double x = (double(i) + 0.5) * dx;
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
+      cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
       *m_pi *= 4.0;

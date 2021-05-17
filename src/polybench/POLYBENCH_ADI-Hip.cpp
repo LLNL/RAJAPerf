@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -99,11 +99,13 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
                                         n,
                                         a, b, c, d, f,
                                         P, Q, U, V);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((adi2), dim3(grid_size), dim3(block_size), 0, 0,
                                         n,
                                         a, c, d, e, f,
                                         P, Q, U, V);
+        hipErrchk( hipGetLastError() );
 
       }  // tstep loop
 
@@ -138,6 +140,7 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(lambda_hip_forall<decltype(adi1_lamda)>,
           grid_size, block_size, 0, 0,
           1, n-1, adi1_lamda);
+        hipErrchk( hipGetLastError() );
 
         auto adi2_lamda = [=] __device__ (Index_type i) {
 
@@ -154,6 +157,7 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(lambda_hip_forall<decltype(adi2_lamda)>,
           grid_size, block_size, 0, 0,
           1, n-1, adi2_lamda);
+        hipErrchk( hipGetLastError() );
 
       }  // tstep loop
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -65,6 +65,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
       initview1d_offset<<<grid_size, block_size>>>( a, v,
                                                     ibegin,
                                                     iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -83,6 +84,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

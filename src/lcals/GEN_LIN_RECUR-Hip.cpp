@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -81,12 +81,14 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
+       hipErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
        hipLaunchKernelGGL(genlinrecur1, grid_size2, block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

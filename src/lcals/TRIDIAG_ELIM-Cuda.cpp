@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -41,11 +41,11 @@ namespace lcals
   deallocCudaDeviceData(z);
 
 __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
-                    Index_type N) 
+                    Index_type N)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i > 0 && i < N) {
-     TRIDIAG_ELIM_BODY; 
+     TRIDIAG_ELIM_BODY;
    }
 }
 
@@ -67,7 +67,8 @@ void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        eos<<<grid_size, block_size>>>( xout, xin, y, z,
-                                       iend ); 
+                                       iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -66,6 +66,7 @@ void ADD::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       add<<<grid_size, block_size>>>( c, a, b,
                                       iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -84,6 +85,7 @@ void ADD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         ADD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

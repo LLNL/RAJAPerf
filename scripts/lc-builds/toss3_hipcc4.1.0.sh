@@ -7,24 +7,24 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-BUILD_SUFFIX=lc_blueos-xl_2020.09.17_omptarget
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/xl_X.cmake
+BUILD_SUFFIX=lc_toss3-hipcc-4.1.0
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip.cmake
 
-rm -rf build_${BUILD_SUFFIX} 2>/dev/null
+rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
+
 
 module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/xl/xl-2020.09.17/bin/xlc++_r \
+  -DRAJA_HIPCC_FLAGS="--amdgpu-target=gfx906" \
+  -DHIP_ROOT_DIR=/opt/rocm-4.1.0/hip \
+  -DHIP_CLANG_PATH=/opt/rocm-4.1.0/llvm/bin \
   -C ${RAJA_HOSTCONFIG} \
-  -DENABLE_OPENMP=On \
-  -DENABLE_TARGET_OPENMP=On \
-  -DOpenMP_CXX_FLAGS="-qoffload;-qsmp=omp;-qnoeh;-qalias=noansi" \
-  -DENABLE_TESTS=Off \
-  -DENABLE_EXAMPLES=Off \
-  -DENABLE_EXERCISES=Off \
+  -DENABLE_HIP=ON \
+  -DENABLE_OPENMP=OFF \
+  -DENABLE_CUDA=OFF \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..

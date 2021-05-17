@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -112,6 +112,7 @@ void TRAP_INT::runHipVariant(VariantID vid)
                                                 h,
                                                 sumx,
                                                 iend);
+      hipErrchk( hipGetLastError() );
 
       Real_type lsumx;
       Real_ptr plsumx = &lsumx;
