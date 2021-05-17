@@ -52,12 +52,21 @@ Executor::Executor(int argc, char** argv)
    adiak::value("cmake_build_type",cc.cmake_build_type);
    adiak::value("compiler",cc.compiler);
    adiak::value("compiler_flags",cc.compiler_flags);
-   adiak::value("compiler_flags_release",cc.compiler_flags_release);
-   adiak::value("cuda_compiler_version",cc.cuda_compiler_version);
-   adiak::value("cuda_flags",cc.cuda_flags);
-   adiak::value("cuda_flags_release",cc.cuda_flags_release);
-   adiak::value("systype_build",cc.systype_build);
-   adiak::value("machine_build",cc.machine_build);
+   if(!strcmp(cc.cmake_build_type,"Release"))
+      adiak::value("compiler_flags_release",cc.compiler_flags_release);
+   else if(!strcmp(cc.cmake_build_type,"RelWithDebInfo"))
+      adiak::value("compiler_flags_relwithdebinfo",cc.compiler_flags_relwithdebinfo);
+   else if(!strcmp(cc.cmake_build_type,"Debug"))
+      adiak::value("compiler_flags_debug",cc.compiler_flags_debug);
+   if(strlen(cc.cuda_compiler_version) > 0) {
+      adiak::value("cuda_compiler_version",cc.cuda_compiler_version);
+      adiak::value("cuda_flags",cc.cuda_flags);
+      adiak::value("cuda_flags_release",cc.cuda_flags_release);
+   }
+   if(strlen(cc.systype_build) > 0)
+      adiak::value("systype_build",cc.systype_build);
+   if(strlen(cc.machine_build) > 0)
+      adiak::value("machine_build",cc.machine_build);
 #endif
 }
 

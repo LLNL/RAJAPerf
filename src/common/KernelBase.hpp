@@ -23,13 +23,13 @@
 
 #define CALI_START \
     if(doCaliperTiming) { \
-      std::string kstr = getName() + ":" + getVariantName(running_variant); \
+      std::string kstr = getName() + "." + getVariantName(running_variant); \
       CALI_MARK_BEGIN(kstr.c_str()); \
     }
 
 #define CALI_STOP \
     if(doCaliperTiming) { \
-      std::string kstr = getName() + ":" + getVariantName(running_variant); \
+      std::string kstr = getName() + "." + getVariantName(running_variant); \
       CALI_MARK_END(kstr.c_str()); \
     }
 

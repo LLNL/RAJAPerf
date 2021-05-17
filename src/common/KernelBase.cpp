@@ -92,6 +92,27 @@ void KernelBase::runKernel(VariantID vid)
     return;
   }
 
+
+#ifdef RAJAPERF_USE_CALIPER
+  cali::ConfigManager *mgr=NULL; 
+  if(doCaliperTiming) {
+      if(!mgr) {
+         mgr=new(cali::ConfigManager); 
+         std::string kernel  = getName();
+         std::string variant = getVariantName(running_variant);
+         std::string kstr = kernel + "." + variant; 
+         std::string profile = "hatchet-region-profile(output=" + kstr + ".json)"; 
+         mgr->add(profile.c_str()); 
+         if (mgr->error()) 
+           std::cerr << "Caliper error: " << mgr->error_msg() << std::endl; 
+         adiak::value("kernel",kernel.c_str());
+         adiak::value("variant",variant.c_str());
+         adiak::value("kernelvariant",kstr.c_str());
+         mgr->start(); 
+      }
+  }
+#endif
+   
   switch ( vid ) {
 
     case Base_Seq :
@@ -149,6 +170,16 @@ void KernelBase::runKernel(VariantID vid)
     }
 
   }
+
+#ifdef RAJAPERF_USE_CALIPER
+  if(doCaliperTiming) {
+     if(mgr) {
+      mgr->flush();
+      delete(mgr);
+      mgr=NULL;
+     }
+  }
+#endif
 }
 
 void KernelBase::print(std::ostream& os) const
