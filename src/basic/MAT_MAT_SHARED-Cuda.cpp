@@ -64,12 +64,12 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type N = getRunSize();
 
-  dim3 blockdim(TL_SZ, TL_SZ);
-  dim3 griddim(RAJA_DIVIDE_CEILING_INT(N, blockdim.x),
-               RAJA_DIVIDE_CEILING_INT(N, blockdim.y));
+  dim3 block_size(TL_SZ, TL_SZ);
+  dim3 grid_size(RAJA_DIVIDE_CEILING_INT(N, block_size.x),
+               RAJA_DIVIDE_CEILING_INT(N, block_size.y));
 
-  const Index_type Nx = griddim.x;
-  const Index_type Ny = griddim.y;
+  const Index_type Nx = grid_size.x;
+  const Index_type Ny = grid_size.y;
 
   MAT_MAT_SHARED_DATA_SETUP;
 
@@ -80,7 +80,9 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<<<griddim, blockdim>>>(N, A, B, C);
+      mat_mat_shared<<<grid_size, block_size>>>(N, A, B, C);
+
+      cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 
@@ -93,7 +95,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      lambda_cuda<<<griddim, blockdim>>>([=] __device__() {
+      lambda_cuda<<<grid_size, block_size>>>([=] __device__() {
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0
@@ -181,6 +183,8 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
           if(by < Ny) outer_y(by);
         }
       });
+
+      cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 
