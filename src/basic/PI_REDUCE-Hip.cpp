@@ -80,7 +80,7 @@ void PI_REDUCE::runHipVariant(VariantID vid)
       initHipDeviceData(dpi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL( (pi), dim3(grid_size), dim3(block_size), 
+      hipLaunchKernelGGL( (pi_reduce), dim3(grid_size), dim3(block_size), 
                           sizeof(Real_type)*block_size, 0,
                           dx, dpi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
