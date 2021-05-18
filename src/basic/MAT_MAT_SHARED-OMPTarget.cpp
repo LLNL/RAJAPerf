@@ -21,19 +21,8 @@ namespace basic {
 
 void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid) {
 
-  MAT_MAT_SHARED_DATA_SETUP;
-
-  if (vid == Base_OpenMPTarget) {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    }
-    stopTimer();
-
-  } else if (vid == RAJA_OpenMPTarget) {
-
-  } else {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown OMP Target variant id = " << vid
+  {
+    std::cout << "\n  MAT_MAT_SHARED : OMP Target unsupported at this time " << vid
               << std::endl;
   }
 }
