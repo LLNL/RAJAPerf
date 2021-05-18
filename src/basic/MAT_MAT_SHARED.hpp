@@ -24,7 +24,6 @@
   Real_ptr B = m_B;                                                            \
   Real_ptr C = m_C;
 
-//Clang has trouble with the RAJA_TEAM_SHARED macros believing
 /*
  When doing the device compile pass hipcc/clang will put in the device
  versions of the macros everywhere, in device functions, host device functions, 
