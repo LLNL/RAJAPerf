@@ -24,6 +24,13 @@
   Real_ptr B = m_B;                                                            \
   Real_ptr C = m_C;
 
+//Clang has trouble with the RAJA_TEAM_SHARED macros believing
+//its always compiling for the device
+#define MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU                   \
+  double As[TL_SZ][TL_SZ];                                    \
+  double Bs[TL_SZ][TL_SZ];                                    \
+  double Cs[TL_SZ][TL_SZ];
+
 #define MAT_MAT_SHARED_BODY_0                                                  \
   RAJA_TEAM_SHARED double As[TL_SZ][TL_SZ];                                    \
   RAJA_TEAM_SHARED double Bs[TL_SZ][TL_SZ];                                    \

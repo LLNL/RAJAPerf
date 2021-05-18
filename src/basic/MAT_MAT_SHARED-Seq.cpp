@@ -32,7 +32,9 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
       for (Index_type by = 0; by < Ny; ++by) {
         for (Index_type bx = 0; bx < Nx; ++bx) {
 
-          MAT_MAT_SHARED_BODY_0
+          //Work around for when compiling with CLANG and HIP
+          //See notes in MAT_MAT_SHARED.hpp
+          MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU
 
           for (Index_type ty = 0; ty < TL_SZ; ++ty) {
             for (Index_type tx = 0; tx < TL_SZ; ++tx) {
