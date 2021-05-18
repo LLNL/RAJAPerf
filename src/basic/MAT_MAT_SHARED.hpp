@@ -64,6 +64,7 @@ using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
 #endif
                                                >;
 
+#if defined(RAJA_ENABLE_OPENMP)
 using omp_launch_policy =
     RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
 #if defined(RAJA_ENABLE_CUDA)
@@ -75,6 +76,7 @@ using omp_launch_policy =
                              RAJA::expt::hip_launch_t<true>
 #endif
                              >;
+#endif
 
 using loop_policy = RAJA::loop_exec;
 
@@ -119,13 +121,14 @@ using threads_y = RAJA::expt::LoopPolicy<loop_policy
                                          gpu_thread_y_policy
 #endif
                                          >;
-
+#if defined(RAJA_ENABLE_OPENMP)
 using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                        ,
                                        gpu_block_y_policy
 #endif
                                        >;
+#endif
 
 namespace rajaperf {
 class RunParams;
