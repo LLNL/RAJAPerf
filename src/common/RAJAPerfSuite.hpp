@@ -107,6 +107,7 @@ enum KernelID {
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
   Basic_PI_ATOMIC,
+  Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
 

@@ -49,7 +49,7 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto atomicpi_base_lam = [=](Index_type i) {
+      auto piatomic_base_lam = [=](Index_type i) {
                                  double x = (double(i) + 0.5) * dx;
                                  *pi += dx / (1.0 + x * x);
                                };
@@ -59,7 +59,7 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
 
         *pi = m_pi_init;
         for (Index_type i = ibegin; i < iend; ++i ) {
-          atomicpi_base_lam(i);
+          piatomic_base_lam(i);
         }
         *pi *= 4.0;
 

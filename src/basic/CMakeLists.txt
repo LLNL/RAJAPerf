@@ -56,6 +56,11 @@ blt_add_library(
           PI_ATOMIC-Cuda.cpp
           PI_ATOMIC-OMP.cpp
           PI_ATOMIC-OMPTarget.cpp
+          PI_REDUCE.cpp
+          PI_REDUCE-Seq.cpp
+          PI_REDUCE-Hip.cpp
+          PI_REDUCE-Cuda.cpp
+          PI_REDUCE-OMP.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp

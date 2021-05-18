@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "PI_ATOMIC.hpp"
+#include "PI_REDUCE.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void PI_ATOMIC::runOpenMPVariant(VariantID vid)
+void PI_REDUCE::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -26,7 +26,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  PI_ATOMIC_DATA_SETUP;
+  PI_REDUCE_DATA_SETUP;
 
   switch ( vid ) {
 
@@ -35,14 +35,14 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
-        #pragma omp parallel for
+        Real_type pi = m_pi_init;
+        
+        #pragma omp parallel for reduction(+:pi)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          double x = (double(i) + 0.5) * dx;
-          #pragma omp atomic
-          *pi += dx / (1.0 + x * x); 
+          PI_REDUCE_BODY;
         }
-        *pi *= 4.0;
+
+        m_pi = 4.0 * pi;
 
       }
       stopTimer();
@@ -52,21 +52,22 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
-      auto piatomic_base_lam = [=](Index_type i) {
+      auto pireduce_base_lam = [=](Index_type i) -> Real_type {
                                  double x = (double(i) + 0.5) * dx;
-                                 #pragma omp atomic
-                                 *pi += dx / (1.0 + x * x);
+                                 return dx / (1.0 + x * x);
                                };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
-        #pragma omp parallel for
+        Real_type pi = m_pi_init;
+
+        #pragma omp parallel for reduction(+:pi)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          piatomic_base_lam(i);
+          pi += pireduce_base_lam(i);
         }
-        *pi *= 4.0;
+
+        m_pi = 4.0 * pi;
 
       }
       stopTimer();
@@ -78,28 +79,30 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+  
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init); 
 
-        *pi = m_pi_init;
         RAJA::forall<RAJA::omp_parallel_for_exec>( 
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-            double x = (double(i) + 0.5) * dx;
-            RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
+          RAJA::RangeSegment(ibegin, iend), 
+          [=](Index_type i) {
+            PI_REDUCE_BODY;
         });
-        *pi *= 4.0;
+
+        m_pi = 4.0 * pi.get();
 
       }
       stopTimer();
 
       break;
     }
+#endif
 
     default : {
-      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#endif
 }
 
 } // end namespace basic

@@ -33,7 +33,7 @@ namespace basic
 #define PI_ATOMIC_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(pi);
 
-__global__ void atomic_pi(Real_ptr pi,
+__global__ void pi_atomic(Real_ptr pi,
                           Real_type dx,
                           Index_type iend)
 {
@@ -63,7 +63,7 @@ void PI_ATOMIC::runCudaVariant(VariantID vid)
       initCudaDeviceData(pi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      atomic_pi<<<grid_size, block_size>>>( pi, dx, iend );
+      pi_atomic<<<grid_size, block_size>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);

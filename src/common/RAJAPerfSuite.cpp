@@ -21,6 +21,7 @@
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
+#include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/TRAP_INT.hpp"
 
@@ -142,6 +143,7 @@ static const std::string KernelNames [] =
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
+  std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_TRAP_INT"),
 
@@ -409,6 +411,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_PI_ATOMIC : {
        kernel = new basic::PI_ATOMIC(run_params);
+       break;
+    }
+    case Basic_PI_REDUCE : {
+       kernel = new basic::PI_REDUCE(run_params);
        break;
     }
     case Basic_REDUCE3_INT : {
