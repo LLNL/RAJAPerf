@@ -31,7 +31,7 @@ __global__ void pi_reduce(Real_type dx,
                           Real_ptr dpi, Real_type pi_init,
                           Index_type iend)
 {
-  HIP_DYNAMIC_SHARED(Real_type ppi);
+  HIP_DYNAMIC_SHARED(Real_type, ppi);
 
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 

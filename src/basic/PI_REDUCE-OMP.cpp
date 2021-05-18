@@ -95,7 +95,6 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
 
       break;
     }
-#endif
 
     default : {
       std::cout << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
@@ -103,6 +102,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace basic
