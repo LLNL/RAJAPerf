@@ -25,7 +25,14 @@
   Real_ptr C = m_C;
 
 //Clang has trouble with the RAJA_TEAM_SHARED macros believing
-//its always compiling for the device
+/*
+ When doing the device compile pass hipcc/clang will put in the device
+ versions of the macros everywhere, in device functions, host device functions, 
+ and host only functions. Then it will make sure that code is valid everywhere, 
+ that's fine for device and host device functions, but it is not ok for host only 
+ functions. Nvcc doesn't look at host only code when it does the device pass 
+ so it doesn't see these kind of problems.
+ */
 #define MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU                   \
   double As[TL_SZ][TL_SZ];                                    \
   double Bs[TL_SZ][TL_SZ];                                    \
