@@ -101,7 +101,7 @@ void KernelBase::runKernel(VariantID vid)
          std::string kernel  = getName();
          std::string variant = getVariantName(running_variant);
          std::string kstr = kernel + "." + variant; 
-         std::string profile = "hatchet-region-profile(output=" + kstr + ".json)"; 
+         std::string profile = "spot(output=" + kstr + ".cali)"; 
          mgr->add(profile.c_str()); 
          if (mgr->error()) 
            std::cerr << "Caliper error: " << mgr->error_msg() << std::endl; 

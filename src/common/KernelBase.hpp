@@ -21,6 +21,7 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 
+#if 0
 #define CALI_START \
     if(doCaliperTiming) { \
       std::string kstr = getName() + "." + getVariantName(running_variant); \
@@ -32,7 +33,16 @@
       std::string kstr = getName() + "." + getVariantName(running_variant); \
       CALI_MARK_END(kstr.c_str()); \
     }
+#endif
+#define CALI_START \
+    if(doCaliperTiming) { \
+      CALI_MARK_BEGIN("kernel"); \
+    }
 
+#define CALI_STOP \
+    if(doCaliperTiming) { \
+      CALI_MARK_END("kernel"); \
+    }
 #else
 #define CALI_START
 #define CALI_STOP
