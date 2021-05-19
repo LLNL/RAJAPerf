@@ -84,6 +84,7 @@ blt_add_executable(
   basic/PI_ATOMIC-OMPTarget.cpp
   basic/PI_REDUCE.cpp
   basic/PI_REDUCE-Seq.cpp
+  basic/PI_REDUCE-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp

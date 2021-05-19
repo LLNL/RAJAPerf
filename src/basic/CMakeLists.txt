@@ -61,6 +61,7 @@ blt_add_library(
           PI_REDUCE-Hip.cpp
           PI_REDUCE-Cuda.cpp
           PI_REDUCE-OMP.cpp
+          PI_REDUCE-OMPTarget.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp
