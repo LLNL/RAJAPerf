@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -27,13 +27,13 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define ATOMIC_PI_DATA_SETUP_CUDA \
+#define PI_ATOMIC_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(pi, m_pi, 1);
 
-#define ATOMIC_PI_DATA_TEARDOWN_CUDA \
+#define PI_ATOMIC_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(pi);
 
-__global__ void atomic_pi(Real_ptr pi,
+__global__ void pi_atomic(Real_ptr pi,
                           Real_type dx,
                           Index_type iend)
 {
@@ -45,17 +45,17 @@ __global__ void atomic_pi(Real_ptr pi,
 }
 
 
-void ATOMIC_PI::runCudaVariant(VariantID vid)
+void PI_ATOMIC::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    ATOMIC_PI_DATA_SETUP_CUDA;
+    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -63,7 +63,7 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
       initCudaDeviceData(pi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      atomic_pi<<<grid_size, block_size>>>( pi, dx, iend );
+      pi_atomic<<<grid_size, block_size>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
@@ -72,11 +72,11 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_CUDA;
+    PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == Lambda_CUDA ) {
 
-    ATOMIC_PI_DATA_SETUP_CUDA;
+    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -97,11 +97,11 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_CUDA;
+    PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == RAJA_CUDA ) {
 
-    ATOMIC_PI_DATA_SETUP_CUDA;
+    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -120,10 +120,10 @@ void ATOMIC_PI::runCudaVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_CUDA;
+    PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  ATOMIC_PI : Unknown Cuda variant id = " << vid << std::endl;
+     std::cout << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

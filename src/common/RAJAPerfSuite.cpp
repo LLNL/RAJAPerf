@@ -13,7 +13,6 @@
 //
 // Basic kernels...
 //
-#include "basic/ATOMIC_PI.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
@@ -21,6 +20,8 @@
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/PI_ATOMIC.hpp"
+#include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/TRAP_INT.hpp"
 
@@ -134,7 +135,6 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
-  std::string("Basic_ATOMIC_PI"),
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
@@ -142,6 +142,8 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT_VIEW1D_OFFSET"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_PI_ATOMIC"),
+  std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_TRAP_INT"),
 
@@ -379,10 +381,6 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
-    case Basic_ATOMIC_PI : {
-       kernel = new basic::ATOMIC_PI(run_params);
-       break;
-    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -409,6 +407,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_NESTED_INIT : {
        kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_PI_ATOMIC : {
+       kernel = new basic::PI_ATOMIC(run_params);
+       break;
+    }
+    case Basic_PI_REDUCE : {
+       kernel = new basic::PI_REDUCE(run_params);
        break;
     }
     case Basic_REDUCE3_INT : {

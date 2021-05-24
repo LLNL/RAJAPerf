@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void ATOMIC_PI::runOpenMPVariant(VariantID vid)
+void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -26,7 +26,7 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   switch ( vid ) {
 
@@ -52,7 +52,7 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
-      auto atomicpi_base_lam = [=](Index_type i) {
+      auto piatomic_base_lam = [=](Index_type i) {
                                  double x = (double(i) + 0.5) * dx;
                                  #pragma omp atomic
                                  *pi += dx / (1.0 + x * x);
@@ -64,7 +64,7 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
         *pi = m_pi_init;
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          atomicpi_base_lam(i);
+          piatomic_base_lam(i);
         }
         *pi *= 4.0;
 
@@ -94,7 +94,7 @@ void ATOMIC_PI::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }
 
   }
