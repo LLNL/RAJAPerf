@@ -137,14 +137,14 @@ namespace rajaperf {
         free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_1D(run_params));
         free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_2D(run_params));
         free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_MVT(run_params));
-
+**/
         // Stream
         free_register_kernel(exec, "Stream", new stream::ADD(run_params));
-        free_register_kernel(exec, "Stream", new stream::COPY(run_params));
-        free_register_kernel(exec, "Stream", new stream::DOT(run_params));
-        free_register_kernel(exec, "Stream", new stream::MUL(run_params));
-        free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
-
+        //free_register_kernel(exec, "Stream", new stream::COPY(run_params));
+        //free_register_kernel(exec, "Stream", new stream::DOT(run_params));
+        //free_register_kernel(exec, "Stream", new stream::MUL(run_params));
+        //free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
+/**
         // Apps
         free_register_kernel(exec, "Apps", new apps::COUPLE(run_params));
         free_register_kernel(exec, "Apps", new apps::DEL_DOT_VEC_2D(run_params));
@@ -252,11 +252,11 @@ namespace rajaperf {
 ////
 //// Stream kernels...
 ////
-//  std::string("Stream_ADD"),
-//  std::string("Stream_COPY"),
-//  std::string("Stream_DOT"),
-//  std::string("Stream_MUL"),
-//  std::string("Stream_TRIAD"),
+  std::string("Stream_ADD"),
+  std::string("Stream_COPY"),
+  std::string("Stream_DOT"),
+  std::string("Stream_MUL"),
+  std::string("Stream_TRIAD"),
 //
 // Apps kernels...
 //
@@ -622,7 +622,6 @@ namespace rajaperf {
        kernel = new stream::TRIAD(run_params);
        break;
     }
-
 //
 // Apps kernels...
 //

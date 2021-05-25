@@ -362,14 +362,14 @@ enum KernelID {
 //  Polybench_JACOBI_2D,
 //  Polybench_MVT,
 
-//
+
 // Stream kernels...
 //
-  //Stream_ADD,
-  //Stream_COPY,
-  //Stream_DOT,
-  //Stream_MUL,
-  //Stream_TRIAD,
+  Stream_ADD,
+  Stream_COPY,
+  Stream_DOT,
+  Stream_MUL,
+  Stream_TRIAD,
 
 //
 // Apps kernels...

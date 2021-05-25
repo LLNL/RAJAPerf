@@ -120,8 +120,6 @@ void INIT3::runKokkosVariant(VariantID vid)
    moveDataToHostFromKokkosView(in2, in2_view, iend);
 
 
-
-
 }
 
 } // end namespace basic

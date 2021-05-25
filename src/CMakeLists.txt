@@ -15,7 +15,8 @@ add_subdirectory(basic-kokkos)
 #add_subdirectory(kokkos-mechanics)
 #add_subdirectory(lcals)
 #add_subdirectory(polybench)
-#add_subdirectory(stream)
+add_subdirectory(stream)
+add_subdirectory(stream-kokkos)
 #add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
@@ -26,7 +27,8 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     #kokkos-mechanics
     #lcals
     #polybench
-    #stream
+    stream
+    stream-kokkos
     #algorithm
     )
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
@@ -172,21 +174,26 @@ blt_add_executable(
   #polybench/POLYBENCH_MVT.cpp
   #polybench/POLYBENCH_MVT-Seq.cpp
   #polybench/POLYBENCH_MVT-OMPTarget.cpp
-  #stream/ADD.cpp
-  #stream/ADD-Seq.cpp
-  #stream/ADD-OMPTarget.cpp
-  #stream/COPY.cpp
-  #stream/COPY-Seq.cpp
-  #stream/COPY-OMPTarget.cpp
-  #stream/DOT.cpp
-  #stream/DOT-Seq.cpp
-  #stream/DOT-OMPTarget.cpp
-  #stream/MUL.cpp
-  #stream/MUL-Seq.cpp
-  #stream/MUL-OMPTarget.cpp
-  #stream/TRIAD.cpp
-  #stream/TRIAD-Seq.cpp
-  #stream/TRIAD-OMPTarget.cpp
+  stream/ADD.cpp
+  stream/ADD-Seq.cpp
+  stream/ADD-OMPTarget.cpp
+  stream/COPY.cpp
+  stream/COPY-Seq.cpp
+  stream/COPY-OMPTarget.cpp
+  stream/DOT.cpp
+  stream/DOT-Seq.cpp
+  stream/DOT-OMPTarget.cpp
+  stream/MUL.cpp
+  stream/MUL-Seq.cpp
+  stream/MUL-OMPTarget.cpp
+  stream/TRIAD.cpp
+  stream/TRIAD-Seq.cpp
+  stream/TRIAD-OMPTarget.cpp
+  stream-kokkos/ADD-Kokkos.cpp
+  stream-kokkos/COPY-Kokkos.cpp
+  stream-kokkos/DOT-Kokkos.cpp
+  stream-kokkos/MUL-Kokkos.cpp
+  stream-kokkos/TRIAD-Kokkos.cpp
   common/DataUtils.cpp
   common/Executor.cpp
   common/KernelBase.cpp
