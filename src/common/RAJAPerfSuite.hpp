@@ -22,10 +22,11 @@
 #include <string>
 namespace rajaperf
 {
-
+class RunParams;
 class Executor; // forward declaration
 class KernelBase;
 
+const RunParams& getRunParams(Executor*);
 void free_register_group(Executor*, std::string); // forward declaration
 void free_register_kernel(Executor*, std::string, KernelBase*); // forward declaration
 void make_perfsuite_executor(Executor* exec, int argc, char* argv[]);

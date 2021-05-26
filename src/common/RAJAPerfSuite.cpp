@@ -89,7 +89,8 @@
 
 namespace rajaperf {
     void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
-        RunParams run_params(argc, argv);
+        //RunParams run_params(argc, argv);
+        const RunParams& run_params = getRunParams(exec);
         free_register_group(exec, std::string("Basic"));
         free_register_group(exec, std::string("Lcals"));
         free_register_group(exec, std::string("Polybench"));

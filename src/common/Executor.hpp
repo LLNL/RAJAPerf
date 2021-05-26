@@ -66,6 +66,12 @@ public:
 
   std::vector<KernelBase*> lookUpKernelByName(std::string kernelOrGroupName);
 
+  const RunParams& getRunParams();
+
+
+
+
+
 private:
   Executor() = delete;
 
@@ -134,6 +140,7 @@ private:
 
 void free_register_group(Executor*, std::string);
 void free_register_kernel(Executor*, std::string, KernelBase*);
+const RunParams& getRunParams(Executor* exec);
 
 }  // closing brace for rajaperf namespace
 

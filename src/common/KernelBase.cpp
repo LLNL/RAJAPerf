@@ -64,21 +64,11 @@ Index_type KernelBase::getRunSize() const
 //FIXME
 Index_type KernelBase::getRunReps() const
 {
-  // DEBUGGING
-  std::cout << "AMOS" << std::endl;
-
-  // std::cout << "Get Run Name " << run_params << std::endl; 
-  //std::cout << "Get Variant Name " << run_params.getVariantName << std::endl; 
-  // std::cout << "Get Full Kernel Name " << run_params.getFullKernelName << std::endl; 
-  // std::cout << "Check Run Reps " << run_params.getCheckRunReps << std::endl; 
-  //std::cout << "Get Run Reps "   << run_params.getRunReps << std::endl; 
-  //std::cout << "Get Run Rep Factor "   << run_params.getRepFactor << std::endl; 
-  // std::cout << "Get Run Size "   << run_params.getRunSize -> run_params.getRunSize << std::endl; 
-  // std::cout << "Get Run Size Factor "   << run_params.getSizeFactor << std::endl; 
 
   if (run_params.getInputState() == RunParams::CheckRun) {
     return static_cast<Index_type>(run_params.getCheckRunReps());
   } else {
+
     return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
   } 
 }
