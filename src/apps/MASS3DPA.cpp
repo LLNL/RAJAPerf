@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "MASSPA3D.hpp"
+#include "MASS3DPA.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,21 +18,38 @@ namespace apps
 {
 
 
-MASSPA3D::MASSPA3D(const RunParams& params)
-  : KernelBase(rajaperf::Apps_MASSPA3D, params)
+MASS3DPA::MASS3DPA(const RunParams& params)
+  : KernelBase(rajaperf::Apps_MASS3DPA, params)
 {
   m_NE_default = 924385;
 
   setDefaultSize(m_NE_default);
-
   setDefaultReps(50);
+
+  setVariantDefined( Base_Seq );
+  //setVariantDefined( Lambda_Seq );
+  //setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  //setVariantDefined( Lambda_OpenMP );
+  //setVariantDefined( RAJA_OpenMP );
+
+  //setVariantDefined( Base_OpenMPTarget );
+  //setVariantDefined( RAJA_OpenMPTarget );
+
+  //setVariantDefined( Base_CUDA );
+  //setVariantDefined( RAJA_CUDA );
+
+  //setVariantDefined( Base_HIP );
+  //setVariantDefined( RAJA_HIP );
+
 }
 
-MASSPA3D::~MASSPA3D() 
+MASS3DPA::~MASS3DPA() 
 {
 }
 
-void MASSPA3D::setUp(VariantID vid)
+void MASS3DPA::setUp(VariantID vid)
 {
   m_NE = run_params.getSizeFactor() * m_NE_default;     
 
@@ -43,12 +60,12 @@ void MASSPA3D::setUp(VariantID vid)
   allocAndInitDataConst(m_Y, int(m_D1D*m_D1D*m_D1D*m_NE), Real_type(0.0), vid);
 }
 
-void MASSPA3D::updateChecksum(VariantID vid)
+void MASS3DPA::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_Y, m_D1D*m_D1D*m_D1D*NE);
+  checksum[vid] += calcChecksum(m_Y, m_D1D*m_D1D*m_D1D*m_NE);
 }
 
-void MASSPA3D::tearDown(VariantID vid)
+void MASS3DPA::tearDown(VariantID vid)
 {
   (void) vid;
  
