@@ -59,11 +59,11 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   constexpr int MQ1 = Q1D;
   constexpr int MD1 = D1D;
   constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1;
-  double sDQ[MQ1 * MD1];
+  __shared__ double sDQ[MQ1 * MD1];
   double(*Bsmem)[MD1] = (double(*)[MD1])sDQ;
   double(*Btsmem)[MQ1] = (double(*)[MQ1])sDQ;
-  double sm0[MDQ * MDQ * MDQ];
-  double sm1[MDQ * MDQ * MDQ];
+  __shared__ double sm0[MDQ * MDQ * MDQ];
+  __shared__ double sm1[MDQ * MDQ * MDQ];
   double(*Xsmem)[MD1][MD1] = (double(*)[MD1][MD1])sm0;
   double(*DDQ)[MD1][MQ1] = (double(*)[MD1][MQ1])sm1;
   double(*DQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm0;

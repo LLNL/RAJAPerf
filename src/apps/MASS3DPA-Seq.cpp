@@ -44,6 +44,21 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
       for (int e = 0; e < NE; ++e) {
 
+        constexpr int MQ1 = Q1D;
+        constexpr int MD1 = D1D;
+        constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1;
+        double sDQ[MQ1 * MD1];
+        double(*Bsmem)[MD1] = (double(*)[MD1])sDQ;
+        double(*Btsmem)[MQ1] = (double(*)[MQ1])sDQ;
+        double sm0[MDQ * MDQ * MDQ];
+        double sm1[MDQ * MDQ * MDQ];
+        double(*Xsmem)[MD1][MD1] = (double(*)[MD1][MD1])sm0;
+        double(*DDQ)[MD1][MQ1] = (double(*)[MD1][MQ1])sm1;
+        double(*DQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm0;
+        double(*QQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm1;
+        double(*QQD)[MQ1][MD1] = (double(*)[MQ1][MD1])sm0;
+        double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
+
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D) {
             RAJA_UNROLL(MD1)
@@ -53,7 +68,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
           }
           FOREACH_THREAD(dx, x, Q1D) { Bsmem[dx][dy] = B_(dx, dy); }
         }
-        __syncthreads();
+
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(qx, x, Q1D) {
             double u[D1D];
@@ -74,7 +89,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
             }
           }
         }
-        __syncthreads();
+
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(qx, x, Q1D) {
             double u[D1D];
@@ -95,7 +110,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
             }
           }
         }
-        __syncthreads();
+
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(qx, x, Q1D) {
             double u[Q1D];
@@ -118,12 +133,10 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
           }
         }
 
-        __syncthreads();
         FOREACH_THREAD(d, y, D1D) {
           FOREACH_THREAD(q, x, Q1D) { Btsmem[d][q] = Bt_(q, d); }
         }
 
-        __syncthreads();
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(dx, x, D1D) {
             double u[Q1D];
@@ -144,7 +157,6 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
             }
           }
         }
-        __syncthreads();
 
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D) {
@@ -167,7 +179,6 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
           }
         }
 
-        __syncthreads();
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D) {
             double u[D1D];
