@@ -37,7 +37,7 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   //setVariantDefined( Base_OpenMPTarget );
   //setVariantDefined( RAJA_OpenMPTarget );
 
-  //setVariantDefined( Base_CUDA );
+  setVariantDefined( Base_CUDA );
   //setVariantDefined( RAJA_CUDA );
 
   //setVariantDefined( Base_HIP );
