@@ -74,6 +74,7 @@
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
+#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
@@ -196,6 +197,7 @@ static const std::string KernelNames [] =
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
+  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_PRESSURE"),
@@ -241,12 +243,10 @@ static const std::string VariantNames [] =
   std::string("Base_CUDA"),
   std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
-  std::string("RAJA_WORKGROUP_CUDA"),
 
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
-  std::string("RAJA_WORKGROUP_HIP"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -346,8 +346,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
   if ( vid == Base_CUDA ||
        vid == Lambda_CUDA ||
-       vid == RAJA_CUDA ||
-       vid == RAJA_WORKGROUP_CUDA ) {
+       vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif
@@ -355,8 +354,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_HIP)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
-       vid == RAJA_HIP ||
-       vid == RAJA_WORKGROUP_HIP ) {
+       vid == RAJA_HIP ) {
     ret_val = true;
   }
 #endif
@@ -575,6 +573,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_HALOEXCHANGE : {
        kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE_FUSED : {
+       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
        break;
     }
     case Apps_LTIMES : {
