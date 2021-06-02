@@ -141,10 +141,10 @@ namespace rajaperf {
 **/
         // Stream
         free_register_kernel(exec, "Stream", new stream::ADD(run_params));
-        //free_register_kernel(exec, "Stream", new stream::COPY(run_params));
-        //free_register_kernel(exec, "Stream", new stream::DOT(run_params));
-        //free_register_kernel(exec, "Stream", new stream::MUL(run_params));
-        //free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
+        free_register_kernel(exec, "Stream", new stream::COPY(run_params));
+        free_register_kernel(exec, "Stream", new stream::DOT(run_params));
+        free_register_kernel(exec, "Stream", new stream::MUL(run_params));
+        free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
 /**
         // Apps
         free_register_kernel(exec, "Apps", new apps::COUPLE(run_params));

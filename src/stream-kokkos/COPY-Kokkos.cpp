@@ -17,18 +17,33 @@ namespace rajaperf
 namespace stream
 {
 
-
+/*
 void COPY::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+*/
+
+  void COPY::runKokkosVariant(VariantID vid)
+
+  {
+          const Index_type run_reps = getRunReps();
+          const Index_type ibegin = 0;
+          const Index_type iend = getRunSize();  
+
 
   COPY_DATA_SETUP;
+        
+  auto a_view = getViewFromPointer(a, iend);    
+  auto c_view = getViewFromPointer(c, iend);
+
 
   auto copy_lam = [=](Index_type i) {
                     COPY_BODY;
                   };
+
+#if defined(RUN_KOKKOS)
 
   switch ( vid ) {
 
@@ -47,7 +62,6 @@ void COPY::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
@@ -62,7 +76,7 @@ void COPY::runSeqVariant(VariantID vid)
 
       break;
     }
-
+/*
     case RAJA_Seq : {
 
       startTimer();
@@ -76,13 +90,44 @@ void COPY::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+
+    */
+
+        case Kokkos_Lambda : {
+
+                        
+      Kokkos::fence();
+      startTimer();     
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+              Kokkos::parallel_for("COPY_Kokkos Kokkos_Lambda",
+              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin,iend),
+              KOKKOS_LAMBDA(Index_type i) {
+              // COPY BODY DEFINITION IN HEADER:
+              //  c[i] = a[i] ;
+              c_view[i] = a_view[i];
+              });
+
+      }          
+      Kokkos::fence();
+      stopTimer();      
+                        
+      break;            
+    }                   
+
+
 
     default : {
       std::cout << "\n  COPY : Unknown variant id = " << vid << std::endl;
     }
 
   }
+
+
+#endif //RUN_KOKKOS
+
+  moveDataToHostFromKokkosView(a, a_view, iend);
+  moveDataToHostFromKokkosView(c, c_view, iend);
 
 }
 

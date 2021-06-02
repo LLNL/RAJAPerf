@@ -17,14 +17,37 @@ namespace rajaperf
 namespace stream
 {
 
-
+/*
 void DOT::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+*/
+
+
+void DOT::runKokkosVariant(VariantID vid) {
+
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
+
+
 
   DOT_DATA_SETUP;
+
+  // Instantiation of pointer - wrapped views:
+  auto a_view = getViewFromPointer(a, iend);
+  auto b_view = getViewFromPointer(b, iend);
+  //
+  // From basic-kokkos - REDUCE3 
+  // Instantiation of a view from a pointer to a vector
+  // auto vec_view = getViewFromPointer(vec, iend);
+
+
+
+  // Pre-processor directive 
+#if defined(RUN_KOKKOS)
 
   switch ( vid ) {
 
@@ -47,7 +70,7 @@ void DOT::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
+// #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto dot_base_lam = [=](Index_type i) -> Real_type {
@@ -70,7 +93,7 @@ void DOT::runSeqVariant(VariantID vid)
 
       break;
     }
-
+/*
     case RAJA_Seq : {
 
       startTimer();
@@ -90,13 +113,63 @@ void DOT::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+    */
+
+    case Kokkos_Lambda : {
+                          
+                          // open Kokkosfence
+                          Kokkos::fence();
+                          startTimer();
+
+                          for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+                                   // Declare and initialize dot
+                                   // dot will contain the reduction value,
+                                   // i.e., the dot product
+                                   //
+                                   // Reductions combine contributions from
+                                   // loop iterations
+                                   Real_type dot = m_dot_init;
+
+                                   parallel_reduce("DOT-Kokkos Kokkos_Lambda",
+                                                  Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                                                  KOKKOS_LAMBDA(const int64_t i, Real_type& dot_res){
+
+                                                  // DOT BODY definition from header:
+                                                  //   dot += a[i] * b[i] ;
+                                                  //dot_res += a_view[i]*b_view[i];
+                                                  ///////////////////////////////
+                                                  //Int_type vec_i = vec_view[i];
+                                                  dot_res += a_view[i]*b_view[i];
+                                                  //dot_res = vec_i;
+                                                  }, dot);
+                                  m_dot += static_cast<Real_type>(dot);
+                          }
+
+                          Kokkos::fence();
+                          stopTimer();
+                          
+                          break;
+                         }
+
+
+
+// #endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  DOT : Unknown variant id = " << vid << std::endl;
     }
 
   }
+
+
+#endif // RUN_KOKKOS
+              
+         std::cout << " FIX ME STREAM DOT -- GET DATA FROM VIEWS " << std::endl;
+        //moveDataToHostFromKokkosView(a, a_view, iend);
+        //moveDataToHostFromKokkosView(b, b_view, iend);
+        
+        // From REDUCE3-INT
+        // moveDataToHostFromKokkosView(vec, vec_view, iend);
 
 }
 

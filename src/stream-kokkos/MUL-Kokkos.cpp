@@ -17,18 +17,44 @@ namespace rajaperf
 namespace stream
 {
 
-
+/*
 void MUL::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
+*/
+
+  void MUL::runKokkosVariant(VariantID vid) 
+  {
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getRunSize();
+
 
   MUL_DATA_SETUP;
+
+  /* from MUL.hpp
+  #define MUL_DATA_SETUP \
+  Real_ptr b = m_b; \
+  Real_ptr c = m_c; \
+  Real_type alpha = m_alpha
+
+*/
+  auto b_view = getViewFromPointer(b, iend);
+  auto c_view = getViewFromPointer(c, iend);
+ 
+  // Is this needed here?
+  // The declaration and initialization is from stream/MUL.hpp
+   //Real_type alpha = m_alpha;
+
 
   auto mul_lam = [=](Index_type i) {
                    MUL_BODY;
                  };
+
+
+#if defined(RUN_KOKKOS)
 
   switch ( vid ) {
 
@@ -47,7 +73,7 @@ void MUL::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
+// #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
@@ -63,6 +89,7 @@ void MUL::runSeqVariant(VariantID vid)
       break;
     }
 
+/*
     case RAJA_Seq : {
 
       startTimer();
@@ -76,13 +103,50 @@ void MUL::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+    */
+
+//#endif // RUN_RAJA_SEQ
+
+  case Kokkos_Lambda : {
+
+        Kokkos::fence();
+        startTimer();
+
+        for (RepIndex_type irep =0; irep < run_reps; ++irep) {
+                
+                Kokkos::parallel_for("MUL_Kokkos Kokkos_Lambda",
+                                Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                                KOKKOS_LAMBDA(Index_type i) {
+                                // MUL BODY DEFINITION:
+                                // b[i] = alpha * c[i] ;
+                                b_view[i] = alpha * c_view[i];
+                                });
+
+        }
+        Kokkos::fence();
+        stopTimer();
+
+        break;
+
+        }
+
+
+                             //}
+
 
     default : {
       std::cout << "\n  MUL : Unknown variant id = " << vid << std::endl;
     }
 
   }
+
+#endif // RUN_KOKKOS
+
+        // move data to host from view
+
+  moveDataToHostFromKokkosView(b, b_view, iend);
+  moveDataToHostFromKokkosView(c, c_view, iend);
+
 
 }
 
