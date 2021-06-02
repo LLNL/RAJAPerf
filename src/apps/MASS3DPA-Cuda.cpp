@@ -36,8 +36,8 @@ namespace apps {
 
 #define D1D 4
 #define Q1D 5
-#define s_B_(x, y) s_B[x + Q1D * y]
-#define s_Bt_(x, y) s_Bt[x + D1D * y]
+#define B_(x, y) B[x + Q1D * y]
+#define Bt_(x, y) Bt[x + D1D * y]
 #define s_xy_(x, y) s_xy[x + M1D * y]
 #define X_(dx, dy, dz, e)                                                      \
   X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
@@ -46,13 +46,15 @@ namespace apps {
 #define D_(qx, qy, qz, e)                                                      \
   D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
 
-#define RAJA_PRAGMA(X) _Pragma(#X)
-#define RAJA_UNROLL(N) RAJA_PRAGMA(unroll(N))
+#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
+#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
 #define FOREACH_THREAD(i, k, N)                                                \
   for (int i = threadIdx.k; i < N; i += blockDim.k)
 
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
+
+  const int e = blockIdx.x;
 
   constexpr int MQ1 = Q1D;
   constexpr int MD1 = D1D;
@@ -71,7 +73,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
 
   FOREACH_THREAD(dy, y, D1D) {
     FOREACH_THREAD(dx, x, D1D) {
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
         Xsmem[dz][dy][dx] = X_(dx, dy, dz, e);
       }
@@ -82,18 +84,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   FOREACH_THREAD(dy, y, D1D) {
     FOREACH_THREAD(qx, x, Q1D) {
       double u[D1D];
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; dz++) {
         u[dz] = 0;
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dx = 0; dx < D1D; ++dx) {
-        MFEM_UNROLL(MD1)
+        RAJA_UNROLL(MD1)
         for (int dz = 0; dz < D1D; ++dz) {
           u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx];
         }
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
         DDQ[dz][dy][qx] = u[dz];
       }
@@ -103,18 +105,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   FOREACH_THREAD(qy, y, Q1D) {
     FOREACH_THREAD(qx, x, Q1D) {
       double u[D1D];
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; dz++) {
         u[dz] = 0;
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dy = 0; dy < D1D; ++dy) {
-        MFEM_UNROLL(MD1)
+        RAJA_UNROLL(MD1)
         for (int dz = 0; dz < D1D; dz++) {
           u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy];
         }
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; dz++) {
         DQQ[dz][qy][qx] = u[dz];
       }
@@ -125,18 +127,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
     FOREACH_THREAD(qx, x, Q1D) {
       double u[Q1D];
 
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; qz++) {
         u[qz] = 0;
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
-        MFEM_UNROLL(MQ1)
+        RAJA_UNROLL(MQ1)
         for (int qz = 0; qz < Q1D; qz++) {
           u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz];
         }
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; qz++) {
         QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e);
       }
@@ -152,18 +154,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   FOREACH_THREAD(qy, y, Q1D) {
     FOREACH_THREAD(dx, x, D1D) {
       double u[Q1D];
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; ++qz) {
         u[qz] = 0;
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qx = 0; qx < Q1D; ++qx) {
-        MFEM_UNROLL(MQ1)
+        RAJA_UNROLL(MQ1)
         for (int qz = 0; qz < Q1D; ++qz) {
           u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx];
         }
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; ++qz) {
         QQD[qz][qy][dx] = u[qz];
       }
@@ -174,18 +176,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   FOREACH_THREAD(dy, y, D1D) {
     FOREACH_THREAD(dx, x, D1D) {
       double u[Q1D];
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; ++qz) {
         u[qz] = 0;
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qy = 0; qy < Q1D; ++qy) {
-        MFEM_UNROLL(MQ1)
+        RAJA_UNROLL(MQ1)
         for (int qz = 0; qz < Q1D; ++qz) {
           u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy];
         }
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; ++qz) {
         QDD[qz][dy][dx] = u[qz];
       }
@@ -196,18 +198,18 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   FOREACH_THREAD(dy, y, D1D) {
     FOREACH_THREAD(dx, x, D1D) {
       double u[D1D];
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
         u[dz] = 0;
       }
-      MFEM_UNROLL(MQ1)
+      RAJA_UNROLL(MQ1)
       for (int qz = 0; qz < Q1D; ++qz) {
-        MFEM_UNROLL(MD1)
+        RAJA_UNROLL(MD1)
         for (int dz = 0; dz < D1D; ++dz) {
           u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz];
         }
       }
-      MFEM_UNROLL(MD1)
+      RAJA_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
         Y_(dx, dy, dz, e) += u[dz];
       }
@@ -220,7 +222,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
   MASS3DPA_DATA_SETUP;
 
-  if (vid == Base_CUDA) {
+  switch (vid) {
+
+  case Base_CUDA: {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
@@ -235,12 +239,19 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     MASS3DPA_DATA_TEARDOWN_CUDA;
 
-  } else if (vid == RAJA_CUDA) {
+    break;
+  }
 
-    printf("TODO \n");
+  case RAJA_CUDA: {
 
-  } else {
+    break;
+  }
+
+  default: {
+
     std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    break;
+  }
   }
 }
 
