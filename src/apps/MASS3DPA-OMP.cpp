@@ -42,7 +42,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      #pragma omp parallel for
+#pragma omp parallel for
       for (int e = 0; e < NE; ++e) {
 
         constexpr int MQ1 = Q1D;
