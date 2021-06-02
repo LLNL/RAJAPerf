@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,14 +21,31 @@ namespace lcals
 HYDRO_2D::HYDRO_2D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_2D, params)
 {
-   m_jn = 1000;
-   m_kn = 1000;
+  m_jn = 1000;
+  m_kn = 1000;
 
-   m_s = 0.0041;
-   m_t = 0.0037;
+  m_s = 0.0041;
+  m_t = 0.0037;
 
-   setDefaultSize(m_jn);
-   setDefaultReps(200);
+  setDefaultSize(m_jn);
+  setDefaultReps(200);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 HYDRO_2D::~HYDRO_2D() 

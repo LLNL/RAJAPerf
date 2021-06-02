@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -27,60 +27,9 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
-  auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                                 POLYBENCH_HEAT_3D_BODY1;
-                               };
-  auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                                 POLYBENCH_HEAT_3D_BODY2;
-                               };
-
-  POLYBENCH_HEAT_3D_VIEWS_RAJA;
-
-  auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                            POLYBENCH_HEAT_3D_BODY1_RAJA;
-                          };
-  auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                            POLYBENCH_HEAT_3D_BODY2_RAJA;
-                          };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          #pragma omp parallel for collapse(2)
-          for (Index_type i = 1; i < N-1; ++i ) {
-            for (Index_type j = 1; j < N-1; ++j ) {
-              for (Index_type k = 1; k < N-1; ++k ) {
-                poly_heat3d_base_lam1(i, j, k);
-              }
-            }
-          }
-
-          #pragma omp parallel for collapse(2)
-          for (Index_type i = 1; i < N-1; ++i ) {
-            for (Index_type j = 1; j < N-1; ++j ) {
-              for (Index_type k = 1; k < N-1; ++k ) {
-                poly_heat3d_base_lam2(i, j, k);
-              }
-            }
-          }
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_HEAT_3D_DATA_RESET;
-
-      break;
-    }
-
-    case Lambda_OpenMP : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,7 +64,60 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       break;
     }
 
+    case Lambda_OpenMP : {
+
+      auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j,
+                                       Index_type k) {
+                                     POLYBENCH_HEAT_3D_BODY1;
+                                   };
+      auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j,
+                                       Index_type k) {
+                                     POLYBENCH_HEAT_3D_BODY2;
+                                   };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type t = 0; t < tsteps; ++t) {
+
+          #pragma omp parallel for collapse(2)
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
+                poly_heat3d_base_lam1(i, j, k);
+              }
+            }
+          }
+
+          #pragma omp parallel for collapse(2)
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
+                poly_heat3d_base_lam2(i, j, k);
+              }
+            }
+          }
+
+        }
+
+      }
+      stopTimer();
+
+      POLYBENCH_HEAT_3D_DATA_RESET;
+
+      break;
+    }
+
     case RAJA_OpenMP : {
+
+      POLYBENCH_HEAT_3D_VIEWS_RAJA;
+
+      auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
+                                POLYBENCH_HEAT_3D_BODY1_RAJA;
+                              };
+      auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
+                                POLYBENCH_HEAT_3D_BODY2_RAJA;
+                              };
      
       using EXEC_POL =
         RAJA::KernelPolicy<

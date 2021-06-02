@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 /// const Real_type val = ...;
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   a[i-ibegin] = val;
+///   a[i-ibegin] = i * val;
 /// }
 ///
 /// RAJA variants use a "View" and "Layout" to do the same thing. These 
@@ -29,10 +29,10 @@
   const Real_type v = m_val;
 
 #define INIT_VIEW1D_OFFSET_BODY  \
-  a[i-ibegin] = v;
+    a[i-ibegin] = i * v;
 
 #define INIT_VIEW1D_OFFSET_BODY_RAJA  \
-  view(i) = v;
+    view(i) = i * v;
 
 #define INIT_VIEW1D_OFFSET_VIEW_RAJA  \
   using ViewType = RAJA::View<Real_type, RAJA::OffsetLayout<1> >; \
@@ -63,6 +63,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
 private:

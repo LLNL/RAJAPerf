@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -15,6 +15,8 @@
 #include "common/OpenMPTargetDataUtils.hpp"
 
 #include "AppsData.hpp"
+
+#include "camp/resource.hpp"
 
 #include <iostream>
 
@@ -92,11 +94,10 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-#if 0
-// we need to fix the fact that list segment data is in UM iff CUDA is 
-// enabled...
-    RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);  
-#endif
+    camp::resources::Resource working_res{camp::resources::Omp()};
+    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
+                                             m_domain->n_real_zones,
+                                             working_res);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

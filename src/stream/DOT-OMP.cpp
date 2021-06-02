@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -28,10 +28,6 @@ void DOT::runOpenMPVariant(VariantID vid)
 
   DOT_DATA_SETUP;
 
-  auto dot_base_lam = [=](Index_type i) -> Real_type {
-                        return a[i] * b[i];
-                      };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -55,6 +51,10 @@ void DOT::runOpenMPVariant(VariantID vid)
     }
 
     case Lambda_OpenMP : {
+
+      auto dot_base_lam = [=](Index_type i) -> Real_type {
+                            return a[i] * b[i];
+                          };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

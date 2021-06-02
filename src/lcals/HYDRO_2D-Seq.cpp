@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -27,28 +27,6 @@ void HYDRO_2D::runSeqVariant(VariantID vid)
   const Index_type jend = m_jn - 1;
 
   HYDRO_2D_DATA_SETUP;
-
-  auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY1;
-                           };
-  auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY2;
-                           };
-  auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY3;
-                           };
-
-  HYDRO_2D_VIEWS_RAJA;
-
-  auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY1_RAJA;
-                      };
-  auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY2_RAJA;
-                      };
-  auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY3_RAJA;
-                      };
 
   switch ( vid ) {
 
@@ -84,6 +62,16 @@ void HYDRO_2D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY1;
+                               };
+      auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY2;
+                               };
+      auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY3;
+                               };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -112,6 +100,18 @@ void HYDRO_2D::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      HYDRO_2D_VIEWS_RAJA;
+
+      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY1_RAJA;
+                          };
+      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY2_RAJA;
+                          };
+      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY3_RAJA;
+                          };
 
       using EXECPOL =
         RAJA::KernelPolicy<

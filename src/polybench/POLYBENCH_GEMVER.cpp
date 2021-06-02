@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 #include "common/DataUtils.hpp"
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -29,7 +29,7 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
       run_reps = 200;
       break;
     case Small:
-      m_n=120; 
+      m_n=120;
       run_reps = 200;
       break;
     case Medium:
@@ -41,7 +41,7 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
       run_reps = 20;
       break;
     case Extralarge:
-      m_n=4000; 
+      m_n=4000;
       run_reps = 5;
       break;
     default:
@@ -55,9 +55,28 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
 
   m_alpha = 1.5;
   m_beta = 1.2;
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
+  setVariantDefined( RAJA_CUDA );
+
+  setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_GEMVER::~POLYBENCH_GEMVER() 
+POLYBENCH_GEMVER::~POLYBENCH_GEMVER()
 {
 }
 

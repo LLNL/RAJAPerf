@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -28,28 +28,28 @@ namespace basic
 
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend);
+  allocAndInitCudaDeviceData(a, m_a, getRunSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
+  getCudaDeviceData(m_a, a, getRunSize()); \
   deallocCudaDeviceData(a);
 
-__global__ void initview1d_offset(Real_ptr a, 
+__global__ void initview1d_offset(Real_ptr a,
                                   Real_type v,
                                   const Index_type ibegin,
-                                  const Index_type iend) 
+                                  const Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT_VIEW1D_OFFSET_BODY; 
-   }
+  Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    INIT_VIEW1D_OFFSET_BODY;
+  }
 }
 
 
 void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
+  const Index_type ibegin = 1;
   const Index_type iend = getRunSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
@@ -61,10 +61,30 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
       initview1d_offset<<<grid_size, block_size>>>( a, v,
                                                     ibegin,
-                                                    iend ); 
+                                                    iend );
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
+      lambda_cuda_forall<<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        INIT_VIEW1D_OFFSET_BODY;
+      });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

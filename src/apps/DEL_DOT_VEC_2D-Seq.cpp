@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -11,6 +11,8 @@
 #include "RAJA/RAJA.hpp"
 
 #include "AppsData.hpp"
+
+#include "camp/resource.hpp"
 
 #include <iostream>
 
@@ -33,17 +35,6 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
   NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
   NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-  auto deldotvec2d_base_lam = [=](Index_type ii) {
-                                DEL_DOT_VEC_2D_BODY_INDEX;
-                                DEL_DOT_VEC_2D_BODY;
-                              };
-
-  RAJA::ListSegment zones(m_domain->real_zones, m_domain->n_real_zones);
-
-  auto deldotvec2d_lam = [=](Index_type i) {
-                           DEL_DOT_VEC_2D_BODY;
-                         };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -65,6 +56,11 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto deldotvec2d_base_lam = [=](Index_type ii) {
+                                    DEL_DOT_VEC_2D_BODY_INDEX;
+                                    DEL_DOT_VEC_2D_BODY;
+                                  };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -79,6 +75,15 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      camp::resources::Resource working_res{camp::resources::Host()};
+      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones, 
+                                               m_domain->n_real_zones, 
+                                               working_res);
+
+      auto deldotvec2d_lam = [=](Index_type i) {
+                               DEL_DOT_VEC_2D_BODY;
+                             };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

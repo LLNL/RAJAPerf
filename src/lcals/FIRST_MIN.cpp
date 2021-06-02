@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,11 +21,28 @@ namespace lcals
 FIRST_MIN::FIRST_MIN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_MIN, params)
 {
-   setDefaultSize(1000000);
-// setDefaultReps(1000);
+  setDefaultSize(1000000);
+//setDefaultReps(1000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
-   setDefaultReps(100);
+  setDefaultReps(100);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
+                     
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
+  
+  setVariantDefined( Base_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMPTarget );
+      
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
+        
+  setVariantDefined( Base_HIP );
+  setVariantDefined( RAJA_HIP );
 }
 
 FIRST_MIN::~FIRST_MIN() 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -23,17 +23,6 @@ void LTIMES::runSeqVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
 
   LTIMES_DATA_SETUP;
-
-  auto ltimes_base_lam = [=](Index_type d, Index_type z, 
-                             Index_type g, Index_type m) {
-                           LTIMES_BODY;
-                         };
-
-  LTIMES_VIEWS_RANGES_RAJA;
-
-  auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
-                      LTIMES_BODY_RAJA;
-                    };
 
   switch ( vid ) {
 
@@ -61,6 +50,11 @@ void LTIMES::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
+      auto ltimes_base_lam = [=](Index_type d, Index_type z, 
+                                 Index_type g, Index_type m) {
+                               LTIMES_BODY;
+                             };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -81,6 +75,13 @@ void LTIMES::runSeqVariant(VariantID vid)
     }
 
     case RAJA_Seq : {
+
+      LTIMES_VIEWS_RANGES_RAJA;
+
+      auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
+                          LTIMES_BODY_RAJA;
+                        };
+
 
       using EXEC_POL = 
         RAJA::KernelPolicy<

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -42,11 +42,6 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
-  auto trapint_base_lam = [=](Index_type i) -> Real_type {
-                            Real_type x = x0 + i*h;
-                            return trap_int_func(x, y, xp, yp);
-                          };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -70,6 +65,11 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
     }
 
     case Lambda_OpenMP : {
+
+      auto trapint_base_lam = [=](Index_type i) -> Real_type {
+                                Real_type x = x0 + i*h;
+                                return trap_int_func(x, y, xp, yp);
+                              };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

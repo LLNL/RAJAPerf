@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -26,10 +26,6 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
   const Index_type iend = getRunSize();
 
   REDUCE3_INT_DATA_SETUP;
-
-  auto init3_base_lam = [=](Index_type i) -> Int_type {
-                          return vec[i];
-                        };
 
   switch ( vid ) {
 
@@ -58,6 +54,10 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
+
+      auto init3_base_lam = [=](Index_type i) -> Int_type {
+                              return vec[i];
+                            };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

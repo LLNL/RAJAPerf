@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -41,7 +41,7 @@ void INT_PREDICT::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          intpredict_lam(i);
+          INT_PREDICT_BODY;
         }
 
       }
@@ -57,7 +57,7 @@ void INT_PREDICT::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          INT_PREDICT_BODY;
+          intpredict_lam(i);
         }
 
       }

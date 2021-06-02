@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -7,8 +7,6 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "RunParams.hpp"
-
-#include "RAJAPerfSuite.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -111,6 +109,8 @@ void RunParams::print(std::ostream& str) const
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
+  std::cout << "\n\nReading command line input..." << std::endl;
+
   for (int i = 1; i < argc; ++i) {
 
     std::string opt(argv[i]);

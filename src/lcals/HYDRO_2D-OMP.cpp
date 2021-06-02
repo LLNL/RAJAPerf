@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -30,28 +30,6 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
   HYDRO_2D_DATA_SETUP;
 
-  auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY1;
-                           };
-  auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY2;
-                           };
-  auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
-                             HYDRO_2D_BODY3;
-                           };
-
-  HYDRO_2D_VIEWS_RAJA;
-
-  auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY1_RAJA;
-                      };
-  auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY2_RAJA;
-                      };
-  auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                        HYDRO_2D_BODY3_RAJA;
-                      };
-
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -62,21 +40,21 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY1;
 	    }
 	  }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY2;
 	    }
 	  }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
 	  for (Index_type k = kbeg; k < kend; ++k ) {
 	    for (Index_type j = jbeg; j < jend; ++j ) {
 	      HYDRO_2D_BODY3;
@@ -93,27 +71,37 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
+      auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY1;
+                               };
+      auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY2;
+                               };
+      auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY3;
+                               };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam1(k, j);
             }
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam2(k, j);
             }
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type k = kbeg; k < kend; ++k ) {
             for (Index_type j = jbeg; j < jend; ++j ) {
               hydro2d_base_lam3(k, j);
@@ -130,9 +118,21 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
     case RAJA_OpenMP : {
 
+      HYDRO_2D_VIEWS_RAJA;
+
+      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY1_RAJA;
+                          };
+      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY2_RAJA;
+                          };
+      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY3_RAJA;
+                          };
+
       using EXECPOL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_for_nowait_exec,  // k
+          RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >,  // k
             RAJA::statement::For<1, RAJA::loop_exec,  // j
               RAJA::statement::Lambda<0>
             >

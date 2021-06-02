@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -74,6 +74,7 @@ enum GroupID {
   Polybench,
   Stream,
   Apps,
+  Algorithm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -98,14 +99,15 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_ATOMIC_PI = 0,
-  Basic_DAXPY,
+  Basic_DAXPY = 0,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
+  Basic_PI_ATOMIC,
+  Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
 
@@ -157,10 +159,17 @@ enum KernelID {
   Apps_DEL_DOT_VEC_2D,
   Apps_ENERGY,
   Apps_FIR,
+  Apps_HALOEXCHANGE,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_PRESSURE,
   Apps_VOL3D,
+
+//
+// Algorithm kernels...
+//
+  Algorithm_SORT,
+  Algorithm_SORTPAIRS,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -182,26 +191,25 @@ enum KernelID {
 enum VariantID {
 
   Base_Seq = 0,
-#if defined(RUN_RAJA_SEQ)
   Lambda_Seq,
   RAJA_Seq,
-#endif
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   Base_OpenMP,
   Lambda_OpenMP,
   RAJA_OpenMP,
-#endif
 
-#if defined(RAJA_ENABLE_TARGET_OPENMP)  
   Base_OpenMPTarget,
   RAJA_OpenMPTarget,
-#endif
 
-#if defined(RAJA_ENABLE_CUDA)
   Base_CUDA,
+  Lambda_CUDA,
   RAJA_CUDA,
-#endif
+  RAJA_WORKGROUP_CUDA,
+
+  Base_HIP,
+  Lambda_HIP,
+  RAJA_HIP,
+  RAJA_WORKGROUP_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
@@ -247,6 +255,16 @@ const std::string& getFullKernelName(KernelID kid);
  *******************************************************************************
  */
 const std::string& getVariantName(VariantID vid); 
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return true if variant associated with VariantID enum value is 
+ *        available * to run; else false.
+ *
+ *******************************************************************************
+ */
+bool isVariantAvailable(VariantID vid);
 
 /*!
  *******************************************************************************

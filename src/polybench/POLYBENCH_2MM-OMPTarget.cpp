@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -93,11 +93,11 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<0, 1>,
-          RAJA::statement::Lambda<0>,
+          RAJA::statement::Lambda<0, RAJA::Params<0>>,
           RAJA::statement::For<2, RAJA::seq_exec,
-            RAJA::statement::Lambda<1>
+            RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
           >,
-          RAJA::statement::Lambda<2>
+          RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
         >
       >;
 
@@ -108,16 +108,15 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nk}),
-        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+        RAJA::tuple<Real_type>{0.0},
 
-        [=](Index_type /*i*/, Index_type /*j*/, Index_type /*k*/, 
-            Real_type &dot) {
+        [=](Real_type &dot) {
           POLYBENCH_2MM_BODY1_RAJA;
         },
         [=](Index_type i, Index_type j, Index_type k, Real_type &dot) {
           POLYBENCH_2MM_BODY2_RAJA;
         },
-        [=](Index_type i, Index_type j, Index_type /*k*/, Real_type &dot) {
+        [=](Index_type i, Index_type j, Real_type &dot) {
           POLYBENCH_2MM_BODY3_RAJA;
         }
       );
@@ -126,16 +125,15 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nj}),
-        RAJA::make_tuple(static_cast<Real_type>(0.0)),
+        RAJA::tuple<Real_type>{0.0},
 
-        [=](Index_type /*i*/, Index_type /*l*/, Index_type /*j*/, 
-            Real_type &dot) {
+        [=](Real_type &dot) {
           POLYBENCH_2MM_BODY4_RAJA;
         },
         [=](Index_type i, Index_type l, Index_type j, Real_type &dot) {
           POLYBENCH_2MM_BODY5_RAJA;
         },
-        [=](Index_type i, Index_type l, Index_type /*j*/, Real_type &dot) {
+        [=](Index_type i, Index_type l, Real_type &dot) {
           POLYBENCH_2MM_BODY6_RAJA;
         }
       );

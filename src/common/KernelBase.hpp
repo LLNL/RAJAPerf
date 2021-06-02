@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -15,6 +15,12 @@
 #include "common/RunParams.hpp"
 
 #include "RAJA/util/Timer.hpp"
+#if defined(RAJA_ENABLE_CUDA)
+#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
+#endif
+#if defined(RAJA_ENABLE_HIP)
+#include "RAJA/policy/hip/raja_hiperrchk.hpp"
+#endif
 
 #include <string>
 #include <iostream>
@@ -58,26 +64,42 @@ public:
   double getTotTime(VariantID vid) { return tot_time[vid]; }
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
 
+  bool hasVariantToRun(VariantID vid) const { return has_variant_to_run[vid]; }
+
+  void setVariantDefined(VariantID vid);
+
   void execute(VariantID vid);
 
-  void startTimer() 
-  { 
+  void synchronize()
+  {
 #if defined(RAJA_ENABLE_CUDA)
-    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
-      cudaDeviceSynchronize();
+    if ( running_variant == Base_CUDA ||
+         running_variant == Lambda_CUDA ||
+         running_variant == RAJA_CUDA ||
+         running_variant == RAJA_WORKGROUP_CUDA ) {
+      cudaErrchk( cudaDeviceSynchronize() );
     }
 #endif
-    timer.start(); 
+#if defined(RAJA_ENABLE_HIP)
+    if ( running_variant == Base_HIP ||
+         running_variant == Lambda_HIP ||
+         running_variant == RAJA_HIP ||
+         running_variant == RAJA_WORKGROUP_HIP ) {
+      hipErrchk( hipDeviceSynchronize() );
+    }
+#endif
   }
 
-  void stopTimer()  
-  { 
-#if defined(RAJA_ENABLE_CUDA)
-    if ( running_variant == Base_CUDA || running_variant == RAJA_CUDA ) {
-      cudaDeviceSynchronize();
-    }
-#endif
-    timer.stop(); recordExecTime(); 
+  void startTimer()
+  {
+    synchronize();
+    timer.start();
+  }
+
+  void stopTimer()
+  {
+    synchronize();
+    timer.stop(); recordExecTime();
   }
 
   void resetTimer() { timer.reset(); }
@@ -104,21 +126,17 @@ public:
 #if defined(RAJA_ENABLE_CUDA)
   virtual void runCudaVariant(VariantID vid) = 0;
 #endif
+#if defined(RAJA_ENABLE_HIP)
+  virtual void runHipVariant(VariantID vid) = 0;
+#endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid) = 0;
 #endif
 
 protected:
-  int num_exec[NumVariants];
-
   const RunParams& run_params;
 
-  RAJA::Timer::ElapsedType min_time[NumVariants];
-  RAJA::Timer::ElapsedType max_time[NumVariants];
-  RAJA::Timer::ElapsedType tot_time[NumVariants];
-
   Checksum_type checksum[NumVariants];
-
 
 private:
   KernelBase() = delete;
@@ -128,12 +146,20 @@ private:
   KernelID    kernel_id;
   std::string name;
 
-  RAJA::Timer timer;
-
   Index_type default_size;
   Index_type default_reps;
 
   VariantID running_variant; 
+
+  int num_exec[NumVariants];
+
+  RAJA::Timer timer;
+
+  RAJA::Timer::ElapsedType min_time[NumVariants];
+  RAJA::Timer::ElapsedType max_time[NumVariants];
+  RAJA::Timer::ElapsedType tot_time[NumVariants];
+
+  bool has_variant_to_run[NumVariants];
 };
 
 }  // closing brace for rajaperf namespace

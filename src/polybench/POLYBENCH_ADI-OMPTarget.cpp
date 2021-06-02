@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -100,13 +100,13 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
-          RAJA::statement::Lambda<0>,
+          RAJA::statement::Lambda<0, RAJA::Segs<0>>,
           RAJA::statement::For<1, RAJA::seq_exec,
-            RAJA::statement::Lambda<1>
+            RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
           >,
-          RAJA::statement::Lambda<2>,
+          RAJA::statement::Lambda<2, RAJA::Segs<0>>,
           RAJA::statement::For<2, RAJA::seq_exec,
-            RAJA::statement::Lambda<3>
+            RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
           >
         >
       >;
@@ -121,16 +121,16 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-          [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
           },
-          [=] (Index_type i, Index_type j, Index_type /*k*/) {
+          [=] (Index_type i, Index_type j) {
             POLYBENCH_ADI_BODY3_RAJA;
           },
-          [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] (Index_type i) {
             POLYBENCH_ADI_BODY4_RAJA;
           },
-          [=] (Index_type i, Index_type /*j*/, Index_type k) {
+          [=] (Index_type i, Index_type k) {
             POLYBENCH_ADI_BODY5_RAJA;
           }
         );
@@ -140,16 +140,16 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
 
-          [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;
           },
-          [=] (Index_type i, Index_type j, Index_type /*k*/) {
+          [=] (Index_type i, Index_type j) {
             POLYBENCH_ADI_BODY7_RAJA;
           },
-          [=] (Index_type i, Index_type /*j*/, Index_type /*k*/) {
+          [=] (Index_type i) {
             POLYBENCH_ADI_BODY8_RAJA;
           },
-          [=] (Index_type i, Index_type /*j*/, Index_type k) {
+          [=] (Index_type i, Index_type k) {
             POLYBENCH_ADI_BODY9_RAJA;
           }
         );
