@@ -27,7 +27,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  //Declare KokkosView that will wrap the pointer
+  //Declare KokkosView that will wrap the pointer to a vector
 
   auto vec_view = getViewFromPointer(vec, iend); 
 
