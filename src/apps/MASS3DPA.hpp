@@ -28,6 +28,74 @@ Index_type NE = m_NE;
 
 #include "RAJA/RAJA.hpp"
 
+  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
+#if defined(RAJA_ENABLE_CUDA)
+                                                 ,
+                                                 RAJA::expt::cuda_launch_t<true>
+#endif
+#if defined(RAJA_ENABLE_HIP)
+                                                 ,
+                                                 RAJA::expt::hip_launch_t<true>
+#endif
+                                                 >;
+
+#if defined(RAJA_ENABLE_OPENMP)
+using omp_launch_policy =
+  RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
+#if defined(RAJA_ENABLE_CUDA)
+                           ,
+                           RAJA::expt::cuda_launch_t<true>
+#endif
+#if defined(RAJA_ENABLE_HIP)
+                           ,
+                           RAJA::expt::hip_launch_t<true>
+#endif
+                           >;
+#endif
+
+  using loop_policy = RAJA::loop_exec;
+
+#if defined(RAJA_ENABLE_CUDA)
+  using gpu_block_x_policy = RAJA::cuda_block_x_loop;
+  using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
+  using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  using gpu_block_x_policy = RAJA::hip_block_x_loop;
+  using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
+  using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
+#endif
+
+  using teams_x = RAJA::expt::LoopPolicy<loop_policy
+#if defined(RAJA_DEVICE_ACTIVE)
+                                         ,
+                                       gpu_block_x_policy
+#endif
+                                         >;
+
+  using threads_x = RAJA::expt::LoopPolicy<loop_policy
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,
+                                         gpu_thread_x_policy
+#endif
+                                           >;
+
+  using threads_y = RAJA::expt::LoopPolicy<loop_policy
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,
+                                         gpu_thread_y_policy
+#endif
+                                           >;
+#if defined(RAJA_ENABLE_OPENMP)
+  using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,
+                                       gpu_block_x_policy
+#endif
+                                           >;
+#endif
+
 namespace rajaperf 
 {
 class RunParams;
