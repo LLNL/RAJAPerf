@@ -16,171 +16,211 @@
 
 #include <iostream>
 
-namespace rajaperf
-{
-namespace apps
-{
+namespace rajaperf {
+namespace apps {
 
-#define MASS3DPA_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(B, m_B, m_Q1D*m_D1D); \
-  allocAndInitCudaDeviceData(Bt, m_Bt, m_Q1D*m_D1D); \
-  allocAndInitCudaDeviceData(D, m_D, m_Q1D*m_Q1D*m_Q1D*m_NE); \
-  allocAndInitCudaDeviceData(X, m_X, m_D1D*m_D1D*m_D1D*m_NE); \
-  allocAndInitCudaDeviceData(Y, m_Y, m_D1D*m_D1D*m_D1D*m_NE);
+#define MASS3DPA_DATA_SETUP_CUDA                                               \
+  allocAndInitCudaDeviceData(B, m_B, m_Q1D *m_D1D);                            \
+  allocAndInitCudaDeviceData(Bt, m_Bt, m_Q1D *m_D1D);                          \
+  allocAndInitCudaDeviceData(D, m_D, m_Q1D *m_Q1D *m_Q1D *m_NE);               \
+  allocAndInitCudaDeviceData(X, m_X, m_D1D *m_D1D *m_D1D *m_NE);               \
+  allocAndInitCudaDeviceData(Y, m_Y, m_D1D *m_D1D *m_D1D *m_NE);
 
-#define MASS3DPA_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_Y, Y, m_D1D*m_D1D*m_D1D*m_NE); \
-  deallocCudaDeviceData(B); \
-  deallocCudaDeviceData(Bt); \
-  deallocCudaDeviceData(D); \
-  deallocCudaDeviceData(X); \
+#define MASS3DPA_DATA_TEARDOWN_CUDA                                            \
+  getCudaDeviceData(m_Y, Y, m_D1D *m_D1D *m_D1D *m_NE);                        \
+  deallocCudaDeviceData(B);                                                    \
+  deallocCudaDeviceData(Bt);                                                   \
+  deallocCudaDeviceData(D);                                                    \
+  deallocCudaDeviceData(X);                                                    \
   deallocCudaDeviceData(Y);
 
 #define D1D 4
 #define Q1D 5
-#define s_B_(x, y) s_B[x + Q1D*y]
-#define s_Bt_(x, y) s_Bt[x + D1D*y]
-#define s_xy_(x, y) s_xy[x + M1D*y]
-#define X_(dx, dy, dz, e) X[dx + D1D*dy + D1D*D1D*dz + D1D*D1D*D1D*e]
-#define Y_(dx, dy, dz, e) Y[dx + D1D*dy + D1D*D1D*dz + D1D*D1D*D1D*e]
-#define D_(qx, qy, qz, e) D[qx + Q1D*qy + Q1D*Q1D*qz + Q1D*Q1D*Q1D*e]
+#define s_B_(x, y) s_B[x + Q1D * y]
+#define s_Bt_(x, y) s_Bt[x + D1D * y]
+#define s_xy_(x, y) s_xy[x + M1D * y]
+#define X_(dx, dy, dz, e)                                                      \
+  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+#define Y_(dx, dy, dz, e)                                                      \
+  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+#define D_(qx, qy, qz, e)                                                      \
+  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
+
+#define RAJA_PRAGMA(X) _Pragma(#X)
+#define RAJA_UNROLL(N) RAJA_PRAGMA(unroll(N))
+#define FOREACH_THREAD(i, k, N)                                                \
+  for (int i = threadIdx.k; i < N; i += blockDim.k)
 
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
-                         const Real_ptr D,  const Real_ptr X, Real_ptr Y)
-{
+                         const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
-  constexpr int DQ1D = D1D*Q1D;
-  constexpr int M1D = D1D > Q1D ? D1D : Q1D;
-  constexpr int M2D = M1D*M1D;
+  constexpr int MQ1 = Q1D;
+  constexpr int MD1 = D1D;
+  constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1;
+  double sDQ[MQ1 * MD1];
+  double(*Bsmem)[MD1] = (double(*)[MD1])sDQ;
+  double(*Btsmem)[MQ1] = (double(*)[MQ1])sDQ;
+  double sm0[MDQ * MDQ * MDQ];
+  double sm1[MDQ * MDQ * MDQ];
+  double(*Xsmem)[MD1][MD1] = (double(*)[MD1][MD1])sm0;
+  double(*DDQ)[MD1][MQ1] = (double(*)[MD1][MQ1])sm1;
+  double(*DQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm0;
+  double(*QQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm1;
+  double(*QQD)[MQ1][MD1] = (double(*)[MQ1][MD1])sm0;
+  double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
 
-  //Element Index
-  const int e = blockIdx.x;
-
-  //Basis functions sampled at quadrature points in 1D
-  __shared__ double s_B[DQ1D];
-  __shared__ double s_Bt[DQ1D];
-
-  //Space for solution in the xy-plane
-  __shared__ double s_xy[M2D];
-
-  //Thread private memory
-  double r_z[Q1D];
-  double r_z2[D1D];
-
-  //Copy basis functions sampled at qpts
-  //to shared memory 
-  { const int y = threadIdx.y;
-    { const int x = threadIdx.x;
-
-      const int id = (y * M1D) + x;
-      if (id < DQ1D) {
-        s_B[id]  = B[id];
-        s_Bt[id]  = Bt[id];
-      }
-
-      for (int qz = 0; qz < Q1D; ++qz) {
-        r_z[qz] = 0;
-      }
+  FOREACH_THREAD(dy, y, D1D) {
+    FOREACH_THREAD(dx, x, D1D) {
+      MFEM_UNROLL(MD1)
       for (int dz = 0; dz < D1D; ++dz) {
-        r_z2[dz] = 0;
+        Xsmem[dz][dy][dx] = X_(dx, dy, dz, e);
       }
-
     }
+    FOREACH_THREAD(dx, x, Q1D) { Bsmem[dx][dy] = B_(dx, dy); }
   }
-
-  { const int dy = threadIdx.y;
-    { const int dx = threadIdx.x;
-
-      if ((dx < D1D) && (dy < D1D)) {
+  __syncthreads();
+  FOREACH_THREAD(dy, y, D1D) {
+    FOREACH_THREAD(qx, x, Q1D) {
+      double u[D1D];
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; dz++) {
+        u[dz] = 0;
+      }
+      MFEM_UNROLL(MD1)
+      for (int dx = 0; dx < D1D; ++dx) {
+        MFEM_UNROLL(MD1)
         for (int dz = 0; dz < D1D; ++dz) {
-          const double s = X_(dx, dy, dz, e);
-          // Calculate D -> Q in the Z axis
-          for (int qz = 0; qz < Q1D; ++qz) {
-            r_z[qz] += s * s_B_(qz, dz);
-          }
+          u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx];
         }
+      }
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; ++dz) {
+        DDQ[dz][dy][qx] = u[dz];
+      }
+    }
+  }
+  __syncthreads();
+  FOREACH_THREAD(qy, y, Q1D) {
+    FOREACH_THREAD(qx, x, Q1D) {
+      double u[D1D];
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; dz++) {
+        u[dz] = 0;
+      }
+      MFEM_UNROLL(MD1)
+      for (int dy = 0; dy < D1D; ++dy) {
+        MFEM_UNROLL(MD1)
+        for (int dz = 0; dz < D1D; dz++) {
+          u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy];
+        }
+      }
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; dz++) {
+        DQQ[dz][qy][qx] = u[dz];
+      }
+    }
+  }
+  __syncthreads();
+  FOREACH_THREAD(qy, y, Q1D) {
+    FOREACH_THREAD(qx, x, Q1D) {
+      double u[Q1D];
+
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; qz++) {
+        u[qz] = 0;
+      }
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; ++dz) {
+        MFEM_UNROLL(MQ1)
+        for (int qz = 0; qz < Q1D; qz++) {
+          u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz];
+        }
+      }
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; qz++) {
+        QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e);
       }
     }
   }
 
-    // For each xy plane
-    for (int qz = 0; qz < Q1D; ++qz) {
-      // Fill xy plane at given z position
-      { const int dy = threadIdx.y;
-        { const int dx = threadIdx.x;
-          if ((dx < D1D) && (dy < D1D)) {
-            s_xy_(dx, dy) = r_z[qz];
-          }
+  __syncthreads();
+  FOREACH_THREAD(d, y, D1D) {
+    FOREACH_THREAD(q, x, Q1D) { Btsmem[d][q] = Bt_(q, d); }
+  }
+
+  __syncthreads();
+  FOREACH_THREAD(qy, y, Q1D) {
+    FOREACH_THREAD(dx, x, D1D) {
+      double u[Q1D];
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; ++qz) {
+        u[qz] = 0;
+      }
+      MFEM_UNROLL(MQ1)
+      for (int qx = 0; qx < Q1D; ++qx) {
+        MFEM_UNROLL(MQ1)
+        for (int qz = 0; qz < Q1D; ++qz) {
+          u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx];
         }
       }
-
-       // Calculate Dxyz, xDyz, xyDz in plane
-      { const int qy = threadIdx.y;
-        { const int qx = threadIdx.x;
-
-          if ((qx < Q1D) && (qy < Q1D)) {
-            double s = 0;
-            for (int dy = 0; dy < D1D; ++dy) {
-              const double wy = s_B_(qy, dy);
-              for (int dx = 0; dx < D1D; ++dx) {
-                const double wx = s_B_(qx, dx);
-                s += wx * wy * s_xy_(dx, dy);
-              }
-            }
-
-            s *= D_(qx, qy, qz, e);
-
-            for (int dz = 0; dz < D1D; ++dz) {
-              const double wz  = s_Bt_(dz, qz);
-              r_z2[dz] += wz * s;
-            }
-          }
-        }
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; ++qz) {
+        QQD[qz][qy][dx] = u[qz];
       }
-      __syncthreads();
     }
+  }
+  __syncthreads();
 
-    // Iterate over xy planes to compute solution
-    for (int dz = 0; dz < D1D; ++dz) {
-
-      // Place xy plane in shared memory
-      { const int qy = threadIdx.y;
-        { const int qx = threadIdx.x;
-          if ((qx < Q1D) && (qy < Q1D)) {
-            s_xy_(qx, qy) = r_z2[dz];
-          }
+  FOREACH_THREAD(dy, y, D1D) {
+    FOREACH_THREAD(dx, x, D1D) {
+      double u[Q1D];
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; ++qz) {
+        u[qz] = 0;
+      }
+      MFEM_UNROLL(MQ1)
+      for (int qy = 0; qy < Q1D; ++qy) {
+        MFEM_UNROLL(MQ1)
+        for (int qz = 0; qz < Q1D; ++qz) {
+          u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy];
         }
       }
-
-      // Finalize solution in xy plane
-      {const int dy = threadIdx.y;
-        {const int dx = threadIdx.x;
-          if ((dx < D1D) && (dy < D1D)) {
-            double solZ = 0;
-            for (int qy = 0; qy < Q1D; ++qy) {
-              const double wy = s_Bt_(dy, qy);
-              for (int qx = 0; qx < Q1D; ++qx) {
-                const double wx = s_Bt_(dx, qx);
-                solZ += wx * wy * s_xy_(qx, qy);
-              }
-            }
-            Y_(dx, dy, dz, e) += solZ;
-          }
-        }
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; ++qz) {
+        QDD[qz][dy][dx] = u[qz];
       }
-      __syncthreads();
     }
+  }
 
+  __syncthreads();
+  FOREACH_THREAD(dy, y, D1D) {
+    FOREACH_THREAD(dx, x, D1D) {
+      double u[D1D];
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; ++dz) {
+        u[dz] = 0;
+      }
+      MFEM_UNROLL(MQ1)
+      for (int qz = 0; qz < Q1D; ++qz) {
+        MFEM_UNROLL(MD1)
+        for (int dz = 0; dz < D1D; ++dz) {
+          u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz];
+        }
+      }
+      MFEM_UNROLL(MD1)
+      for (int dz = 0; dz < D1D; ++dz) {
+        Y_(dx, dy, dz, e) += u[dz];
+      }
+    }
+  }
 }
 
-
-void MASS3DPA::runCudaVariant(VariantID vid)
-{
+void MASS3DPA::runCudaVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
 
-  if ( vid == Base_CUDA ) {
+  if (vid == Base_CUDA) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
@@ -190,22 +230,21 @@ void MASS3DPA::runCudaVariant(VariantID vid)
       dim3 nthreads_per_block(Q1D, Q1D, 1);
 
       Mass3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
-
     }
     stopTimer();
 
     MASS3DPA_DATA_TEARDOWN_CUDA;
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else if (vid == RAJA_CUDA) {
 
     printf("TODO \n");
 
   } else {
-     std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
 } // end namespace apps
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_CUDA
+#endif // RAJA_ENABLE_CUDA
