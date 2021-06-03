@@ -48,11 +48,11 @@ Index_type NE = m_NE;
         constexpr int MQ1 = Q1D; \
         constexpr int MD1 = D1D; \
         constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
-        __shared__  double sDQ[MQ1 * MD1];                       \
+        RAJA_TEAM_SHARED  double sDQ[MQ1 * MD1];     \
         double(*Bsmem)[MD1] = (double(*)[MD1])sDQ; \
         double(*Btsmem)[MQ1] = (double(*)[MQ1])sDQ; \
-         __shared__ double sm0[MDQ * MDQ * MDQ];                \
-         __shared__ double sm1[MDQ * MDQ * MDQ];                \
+        RAJA_TEAM_SHARED double sm0[MDQ * MDQ * MDQ];       \
+        RAJA_TEAM_SHARED double sm1[MDQ * MDQ * MDQ];      \
         double(*Xsmem)[MD1][MD1] = (double(*)[MD1][MD1])sm0; \
         double(*DDQ)[MD1][MQ1] = (double(*)[MD1][MQ1])sm1; \
         double(*DQQ)[MQ1][MQ1] = (double(*)[MQ1][MQ1])sm0; \
@@ -211,13 +211,13 @@ using omp_launch_policy =
   using loop_policy = RAJA::loop_exec;
 
 #if defined(RAJA_ENABLE_CUDA)
-  using gpu_block_x_policy = RAJA::cuda_block_x_loop;
+  using gpu_block_x_policy = RAJA::cuda_block_x_direct;
   using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
   using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  using gpu_block_x_policy = RAJA::hip_block_x_loop;
+  using gpu_block_x_policy = RAJA::hip_block_x_direct;
   using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
   using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
 #endif
@@ -278,7 +278,6 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
-  //void runOpenMPTargetVariant(VariantID vid);
 
 private:
 

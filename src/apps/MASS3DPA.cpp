@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -27,31 +27,26 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setDefaultReps(50);
 
   setVariantDefined( Base_Seq );
-  //setVariantDefined( Lambda_Seq );
-  //setVariantDefined( RAJA_Seq );
+  setVariantDefined( RAJA_Seq );
 
   setVariantDefined( Base_OpenMP );
-  //setVariantDefined( Lambda_OpenMP );
-  //setVariantDefined( RAJA_OpenMP );
-
-  //setVariantDefined( Base_OpenMPTarget );
-  //setVariantDefined( RAJA_OpenMPTarget );
+  setVariantDefined( RAJA_OpenMP );
 
   setVariantDefined( Base_CUDA );
-  //setVariantDefined( RAJA_CUDA );
+  setVariantDefined( RAJA_CUDA );
 
   //setVariantDefined( Base_HIP );
   //setVariantDefined( RAJA_HIP );
 
 }
 
-MASS3DPA::~MASS3DPA() 
+MASS3DPA::~MASS3DPA()
 {
 }
 
 void MASS3DPA::setUp(VariantID vid)
 {
-  m_NE = run_params.getSizeFactor() * m_NE_default;     
+  m_NE = run_params.getSizeFactor() * m_NE_default;
 
   allocAndInitDataConst(m_B, int(m_Q1D*m_D1D), Real_type(1.0), vid);
   allocAndInitDataConst(m_Bt,int(m_Q1D*m_D1D), Real_type(1.0), vid);
@@ -68,7 +63,7 @@ void MASS3DPA::updateChecksum(VariantID vid)
 void MASS3DPA::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_B);
   deallocData(m_Bt);
   deallocData(m_D);
