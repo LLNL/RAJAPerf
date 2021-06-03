@@ -587,7 +587,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
-
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
        break;

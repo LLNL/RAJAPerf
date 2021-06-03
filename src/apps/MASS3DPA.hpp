@@ -270,11 +270,6 @@ class RunParams;
 namespace apps
 {
 
-//
-// These index value types cannot be defined in function scope for
-// RAJA CUDA variant to work.
-//
-
 class MASS3DPA : public KernelBase
 {
 public:
