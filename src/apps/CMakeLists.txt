@@ -47,6 +47,7 @@ blt_add_library(
           LTIMES_NOVIEW-OMPTarget.cpp
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
+          MASS3DPA-Hip.cpp
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           PRESSURE.cpp 
