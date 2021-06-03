@@ -34,27 +34,14 @@ namespace apps {
   deallocHipDeviceData(X);                                                    \
   deallocHipDeviceData(Y);
 
-#define D1D 4
-#define Q1D 5
-#define B_(x, y) B[x + Q1D * y]
-#define Bt_(x, y) Bt[x + D1D * y]
-#define s_xy_(x, y) s_xy[x + M1D * y]
-#define X_(dx, dy, dz, e)                                                      \
-  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define Y_(dx, dy, dz, e)                                                      \
-  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define D_(qx, qy, qz, e)                                                      \
-  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
-
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#define RAJA_UNROLL(N)
 #define FOREACH_THREAD(i, k, N)                                                \
-  for (int i = threadIdx.k; i < N; i += blockDim.k)
+  for(int i=hipThreadIdx_ ##k; i<N; i+=hipBlockDim_ ##k)
 
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
-  const int e = blockIdx.x;
+  const int e = hipBlockIdx_x;
 
   MASS3DPA_0_GPU
 
@@ -108,12 +95,17 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_HIP;
 
+    dim3 grid_size(NE);
+    dim3 block_size(Q1D, Q1D, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(Q1D, Q1D, 1);
+      hipLaunchKernelGGL((Mass3DPA), dim3(grid_size), dim3(block_size), 0, 0,
+                         NE, B, Bt, D, X, Y);
 
-      Mass3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
+      hipErrchk( hipGetLastError() );
+
     }
     stopTimer();
 

@@ -15,19 +15,7 @@
 namespace rajaperf {
 namespace apps {
 
-#define D1D 4
-#define Q1D 5
-#define B_(x, y) B[x + Q1D * y]
-#define Bt_(x, y) Bt[x + D1D * y]
-#define X_(dx, dy, dz, e)                                                      \
-  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define Y_(dx, dy, dz, e)                                                      \
-  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define D_(qx, qy, qz, e)                                                      \
-  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
-
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#define RAJA_UNROLL(N)
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 
 void MASS3DPA::runSeqVariant(VariantID vid) {
@@ -86,6 +74,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
     break;
   }
 
+#if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
     startTimer();
@@ -172,6 +161,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 
     return;
   }
+#endif // RUN_RAJA_SEQ
 
   default:
     std::cout << "\n MASS3DPA : Unknown Seq variant id = " << vid << std::endl;

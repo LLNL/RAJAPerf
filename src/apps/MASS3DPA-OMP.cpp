@@ -15,24 +15,18 @@
 namespace rajaperf {
 namespace apps {
 
-#define D1D 4
-#define Q1D 5
-#define B_(x, y) B[x + Q1D * y]
-#define Bt_(x, y) Bt[x + D1D * y]
-#define X_(dx, dy, dz, e)                                                      \
-  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define Y_(dx, dy, dz, e)                                                      \
-  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define D_(qx, qy, qz, e)                                                      \
-  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
 #define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
 #define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
+#endif
 
 void MASS3DPA::runOpenMPVariant(VariantID vid) {
-  const Index_type run_reps = getRunReps();
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+
+  const Index_type run_reps = getRunReps();
   MASS3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -178,6 +172,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
     std::cout << "\n MASS3DPA : Unknown OpenMP variant id = " << vid
               << std::endl;
   }
+#endif
 }
 
 } // end namespace apps

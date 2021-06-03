@@ -28,7 +28,19 @@ Index_type NE = m_NE;
 
 #include "RAJA/RAJA.hpp"
 
-#define MASS3DPA_0_CPU \
+//Number of Dofs/Qpts in 1D
+#define D1D 4
+#define Q1D 5
+#define B_(x, y) B[x + Q1D * y]
+#define Bt_(x, y) Bt[x + D1D * y]
+#define X_(dx, dy, dz, e)                                                      \
+  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+#define Y_(dx, dy, dz, e)                                                      \
+  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+#define D_(qx, qy, qz, e)                                                      \
+  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
+
+#define MASS3DPA_0_CPU           \
         constexpr int MQ1 = Q1D; \
         constexpr int MD1 = D1D; \
         constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
@@ -278,6 +290,7 @@ public:
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
+  void runHipVariant(VariantID vid);
 
 private:
 
