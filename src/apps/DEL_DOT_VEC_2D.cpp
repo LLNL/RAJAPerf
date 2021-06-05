@@ -25,6 +25,8 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setDefaultSize(312);  // See rzmax in ADomain struct
   setDefaultReps(1050);
 
+  setNumLoops(1);
+
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
 
   m_array_length = m_domain->nnalls;

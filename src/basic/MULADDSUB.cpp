@@ -24,6 +24,8 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(3500);
 
+  setNumLoops(1);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

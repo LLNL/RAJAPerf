@@ -53,6 +53,8 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
   setDefaultReps(run_reps);
 
+  setNumLoops(4);
+
   m_alpha = 1.5;
   m_beta = 1.2;
 

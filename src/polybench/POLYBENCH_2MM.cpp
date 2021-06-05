@@ -52,6 +52,8 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
   setDefaultReps(run_reps);
 
+  setNumLoops(2);
+
   m_alpha = 1.5;
   m_beta = 1.2;
 

@@ -53,6 +53,8 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   setDefaultSize( m_ni * (m_nj + m_nj*m_nk) );
   setDefaultReps(run_reps);
 
+  setNumLoops(1);
+
   m_alpha = 0.62;
   m_beta = 1.002;
 

@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -24,31 +24,33 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(16000);
 
+  setNumLoops(1);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-FIRST_DIFF::~FIRST_DIFF() 
+FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
+  m_N = getRunSize()+1;
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }

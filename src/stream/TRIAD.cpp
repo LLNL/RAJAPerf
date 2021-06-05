@@ -24,6 +24,8 @@ TRIAD::TRIAD(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setNumLoops(1);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

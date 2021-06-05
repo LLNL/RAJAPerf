@@ -24,6 +24,8 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(1800);
 
+  setNumLoops(1);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

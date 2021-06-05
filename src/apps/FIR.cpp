@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,6 +23,8 @@ FIR::FIR(const RunParams& params)
 {
   setDefaultSize(100000);
   setDefaultReps(1600);
+
+  setNumLoops(1);
 
   m_coefflen = FIR_COEFFLEN;
 
@@ -44,11 +46,11 @@ FIR::FIR(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-FIR::~FIR() 
+FIR::~FIR()
 {
 }
 
-Index_type FIR::getItsPerRep() const { 
+Index_type FIR::getItsPerRep() const {
   return getRunSize() - m_coefflen;
 }
 
@@ -66,7 +68,7 @@ void FIR::updateChecksum(VariantID vid)
 void FIR::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_in);
   deallocData(m_out);
 }

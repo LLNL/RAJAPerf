@@ -70,6 +70,8 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   setDefaultSize( m_tsteps * 2 * m_N * m_N * m_N);
   setDefaultReps(run_reps);
 
+  setNumLoops(m_tsteps);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

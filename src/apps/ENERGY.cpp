@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,6 +23,8 @@ ENERGY::ENERGY(const RunParams& params)
 {
   setDefaultSize(100000);
   setDefaultReps(1300);
+
+  setNumLoops(6);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -42,7 +44,7 @@ ENERGY::ENERGY(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-ENERGY::~ENERGY() 
+ENERGY::~ENERGY()
 {
 }
 
@@ -63,7 +65,7 @@ void ENERGY::setUp(VariantID vid)
   allocAndInitData(m_ql_old, getRunSize(), vid);
   allocAndInitData(m_qq_old, getRunSize(), vid);
   allocAndInitData(m_vnewc, getRunSize(), vid);
-  
+
   initData(m_rho0);
   initData(m_e_cut);
   initData(m_emin);

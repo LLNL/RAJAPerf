@@ -56,6 +56,8 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
                  m_num_vars_default);
   setDefaultReps(50);
 
+  setNumLoops(2*s_num_neighbors*m_num_vars_default);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

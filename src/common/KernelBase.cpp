@@ -14,7 +14,7 @@
 
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid, const RunParams& params) 
+KernelBase::KernelBase(KernelID kid, const RunParams& params)
   : run_params(params),
     kernel_id(kid),
     name( getFullKernelName(kernel_id) ),
@@ -32,33 +32,38 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
   }
 }
 
- 
+
 KernelBase::~KernelBase()
 {
 }
 
 
 Index_type KernelBase::getRunSize() const
-{ 
-  return static_cast<Index_type>(default_size*run_params.getSizeFactor()); 
+{
+  return static_cast<Index_type>(default_size*run_params.getSizeFactor());
 }
 
 Index_type KernelBase::getRunReps() const
-{ 
+{
   if (run_params.getInputState() == RunParams::CheckRun) {
     return static_cast<Index_type>(run_params.getCheckRunReps());
   } else {
-    return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
-  } 
+    return static_cast<Index_type>(default_reps*run_params.getRepFactor());
+  }
 }
 
-void KernelBase::setVariantDefined(VariantID vid) 
+Index_type KernelBase::getNumLoops() const
 {
-  has_variant_to_run[vid] = isVariantAvailable(vid); 
+  return static_cast<Index_type>(num_loops);
+}
+
+void KernelBase::setVariantDefined(VariantID vid)
+{
+  has_variant_to_run[vid] = isVariantAvailable(vid);
 }
 
 
-void KernelBase::execute(VariantID vid) 
+void KernelBase::execute(VariantID vid)
 {
   running_variant = vid;
 
@@ -66,14 +71,14 @@ void KernelBase::execute(VariantID vid)
 
   resetDataInitCount();
   this->setUp(vid);
-  
-  this->runKernel(vid); 
 
-  this->updateChecksum(vid); 
+  this->runKernel(vid);
+
+  this->updateChecksum(vid);
 
   this->tearDown(vid);
 
-  running_variant = NumVariants; 
+  running_variant = NumVariants;
 }
 
 void KernelBase::recordExecTime()
@@ -150,7 +155,7 @@ void KernelBase::runKernel(VariantID vid)
 
     default : {
 #if 0
-      std::cout << "\n  " << getName() 
+      std::cout << "\n  " << getName()
                 << " : Unknown variant id = " << vid << std::endl;
 #endif
     }
@@ -164,25 +169,26 @@ void KernelBase::print(std::ostream& os) const
   os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
   os << "\t\t\t default_size = " << default_size << std::endl;
   os << "\t\t\t default_reps = " << default_reps << std::endl;
+  os << "\t\t\t num_loops = " << num_loops << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << num_exec[j] << std::endl; 
+    os << "\t\t\t\t" << num_exec[j] << std::endl;
   }
   os << "\t\t\t min_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << min_time[j] << std::endl; 
+    os << "\t\t\t\t" << min_time[j] << std::endl;
   }
   os << "\t\t\t max_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << max_time[j] << std::endl; 
+    os << "\t\t\t\t" << max_time[j] << std::endl;
   }
   os << "\t\t\t tot_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << tot_time[j] << std::endl; 
+    os << "\t\t\t\t" << tot_time[j] << std::endl;
   }
   os << "\t\t\t checksum: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << checksum[j] << std::endl; 
+    os << "\t\t\t\t" << checksum[j] << std::endl;
   }
   os << std::endl;
 }

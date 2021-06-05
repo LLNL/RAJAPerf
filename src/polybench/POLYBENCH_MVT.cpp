@@ -12,17 +12,17 @@
 #include "common/DataUtils.hpp"
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   : KernelBase(rajaperf::Polybench_MVT, params)
 {
   SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_N=40;
@@ -53,25 +53,27 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultSize( 2*m_N*m_N );
   setDefaultReps(run_reps);
 
+  setNumLoops(2);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_MVT::~POLYBENCH_MVT() 
+POLYBENCH_MVT::~POLYBENCH_MVT()
 {
 
 }

@@ -13,7 +13,7 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -24,6 +24,8 @@ VOL3D::VOL3D(const RunParams& params)
 {
   setDefaultSize(64);  // See rzmax in ADomain struct
   setDefaultReps(300);
+
+  setNumLoops(1);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
 
@@ -47,12 +49,12 @@ VOL3D::VOL3D(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-VOL3D::~VOL3D() 
+VOL3D::~VOL3D()
 {
   delete m_domain;
 }
 
-Index_type VOL3D::getItsPerRep() const { 
+Index_type VOL3D::getItsPerRep() const {
   return m_domain->lpz+1 - m_domain->fpz;
 }
 
@@ -69,7 +71,7 @@ void VOL3D::setUp(VariantID vid)
 
   allocAndInitDataConst(m_vol, m_array_length, 0.0, vid);
 
-  m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
+  m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */
 }
 
 void VOL3D::updateChecksum(VariantID vid)

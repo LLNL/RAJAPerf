@@ -52,6 +52,8 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setDefaultSize( m_tsteps * 2*m_n*(m_n+m_n) );
   setDefaultReps(run_reps);
 
+  setNumLoops(2);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

@@ -56,7 +56,10 @@ public:
   Index_type getRunSize() const;
   Index_type getRunReps() const;
 
-  bool wasVariantRun(VariantID vid) const 
+  void setNumLoops(Index_type loops) { num_loops = loops; }
+  Index_type getNumLoops() const;
+
+  bool wasVariantRun(VariantID vid) const
     { return num_exec[vid] > 0; }
 
   double getMinTime(VariantID vid) const { return min_time[vid]; }
@@ -109,7 +112,7 @@ public:
 
   virtual Index_type getItsPerRep() const { return getRunSize(); }
 
-  virtual void print(std::ostream& os) const; 
+  virtual void print(std::ostream& os) const;
 
   virtual void runKernel(VariantID vid);
 
@@ -139,7 +142,7 @@ protected:
 private:
   KernelBase() = delete;
 
-  void recordExecTime(); 
+  void recordExecTime();
 
   KernelID    kernel_id;
   std::string name;
@@ -147,7 +150,9 @@ private:
   Index_type default_size;
   Index_type default_reps;
 
-  VariantID running_variant; 
+  Index_type num_loops = 0;
+
+  VariantID running_variant;
 
   int num_exec[NumVariants];
 
