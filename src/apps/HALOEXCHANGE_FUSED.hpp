@@ -132,6 +132,8 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  size_t getBytesPerRep() const;
+
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
@@ -151,6 +153,7 @@ private:
 
   Index_type m_grid_plus_halo_dims[3];
   Index_type m_var_size;
+  Index_type m_var_halo_size;
 
   std::vector<Real_ptr> m_vars;
   std::vector<Real_ptr> m_buffers;

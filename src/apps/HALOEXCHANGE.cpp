@@ -94,6 +94,9 @@ void HALOEXCHANGE::setUp(VariantID vid)
   m_var_size = m_grid_plus_halo_dims[0] *
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
+  m_var_halo_size = m_var_size - (m_grid_dims[0] *
+                                  m_grid_dims[1] *
+                                  m_grid_dims[2]);
 
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
@@ -147,6 +150,14 @@ void HALOEXCHANGE::tearDown(VariantID vid)
     deallocData(m_vars[v]);
   }
   m_vars.clear();
+}
+
+size_t HALOEXCHANGE::getBytesPerRep() const
+{
+  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * m_var_halo_size * m_num_vars +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_var_halo_size * m_num_vars +
+         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * m_var_halo_size * m_num_vars +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_var_halo_size * m_num_vars ;
 }
 
 namespace {

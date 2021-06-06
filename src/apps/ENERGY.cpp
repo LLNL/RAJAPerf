@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -42,7 +42,7 @@ ENERGY::ENERGY(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-ENERGY::~ENERGY() 
+ENERGY::~ENERGY()
 {
 }
 
@@ -63,7 +63,7 @@ void ENERGY::setUp(VariantID vid)
   allocAndInitData(m_ql_old, getRunSize(), vid);
   allocAndInitData(m_qq_old, getRunSize(), vid);
   allocAndInitData(m_vnewc, getRunSize(), vid);
-  
+
   initData(m_rho0);
   initData(m_e_cut);
   initData(m_emin);
@@ -95,6 +95,18 @@ void ENERGY::tearDown(VariantID vid)
   deallocData(m_ql_old);
   deallocData(m_qq_old);
   deallocData(m_vnewc);
+}
+
+size_t ENERGY::getBytesPerRep() const
+{
+  // some branches are never taken due to the nature of the initialization of delvc
+  // the additional reads and writes that would be done if those branches were taken are noted in the comments
+  return (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 1/*+7*/*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 7/*+5*/*sizeof(Real_type)) * getRunSize() +
+         (0/*+1*/*sizeof(Real_type) + 1/*+7*/*sizeof(Real_type)) * getRunSize() ;
 }
 
 } // end namespace apps

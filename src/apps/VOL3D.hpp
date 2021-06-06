@@ -144,7 +144,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -166,6 +166,8 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  size_t getBytesPerRep() const;
+
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
@@ -181,7 +183,7 @@ private:
   Real_type m_vnormq;
 
   ADomain* m_domain;
-  Index_type m_array_length; 
+  Index_type m_array_length;
 };
 
 } // end namespace apps

@@ -84,5 +84,14 @@ void LTIMES_NOVIEW::tearDown(VariantID vid)
   deallocData(m_psidat);
 }
 
+size_t LTIMES_NOVIEW::getBytesPerRep() const
+{
+  // using total data size instead of writes and reads
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen ;
+}
+
+
 } // end namespace apps
 } // end namespace rajaperf
