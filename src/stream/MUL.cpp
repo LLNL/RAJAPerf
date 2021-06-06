@@ -68,5 +68,10 @@ void MUL::tearDown(VariantID vid)
   deallocData(m_c);
 }
 
+size_t MUL::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace stream
 } // end namespace rajaperf

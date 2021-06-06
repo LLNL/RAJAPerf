@@ -69,5 +69,10 @@ void TRIAD::tearDown(VariantID vid)
   deallocData(m_c);
 }
 
+size_t TRIAD::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace stream
 } // end namespace rajaperf
