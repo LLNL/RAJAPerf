@@ -43,7 +43,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -61,6 +61,8 @@ public:
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
+
+  size_t getBytesPerRep() const;
 
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);

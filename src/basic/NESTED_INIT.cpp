@@ -75,5 +75,10 @@ void NESTED_INIT::tearDown(VariantID vid)
   m_array = 0;
 }
 
+size_t NESTED_INIT::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_ni * m_nj * m_nk;
+}
+
 } // end namespace basic
 } // end namespace rajaperf

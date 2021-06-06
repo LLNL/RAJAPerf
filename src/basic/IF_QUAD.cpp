@@ -73,5 +73,10 @@ void IF_QUAD::tearDown(VariantID vid)
   deallocData(m_x2);
 }
 
+size_t IF_QUAD::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf

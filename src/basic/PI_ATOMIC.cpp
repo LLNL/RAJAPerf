@@ -66,5 +66,10 @@ void PI_ATOMIC::tearDown(VariantID vid)
   deallocData(m_pi);
 }
 
+size_t PI_ATOMIC::getBytesPerRep() const
+{
+  return (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf

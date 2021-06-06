@@ -74,5 +74,10 @@ void INIT3::tearDown(VariantID vid)
   deallocData(m_in2);
 }
 
+size_t INIT3::getBytesPerRep() const
+{
+  return (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf

@@ -65,5 +65,10 @@ void INIT_VIEW1D_OFFSET::tearDown(VariantID vid)
   deallocData(m_a);
 }
 
+size_t INIT_VIEW1D_OFFSET::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf

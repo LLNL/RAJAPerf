@@ -67,5 +67,10 @@ void DAXPY::tearDown(VariantID vid)
   deallocData(m_y);
 }
 
+size_t DAXPY::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf

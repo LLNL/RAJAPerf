@@ -64,5 +64,10 @@ void PI_REDUCE::tearDown(VariantID vid)
   (void) vid;
 }
 
+size_t PI_REDUCE::getBytesPerRep() const
+{
+  return (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 } // end namespace basic
 } // end namespace rajaperf
