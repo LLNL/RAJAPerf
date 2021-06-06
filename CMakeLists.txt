@@ -1,6 +1,6 @@
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA Performance Suite project contributors. 
+# and RAJA Performance Suite project contributors.
 # See the RAJAPerf/COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -34,6 +34,7 @@ include(blt/SetupBLT.cmake)
 # Define RAJA settings...
 #
 
+set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "")
 set(ENABLE_TESTS Off CACHE BOOL "")
 set(ENABLE_EXAMPLES Off CACHE BOOL "")
 set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
@@ -80,7 +81,7 @@ if (ENABLE_OPENMP)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
-endif() 
+endif()
 if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
@@ -109,7 +110,7 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# Make sure RAJA flag propagate (we need to do some house cleaning to
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
