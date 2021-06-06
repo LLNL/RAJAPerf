@@ -24,6 +24,7 @@
 
 #include <string>
 #include <iostream>
+#include <limits>
 
 namespace rajaperf {
 
@@ -37,6 +38,7 @@ namespace rajaperf {
 class KernelBase
 {
 public:
+  static const size_t s_unknown_bytes = std::numeric_limits<size_t>::max();
 
   KernelBase(KernelID kid, const RunParams& params);
 
@@ -56,7 +58,7 @@ public:
   Index_type getRunSize() const;
   Index_type getRunReps() const;
 
-  bool wasVariantRun(VariantID vid) const 
+  bool wasVariantRun(VariantID vid) const
     { return num_exec[vid] > 0; }
 
   double getMinTime(VariantID vid) const { return min_time[vid]; }
@@ -109,7 +111,9 @@ public:
 
   virtual Index_type getItsPerRep() const { return getRunSize(); }
 
-  virtual void print(std::ostream& os) const; 
+  virtual size_t getBytesPerRep() const { return s_unknown_bytes; }
+
+  virtual void print(std::ostream& os) const;
 
   virtual void runKernel(VariantID vid);
 
@@ -139,7 +143,7 @@ protected:
 private:
   KernelBase() = delete;
 
-  void recordExecTime(); 
+  void recordExecTime();
 
   KernelID    kernel_id;
   std::string name;
@@ -147,7 +151,7 @@ private:
   Index_type default_size;
   Index_type default_reps;
 
-  VariantID running_variant; 
+  VariantID running_variant;
 
   int num_exec[NumVariants];
 
