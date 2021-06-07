@@ -83,6 +83,7 @@
 //
 // Algorithm kernels...
 //
+#include "algorithm/SCAN.hpp"
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
 
@@ -206,6 +207,7 @@ static const std::string KernelNames [] =
 //
 // Algorithm kernels...
 //
+  std::string("Algorithm_SCAN"),
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
 
@@ -599,6 +601,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Algorithm kernels...
 //
+    case Algorithm_SCAN: {
+       kernel = new algorithm::SCAN(run_params);
+       break;
+    }
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;

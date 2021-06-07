@@ -188,6 +188,8 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  algorithm/SCAN.cpp
+  algorithm/SCAN-Seq.cpp
   algorithm/SORT.cpp
   algorithm/SORT-Seq.cpp
   algorithm/SORTPAIRS.cpp

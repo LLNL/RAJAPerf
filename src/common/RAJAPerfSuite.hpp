@@ -169,6 +169,7 @@ enum KernelID {
 //
 // Algorithm kernels...
 //
+  Algorithm_SCAN,
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
 
