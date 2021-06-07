@@ -67,6 +67,8 @@ blt_add_executable(
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Seq.cpp
   basic/IF_QUAD-OMPTarget.cpp
+  basic/INDEXLIST.cpp
+  basic/INDEXLIST-Seq.cpp
   basic/INIT3.cpp
   basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp

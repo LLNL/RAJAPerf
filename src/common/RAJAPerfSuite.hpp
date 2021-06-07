@@ -101,6 +101,7 @@ enum KernelID {
 //
   Basic_DAXPY = 0,
   Basic_IF_QUAD,
+  Basic_INDEXLIST,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,

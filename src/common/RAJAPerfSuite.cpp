@@ -15,6 +15,7 @@
 //
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
+#include "basic/INDEXLIST.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
@@ -139,6 +140,7 @@ static const std::string KernelNames [] =
 //
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
+  std::string("Basic_INDEXLIST"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
@@ -387,6 +389,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
+       break;
+    }
+    case Basic_INDEXLIST : {
+       kernel = new basic::INDEXLIST(run_params);
        break;
     }
     case Basic_INIT3 : {

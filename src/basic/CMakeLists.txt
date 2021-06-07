@@ -20,6 +20,11 @@ blt_add_library(
           IF_QUAD-Cuda.cpp
           IF_QUAD-OMP.cpp
           IF_QUAD-OMPTarget.cpp
+          INDEXLIST.cpp
+          INDEXLIST-Seq.cpp
+          INDEXLIST-Hip.cpp
+          INDEXLIST-Cuda.cpp
+          INDEXLIST-OMP.cpp
           INIT3.cpp
           INIT3-Seq.cpp
           INIT3-Hip.cpp
