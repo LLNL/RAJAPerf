@@ -27,10 +27,6 @@
 
 #include <unistd.h>
 
-#ifdef RAJAPERF_USE_CALIPER
-#include "rajaperf_config.hpp"
-#endif
-
 namespace rajaperf {
 
 using namespace std;
@@ -296,6 +292,9 @@ void Executor::setupSuite()
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
+#ifdef RAJAPERF_USE_CALIPER
+        KernelBase::setCaliperMgrVariant(*vid);
+#endif
       }
 
       //
@@ -456,7 +455,10 @@ void Executor::runSuite()
     } // loop over kernels
 
   } // loop over passes through suite
-
+#ifdef RAJAPERF_USE_CALIPER
+  // Flush Caliper data
+  KernelBase::setCaliperMgrFlush();
+#endif
 }
 
 void Executor::outputRunData()

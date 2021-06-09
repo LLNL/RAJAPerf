@@ -12,6 +12,10 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
+#ifdef RAJAPERF_USE_CALIPER
+#include "rajaperf_config.hpp"
+#endif
+
 #include <iosfwd>
 #include <utility>
 #include <set>
@@ -76,6 +80,7 @@ private:
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;
+
 };
 
 }  // closing brace for rajaperf namespace

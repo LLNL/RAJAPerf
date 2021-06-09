@@ -17,23 +17,7 @@
 #include "RAJA/util/Timer.hpp"
 
 #ifdef RAJAPERF_USE_CALIPER
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-#include <adiak.hpp>
 
-#if 0
-#define CALI_START \
-    if(doCaliperTiming) { \
-      std::string kstr = getName() + "." + getVariantName(running_variant); \
-      CALI_MARK_BEGIN(kstr.c_str()); \
-    }
-
-#define CALI_STOP \
-    if(doCaliperTiming) { \
-      std::string kstr = getName() + "." + getVariantName(running_variant); \
-      CALI_MARK_END(kstr.c_str()); \
-    }
-#endif
 #define CALI_START \
     if(doCaliperTiming) { \
       CALI_MARK_BEGIN("kernel"); \
@@ -50,6 +34,7 @@
 
 #include <string>
 #include <iostream>
+#include <map>
 
 namespace rajaperf {
 
@@ -99,6 +84,28 @@ public:
 #ifdef RAJAPERF_USE_CALIPER
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; } 
+  static void setCaliperMgrVariant(VariantID vid)
+  {
+    cali::ConfigManager m;
+    mgr.insert(std::make_pair(vid,m));
+    std::string vstr = getVariantName(vid);
+    std::string profile = "spot(output=" + vstr + ".cali)";
+    std::cout << "Profile: " << profile << std::endl;
+    mgr[vid].add(profile.c_str()); 
+  }
+
+  static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
+  static void setCaliperMgrStop(VariantID vid) { mgr[vid].stop(); }
+  static void setCaliperMgrFlush() 
+  { // we're going to flush all the variants at once
+    for(auto const &kv : mgr) {
+      // set Adiak key first
+      std::string variant=getVariantName(kv.first);
+      adiak::value("variant",variant.c_str());
+      mgr[kv.first].flush(); 
+    }
+  }
+
 #endif
 
   void startTimer() 
@@ -195,6 +202,8 @@ private:
 
 #ifdef RAJAPERF_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
+// we need a Caliper Manager object per variant
+  static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
 #endif
 };
 

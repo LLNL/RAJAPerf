@@ -92,24 +92,9 @@ void KernelBase::runKernel(VariantID vid)
     return;
   }
 
-
 #ifdef RAJAPERF_USE_CALIPER
-  cali::ConfigManager *mgr=NULL; 
   if(doCaliperTiming) {
-      if(!mgr) {
-         mgr=new(cali::ConfigManager); 
-         std::string kernel  = getName();
-         std::string variant = getVariantName(running_variant);
-         std::string kstr = kernel + "." + variant; 
-         std::string profile = "spot(output=" + kstr + ".cali)"; 
-         mgr->add(profile.c_str()); 
-         if (mgr->error()) 
-           std::cerr << "Caliper error: " << mgr->error_msg() << std::endl; 
-         adiak::value("kernel",kernel.c_str());
-         adiak::value("variant",variant.c_str());
-         adiak::value("kernelvariant",kstr.c_str());
-         mgr->start(); 
-      }
+    KernelBase::setCaliperMgrStart(vid);
   }
 #endif
    
@@ -170,14 +155,9 @@ void KernelBase::runKernel(VariantID vid)
     }
 
   }
-
 #ifdef RAJAPERF_USE_CALIPER
   if(doCaliperTiming) {
-     if(mgr) {
-      mgr->flush();
-      delete(mgr);
-      mgr=NULL;
-     }
+    setCaliperMgrStop(vid); 
   }
 #endif
 }
@@ -211,4 +191,8 @@ void KernelBase::print(std::ostream& os) const
   os << std::endl;
 }
 
+// initialize a KernelBase static 
+std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 }  // closing brace for rajaperf namespace
+
+
