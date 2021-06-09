@@ -20,12 +20,22 @@
 
 #define CALI_START \
     if(doCaliperTiming) { \
-      CALI_MARK_BEGIN("kernel"); \
+      std::string kstr = getName(); \
+      std::string gstr = getGroupName(kstr); \
+      std::string vstr = getVariantName(running_variant); \
+      CALI_MARK_BEGIN(vstr.c_str()); \
+      CALI_MARK_BEGIN(gstr.c_str()); \
+      CALI_MARK_BEGIN(kstr.c_str()); \
     }
 
 #define CALI_STOP \
     if(doCaliperTiming) { \
-      CALI_MARK_END("kernel"); \
+      std::string kstr = getName(); \
+      std::string gstr = getGroupName(kstr); \
+      std::string vstr = getVariantName(running_variant); \
+      CALI_MARK_END(kstr.c_str()); \
+      CALI_MARK_END(gstr.c_str()); \
+      CALI_MARK_END(vstr.c_str()); \
     }
 #else
 #define CALI_START
@@ -104,6 +114,12 @@ public:
       adiak::value("variant",variant.c_str());
       mgr[kv.first].flush(); 
     }
+  }
+
+  std::string getGroupName(const std::string &kname )
+  {
+    std::size_t found = kname.find("_");
+    return kname.substr(0,found);
   }
 
 #endif
