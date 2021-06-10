@@ -84,9 +84,9 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelAsync<
-          RAJA::statement::For<2, RAJA::sycl_global_1<1>,      // k
-            RAJA::statement::For<1, RAJA::sycl_global_2<1>,    // j
-              RAJA::statement::For<0, RAJA::sycl_global_3<256>, // i
+          RAJA::statement::For<2, RAJA::sycl_global_2<1>,      // k
+            RAJA::statement::For<1, RAJA::sycl_global_1<1>,    // j
+              RAJA::statement::For<0, RAJA::sycl_global_0<256>, // i
                 RAJA::statement::Lambda<0>
               >
             >

@@ -134,8 +134,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelNonTrivial<
-          RAJA::statement::For<0, RAJA::sycl_global_1<16>,
-            RAJA::statement::For<1, RAJA::sycl_global_2<16>,
+          RAJA::statement::For<0, RAJA::sycl_global_1<1>,
+            RAJA::statement::For<1, RAJA::sycl_global_0<256>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>

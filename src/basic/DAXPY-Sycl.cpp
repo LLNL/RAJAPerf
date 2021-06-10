@@ -70,7 +70,7 @@ void DAXPY::runSyclVariant(VariantID vid)
           }
 
         });
-      });
+      }).wait();
     }
 
     qu->wait(); // Wait for computation to finish before stopping timer
@@ -83,7 +83,7 @@ void DAXPY::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<block_size, true> >(
+      RAJA::forall< RAJA::sycl_exec<block_size, false> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         DAXPY_BODY;
       });

@@ -83,9 +83,9 @@ void LTIMES::runSyclVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernel<
-          RAJA::statement::For<1, RAJA::sycl_global_1<1>,      //z 
-            RAJA::statement::For<2, RAJA::sycl_global_2<1>,    //g
-              RAJA::statement::For<3, RAJA::sycl_global_3<1>, //m
+          RAJA::statement::For<1, RAJA::sycl_global_2<1>,      //z 
+            RAJA::statement::For<2, RAJA::sycl_global_1<1>,    //g
+              RAJA::statement::For<3, RAJA::sycl_global_0<1>, //m
                 RAJA::statement::For<0, RAJA::seq_exec,       //d
                   RAJA::statement::Lambda<0>
                 >
