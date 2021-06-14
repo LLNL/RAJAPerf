@@ -4,7 +4,7 @@
 			"fileName": "RAJAPerfSuite_*",
  			"type" : "xml",
 			"ignoreOldFiles" : true,
- 			"recurseDirectories" : false
+ 			"recurseDirectories" : true
 		},
 		"categories": [
 			"Kokkos_Lambda_CUDA",
