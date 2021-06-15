@@ -219,6 +219,7 @@ private:
 #ifdef RAJAPERF_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
 // we need a Caliper Manager object per variant
+// we can inline this with c++17
   static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
 #endif
 };

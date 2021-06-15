@@ -36,17 +36,23 @@ Executor::Executor(int argc, char** argv)
     reference_vid(NumVariants)
 {
 #ifdef RAJAPERF_USE_CALIPER
+   struct configuration  cc;
    adiak::init(NULL);
    adiak::user();
    adiak::launchdate();
    adiak::libraries();
    adiak::cmdline();
    adiak::clustername();
-   struct configuration  cc;
    adiak::value("perfsuite_version",cc.perfsuite_version);
    adiak::value("raja_version",cc.raja_version);
    adiak::value("cmake_build_type",cc.cmake_build_type);
+
    adiak::value("compiler",cc.compiler);
+   std::string compiler_str(cc.compiler);
+   std::size_t found = compiler_str.find_last_of("/\\");
+   std::string  compiler_suffix = compiler_str.substr(found+1);
+   adiak::value("compiler_suffix",compiler_suffix.c_str());
+
    adiak::value("compiler_flags",cc.compiler_flags);
    if(!strcmp(cc.cmake_build_type,"Release"))
       adiak::value("compiler_flags_release",cc.compiler_flags_release);
@@ -54,11 +60,13 @@ Executor::Executor(int argc, char** argv)
       adiak::value("compiler_flags_relwithdebinfo",cc.compiler_flags_relwithdebinfo);
    else if(!strcmp(cc.cmake_build_type,"Debug"))
       adiak::value("compiler_flags_debug",cc.compiler_flags_debug);
+
    if(strlen(cc.cuda_compiler_version) > 0) {
       adiak::value("cuda_compiler_version",cc.cuda_compiler_version);
       adiak::value("cuda_flags",cc.cuda_flags);
       adiak::value("cuda_flags_release",cc.cuda_flags_release);
    }
+
    if(strlen(cc.systype_build) > 0)
       adiak::value("systype_build",cc.systype_build);
    if(strlen(cc.machine_build) > 0)

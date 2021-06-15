@@ -190,9 +190,10 @@ void KernelBase::print(std::ostream& os) const
   }
   os << std::endl;
 }
-
+#ifdef RAJAPERF_USE_CALIPER
 // initialize a KernelBase static 
 std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
+#endif
 }  // closing brace for rajaperf namespace
 
 
