@@ -26,10 +26,6 @@ void SCAN::runSeqVariant(VariantID vid)
 
   SCAN_DATA_SETUP;
 
-  auto scan_lam = [=](Index_type i) {
-                    SCAN_BODY;
-                  };
-
   switch ( vid ) {
 
     case Base_Seq : {
@@ -38,7 +34,7 @@ void SCAN::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         SCAN_PROLOGUE;
-        for (Index_type i = ibegin+1; i < iend; ++i ) {
+        for (Index_type i = ibegin; i < iend; ++i ) {
           SCAN_BODY;
         }
 
@@ -55,7 +51,10 @@ void SCAN::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         SCAN_PROLOGUE;
-        for (Index_type i = ibegin+1; i < iend; ++i ) {
+        auto scan_lam = [=, &scan_var](Index_type i) {
+                          SCAN_BODY;
+                        };
+        for (Index_type i = ibegin; i < iend; ++i ) {
           scan_lam(i);
         }
 

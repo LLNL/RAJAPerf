@@ -30,6 +30,49 @@ void SCAN::runOpenMPVariant(VariantID vid)
 
   switch ( vid ) {
 
+#if _OPENMP >= 201811
+    case Base_OpenMP : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        SCAN_PROLOGUE;
+        #pragma omp parallel for reduction(inscan, +:scan_var)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          y[i] = scan_var;
+          #pragma omp scan exclusive(scan_var)
+          scan_var += x[i];
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case Lambda_OpenMP : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        SCAN_PROLOGUE;
+        auto scan_lam = [=](Index_type i, Real_type& scan_var) {
+                          y[i] = scan_var;
+                          return x[i];
+                        };
+        #pragma omp parallel for reduction(inscan, +:scan_var)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          #pragma omp scan exclusive(scan_var)
+          scan_var += scan_lam(i, scan_var);
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
+
     case RAJA_OpenMP : {
 
       startTimer();

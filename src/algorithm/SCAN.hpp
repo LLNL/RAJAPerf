@@ -24,10 +24,11 @@
   Real_ptr y = m_y;
 
 #define SCAN_PROLOGUE \
-  y[ibegin] = 0.0;
+  Real_type scan_var = 0.0;
 
 #define SCAN_BODY \
-  y[i] = y[i-1] + x[i-1];
+  y[i] = scan_var; \
+  scan_var += x[i];
 
 #define RAJA_SCAN_ARGS \
   RAJA::make_span(x + ibegin, iend - ibegin), \

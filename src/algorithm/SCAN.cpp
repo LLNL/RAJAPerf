@@ -28,6 +28,10 @@ SCAN::SCAN(const RunParams& params)
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
 
+#if defined(_OPENMP) && _OPENMP >= 201811
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( Lambda_OpenMP );
+#endif
   setVariantDefined( RAJA_OpenMP );
 
   setVariantDefined( RAJA_CUDA );
