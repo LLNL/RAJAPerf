@@ -192,10 +192,8 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<launch_policy>(
-          RAJA::expt::HOST,
-          RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
-                                RAJA::expt::Threads(TL_SZ, TL_SZ)),
+      //Resources is empty as the host does not need a compute grid to be specified
+      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Resources(),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
             RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
