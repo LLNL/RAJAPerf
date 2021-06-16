@@ -13,7 +13,6 @@
 //
 // Basic kernels...
 //
-#include "basic/ATOMIC_PI.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
@@ -22,6 +21,8 @@
 #include "basic/MULADDSUB.hpp"
 #include "basic/MAT_MAT_SHARED.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/PI_ATOMIC.hpp"
+#include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/TRAP_INT.hpp"
 
@@ -74,6 +75,7 @@
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
+#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
@@ -135,7 +137,6 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
-  std::string("Basic_ATOMIC_PI"),
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
@@ -144,6 +145,8 @@ static const std::string KernelNames [] =
   std::string("Basic_MULADDSUB"),
   std::string("Basic_MAT_MAT_SHARED"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_PI_ATOMIC"),
+  std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_TRAP_INT"),
 
@@ -196,6 +199,7 @@ static const std::string KernelNames [] =
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
+  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_PRESSURE"),
@@ -241,12 +245,10 @@ static const std::string VariantNames [] =
   std::string("Base_CUDA"),
   std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
-  std::string("RAJA_WORKGROUP_CUDA"),
 
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
-  std::string("RAJA_WORKGROUP_HIP"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -346,8 +348,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
   if ( vid == Base_CUDA ||
        vid == Lambda_CUDA ||
-       vid == RAJA_CUDA ||
-       vid == RAJA_WORKGROUP_CUDA ) {
+       vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif
@@ -355,8 +356,7 @@ bool isVariantAvailable(VariantID vid)
 #if defined(RAJA_ENABLE_HIP)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
-       vid == RAJA_HIP ||
-       vid == RAJA_WORKGROUP_HIP ) {
+       vid == RAJA_HIP ) {
     ret_val = true;
   }
 #endif
@@ -381,10 +381,6 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
-    case Basic_ATOMIC_PI : {
-       kernel = new basic::ATOMIC_PI(run_params);
-       break;
-    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -415,6 +411,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_NESTED_INIT : {
        kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_PI_ATOMIC : {
+       kernel = new basic::PI_ATOMIC(run_params);
+       break;
+    }
+    case Basic_PI_REDUCE : {
+       kernel = new basic::PI_REDUCE(run_params);
        break;
     }
     case Basic_REDUCE3_INT : {
@@ -575,6 +579,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_HALOEXCHANGE : {
        kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE_FUSED : {
+       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
        break;
     }
     case Apps_LTIMES : {

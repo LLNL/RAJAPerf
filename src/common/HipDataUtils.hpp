@@ -126,15 +126,34 @@ void initHipDeviceData(T& dptr, const T hptr, int len)
 }
 
 /*!
+ * \brief Allocate HIP device data array (dptr).
+ */
+template <typename T>
+void allocHipDeviceData(T& dptr, int len)
+{
+  hipErrchk( hipMalloc( (void**)&dptr,
+              len * sizeof(typename std::remove_pointer<T>::type) ) );
+}
+
+/*!
+ * \brief Allocate HIP pinned data array (pptr).
+ */
+template <typename T>
+void allocHipPinnedData(T& pptr, int len)
+{
+  hipErrchk( hipHostMalloc( (void**)&pptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipHostMallocMapped ) );
+}
+
+/*!
  * \brief Allocate HIP device data array (dptr) and copy given hptr (host)
  * data to device array.
  */
 template <typename T>
 void allocAndInitHipDeviceData(T& dptr, const T hptr, int len)
 {
-  hipErrchk( hipMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
-
+  allocHipDeviceData(dptr, len);
   initHipDeviceData(dptr, hptr, len);
 }
 
@@ -159,7 +178,17 @@ template <typename T>
 void deallocHipDeviceData(T& dptr)
 {
   hipErrchk( hipFree( dptr ) );
-  dptr = 0;
+  dptr = nullptr;
+}
+
+/*!
+ * \brief Free pinned data array.
+ */
+template <typename T>
+void deallocHipPinnedData(T& pptr)
+{
+  hipErrchk( hipHostFree( pptr ) );
+  pptr = nullptr;
 }
 
 

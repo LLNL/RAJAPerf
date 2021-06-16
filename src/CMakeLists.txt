@@ -48,6 +48,9 @@ blt_add_executable(
   apps/HALOEXCHANGE.cpp
   apps/HALOEXCHANGE-Seq.cpp
   apps/HALOEXCHANGE-OMPTarget.cpp
+  apps/HALOEXCHANGE_FUSED.cpp
+  apps/HALOEXCHANGE_FUSED-Seq.cpp
+  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -58,9 +61,6 @@ blt_add_executable(
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
-  basic/ATOMIC_PI.cpp
-  basic/ATOMIC_PI-Seq.cpp
-  basic/ATOMIC_PI-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -82,6 +82,12 @@ blt_add_executable(
   basic/NESTED_INIT.cpp
   basic/NESTED_INIT-Seq.cpp
   basic/NESTED_INIT-OMPTarget.cpp
+  basic/PI_ATOMIC.cpp
+  basic/PI_ATOMIC-Seq.cpp
+  basic/PI_ATOMIC-OMPTarget.cpp
+  basic/PI_REDUCE.cpp
+  basic/PI_REDUCE-Seq.cpp
+  basic/PI_REDUCE-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp

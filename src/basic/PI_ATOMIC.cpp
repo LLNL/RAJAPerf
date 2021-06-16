@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,8 +18,8 @@ namespace basic
 {
 
 
-ATOMIC_PI::ATOMIC_PI(const RunParams& params)
-  : KernelBase(rajaperf::Basic_ATOMIC_PI, params)
+PI_ATOMIC::PI_ATOMIC(const RunParams& params)
+  : KernelBase(rajaperf::Basic_PI_ATOMIC, params)
 {
   setDefaultSize(3000);
   setDefaultReps(10000);
@@ -44,23 +44,23 @@ ATOMIC_PI::ATOMIC_PI(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-ATOMIC_PI::~ATOMIC_PI()
+PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
-void ATOMIC_PI::setUp(VariantID vid)
+void PI_ATOMIC::setUp(VariantID vid)
 {
   m_dx = 1.0 / double(getRunSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
 }
 
-void ATOMIC_PI::updateChecksum(VariantID vid)
+void PI_ATOMIC::updateChecksum(VariantID vid)
 {
   checksum[vid] += Checksum_type(*m_pi);
 }
 
-void ATOMIC_PI::tearDown(VariantID vid)
+void PI_ATOMIC::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_pi);

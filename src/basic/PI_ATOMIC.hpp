@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// ATOMIC_PI kernel reference implementation:
+/// PI_ATOMIC kernel reference implementation:
 ///
 /// const int N = ...;  -- num [0, 1] sub-intervals used in Riemann integration
 /// const double dx = 1.0 / double(num_bins);
@@ -20,10 +20,10 @@
 /// pi *= 4.0;
 ///
 
-#ifndef RAJAPerf_Basic_ATOMIC_PI_HPP
-#define RAJAPerf_Basic_ATOMIC_PI_HPP
+#ifndef RAJAPerf_Basic_PI_ATOMIC_HPP
+#define RAJAPerf_Basic_PI_ATOMIC_HPP
 
-#define ATOMIC_PI_DATA_SETUP \
+#define PI_ATOMIC_DATA_SETUP \
   Real_type dx = m_dx; \
   Real_ptr pi = m_pi;
 
@@ -37,13 +37,13 @@ class RunParams;
 namespace basic
 {
 
-class ATOMIC_PI : public KernelBase
+class PI_ATOMIC : public KernelBase
 {
 public:
 
-  ATOMIC_PI(const RunParams& params);
+  PI_ATOMIC(const RunParams& params);
 
-  ~ATOMIC_PI();
+  ~PI_ATOMIC();
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

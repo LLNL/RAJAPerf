@@ -109,9 +109,9 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate
+# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
-set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.

@@ -1,12 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "HALOEXCHANGE.hpp"
+#include "HALOEXCHANGE_FUSED.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -41,8 +41,8 @@ void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
 }
 
 
-HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
-  : KernelBase(rajaperf::Apps_HALOEXCHANGE, params)
+HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
+  : KernelBase(rajaperf::Apps_HALOEXCHANGE_FUSED, params)
 {
   m_grid_dims_default[0] = 100;
   m_grid_dims_default[1] = 100;
@@ -74,11 +74,11 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-HALOEXCHANGE::~HALOEXCHANGE()
+HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
-void HALOEXCHANGE::setUp(VariantID vid)
+void HALOEXCHANGE_FUSED::setUp(VariantID vid)
 {
   double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
 
@@ -121,14 +121,14 @@ void HALOEXCHANGE::setUp(VariantID vid)
   }
 }
 
-void HALOEXCHANGE::updateChecksum(VariantID vid)
+void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid)
 {
   for (Real_ptr var : m_vars) {
     checksum[vid] += calcChecksum(var, m_var_size);
   }
 }
 
-void HALOEXCHANGE::tearDown(VariantID vid)
+void HALOEXCHANGE_FUSED::tearDown(VariantID vid)
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
     deallocData(m_buffers[l]);

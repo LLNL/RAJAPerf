@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -27,10 +27,10 @@ namespace basic
   const size_t block_size = 256;
 
 
-#define ATOMIC_PI_DATA_SETUP_HIP \
+#define PI_ATOMIC_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(pi, m_pi, 1);
 
-#define ATOMIC_PI_DATA_TEARDOWN_HIP \
+#define PI_ATOMIC_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(pi);
 
 __global__ void atomic_pi(Real_ptr pi,
@@ -45,17 +45,17 @@ __global__ void atomic_pi(Real_ptr pi,
 }
 
 
-void ATOMIC_PI::runHipVariant(VariantID vid)
+void PI_ATOMIC::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    ATOMIC_PI_DATA_SETUP_HIP;
+    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,11 +72,11 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_HIP;
+    PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else if ( vid == Lambda_HIP ) {
 
-    ATOMIC_PI_DATA_SETUP_HIP;
+    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -99,11 +99,11 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_HIP;
+    PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else if ( vid == RAJA_HIP ) {
 
-    ATOMIC_PI_DATA_SETUP_HIP;
+    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -122,10 +122,10 @@ void ATOMIC_PI::runHipVariant(VariantID vid)
     }
     stopTimer();
 
-    ATOMIC_PI_DATA_TEARDOWN_HIP;
+    PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  ATOMIC_PI : Unknown Hip variant id = " << vid << std::endl;
+     std::cout << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

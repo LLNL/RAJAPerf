@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "DOT.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -18,7 +18,7 @@
 
 namespace rajaperf 
 {
-namespace stream
+namespace basic
 {
 
   //
@@ -26,75 +26,78 @@ namespace stream
   //
   const size_t threads_per_team = 256;
 
-#define DOT_DATA_SETUP_OMP_TARGET \
+#define PI_ATOMIC_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid);
+  allocAndInitOpenMPDeviceData(pi, m_pi, 1, did, hid);
 
-#define DOT_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(b, did);
+#define PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET \
+  deallocOpenMPDeviceData(pi, did);
 
-void DOT::runOpenMPTargetVariant(VariantID vid)
+
+void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getRunSize();
 
-  DOT_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    DOT_DATA_SETUP_OMP_TARGET;
+    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type dot = m_dot_init;
-
-      #pragma omp target is_device_ptr(a, b) device( did ) map(tofrom:dot)
-      #pragma omp teams distribute parallel for reduction(+:dot) \
-              thread_limit(threads_per_team) schedule(static, 1)
+      initOpenMPDeviceData(pi, &m_pi_init, 1, did, hid);
+      
+      #pragma omp target is_device_ptr(pi) device( did )
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
-        DOT_BODY;
+        double x = (double(i) + 0.5) * dx;
+        #pragma omp atomic
+        *pi += dx / (1.0 + x * x);
       }
 
-      m_dot += dot;
+      getOpenMPDeviceData(m_pi, pi, 1, hid, did);
+      *m_pi *= 4.0;
 
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_OMP_TARGET;
+    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    DOT_DATA_SETUP_OMP_TARGET;
+    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(m_dot_init);
+      initOpenMPDeviceData(pi, &m_pi_init, 1, did, hid);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        DOT_BODY;
+        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          double x = (double(i) + 0.5) * dx;
+          RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      m_dot += static_cast<Real_type>(dot.get());
+      getOpenMPDeviceData(m_pi, pi, 1, hid, did); 
+      *m_pi *= 4.0;
 
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_OMP_TARGET;
-
+    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
+  
   } else {
-     std::cout << "\n  DOT : Unknown OMP Target variant id = " << vid << std::endl;
+     std::cout << "\n  PI_ATOMIC : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
-} // end namespace stream
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP

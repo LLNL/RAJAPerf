@@ -99,8 +99,7 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_ATOMIC_PI = 0,
-  Basic_DAXPY,
+  Basic_DAXPY = 0,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
@@ -108,6 +107,8 @@ enum KernelID {
   Basic_MULADDSUB,
   Basic_MAT_MAT_SHARED,
   Basic_NESTED_INIT,
+  Basic_PI_ATOMIC,
+  Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
 
@@ -160,6 +161,7 @@ enum KernelID {
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
+  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_PRESSURE,
@@ -204,12 +206,10 @@ enum VariantID {
   Base_CUDA,
   Lambda_CUDA,
   RAJA_CUDA,
-  RAJA_WORKGROUP_CUDA,
 
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
-  RAJA_WORKGROUP_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
