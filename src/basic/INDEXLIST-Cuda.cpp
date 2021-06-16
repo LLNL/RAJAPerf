@@ -40,6 +40,34 @@ namespace basic
   deallocCudaDeviceData(list);
 
 
+__global__ void indexlist_conditional(Real_ptr x,
+                                      Int_ptr list,
+                                      Index_type* counts,
+                                      Index_type iend)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    counts[i] = (INDEXLIST_CONDITIONAL) ? 1 : 0;
+  }
+}
+
+__global__ void indexlist_make_list(Int_ptr list,
+                                    Index_type* counts,
+                                    Index_type* len,
+                                    Index_type iend)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    if (counts[i] != counts[i+1]) {
+      list[counts[i]] = i;
+    }
+    if (i == iend-1) {
+      *len = counts[i+1];
+    }
+  }
+}
+
+
 void INDEXLIST::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -48,7 +76,66 @@ void INDEXLIST::runCudaVariant(VariantID vid)
 
   INDEXLIST_DATA_SETUP;
 
-  if ( vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA ) {
+
+    INDEXLIST_DATA_SETUP_CUDA;
+
+    Index_type* len;
+    allocCudaPinnedData(len, 1);
+
+    cudaStream_t stream = RAJA::resources::Cuda::get_default().get_stream();
+
+    RAJA::operators::plus<Index_type> binary_op;
+    Index_type init_val = 0;
+    int scan_size = iend+1 - ibegin;
+    void* d_temp_storage = nullptr;
+    size_t temp_storage_bytes = 0;
+    cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                                temp_storage_bytes,
+                                                counts+ibegin,
+                                                counts+ibegin,
+                                                binary_op,
+                                                init_val,
+                                                scan_size,
+                                                stream));
+
+    unsigned char* temp_storage;
+    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    d_temp_storage = temp_storage;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      indexlist_conditional<<<grid_size, block_size, 0, stream>>>(
+          x, list, counts, iend );
+      cudaErrchk( cudaGetLastError() );
+
+      cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                                  temp_storage_bytes,
+                                                  counts+ibegin,
+                                                  counts+ibegin,
+                                                  binary_op,
+                                                  init_val,
+                                                  scan_size,
+                                                  stream));
+
+      indexlist_make_list<<<grid_size, block_size, 0, stream>>>(
+          list, counts, len, iend );
+      cudaErrchk( cudaGetLastError() );
+
+      cudaErrchk( cudaStreamSynchronize(stream) );
+      m_len = *len;
+
+    }
+    stopTimer();
+
+    deallocCudaDeviceData(temp_storage);
+    deallocCudaPinnedData(len);
+
+    INDEXLIST_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == RAJA_CUDA ) {
 
     INDEXLIST_DATA_SETUP_CUDA;
 

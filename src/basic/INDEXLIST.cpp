@@ -30,8 +30,10 @@ INDEXLIST::INDEXLIST(const RunParams& params)
 
   setVariantDefined( RAJA_OpenMP );
 
+  setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
 
+  setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 

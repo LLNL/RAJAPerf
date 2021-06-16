@@ -40,6 +40,34 @@ namespace basic
   deallocHipDeviceData(list);
 
 
+__global__ void indexlist_conditional(Real_ptr x,
+                                      Int_ptr list,
+                                      Index_type* counts,
+                                      Index_type iend)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    counts[i] = (INDEXLIST_CONDITIONAL) ? 1 : 0;
+  }
+}
+
+__global__ void indexlist_make_list(Int_ptr list,
+                                    Index_type* counts,
+                                    Index_type* len,
+                                    Index_type iend)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    if (counts[i] != counts[i+1]) {
+      list[counts[i]] = i;
+    }
+    if (i == iend-1) {
+      *len = counts[i+1];
+    }
+  }
+}
+
+
 void INDEXLIST::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -48,7 +76,88 @@ void INDEXLIST::runHipVariant(VariantID vid)
 
   INDEXLIST_DATA_SETUP;
 
-  if ( vid == RAJA_HIP ) {
+  if ( vid == Base_HIP ) {
+
+    INDEXLIST_DATA_SETUP_HIP;
+
+    Index_type* len;
+    allocHipPinnedData(len, 1);
+
+    hipStream_t stream = RAJA::resources::Hip::get_default().get_stream();
+
+    RAJA::operators::plus<Index_type> binary_op;
+    Index_type init_val = 0;
+    int scan_size = iend+1 - ibegin;
+    void* d_temp_storage = nullptr;
+    size_t temp_storage_bytes = 0;
+#if defined(__HIPCC__)
+    hipErrchk(::rocprim::exclusive_scan(d_temp_storage,
+                                        temp_storage_bytes,
+                                        counts+ibegin,
+                                        counts+ibegin,
+                                        init_val,
+                                        scan_size,
+                                        binary_op,
+                                        stream));
+#elif defined(__CUDACC__)
+    hipErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                               temp_storage_bytes,
+                                               counts+ibegin,
+                                               counts+ibegin,
+                                               binary_op,
+                                               init_val,
+                                               scan_size,
+                                               stream));
+#endif
+
+    unsigned char* temp_storage;
+    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    d_temp_storage = temp_storage;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((indexlist_conditional), grid_size, block_size, 0, stream,
+          x, list, counts, iend );
+      hipErrchk( hipGetLastError() );
+
+#if defined(__HIPCC__)
+      hipErrchk(::rocprim::exclusive_scan(d_temp_storage,
+                                          temp_storage_bytes,
+                                          counts+ibegin,
+                                          counts+ibegin,
+                                          init_val,
+                                          scan_size,
+                                          binary_op,
+                                          stream));
+#elif defined(__CUDACC__)
+      hipErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                                 temp_storage_bytes,
+                                                 counts+ibegin,
+                                                 counts+ibegin,
+                                                 binary_op,
+                                                 init_val,
+                                                 scan_size,
+                                                 stream));
+#endif
+
+      hipLaunchKernelGGL((indexlist_make_list), grid_size, block_size, 0, stream,
+          list, counts, len, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk( hipStreamSynchronize(stream) );
+      m_len = *len;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(temp_storage);
+    deallocHipPinnedData(len);
+
+    INDEXLIST_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP ) {
 
     INDEXLIST_DATA_SETUP_HIP;
 
