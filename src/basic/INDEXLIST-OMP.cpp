@@ -36,6 +36,64 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
 
   switch ( vid ) {
 
+#if _OPENMP >= 201811
+    case Base_OpenMP : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Index_type count = 0;
+
+        #pragma omp parallel for reduction(inscan, +:count)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          Index_type inc = 0;
+          if (INDEXLIST_CONDITIONAL) {
+            list[count] = i ;
+            inc = 1;
+          }
+          #pragma omp scan exclusive(count)
+          count += inc;
+        }
+
+        m_len = count;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case Lambda_OpenMP : {
+
+      auto indexlist_base_lam = [=](Index_type i, Index_type& count) {
+                                  Index_type inc = 0;
+                                  if (INDEXLIST_CONDITIONAL) {
+                                    list[count] = i ;
+                                    inc = 1;
+                                  }
+                                  return inc;
+                                };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Index_type count = 0;
+
+        #pragma omp parallel for reduction(inscan, +:count)
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          #pragma omp scan exclusive(count)
+          count += indexlist_base_lam(i, count);
+        }
+
+        m_len = count;
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
+
     case RAJA_OpenMP : {
 
       INDEXLIST_DATA_SETUP_OMP;
