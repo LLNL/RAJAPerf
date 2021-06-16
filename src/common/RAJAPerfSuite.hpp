@@ -160,6 +160,7 @@ enum KernelID {
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
+  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DPA,
@@ -205,12 +206,10 @@ enum VariantID {
   Base_CUDA,
   Lambda_CUDA,
   RAJA_CUDA,
-  RAJA_WORKGROUP_CUDA,
 
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
-  RAJA_WORKGROUP_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
