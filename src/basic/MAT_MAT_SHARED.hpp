@@ -26,10 +26,10 @@
 
 /*
  When doing the device compile pass hipcc/clang will put in the device
- versions of the macros everywhere, in device functions, host device functions, 
- and host only functions. Then it will make sure that code is valid everywhere, 
- that's fine for device and host device functions, but it is not ok for host only 
- functions. Nvcc doesn't look at host only code when it does the device pass 
+ versions of the macros everywhere, in device functions, host device functions,
+ and host only functions. Then it will make sure that code is valid everywhere,
+ that's fine for device and host device functions, but it is not ok for host only
+ functions. Nvcc doesn't look at host only code when it does the device pass
  so it doesn't see these kind of problems.
  */
 #define MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU                   \
@@ -66,34 +66,9 @@
   if (Row < N && Col < N)                                                      \
     C[Col + N * Row] = Cs[ty][tx];
 
-using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-#if defined(RAJA_ENABLE_CUDA)
-                                               ,
-                                               RAJA::expt::cuda_launch_t<true>
-#endif
-#if defined(RAJA_ENABLE_HIP)
-                                               ,
-                                               RAJA::expt::hip_launch_t<true>
-#endif
-                                               >;
-
-#if defined(RAJA_ENABLE_OPENMP)
-using omp_launch_policy =
-    RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
-#if defined(RAJA_ENABLE_CUDA)
-                             ,
-                             RAJA::expt::cuda_launch_t<true>
-#endif
-#if defined(RAJA_ENABLE_HIP)
-                             ,
-                             RAJA::expt::hip_launch_t<true>
-#endif
-                             >;
-#endif
-
-using loop_policy = RAJA::loop_exec;
 
 #if defined(RAJA_ENABLE_CUDA)
+using device_launch = RAJA::expt::cuda_launch_t<true>;
 using gpu_block_x_policy = RAJA::cuda_block_x_direct;
 using gpu_block_y_policy = RAJA::cuda_block_y_direct;
 using gpu_thread_x_policy = RAJA::cuda_thread_x_direct;
@@ -101,46 +76,11 @@ using gpu_thread_y_policy = RAJA::cuda_thread_y_direct;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
+using device_launch = RAJA::expt::hip_launch_t<true>;
 using gpu_block_x_policy = RAJA::hip_block_x_direct;
 using gpu_block_y_policy = RAJA::hip_block_y_direct;
 using gpu_thread_x_policy = RAJA::hip_thread_x_direct;
 using gpu_thread_y_policy = RAJA::hip_thread_y_direct;
-#endif
-
-using teams_x = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                       ,
-                                       gpu_block_x_policy
-#endif
-                                       >;
-
-using teams_y = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                       ,
-                                       gpu_block_y_policy
-#endif
-                                       >;
-
-using threads_x = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                         ,
-                                         gpu_thread_x_policy
-#endif
-                                         >;
-
-using threads_y = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                         ,
-                                         gpu_thread_y_policy
-#endif
-                                         >;
-#if defined(RAJA_ENABLE_OPENMP)
-using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                       ,
-                                       gpu_block_y_policy
-#endif
-                                       >;
 #endif
 
 namespace rajaperf {

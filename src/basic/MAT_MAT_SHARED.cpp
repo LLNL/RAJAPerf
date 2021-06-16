@@ -28,9 +28,6 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setVariantDefined(Lambda_OpenMP);
   setVariantDefined(RAJA_OpenMP);
 
-  // setVariantDefined( Base_OpenMPTarget );
-  // setVariantDefined( RAJA_OpenMPTarget );
-
   setVariantDefined(Base_CUDA);
   setVariantDefined(Lambda_CUDA);
   setVariantDefined(RAJA_CUDA);

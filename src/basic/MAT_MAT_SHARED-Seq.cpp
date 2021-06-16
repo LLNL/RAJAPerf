@@ -75,6 +75,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 #if defined(RUN_RAJA_SEQ)
   case Lambda_Seq: {
 
+
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
 
@@ -152,6 +153,37 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
   }
 
   case RAJA_Seq: {
+
+    //Currently Teams requires two policies if compiled with a device
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
+#if defined(RAJA_DEVICE_ACTIVE)
+                                                   ,device_launch
+#endif
+                                                   >;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_x_policy
+#endif
+                                           >;
+
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_y_policy
+#endif
+                                           >;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_x_policy
+#endif
+                                             >;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_y_policy
+#endif
+                                             >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

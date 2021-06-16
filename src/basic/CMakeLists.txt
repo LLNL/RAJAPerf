@@ -38,18 +38,17 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          MAT_MAT_SHARED.cpp
+          MAT_MAT_SHARED-Seq.cpp
+          MAT_MAT_SHARED-Hip.cpp
+          MAT_MAT_SHARED-Cuda.cpp
+          MAT_MAT_SHARED-OMP.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
           MULADDSUB-Cuda.cpp
           MULADDSUB-OMP.cpp
           MULADDSUB-OMPTarget.cpp
-          MAT_MAT_SHARED.cpp
-          MAT_MAT_SHARED-Seq.cpp
-          MAT_MAT_SHARED-Hip.cpp
-          MAT_MAT_SHARED-Cuda.cpp
-          MAT_MAT_SHARED-OMP.cpp
-          MAT_MAT_SHARED-OMPTarget.cpp
           NESTED_INIT.cpp
           NESTED_INIT-Seq.cpp
           NESTED_INIT-Hip.cpp

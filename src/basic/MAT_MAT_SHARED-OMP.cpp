@@ -158,15 +158,46 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 
   case RAJA_OpenMP: {
 
+    //Currently Teams requires two policies if compiled with a device
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
+#if defined(RAJA_DEVICE_ACTIVE)
+                                                   ,device_launch
+#endif
+                                                   >;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_x_policy
+#endif
+                                           >;
+
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_y_policy
+#endif
+                                           >;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_x_policy
+#endif
+                                             >;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_y_policy
+#endif
+                                             >;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<omp_launch_policy>(
+      RAJA::expt::launch<launch_policy>(
           RAJA::expt::HOST,
           RAJA::expt::Resources(RAJA::expt::Teams(Nx, Ny),
                                 RAJA::expt::Threads(TL_SZ, TL_SZ)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
-            RAJA::expt::loop<omp_teams>(
+            RAJA::expt::loop<teams_y>(
                 ctx, RAJA::RangeSegment(0, Ny), [&](int by) {
                   RAJA::expt::loop<teams_x>(
                       ctx, RAJA::RangeSegment(0, Nx), [&](int bx) {
