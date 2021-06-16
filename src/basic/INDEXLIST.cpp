@@ -44,7 +44,7 @@ INDEXLIST::~INDEXLIST()
 void INDEXLIST::setUp(VariantID vid)
 {
   allocAndInitDataRandSign(m_x, getRunSize(), vid);
-  allocData(m_list, getRunSize());
+  allocAndInitData(m_list, getRunSize(), vid);
   m_len = -1;
 }
 
