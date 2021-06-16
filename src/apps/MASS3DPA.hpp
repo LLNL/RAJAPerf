@@ -9,7 +9,7 @@
 ///
 /// Action of 3D Mass matrix via partial assembly
 ///
-/// Based on MFEM's/CEED algorithms. 
+/// Based on MFEM's/CEED algorithms.
 /// Reference implementation
 /// https://github.com/mfem/mfem/blob/master/fem/bilininteg_mass_pa.cpp#L925
 ///
@@ -24,7 +24,7 @@ Real_ptr Bt = m_Bt; \
 Real_ptr D = m_D; \
 Real_ptr X = m_X; \
 Real_ptr Y = m_Y; \
-Index_type NE = m_NE; 
+Index_type NE = m_NE;
 
 #include "common/KernelBase.hpp"
 
@@ -135,7 +135,7 @@ DDQ[dz][dy][qx] = u[dz]; \
             RAJA_UNROLL(MQ1) \
             for (int qz = 0; qz < Q1D; qz++) { \
               QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e); \
-            } 
+            }
 
 #define MASS3DPA_6 \
   Btsmem[d][q] = Bt_(q, d);
@@ -195,77 +195,21 @@ for (int qz = 0; qz < Q1D; ++qz) { \
             }
 
 
-
-
-  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
 #if defined(RAJA_ENABLE_CUDA)
-                                                 ,
-                                                 RAJA::expt::cuda_launch_t<true>
-#endif
-#if defined(RAJA_ENABLE_HIP)
-                                                 ,
-                                                 RAJA::expt::hip_launch_t<true>
-#endif
-                                                 >;
-
-#if defined(RAJA_ENABLE_OPENMP)
-using omp_launch_policy =
-  RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
-#if defined(RAJA_ENABLE_CUDA)
-                           ,
-                           RAJA::expt::cuda_launch_t<true>
-#endif
-#if defined(RAJA_ENABLE_HIP)
-                           ,
-                           RAJA::expt::hip_launch_t<true>
-#endif
-                           >;
-#endif
-
-  using loop_policy = RAJA::loop_exec;
-
-#if defined(RAJA_ENABLE_CUDA)
+  using device_launch = RAJA::expt::cuda_launch_t<true>;
   using gpu_block_x_policy = RAJA::cuda_block_x_direct;
   using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
   using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
+  using device_launch = RAJA::expt::hip_launch_t<true>;
   using gpu_block_x_policy = RAJA::hip_block_x_direct;
   using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
   using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
 #endif
 
-  using teams_x = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                         ,
-                                       gpu_block_x_policy
-#endif
-                                         >;
-
-  using threads_x = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,
-                                         gpu_thread_x_policy
-#endif
-                                           >;
-
-  using threads_y = RAJA::expt::LoopPolicy<loop_policy
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,
-                                         gpu_thread_y_policy
-#endif
-                                           >;
-#if defined(RAJA_ENABLE_OPENMP)
-  using omp_teams = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,
-                                       gpu_block_x_policy
-#endif
-                                           >;
-#endif
-
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -291,7 +235,7 @@ public:
 
 private:
 
-  int m_Q1D = 5; 
+  int m_Q1D = 5;
   int m_D1D = 4;
 
   Real_ptr m_B;

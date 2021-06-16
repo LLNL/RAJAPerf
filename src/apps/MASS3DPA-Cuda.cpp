@@ -116,6 +116,22 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
+                                                   ,RAJA::expt::cuda_launch_t<true>
+                                                   >;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+                                           ,RAJA::cuda_block_x_direct
+                                           >;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+                                             ,RAJA::cuda_thread_x_loop
+                                             >;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+                                             ,RAJA::cuda_thread_y_loop
+                                             >;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 

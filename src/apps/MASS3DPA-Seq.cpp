@@ -77,13 +77,36 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 #if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
+    //Currently Teams requires two policies if compiled with a device
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
+#if defined(RAJA_DEVICE_ACTIVE)
+                                                   ,device_launch
+#endif
+                                                   >;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_x_policy
+#endif
+                                           >;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_x_policy
+#endif
+                                             >;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_y_policy
+#endif
+                                             >;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::HOST,
-          RAJA::expt::Resources(RAJA::expt::Teams(NE),
-                                RAJA::expt::Threads(Q1D, Q1D, 1)),
+        RAJA::expt::HOST, RAJA::expt::Resources(),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
             RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
 

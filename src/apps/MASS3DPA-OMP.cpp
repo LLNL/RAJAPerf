@@ -15,12 +15,9 @@
 namespace rajaperf {
 namespace apps {
 
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-
 #define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
 #define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
-#endif
 
 void MASS3DPA::runOpenMPVariant(VariantID vid) {
 
@@ -83,15 +80,39 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
 
   case RAJA_OpenMP: {
 
+    //Currently Teams requires two policies if compiled with a device
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
+#if defined(RAJA_DEVICE_ACTIVE)
+                                                   ,device_launch
+#endif
+                                                   >;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                           ,gpu_block_x_policy
+#endif
+                                           >;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_x_policy
+#endif
+                                             >;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+#if defined(RAJA_DEVICE_ACTIVE)
+                                             ,gpu_thread_y_policy
+#endif
+                                             >;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<omp_launch_policy>(
-          RAJA::expt::HOST,
-          RAJA::expt::Resources(RAJA::expt::Teams(NE),
-                                RAJA::expt::Threads(Q1D, Q1D, 1)),
+      //Resources is empty as the host does not need a compute grid to be specified
+      RAJA::expt::launch<launch_policy>(
+          RAJA::expt::HOST, RAJA::expt::Resources(),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
-            RAJA::expt::loop<omp_teams>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
+            RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
 
                   MASS3DPA_0_CPU
 
