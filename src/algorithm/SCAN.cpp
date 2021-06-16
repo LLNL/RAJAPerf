@@ -34,8 +34,10 @@ SCAN::SCAN(const RunParams& params)
 #endif
   setVariantDefined( RAJA_OpenMP );
 
+  setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
 
+  setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 

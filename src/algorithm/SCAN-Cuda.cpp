@@ -12,6 +12,9 @@
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "cub/device/device_scan.cuh"
+#include "cub/util_allocator.cuh"
+
 #include "common/CudaDataUtils.hpp"
 
 #include <iostream>
@@ -45,7 +48,56 @@ void SCAN::runCudaVariant(VariantID vid)
 
   SCAN_DATA_SETUP;
 
-  if ( vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA ) {
+
+    SCAN_DATA_SETUP_CUDA;
+
+    cudaStream_t stream = 0;
+
+    RAJA::operators::plus<Real_type> binary_op;
+    Real_type init_val = 0.0;
+
+    int len = iend - ibegin;
+
+    // Determine temporary device storage requirements
+    void* d_temp_storage = nullptr;
+    size_t temp_storage_bytes = 0;
+    cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                                temp_storage_bytes,
+                                                x+ibegin,
+                                                y+ibegin,
+                                                binary_op,
+                                                init_val,
+                                                len,
+                                                stream));
+
+    // Allocate temporary storage
+    unsigned char* temp_storage;
+    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    d_temp_storage = temp_storage;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      // Run
+      cudaErrchk(::cub::DeviceScan::ExclusiveScan(d_temp_storage,
+                                                  temp_storage_bytes,
+                                                  x+ibegin,
+                                                  y+ibegin,
+                                                  binary_op,
+                                                  init_val,
+                                                  len,
+                                                  stream));
+
+    }
+    stopTimer();
+
+    // Free temporary storage
+    deallocCudaDeviceData(temp_storage);
+
+    SCAN_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == RAJA_CUDA ) {
 
     SCAN_DATA_SETUP_CUDA;
 
