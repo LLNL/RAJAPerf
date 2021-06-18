@@ -10,17 +10,15 @@
 if [ "$1" == "" ]; then
   echo
   echo "You must pass a compiler version number to script. For example,"
-  echo "    blueos_clang.sh 11.0.1"
-  echo "  -or - "
-  echo "    blueos_clang.sh ibm-10.0.1-gcc-8.3.1"
+  echo "    ubuntu_gcc.sh 8"
   exit
 fi
 
 COMP_VER=$1
 shift 1
 
-BUILD_SUFFIX=lc_blueos-clang-${COMP_VER}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/clang_X.cmake
+BUILD_SUFFIX=ubuntu-gcc-${COMP_VER}
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/ubuntu-builds/gcc_X.cmake
 
 echo
 echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
@@ -29,11 +27,10 @@ echo
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.14.5
-
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_CXX_COMPILER=/usr/tce/packages/clang/clang-${COMP_VER}/bin/clang++ \
+  -DCMAKE_C_COMPILER=/usr/bin/gcc-${COMP_VER} \
+  -DCMAKE_CXX_COMPILER=/usr/bin/g++-${COMP_VER} \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
