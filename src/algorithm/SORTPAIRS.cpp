@@ -22,7 +22,7 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORTPAIRS, params)
 {
    setDefaultSize(1000000);
-   setDefaultReps(50);
+   setDefaultReps(20);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
