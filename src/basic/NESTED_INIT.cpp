@@ -24,9 +24,10 @@ namespace basic
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
-  m_ni = 200;
-  m_nj = 200;
-  m_nk = m_nk_init = 25;
+  m_n_init = 100;
+  m_ni = m_n_init;
+  m_nj = m_n_init;
+  m_nk = m_n_init;
 
   setDefaultSize(m_ni * m_nj * m_nk);
   setDefaultReps(1000);
@@ -57,7 +58,10 @@ NESTED_INIT::~NESTED_INIT()
 
 void NESTED_INIT::setUp(VariantID vid)
 {
-  m_nk = m_nk_init * run_params.getSizeFactor();
+  auto n_final = m_n_init * std::cbrt(run_params.getSizeFactor());
+  m_ni = n_final;
+  m_nj = n_final;
+  m_nk = n_final;
   m_array_length = m_ni * m_nj * m_nk;
 
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
