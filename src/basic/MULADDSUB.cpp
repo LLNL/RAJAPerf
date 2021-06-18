@@ -21,8 +21,8 @@ namespace basic
 MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(3500);
+  setDefaultSize(1000000);
+  setDefaultReps(350);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

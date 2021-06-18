@@ -21,8 +21,8 @@ namespace basic
 PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   : KernelBase(rajaperf::Basic_PI_ATOMIC, params)
 {
-  setDefaultSize(3000);
-  setDefaultReps(10000);
+  setDefaultSize(1000000);
+  setDefaultReps(50);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
