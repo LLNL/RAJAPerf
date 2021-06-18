@@ -22,7 +22,7 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
   setDefaultSize(1000000);
-  setDefaultReps(2000);
+  setDefaultReps(1000);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

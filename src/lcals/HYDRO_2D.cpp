@@ -31,7 +31,7 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_t = 0.0037;
 
   setDefaultSize(m_kn * m_jn);
-  setDefaultReps(200);
+  setDefaultReps(100);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
