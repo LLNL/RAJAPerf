@@ -21,8 +21,8 @@ namespace basic
 INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(500);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
