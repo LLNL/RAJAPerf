@@ -21,8 +21,8 @@ namespace lcals
 PLANCKIAN::PLANCKIAN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_PLANCKIAN, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(460);
+  setDefaultSize(1000000);
+  setDefaultReps(50);
 
   setUsesFeature(Forall);
 

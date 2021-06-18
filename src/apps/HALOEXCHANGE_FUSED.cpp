@@ -50,11 +50,25 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
   m_halo_width_default   = 1;
   m_num_vars_default     = 3;
 
-  setDefaultSize((m_grid_dims_default[0] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[1] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[2] + 2*m_halo_width_default) *
-                 m_num_vars_default);
+  setDefaultSize( m_grid_dims_default[0] *
+                  m_grid_dims_default[1] *
+                  m_grid_dims_default[2] );
   setDefaultReps(50);
+
+  double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
+
+  m_grid_dims[0] = cbrt_size_fact * m_grid_dims_default[0];
+  m_grid_dims[1] = cbrt_size_fact * m_grid_dims_default[1];
+  m_grid_dims[2] = cbrt_size_fact * m_grid_dims_default[2];
+  m_halo_width = m_halo_width_default;
+  m_num_vars   = m_num_vars_default;
+
+  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
+  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
+  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
+  m_var_size = m_grid_plus_halo_dims[0] *
+               m_grid_plus_halo_dims[1] *
+               m_grid_plus_halo_dims[2] ;
 
   setUsesFeature(Workgroup);
 
@@ -80,23 +94,15 @@ HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
+Index_type HALOEXCHANGE_FUSED::getItsPerRep() const
+{
+  return m_num_vars * (m_var_size - m_grid_dims[0] *
+                                    m_grid_dims[1] *
+                                    m_grid_dims[2] );
+}
+
 void HALOEXCHANGE_FUSED::setUp(VariantID vid)
 {
-  double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
-
-  m_grid_dims[0] = cbrt_size_fact * m_grid_dims_default[0];
-  m_grid_dims[1] = cbrt_size_fact * m_grid_dims_default[1];
-  m_grid_dims[2] = cbrt_size_fact * m_grid_dims_default[2];
-  m_halo_width = m_halo_width_default;
-  m_num_vars   = m_num_vars_default;
-
-  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
-  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
-  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
-  m_var_size = m_grid_plus_halo_dims[0] *
-               m_grid_plus_halo_dims[1] *
-               m_grid_plus_halo_dims[2] ;
-
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
     allocAndInitData(m_vars[v], m_var_size, vid);

@@ -21,8 +21,8 @@ namespace apps
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(1600);
+  setDefaultSize(1000000);
+  setDefaultReps(160);
 
   m_coefflen = FIR_COEFFLEN;
 

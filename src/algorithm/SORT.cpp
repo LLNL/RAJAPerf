@@ -21,8 +21,8 @@ namespace algorithm
 SORT::SORT(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORT, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(50);
+  setDefaultSize(1000000);
+  setDefaultReps(20);
 
   setUsesFeature(Sort);
 

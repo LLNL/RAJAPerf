@@ -21,8 +21,8 @@ namespace lcals
 GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   : KernelBase(rajaperf::Lcals_GEN_LIN_RECUR, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(500);
 
   setUsesFeature(Forall);
 

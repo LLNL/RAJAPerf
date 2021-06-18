@@ -13,6 +13,9 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
+#include <cmath>
+
+
 namespace rajaperf
 {
 namespace apps
@@ -22,10 +25,12 @@ namespace apps
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
-  setDefaultSize(312);  // See rzmax in ADomain struct
-  setDefaultReps(1050);
+  setDefaultSize(1000*1000);  // See rzmax in ADomain struct
+  setDefaultReps(100);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
+  Index_type rzmax = std::sqrt(getRunSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 2);
+
   m_array_length = m_domain->nnalls;
 
   setUsesFeature(Forall);

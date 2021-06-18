@@ -21,8 +21,8 @@ namespace apps
 ENERGY::ENERGY(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(1300);
+  setDefaultSize(1000000);
+  setDefaultReps(130);
 
   setUsesFeature(Forall);
 
