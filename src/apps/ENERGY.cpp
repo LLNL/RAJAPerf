@@ -24,6 +24,8 @@ ENERGY::ENERGY(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(1300);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

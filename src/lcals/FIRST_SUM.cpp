@@ -24,6 +24,8 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(16000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

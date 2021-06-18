@@ -24,6 +24,9 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setDefaultSize(3000);
   setDefaultReps(10000);
 
+  setUsesFeature(Forall);
+  setUsesFeature(Atomic);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

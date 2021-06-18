@@ -24,6 +24,8 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(2000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

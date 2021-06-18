@@ -24,6 +24,8 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(4000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

@@ -56,6 +56,8 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
                  m_num_vars_default);
   setDefaultReps(50);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

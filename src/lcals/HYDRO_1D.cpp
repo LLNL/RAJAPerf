@@ -24,6 +24,8 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(12500);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

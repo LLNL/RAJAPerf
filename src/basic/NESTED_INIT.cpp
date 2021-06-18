@@ -31,6 +31,8 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setDefaultSize(m_ni * m_nj * m_nk);
   setDefaultReps(100);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

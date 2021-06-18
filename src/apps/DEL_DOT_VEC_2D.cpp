@@ -26,8 +26,9 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setDefaultReps(1050);
 
   m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
-
   m_array_length = m_domain->nnalls;
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

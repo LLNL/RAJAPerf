@@ -24,6 +24,8 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(460);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

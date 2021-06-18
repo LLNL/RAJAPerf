@@ -24,6 +24,9 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(2000);
 
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

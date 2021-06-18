@@ -24,6 +24,8 @@ INIT3::INIT3(const RunParams& params)
   setDefaultSize(100000);
   setDefaultReps(5000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

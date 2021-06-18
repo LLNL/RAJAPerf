@@ -30,6 +30,8 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setDefaultSize(m_jn);
   setDefaultReps(200);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
