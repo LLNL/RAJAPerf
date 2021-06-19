@@ -24,6 +24,9 @@ INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2500);
 
+  setUsesFeature(Forall);
+  setUsesFeature(View);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

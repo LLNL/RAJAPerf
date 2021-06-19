@@ -21,8 +21,10 @@ namespace algorithm
 SORTPAIRS::SORTPAIRS(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORTPAIRS, params)
 {
-   setDefaultSize(1000000);
-   setDefaultReps(20);
+  setDefaultSize(1000000);
+  setDefaultReps(20);
+
+  setUsesFeature(Sort);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );

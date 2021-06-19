@@ -24,6 +24,8 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

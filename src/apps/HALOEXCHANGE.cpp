@@ -70,6 +70,8 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

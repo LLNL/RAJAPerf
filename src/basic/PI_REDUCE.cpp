@@ -24,6 +24,9 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(50);
 
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

@@ -21,8 +21,11 @@ namespace basic
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D_OFFSET, params)
 {
-  setDefaultSize(1000000);
-  setDefaultReps(2500);
+  setDefaultSize(500000);
+  setDefaultReps(5000);
+ 
+  setUsesFeature(Forall);
+  setUsesFeature(View);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

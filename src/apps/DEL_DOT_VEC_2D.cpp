@@ -33,6 +33,8 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 
   m_array_length = m_domain->nnalls;
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

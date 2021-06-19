@@ -24,6 +24,8 @@ PRESSURE::PRESSURE(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(700);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

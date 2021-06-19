@@ -24,6 +24,8 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
