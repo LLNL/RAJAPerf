@@ -24,6 +24,9 @@ DOT::DOT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setUsesFeature( Forall );
+  setUsesFeature( Reduction );
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

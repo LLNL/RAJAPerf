@@ -21,8 +21,10 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(2000);
+  setDefaultSize(1000000);
+  setDefaultReps(200);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

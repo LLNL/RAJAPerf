@@ -21,8 +21,10 @@ namespace lcals
 TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_TRIDIAG_ELIM, params)
 {
-  setDefaultSize(200000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(1000);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
