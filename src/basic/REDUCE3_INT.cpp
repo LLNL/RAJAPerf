@@ -27,7 +27,10 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target 
 // reduction performance issues
-  setDefaultReps(100);
+  setDefaultReps(50);
+
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

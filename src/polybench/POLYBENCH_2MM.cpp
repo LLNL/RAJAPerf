@@ -55,6 +55,8 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   m_alpha = 1.5;
   m_beta = 1.2;
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

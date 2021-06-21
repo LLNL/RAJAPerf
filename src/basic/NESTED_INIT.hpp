@@ -67,7 +67,7 @@ private:
   Index_type m_ni;
   Index_type m_nj;
   Index_type m_nk;
-  Index_type m_nk_init;
+  Index_type m_n_init;
 };
 
 } // end namespace basic

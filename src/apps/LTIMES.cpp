@@ -30,6 +30,9 @@ LTIMES::LTIMES(const RunParams& params)
                  m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
+  setUsesFeature(Kernel); 
+  setUsesFeature(View); 
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
