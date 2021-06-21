@@ -20,6 +20,8 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setDefaultSize(1000);
   setDefaultReps(50);
 
+  setUsesFeature(Launch);
+
   setVariantDefined(Base_Seq);
   setVariantDefined(Lambda_Seq);
   setVariantDefined(RAJA_Seq);
