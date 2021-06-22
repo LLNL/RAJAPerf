@@ -55,6 +55,8 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   setDefaultSize( m_tsteps * (m_ny + 3 * m_nx*m_ny) );
   setDefaultReps(run_reps);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

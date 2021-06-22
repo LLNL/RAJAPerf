@@ -15,6 +15,7 @@ if [ "$1" == "" ]; then
 fi
 
 COMP_VER=$1
+shift 1
 
 BUILD_SUFFIX=lc_toss3-pgi-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/pgi_X.cmake

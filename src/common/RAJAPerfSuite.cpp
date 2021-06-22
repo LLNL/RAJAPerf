@@ -225,7 +225,7 @@ static const std::string KernelNames [] =
  *
  * \brief Array of names for each VARIANT in suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
  *            ENUM OF VARIANT IDS IN HEADER FILE!!!
@@ -259,6 +259,39 @@ static const std::string VariantNames [] =
 }; // END VariantNames
 
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each (RAJA) FEATURE used in suite.
+ *
+ * IMPORTANT: This is only modified when a new feature is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF FEATURE IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string FeatureNames [] =
+{
+
+  std::string("Forall"),
+  std::string("Kernel"),
+  std::string("Launch"),
+
+  std::string("Sort"),
+  std::string("Scan"),
+  std::string("Workgroup"),
+
+  std::string("Reduction"),
+  std::string("Atomic"),
+
+  std::string("View"),
+
+  std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
+
+}; // END FeatureNames
+
+
 /*
  *******************************************************************************
  *
@@ -266,9 +299,9 @@ static const std::string VariantNames [] =
  *
  *******************************************************************************
  */
-const std::string& getGroupName(GroupID sid)
+const std::string& getGroupName(GroupID gid)
 {
-  return GroupNames[sid];
+  return GroupNames[gid];
 }
 
 
@@ -366,6 +399,18 @@ bool isVariantAvailable(VariantID vid)
 #endif
 
   return ret_val;
+}
+
+/*
+ *******************************************************************************
+ *
+ * Return feature name associated with FeatureID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFeatureName(FeatureID fid)
+{
+  return FeatureNames[fid];
 }
 
 /*
