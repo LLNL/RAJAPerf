@@ -21,8 +21,10 @@ namespace lcals
 FIRST_SUM::FIRST_SUM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(16000);
+  setDefaultSize(1000000);
+  setDefaultReps(2000);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

@@ -95,6 +95,13 @@ public:
   const std::vector<std::string>& getInvalidVariantInput() const
                                   { return invalid_variant_input; }
 
+  const std::vector<std::string>& getFeatureInput() const
+                                  { return feature_input; }
+  void setInvalidFeatureInput( std::vector<std::string>& svec )
+                               { invalid_feature_input = svec; }
+  const std::vector<std::string>& getInvalidFeatureInput() const
+                                  { return invalid_feature_input; }
+
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
@@ -110,13 +117,16 @@ private:
   RunParams() = delete;
 
 //@{
-//! @name Routines used in command line parsing
+//! @name Routines used in command line parsing and printing option output
   void parseCommandLineOptions(int argc, char** argv);
   void printHelpMessage(std::ostream& str) const;
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
+  void printFeatureNames(std::ostream& str) const;
+  void printFeatureKernels(std::ostream& str) const;
+  void printKernelFeatures(std::ostream& str) const;
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -146,6 +156,8 @@ private:
   std::vector<std::string> invalid_kernel_input;
   std::vector<std::string> variant_input;
   std::vector<std::string> invalid_variant_input;
+  std::vector<std::string> feature_input;
+  std::vector<std::string> invalid_feature_input;
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */

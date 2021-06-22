@@ -15,6 +15,8 @@ if [ "$1" == "" ]; then
 fi
 
 COMP_VER=$1
+shift 1
+
 COMP_MAJOR_VER=${COMP_VER:0:2}
 GCC_HEADER_VER=7
 

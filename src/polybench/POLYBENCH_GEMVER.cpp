@@ -56,6 +56,9 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   m_alpha = 1.5;
   m_beta = 1.2;
 
+  setUsesFeature(Forall);
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
