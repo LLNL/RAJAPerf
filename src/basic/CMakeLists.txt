@@ -25,6 +25,11 @@ blt_add_library(
           INDEXLIST-Hip.cpp
           INDEXLIST-Cuda.cpp
           INDEXLIST-OMP.cpp
+          INDEXLIST_3LOOP.cpp
+          INDEXLIST_3LOOP-Seq.cpp
+          INDEXLIST_3LOOP-Hip.cpp
+          INDEXLIST_3LOOP-Cuda.cpp
+          INDEXLIST_3LOOP-OMP.cpp
           INIT3.cpp
           INIT3-Seq.cpp
           INIT3-Hip.cpp
