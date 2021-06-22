@@ -50,6 +50,11 @@ ADD::~ADD()
 {
 }
 
+Index_type ADD::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void ADD::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);

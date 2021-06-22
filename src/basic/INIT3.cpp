@@ -50,6 +50,11 @@ INIT3::~INIT3()
 {
 }
 
+Index_type INIT3::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void INIT3::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_out1, getRunSize(), 0.0, vid);

@@ -144,6 +144,8 @@ public:
 
   ~HYDRO_2D();
 
+  Index_type getProblemSize() const override;
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

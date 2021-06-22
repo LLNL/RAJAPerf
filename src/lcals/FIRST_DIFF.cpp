@@ -48,6 +48,11 @@ FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
+Index_type FIRST_DIFF::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void FIRST_DIFF::setUp(VariantID vid)
 {
   m_N = getRunSize()+1; 

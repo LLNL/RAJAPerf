@@ -48,7 +48,11 @@ MUL::MUL(const RunParams& params)
 
 MUL::~MUL()
 {
+}
 
+Index_type MUL::getProblemSize() const
+{
+  return getRunSize();
 }
 
 void MUL::setUp(VariantID vid)

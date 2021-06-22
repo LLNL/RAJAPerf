@@ -48,6 +48,11 @@ PLANCKIAN::~PLANCKIAN()
 {
 }
 
+Index_type PLANCKIAN::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void PLANCKIAN::setUp(VariantID vid)
 {
   allocAndInitData(m_x, getRunSize(), vid);

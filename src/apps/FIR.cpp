@@ -50,7 +50,13 @@ FIR::~FIR()
 {
 }
 
-Index_type FIR::getItsPerRep() const { 
+Index_type FIR::getProblemSize() const
+{
+  return getRunSize();
+}
+
+Index_type FIR::getItsPerRep() const
+{
   return getRunSize() - m_coefflen;
 }
 

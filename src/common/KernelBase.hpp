@@ -111,6 +111,8 @@ public:
   // by each concrete kernel class.
   //
 
+  virtual Index_type getProblemSize() const = 0;
+
   virtual Index_type getItsPerRep() const { return getRunSize(); }
 
   virtual void print(std::ostream& os) const; 

@@ -56,6 +56,8 @@ public:
 
   ~INIT_VIEW1D_OFFSET();
 
+  Index_type getProblemSize() const override;
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

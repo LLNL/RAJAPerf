@@ -52,6 +52,11 @@ FIRST_MIN::~FIRST_MIN()
 {
 }
 
+Index_type FIRST_MIN::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void FIRST_MIN::setUp(VariantID vid)
 {
   m_N = getRunSize(); 

@@ -40,6 +40,11 @@ SORT::~SORT()
 {
 }
 
+Index_type SORT::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void SORT::setUp(VariantID vid)
 {
   allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);

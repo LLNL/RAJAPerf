@@ -51,6 +51,11 @@ INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 {
 }
 
+Index_type INIT_VIEW1D_OFFSET::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);

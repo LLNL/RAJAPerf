@@ -48,6 +48,11 @@ ENERGY::~ENERGY()
 {
 }
 
+Index_type ENERGY::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void ENERGY::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_e_new, getRunSize(), 0.0, vid);

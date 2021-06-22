@@ -69,7 +69,8 @@ public:
 
   ~FIR();
 
-  Index_type getItsPerRep() const;
+  Index_type getProblemSize() const override;
+  Index_type getItsPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

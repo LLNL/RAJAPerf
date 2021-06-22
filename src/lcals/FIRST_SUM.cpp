@@ -48,6 +48,11 @@ FIRST_SUM::~FIRST_SUM()
 {
 }
 
+Index_type FIRST_SUM::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void FIRST_SUM::setUp(VariantID vid)
 {
   m_N = getRunSize(); 

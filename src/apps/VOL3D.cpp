@@ -58,7 +58,13 @@ VOL3D::~VOL3D()
   delete m_domain;
 }
 
-Index_type VOL3D::getItsPerRep() const { 
+Index_type VOL3D::getProblemSize() const
+{
+  return m_domain->n_real_zones;
+}
+
+Index_type VOL3D::getItsPerRep() const
+{
   return m_domain->lpz+1 - m_domain->fpz;
 }
 

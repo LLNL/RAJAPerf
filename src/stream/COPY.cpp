@@ -50,6 +50,11 @@ COPY::~COPY()
 {
 }
 
+Index_type COPY::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void COPY::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);

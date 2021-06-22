@@ -32,6 +32,12 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setDefaultSize(m_ni * m_nj * m_nk);
   setDefaultReps(1000);
 
+  auto n_final = m_n_init * std::cbrt(run_params.getSizeFactor());
+  m_ni = n_final;
+  m_nj = n_final;
+  m_nk = n_final;
+  m_array_length = m_ni * m_nj * m_nk;
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -58,14 +64,13 @@ NESTED_INIT::~NESTED_INIT()
 {
 }
 
+Index_type NESTED_INIT::getProblemSize() const
+{
+  return m_array_length;
+}
+
 void NESTED_INIT::setUp(VariantID vid)
 {
-  auto n_final = m_n_init * std::cbrt(run_params.getSizeFactor());
-  m_ni = n_final;
-  m_nj = n_final;
-  m_nk = n_final;
-  m_array_length = m_ni * m_nj * m_nk;
-
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
 }
 

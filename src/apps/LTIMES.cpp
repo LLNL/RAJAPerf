@@ -61,6 +61,11 @@ LTIMES::~LTIMES()
 {
 }
 
+Index_type LTIMES::getProblemSize() const
+{
+  return m_num_d * m_num_g * m_num_z;
+}
+
 Index_type LTIMES::getItsPerRep() const
 {
   return m_num_d * m_num_m * m_num_g * m_num_z ;

@@ -48,6 +48,11 @@ INT_PREDICT::~INT_PREDICT()
 {
 }
 
+Index_type INT_PREDICT::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void INT_PREDICT::setUp(VariantID vid)
 {
   m_array_length = getRunSize() * 13;

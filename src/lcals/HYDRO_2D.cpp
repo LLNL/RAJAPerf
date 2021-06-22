@@ -33,6 +33,9 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setDefaultSize(m_kn * m_jn);
   setDefaultReps(100);
 
+  m_jn = m_kn = std::sqrt(getRunSize());
+  m_array_length = m_kn * m_jn;
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -57,11 +60,13 @@ HYDRO_2D::~HYDRO_2D()
 {
 }
 
+Index_type HYDRO_2D::getProblemSize() const
+{
+  return m_array_length;
+}
+
 void HYDRO_2D::setUp(VariantID vid)
 {
-  m_jn = m_kn = std::sqrt(getRunSize());
-  m_array_length = m_kn * m_jn;
-
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_zzout, m_array_length, 0.0, vid);
   allocAndInitData(m_za, m_array_length, vid);

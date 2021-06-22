@@ -96,6 +96,11 @@ POLYBENCH_HEAT_3D::~POLYBENCH_HEAT_3D()
 {
 }
 
+Index_type POLYBENCH_HEAT_3D::getProblemSize() const
+{
+  return 0;
+}
+
 void POLYBENCH_HEAT_3D::setUp(VariantID vid)
 {
   (void) vid;

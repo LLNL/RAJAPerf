@@ -82,6 +82,11 @@ POLYBENCH_GEMM::~POLYBENCH_GEMM()
 {
 }
 
+Index_type POLYBENCH_GEMM::getProblemSize() const
+{
+  return 0;
+}
+
 void POLYBENCH_GEMM::setUp(VariantID vid)
 {
   (void) vid;

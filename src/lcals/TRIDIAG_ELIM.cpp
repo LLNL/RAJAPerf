@@ -48,6 +48,11 @@ TRIDIAG_ELIM::~TRIDIAG_ELIM()
 {
 }
 
+Index_type TRIDIAG_ELIM::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void TRIDIAG_ELIM::setUp(VariantID vid)
 {
   m_N = getRunSize();

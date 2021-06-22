@@ -63,6 +63,8 @@ public:
 
   ~INT_PREDICT();
 
+  Index_type getProblemSize() const override;
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

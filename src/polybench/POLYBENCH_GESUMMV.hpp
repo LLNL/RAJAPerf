@@ -89,6 +89,7 @@ public:
 
   ~POLYBENCH_GESUMMV();
 
+  Index_type getProblemSize() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

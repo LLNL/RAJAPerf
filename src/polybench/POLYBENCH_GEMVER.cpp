@@ -83,6 +83,11 @@ POLYBENCH_GEMVER::~POLYBENCH_GEMVER()
 {
 }
 
+Index_type POLYBENCH_GEMVER::getProblemSize() const
+{
+  return 0;
+}
+
 void POLYBENCH_GEMVER::setUp(VariantID vid)
 {
   (void) vid;

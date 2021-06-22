@@ -118,6 +118,7 @@ public:
 
   ~POLYBENCH_2MM();
 
+  Index_type getProblemSize() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

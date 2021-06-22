@@ -48,6 +48,11 @@ GEN_LIN_RECUR::~GEN_LIN_RECUR()
 {
 }
 
+Index_type GEN_LIN_RECUR::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void GEN_LIN_RECUR::setUp(VariantID vid)
 {
   m_N = getRunSize();

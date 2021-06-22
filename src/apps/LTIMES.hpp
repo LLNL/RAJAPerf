@@ -107,11 +107,12 @@ public:
 
   ~LTIMES();
 
+  Index_type getProblemSize() const override;
+  Index_type getItsPerRep() const override;
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
-
-  Index_type getItsPerRep() const;
 
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);

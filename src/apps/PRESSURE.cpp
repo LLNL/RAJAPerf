@@ -48,6 +48,11 @@ PRESSURE::~PRESSURE()
 {
 }
 
+Index_type PRESSURE::getProblemSize() const
+{
+  return getRunSize();
+}
+
 void PRESSURE::setUp(VariantID vid)
 {
   allocAndInitData(m_compression, getRunSize(), vid);

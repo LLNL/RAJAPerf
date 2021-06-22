@@ -77,7 +77,11 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
+}
 
+Index_type POLYBENCH_ATAX::getProblemSize() const
+{
+  return 0;
 }
 
 void POLYBENCH_ATAX::setUp(VariantID vid)

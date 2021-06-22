@@ -78,7 +78,11 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
 POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV() 
 {
+}
 
+Index_type POLYBENCH_GESUMMV::getProblemSize() const
+{
+  return 0;
 }
 
 void POLYBENCH_GESUMMV::setUp(VariantID vid)
