@@ -21,8 +21,8 @@ namespace algorithm
 SCAN::SCAN(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SCAN, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(50);
+   setDefaultSize(1000000);
+   setDefaultReps(20);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

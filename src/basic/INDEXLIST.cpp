@@ -21,8 +21,8 @@ namespace basic
 INDEXLIST::INDEXLIST(const RunParams& params)
   : KernelBase(rajaperf::Basic_INDEXLIST, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(1000);
+  setDefaultSize(1000000);
+  setDefaultReps(100);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
