@@ -111,6 +111,8 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  Index_type getItsPerRep() const;
+
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
