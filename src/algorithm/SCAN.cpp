@@ -22,7 +22,7 @@ SCAN::SCAN(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SCAN, params)
 {
    setDefaultSize(1000000);
-   setDefaultReps(20);
+   setDefaultReps(100);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
