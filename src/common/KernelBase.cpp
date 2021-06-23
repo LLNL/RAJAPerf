@@ -48,6 +48,8 @@ Index_type KernelBase::getRunSize() const
     return static_cast<Index_type>(default_size*run_params.getSize());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
     return static_cast<Index_type>(run_params.getSize());
+  } else {
+    return 0;
   }
 }
 
