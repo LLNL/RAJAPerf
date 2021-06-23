@@ -80,7 +80,7 @@ void NESTED_INIT::tearDown(VariantID vid)
 
 size_t NESTED_INIT::getBytesPerRep() const
 {
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_ni * m_nj * m_nk;
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length;
 }
 
 } // end namespace basic
