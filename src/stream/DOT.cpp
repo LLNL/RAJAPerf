@@ -72,7 +72,8 @@ void DOT::tearDown(VariantID vid)
 
 size_t DOT::getBytesPerRep() const
 {
-  return (0*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+         (0*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace stream

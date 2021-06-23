@@ -78,7 +78,8 @@ void TRAP_INT::tearDown(VariantID vid)
 
 size_t TRAP_INT::getBytesPerRep() const
 {
-  return (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

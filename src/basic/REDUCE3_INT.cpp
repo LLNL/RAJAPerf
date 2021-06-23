@@ -81,7 +81,8 @@ void REDUCE3_INT::tearDown(VariantID vid)
 
 size_t REDUCE3_INT::getBytesPerRep() const
 {
-  return (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize();
+  return (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+         (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize();
 }
 
 } // end namespace basic
