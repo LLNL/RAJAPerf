@@ -50,6 +50,11 @@ TRIAD::~TRIAD()
 {
 }
 
+size_t TRIAD::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 void TRIAD::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
@@ -69,11 +74,6 @@ void TRIAD::tearDown(VariantID vid)
   deallocData(m_a);
   deallocData(m_b);
   deallocData(m_c);
-}
-
-size_t TRIAD::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace stream

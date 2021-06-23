@@ -51,6 +51,11 @@ INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 {
 }
 
+size_t INIT_VIEW1D_OFFSET::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
@@ -66,11 +71,6 @@ void INIT_VIEW1D_OFFSET::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_a);
-}
-
-size_t INIT_VIEW1D_OFFSET::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

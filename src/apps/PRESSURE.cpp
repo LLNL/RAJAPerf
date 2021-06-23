@@ -48,6 +48,12 @@ PRESSURE::~PRESSURE()
 {
 }
 
+size_t PRESSURE::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() ;
+}
+
 void PRESSURE::setUp(VariantID vid)
 {
   allocAndInitData(m_compression, getRunSize(), vid);
@@ -76,12 +82,6 @@ void PRESSURE::tearDown(VariantID vid)
   deallocData(m_p_new);
   deallocData(m_e_old);
   deallocData(m_vnewc);
-}
-
-size_t PRESSURE::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
-         (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() ;
 }
 
 } // end namespace apps

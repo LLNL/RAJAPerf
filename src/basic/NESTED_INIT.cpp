@@ -61,6 +61,11 @@ NESTED_INIT::~NESTED_INIT()
 {
 }
 
+size_t NESTED_INIT::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length;
+}
+
 void NESTED_INIT::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
@@ -76,11 +81,6 @@ void NESTED_INIT::tearDown(VariantID vid)
   (void) vid;
   RAJA::free_aligned(m_array);
   m_array = 0;
-}
-
-size_t NESTED_INIT::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length;
 }
 
 } // end namespace basic

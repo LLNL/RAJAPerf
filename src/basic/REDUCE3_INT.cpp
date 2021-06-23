@@ -54,6 +54,12 @@ REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
+size_t REDUCE3_INT::getBytesPerRep() const
+{
+  return (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+         (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize();
+}
+
 void REDUCE3_INT::setUp(VariantID vid)
 {
   allocAndInitData(m_vec, getRunSize(), vid);
@@ -77,12 +83,6 @@ void REDUCE3_INT::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_vec);
-}
-
-size_t REDUCE3_INT::getBytesPerRep() const
-{
-  return (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
-         (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize();
 }
 
 } // end namespace basic

@@ -49,6 +49,12 @@ PI_REDUCE::~PI_REDUCE()
 {
 }
 
+size_t PI_REDUCE::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 void PI_REDUCE::setUp(VariantID vid)
 {
   (void) vid;
@@ -65,12 +71,6 @@ void PI_REDUCE::updateChecksum(VariantID vid)
 void PI_REDUCE::tearDown(VariantID vid)
 {
   (void) vid;
-}
-
-size_t PI_REDUCE::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

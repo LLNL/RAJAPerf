@@ -68,6 +68,12 @@ Index_type VOL3D::getItsPerRep() const
   return m_domain->lpz+1 - m_domain->fpz;
 }
 
+size_t VOL3D::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+         (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) ; // touched data size, not actual number of stores and loads
+}
+
 void VOL3D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
@@ -97,12 +103,6 @@ void VOL3D::tearDown(VariantID vid)
   deallocData(m_y);
   deallocData(m_z);
   deallocData(m_vol);
-}
-
-size_t VOL3D::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-         (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) ; // touched data size, not actual number of stores and loads
 }
 
 } // end namespace apps

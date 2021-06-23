@@ -49,6 +49,12 @@ TRAP_INT::~TRAP_INT()
 {
 }
 
+size_t TRAP_INT::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 void TRAP_INT::setUp(VariantID vid)
 {
   Real_type xn;
@@ -74,12 +80,6 @@ void TRAP_INT::updateChecksum(VariantID vid)
 void TRAP_INT::tearDown(VariantID vid)
 {
   (void) vid;
-}
-
-size_t TRAP_INT::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

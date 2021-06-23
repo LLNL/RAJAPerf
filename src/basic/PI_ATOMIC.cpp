@@ -51,6 +51,12 @@ PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
+size_t PI_ATOMIC::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
+}
+
 void PI_ATOMIC::setUp(VariantID vid)
 {
   m_dx = 1.0 / double(getRunSize());
@@ -67,12 +73,6 @@ void PI_ATOMIC::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_pi);
-}
-
-size_t PI_ATOMIC::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

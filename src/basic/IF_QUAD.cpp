@@ -50,6 +50,11 @@ IF_QUAD::~IF_QUAD()
 {
 }
 
+size_t IF_QUAD::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getRunSize();
+}
+
 void IF_QUAD::setUp(VariantID vid)
 {
   allocAndInitDataRandSign(m_a, getRunSize(), vid);
@@ -73,11 +78,6 @@ void IF_QUAD::tearDown(VariantID vid)
   deallocData(m_c);
   deallocData(m_x1);
   deallocData(m_x2);
-}
-
-size_t IF_QUAD::getBytesPerRep() const
-{
-  return (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

@@ -94,6 +94,14 @@ HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
+size_t HALOEXCHANGE_FUSED::getBytesPerRep() const
+{
+  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ;
+}
+
 void HALOEXCHANGE_FUSED::setUp(VariantID vid)
 {
   m_vars.resize(m_num_vars, nullptr);
@@ -148,14 +156,6 @@ void HALOEXCHANGE_FUSED::tearDown(VariantID vid)
     deallocData(m_vars[v]);
   }
   m_vars.clear();
-}
-
-size_t HALOEXCHANGE_FUSED::getBytesPerRep() const
-{
-  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
-         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ;
 }
 
 namespace {

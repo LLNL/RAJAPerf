@@ -65,6 +65,14 @@ LTIMES::~LTIMES()
 {
 }
 
+size_t LTIMES::getBytesPerRep() const
+{
+  // using total data size instead of writes and reads
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen ;
+}
+
 void LTIMES::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_phidat, int(m_philen), Real_type(0.0), vid);
@@ -84,14 +92,6 @@ void LTIMES::tearDown(VariantID vid)
   deallocData(m_phidat);
   deallocData(m_elldat);
   deallocData(m_psidat);
-}
-
-size_t LTIMES::getBytesPerRep() const
-{
-  // using total data size instead of writes and reads
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
-         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
-         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen ;
 }
 
 } // end namespace apps

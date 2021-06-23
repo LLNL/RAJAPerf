@@ -50,6 +50,11 @@ INIT3::~INIT3()
 {
 }
 
+size_t INIT3::getBytesPerRep() const
+{
+  return (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 void INIT3::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_out1, getRunSize(), 0.0, vid);
@@ -74,11 +79,6 @@ void INIT3::tearDown(VariantID vid)
   deallocData(m_out3);
   deallocData(m_in1);
   deallocData(m_in2);
-}
-
-size_t INIT3::getBytesPerRep() const
-{
-  return (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

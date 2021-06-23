@@ -50,6 +50,11 @@ MUL::~MUL()
 {
 }
 
+size_t MUL::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
+}
+
 void MUL::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_b, getRunSize(), 0.0, vid);
@@ -67,11 +72,6 @@ void MUL::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_b);
   deallocData(m_c);
-}
-
-size_t MUL::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace stream

@@ -50,6 +50,11 @@ DAXPY::~DAXPY()
 {
 }
 
+size_t DAXPY::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 void DAXPY::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);
@@ -67,11 +72,6 @@ void DAXPY::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_x);
   deallocData(m_y);
-}
-
-size_t DAXPY::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace basic

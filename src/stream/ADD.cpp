@@ -50,6 +50,11 @@ ADD::~ADD()
 {
 }
 
+size_t ADD::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
+}
+
 void ADD::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
@@ -68,11 +73,6 @@ void ADD::tearDown(VariantID vid)
   deallocData(m_a);
   deallocData(m_b);
   deallocData(m_c);
-}
-
-size_t ADD::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace stream

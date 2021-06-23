@@ -50,6 +50,11 @@ COPY::~COPY()
 {
 }
 
+size_t COPY::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
+}
+
 void COPY::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
@@ -66,11 +71,6 @@ void COPY::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_a);
   deallocData(m_c);
-}
-
-size_t COPY::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
 }
 
 } // end namespace stream
