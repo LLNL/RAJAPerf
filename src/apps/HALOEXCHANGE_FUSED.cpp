@@ -152,10 +152,10 @@ void HALOEXCHANGE_FUSED::tearDown(VariantID vid)
 
 size_t HALOEXCHANGE_FUSED::getBytesPerRep() const
 {
-  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * m_var_halo_size * m_num_vars +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_var_halo_size * m_num_vars +
-         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * m_var_halo_size * m_num_vars +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_var_halo_size * m_num_vars ;
+  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ;
 }
 
 namespace {
