@@ -22,13 +22,17 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
     default_reps(0),
     running_variant(NumVariants)
 {
-  for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
-     checksum[ivar] = 0.0;
-     num_exec[ivar] = 0;
-     min_time[ivar] = std::numeric_limits<double>::max();
-     max_time[ivar] = -std::numeric_limits<double>::max();
-     tot_time[ivar] = 0.0;
-     has_variant_to_run[ivar] = false;
+  for (size_t vid = 0; vid < NumVariants; ++vid) {
+     checksum[vid] = 0.0;
+     num_exec[vid] = 0;
+     min_time[vid] = std::numeric_limits<double>::max();
+     max_time[vid] = -std::numeric_limits<double>::max();
+     tot_time[vid] = 0.0;
+     has_variant_to_run[vid] = false;
+  }
+
+  for (size_t fid = 0; fid < NumFeatures; ++fid) {
+     uses_feature[fid] = false;
   }
 }
 
@@ -39,8 +43,12 @@ KernelBase::~KernelBase()
 
 
 Index_type KernelBase::getRunSize() const
-{
-  return static_cast<Index_type>(default_size*run_params.getSizeFactor());
+{ 
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    return static_cast<Index_type>(default_size*run_params.getSize());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    return static_cast<Index_type>(run_params.getSize());
+  }
 }
 
 Index_type KernelBase::getRunReps() const

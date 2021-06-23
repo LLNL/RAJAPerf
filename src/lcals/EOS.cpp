@@ -21,8 +21,10 @@ namespace lcals
 EOS::EOS(const RunParams& params)
   : KernelBase(rajaperf::Lcals_EOS, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(500);
+
+  setUsesFeature(Forall);
 
   setNumLoops(1);
 

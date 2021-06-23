@@ -29,6 +29,9 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 
   setNumLoops(1);
 
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

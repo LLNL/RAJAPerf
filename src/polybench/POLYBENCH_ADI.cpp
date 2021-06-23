@@ -54,6 +54,8 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
 
   setNumLoops(2);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

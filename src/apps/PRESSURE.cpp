@@ -21,8 +21,10 @@ namespace apps
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(7000);
+  setDefaultSize(1000000);
+  setDefaultReps(700);
+
+  setUsesFeature(Forall);
 
   setNumLoops(2);
 

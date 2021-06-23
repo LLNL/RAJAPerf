@@ -72,6 +72,8 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
 
   setNumLoops(m_tsteps);
 
+  setUsesFeature(Kernel); 
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

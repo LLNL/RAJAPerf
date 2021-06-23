@@ -22,15 +22,21 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES_NOVIEW, params)
 {
   m_num_d_default = 64;
-  m_num_z_default = 500;
+  m_num_z_default = 488;
   m_num_g_default = 32;
   m_num_m_default = 25;
 
-  setDefaultSize(m_num_d_default * m_num_m_default *
-                 m_num_g_default * m_num_z_default);
+  setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
   setNumLoops(1);
+
+  m_num_z = getRunSize() / (m_num_d_default * m_num_g_default);
+  m_num_g = m_num_g_default;
+  m_num_m = m_num_m_default;
+  m_num_d = m_num_d_default;
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -58,11 +64,6 @@ LTIMES_NOVIEW::~LTIMES_NOVIEW()
 
 void LTIMES_NOVIEW::setUp(VariantID vid)
 {
-  m_num_z = run_params.getSizeFactor() * m_num_z_default;
-  m_num_g = m_num_g_default;
-  m_num_m = m_num_m_default;
-  m_num_d = m_num_d_default;
-
   m_philen = m_num_m * m_num_g * m_num_z;
   m_elllen = m_num_d * m_num_m;
   m_psilen = m_num_d * m_num_g * m_num_z;

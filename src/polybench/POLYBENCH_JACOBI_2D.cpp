@@ -61,6 +61,8 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
 
   setNumLoops(m_tsteps);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

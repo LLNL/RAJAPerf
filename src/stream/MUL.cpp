@@ -26,6 +26,8 @@ MUL::MUL(const RunParams& params)
 
   setNumLoops(1);
 
+  setUsesFeature( Forall );
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -48,7 +50,6 @@ MUL::MUL(const RunParams& params)
 
 MUL::~MUL()
 {
-
 }
 
 void MUL::setUp(VariantID vid)

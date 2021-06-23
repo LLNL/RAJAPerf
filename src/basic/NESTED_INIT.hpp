@@ -49,6 +49,11 @@ public:
 
   ~NESTED_INIT();
 
+  Index_type getProblemSize() const override
+  {
+    return m_array_length;
+  }
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
@@ -67,7 +72,7 @@ private:
   Index_type m_ni;
   Index_type m_nj;
   Index_type m_nk;
-  Index_type m_nk_init;
+  Index_type m_n_init;
 };
 
 } // end namespace basic

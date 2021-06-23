@@ -71,6 +71,10 @@ public:
 
   void setVariantDefined(VariantID vid);
 
+  bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
+
+  void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
+
   void execute(VariantID vid);
 
   void synchronize()
@@ -109,6 +113,8 @@ public:
   // Virtual and pure virtual methods that may/must be implemented
   // by each concrete kernel class.
   //
+
+  virtual Index_type getProblemSize() const = 0;
 
   virtual Index_type getItsPerRep() const { return getRunSize(); }
 
@@ -163,6 +169,8 @@ private:
   RAJA::Timer::ElapsedType tot_time[NumVariants];
 
   bool has_variant_to_run[NumVariants];
+
+  bool uses_feature[NumFeatures];
 };
 
 }  // closing brace for rajaperf namespace

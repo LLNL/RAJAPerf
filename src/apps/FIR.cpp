@@ -21,12 +21,14 @@ namespace apps
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(1600);
+  setDefaultSize(1000000);
+  setDefaultReps(160);
 
   setNumLoops(1);
 
   m_coefflen = FIR_COEFFLEN;
+
+  setUsesFeature(Forall); 
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -48,10 +50,6 @@ FIR::FIR(const RunParams& params)
 
 FIR::~FIR()
 {
-}
-
-Index_type FIR::getItsPerRep() const {
-  return getRunSize() - m_coefflen;
 }
 
 void FIR::setUp(VariantID vid)

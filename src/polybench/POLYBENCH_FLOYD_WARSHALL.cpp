@@ -55,6 +55,8 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   setNumLoops(1);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -77,7 +79,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
 POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
-
 }
 
 void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)

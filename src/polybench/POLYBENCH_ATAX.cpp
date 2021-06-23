@@ -55,6 +55,8 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
   setNumLoops(2);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -77,7 +79,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
-
 }
 
 void POLYBENCH_ATAX::setUp(VariantID vid)

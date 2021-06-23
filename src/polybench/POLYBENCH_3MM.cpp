@@ -54,6 +54,8 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
 
   setNumLoops(3);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

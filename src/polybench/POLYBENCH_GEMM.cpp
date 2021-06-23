@@ -58,6 +58,8 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

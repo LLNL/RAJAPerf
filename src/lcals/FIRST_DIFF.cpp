@@ -21,8 +21,10 @@ namespace lcals
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(16000);
+  setDefaultSize(1000000);
+  setDefaultReps(2000);
+
+  setUsesFeature(Forall);
 
   setNumLoops(1);
 

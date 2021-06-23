@@ -26,6 +26,8 @@ COPY::COPY(const RunParams& params)
 
   setNumLoops(1);
 
+  setUsesFeature( Forall );
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

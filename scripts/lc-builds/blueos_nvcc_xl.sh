@@ -22,6 +22,7 @@ fi
 COMP_NVCC_VER=$1
 COMP_ARCH=$2
 COMP_XL_VER=$3
+shift 3
 
 BUILD_SUFFIX=lc_blueos-nvcc${COMP_NVCC_VER}-${COMP_ARCH}-xl${COMP_XL_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_xl_X.cmake

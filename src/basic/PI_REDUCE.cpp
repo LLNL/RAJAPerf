@@ -21,8 +21,11 @@ namespace basic
 PI_REDUCE::PI_REDUCE(const RunParams& params)
   : KernelBase(rajaperf::Basic_PI_REDUCE, params)
 {
-  setDefaultSize(3000);
-  setDefaultReps(10000);
+  setDefaultSize(1000000);
+  setDefaultReps(50);
+
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
 
   setNumLoops(1);
 

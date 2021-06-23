@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels and variants.
+/// Tyoes and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -182,7 +182,7 @@ enum KernelID {
  *
  * \brief Enumeration defining unique id for each VARIANT in suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
  *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
@@ -211,6 +211,38 @@ enum VariantID {
   RAJA_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each (RAJA) FEATURE used in suite.
+ *
+ * IMPORTANT: This is only modified when a new feature is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum FeatureID {
+
+  Forall = 0,
+  Kernel,
+  Launch,
+
+  Sort,
+  Scan,
+  Workgroup, 
+
+  Reduction,
+  Atomic,
+
+  View,
+
+  NumFeatures // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -264,6 +296,15 @@ const std::string& getVariantName(VariantID vid);
  *******************************************************************************
  */
 bool isVariantAvailable(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return feature name associated with FeatureID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFeatureName(FeatureID vid);
 
 /*!
  *******************************************************************************

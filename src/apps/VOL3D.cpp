@@ -13,6 +13,9 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
+#include <cmath>
+
+
 namespace rajaperf
 {
 namespace apps
@@ -22,14 +25,17 @@ namespace apps
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
-  setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(300);
+  setDefaultSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultReps(100);
 
   setNumLoops(1);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+  Index_type rzmax = std::cbrt(getRunSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -54,7 +60,13 @@ VOL3D::~VOL3D()
   delete m_domain;
 }
 
-Index_type VOL3D::getItsPerRep() const {
+Index_type VOL3D::getProblemSize() const
+{
+  return m_domain->n_real_zones;
+}
+
+Index_type VOL3D::getItsPerRep() const
+{
   return m_domain->lpz+1 - m_domain->fpz;
 }
 

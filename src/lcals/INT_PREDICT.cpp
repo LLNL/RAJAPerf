@@ -21,8 +21,10 @@ namespace lcals
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(4000);
+  setDefaultSize(1000000);
+  setDefaultReps(400);
+
+  setUsesFeature(Forall);
 
   setNumLoops(1);
 

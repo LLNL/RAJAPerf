@@ -21,8 +21,10 @@ namespace basic
 DAXPY::DAXPY(const RunParams& params)
   : KernelBase(rajaperf::Basic_DAXPY, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(500);
+
+  setUsesFeature(Forall);
 
   setNumLoops(1);
 

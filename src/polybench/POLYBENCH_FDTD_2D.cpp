@@ -57,6 +57,8 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
 
   setNumLoops(4);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -79,7 +81,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
-
 }
 
 void POLYBENCH_FDTD_2D::setUp(VariantID vid)

@@ -21,8 +21,10 @@ namespace lcals
 HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(12500);
+  setDefaultSize(1000000);
+  setDefaultReps(1000);
+
+  setUsesFeature(Forall);
 
   setNumLoops(1);
 
