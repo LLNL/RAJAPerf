@@ -53,6 +53,8 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setDefaultSize( m_N*m_N*m_N );
   setDefaultReps(run_reps);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -75,7 +77,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
 POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
-
 }
 
 void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)

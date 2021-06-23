@@ -59,6 +59,8 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   setDefaultSize( m_tsteps * 2 * m_N );
   setDefaultReps(run_reps);
 
+  setUsesFeature(Forall);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -79,7 +81,6 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
 POLYBENCH_JACOBI_1D::~POLYBENCH_JACOBI_1D() 
 {
-
 }
 
 void POLYBENCH_JACOBI_1D::setUp(VariantID vid)

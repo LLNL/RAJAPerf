@@ -66,13 +66,14 @@ void Executor::setupSuite()
   // run_kern will be non-duplicated ordered set of IDs of kernel to run.
   //
   const Svector& kernel_input = run_params.getKernelInput();
+  const Svector& feature_input = run_params.getFeatureInput();
 
   KIDset run_kern;
 
-  if ( kernel_input.empty() ) {
+  if ( kernel_input.empty() && feature_input.empty() ) { 
 
     //
-    // No kernels specified in input, run them all...
+    // No kernels or fatures specified in input, run them all...
     //
     for (size_t ik = 0; ik < NumKernels; ++ik) {
       run_kern.insert( static_cast<KernelID>(ik) );
@@ -84,16 +85,75 @@ void Executor::setupSuite()
     // Need to parse input to determine which kernels to run
     //
 
-    // Make list copy of kernel input to manipulate
-    // (need to process potential group names and/or kernel names)
-    Slist input(kernel_input.begin(), kernel_input.end());
+    //
+    // Look for kernels using features if such input provided
+    //
+    if ( !feature_input.empty() ) { 
+
+      // First, check for invalid feature input.
+      // Assemble invalid input for warning message.
+      //
+      Svector invalid;
+
+      for (size_t i = 0; i < feature_input.size(); ++i) {
+        bool found_it = false;
+
+        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+          FeatureID tfid = static_cast<FeatureID>(fid);
+          if ( getFeatureName(tfid) == feature_input[i] ) {
+            found_it = true;
+          }
+        }
+
+        if ( !found_it )  invalid.push_back( feature_input[i] );
+      }
+      run_params.setInvalidFeatureInput(invalid);
+
+      //
+      // If feature input is valid, determine which kernels use
+      // input-specified features and add to set of kernels to run. 
+      //
+      if ( run_params.getInvalidFeatureInput().empty() ) { 
+
+        for (size_t i = 0; i < feature_input.size(); ++i) {
+
+          const string& feature = feature_input[i];
+
+          bool found_it = false; 
+          for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+            FeatureID tfid = static_cast<FeatureID>(fid);
+            if ( getFeatureName(tfid) == feature ) {
+              found_it = true;
+
+              for (int kid = 0; kid < NumKernels; ++kid) {
+                KernelID tkid = static_cast<KernelID>(kid);
+                KernelBase* kern = getKernelObject(tkid, run_params);
+                if ( kern->usesFeature(tfid) ) {
+                   run_kern.insert( tkid );
+                }
+                delete kern;
+              }  // loop over kernels
+
+            }  // if input feature name matches feature id
+          }  // loop over feature ids until name match is found 
+
+        }  // loop over feature name input
+
+      }  // if feature name input is valid
+
+    } // if !feature_input.empty()
+
+    // Make list copy of kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist kern_names(kernel_input.begin(), kernel_input.end());
 
     //
-    // Search input for matching group names.
+    // Search kern_names for matching group names.
     // groups2run will contain names of groups to run.
     //
     Svector groups2run;
-    for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
+    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
+    {
       for (size_t ig = 0; ig < NumGroups; ++ig) {
         const string& group_name = getGroupName(static_cast<GroupID>(ig));
         if ( group_name == *it ) {
@@ -102,9 +162,9 @@ void Executor::setupSuite()
       }
     }
 
-    //
-    // If group name(s) found in input, assemble kernels in group(s)
-    // to run and remove those group name(s) from input list.
+    // 
+    // If group name(s) found in kern_names, assemble kernels in group(s) 
+    // to run and remove those group name(s) from kern_names list.
     //
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
       const string& gname(groups2run[ig]);
@@ -116,17 +176,18 @@ void Executor::setupSuite()
         }
       }
 
-      input.remove(gname);
+      kern_names.remove(gname);
     }
 
     //
-    // Look for matching names of individual kernels in remaining input.
+    // Look for matching names of individual kernels in remaining kern_names.
     //
     // Assemble invalid input for warning message.
     //
     Svector invalid;
 
-    for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
+    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
+    {
       bool found_it = false;
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
@@ -161,11 +222,11 @@ void Executor::setupSuite()
   // Determine variants to execute from input.
   // run_var will be non-duplicated ordered set of IDs of variants to run.
   //
-  const Svector& variant_input = run_params.getVariantInput();
+  const Svector& variant_names = run_params.getVariantInput();
 
   VIDset run_var;
 
-  if ( variant_input.empty() ) {
+  if ( variant_names.empty() ) {
 
     //
     // No variants specified in input options, run all available.
@@ -201,13 +262,13 @@ void Executor::setupSuite()
 
     Svector invalid;
 
-    for (size_t it = 0; it < variant_input.size(); ++it) {
+    for (size_t it = 0; it < variant_names.size(); ++it) {
       bool found_it = false;
 
       for (VIDset::iterator vid_it = available_var.begin();
          vid_it != available_var.end(); ++vid_it) {
         VariantID vid = *vid_it;
-        if ( getVariantName(vid) == variant_input[it] ) {
+        if ( getVariantName(vid) == variant_names[it] ) {
           run_var.insert(vid);
           if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
             reference_vid = vid;
@@ -216,7 +277,7 @@ void Executor::setupSuite()
         }
       }
 
-      if ( !found_it )  invalid.push_back(variant_input[it]);
+      if ( !found_it )  invalid.push_back(variant_names[it]);
     }
 
     //
@@ -241,12 +302,16 @@ void Executor::setupSuite()
 
     run_params.setInputState(RunParams::BadInput);
 
-  } else { // kernel input looks good
+  } else if ( !(run_params.getInvalidFeatureInput().empty()) ) {
+
+    run_params.setInputState(RunParams::BadInput);    
+
+  } else { // kernel and feature input looks good
 
     for (KIDset::iterator kid = run_kern.begin();
          kid != run_kern.end(); ++kid) {
-/// RDH DISABLE COUPLE KERNEL until we find a reasonable way to do
-/// complex numbers in GPU code
+///   RDH DISABLE COUPLE KERNEL until we find a reasonable way to do
+///   complex numbers in GPU code
       if ( *kid != Apps_COUPLE ) {
         kernels.push_back( getKernelObject(*kid, run_params) );
       }
@@ -326,7 +391,11 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << run_params.getNumPasses() << endl;
-    str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
+    if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+      str << "\t Kernel size factor = " << run_params.getSize() << endl;
+    } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+      str << "\t Kernel size = " << run_params.getSize() << endl;
+    }
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
@@ -338,12 +407,13 @@ void Executor::reportRunSummary(ostream& str) const
       str << getVariantName(variant_ids[iv]) << endl;
     }
 
-    str << "\nKernels(iterations/rep , reps)"
+    str << "\nKernels(problem size , iterations/rep , reps)"
         << "\n-----------------------------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kern = kernels[ik];
       str << kern->getName()
-          << " (" << kern->getItsPerRep() << " , "
+          << " (" << kern->getProblemSize() << " , "
+          << kern->getItsPerRep() << " , "
           << kern->getRunReps() << ")" << endl;
     }
 

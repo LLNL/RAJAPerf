@@ -45,6 +45,29 @@ public:
     Undefined     /*!< input not defined (yet) */
   };
 
+  /*!
+   * \brief Enumeration indicating how to interpret size input
+   */
+  enum SizeMeaning {
+    Unset,    /*!< indicates value is unset */
+    Factor,   /*!< multiplier on default kernel iteration space */
+    Direct,   /*!< directly use as kernel iteration space */
+  };
+
+  static std::string SizeMeaningToStr(SizeMeaning sm)
+  {
+    switch (sm) {
+      case SizeMeaning::Unset:
+        return "Unset";
+      case SizeMeaning::Factor:
+        return "Factor";
+      case SizeMeaning::Direct:
+        return "Direct";
+      default:
+        return "Unknown";
+    }
+  }
+
 //@{
 //! @name Methods to get/set input state
 
@@ -67,7 +90,10 @@ public:
 
   double getRepFactor() const { return rep_fact; }
 
-  double getSizeFactor() const { return size_fact; }
+
+  SizeMeaning getSizeMeaning() const { return size_meaning; }
+
+  double getSize() const { return size; }
 
   SizeSpec  getSizeSpec() const { return size_spec; }
 
@@ -95,6 +121,13 @@ public:
   const std::vector<std::string>& getInvalidVariantInput() const
                                   { return invalid_variant_input; }
 
+  const std::vector<std::string>& getFeatureInput() const
+                                  { return feature_input; }
+  void setInvalidFeatureInput( std::vector<std::string>& svec )
+                               { invalid_feature_input = svec; }
+  const std::vector<std::string>& getInvalidFeatureInput() const
+                                  { return invalid_feature_input; }
+
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
@@ -110,13 +143,16 @@ private:
   RunParams() = delete;
 
 //@{
-//! @name Routines used in command line parsing
+//! @name Routines used in command line parsing and printing option output
   void parseCommandLineOptions(int argc, char** argv);
   void printHelpMessage(std::ostream& str) const;
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
+  void printFeatureNames(std::ostream& str) const;
+  void printFeatureKernels(std::ostream& str) const;
+  void printKernelFeatures(std::ostream& str) const;
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -125,7 +161,8 @@ private:
 
   int npasses;           /*!< Number of passes through suite  */
   double rep_fact;       /*!< pct of default kernel reps to run */
-  double size_fact;      /*!< pct of default kernel iteration space to run */
+  SizeMeaning size_meaning; /*!< meaning of size value */
+  double size;           /*!< size value */
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
 
@@ -146,6 +183,8 @@ private:
   std::vector<std::string> invalid_kernel_input;
   std::vector<std::string> variant_input;
   std::vector<std::string> invalid_variant_input;
+  std::vector<std::string> feature_input;
+  std::vector<std::string> invalid_feature_input;
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */

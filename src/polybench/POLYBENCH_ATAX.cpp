@@ -53,6 +53,8 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultSize( m_N + m_N*2*m_N );
   setDefaultReps(run_reps);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -75,7 +77,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
-
 }
 
 void POLYBENCH_ATAX::setUp(VariantID vid)

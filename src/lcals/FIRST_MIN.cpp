@@ -27,6 +27,9 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 // reduction performance issues
   setDefaultReps(100);
 
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

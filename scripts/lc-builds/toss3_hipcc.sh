@@ -20,6 +20,7 @@ fi
 
 COMP_VER=$1
 COMP_ARCH=$2
+shift 2
 
 BUILD_SUFFIX=lc_toss3-hipcc-${COMP_VER}-${COMP_ARCH}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip_link_${COMP_VER}.cmake
@@ -32,7 +33,7 @@ rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
 
-# module load cmake/3.14.5
+module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \

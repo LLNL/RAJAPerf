@@ -53,6 +53,8 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultSize( 2*m_N*m_N );
   setDefaultReps(run_reps);
 
+  setUsesFeature(Kernel);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -73,7 +75,6 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
 POLYBENCH_MVT::~POLYBENCH_MVT() 
 {
-
 }
 
 void POLYBENCH_MVT::setUp(VariantID vid)

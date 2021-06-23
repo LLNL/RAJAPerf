@@ -15,6 +15,7 @@ if [ "$1" == "" ]; then
 fi
 
 COMP_VER=$1
+shift 1
 
 BUILD_SUFFIX=lc_toss3-clang-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/clang_X.cmake
