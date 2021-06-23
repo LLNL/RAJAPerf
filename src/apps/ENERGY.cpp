@@ -104,11 +104,11 @@ size_t ENERGY::getBytesPerRep() const
   // some branches are never taken due to the nature of the initialization of delvc
   // the additional reads and writes that would be done if those branches were taken are noted in the comments
   return (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getRunSize() +
-         (1*sizeof(Real_type) + 1/*+7*/*sizeof(Real_type)) * getRunSize() +
+         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() + /* 1 + 8 */
          (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getRunSize() +
          (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
-         (1*sizeof(Real_type) + 7/*+5*/*sizeof(Real_type)) * getRunSize() +
-         (0/*+1*/*sizeof(Real_type) + 1/*+7*/*sizeof(Real_type)) * getRunSize() ;
+         (1*sizeof(Real_type) + 7*sizeof(Real_type)) * getRunSize() + /* 1 + 12 */
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() ; /* 1 + 8 */
 }
 
 } // end namespace apps
