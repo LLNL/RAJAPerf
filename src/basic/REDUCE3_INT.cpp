@@ -54,11 +54,6 @@ REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
-Index_type REDUCE3_INT::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void REDUCE3_INT::setUp(VariantID vid)
 {
   allocAndInitData(m_vec, getRunSize(), vid);

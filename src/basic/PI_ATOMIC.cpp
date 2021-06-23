@@ -51,11 +51,6 @@ PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
-Index_type PI_ATOMIC::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void PI_ATOMIC::setUp(VariantID vid)
 {
   m_dx = 1.0 / double(getRunSize());

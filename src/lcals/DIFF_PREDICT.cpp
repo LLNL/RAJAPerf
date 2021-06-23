@@ -48,11 +48,6 @@ DIFF_PREDICT::~DIFF_PREDICT()
 {
 }
 
-Index_type DIFF_PREDICT::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void DIFF_PREDICT::setUp(VariantID vid)
 {
   m_array_length = getRunSize() * 14;

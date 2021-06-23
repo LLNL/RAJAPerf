@@ -83,11 +83,6 @@ POLYBENCH_JACOBI_1D::~POLYBENCH_JACOBI_1D()
 {
 }
 
-Index_type POLYBENCH_JACOBI_1D::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
 {
   (void) vid;

@@ -50,11 +50,6 @@ DAXPY::~DAXPY()
 {
 }
 
-Index_type DAXPY::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void DAXPY::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);

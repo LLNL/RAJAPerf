@@ -81,11 +81,6 @@ POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
 }
 
-Index_type POLYBENCH_FDTD_2D::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_FDTD_2D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_hz, m_nx * m_ny, 0.0, vid);

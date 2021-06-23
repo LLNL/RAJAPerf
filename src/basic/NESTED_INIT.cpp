@@ -61,11 +61,6 @@ NESTED_INIT::~NESTED_INIT()
 {
 }
 
-Index_type NESTED_INIT::getProblemSize() const
-{
-  return m_array_length;
-}
-
 void NESTED_INIT::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);

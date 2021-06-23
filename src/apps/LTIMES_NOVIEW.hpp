@@ -57,8 +57,15 @@ public:
 
   ~LTIMES_NOVIEW();
 
-  Index_type getProblemSize() const override;
-  Index_type getItsPerRep() const override;
+  Index_type getProblemSize() const override
+  {
+    return m_num_d * m_num_g * m_num_z;
+  }
+
+  Index_type getItsPerRep() const override
+  {
+    return m_num_d * m_num_m * m_num_g * m_num_z ;
+  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

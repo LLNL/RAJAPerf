@@ -80,11 +80,6 @@ POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()
 {
 }
 
-Index_type POLYBENCH_GESUMMV::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_GESUMMV::setUp(VariantID vid)
 {
   (void) vid;

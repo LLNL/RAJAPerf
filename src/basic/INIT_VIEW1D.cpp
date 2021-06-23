@@ -51,11 +51,6 @@ INIT_VIEW1D::~INIT_VIEW1D()
 {
 }
 
-Index_type INIT_VIEW1D::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void INIT_VIEW1D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);

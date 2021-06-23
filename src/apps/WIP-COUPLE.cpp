@@ -48,8 +48,8 @@ Index_type COUPLE::getProblemSize() const
   return m_domain->n_real_zones;
 }
 
-Index_type COUPLE::getItsPerRep() const 
-{ 
+Index_type COUPLE::getItsPerRep() const
+{
   return m_domain->n_real_zones;
 }
 

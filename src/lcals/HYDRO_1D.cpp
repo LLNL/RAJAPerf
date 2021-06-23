@@ -48,11 +48,6 @@ HYDRO_1D::~HYDRO_1D()
 {
 }
 
-Index_type HYDRO_1D::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void HYDRO_1D::setUp(VariantID vid)
 {
   m_array_length = getRunSize() + 12;

@@ -49,11 +49,6 @@ TRAP_INT::~TRAP_INT()
 {
 }
 
-Index_type TRAP_INT::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void TRAP_INT::setUp(VariantID vid)
 {
   Real_type xn; 

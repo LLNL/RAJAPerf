@@ -48,11 +48,6 @@ EOS::~EOS()
 {
 }
 
-Index_type EOS::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void EOS::setUp(VariantID vid)
 {
   m_array_length = getRunSize() + 7;

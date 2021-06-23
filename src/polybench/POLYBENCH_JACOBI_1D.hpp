@@ -61,7 +61,10 @@ public:
 
   ~POLYBENCH_JACOBI_1D();
 
-  Index_type getProblemSize() const override;
+  Index_type getProblemSize() const override
+  {
+    return 0;
+  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

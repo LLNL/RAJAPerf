@@ -50,11 +50,6 @@ MUL::~MUL()
 {
 }
 
-Index_type MUL::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void MUL::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_b, getRunSize(), 0.0, vid);

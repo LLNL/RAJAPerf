@@ -60,16 +60,6 @@ LTIMES_NOVIEW::~LTIMES_NOVIEW()
 {
 }
 
-Index_type LTIMES_NOVIEW::getProblemSize() const
-{
-  return m_num_d * m_num_g * m_num_z;
-}
-
-Index_type LTIMES_NOVIEW::getItsPerRep() const
-{
-  return m_num_d * m_num_m * m_num_g * m_num_z ;
-}
-
 void LTIMES_NOVIEW::setUp(VariantID vid)
 {
   m_philen = m_num_m * m_num_g * m_num_z;

@@ -81,11 +81,6 @@ POLYBENCH_2MM::~POLYBENCH_2MM()
 {
 }
 
-Index_type POLYBENCH_2MM::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_2MM::setUp(VariantID vid)
 {
   (void) vid;

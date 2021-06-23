@@ -49,11 +49,6 @@ PI_REDUCE::~PI_REDUCE()
 {
 }
 
-Index_type PI_REDUCE::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void PI_REDUCE::setUp(VariantID vid)
 {
   (void) vid;

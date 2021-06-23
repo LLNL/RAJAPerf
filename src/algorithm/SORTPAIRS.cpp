@@ -40,11 +40,6 @@ SORTPAIRS::~SORTPAIRS()
 {
 }
 
-Index_type SORTPAIRS::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void SORTPAIRS::setUp(VariantID vid)
 {
   allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);

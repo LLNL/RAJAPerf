@@ -77,11 +77,6 @@ POLYBENCH_MVT::~POLYBENCH_MVT()
 {
 }
 
-Index_type POLYBENCH_MVT::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_MVT::setUp(VariantID vid)
 {
   (void) vid;

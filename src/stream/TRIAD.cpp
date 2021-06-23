@@ -50,11 +50,6 @@ TRIAD::~TRIAD()
 {
 }
 
-Index_type TRIAD::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void TRIAD::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);

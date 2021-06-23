@@ -50,11 +50,6 @@ IF_QUAD::~IF_QUAD()
 {
 }
 
-Index_type IF_QUAD::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void IF_QUAD::setUp(VariantID vid)
 {
   allocAndInitDataRandSign(m_a, getRunSize(), vid);

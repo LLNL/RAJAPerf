@@ -94,20 +94,6 @@ HALOEXCHANGE::~HALOEXCHANGE()
 {
 }
 
-Index_type HALOEXCHANGE::getProblemSize() const
-{
-  return m_grid_dims[0] *
-         m_grid_dims[1] *
-         m_grid_dims[2];
-}
-
-Index_type HALOEXCHANGE::getItsPerRep() const
-{
-  return m_num_vars * (m_var_size - m_grid_dims[0] *
-                                    m_grid_dims[1] *
-                                    m_grid_dims[2] );
-}
-
 void HALOEXCHANGE::setUp(VariantID vid)
 {
   m_vars.resize(m_num_vars, nullptr);

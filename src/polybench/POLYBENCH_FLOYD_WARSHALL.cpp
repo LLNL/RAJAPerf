@@ -79,11 +79,6 @@ POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
 }
 
-Index_type POLYBENCH_FLOYD_WARSHALL::getProblemSize() const
-{
-  return 0;
-}
-
 void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
 {
   (void) vid;

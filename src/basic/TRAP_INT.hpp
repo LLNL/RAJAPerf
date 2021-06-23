@@ -58,7 +58,10 @@ public:
 
   ~TRAP_INT();
 
-  Index_type getProblemSize() const override;
+  Index_type getProblemSize() const override
+  {
+    return getRunSize();
+  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

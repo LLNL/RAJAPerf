@@ -60,11 +60,6 @@ HYDRO_2D::~HYDRO_2D()
 {
 }
 
-Index_type HYDRO_2D::getProblemSize() const
-{
-  return m_array_length;
-}
-
 void HYDRO_2D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);

@@ -50,11 +50,6 @@ MULADDSUB::~MULADDSUB()
 {
 }
 
-Index_type MULADDSUB::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void MULADDSUB::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_out1, getRunSize(), 0.0, vid);

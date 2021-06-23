@@ -49,11 +49,6 @@ DOT::~DOT()
 {
 }
 
-Index_type DOT::getProblemSize() const
-{
-  return getRunSize();
-}
-
 void DOT::setUp(VariantID vid)
 {
   allocAndInitData(m_a, getRunSize(), vid);
