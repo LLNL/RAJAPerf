@@ -40,6 +40,11 @@ SORT::~SORT()
 {
 }
 
+size_t SORT::getBytesPerRep() const
+{
+  return (1*sizeof(Index_type) + 1*sizeof(Index_type)) * getRunSize() ; // touched data size, not actual number of stores and loads
+}
+
 void SORT::setUp(VariantID vid)
 {
   allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);

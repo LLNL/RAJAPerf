@@ -40,6 +40,11 @@ SORTPAIRS::~SORTPAIRS()
 {
 }
 
+size_t SORTPAIRS::getBytesPerRep() const
+{
+  return (2*sizeof(Index_type) + 2*sizeof(Index_type)) * getRunSize() ; // touched data size, not actual number of stores and loads
+}
+
 void SORTPAIRS::setUp(VariantID vid)
 {
   allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);
