@@ -414,7 +414,7 @@ void Executor::reportRunSummary(ostream& str) const
       str << kern->getName()
           << " (" << kern->getProblemSize() << " , "
           << kern->getItsPerRep() << " , "
-          << kern->getBytesPerRep() << " , "
+          << kern->getBytesPerRepStr() << " , "
           << kern->getRunReps() << ")" << endl;
     }
 
