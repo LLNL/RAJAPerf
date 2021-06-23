@@ -272,7 +272,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Launch"),
+  std::string("Teams"),
 
   std::string("Sort"),
   std::string("Scan"),

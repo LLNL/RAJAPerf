@@ -26,7 +26,7 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setDefaultSize(m_NE_default);
   setDefaultReps(50);
 
-  setUsesFeature(Launch);
+  setUsesFeature(Teams);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
