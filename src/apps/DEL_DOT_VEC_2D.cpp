@@ -108,7 +108,7 @@ size_t DEL_DOT_VEC_2D::getBytesPerRep() const
 {
   return (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
          (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
-         (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * (getRunSize()+1)*(getRunSize()+1) ; // touched data size, not actual number of stores and loads
+         (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * (m_domain->imax+1-m_domain->imin)*(m_domain->jmax+1-m_domain->jmin) ; // touched data size, not actual number of stores and loads
 }
 
 } // end namespace apps
