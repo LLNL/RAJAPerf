@@ -46,6 +46,11 @@ public:
 
   ~FIRST_SUM();
 
+  Index_type getProblemSize() const override
+  {
+    return getRunSize();
+  }
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

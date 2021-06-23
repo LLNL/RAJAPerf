@@ -29,7 +29,7 @@ LTIMES::LTIMES(const RunParams& params)
   setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = run_params.getSizeFactor() * m_num_z_default;
+  m_num_z = getRunSize() / (m_num_d_default * m_num_g_default);
   m_num_g = m_num_g_default;
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
@@ -59,11 +59,6 @@ LTIMES::LTIMES(const RunParams& params)
 
 LTIMES::~LTIMES()
 {
-}
-
-Index_type LTIMES::getItsPerRep() const
-{
-  return m_num_d * m_num_m * m_num_g * m_num_z ;
 }
 
 void LTIMES::setUp(VariantID vid)

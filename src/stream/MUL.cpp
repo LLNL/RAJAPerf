@@ -48,7 +48,6 @@ MUL::MUL(const RunParams& params)
 
 MUL::~MUL()
 {
-
 }
 
 void MUL::setUp(VariantID vid)

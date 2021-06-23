@@ -60,6 +60,11 @@ DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
   delete m_domain;
 }
 
+Index_type DEL_DOT_VEC_2D::getProblemSize() const
+{
+  return m_domain->n_real_zones;
+}
+
 Index_type DEL_DOT_VEC_2D::getItsPerRep() const
 {
   return m_domain->n_real_zones;

@@ -29,7 +29,7 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = run_params.getSizeFactor() * m_num_z_default;
+  m_num_z = getRunSize() / (m_num_d_default * m_num_g_default);
   m_num_g = m_num_g_default;
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
@@ -58,11 +58,6 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
 
 LTIMES_NOVIEW::~LTIMES_NOVIEW()
 {
-}
-
-Index_type LTIMES_NOVIEW::getItsPerRep() const
-{
-  return m_num_d * m_num_m * m_num_g * m_num_z ;
 }
 
 void LTIMES_NOVIEW::setUp(VariantID vid)

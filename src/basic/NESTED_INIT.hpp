@@ -49,6 +49,11 @@ public:
 
   ~NESTED_INIT();
 
+  Index_type getProblemSize() const override
+  {
+    return m_array_length;
+  }
+
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

@@ -161,7 +161,8 @@ public:
 
   ~COUPLE();
 
-  Index_type getItsPerRep() const;
+  Index_type getProblemSize() const override;
+  Index_type getItsPerRep() const override;
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid);
