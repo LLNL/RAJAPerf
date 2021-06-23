@@ -84,19 +84,19 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 #endif
                                                    >;
 
-    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                            ,gpu_block_x_policy
 #endif
                                            >;
 
-    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                              ,gpu_thread_x_policy
 #endif
                                              >;
 
-    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                              ,gpu_thread_y_policy
 #endif
@@ -108,72 +108,72 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
       RAJA::expt::launch<launch_policy>(
         RAJA::expt::HOST, RAJA::expt::Resources(),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
-            RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
+            RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
 
                   MASS3DPA_0_CPU
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
                           MASS3DPA_1
                        });
 
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int dx) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int dx) {
                           MASS3DPA_2
                       });
                    });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
                           MASS3DPA_3
                       });
                    });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
                           MASS3DPA_4
                       });
                   });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
                           MASS3DPA_5
                       });
                   });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int d) {
-                    RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int q) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int d) {
+                    RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int q) {
                         MASS3DPA_6
                      });
                   });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
-                    RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+                    RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
                         MASS3DPA_7
                      });
                   });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
                           MASS3DPA_8
                       });
                   });
 
                   ctx.teamSync();
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
-                    RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                    RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
                         MASS3DPA_9
                     });
                   });

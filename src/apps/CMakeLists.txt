@@ -56,6 +56,7 @@ blt_add_library(
           MASS3DPA-Hip.cpp
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
+          MASS3DPA-OMPTarget.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 
