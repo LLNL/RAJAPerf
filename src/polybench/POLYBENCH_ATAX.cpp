@@ -77,7 +77,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
-
 }
 
 void POLYBENCH_ATAX::setUp(VariantID vid)

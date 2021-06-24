@@ -75,7 +75,6 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
 POLYBENCH_MVT::~POLYBENCH_MVT() 
 {
-
 }
 
 void POLYBENCH_MVT::setUp(VariantID vid)

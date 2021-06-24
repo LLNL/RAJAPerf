@@ -391,7 +391,11 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << run_params.getNumPasses() << endl;
-    str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
+    if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+      str << "\t Kernel size factor = " << run_params.getSize() << endl;
+    } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+      str << "\t Kernel size = " << run_params.getSize() << endl;
+    }
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
@@ -403,12 +407,13 @@ void Executor::reportRunSummary(ostream& str) const
       str << getVariantName(variant_ids[iv]) << endl;
     }
 
-    str << "\nKernels(iterations/rep , reps)"
+    str << "\nKernels(problem size , iterations/rep , reps)"
         << "\n-----------------------------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kern = kernels[ik];
       str << kern->getName() 
-          << " (" << kern->getItsPerRep() << " , "
+          << " (" << kern->getProblemSize() << " , "
+          << kern->getItsPerRep() << " , "
           << kern->getRunReps() << ")" << endl;
     }
 

@@ -24,10 +24,11 @@ namespace apps
 COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
 {
-  setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(60);
+  setDefaultSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultReps(50);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+  Index_type rzmax = std::cbrt(getRunSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_imin = m_domain->imin;
   m_imax = m_domain->imax;
@@ -42,9 +43,14 @@ COUPLE::~COUPLE()
   delete m_domain;
 }
 
-Index_type COUPLE::getItsPerRep() const 
-{ 
-  return  ( (m_imax - m_imin) * (m_jmax - m_jmin) * (m_kmax - m_kmin) ); 
+Index_type COUPLE::getProblemSize() const
+{
+  return m_domain->n_real_zones;
+}
+
+Index_type COUPLE::getItsPerRep() const
+{
+  return m_domain->n_real_zones;
 }
 
 void COUPLE::setUp(VariantID vid)

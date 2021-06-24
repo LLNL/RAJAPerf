@@ -50,10 +50,6 @@ FIR::~FIR()
 {
 }
 
-Index_type FIR::getItsPerRep() const { 
-  return getRunSize() - m_coefflen;
-}
-
 void FIR::setUp(VariantID vid)
 {
   allocAndInitData(m_in, getRunSize(), vid);

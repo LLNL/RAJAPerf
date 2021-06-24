@@ -79,7 +79,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
-
 }
 
 void POLYBENCH_FDTD_2D::setUp(VariantID vid)

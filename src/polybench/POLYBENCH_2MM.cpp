@@ -79,7 +79,6 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
 POLYBENCH_2MM::~POLYBENCH_2MM()
 {
-
 }
 
 void POLYBENCH_2MM::setUp(VariantID vid)

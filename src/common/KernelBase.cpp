@@ -44,7 +44,11 @@ KernelBase::~KernelBase()
 
 Index_type KernelBase::getRunSize() const
 { 
-  return static_cast<Index_type>(default_size*run_params.getSizeFactor()); 
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    return static_cast<Index_type>(default_size*run_params.getSize());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    return static_cast<Index_type>(run_params.getSize());
+  }
 }
 
 Index_type KernelBase::getRunReps() const

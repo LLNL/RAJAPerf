@@ -186,6 +186,10 @@ public:
 
   ~POLYBENCH_ADI();
 
+  Index_type getProblemSize() const override
+  {
+    return 0;
+  }
  
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
