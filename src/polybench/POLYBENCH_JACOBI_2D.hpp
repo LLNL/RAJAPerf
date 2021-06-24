@@ -81,7 +81,12 @@ public:
 
   ~POLYBENCH_JACOBI_2D();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
+  {
+    return 0;
+  }
+
+  Index_type getItsPerRep() const
   {
     return 0;
   }

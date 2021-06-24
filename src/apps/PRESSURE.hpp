@@ -63,9 +63,14 @@ public:
 
   ~PRESSURE();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return getRunSize();
+  }
+
+  Index_type getItsPerRep() const 
+  { 
+    return 2 * getProblemSize(); 
   }
 
   void setUp(VariantID vid);

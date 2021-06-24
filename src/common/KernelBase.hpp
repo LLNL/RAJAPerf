@@ -111,13 +111,12 @@ public:
   // by each concrete kernel class.
   //
 
-  virtual Index_type getProblemSize() const = 0;
-
-  virtual Index_type getItsPerRep() const { return getRunSize(); }
-
   virtual void print(std::ostream& os) const; 
 
   virtual void runKernel(VariantID vid);
+
+  virtual Index_type getProblemSize() const = 0;
+  virtual Index_type getItsPerRep() const = 0;
 
   virtual void setUp(VariantID vid) = 0;
   virtual void updateChecksum(VariantID vid) = 0;

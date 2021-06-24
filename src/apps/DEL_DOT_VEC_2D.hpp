@@ -88,13 +88,14 @@
 
 #include "common/KernelBase.hpp"
 
+#include "AppsData.hpp"
+
 namespace rajaperf 
 {
 class RunParams;
 
 namespace apps
 {
-class ADomain;
 
 class DEL_DOT_VEC_2D : public KernelBase
 {
@@ -104,8 +105,15 @@ public:
 
   ~DEL_DOT_VEC_2D();
 
-  Index_type getProblemSize() const override;
-  Index_type getItsPerRep() const override;
+  Index_type getProblemSize() const 
+  {
+    return m_domain->n_real_zones;
+  }
+
+  Index_type getItsPerRep() const 
+  { 
+    return getProblemSize();
+  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

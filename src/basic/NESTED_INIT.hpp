@@ -49,9 +49,14 @@ public:
 
   ~NESTED_INIT();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return m_array_length;
+  }
+
+  Index_type getItsPerRep() const 
+  { 
+    return getProblemSize();
   }
 
   void setUp(VariantID vid);
