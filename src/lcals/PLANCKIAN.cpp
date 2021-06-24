@@ -48,6 +48,11 @@ PLANCKIAN::~PLANCKIAN()
 {
 }
 
+size_t PLANCKIAN::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunSize();
+}
+
 void PLANCKIAN::setUp(VariantID vid)
 {
   allocAndInitData(m_x, getRunSize(), vid);

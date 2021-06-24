@@ -24,6 +24,8 @@ EOS::EOS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  m_array_length = getRunSize() + 7;
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,10 +50,14 @@ EOS::~EOS()
 {
 }
 
+size_t EOS::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length;
+}
+
 void EOS::setUp(VariantID vid)
 {
-  m_array_length = getRunSize() + 7;
-
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitData(m_y, m_array_length, vid);
   allocAndInitData(m_z, m_array_length, vid);

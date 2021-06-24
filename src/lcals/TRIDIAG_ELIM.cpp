@@ -24,6 +24,8 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  m_N = getRunSize();
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,10 +50,13 @@ TRIDIAG_ELIM::~TRIDIAG_ELIM()
 {
 }
 
+size_t TRIDIAG_ELIM::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1);
+}
+
 void TRIDIAG_ELIM::setUp(VariantID vid)
 {
-  m_N = getRunSize();
-
   allocAndInitDataConst(m_xout, m_N, 0.0, vid);
   allocAndInitData(m_xin, m_N, vid);
   allocAndInitData(m_y, m_N, vid);

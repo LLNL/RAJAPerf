@@ -24,6 +24,8 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  m_N = getRunSize();
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,9 +50,14 @@ GEN_LIN_RECUR::~GEN_LIN_RECUR()
 {
 }
 
+size_t GEN_LIN_RECUR::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N +
+         (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N;
+}
+
 void GEN_LIN_RECUR::setUp(VariantID vid)
 {
-  m_N = getRunSize();
   m_kb5i = 0;
 
   allocAndInitDataConst(m_b5, m_N, 0.0, vid);

@@ -76,6 +76,7 @@ public:
   {
     return getRunSize();
   }
+  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

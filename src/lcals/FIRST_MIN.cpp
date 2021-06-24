@@ -27,6 +27,8 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 // reduction performance issues
   setDefaultReps(100);
 
+  m_N = getRunSize();
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 
@@ -52,9 +54,15 @@ FIRST_MIN::~FIRST_MIN()
 {
 }
 
+size_t FIRST_MIN::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
+         (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N;
+}
+
 void FIRST_MIN::setUp(VariantID vid)
 {
-  m_N = getRunSize(); 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   m_x[ m_N / 2 ] = -1.0e+10;
   m_xmin_init = m_x[0];

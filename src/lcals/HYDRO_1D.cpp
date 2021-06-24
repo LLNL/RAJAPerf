@@ -24,6 +24,8 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  m_array_length = getRunSize() + 12;
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,10 +50,14 @@ HYDRO_1D::~HYDRO_1D()
 {
 }
 
+size_t HYDRO_1D::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getRunSize() +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getRunSize()+1);
+}
+
 void HYDRO_1D::setUp(VariantID vid)
 {
-  m_array_length = getRunSize() + 12;
-
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitData(m_y, m_array_length, vid);
   allocAndInitData(m_z, m_array_length, vid);

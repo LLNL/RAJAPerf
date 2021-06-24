@@ -48,6 +48,11 @@ DIFF_PREDICT::~DIFF_PREDICT()
 {
 }
 
+size_t DIFF_PREDICT::getBytesPerRep() const
+{
+  return (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunSize();
+}
+
 void DIFF_PREDICT::setUp(VariantID vid)
 {
   m_array_length = getRunSize() * 14;

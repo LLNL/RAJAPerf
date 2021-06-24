@@ -24,6 +24,8 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  m_N = getRunSize()+1;
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,9 +50,14 @@ FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
+size_t FIRST_DIFF::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() +
+         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_N;
+}
+
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }

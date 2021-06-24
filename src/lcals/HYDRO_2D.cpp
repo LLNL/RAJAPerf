@@ -37,6 +37,7 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_array_length = m_kn * m_jn;
 
   setUsesFeature(Kernel);
+  setUsesFeature(View);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -58,6 +59,15 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
 
 HYDRO_2D::~HYDRO_2D() 
 {
+}
+
+size_t HYDRO_2D::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+         (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+         (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+         (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+         (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2);
 }
 
 void HYDRO_2D::setUp(VariantID vid)

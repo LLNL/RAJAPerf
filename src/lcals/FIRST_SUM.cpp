@@ -24,6 +24,8 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  m_N = getRunSize();
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -48,9 +50,14 @@ FIRST_SUM::~FIRST_SUM()
 {
 }
 
+size_t FIRST_SUM::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N;
+}
+
 void FIRST_SUM::setUp(VariantID vid)
 {
-  m_N = getRunSize(); 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }

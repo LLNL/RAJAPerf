@@ -48,6 +48,11 @@ INT_PREDICT::~INT_PREDICT()
 {
 }
 
+size_t INT_PREDICT::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 10*sizeof(Real_type )) * getRunSize();
+}
+
 void INT_PREDICT::setUp(VariantID vid)
 {
   m_array_length = getRunSize() * 13;
