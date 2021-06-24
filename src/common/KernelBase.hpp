@@ -117,7 +117,7 @@ public:
 
   virtual Index_type getItsPerRep() const { return getRunSize(); }
 
-  virtual size_t getBytesPerRep() const { return s_unknown_bytes; }
+  virtual size_t getBytesPerRep() const = 0;
   std::string getBytesPerRepStr() const
   {
     size_t bytes = getBytesPerRep();
