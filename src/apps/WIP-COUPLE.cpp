@@ -43,6 +43,11 @@ COUPLE::~COUPLE()
   delete m_domain;
 }
 
+size_t COUPLE::getBytesPerRep() const
+{
+  return (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones ;
+}
+
 Index_type COUPLE::getProblemSize() const
 {
   return m_domain->n_real_zones;
