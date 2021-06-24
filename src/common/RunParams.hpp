@@ -95,6 +95,8 @@ public:
 
   double getSize() const { return size; }
 
+  double getSizeFactor() const { return size_factor; }
+
   SizeSpec  getSizeSpec() const { return size_spec; }
 
   void  setSizeSpec(std::string inputString);
@@ -160,9 +162,13 @@ private:
   bool show_progress;    /*!< true -> show run progress; false -> do not */
 
   int npasses;           /*!< Number of passes through suite  */
+
   double rep_fact;       /*!< pct of default kernel reps to run */
+
   SizeMeaning size_meaning; /*!< meaning of size value */
-  double size;           /*!< size value */
+  double size;           /*!< kernel size to run (input option) */
+  double size_factor;    /*!< default kernel size multipier (input option) */
+
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
 

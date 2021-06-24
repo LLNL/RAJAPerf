@@ -44,20 +44,24 @@ KernelBase::~KernelBase()
 
 Index_type KernelBase::getRunSize() const
 { 
+  Index_type run_size = static_cast<Index_type>(0);
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    return static_cast<Index_type>(default_size*run_params.getSize());
+    run_size = static_cast<Index_type>(default_size*run_params.getSizeFactor());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
-    return static_cast<Index_type>(run_params.getSize());
+    run_size = static_cast<Index_type>(run_params.getSize());
   }
+  return run_size;
 }
 
 Index_type KernelBase::getRunReps() const
 { 
+  Index_type run_reps = static_cast<Index_type>(0);
   if (run_params.getInputState() == RunParams::CheckRun) {
-    return static_cast<Index_type>(run_params.getCheckRunReps());
+    run_reps = static_cast<Index_type>(run_params.getCheckRunReps());
   } else {
-    return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
-  } 
+    run_reps = static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+  }
+  return run_reps;
 }
 
 void KernelBase::setVariantDefined(VariantID vid) 
