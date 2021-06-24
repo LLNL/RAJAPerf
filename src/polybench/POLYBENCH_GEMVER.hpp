@@ -143,6 +143,7 @@ public:
   {
     return 0;
   }
+  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

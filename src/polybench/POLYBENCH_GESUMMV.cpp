@@ -80,6 +80,12 @@ POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()
 {
 }
 
+size_t POLYBENCH_GESUMMV::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
+         (0*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N * m_N ;
+}
+
 void POLYBENCH_GESUMMV::setUp(VariantID vid)
 {
   (void) vid;

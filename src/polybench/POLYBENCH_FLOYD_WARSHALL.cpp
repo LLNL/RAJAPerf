@@ -79,6 +79,11 @@ POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
 }
 
+size_t POLYBENCH_FLOYD_WARSHALL::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N;
+}
+
 void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
 {
   (void) vid;

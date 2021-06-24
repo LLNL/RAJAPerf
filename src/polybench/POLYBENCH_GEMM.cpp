@@ -82,6 +82,13 @@ POLYBENCH_GEMM::~POLYBENCH_GEMM()
 {
 }
 
+size_t POLYBENCH_GEMM::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk;
+}
+
 void POLYBENCH_GEMM::setUp(VariantID vid)
 {
   (void) vid;

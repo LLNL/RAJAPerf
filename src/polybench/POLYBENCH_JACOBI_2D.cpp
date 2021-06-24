@@ -85,6 +85,16 @@ POLYBENCH_JACOBI_2D::~POLYBENCH_JACOBI_2D()
 {
 }
 
+size_t POLYBENCH_JACOBI_2D::getBytesPerRep() const
+{
+  return m_tsteps * (
+           (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-2) * (m_N-2) +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_N * m_N - 4) +
+
+           (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-2) * (m_N-2) +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_N * m_N  - 4) );
+}
+
 void POLYBENCH_JACOBI_2D::setUp(VariantID vid)
 {
   (void) vid;

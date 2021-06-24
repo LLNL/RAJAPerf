@@ -81,6 +81,23 @@ POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
 }
 
+size_t POLYBENCH_FDTD_2D::getBytesPerRep() const
+{
+  return m_tsteps * (
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) +
+           (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ny +
+
+           (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+
+           (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+
+           (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * (m_ny-1) +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
+           (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) );
+}
+
 void POLYBENCH_FDTD_2D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_hz, m_nx * m_ny, 0.0, vid);

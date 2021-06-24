@@ -23,9 +23,9 @@
 /// } 
 /// for (Index_type j = 0; j < NJ; j++) {
 ///   for (Index_type l = 0; l < NL; l++) {
-///	F[j][l] = 0.0;
-///	for (Index_type m = 0; m < NM; ++m) {
-///	  F[j][l] += C[j][m] * D[m][l];
+///     F[j][l] = 0.0;
+///     for (Index_type m = 0; m < NM; ++m) {
+///       F[j][l] += C[j][m] * D[m][l];
 ///     }
 ///   }
 /// }
@@ -33,7 +33,7 @@
 ///   for (Index_type l = 0; l < NL; l++) {
 ///     G[i][l] = 0.0;
 ///     for (Index_type j = 0; j < NJ; ++j) {
-///	  G[i][l] += E[i][j] * F[j][l];
+///       G[i][l] += E[i][j] * F[j][l];
 ///     }
 ///   }
 /// }
@@ -147,6 +147,7 @@ public:
   {
     return 0;
   }
+  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

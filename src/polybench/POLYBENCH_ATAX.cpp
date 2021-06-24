@@ -79,6 +79,15 @@ POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
 }
 
+size_t POLYBENCH_ATAX::getBytesPerRep() const
+{
+  return (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
+
+         (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N;
+}
+
 void POLYBENCH_ATAX::setUp(VariantID vid)
 {
   (void) vid;

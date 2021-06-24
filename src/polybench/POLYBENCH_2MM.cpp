@@ -81,6 +81,17 @@ POLYBENCH_2MM::~POLYBENCH_2MM()
 {
 }
 
+size_t POLYBENCH_2MM::getBytesPerRep() const
+{
+  return (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+
+         (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
+         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl ;
+}
+
 void POLYBENCH_2MM::setUp(VariantID vid)
 {
   (void) vid;

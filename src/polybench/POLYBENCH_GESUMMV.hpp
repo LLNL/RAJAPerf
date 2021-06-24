@@ -10,8 +10,8 @@
 /// POLYBENCH_GESUMMV kernel reference implementation:
 ///
 /// for (Index_type i = 0; i < N; i++) {
-///     tmp[i] = 0.0;
-///     y[i] = 0.0;
+///   tmp[i] = 0.0;
+///   y[i] = 0.0;
 ///   for (Index_type j = 0; j < N; j++) {
 ///     tmp[i] += A[i][j] * x[j];
 ///     y[i] += B[i][j] * x[j];
@@ -93,6 +93,7 @@ public:
   {
     return 0;
   }
+  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

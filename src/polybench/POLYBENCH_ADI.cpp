@@ -78,6 +78,14 @@ POLYBENCH_ADI::~POLYBENCH_ADI()
 {
 }
 
+size_t POLYBENCH_ADI::getBytesPerRep() const
+{
+  return m_tsteps* (
+           (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
+
+           (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) );
+}
+
 void POLYBENCH_ADI::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_U, m_n * m_n, 0.0, vid);
