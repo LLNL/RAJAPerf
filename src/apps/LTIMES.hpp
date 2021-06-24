@@ -107,14 +107,14 @@ public:
 
   ~LTIMES();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return m_num_d * m_num_g * m_num_z;
   }
 
-  Index_type getItsPerRep() const override
+  Index_type getItsPerRep() const
   {
-    return m_num_d * m_num_m * m_num_g * m_num_z ;
+    return getProblemSize();
   }
 
   void setUp(VariantID vid);

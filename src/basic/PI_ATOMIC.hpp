@@ -45,9 +45,14 @@ public:
 
   ~PI_ATOMIC();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return getRunSize();
+  }
+
+  Index_type getItsPerRep() const 
+  { 
+    return getProblemSize(); 
   }
 
   void setUp(VariantID vid);

@@ -60,16 +60,6 @@ DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
   delete m_domain;
 }
 
-Index_type DEL_DOT_VEC_2D::getProblemSize() const
-{
-  return m_domain->n_real_zones;
-}
-
-Index_type DEL_DOT_VEC_2D::getItsPerRep() const
-{
-  return m_domain->n_real_zones;
-}
-
 void DEL_DOT_VEC_2D::setUp(VariantID vid)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);

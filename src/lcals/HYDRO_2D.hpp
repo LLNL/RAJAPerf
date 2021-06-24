@@ -144,9 +144,14 @@ public:
 
   ~HYDRO_2D();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return m_array_length;
+  }
+
+  Index_type getItsPerRep() const
+  {
+    return 3 * getProblemSize();
   }
 
   void setUp(VariantID vid);

@@ -42,9 +42,14 @@ public:
 
   ~SORT();
 
-  Index_type getProblemSize() const override
+  Index_type getProblemSize() const
   {
     return getRunSize();
+  }
+
+  Index_type getItsPerRep() const 
+  { 
+    return getRunSize(); 
   }
 
   void setUp(VariantID vid);

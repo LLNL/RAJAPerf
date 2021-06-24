@@ -144,13 +144,14 @@
 
 #include "common/KernelBase.hpp"
 
+#include "AppsData.hpp"
+
 namespace rajaperf 
 {
 class RunParams;
 
 namespace apps
 {
-class ADomain;
 
 class VOL3D : public KernelBase
 {
@@ -160,8 +161,15 @@ public:
 
   ~VOL3D();
 
-  Index_type getProblemSize() const override;
-  Index_type getItsPerRep() const override;
+  Index_type getProblemSize() const 
+  {
+    return m_domain->n_real_zones;
+  }
+
+  Index_type getItsPerRep() const
+  {
+    return m_domain->lpz+1 - m_domain->fpz;
+  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

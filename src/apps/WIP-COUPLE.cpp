@@ -43,16 +43,6 @@ COUPLE::~COUPLE()
   delete m_domain;
 }
 
-Index_type COUPLE::getProblemSize() const
-{
-  return m_domain->n_real_zones;
-}
-
-Index_type COUPLE::getItsPerRep() const
-{
-  return m_domain->n_real_zones;
-}
-
 void COUPLE::setUp(VariantID vid)
 {
   Index_type max_loop_index = m_domain->lrn;
