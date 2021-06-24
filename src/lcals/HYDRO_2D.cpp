@@ -37,7 +37,6 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_array_length = m_kn * m_jn;
 
   setUsesFeature(Kernel);
-  setUsesFeature(View);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
