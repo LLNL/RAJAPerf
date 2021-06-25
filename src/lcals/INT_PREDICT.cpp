@@ -24,6 +24,8 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(400);
 
+  setFLOPsPerRep(17 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

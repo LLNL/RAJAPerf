@@ -36,6 +36,10 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_jn = m_kn = std::sqrt(getRunSize());
   m_array_length = m_kn * m_jn;
 
+  setFLOPsPerRep((14 +
+                  26 +
+                  4  ) * (m_jn-2)*(m_kn-2));
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
