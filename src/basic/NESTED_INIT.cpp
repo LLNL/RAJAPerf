@@ -35,6 +35,8 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   m_nk = n_final;
   m_array_length = m_ni * m_nj * m_nk;
 
+  setFLOPsPerRep(3 * m_array_length);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

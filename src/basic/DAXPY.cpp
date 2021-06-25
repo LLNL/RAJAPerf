@@ -26,6 +26,8 @@ DAXPY::DAXPY(const RunParams& params)
 
   setUsesFeature(Forall);
 
+  setFLOPsPerRep(2 * getRunSize());
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

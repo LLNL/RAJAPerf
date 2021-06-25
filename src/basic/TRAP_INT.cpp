@@ -24,6 +24,8 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(50);
 
+  setFLOPsPerRep(10 * getRunSize()); // 1 sqrt
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

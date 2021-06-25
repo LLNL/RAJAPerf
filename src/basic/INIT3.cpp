@@ -24,6 +24,8 @@ INIT3::INIT3(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  setFLOPsPerRep(1 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
