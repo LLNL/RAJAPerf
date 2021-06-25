@@ -56,6 +56,11 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   m_alpha = 1.5;
   m_beta = 1.2;
 
+  setFLOPsPerRep(4 * m_n*m_n +
+                 3 * m_n*m_n +
+                 1 * m_n +
+                 3 * m_n*m_n );
+
   setUsesFeature(Forall);
   setUsesFeature(Kernel);
 

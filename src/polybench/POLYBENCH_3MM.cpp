@@ -52,6 +52,10 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
   setDefaultReps(m_run_reps);
 
+  setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
+                 2 * m_nj*m_nl*m_nm +
+                 2 * m_ni*m_nj*m_nl );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

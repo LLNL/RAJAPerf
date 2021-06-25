@@ -55,6 +55,9 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   m_alpha = 1.5;
   m_beta = 1.2;
 
+  setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
+                 2 * m_ni*m_nj*m_nl );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
