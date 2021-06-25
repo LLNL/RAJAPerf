@@ -52,18 +52,20 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_tsteps * (m_ny + 3 * m_nx*m_ny) );
+  setDefaultSize( m_nx*m_ny );
   setDefaultReps(run_reps);
 
-  setProblemSize( 0 );
+  setProblemSize( m_nx*m_ny );
 
-  setItsPerRep( 0 );
+  setItsPerRep( m_ny + 
+                m_nx*m_ny +
+                m_nx*m_ny +
+                (m_nx-1)*(m_ny-1) );
   setKernelsPerRep(4);
-  setFLOPsPerRep(m_tsteps * (
-                   0 * m_ny +
-                   3 * (m_nx-1)*m_ny +
-                   3 * m_nx*(m_ny-1) +
-                   5 * (m_nx-1)*(m_ny-1) ) );
+  setFLOPsPerRep( 0 * m_ny +
+                  3 * (m_nx-1)*m_ny +
+                  3 * m_nx*(m_ny-1) +
+                  5 * (m_nx-1)*(m_ny-1) );
 
   setUsesFeature(Kernel);
 

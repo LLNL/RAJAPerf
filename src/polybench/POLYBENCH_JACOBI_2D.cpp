@@ -56,16 +56,15 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_tsteps * 2 * m_N * m_N );
+  setDefaultSize( (m_N-2) * (m_N-2) );
   setDefaultReps(run_reps);
 
-  setProblemSize( 0 );
+  setProblemSize( (m_N-2) * (m_N-2) );
 
-  setItsPerRep( 0 );
+  setItsPerRep( 2 * getProblemSize() );
   setKernelsPerRep(2);
-  setFLOPsPerRep(m_tsteps * (
-                   5 * (m_N-2)*(m_N-2) +
-                   5 * (m_N-2)*(m_N-2) ) );
+  setFLOPsPerRep( 5 * (m_N-2)*(m_N-2) +
+                  5 * (m_N-2)*(m_N-2) );
 
   setUsesFeature(Kernel);
 

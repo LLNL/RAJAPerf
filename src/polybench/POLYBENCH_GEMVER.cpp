@@ -50,15 +50,18 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
       break;
   }
 
-  setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
-  setDefaultReps(run_reps);
-
   m_alpha = 1.5;
   m_beta = 1.2;
 
-  setProblemSize( 0 );
+  setDefaultSize( m_n*m_n );
+  setDefaultReps(run_reps);
 
-  setItsPerRep( 0 );
+  setProblemSize( m_n*m_n );
+
+  setItsPerRep( m_n*m_n +
+                m_n*m_n +
+                m_n + 
+                m_n*m_n );
   setKernelsPerRep(4);
   setFLOPsPerRep(4 * m_n*m_n +
                  3 * m_n*m_n +

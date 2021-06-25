@@ -11,6 +11,8 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
+
 
 namespace rajaperf
 {
@@ -49,16 +51,16 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
-  setDefaultReps(run_reps);
-
   m_alpha = 1.5;
   m_beta = 1.2;
 
-  setProblemSize( 0 );
+  setDefaultSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+  setDefaultReps(run_reps);
 
-  setItsPerRep( 0 );
-  setKernelsPerRep(2);
+  setProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+
+  setItsPerRep( m_ni*m_nj + m_ni*m_nl );
+  setKernelsPerRep(2); 
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 
