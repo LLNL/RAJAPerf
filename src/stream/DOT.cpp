@@ -24,6 +24,8 @@ DOT::DOT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setFLOPsPerRep(2 * getRunSize());
+
   setUsesFeature( Forall );
   setUsesFeature( Reduction );
 
