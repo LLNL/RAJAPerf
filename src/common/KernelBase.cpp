@@ -14,25 +14,36 @@
 
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid, const RunParams& params) 
-  : run_params(params),
-    kernel_id(kid),
-    name( getFullKernelName(kernel_id) ),
-    default_size(0),
-    default_reps(0),
-    running_variant(NumVariants)
+KernelBase::KernelBase(KernelID kid, const RunParams& params) :
+  run_params(params) 
 {
-  for (size_t vid = 0; vid < NumVariants; ++vid) {
-     checksum[vid] = 0.0;
-     num_exec[vid] = 0;
-     min_time[vid] = std::numeric_limits<double>::max();
-     max_time[vid] = -std::numeric_limits<double>::max();
-     tot_time[vid] = 0.0;
-     has_variant_to_run[vid] = false;
+  kernel_id = kid;
+  name = getFullKernelName(kernel_id);
+
+  default_size = -1;
+  default_reps = -1;
+ 
+  for (size_t fid = 0; fid < NumFeatures; ++fid) {
+    uses_feature[fid] = false;
   }
 
-  for (size_t fid = 0; fid < NumFeatures; ++fid) {
-     uses_feature[fid] = false;
+  for (size_t vid = 0; vid < NumVariants; ++vid) {
+    has_variant_defined[vid] = false;
+  }
+
+  run_size = -1;
+  its_per_rep = -1;
+  kernels_per_rep = -1;
+  FLOPs_per_rep = -1;
+
+  running_variant = NumVariants;
+
+  for (size_t vid = 0; vid < NumVariants; ++vid) {
+    checksum[vid] = 0.0;
+    num_exec[vid] = 0;
+    min_time[vid] = std::numeric_limits<double>::max();
+    max_time[vid] = -std::numeric_limits<double>::max();
+    tot_time[vid] = 0.0;
   }
 }
 
@@ -66,7 +77,7 @@ Index_type KernelBase::getRunReps() const
 
 void KernelBase::setVariantDefined(VariantID vid) 
 {
-  has_variant_to_run[vid] = isVariantAvailable(vid); 
+  has_variant_defined[vid] = isVariantAvailable(vid); 
 }
 
 
@@ -100,7 +111,7 @@ void KernelBase::recordExecTime()
 
 void KernelBase::runKernel(VariantID vid)
 {
-  if ( !has_variant_to_run[vid] ) {
+  if ( !has_variant_defined[vid] ) {
     return;
   }
 
