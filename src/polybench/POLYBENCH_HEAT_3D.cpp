@@ -70,6 +70,10 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   setDefaultSize( m_tsteps * 2 * m_N * m_N * m_N);
   setDefaultReps(run_reps);
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(2);
   setFLOPsPerRep(m_tsteps * (
                    15 * (m_N-2)*(m_N-2)*(m_N-2) +
                    15 * (m_N-2)*(m_N-2)*(m_N-2) ) );

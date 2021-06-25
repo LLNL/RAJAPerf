@@ -33,6 +33,10 @@ VOL3D::VOL3D(const RunParams& params)
 
   m_array_length = m_domain->nnalls;
 
+  setProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
+  setKernelsPerRep(1); 
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
 
   setUsesFeature(Forall);

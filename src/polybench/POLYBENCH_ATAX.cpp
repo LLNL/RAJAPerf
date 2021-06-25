@@ -53,6 +53,10 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultSize( m_N + m_N*2*m_N );
   setDefaultReps(run_reps);
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(2);
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 

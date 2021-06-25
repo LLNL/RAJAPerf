@@ -52,6 +52,10 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
   setDefaultReps(m_run_reps);
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(3);
   setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
                  2 * m_nj*m_nl*m_nm +
                  2 * m_ni*m_nj*m_nl );

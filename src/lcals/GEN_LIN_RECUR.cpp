@@ -24,6 +24,10 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep((3 +
                   3 ) * getRunSize());
 

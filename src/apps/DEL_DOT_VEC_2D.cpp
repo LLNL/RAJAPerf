@@ -33,6 +33,10 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 
   m_array_length = m_domain->nnalls;
 
+  setProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(54 * m_domain->n_real_zones);
 
   setUsesFeature(Forall);

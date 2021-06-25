@@ -56,6 +56,10 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(1);
   setFLOPsPerRep((4 * m_N +
                   3 ) * m_N  );
 

@@ -51,8 +51,8 @@ public:
   //
 
   void setDefaultSize(Index_type size) { default_size = size; }
-  void setRunSize(Index_type rsize) { run_size = rsize; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
+  void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
@@ -61,21 +61,19 @@ public:
   void setVariantDefined(VariantID vid);
 
   //
-  // Associated getter methods used to generate kernel execution summary
+  // Getter methods used to generate kernel execution summary
   // and kernel details report ouput.
   //
   
   Index_type getDefaultSize() const { return default_size; }
-  Index_type getRunSize() const;
-
   Index_type getDefaultReps() const { return default_reps; }
-  Index_type getRunReps() const;
-
+  Index_type getProblemSize() const { return problem_size; } 
+  Index_type getItsPerRep() const { return its_per_rep; };
+  Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
-  Index_type getItsPerRep() const { return its_per_rep; };
-
-  Index_type getKernelsPerRep() const { return kernels_per_rep; };
+  Index_type getRunSize() const;
+  Index_type getRunReps() const;
 
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
 
@@ -184,7 +182,7 @@ private:
   //
   // Properties of kernel dependent on how kernel is run
   //
-  Index_type run_size;
+  Index_type problem_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
   Index_type FLOPs_per_rep;

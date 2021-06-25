@@ -24,6 +24,10 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(2 * (getRunSize()-1));
 
   setUsesFeature(Forall);

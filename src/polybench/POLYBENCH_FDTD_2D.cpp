@@ -55,6 +55,10 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   setDefaultSize( m_tsteps * (m_ny + 3 * m_nx*m_ny) );
   setDefaultReps(run_reps);
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(4);
   setFLOPsPerRep(m_tsteps * (
                    0 * m_ny +
                    3 * (m_nx-1)*m_ny +

@@ -24,9 +24,13 @@ DAXPY::DAXPY(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
-  setUsesFeature(Forall);
+  setProblemSize( getRunSize() ); 
 
+  setItsPerRep( getProblemSize() ); 
+  setKernelsPerRep(1); 
   setFLOPsPerRep(2 * getRunSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

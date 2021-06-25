@@ -24,6 +24,10 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(20);
 
+  setProblemSize( getRunSize() );
+  
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);

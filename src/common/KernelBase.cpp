@@ -31,7 +31,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
     has_variant_defined[vid] = false;
   }
 
-  run_size = -1;
+  problem_size = -1;
   its_per_rep = -1;
   kernels_per_rep = -1;
   FLOPs_per_rep = -1;

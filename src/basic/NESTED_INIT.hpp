@@ -49,16 +49,6 @@ public:
 
   ~NESTED_INIT();
 
-  Index_type getProblemSize() const
-  {
-    return m_array_length;
-  }
-
-  Index_type getItsPerRep() const 
-  { 
-    return getProblemSize();
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

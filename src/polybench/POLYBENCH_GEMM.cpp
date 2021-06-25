@@ -56,6 +56,10 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
+  setProblemSize( 0 );
+
+  setItsPerRep( 0 );
+  setKernelsPerRep(1);
   setFLOPsPerRep((1 +
                   3 * m_nk) * m_ni*m_nj);
 

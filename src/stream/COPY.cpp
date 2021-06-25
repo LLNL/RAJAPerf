@@ -24,6 +24,10 @@ COPY::COPY(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1800);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(0);
 
   setUsesFeature( Forall );

@@ -90,16 +90,6 @@ public:
 
   ~POLYBENCH_GEMM();
 
-  Index_type getProblemSize() const
-  {
-    return 0;
-  }
-
-  Index_type getItsPerRep() const
-  {
-    return 0;
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
