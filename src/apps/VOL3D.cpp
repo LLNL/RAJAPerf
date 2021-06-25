@@ -33,6 +33,8 @@ VOL3D::VOL3D(const RunParams& params)
 
   m_array_length = m_domain->nnalls;
 
+  setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
