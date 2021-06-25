@@ -24,6 +24,8 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setFLOPsPerRep(1 * (getRunSize()-1));
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

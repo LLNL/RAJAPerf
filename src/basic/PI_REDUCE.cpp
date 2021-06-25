@@ -24,6 +24,8 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(50);
 
+  setFLOPsPerRep(6 * getRunSize() + 1);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

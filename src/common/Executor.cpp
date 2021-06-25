@@ -407,13 +407,14 @@ void Executor::reportRunSummary(ostream& str) const
       str << getVariantName(variant_ids[iv]) << endl;
     }
 
-    str << "\nKernels(problem size , iterations/rep , reps)"
+    str << "\nKernels(problem size , iterations/rep , FLOPs/rep , reps)"
         << "\n-----------------------------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kern = kernels[ik];
       str << kern->getName() 
           << " (" << kern->getProblemSize() << " , "
           << kern->getItsPerRep() << " , "
+          << kern->getFLOPsPerRep() << " , "
           << kern->getRunReps() << ")" << endl;
     }
 

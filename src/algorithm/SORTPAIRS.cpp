@@ -24,6 +24,8 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(20);
 
+  setFLOPsPerRep(0);
+
   setUsesFeature(Sort);
 
   setVariantDefined( Base_Seq );

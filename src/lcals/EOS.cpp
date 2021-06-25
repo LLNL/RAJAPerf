@@ -24,6 +24,8 @@ EOS::EOS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  setFLOPsPerRep(16 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

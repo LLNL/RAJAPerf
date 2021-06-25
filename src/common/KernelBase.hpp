@@ -47,11 +47,13 @@ public:
 
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }
+  Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
   SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
 
   void setDefaultSize(Index_type size) { default_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
+  void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
 
   Index_type getRunSize() const;
   Index_type getRunReps() const;
@@ -151,6 +153,8 @@ private:
 
   Index_type default_size;
   Index_type default_reps;
+
+  Index_type FLOPs_per_rep = -1;
 
   VariantID running_variant; 
 

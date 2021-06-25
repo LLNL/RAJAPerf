@@ -53,6 +53,9 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultSize( 2*m_N*m_N );
   setDefaultReps(run_reps);
 
+  setFLOPsPerRep(2 * m_N*m_N +
+                 2 * m_N*m_N );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

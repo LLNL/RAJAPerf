@@ -53,6 +53,9 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultSize( m_N + m_N*2*m_N );
   setDefaultReps(run_reps);
 
+  setFLOPsPerRep(2 * m_N*m_N +
+                 2 * m_N*m_N );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

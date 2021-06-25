@@ -24,6 +24,8 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(200);
 
+  setFLOPsPerRep(9 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

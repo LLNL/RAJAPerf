@@ -24,6 +24,8 @@ TRIAD::TRIAD(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setFLOPsPerRep(2 * getRunSize());
+
   setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );

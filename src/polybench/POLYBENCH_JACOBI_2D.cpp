@@ -59,6 +59,10 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setDefaultSize( m_tsteps * 2 * m_N * m_N );
   setDefaultReps(run_reps);
 
+  setFLOPsPerRep(m_tsteps * (
+                   5 * (m_N-2)*(m_N-2) +
+                   5 * (m_N-2)*(m_N-2) ) );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

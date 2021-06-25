@@ -24,6 +24,14 @@ ENERGY::ENERGY(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(130);
 
+  setFLOPsPerRep((6  +
+                  11 + // 1 sqrt
+                  8  +
+                  2  +
+                  19 + // 1 sqrt
+                  9    // 1 sqrt
+                  ) * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

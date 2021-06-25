@@ -24,6 +24,8 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setFLOPsPerRep(5 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

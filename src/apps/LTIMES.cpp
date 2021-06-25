@@ -34,6 +34,8 @@ LTIMES::LTIMES(const RunParams& params)
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
 
+  setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
+
   setUsesFeature(Kernel); 
   setUsesFeature(View); 
 
