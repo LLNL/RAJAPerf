@@ -54,11 +54,11 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
 
   setProblemSize( (m_n-2)*(m_n-2) );
 
-  setItsPerRep( (m_n-2)*(m_n-2 + m_n-2) +
-                (m_n-2)*(m_n-2 + m_n-2) );
-  setKernelsPerRep(2);
-  setFLOPsPerRep( (15 + 2) * (m_n-2)*(m_n-2) +
-                  (15 + 2) * (m_n-2)*(m_n-2) );
+  setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
+                             (m_n-2)*(m_n-2 + m_n-2) ) );
+  setKernelsPerRep( m_tsteps * 2 );
+  setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
+                               (15 + 2) * (m_n-2)*(m_n-2) ) );
 
   setUsesFeature(Kernel);
 

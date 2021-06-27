@@ -11,6 +11,7 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 
@@ -52,20 +53,20 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_nx*m_ny );
+  setDefaultSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
   setDefaultReps(run_reps);
 
-  setProblemSize( m_nx*m_ny );
+  setProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
 
-  setItsPerRep( m_ny + 
-                m_nx*m_ny +
-                m_nx*m_ny +
-                (m_nx-1)*(m_ny-1) );
-  setKernelsPerRep(4);
-  setFLOPsPerRep( 0 * m_ny +
-                  3 * (m_nx-1)*m_ny +
-                  3 * m_nx*(m_ny-1) +
-                  5 * (m_nx-1)*(m_ny-1) );
+  setItsPerRep( m_tsteps * ( m_ny + 
+                             (m_nx-1)*m_ny +
+                             m_nx*(m_ny-1) +
+                             (m_nx-1)*(m_ny-1) ) );
+  setKernelsPerRep(m_tsteps * 4);
+  setFLOPsPerRep( m_tsteps * ( 0 * m_ny +
+                               3 * (m_nx-1)*m_ny +
+                               3 * m_nx*(m_ny-1) +
+                               5 * (m_nx-1)*(m_ny-1) ) );
 
   setUsesFeature(Kernel);
 

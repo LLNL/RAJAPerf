@@ -61,10 +61,10 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
   setProblemSize( m_N-2 );
 
-  setItsPerRep( 2 * getProblemSize() );
-  setKernelsPerRep(2);
-  setFLOPsPerRep( 3 * (m_N-2) +
-                  3 * (m_N-2) );
+  setItsPerRep( m_tsteps * ( 2 * getProblemSize() ) );
+  setKernelsPerRep(m_tsteps * 2);
+  setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
+                               3 * (m_N-2) ) );
 
   setUsesFeature(Forall);
 
