@@ -110,10 +110,6 @@ void ADD::runSeqVariant(VariantID vid)
       startTimer();
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-/*
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), add_lam);
-*/
        Kokkos::parallel_for("ADD_Kokkos Kokkos_Lambda",
                              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                              KOKKOS_LAMBDA(Index_type i){
