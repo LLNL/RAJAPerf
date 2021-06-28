@@ -84,19 +84,6 @@ public:
 
   ~HALOEXCHANGE();
 
-  Index_type getProblemSize() const override
-  {
-    return m_grid_dims[0] *
-           m_grid_dims[1] *
-           m_grid_dims[2];
-  }
-
-  Index_type getItsPerRep() const override
-  {
-    return m_num_vars * (m_var_size - m_grid_dims[0] *
-                                      m_grid_dims[1] *
-                                      m_grid_dims[2] );
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

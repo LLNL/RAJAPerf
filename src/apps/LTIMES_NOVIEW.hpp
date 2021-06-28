@@ -57,21 +57,11 @@ public:
 
   ~LTIMES_NOVIEW();
 
-  Index_type getProblemSize() const override
-  {
-    return m_num_d * m_num_g * m_num_z;
-  }
-
-  Index_type getItsPerRep() const override
-  {
-    return m_num_d * m_num_m * m_num_g * m_num_z ;
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
-
 
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);

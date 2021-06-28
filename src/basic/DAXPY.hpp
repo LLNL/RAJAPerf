@@ -43,10 +43,6 @@ public:
 
   ~DAXPY();
 
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

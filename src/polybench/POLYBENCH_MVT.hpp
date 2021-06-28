@@ -103,10 +103,6 @@ public:
 
   ~POLYBENCH_MVT();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

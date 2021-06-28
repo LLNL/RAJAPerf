@@ -50,8 +50,14 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_N*m_N*m_N );
+  setDefaultSize( m_N*m_N );
   setDefaultReps(run_reps);
+
+  setProblemSize( m_N*m_N );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(1 * m_N*m_N*m_N );
 
   setUsesFeature(Kernel);
 

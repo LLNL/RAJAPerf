@@ -26,6 +26,12 @@ FIR::FIR(const RunParams& params)
 
   m_coefflen = FIR_COEFFLEN;
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() - m_coefflen );
+  setKernelsPerRep(1);
+  setFLOPsPerRep((2 * m_coefflen) * (getRunSize() - m_coefflen));
+
   setUsesFeature(Forall); 
 
   setVariantDefined( Base_Seq );

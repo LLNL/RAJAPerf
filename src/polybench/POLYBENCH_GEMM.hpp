@@ -90,10 +90,6 @@ public:
 
   ~POLYBENCH_GEMM();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

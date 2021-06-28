@@ -26,6 +26,13 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
 
   m_N = getRunSize();
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep((3 +
+                  3 ) * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

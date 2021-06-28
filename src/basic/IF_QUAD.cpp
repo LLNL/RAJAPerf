@@ -24,6 +24,13 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(180);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1); 
+
+  setFLOPsPerRep(11 * getRunSize()); // 1 sqrt
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

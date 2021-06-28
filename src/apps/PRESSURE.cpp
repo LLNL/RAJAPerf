@@ -24,6 +24,14 @@ PRESSURE::PRESSURE(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(700);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( 2 * getProblemSize() );
+  setKernelsPerRep(2);
+  setFLOPsPerRep((2 +
+                  1
+                  ) * getProblemSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

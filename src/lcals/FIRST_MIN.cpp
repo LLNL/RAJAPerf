@@ -29,6 +29,12 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 
   m_N = getRunSize();
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(0);
+
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
 

@@ -407,14 +407,16 @@ void Executor::reportRunSummary(ostream& str) const
       str << getVariantName(variant_ids[iv]) << endl;
     }
 
-    str << "\nKernels(problem size , iterations/rep , bytes/rep , reps)"
-        << "\n-----------------------------\n";
+    str << "\nKernels(problem size , iterations/rep , kernels/rep , bytes/rep , FLOPs/rep , reps)"
+        << "\n-------------------------------------------------------------------------------\n";
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kern = kernels[ik];
       str << kern->getName()
           << " (" << kern->getProblemSize() << " , "
           << kern->getItsPerRep() << " , "
+          << kern->getKernelsPerRep() << " , "
           << kern->getBytesPerRepStr() << " , "
+          << kern->getFLOPsPerRep() << " , "
           << kern->getRunReps() << ")" << endl;
     }
 
@@ -438,14 +440,14 @@ void Executor::runSuite()
   for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
     VariantID vid = variant_ids[iv];
     if ( run_params.showProgress() ) {
-      if ( warmup_kernel->hasVariantToRun(vid) ) {
+      if ( warmup_kernel->hasVariantDefined(vid) ) {
         cout << "   Running ";
       } else {
         cout << "   No ";
       }
       cout << getVariantName(vid) << " variant" << endl;
     }
-    if ( warmup_kernel->hasVariantToRun(vid) ) {
+    if ( warmup_kernel->hasVariantDefined(vid) ) {
       warmup_kernel->execute(vid);
     }
   }
@@ -471,14 +473,14 @@ void Executor::runSuite()
          VariantID vid = variant_ids[iv];
          KernelBase* kern = kernels[ik];
          if ( run_params.showProgress() ) {
-           if ( kern->hasVariantToRun(vid) ) {
+           if ( kern->hasVariantDefined(vid) ) {
              cout << "   Running ";
            } else {
              cout << "   No ";
            }
            cout << getVariantName(vid) << " variant" << endl;
          }
-         if ( kern->hasVariantToRun(vid) ) {
+         if ( kern->hasVariantDefined(vid) ) {
            kernels[ik]->execute(vid);
          }
       } // loop over variants
@@ -589,12 +591,12 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
         VariantID vid = variant_ids[iv];
         file << sepchr <<right<< setw(varcol_width[iv]);
         if ( (mode == CSVRepMode::Speedup) &&
-             (!kern->hasVariantToRun(reference_vid) ||
-              !kern->hasVariantToRun(vid)) ) {
+             (!kern->hasVariantDefined(reference_vid) || 
+              !kern->hasVariantDefined(vid)) ) {
           file << "Not run";
         } else if ( (mode == CSVRepMode::Timing ||
                      mode == CSVRepMode::Bandwidth) &&
-                    !kern->hasVariantToRun(vid) ) {
+                    !kern->hasVariantDefined(vid) ) {
           file << "Not run";
         } else if ( (mode == CSVRepMode::Bandwidth) &&
                     (kern->getBytesPerRep() == KernelBase::s_unknown_bytes) ) {
@@ -982,8 +984,8 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        if ( kern->hasVariantToRun(reference_vid) &&
-             kern->hasVariantToRun(vid) ) {
+        if ( kern->hasVariantDefined(reference_vid) && 
+             kern->hasVariantDefined(vid) ) {
           retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
         } else {
           retval = 0.0;

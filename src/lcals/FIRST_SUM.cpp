@@ -26,6 +26,12 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
 
   m_N = getRunSize();
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(1 * (getRunSize()-1));
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

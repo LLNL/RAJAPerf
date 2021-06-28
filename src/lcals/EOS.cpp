@@ -26,6 +26,12 @@ EOS::EOS(const RunParams& params)
 
   m_array_length = getRunSize() + 7;
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(16 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

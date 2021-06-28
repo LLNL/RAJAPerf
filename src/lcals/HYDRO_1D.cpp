@@ -26,6 +26,12 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
 
   m_array_length = getRunSize() + 12;
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(5 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

@@ -36,6 +36,20 @@ COUPLE::COUPLE(const RunParams& params)
   m_jmax = m_domain->jmax;
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
+
+  setProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
 }
 
 COUPLE::~COUPLE() 
@@ -46,16 +60,6 @@ COUPLE::~COUPLE()
 size_t COUPLE::getBytesPerRep() const
 {
   return (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones ;
-}
-
-Index_type COUPLE::getProblemSize() const
-{
-  return m_domain->n_real_zones;
-}
-
-Index_type COUPLE::getItsPerRep() const
-{
-  return m_domain->n_real_zones;
 }
 
 void COUPLE::setUp(VariantID vid)

@@ -143,10 +143,7 @@ public:
   POLYBENCH_3MM(const RunParams& params);
 
   ~POLYBENCH_3MM();
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
+
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

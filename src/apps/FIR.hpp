@@ -69,16 +69,6 @@ public:
 
   ~FIR();
 
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
-
-  Index_type getItsPerRep() const override
-  {
-    return getRunSize() - m_coefflen;
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

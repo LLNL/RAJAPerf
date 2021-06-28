@@ -38,6 +38,12 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   m_elllen = m_num_d * m_num_m;
   m_psilen = m_num_d * m_num_g * m_num_z;
 
+  setProblemSize( m_num_d * m_num_g * m_num_z );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );

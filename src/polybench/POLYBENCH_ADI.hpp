@@ -186,10 +186,6 @@ public:
 
   ~POLYBENCH_ADI();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
   size_t getBytesPerRep() const override;
  
   void setUp(VariantID vid);

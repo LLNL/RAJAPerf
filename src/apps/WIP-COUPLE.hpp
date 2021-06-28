@@ -161,8 +161,6 @@ public:
 
   ~COUPLE();
 
-  Index_type getProblemSize() const override;
-  Index_type getItsPerRep() const override;
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

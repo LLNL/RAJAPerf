@@ -115,10 +115,6 @@ public:
 
   ~POLYBENCH_HEAT_3D();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);

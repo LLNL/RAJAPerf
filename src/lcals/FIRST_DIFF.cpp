@@ -26,6 +26,12 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
 
   m_N = getRunSize()+1;
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setFLOPsPerRep(1 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

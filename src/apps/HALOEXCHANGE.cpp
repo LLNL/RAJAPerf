@@ -70,6 +70,12 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
 
+  setProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[2] );
+
+  setItsPerRep( m_num_vars * (m_var_size - getProblemSize()) ); 
+  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setFLOPsPerRep(0);
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

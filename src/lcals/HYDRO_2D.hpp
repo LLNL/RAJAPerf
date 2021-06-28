@@ -144,10 +144,6 @@ public:
 
   ~HYDRO_2D();
 
-  Index_type getProblemSize() const override
-  {
-    return m_array_length;
-  }
   size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
