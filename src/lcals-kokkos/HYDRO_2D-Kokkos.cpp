@@ -1,0 +1,317 @@
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// and RAJA Performance Suite project contributors.
+// See the RAJAPerf/COPYRIGHT file for details.
+//
+// SPDX-License-Identifier: (BSD-3-Clause)
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+#include "HYDRO_2D.hpp"
+
+#include "RAJA/RAJA.hpp"
+
+#include <iostream>
+
+namespace rajaperf 
+{
+namespace lcals
+{
+
+
+void HYDRO_2D::runKokkosVariant(VariantID vid)
+{
+
+  const Index_type run_reps = getRunReps();
+  const Index_type kbeg = 1;
+  const Index_type kend = m_kn - 1;
+  const Index_type jbeg = 1;
+  const Index_type jend = m_jn - 1;
+
+  HYDRO_2D_DATA_SETUP;
+
+  // Wrap input pointers in Kokkos::Views
+/*
+#define HYDRO_2D_DATA_SETUP \
+  Real_ptr zadat = m_za; \
+  Real_ptr zbdat = m_zb; \
+  Real_ptr zmdat = m_zm; \
+  Real_ptr zpdat = m_zp; \
+  Real_ptr zqdat = m_zq; \
+  Real_ptr zrdat = m_zr; \
+  Real_ptr zudat = m_zu; \
+  Real_ptr zvdat = m_zv; \
+  Real_ptr zzdat = m_zz; \
+\
+  Real_ptr zroutdat = m_zrout; \
+  Real_ptr zzoutdat = m_zzout; \
+\
+
+*/
+// ATTN:  THESE ARE 2D Views:
+//
+    auto zadat_view = getViewFromPointer(zadat, kn, jn );
+    auto zbdat_view = getViewFromPointer(zbdat, kn, jn );
+    auto zmdat_view = getViewFromPointer(zmdat, kn, jn );
+    auto zpdat_view = getViewFromPointer(zpdat, kn, jn );
+    auto zqdat_view = getViewFromPointer(zqdat, kn, jn );
+    auto zrdat_view = getViewFromPointer(zrdat, kn, jn );
+    auto zudat_view = getViewFromPointer(zudat, kn, jn );
+    auto zvdat_view = getViewFromPointer(zvdat, kn, jn );
+    auto zzdat_view = getViewFromPointer(zzdat, kn, jn );
+
+    // Wrap output pointers into Kokkos::Views
+
+    auto zroutdat_view = getViewFromPointer(zroutdat, kn, jn );
+    auto zzoutdat_view = getViewFromPointer(zzoutdat, kn, jn );
+
+// Pre-processor directives
+//
+#if defined(RUN_KOKKOS)
+
+  switch ( vid ) {
+
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            HYDRO_2D_BODY1;
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            HYDRO_2D_BODY2;
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            HYDRO_2D_BODY3;
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case Lambda_Seq : {
+
+      auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY1;
+                               };
+      auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY2;
+                               };
+      auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
+                                 HYDRO_2D_BODY3;
+                               };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam1(k, j);
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam2(k, j);
+          }
+        }
+
+        for (Index_type k = kbeg; k < kend; ++k ) {
+          for (Index_type j = jbeg; j < jend; ++j ) {
+            hydro2d_base_lam3(k, j);
+          }
+        }
+
+      }
+      stopTimer();
+
+      break;
+    }
+/*
+    case RAJA_Seq : {
+
+      HYDRO_2D_VIEWS_RAJA;
+
+      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY1_RAJA;
+                          };
+      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY2_RAJA;
+                          };
+      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
+                            HYDRO_2D_BODY3_RAJA;
+                          };
+
+      using EXECPOL =
+        RAJA::KernelPolicy<
+          RAJA::statement::For<0, RAJA::loop_exec,  // k
+            RAJA::statement::For<1, RAJA::loop_exec,  // j
+              RAJA::statement::Lambda<0>
+            >
+          >
+        >;
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d_lam1); 
+
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d_lam2); 
+
+        RAJA::kernel<EXECPOL>(
+                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
+                                       RAJA::RangeSegment(jbeg, jend)),
+                     hydro2d_lam3); 
+
+      }
+      stopTimer();
+
+      break;
+    }
+*/
+
+
+    case Kokkos_Lambda : {
+
+      Kokkos::fence();
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+
+         // Use MDRangePolicy for multidimensional arrays
+         // https://github.com/kokkos/kokkos/wiki/Kokkos::MDRangePolicy
+
+        Kokkos::parallel_for("HYDRO_2D_Kokkos Kokkos_Lambda--BODY1",
+                             Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg,jbeg}, {kend,jend}),
+                             KOKKOS_LAMBDA(int64_t k, int64_t j) {
+                              /*                             
+                              #define HYDRO_2D_BODY1_RAJA  \
+                              za(k,j) = ( zp(k+1,j-1) + zq(k+1,j-1) - zp(k,j-1) - zq(k,j-1) ) * \
+                              ( zr(k,j) + zr(k,j-1) ) / ( zm(k,j-1) + zm(k+1,j-1) ); \
+                              zb(k,j) = ( zp(k,j-1) + zq(k,j-1) - zp(k,j) - zq(k,j) ) * \
+                              ( zr(k,j) + zr(k-1,j) ) / ( zm(k,j) + zm(k,j-1));
+                              */
+                              zadat_view(k,j) = ( zpdat_view(k+1,j-1) + zqdat_view(k+1,j-1) - zpdat_view(k,j-1) - zqdat_view(k,j-1) ) * \
+                              ( zrdat_view(k,j) + zrdat_view(k,j-1) ) / ( zmdat_view(k,j-1) + zmdat_view(k+1,j-1) ); \
+
+                              zbdat_view(k,j) = ( zpdat_view(k,j-1) + zqdat_view(k,j-1) - zpdat_view(k,j) - zqdat_view(k,j) ) * \
+                              ( zrdat_view(k,j) + zrdat_view(k-1,j) ) / ( zmdat_view(k,j) + zmdat_view(k,j-1));
+                             });
+
+
+        Kokkos::parallel_for("HYDRO_2D_Kokkos Kokkos_Lambda--BODY2",
+                             Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg,jbeg}, {kend,jend}),
+                             KOKKOS_LAMBDA(int64_t k, int64_t j) {
+
+								/*
+								 #define HYDRO_2D_BODY2_RAJA \
+								 zu(k,j) += s*( za(k,j) * ( zz(k,j) - zz(k,j+1) ) - \
+								 za(k,j-1) * ( zz(k,j) - zz(k,j-1) ) - \
+								 zb(k,j) * ( zz(k,j) - zz(k-1,j) ) + \
+								 zb(k+1,j) * ( zz(k,j) - zz(k+1,j) ) ); \
+								 zv(k,j) += s*( za(k,j) * ( zr(k,j) - zr(k,j+1) ) - \
+								 za(k,j-1) * ( zr(k,j) - zr(k,j-1) ) - \
+								 zb(k,j) * ( zr(k,j) - zr(k-1,j) ) + \
+								 zb(k+1,j) * ( zr(k,j) - zr(k+1,j) ) );
+								*/
+
+								 zudat_view(k,j) += s*( zadat_view(k,j) * ( zzdat_view(k,j) - zzdat_view(k,j+1) ) - \
+								 zadat_view(k,j-1) * (zzdat_view(k,j) - zzdat_view(k,j-1) ) - \
+								 zbdat_view(k,j) * ( zzdat_view(k,j) - zzdat_view(k-1,j) ) + \
+								 zbdat_view(k+1,j) * ( zzdat_view(k,j) - zzdat_view(k+1,j) ) ); \
+								 zvdat_view(k,j) += s*( zadat_view(k,j) * ( zrdat_view(k,j) - zrdat_view(k,j+1) ) - \
+								 zadat_view(k,j-1) * ( zrdat_view(k,j) - zrdat_view(k,j-1) ) - \
+								 zbdat_view(k,j) * ( zrdat_view(k,j) - zrdat_view(k-1,j) ) + \
+								 zbdat_view(k+1,j) * ( zrdat_view(k,j) - zrdat_view(k+1,j) ) );
+
+                             });
+
+
+        Kokkos::parallel_for("HYDRO_2D_Kokkos Kokkos_Lambda--BODY3",
+                             Kokkos::MDRangePolicy<Kokkos::Rank<2>>({kbeg,jbeg}, {kend,jend}),
+                             KOKKOS_LAMBDA(int64_t k, int64_t j) {
+                             /*
+                             #define HYDRO_2D_BODY3_RAJA \
+                             zrout(k,j) = zr(k,j) + t*zu(k,j); \
+                             zzout(k,j) = zz(k,j) + t*zv(k,j);
+                             */
+                             
+                             zroutdat_view(k,j) = zrdat_view(k,j) + t*zudat_view(k,j); \
+                             zzoutdat_view(k,j) = zzdat_view(k,j) + t*zvdat_view(k,j);
+                             });
+
+      }
+      
+      Kokkos::fence();
+      stopTimer();
+
+      break;
+    }
+
+
+    default : {
+      std::cout << "\n  HYDRO_2D : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+#endif // RUN_KOKKOS
+
+
+
+  // Wrap input pointers in Kokkos::Views
+/*
+#define HYDRO_2D_DATA_SETUP \
+  Real_ptr zadat = m_za; \
+  Real_ptr zbdat = m_zb; \
+  Real_ptr zmdat = m_zm; \
+  Real_ptr zpdat = m_zp; \
+  Real_ptr zqdat = m_zq; \
+  Real_ptr zrdat = m_zr; \
+  Real_ptr zudat = m_zu; \
+  Real_ptr zvdat = m_zv; \
+  Real_ptr zzdat = m_zz; \
+\
+  Real_ptr zroutdat = m_zrout; \
+  Real_ptr zzoutdat = m_zzout; \
+\
+
+
+*/
+
+
+  // There are 9 inputs: 
+  moveDataToHostFromKokkosView(zadat, zadat_view, kn, jn);
+  moveDataToHostFromKokkosView(zbdat, zbdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zmdat, zmdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zpdat, zpdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zqdat, zqdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zrdat, zrdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zudat, zudat_view, kn, jn);
+  moveDataToHostFromKokkosView(zvdat, zvdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zzdat, zzdat_view, kn, jn);
+  
+  // There are 2 output views
+  moveDataToHostFromKokkosView(zroutdat, zroutdat_view, kn, jn);
+  moveDataToHostFromKokkosView(zzoutdat, zzoutdat_view, kn, jn);
+
+}
+
+} // end namespace lcals
+} // end namespace rajaperf
