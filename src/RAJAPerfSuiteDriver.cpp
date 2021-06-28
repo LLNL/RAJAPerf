@@ -15,6 +15,11 @@ int main( int argc, char** argv )
 {
   // STEP 1: Create suite executor object
   //rajaperf::Executor executor(argc, argv);
+
+#if defined(RUN_KOKKOS)
+            Kokkos::initialize(argc, argv);
+#endif // RUN_KOKKOS
+
   rajaperf::Executor executor(argc, argv);
   rajaperf::make_perfsuite_executor(&executor, argc, argv);
   //executor.registerKernel
@@ -47,6 +52,13 @@ int main( int argc, char** argv )
 
   // STEP 5: Generate suite execution reports
   executor.outputRunData();
+
+  //   Pre-processor directives
+
+#if defined(RUN_KOKKOS)
+        Kokkos::finalize(); // TODO DZP: should this be here?  Good question.  AJP
+#endif
+
 
   std::cout << "\n\nDONE!!!...." << std::endl; 
 

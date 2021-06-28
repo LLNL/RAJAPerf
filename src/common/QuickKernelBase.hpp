@@ -64,7 +64,7 @@ namespace rajaperf {
         void runOpenMPVariant(VariantID vid) override {
            auto size = getRunSize();
            for(int x =0; x< getRunReps(); ++x){
-              m_execute(x, size)
+              m_execute(x, size);
            }
         }
 #endif

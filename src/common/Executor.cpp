@@ -58,10 +58,6 @@ namespace rajaperf {
             delete kernels[ik];
         }
 
-        // Pre-processor directives
-#if defined(RUN_KOKKOS)
-        Kokkos::finalize(); // TODO DZP: should this be here?  Good question.  AJP
-#endif
     }
 
 // New functions for Kokkos to register new group and kernel IDs
@@ -557,22 +553,7 @@ namespace rajaperf {
                 }
 
             } // kernel and variant input both look good
-#if defined(RUN_KOKKOS)
-            Kokkos::initialize();
-            /**
-             * DZP: This is a terrible hack to just get the push/pop region
-             * callbacks without the begin_parallel_x/end_parallel_x ones,
-             * so we don't overfence and perturb performance
-             */
-            auto events = Kokkos::Tools::Experimental::get_callbacks();
-            auto push = events.push_region;
-            auto pop = events.pop_region;
-            auto metadata = events.declare_metadata;
-            Kokkos::Tools::Experimental::pause_tools();
-            Kokkos::Tools::Experimental::set_push_region_callback(push);
-            Kokkos::Tools::Experimental::set_pop_region_callback(pop);
-            Kokkos::Tools::Experimental::set_declare_metadata_callback(metadata);
-#endif
+
         } // if kernel input looks good
 
     }

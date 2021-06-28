@@ -110,7 +110,6 @@ namespace rajaperf {
         free_register_kernel(exec, "Basic", new basic::NESTED_INIT(run_params));
         free_register_kernel(exec, "Basic", new basic::REDUCE3_INT(run_params));
         free_register_kernel(exec, "Basic", new basic::TRAP_INT(run_params));
-        /**
         // Lcals
         free_register_kernel(exec, "Lcals", new lcals::DIFF_PREDICT(run_params));
         free_register_kernel(exec, "Lcals", new lcals::EOS(run_params));
@@ -124,6 +123,7 @@ namespace rajaperf {
         free_register_kernel(exec, "Lcals", new lcals::PLANCKIAN(run_params));
         free_register_kernel(exec, "Lcals", new lcals::TRIDIAG_ELIM(run_params));
 
+        /**
         // Polybench
         free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_2MM(run_params));
         free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_3MM(run_params));
@@ -221,17 +221,17 @@ namespace rajaperf {
 //
 // Lcals kernels...
 ////
-//  std::string("Lcals_DIFF_PREDICT"),
-//  std::string("Lcals_EOS"),
-//  std::string("Lcals_FIRST_DIFF"),
-//  std::string("Lcals_FIRST_MIN"),
-//  std::string("Lcals_FIRST_SUM"),
-//  std::string("Lcals_GEN_LIN_RECUR"),
-//  std::string("Lcals_HYDRO_1D"),
-//  std::string("Lcals_HYDRO_2D"),
-//  std::string("Lcals_INT_PREDICT"),
-//  std::string("Lcals_PLANCKIAN"),
-//  std::string("Lcals_TRIDIAG_ELIM"),
+  std::string("Lcals_DIFF_PREDICT"),
+  std::string("Lcals_EOS"),
+  std::string("Lcals_FIRST_DIFF"),
+  std::string("Lcals_FIRST_MIN"),
+  std::string("Lcals_FIRST_SUM"),
+  std::string("Lcals_GEN_LIN_RECUR"),
+  std::string("Lcals_HYDRO_1D"),
+  std::string("Lcals_HYDRO_2D"),
+  std::string("Lcals_INT_PREDICT"),
+  std::string("Lcals_PLANCKIAN"),
+  std::string("Lcals_TRIDIAG_ELIM"),
 //
 ////
 //// Polybench kernels...
@@ -423,7 +423,7 @@ namespace rajaperf {
              vid == Lambda_CUDA ||
              vid == RAJA_CUDA ||
              vid == RAJA_WORKGROUP_CUDA ) {
-          ret_val = true;
+        ret_val = true;
         }
 #endif
 
@@ -495,10 +495,9 @@ namespace rajaperf {
                 kernel = new basic::TRAP_INT(run_params);
                 break;
             }
-/** DZP: big comment block for unimplemented
 //
 // Lcals kernels...
-//
+
     case Lcals_DIFF_PREDICT : {
        kernel = new lcals::DIFF_PREDICT(run_params);
        break;
@@ -511,6 +510,7 @@ namespace rajaperf {
        kernel = new lcals::FIRST_DIFF(run_params);
        break;
     }
+
     case Lcals_FIRST_MIN : {
        kernel = new lcals::FIRST_MIN(run_params);
        break;
@@ -544,7 +544,32 @@ namespace rajaperf {
        break;
     }
 
+                            
+// Stream kernels...
 //
+    case Stream_ADD : {
+       kernel = new stream::ADD(run_params);
+       break;
+    }
+    case Stream_COPY : {
+       kernel = new stream::COPY(run_params);
+       break;
+    }
+    case Stream_DOT : {
+       kernel = new stream::DOT(run_params);
+       break;
+    }
+    case Stream_MUL : {
+       kernel = new stream::MUL(run_params);
+       break;
+    }
+    case Stream_TRIAD : {
+       kernel = new stream::TRIAD(run_params);
+       break;
+    }
+//
+//
+/** DZP: big comment block for unimplemented
 // Polybench kernels...
 //
     case Polybench_2MM : {
@@ -600,30 +625,6 @@ namespace rajaperf {
        break;
     }
 
-//
-// Stream kernels...
-//
-    case Stream_ADD : {
-       kernel = new stream::ADD(run_params);
-       break;
-    }
-    case Stream_COPY : {
-       kernel = new stream::COPY(run_params);
-       break;
-    }
-    case Stream_DOT : {
-       kernel = new stream::DOT(run_params);
-       break;
-    }
-    case Stream_MUL : {
-       kernel = new stream::MUL(run_params);
-       break;
-    }
-    case Stream_TRIAD : {
-       kernel = new stream::TRIAD(run_params);
-       break;
-    }
-//
 // Apps kernels...
 //
     case Apps_COUPLE : {

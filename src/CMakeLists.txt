@@ -13,7 +13,8 @@ add_subdirectory(common)
 add_subdirectory(basic)
 add_subdirectory(basic-kokkos)
 #add_subdirectory(kokkos-mechanics)
-#add_subdirectory(lcals)
+add_subdirectory(lcals)
+add_subdirectory(lcals-kokkos)
 #add_subdirectory(polybench)
 add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
@@ -25,7 +26,8 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     basic-kokkos
     #kokkos-mechanics
-    #lcals
+    lcals
+    lcals-kokkos
     #polybench
     stream
     stream-kokkos
@@ -102,39 +104,51 @@ blt_add_executable(
   basic-kokkos/NESTED_INIT-Kokkos.cpp
   basic-kokkos/REDUCE3_INT-Kokkos.cpp
   basic-kokkos/TRAP_INT-Kokkos.cpp
-  #lcals/DIFF_PREDICT.cpp
-  #lcals/DIFF_PREDICT-Seq.cpp
-  #lcals/DIFF_PREDICT-OMPTarget.cpp
-  #lcals/EOS.cpp
-  #lcals/EOS-Seq.cpp
-  #lcals/EOS-OMPTarget.cpp
-  #lcals/FIRST_DIFF.cpp
-  #lcals/FIRST_DIFF-Seq.cpp
-  #lcals/FIRST_DIFF-OMPTarget.cpp
-  #lcals/FIRST_MIN.cpp
-  #lcals/FIRST_MIN-Seq.cpp
-  #lcals/FIRST_MIN-OMPTarget.cpp
-  #lcals/FIRST_SUM.cpp
-  #lcals/FIRST_SUM-Seq.cpp
-  #lcals/FIRST_SUM-OMPTarget.cpp
-  #lcals/GEN_LIN_RECUR.cpp
-  #lcals/GEN_LIN_RECUR-Seq.cpp
-  #lcals/GEN_LIN_RECUR-OMPTarget.cpp
-  #lcals/HYDRO_1D.cpp
-  #lcals/HYDRO_1D-Seq.cpp
-  #lcals/HYDRO_1D-OMPTarget.cpp
-  #lcals/HYDRO_2D.cpp
-  #lcals/HYDRO_2D-Seq.cpp
-  #lcals/HYDRO_2D-OMPTarget.cpp
-  #lcals/INT_PREDICT.cpp
-  #lcals/INT_PREDICT-Seq.cpp
-  #lcals/INT_PREDICT-OMPTarget.cpp
-  #lcals/PLANCKIAN.cpp
-  #lcals/PLANCKIAN-Seq.cpp
-  #lcals/PLANCKIAN-OMPTarget.cpp
-  #lcals/TRIDIAG_ELIM.cpp
-  #lcals/TRIDIAG_ELIM-Seq.cpp
-  #lcals/TRIDIAG_ELIM-OMPTarget.cpp
+  lcals/DIFF_PREDICT.cpp
+  lcals/DIFF_PREDICT-Seq.cpp
+  lcals/DIFF_PREDICT-OMPTarget.cpp
+  lcals/EOS.cpp
+  lcals/EOS-Seq.cpp
+  lcals/EOS-OMPTarget.cpp
+  lcals/FIRST_DIFF.cpp
+  lcals/FIRST_DIFF-Seq.cpp
+  lcals/FIRST_DIFF-OMPTarget.cpp
+  lcals/FIRST_MIN.cpp
+  lcals/FIRST_MIN-Seq.cpp
+  lcals/FIRST_MIN-OMPTarget.cpp
+  lcals/FIRST_SUM.cpp
+  lcals/FIRST_SUM-Seq.cpp
+  lcals/FIRST_SUM-OMPTarget.cpp
+  lcals/GEN_LIN_RECUR.cpp
+  lcals/GEN_LIN_RECUR-Seq.cpp
+  lcals/GEN_LIN_RECUR-OMPTarget.cpp
+  lcals/HYDRO_1D.cpp
+  lcals/HYDRO_1D-Seq.cpp
+  lcals/HYDRO_1D-OMPTarget.cpp
+  lcals/HYDRO_2D.cpp
+  lcals/HYDRO_2D-Seq.cpp
+  lcals/HYDRO_2D-OMPTarget.cpp
+  lcals/INT_PREDICT.cpp
+  lcals/INT_PREDICT-Seq.cpp
+  lcals/INT_PREDICT-OMPTarget.cpp
+  lcals/PLANCKIAN.cpp
+  lcals/PLANCKIAN-Seq.cpp
+  lcals/PLANCKIAN-OMPTarget.cpp
+  lcals/TRIDIAG_ELIM.cpp
+  lcals/TRIDIAG_ELIM-Seq.cpp
+  lcals/TRIDIAG_ELIM-OMPTarget.cpp
+  #Kokkos Bloc
+  lcals-kokkos/DIFF_PREDICT-Kokkos.cpp
+  lcals-kokkos/EOS-Kokkos.cpp
+  lcals-kokkos/FIRST_DIFF-Kokkos.cpp
+  lcals-kokkos/FIRST_MIN-Kokkos.cpp
+  lcals-kokkos/FIRST_SUM-Kokkos.cpp
+  lcals-kokkos/GEN_LIN_RECUR-Kokkos.cpp
+  lcals-kokkos/HYDRO_1D-Kokkos.cpp
+  lcals-kokkos/HYDRO_2D-Kokkos.cpp
+  lcals-kokkos/INT_PREDICT-Kokkos.cpp
+  lcals-kokkos/PLANCKIAN-Kokkos.cpp
+  lcals-kokkos/TRIDIAG_ELIM-Kokkos.cpp
   #polybench/POLYBENCH_2MM.cpp
   #polybench/POLYBENCH_2MM-Seq.cpp
   #polybench/POLYBENCH_2MM-OMPTarget.cpp

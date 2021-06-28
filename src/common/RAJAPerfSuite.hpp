@@ -39,8 +39,6 @@ void make_perfsuite_executor(Executor* exec, int argc, char* argv[]);
 // 2) Use default execution space
 //
 //
-//
-//
 // NEW FUNCTION WILL:
 // 1) Take in a raw pointer (e.g., float*, int*, etc.)
 // 2) From this pointer, return a Kokkos::View
@@ -334,17 +332,17 @@ enum KernelID {
 //
 // Lcals kernels...
 //
-//  Lcals_DIFF_PREDICT,
-//  Lcals_EOS,
-//  Lcals_FIRST_DIFF,
-//  Lcals_FIRST_MIN,
-//  Lcals_FIRST_SUM,
-//  Lcals_GEN_LIN_RECUR,
-//  Lcals_HYDRO_1D,
-//  Lcals_HYDRO_2D,
-//  Lcals_INT_PREDICT,
-//  Lcals_PLANCKIAN,
-//  Lcals_TRIDIAG_ELIM,
+  Lcals_DIFF_PREDICT,
+  Lcals_EOS,
+  Lcals_FIRST_DIFF,
+  Lcals_FIRST_MIN,
+  Lcals_FIRST_SUM,
+  Lcals_GEN_LIN_RECUR,
+  Lcals_HYDRO_1D,
+  Lcals_HYDRO_2D,
+  Lcals_INT_PREDICT,
+  Lcals_PLANCKIAN,
+  Lcals_TRIDIAG_ELIM,
 
 //
 // Polybench kernels...
