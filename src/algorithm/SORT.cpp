@@ -28,7 +28,7 @@ SORT::SORT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Index_type) + 1*sizeof(Index_type)) * getRunSize() ); // touched data size, not actual number of stores and loads
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() ); // touched data size, not actual number of stores and loads
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);
