@@ -519,9 +519,6 @@ void Executor::outputRunData()
     writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
   }
 
-  filename = out_fprefix + "-bandwidth.csv";
-  writeCSVReport(filename, CSVRepMode::Bandwidth, 3 /* prec */);
-
   filename = out_fprefix + "-checksum.txt";
   writeChecksumReport(filename);
 
@@ -594,8 +591,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
              (!kern->hasVariantDefined(reference_vid) ||
               !kern->hasVariantDefined(vid)) ) {
           file << "Not run";
-        } else if ( (mode == CSVRepMode::Timing ||
-                     mode == CSVRepMode::Bandwidth) &&
+        } else if ( (mode == CSVRepMode::Timing) &&
                     !kern->hasVariantDefined(vid) ) {
           file << "Not run";
         } else {
@@ -960,10 +956,6 @@ string Executor::getReportTitle(CSVRepMode mode)
       }
       break;
     }
-    case CSVRepMode::Bandwidth : {
-      title = string("Mean Bandwidth Report (GiB per sec.) ");
-      break;
-    }
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return title;
@@ -995,13 +987,6 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
              << retval << endl;
 #endif
       }
-      break;
-    }
-    case CSVRepMode::Bandwidth : {
-      retval = kern->getBytesPerRep();
-      retval *= kern->getRunReps();
-      retval /= kern->getTotTime(vid) / run_params.getNumPasses();
-      retval /= 1024L * 1024L * 1024L;
       break;
     }
     default : { cout << "\n Unknown CSV report mode = " << mode << endl; }

@@ -49,7 +49,6 @@ private:
   enum CSVRepMode {
     Timing = 0,
     Speedup,
-    Bandwidth,
 
     NumRepModes // Keep this one last and DO NOT remove (!!)
   };
