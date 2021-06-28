@@ -28,8 +28,6 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setVariantDefined( Kokkos_Lambda );
 
 
-
-
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
