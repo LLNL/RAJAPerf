@@ -28,6 +28,8 @@ PRESSURE::PRESSURE(const RunParams& params)
 
   setItsPerRep( 2 * getProblemSize() );
   setKernelsPerRep(2);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep((2 +
                   1
                   ) * getProblemSize());
@@ -54,12 +56,6 @@ PRESSURE::PRESSURE(const RunParams& params)
 
 PRESSURE::~PRESSURE()
 {
-}
-
-size_t PRESSURE::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
-         (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() ;
 }
 
 void PRESSURE::setUp(VariantID vid)

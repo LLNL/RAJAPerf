@@ -45,8 +45,6 @@ public:
 
   ~PI_ATOMIC();
 
-  size_t getBytesPerRep() const override;
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

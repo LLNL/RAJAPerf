@@ -30,9 +30,11 @@ FIR::FIR(const RunParams& params)
 
   setItsPerRep( getProblemSize() - m_coefflen );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep((2 * m_coefflen) * (getRunSize() - m_coefflen));
 
-  setUsesFeature(Forall); 
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -73,12 +75,6 @@ void FIR::tearDown(VariantID vid)
 
   deallocData(m_in);
   deallocData(m_out);
-}
-
-size_t FIR::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() ;
 }
 
 } // end namespace apps

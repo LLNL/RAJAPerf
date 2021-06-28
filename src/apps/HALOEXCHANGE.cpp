@@ -72,8 +72,12 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
 
   setProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[2] );
 
-  setItsPerRep( m_num_vars * (m_var_size - getProblemSize()) ); 
+  setItsPerRep( m_num_vars * (m_var_size - getProblemSize()) );
   setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
@@ -98,14 +102,6 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
 
 HALOEXCHANGE::~HALOEXCHANGE()
 {
-}
-
-size_t HALOEXCHANGE::getBytesPerRep() const
-{
-  return (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
-         (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
-         (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() ;
 }
 
 void HALOEXCHANGE::setUp(VariantID vid)

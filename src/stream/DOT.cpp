@@ -28,6 +28,8 @@ DOT::DOT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+                  (0*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(2 * getRunSize());
 
   setUsesFeature( Forall );
@@ -53,12 +55,6 @@ DOT::DOT(const RunParams& params)
 
 DOT::~DOT()
 {
-}
-
-size_t DOT::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-         (0*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 void DOT::setUp(VariantID vid)

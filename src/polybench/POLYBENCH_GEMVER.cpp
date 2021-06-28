@@ -60,9 +60,19 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
 
   setItsPerRep( m_n*m_n +
                 m_n*m_n +
-                m_n + 
+                m_n +
                 m_n*m_n );
   setKernelsPerRep(4);
+  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_n +
+
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
+
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
+
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n );
   setFLOPsPerRep(4 * m_n*m_n +
                  3 * m_n*m_n +
                  1 * m_n +
@@ -93,20 +103,6 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
 
 POLYBENCH_GEMVER::~POLYBENCH_GEMVER()
 {
-}
-
-size_t POLYBENCH_GEMVER::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
-         (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_n +
-
-         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
-         (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
-
-         (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
-
-         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
-         (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n ;
 }
 
 void POLYBENCH_GEMVER::setUp(VariantID vid)

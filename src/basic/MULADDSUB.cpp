@@ -28,6 +28,7 @@ MULADDSUB::MULADDSUB(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(3 * getRunSize());
 
   setUsesFeature(Forall);
@@ -54,11 +55,6 @@ MULADDSUB::MULADDSUB(const RunParams& params)
 
 MULADDSUB::~MULADDSUB()
 {
-}
-
-size_t MULADDSUB::getBytesPerRep() const
-{
-  return (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 void MULADDSUB::setUp(VariantID vid)

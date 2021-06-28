@@ -28,8 +28,9 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize());
- 
+
   setUsesFeature(Forall);
   setUsesFeature(View);
 
@@ -55,11 +56,6 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
 
 INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 {
-}
-
-size_t INIT_VIEW1D_OFFSET::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)

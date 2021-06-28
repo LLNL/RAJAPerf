@@ -33,6 +33,8 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize() + 1);
 
   setUsesFeature(Forall);
@@ -58,12 +60,6 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
 REDUCE3_INT::~REDUCE3_INT()
 {
-}
-
-size_t REDUCE3_INT::getBytesPerRep() const
-{
-  return (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
-         (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize();
 }
 
 void REDUCE3_INT::setUp(VariantID vid)

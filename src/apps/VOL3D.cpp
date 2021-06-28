@@ -36,7 +36,10 @@ VOL3D::VOL3D(const RunParams& params)
   setProblemSize( m_domain->n_real_zones );
 
   setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
-  setKernelsPerRep(1); 
+  setKernelsPerRep(1);
+  // touched data size, not actual number of stores and loads
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
 
   setUsesFeature(Forall);
@@ -62,12 +65,6 @@ VOL3D::VOL3D(const RunParams& params)
 VOL3D::~VOL3D()
 {
   delete m_domain;
-}
-
-size_t VOL3D::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-         (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) ; // touched data size, not actual number of stores and loads
 }
 
 void VOL3D::setUp(VariantID vid)

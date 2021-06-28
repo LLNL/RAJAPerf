@@ -42,10 +42,14 @@ LTIMES::LTIMES(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  // using total data size instead of writes and reads
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
   setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
-  setUsesFeature(Kernel); 
-  setUsesFeature(View); 
+  setUsesFeature(Kernel);
+  setUsesFeature(View);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -69,14 +73,6 @@ LTIMES::LTIMES(const RunParams& params)
 
 LTIMES::~LTIMES()
 {
-}
-
-size_t LTIMES::getBytesPerRep() const
-{
-  // using total data size instead of writes and reads
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
-         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
-         (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen ;
 }
 
 void LTIMES::setUp(VariantID vid)

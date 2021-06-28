@@ -28,6 +28,7 @@ MUL::MUL(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature( Forall );
@@ -54,11 +55,6 @@ MUL::MUL(const RunParams& params)
 
 MUL::~MUL()
 {
-}
-
-size_t MUL::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
 }
 
 void MUL::setUp(VariantID vid)

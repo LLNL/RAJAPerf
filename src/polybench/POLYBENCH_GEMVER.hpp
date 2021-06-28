@@ -123,7 +123,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -138,8 +138,6 @@ public:
   POLYBENCH_GEMVER(const RunParams& params);
 
   ~POLYBENCH_GEMVER();
-
-  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

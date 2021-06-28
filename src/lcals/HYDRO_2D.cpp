@@ -15,7 +15,7 @@
 #include <cmath>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -40,6 +40,11 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
 
   setItsPerRep( 3 * getProblemSize() );
   setKernelsPerRep(3);
+  setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+                  (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+                  (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) );
   setFLOPsPerRep((14 +
                   26 +
                   4  ) * (m_jn-2)*(m_kn-2));
@@ -49,32 +54,23 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-HYDRO_2D::~HYDRO_2D() 
+HYDRO_2D::~HYDRO_2D()
 {
-}
-
-size_t HYDRO_2D::getBytesPerRep() const
-{
-  return (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-         (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-         (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
-         (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
-         (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2);
 }
 
 void HYDRO_2D::setUp(VariantID vid)

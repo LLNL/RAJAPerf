@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -33,6 +33,9 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
+                  (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
@@ -41,30 +44,23 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-FIRST_MIN::~FIRST_MIN() 
+FIRST_MIN::~FIRST_MIN()
 {
-}
-
-size_t FIRST_MIN::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
-         (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N;
 }
 
 void FIRST_MIN::setUp(VariantID vid)

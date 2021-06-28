@@ -70,7 +70,7 @@ void Executor::setupSuite()
 
   KIDset run_kern;
 
-  if ( kernel_input.empty() && feature_input.empty() ) { 
+  if ( kernel_input.empty() && feature_input.empty() ) {
 
     //
     // No kernels or fatures specified in input, run them all...
@@ -88,7 +88,7 @@ void Executor::setupSuite()
     //
     // Look for kernels using features if such input provided
     //
-    if ( !feature_input.empty() ) { 
+    if ( !feature_input.empty() ) {
 
       // First, check for invalid feature input.
       // Assemble invalid input for warning message.
@@ -111,15 +111,15 @@ void Executor::setupSuite()
 
       //
       // If feature input is valid, determine which kernels use
-      // input-specified features and add to set of kernels to run. 
+      // input-specified features and add to set of kernels to run.
       //
-      if ( run_params.getInvalidFeatureInput().empty() ) { 
+      if ( run_params.getInvalidFeatureInput().empty() ) {
 
         for (size_t i = 0; i < feature_input.size(); ++i) {
 
           const string& feature = feature_input[i];
 
-          bool found_it = false; 
+          bool found_it = false;
           for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
             FeatureID tfid = static_cast<FeatureID>(fid);
             if ( getFeatureName(tfid) == feature ) {
@@ -135,7 +135,7 @@ void Executor::setupSuite()
               }  // loop over kernels
 
             }  // if input feature name matches feature id
-          }  // loop over feature ids until name match is found 
+          }  // loop over feature ids until name match is found
 
         }  // loop over feature name input
 
@@ -162,8 +162,8 @@ void Executor::setupSuite()
       }
     }
 
-    // 
-    // If group name(s) found in kern_names, assemble kernels in group(s) 
+    //
+    // If group name(s) found in kern_names, assemble kernels in group(s)
     // to run and remove those group name(s) from kern_names list.
     //
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
@@ -304,7 +304,7 @@ void Executor::setupSuite()
 
   } else if ( !(run_params.getInvalidFeatureInput().empty()) ) {
 
-    run_params.setInputState(RunParams::BadInput);    
+    run_params.setInputState(RunParams::BadInput);
 
   } else { // kernel and feature input looks good
 
@@ -415,7 +415,7 @@ void Executor::reportRunSummary(ostream& str) const
           << " (" << kern->getProblemSize() << " , "
           << kern->getItsPerRep() << " , "
           << kern->getKernelsPerRep() << " , "
-          << kern->getBytesPerRepStr() << " , "
+          << kern->getBytesPerRep() << " , "
           << kern->getFLOPsPerRep() << " , "
           << kern->getRunReps() << ")" << endl;
     }
@@ -591,16 +591,13 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
         VariantID vid = variant_ids[iv];
         file << sepchr <<right<< setw(varcol_width[iv]);
         if ( (mode == CSVRepMode::Speedup) &&
-             (!kern->hasVariantDefined(reference_vid) || 
+             (!kern->hasVariantDefined(reference_vid) ||
               !kern->hasVariantDefined(vid)) ) {
           file << "Not run";
         } else if ( (mode == CSVRepMode::Timing ||
                      mode == CSVRepMode::Bandwidth) &&
                     !kern->hasVariantDefined(vid) ) {
           file << "Not run";
-        } else if ( (mode == CSVRepMode::Bandwidth) &&
-                    (kern->getBytesPerRep() == KernelBase::s_unknown_bytes) ) {
-          file << "Unknown";
         } else {
           file << setprecision(prec) << std::fixed
                << getReportDataEntry(mode, kern, vid);
@@ -984,7 +981,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        if ( kern->hasVariantDefined(reference_vid) && 
+        if ( kern->hasVariantDefined(reference_vid) &&
              kern->hasVariantDefined(vid) ) {
           retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
         } else {

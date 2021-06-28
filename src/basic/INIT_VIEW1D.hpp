@@ -57,8 +57,6 @@ public:
 
   ~INIT_VIEW1D();
 
-  size_t getBytesPerRep() const override;
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

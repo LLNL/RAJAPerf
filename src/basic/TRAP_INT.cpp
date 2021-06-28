@@ -28,6 +28,8 @@ TRAP_INT::TRAP_INT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(10 * getRunSize()); // 1 sqrt
 
   setUsesFeature(Forall);
@@ -53,12 +55,6 @@ TRAP_INT::TRAP_INT(const RunParams& params)
 
 TRAP_INT::~TRAP_INT()
 {
-}
-
-size_t TRAP_INT::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-         (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize();
 }
 
 void TRAP_INT::setUp(VariantID vid)

@@ -38,7 +38,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -52,8 +52,6 @@ public:
   EOS(const RunParams& params);
 
   ~EOS();
-
-  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

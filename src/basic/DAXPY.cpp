@@ -24,10 +24,11 @@ DAXPY::DAXPY(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
-  setProblemSize( getRunSize() ); 
+  setProblemSize( getRunSize() );
 
-  setItsPerRep( getProblemSize() ); 
-  setKernelsPerRep(1); 
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(2 * getRunSize());
 
   setUsesFeature(Forall);
@@ -54,11 +55,6 @@ DAXPY::DAXPY(const RunParams& params)
 
 DAXPY::~DAXPY()
 {
-}
-
-size_t DAXPY::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 void DAXPY::setUp(VariantID vid)

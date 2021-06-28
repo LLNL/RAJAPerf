@@ -28,6 +28,7 @@ ADD::ADD(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Forall);
@@ -54,11 +55,6 @@ ADD::ADD(const RunParams& params)
 
 ADD::~ADD()
 {
-}
-
-size_t ADD::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize();
 }
 
 void ADD::setUp(VariantID vid)

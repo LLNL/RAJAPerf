@@ -33,7 +33,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -47,8 +47,6 @@ public:
   PLANCKIAN(const RunParams& params);
 
   ~PLANCKIAN();
-
-  size_t getBytesPerRep() const override;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

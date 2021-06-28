@@ -38,8 +38,6 @@ namespace rajaperf {
 class KernelBase
 {
 public:
-  static const size_t s_unknown_bytes = std::numeric_limits<size_t>::max();
-
   KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
@@ -57,6 +55,7 @@ public:
   void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
+  void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
@@ -72,6 +71,7 @@ public:
   Index_type getProblemSize() const { return problem_size; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
+  Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
   Index_type getRunSize() const;
@@ -136,17 +136,6 @@ public:
   // by concrete kernel subclass.
   //
 
-  virtual size_t getBytesPerRep() const = 0;
-  std::string getBytesPerRepStr() const
-  {
-    size_t bytes = getBytesPerRep();
-    if (bytes == s_unknown_bytes) {
-      return "Unspecified";
-    } else {
-      return std::to_string(bytes);
-    }
-  }
-
   virtual void print(std::ostream& os) const;
 
   virtual void runKernel(VariantID vid);
@@ -198,6 +187,7 @@ private:
   Index_type problem_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
+  Index_type bytes_per_rep;
   Index_type FLOPs_per_rep;
 
   VariantID running_variant;

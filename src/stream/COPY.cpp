@@ -28,6 +28,7 @@ COPY::COPY(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(0);
 
   setUsesFeature( Forall );
@@ -54,11 +55,6 @@ COPY::COPY(const RunParams& params)
 
 COPY::~COPY()
 {
-}
-
-size_t COPY::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize();
 }
 
 void COPY::setUp(VariantID vid)

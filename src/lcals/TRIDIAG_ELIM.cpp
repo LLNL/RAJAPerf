@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -30,6 +30,7 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1) );
   setFLOPsPerRep(2 * (getRunSize()-1));
 
   setUsesFeature(Forall);
@@ -37,28 +38,23 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-TRIDIAG_ELIM::~TRIDIAG_ELIM() 
+TRIDIAG_ELIM::~TRIDIAG_ELIM()
 {
-}
-
-size_t TRIDIAG_ELIM::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1);
 }
 
 void TRIDIAG_ELIM::setUp(VariantID vid)

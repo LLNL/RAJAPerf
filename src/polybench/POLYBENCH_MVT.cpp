@@ -12,17 +12,17 @@
 #include "common/DataUtils.hpp"
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   : KernelBase(rajaperf::Polybench_MVT, params)
 {
   SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
+  int run_reps = 0;
   switch(lsizespec) {
     case Mini:
       m_N=40;
@@ -57,6 +57,11 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
   setItsPerRep( 2 * getProblemSize() );
   setKernelsPerRep(2);
+  setBytesPerRep( (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
+
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 
@@ -65,32 +70,23 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_MVT::~POLYBENCH_MVT() 
+POLYBENCH_MVT::~POLYBENCH_MVT()
 {
-}
-
-size_t POLYBENCH_MVT::getBytesPerRep() const
-{
-  return (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
-
-         (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
-         (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N ;
 }
 
 void POLYBENCH_MVT::setUp(VariantID vid)
