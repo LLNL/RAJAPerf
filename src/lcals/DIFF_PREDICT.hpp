@@ -59,7 +59,6 @@
   px[i + offset * 8]  = br;                       \
   ar                  = cr - px[i + offset * 9];  \
   px[i + offset * 9]  = cr;                       \
-  br                  = ar - px[i + offset * 10]; \
   px[i + offset * 10] = ar;                       \
   cr                  = br - px[i + offset * 11]; \
   px[i + offset * 11] = br;                       \
@@ -88,6 +87,7 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);

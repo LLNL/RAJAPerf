@@ -46,6 +46,8 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
         
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 HYDRO_2D::~HYDRO_2D() 

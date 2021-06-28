@@ -43,6 +43,9 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
         
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 FIRST_MIN::~FIRST_MIN() 
