@@ -24,6 +24,10 @@ EOS::EOS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(16 * getRunSize());
 
   setUsesFeature(Forall);

@@ -58,16 +58,6 @@ public:
 
   ~TRAP_INT();
 
-  Index_type getProblemSize() const
-  {
-    return getRunSize();
-  }
-
-  Index_type getItsPerRep() const 
-  { 
-    return getProblemSize(); 
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

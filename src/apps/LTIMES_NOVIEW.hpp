@@ -57,16 +57,6 @@ public:
 
   ~LTIMES_NOVIEW();
 
-  Index_type getProblemSize() const
-  {
-    return m_num_d * m_num_g * m_num_z;
-  }
-
-  Index_type getItsPerRep() const
-  {
-    return getProblemSize();
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

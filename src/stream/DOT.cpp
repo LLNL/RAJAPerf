@@ -24,6 +24,10 @@ DOT::DOT(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(2 * getRunSize());
 
   setUsesFeature( Forall );

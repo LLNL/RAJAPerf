@@ -145,14 +145,13 @@ for (Index_type j = jmin; j < jmax; j++) { \
 
 #include "common/KernelBase.hpp"
 
-#include "AppsData.hpp"
-
 namespace rajaperf 
 {
 class RunParams;
 
 namespace apps
 {
+class ADomain;
 
 class COUPLE : public KernelBase
 {
@@ -161,16 +160,6 @@ public:
   COUPLE(const RunParams& params);
 
   ~COUPLE();
-
-  Index_type getProblemSize() const 
-  { 
-    return m_domain->n_real_zones;
-  }
-
-  Index_type getItsPerRep() const
-  {
-    return getProblemSize();
-  }
 
   void setUp(VariantID vid);
   void runKernel(VariantID vid);

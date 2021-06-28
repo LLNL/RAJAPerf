@@ -24,6 +24,10 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(1 * (getRunSize()-1));
 
   setUsesFeature(Forall);

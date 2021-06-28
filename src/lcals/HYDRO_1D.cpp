@@ -24,6 +24,10 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(5 * getRunSize());
 
   setUsesFeature(Forall);

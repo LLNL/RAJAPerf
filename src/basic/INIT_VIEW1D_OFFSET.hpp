@@ -56,16 +56,6 @@ public:
 
   ~INIT_VIEW1D_OFFSET();
 
-  Index_type getProblemSize() const
-  {
-    return getRunSize();
-  }
-
-  Index_type getItsPerRep() const 
-  { 
-    return getProblemSize(); 
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

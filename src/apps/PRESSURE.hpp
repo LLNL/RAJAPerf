@@ -63,16 +63,6 @@ public:
 
   ~PRESSURE();
 
-  Index_type getProblemSize() const
-  {
-    return getRunSize();
-  }
-
-  Index_type getItsPerRep() const 
-  { 
-    return 2 * getProblemSize(); 
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);

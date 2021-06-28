@@ -50,9 +50,13 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_N + m_N*2*m_N );
+  setDefaultSize( m_N );
   setDefaultReps(run_reps);
 
+  setProblemSize( m_N );
+
+  setItsPerRep( m_N + m_N );
+  setKernelsPerRep(2);
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 

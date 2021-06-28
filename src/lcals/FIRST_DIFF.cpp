@@ -24,6 +24,10 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(2000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Forall);

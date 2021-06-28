@@ -24,6 +24,10 @@ ADD::ADD(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Forall);

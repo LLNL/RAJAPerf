@@ -50,12 +50,16 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_N * m_N );
-  setDefaultReps(run_reps);
-
   m_alpha = 0.62;
   m_beta = 1.002;
 
+  setDefaultSize( m_N );
+  setDefaultReps(run_reps);
+
+  setProblemSize( m_N );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
   setFLOPsPerRep((4 * m_N +
                   3 ) * m_N  );
 
