@@ -24,6 +24,7 @@
 
 #include <string>
 #include <iostream>
+#include <limits>
 
 namespace rajaperf {
 
@@ -37,7 +38,6 @@ namespace rajaperf {
 class KernelBase
 {
 public:
-
   KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
@@ -46,7 +46,7 @@ public:
   const std::string& getName() const { return name; }
 
   //
-  // Methods called in kernel subclass constructors to set kernel 
+  // Methods called in kernel subclass constructors to set kernel
   // properties used to describe kernel and define how it will run
   //
 
@@ -55,6 +55,7 @@ public:
   void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
+  void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
@@ -64,12 +65,13 @@ public:
   // Getter methods used to generate kernel execution summary
   // and kernel details report ouput.
   //
-  
+
   Index_type getDefaultSize() const { return default_size; }
   Index_type getDefaultReps() const { return default_reps; }
-  Index_type getProblemSize() const { return problem_size; } 
+  Index_type getProblemSize() const { return problem_size; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
+  Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
   Index_type getRunSize() const;
@@ -77,7 +79,7 @@ public:
 
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
 
-  bool hasVariantDefined(VariantID vid) const 
+  bool hasVariantDefined(VariantID vid) const
     { return has_variant_defined[vid]; }
 
 
@@ -87,7 +89,7 @@ public:
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
   //
-  bool wasVariantRun(VariantID vid) const 
+  bool wasVariantRun(VariantID vid) const
     { return num_exec[vid] > 0; }
 
   double getMinTime(VariantID vid) const { return min_time[vid]; }
@@ -134,7 +136,7 @@ public:
   // by concrete kernel subclass.
   //
 
-  virtual void print(std::ostream& os) const; 
+  virtual void print(std::ostream& os) const;
 
   virtual void runKernel(VariantID vid);
 
@@ -164,7 +166,7 @@ protected:
 private:
   KernelBase() = delete;
 
-  void recordExecTime(); 
+  void recordExecTime();
 
   //
   // Static properties of kernel, independent of run
@@ -185,9 +187,10 @@ private:
   Index_type problem_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
+  Index_type bytes_per_rep;
   Index_type FLOPs_per_rep;
 
-  VariantID running_variant; 
+  VariantID running_variant;
 
   int num_exec[NumVariants];
 

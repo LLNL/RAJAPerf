@@ -23,12 +23,12 @@
   Real_ptr c = m_c;
 
 #define ADD_BODY  \
-  c[i] = a[i] + b[i]; 
+  c[i] = a[i] + b[i];
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 

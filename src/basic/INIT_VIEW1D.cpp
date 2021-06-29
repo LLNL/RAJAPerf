@@ -28,6 +28,7 @@ INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Forall);

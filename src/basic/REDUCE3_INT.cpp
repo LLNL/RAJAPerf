@@ -14,7 +14,7 @@
 
 #include <limits>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -25,7 +25,7 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 {
   setDefaultSize(1000000);
 //setDefaultReps(5000);
-// Set reps to low value until we resolve RAJA omp-target 
+// Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
   setDefaultReps(50);
 
@@ -33,6 +33,8 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize() + 1);
 
   setUsesFeature(Forall);
@@ -56,7 +58,7 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-REDUCE3_INT::~REDUCE3_INT() 
+REDUCE3_INT::~REDUCE3_INT()
 {
 }
 

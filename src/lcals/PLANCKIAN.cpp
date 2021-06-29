@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -28,6 +28,7 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunSize() );
   setFLOPsPerRep(4 * getRunSize()); // 1 exp
 
   setUsesFeature(Forall);
@@ -35,22 +36,22 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-PLANCKIAN::~PLANCKIAN() 
+PLANCKIAN::~PLANCKIAN()
 {
 }
 

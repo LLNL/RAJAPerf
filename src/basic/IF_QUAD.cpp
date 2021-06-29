@@ -27,8 +27,8 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setProblemSize( getRunSize() );
 
   setItsPerRep( getProblemSize() );
-  setKernelsPerRep(1); 
-
+  setKernelsPerRep(1);
+  setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(11 * getRunSize()); // 1 sqrt
 
   setUsesFeature(Forall);

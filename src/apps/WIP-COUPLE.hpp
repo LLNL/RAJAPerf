@@ -145,7 +145,7 @@ for (Index_type j = jmin; j < jmax; j++) { \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 

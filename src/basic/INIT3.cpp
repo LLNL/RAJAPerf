@@ -28,6 +28,7 @@ INIT3::INIT3(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Forall);

@@ -144,7 +144,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -179,7 +179,7 @@ private:
   Real_type m_vnormq;
 
   ADomain* m_domain;
-  Index_type m_array_length; 
+  Index_type m_array_length;
 };
 
 } // end namespace apps

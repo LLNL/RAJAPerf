@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -28,6 +28,7 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type ) + 10*sizeof(Real_type )) * getRunSize() );
   setFLOPsPerRep(17 * getRunSize());
 
   setUsesFeature(Forall);
@@ -35,22 +36,22 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-INT_PREDICT::~INT_PREDICT() 
+INT_PREDICT::~INT_PREDICT()
 {
 }
 
@@ -77,7 +78,7 @@ void INT_PREDICT::updateChecksum(VariantID vid)
   for (Index_type i = 0; i < getRunSize(); ++i) {
     m_px[i] -= m_px_initval;
   }
-  
+
   checksum[vid] += calcChecksum(m_px, getRunSize());
 }
 

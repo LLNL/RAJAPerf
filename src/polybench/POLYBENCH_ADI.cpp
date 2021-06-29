@@ -57,6 +57,8 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
                              (m_n-2)*(m_n-2 + m_n-2) ) );
   setKernelsPerRep( m_tsteps * 2 );
+  setBytesPerRep( m_tsteps * ( (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
+                               (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
   setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
                                (15 + 2) * (m_n-2)*(m_n-2) ) );
 

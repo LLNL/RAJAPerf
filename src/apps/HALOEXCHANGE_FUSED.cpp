@@ -74,6 +74,10 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
 
   setItsPerRep( m_num_vars * (m_var_size - getProblemSize()) );
   setKernelsPerRep( 2 );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() );
   setFLOPsPerRep(0);
 
   setUsesFeature(Workgroup);

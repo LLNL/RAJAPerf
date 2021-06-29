@@ -28,6 +28,7 @@ COPY::COPY(const RunParams& params)
 
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
   setFLOPsPerRep(0);
 
   setUsesFeature( Forall );
