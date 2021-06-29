@@ -145,9 +145,9 @@ namespace rajaperf {
         free_register_kernel(exec, "Stream", new stream::DOT(run_params));
         free_register_kernel(exec, "Stream", new stream::MUL(run_params));
         free_register_kernel(exec, "Stream", new stream::TRIAD(run_params));
-/**
         // Apps
-        free_register_kernel(exec, "Apps", new apps::COUPLE(run_params));
+        // Item below is a WIP from the RPS side
+        // free_register_kernel(exec, "Apps", new apps::COUPLE(run_params));
         free_register_kernel(exec, "Apps", new apps::DEL_DOT_VEC_2D(run_params));
         free_register_kernel(exec, "Apps", new apps::ENERGY(run_params));
         free_register_kernel(exec, "Apps", new apps::FIR(run_params));
@@ -157,6 +157,7 @@ namespace rajaperf {
         free_register_kernel(exec, "Apps", new apps::PRESSURE(run_params));
         free_register_kernel(exec, "Apps", new apps::VOL3D(run_params));
 
+/**
         // Algorithm
         free_register_kernel(exec, "Algorithm", new algorithm::SORT(run_params));
         free_register_kernel(exec, "Algorithm", new algorithm::SORTPAIRS(run_params));
@@ -625,12 +626,16 @@ namespace rajaperf {
        break;
     }
 
+////////////////////////////////////////////////////////////////
 // Apps kernels...
-//
+/*
     case Apps_COUPLE : {
        kernel = new apps::COUPLE(run_params);
        break;
     }
+
+    */
+
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
@@ -666,7 +671,7 @@ namespace rajaperf {
 
 //
 // Algorithm kernels...
-//
+/*
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;

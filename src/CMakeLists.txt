@@ -9,7 +9,8 @@
 include_directories(.)
 
 add_subdirectory(common)
-#add_subdirectory(apps)
+add_subdirectory(apps)
+add_subdirectory(apps-kokkos)
 add_subdirectory(basic)
 add_subdirectory(basic-kokkos)
 #add_subdirectory(kokkos-mechanics)
@@ -22,7 +23,8 @@ add_subdirectory(stream-kokkos)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
-	#apps
+	apps
+	apps-kokkos
     basic
     basic-kokkos
     #kokkos-mechanics
@@ -41,29 +43,40 @@ include_directories(basic)
 blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
-  #apps/AppsData.cpp
-  #apps/DEL_DOT_VEC_2D.cpp
-  #apps/DEL_DOT_VEC_2D-Seq.cpp
-  #apps/DEL_DOT_VEC_2D-OMPTarget.cpp
-  #apps/ENERGY.cpp
-  #apps/ENERGY-Seq.cpp
-  #apps/ENERGY-OMPTarget.cpp
-  #apps/FIR.cpp
-  #apps/FIR-Seq.cpp
-  #apps/FIR-OMPTarget.cpp
-  #apps/PRESSURE.cpp
-  #apps/PRESSURE-Seq.cpp
-  #apps/PRESSURE-OMPTarget.cpp
-  #apps/LTIMES.cpp
-  #apps/LTIMES-Seq.cpp
-  #apps/LTIMES-OMPTarget.cpp
-  #apps/LTIMES_NOVIEW.cpp
-  #apps/LTIMES_NOVIEW-Seq.cpp
-  #apps/LTIMES_NOVIEW-OMPTarget.cpp
-  #apps/VOL3D.cpp
-  #apps/VOL3D-Seq.cpp
-  #apps/VOL3D-OMPTarget.cpp
+  apps/AppsData.cpp
+  apps/DEL_DOT_VEC_2D.cpp
+  apps/DEL_DOT_VEC_2D-Seq.cpp
+  apps/DEL_DOT_VEC_2D-OMPTarget.cpp
+  apps/ENERGY.cpp
+  apps/ENERGY-Seq.cpp
+  apps/ENERGY-OMPTarget.cpp
+  apps/FIR.cpp
+  apps/FIR-Seq.cpp
+  apps/FIR-OMPTarget.cpp
+  apps/PRESSURE.cpp
+  apps/PRESSURE-Seq.cpp
+  apps/PRESSURE-OMPTarget.cpp
+  apps/LTIMES.cpp
+  apps/LTIMES-Seq.cpp
+  apps/LTIMES-OMPTarget.cpp
+  apps/LTIMES_NOVIEW.cpp
+  apps/LTIMES_NOVIEW-Seq.cpp
+  apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/VOL3D.cpp
+  apps/VOL3D-Seq.cpp
+  apps/VOL3D-OMPTarget.cpp
   #apps/WIP-COUPLE.cpp
+  #Kokkos bloc
+  apps-kokkos/AppsData.cpp
+  apps-kokkos/DEL_DOT_VEC_2D-Kokkos.cpp
+  apps-kokkos/ENERGY-Kokkos.cpp
+  apps-kokkos/FIR-Kokkos.cpp
+  apps-kokkos/HALOEXCHANGE-Kokkos.cpp
+  apps-kokkos/PRESSURE-Kokkos.cpp
+  apps-kokkos/LTIMES-Kokkos.cpp
+  apps-kokkos/LTIMES_NOVIEW-Kokkos.cpp
+  apps-kokkos/VOL3D-Kokkos.cpp
+  #apps-kokkos/WIP-COUPLE.cpp
   basic/ATOMIC_PI.cpp
   basic/ATOMIC_PI-Seq.cpp
   basic/ATOMIC_PI-OMPTarget.cpp
