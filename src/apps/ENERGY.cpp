@@ -27,7 +27,7 @@ ENERGY::ENERGY(const RunParams& params)
   setProblemSize( getRunSize() );
 
   setItsPerRep( 6 * getProblemSize() );
-  setKernelsPerRep(1);
+  setKernelsPerRep(6);
   // some branches are never taken due to the nature of the initialization of delvc
   // the additional reads and writes that would be done if those branches were taken are noted in the comments
   setBytesPerRep( (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getRunSize() +
