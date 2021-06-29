@@ -29,7 +29,7 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   setProblemSize( getRunSize() );
 
   setItsPerRep( getProblemSize() );
-  setKernelsPerRep(1);
+  setKernelsPerRep(2);
   setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N +
                   (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N );
   setFLOPsPerRep((3 +
