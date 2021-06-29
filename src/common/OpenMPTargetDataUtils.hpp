@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Methods for openmp target kernel data allocation, initialization, 
+/// Methods for openmp target kernel data allocation, initialization,
 /// and deallocation.
 ///
 
@@ -30,28 +30,49 @@ namespace rajaperf
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void initOpenMPDeviceData(T& dptr, const T hptr, int len, 
+void copyOpenMPDeviceData(T& dptr, const T hptr, int len,
                           int did, int hid)
 {
-  omp_target_memcpy( dptr, hptr, 
+  omp_target_memcpy( dptr, hptr,
                      len * sizeof(typename std::remove_pointer<T>::type),
-                     0, 0, did, hid ); 
+                     0, 0, did, hid );
+}
 
+/*!
+ * \brief Copy given hptr (host) data to device (dptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of propoer size for copy operation to succeed.
+ */
+template <typename T>
+void initOpenMPDeviceData(T& dptr, const T hptr, int len,
+                          int did, int hid)
+{
+  copyOpenMPDeviceData(dptr, hptr, len, did, hid);
   incDataInitCount();
 }
 
 /*!
- * \brief Allocate device data array (dptr) and copy given hptr (host) 
+ * \brief Allocate device data array (dptr) and copy given hptr (host)
+ * data to device array.
+ */
+template <typename T>
+void allocOpenMPDeviceData(T& dptr, int len, int did)
+{
+  dptr = static_cast<T>( omp_target_alloc(
+                         len * sizeof(typename std::remove_pointer<T>::type),
+                         did) );
+}
+
+/*!
+ * \brief Allocate device data array (dptr) and copy given hptr (host)
  * data to device array.
  */
 template <typename T>
 void allocAndInitOpenMPDeviceData(T& dptr, const T hptr, int len,
                                   int did, int hid)
 {
-  dptr = static_cast<T>( omp_target_alloc(
-                         len * sizeof(typename std::remove_pointer<T>::type), 
-                         did) );
-
+  allocOpenMPDeviceData(dptr, len, did);
   initOpenMPDeviceData(dptr, hptr, len, did, hid);
 }
 
@@ -64,7 +85,7 @@ void allocAndInitOpenMPDeviceData(T& dptr, const T hptr, int len,
 template <typename T>
 void getOpenMPDeviceData(T& hptr, const T dptr, int len, int hid, int did)
 {
-  omp_target_memcpy( hptr, dptr, 
+  omp_target_memcpy( hptr, dptr,
                      len * sizeof(typename std::remove_pointer<T>::type),
                      0, 0, hid, did );
 }

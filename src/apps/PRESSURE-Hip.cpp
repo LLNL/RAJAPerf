@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -85,11 +85,13 @@ void PRESSURE::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((pressurecalc1), dim3(grid_size), dim3(block_size), 0, 0,  bvc, compression,
                                                  cls,
                                                  iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((pressurecalc2), dim3(grid_size), dim3(block_size), 0, 0,  p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

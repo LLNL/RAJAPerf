@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,9 +16,9 @@
 ///   for (Index_type i = 0; i < N; i++) {
 ///     for (Index_type j = 0; j < N; j++) {
 ///       pout[i][j] = pin[i][j] < pin[i][k] + pin[k][j] ?
-///                    pin[i][j] : pin[i][k] + pin[k][j]; 
-///     } 
-///   } 
+///                    pin[i][j] : pin[i][k] + pin[k][j];
+///     }
+///   }
 /// }
 
 
@@ -51,7 +51,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -66,7 +66,6 @@ public:
   POLYBENCH_FLOYD_WARSHALL(const RunParams& params);
 
   ~POLYBENCH_FLOYD_WARSHALL();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

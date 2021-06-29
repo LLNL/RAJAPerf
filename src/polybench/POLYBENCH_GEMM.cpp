@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -50,11 +50,23 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_ni * (m_nj + m_nj*m_nk) );
-  setDefaultReps(run_reps);
-
   m_alpha = 0.62;
   m_beta = 1.002;
+
+  setDefaultSize( m_ni * m_nj );
+  setDefaultReps(run_reps);
+
+  setProblemSize( m_ni * m_nj );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk );
+  setFLOPsPerRep((1 +
+                  3 * m_nk) * m_ni*m_nj);
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

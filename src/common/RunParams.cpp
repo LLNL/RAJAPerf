@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -7,6 +7,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "RunParams.hpp"
+
+#include "KernelBase.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -28,7 +30,9 @@ RunParams::RunParams(int argc, char** argv)
    show_progress(false),
    npasses(1),
    rep_fact(1.0),
-   size_fact(1.0),
+   size_meaning(SizeMeaning::Unset),
+   size(0.0),
+   size_factor(0.0),
    pf_tol(0.1),
    checkrun_reps(1),
    size_spec(Specundefined),
@@ -38,6 +42,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_kernel_input(),
    variant_input(),
    invalid_variant_input(),
+   feature_input(),
+   invalid_feature_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
 {
@@ -70,8 +76,10 @@ void RunParams::print(std::ostream& str) const
 {
   str << "\n show_progress = " << show_progress; 
   str << "\n npasses = " << npasses; 
-  str << "\n rep_fact = " << rep_fact; 
-  str << "\n size_fact = " << size_fact; 
+  str << "\n rep_fact = " << rep_fact;
+  str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
+  str << "\n size = " << size;
+  str << "\n size_factor = " << size_factor;
   str << "\n pf_tol = " << pf_tol; 
   str << "\n checkrun_reps = " << checkrun_reps; 
   str << "\n size_spec_string = " << size_spec_string;  
@@ -95,6 +103,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_variant_input = "; 
   for (size_t j = 0; j < invalid_variant_input.size(); ++j) {
     str << "\n\t" << invalid_variant_input[j];
+  }
+
+  str << "\n feature_input = ";
+  for (size_t j = 0; j < feature_input.size(); ++j) {
+    str << "\n\t" << feature_input[j];
+  }
+  str << "\n invalid_feature_input = ";
+  for (size_t j = 0; j < invalid_feature_input.size(); ++j) {
+    str << "\n\t" << invalid_feature_input[j];
   }
 
   str << std::endl;
@@ -139,6 +156,24 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       printVariantNames(std::cout);     
       input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-features") ||
+                opt == std::string("-pf") ) {
+
+      printFeatureNames(std::cout);
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-feature-kernels") ||
+                opt == std::string("-pfk") ) {
+
+      printFeatureKernels(std::cout);
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-kernel-features") ||
+                opt == std::string("-pkf") ) {
+
+      printKernelFeatures(std::cout);
+      input_state = InfoRequest;
  
     } else if ( opt == std::string("--npasses") ) {
 
@@ -167,11 +202,53 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     } else if ( opt == std::string("--sizefact") ) {
 
       i++;
-      if ( i < argc ) { 
-        size_fact = ::atof( argv[i] );
+      if ( i < argc ) {
+        if (size_meaning == SizeMeaning::Direct) {
+          std::cout << "\nBad input:"
+                    << " may only set one of --size and --sizefact"
+                    << std::endl;
+          input_state = BadInput;
+        } else {
+          size_factor = ::atof( argv[i] );
+          if ( size_factor >= 0.0 ) {
+            size_meaning = SizeMeaning::Factor;
+          } else {
+            std::cout << "\nBad input:"
+                  << " must give --sizefact a POSITIVE value (double)"
+                  << std::endl;
+            input_state = BadInput;
+          }
+        }
       } else {
         std::cout << "\nBad input:"
                   << " must give --sizefact a value (double)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--size") ) {
+
+      i++;
+      if ( i < argc ) {
+        if (size_meaning == SizeMeaning::Factor) {
+          std::cout << "\nBad input:"
+                    << " may only set one of --size and --sizefact"
+                    << std::endl;
+          input_state = BadInput;
+        } else {
+          size = ::atof( argv[i] );
+          if ( size >= 0.0 ) {
+            size_meaning = SizeMeaning::Direct;
+          } else {
+            std::cout << "\nBad input:"
+                  << " must give --size a POSITIVE value (double)"
+                  << std::endl;
+            input_state = BadInput;
+          }
+        }
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --size a value (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -231,6 +308,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( std::string(argv[i]) == std::string("--features") ||
+                std::string(argv[i]) == std::string("-f") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          feature_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--outdir") ||
                 std::string(argv[i]) == std::string("-od") ) {
 
@@ -272,7 +365,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-       input_state = DryRun;
+       if (input_state != BadInput) {
+         input_state = DryRun;
+       }
    
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
@@ -300,6 +395,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     }
 
   }
+
+  // Default size and size_meaning if unset
+  if (size_meaning == SizeMeaning::Unset) {
+    size_meaning = SizeMeaning::Factor;
+    size_factor = 1.0;
+  }
 }
 
 
@@ -308,13 +409,21 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n"; 
 
-  str << "\t --help, -h (print options with descriptions}\n\n";
+  str << "\t --help, -h (print options with descriptions)\n\n";
 
-  str << "\t --show-progress, -sp (print progress during run}\n\n";
+  str << "\t --show-progress, -sp (print progress during run)\n\n";
 
-  str << "\t --print-kernels, -pk (print valid kernel names}\n\n";
+  str << "\t --print-kernels, -pk (print all valid kernel names)\n\n";
 
-  str << "\t --print-variants, -pv (print valid variant names}\n\n";
+  str << "\t --print-variants, -pv (print all valid variant names)\n\n";
+
+  str << "\t --print-features, -pf (print all valid feature names)\n\n";
+
+  str << "\t --print-feature-kernels, -pfk \n"
+      << "\t      (print names of kernels that use each feature)\n\n";
+
+  str << "\t --print-kernel-features, -pkf \n"
+      << "\t      (print names of features used by each kernel)\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through suite)\n"; 
@@ -327,9 +436,16 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel iteration space size to run)\n";
+      << "\t      (fraction of default kernel size to run)\n"
+      << "\t      (may not be set if --size is set)\n";
   str << "\t\t Example...\n"
-      << "\t\t --sizefact 2.0 (iteration space size is twice the default)\n\n";
+      << "\t\t --sizefact 2.0 (kernels will run with size twice the default)\n\n";
+
+  str << "\t --size <int> [no default]\n"
+      << "\t      (kernel size to run for all kernels)\n"
+      << "\t      (may not be set if --sizefact is set)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
 
   str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
       << "\t      (used to set specific sizes for polybench kernels)\n\n"; 
@@ -361,13 +477,19 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
       << "\t      (names of variants)\n"; 
   str << "\t\t Examples...\n"
-      << "\t\t -variants RAJA_CUDA (run RAJA_CUDA variants)\n"
+      << "\t\t --variants RAJA_CUDA (run RAJA_CUDA variants)\n"
       << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq, RAJA_CUDA variants)\n\n";
 
   str << "\t --refvar, -rv <string> [Default is none]\n"
       << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
-      << "\t\t -refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
+      << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
+
+  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
+      << "\t      (names of features)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --features Forall (run kernels that use RAJA forall)\n"
+      << "\t\t -f Forall Reduction (run kernels that use RAJA forall or RAJA reductions)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel given number of times; usually to check things are working)\n"; 
@@ -385,10 +507,10 @@ void RunParams::printKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
-  for (int ik = 0; ik < NumKernels; ++ik) {
+  for (int kid = 0; kid < NumKernels; ++kid) {
 /// RDH DISABLE COUPLE KERNEL
-    if ( /** static_cast<KernelID>(ik) != Apps_COUPLE*/ true) {
-      str << getKernelName(static_cast<KernelID>(ik)) << std::endl;
+    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
+      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
     }
   }
   str.flush();
@@ -399,10 +521,10 @@ void RunParams::printFullKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
-  for (int ik = 0; ik < NumKernels; ++ik) {
+  for (int kid = 0; kid < NumKernels; ++kid) {
 /// RDH DISABLE COUPLE KERNEL
-    if ( /** static_cast<KernelID>(ik) != Apps_COUPLE */ true) {
-      str << getFullKernelName(static_cast<KernelID>(ik)) << std::endl;
+    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
+      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
     }
   }
   str.flush();
@@ -413,8 +535,8 @@ void RunParams::printVariantNames(std::ostream& str) const
 {
   str << "\nAvailable variants:";
   str << "\n-------------------\n";
-  for (int iv = 0; iv < NumVariants; ++iv) {
-    str << getVariantName(static_cast<VariantID>(iv)) << std::endl;
+  for (int vid = 0; vid < NumVariants; ++vid) {
+    str << getVariantName(static_cast<VariantID>(vid)) << std::endl;
   }
   str.flush();
 }
@@ -424,9 +546,64 @@ void RunParams::printGroupNames(std::ostream& str) const
 {
   str << "\nAvailable groups:";
   str << "\n-----------------\n";
-  for (int is = 0; is < NumGroups; ++is) {
-    str << getGroupName(static_cast<GroupID>(is)) << std::endl;
+  for (int gid = 0; gid < NumGroups; ++gid) {
+    str << getGroupName(static_cast<GroupID>(gid)) << std::endl;
   }
+  str.flush();
+}
+
+void RunParams::printFeatureNames(std::ostream& str) const
+{
+  str << "\nAvailable features:";
+  str << "\n-------------------\n";
+  for (int fid = 0; fid < NumFeatures; ++fid) {
+    str << getFeatureName(static_cast<FeatureID>(fid)) << std::endl;
+  }
+  str.flush();
+}
+
+void RunParams::printFeatureKernels(std::ostream& str) const
+{
+  str << "\nAvailable features and kernels that use each:";
+  str << "\n---------------------------------------------\n";
+  for (int fid = 0; fid < NumFeatures; ++fid) {
+    FeatureID tfid = static_cast<FeatureID>(fid);
+    str << getFeatureName(tfid) << std::endl;
+    for (int kid = 0; kid < NumKernels; ++kid) {
+      KernelID tkid = static_cast<KernelID>(kid);
+///   RDH DISABLE COUPLE KERNEL
+      if (tkid != Apps_COUPLE) {
+         KernelBase* kern = getKernelObject(tkid, *this);
+         if ( kern->usesFeature(tfid) ) {
+           str << "\t" << getFullKernelName(tkid) << std::endl;
+         }
+         delete kern;
+      }
+    }  // loop over kernels
+    str << std::endl;
+  }  // loop over features
+  str.flush();
+}
+
+void RunParams::printKernelFeatures(std::ostream& str) const
+{
+  str << "\nAvailable kernels and features each uses:";
+  str << "\n-----------------------------------------\n";
+  for (int kid = 0; kid < NumKernels; ++kid) {
+    KernelID tkid = static_cast<KernelID>(kid); 
+/// RDH DISABLE COUPLE KERNEL
+    if (tkid != Apps_COUPLE) {
+      str << getFullKernelName(tkid) << std::endl;
+      KernelBase* kern = getKernelObject(tkid, *this);
+      for (int fid = 0; fid < NumFeatures; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if ( kern->usesFeature(tfid) ) {
+           str << "\t" << getFeatureName(tfid) << std::endl;
+        }
+      }  // loop over features
+      delete kern;
+    }  
+  }  // loop over kernels
   str.flush();
 }
 

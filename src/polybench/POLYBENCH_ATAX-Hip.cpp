@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -87,9 +87,11 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((poly_atax_1), dim3(grid_size), dim3(block_size), 0, 0,
                                       A, x, y, tmp, N);
+      hipErrchk( hipGetLastError() );
 
       hipLaunchKernelGGL((poly_atax_2), dim3(grid_size), dim3(block_size), 0, 0,
                                       A, tmp, y, N);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -117,6 +119,7 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_atax_1_lambda)>,
         grid_size, block_size, 0, 0,
         0, N, poly_atax_1_lambda);
+      hipErrchk( hipGetLastError() );
 
       auto poly_atax_2_lambda = [=] __device__ (Index_type j) {
 
@@ -130,6 +133,7 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_atax_2_lambda)>,
         grid_size, block_size, 0, 0,
         0, N, poly_atax_2_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

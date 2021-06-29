@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -89,8 +89,10 @@ void POLYBENCH_MVT::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
       poly_mvt_1<<<grid_size, block_size>>>(A, x1, y1, N);
+      cudaErrchk( cudaGetLastError() );
 
       poly_mvt_2<<<grid_size, block_size>>>(A, x2, y2, N);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

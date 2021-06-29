@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/COPYRIGHT file for details.
 #
@@ -56,6 +56,12 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Seq.cpp
   apps/PRESSURE-OMPTarget.cpp
+  apps/HALOEXCHANGE.cpp
+  apps/HALOEXCHANGE-Seq.cpp
+  apps/HALOEXCHANGE-OMPTarget.cpp
+  apps/HALOEXCHANGE_FUSED.cpp
+  apps/HALOEXCHANGE_FUSED-Seq.cpp
+  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
@@ -101,6 +107,12 @@ blt_add_executable(
   basic/NESTED_INIT.cpp
   basic/NESTED_INIT-Seq.cpp
   basic/NESTED_INIT-OMPTarget.cpp
+  basic/PI_ATOMIC.cpp
+  basic/PI_ATOMIC-Seq.cpp
+  basic/PI_ATOMIC-OMPTarget.cpp
+  basic/PI_REDUCE.cpp
+  basic/PI_REDUCE-Seq.cpp
+  basic/PI_REDUCE-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp

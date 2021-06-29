@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -65,6 +65,7 @@ void DAXPY::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((daxpy),dim3(grid_size), dim3(block_size), 0, 0, y, x, a,
                                         iend );
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -85,6 +86,7 @@ void DAXPY::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(lambda_hip_forall<decltype(daxpy_lambda)>,
         grid_size, block_size, 0, 0, ibegin, iend, daxpy_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

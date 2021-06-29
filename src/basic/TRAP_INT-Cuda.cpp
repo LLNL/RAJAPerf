@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -49,8 +49,8 @@ Real_type trap_int_func(Real_type x,
 
 
 __global__ void trapint(Real_type x0, Real_type xp,
-                        Real_type y, Real_type yp, 
-                        Real_type h, 
+                        Real_type y, Real_type yp,
+                        Real_type h,
                         Real_ptr sumx,
                         Index_type iend)
 {
@@ -104,15 +104,16 @@ void TRAP_INT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(sumx, &m_sumx_init, 1); 
+      initCudaDeviceData(sumx, &m_sumx_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      trapint<<<grid_size, block_size, 
+      trapint<<<grid_size, block_size,
                 sizeof(Real_type)*block_size>>>(x0, xp,
                                                 y, yp,
                                                 h,
                                                 sumx,
                                                 iend);
+      cudaErrchk( cudaGetLastError() );
 
       Real_type lsumx;
       Real_ptr plsumx = &lsumx;

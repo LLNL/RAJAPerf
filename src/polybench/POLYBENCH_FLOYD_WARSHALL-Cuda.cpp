@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -60,6 +60,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
         dim3 nthreads_per_block1(N, 1, 1);
         poly_floyd_warshall<<<nblocks1, nthreads_per_block1>>>(pout, pin,
                                                                k, N);
+        cudaErrchk( cudaGetLastError() );
 
       }
 

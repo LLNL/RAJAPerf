@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -50,7 +50,7 @@ void SORT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(SORT_STD_ARGS);
+      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(RAJA_SORT_ARGS);
 
     }
     stopTimer();

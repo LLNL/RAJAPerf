@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -118,6 +118,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       dim3 nthreads_per_block(n, 1, 1);
       hipLaunchKernelGGL((poly_gemmver_1) , dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                                 A, u1, v1, u2, v2, n);
+      hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
@@ -125,15 +126,18 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
                                                 A, x, y,
                                                 beta,
                                                 n);
+      hipErrchk( hipGetLastError() );
 
       hipLaunchKernelGGL((poly_gemmver_3), dim3(grid_size), dim3(block_size), 0, 0,
                                                 x, z,
                                                 n);
+      hipErrchk( hipGetLastError() );
 
       hipLaunchKernelGGL((poly_gemmver_4), dim3(grid_size), dim3(block_size), 0, 0,
                                                 A, x, w,
                                                 alpha,
                                                 n);
+      hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
@@ -156,6 +160,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel1,
         nblocks, nthreads_per_block, 0, 0,
         0, n, 0, n, poly_gemmver_1_lambda);
+      hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
@@ -170,6 +175,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_2_lambda)>,
         grid_size, block_size, 0, 0,
         0, n, poly_gemmver_2_lambda);
+      hipErrchk( hipGetLastError() );
 
       auto poly_gemmver_3_lambda = [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
@@ -178,6 +184,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_3_lambda)>,
         grid_size, block_size, 0, 0,
         0, n, poly_gemmver_3_lambda);
+      hipErrchk( hipGetLastError() );
 
       auto poly_gemmver_4_lambda = [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY6;
@@ -190,6 +197,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_4_lambda)>,
         grid_size, block_size, 0, 0,
         0, n, poly_gemmver_4_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

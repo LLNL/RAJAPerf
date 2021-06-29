@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -69,6 +69,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
       poly_gemm<<<nblocks, nthreads_per_block>>>(C, A, B,
                                                  alpha, beta,
                                                  nj, nk);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -97,6 +98,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_GEMM_BODY4;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

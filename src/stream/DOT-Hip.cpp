@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -95,6 +95,7 @@ void DOT::runHipVariant(VariantID vid)
       hipLaunchKernelGGL((dot), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,  a, b,
                                              dprod, m_dot_init,
                                              iend );
+      hipErrchk( hipGetLastError() );
 
       Real_type lprod;
       Real_ptr plprod = &lprod;

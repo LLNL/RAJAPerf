@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -14,21 +14,36 @@
 
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid, const RunParams& params) 
-  : run_params(params),
-    kernel_id(kid),
-    name( getFullKernelName(kernel_id) ),
-    default_size(0),
-    default_reps(0),
-    running_variant(NumVariants)
+KernelBase::KernelBase(KernelID kid, const RunParams& params) :
+  run_params(params) 
 {
-  for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
-     checksum[ivar] = 0.0;
-     num_exec[ivar] = 0;
-     min_time[ivar] = std::numeric_limits<double>::max();
-     max_time[ivar] = -std::numeric_limits<double>::max();
-     tot_time[ivar] = 0.0;
-     has_variant_to_run[ivar] = false;
+  kernel_id = kid;
+  name = getFullKernelName(kernel_id);
+
+  default_size = -1;
+  default_reps = -1;
+ 
+  for (size_t fid = 0; fid < NumFeatures; ++fid) {
+    uses_feature[fid] = false;
+  }
+
+  for (size_t vid = 0; vid < NumVariants; ++vid) {
+    has_variant_defined[vid] = false;
+  }
+
+  problem_size = -1;
+  its_per_rep = -1;
+  kernels_per_rep = -1;
+  FLOPs_per_rep = -1;
+
+  running_variant = NumVariants;
+
+  for (size_t vid = 0; vid < NumVariants; ++vid) {
+    checksum[vid] = 0.0;
+    num_exec[vid] = 0;
+    min_time[vid] = std::numeric_limits<double>::max();
+    max_time[vid] = -std::numeric_limits<double>::max();
+    tot_time[vid] = 0.0;
   }
 }
 
@@ -58,24 +73,29 @@ KernelBase::~KernelBase()
 
 Index_type KernelBase::getRunSize() const
 { 
-  return static_cast<Index_type>(default_size*run_params.getSizeFactor()); 
+  Index_type run_size = static_cast<Index_type>(0);
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    run_size = static_cast<Index_type>(default_size*run_params.getSizeFactor());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    run_size = static_cast<Index_type>(run_params.getSize());
+  }
+  return run_size;
 }
 
-//FIXME
 Index_type KernelBase::getRunReps() const
-{
-
+{ 
+  Index_type run_reps = static_cast<Index_type>(0);
   if (run_params.getInputState() == RunParams::CheckRun) {
-    return static_cast<Index_type>(run_params.getCheckRunReps());
+    run_reps = static_cast<Index_type>(run_params.getCheckRunReps());
   } else {
-
-    return static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
-  } 
+    run_reps = static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+  }
+  return run_reps;
 }
 
 void KernelBase::setVariantDefined(VariantID vid) 
 {
-  has_variant_to_run[vid] = isVariantAvailable(vid); 
+  has_variant_defined[vid] = isVariantAvailable(vid); 
 }
 
 
@@ -114,7 +134,7 @@ void KernelBase::recordExecTime()
 
 void KernelBase::runKernel(VariantID vid)
 {
-  if ( !has_variant_to_run[vid] ) {
+  if ( !has_variant_defined[vid] ) {
     return;
   }
 
@@ -157,7 +177,6 @@ void KernelBase::runKernel(VariantID vid)
     case Base_CUDA :
     case Lambda_CUDA :
     case RAJA_CUDA :
-    case RAJA_WORKGROUP_CUDA :
     {
 #if defined(RAJA_ENABLE_CUDA)
       runCudaVariant(vid);
@@ -168,7 +187,6 @@ void KernelBase::runKernel(VariantID vid)
     case Base_HIP :
     case Lambda_HIP :
     case RAJA_HIP :
-    case RAJA_WORKGROUP_HIP :
     {
 #if defined(RAJA_ENABLE_HIP)
       runHipVariant(vid);

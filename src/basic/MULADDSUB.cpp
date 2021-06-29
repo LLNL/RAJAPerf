@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,8 +21,17 @@ namespace basic
 MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(3500);
+  setDefaultSize(1000000);
+  setDefaultReps(350);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(3 * getRunSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

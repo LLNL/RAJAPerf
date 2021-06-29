@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -65,7 +65,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -80,7 +80,6 @@ public:
   POLYBENCH_JACOBI_2D(const RunParams& params);
 
   ~POLYBENCH_JACOBI_2D();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

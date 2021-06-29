@@ -1,5 +1,5 @@
 [comment]: # (#################################################################)
-[comment]: # (Copyright 2017-20, Lawrence Livermore National Security, LLC)
+[comment]: # (Copyright 2017-2021, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
 [comment]: # (See the RAJA/COPYRIGHT file for details.)
 [comment]: #
@@ -89,8 +89,8 @@ compilers used. After CMake completes, enter the build directory and type
 `make` (or `make -j <N>` for a parallel build) to compile the code. For example,
 
 ```
-> ./scripts/blueos_nvcc11_clang10.0.1.sh
-> cd build_blueos_nvcc11_clang10.0.1
+> ./scripts/blueos_nvcc_clang.sh 10.2.89 sm_70 10.0.1
+> cd build_blueos_nvcc10.2.89-cm_70-clang10.0.1
 > make -j
 ```
 
@@ -244,7 +244,7 @@ Second, add the kernel name to the array of strings 'KernelNames' in the file
 static const std::string KernelNames [] =
 {
 ..
-  std::string("Biasci_FOO"),
+  std::string("Basic_FOO"),
 ..
 };
 ```
@@ -298,7 +298,7 @@ Here is what a header file for the FOO kernel object should look like:
 
 ```cpp
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -368,7 +368,7 @@ key steps and conventions that must be followed to ensure that all kernels
 interact with the performance Suite machinery in the same way:
 
 1. Initialize the `KernelBase` class object with `KernelID` and `RunParams` object passed to the FOO class constructor.
-2. Set the default size, and default run repetition count in the FOO class constructor. Then, set the variants which are defined, also in the constructor.
+2. Set the default size, and default run repetition count in the FOO class constructor. Then, set the RAJA features used by the kernel and the kernel variants that are defined (i.e., implemented), also in the constructor. See the *.cpp file for any existing kernel in the suite for details.
 3. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
@@ -400,6 +400,8 @@ FOO::FOO(const RunParams& params)
 {
   setDefaultSize(100000);
   setDefaultReps(1000);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

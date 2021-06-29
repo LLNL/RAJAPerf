@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -208,6 +208,7 @@ namespace rajaperf {
 
             // when using the arrow, you get a key, value pair.
             // You can access either member by "first" or "second"
+  //
 
             // we have std::set of KernelBase*
             auto groupSetForTests = checkLookUpGroupNameIterator->second;
@@ -350,6 +351,7 @@ namespace rajaperf {
     // Outer loop:  Iterate through the list of strings from the first to the last item
     for (Slist::iterator it = input.begin(); it != input.end(); ++it) {
       // inner loop:  iterate over NumGroups, a member of GroupID enum defined in RAJAPerfSuite.hpp
+
       for (size_t ig = 0; ig < NumGroups; ++ig) {
           // declare a constant (immutable) string reference "group_name"
           // Store the value at the the ig(th) index as a GroupID in group_name
@@ -362,10 +364,6 @@ namespace rajaperf {
       }
     }
 
-    // If group name(s) found in input, assemble kernel sets for those group(s);
-    // to run and remove those group name(s) from input list.
-    // Here, iterate the groups2run, and store the value at ig(th) index in
-    // an immutable/constant reference called gname (of type string)
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
       const string& gname(groups2run[ig]);
 
@@ -419,11 +417,10 @@ namespace rajaperf {
   }
 
   //
-  // Assemble set of available variants to run 
+  // Assemble set of available variants to run
   // (based on compile-time configuration).
   // Recall, a variant will be:  base_seq, base_CUDA, Raja_lambda, kokkos_lambda, etc.
 
-  // Declare available_var as a VIDset
 */
 
         run_params.setInvalidKernelInput(invalid);
@@ -460,6 +457,15 @@ namespace rajaperf {
                     reference_vid = vid;
                 }
             }
+    //
+    // Parse input to determine which variants to run:
+    //   - variants to run will be the intersection of available variants
+    //     and those specified in input
+    //   - reference variant will be set to specified input if available
+    //     and variant will be run; else first variant that will be run.
+    //
+    // Assemble invalid input for warning message.
+    //
 
             //
             // Set reference variant if not specified.
@@ -472,7 +478,6 @@ namespace rajaperf {
             }
 
         } else {
-
 
             //
             // Parse input to determine which variants to run:
@@ -515,6 +520,12 @@ namespace rajaperf {
 
         }
 
+  //
+  // Create kernel objects and variants to execute. If invalid input is not
+  // empty for either case, then there were unmatched input items.
+  //
+  // A message will be emitted later so user can sort it out...
+  //
 
         if (!(run_params.getInvalidKernelInput().empty())) {
 
@@ -553,7 +564,17 @@ namespace rajaperf {
                 }
 
             } // kernel and variant input both look good
-
+/*
+            =======
+      //
+      // If we've gotten to this point, we have good input to run.
+      //
+      if ( run_params.getInputState() != RunParams::DryRun &&
+           run_params.getInputState() != RunParams::CheckRun ) {
+        run_params.setInputState(RunParams::PerfRun);
+      }
+>>>>>>> develop
+*/
         } // if kernel input looks good
 
     }
@@ -580,7 +601,6 @@ namespace rajaperf {
 
                 str << "\n\nRAJA performance suite dry run summary...."
                     << "\n--------------------------------------" << endl;
-
                 str << "\nInput state:";
                 str << "\n------------";
                 run_params.print(str);
@@ -631,10 +651,19 @@ namespace rajaperf {
                     << " (" << kern->getItsPerRep() << " , "
                     << kern->getRunReps() << ")" << endl;
             }
-
         }
 
-        str.flush();
+    str << "\nKernels(problem size , iterations/rep , kernels/rep , bytes/rep , FLOPs/rep , reps)"
+        << "\n-------------------------------------------------------------------------------\n";
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];
+      str << kern->getName()
+          << " (" << kern->getProblemSize() << " , "
+          << kern->getItsPerRep() << " , "
+          << kern->getKernelsPerRep() << " , "
+          << kern->getBytesPerRep() << " , "
+          << kern->getFLOPsPerRep() << " , "
+          << kern->getRunReps() << ")" << endl;
     }
 
     void Executor::runSuite() {
@@ -721,16 +750,25 @@ namespace rajaperf {
         }
         out_fprefix = "./" + run_params.getOutputFilePrefix();
 
-        string filename = out_fprefix + "-timing.csv";
-        writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
+  //
+  // Generate output file prefix (including directory path).
+  //
+  string out_fprefix;
+  string outdir = recursiveMkdir(run_params.getOutputDirName());
+  if ( !outdir.empty() ) {
+    chdir(outdir.c_str());
+  }
+  out_fprefix = "./" + run_params.getOutputFilePrefix();
 
         if (haveReferenceVariant()) {
             filename = out_fprefix + "-speedup.csv";
             writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
         }
 
-        filename = out_fprefix + "-checksum.txt";
-        writeChecksumReport(filename);
+  if ( haveReferenceVariant() ) {
+    filename = out_fprefix + "-speedup.csv";
+    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
+  }
 
         filename = out_fprefix + "-fom.csv";
         writeFOMReport(filename);
@@ -758,24 +796,20 @@ namespace rajaperf {
             }
             kercol_width++;
 
-            vector<size_t> varcol_width(variant_ids.size());
-            for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-                varcol_width[iv] = max(prec + 2, getVariantName(variant_ids[iv]).size());
-            }
+    size_t kercol_width = kernel_col_name.size();
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      kercol_width = max(kercol_width, kernels[ik]->getName().size());
+    }
+    kercol_width++;
 
-            //
-            // Print title line.
-            //
-            file << getReportTitle(mode);
+    vector<size_t> varcol_width(variant_ids.size());
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      varcol_width[iv] = max(prec+2, getVariantName(variant_ids[iv]).size());
+    }
 
-            //
-            // Wrtie CSV file contents for report.
-            //
 
-            for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-                file << sepchr;
-            }
-            file << endl;
+    //
+    // Wrtie CSV file contents for report.
 
             //
             // Print column title line.
@@ -816,18 +850,28 @@ namespace rajaperf {
         } // note file will be closed when file stream goes out of scope
     }
 
-
-    void Executor::writeFOMReport(const string &filename) {
-        vector<FOMGroup> fom_groups;
-        getFOMGroups(fom_groups);
-        if (fom_groups.empty()) {
-            return;
+    //
+    // Print row of data for variants of each kernel.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];
+      file <<left<< setw(kercol_width) << kern->getName();
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+        file << sepchr <<right<< setw(varcol_width[iv]);
+        if ( (mode == CSVRepMode::Speedup) &&
+             (!kern->hasVariantDefined(reference_vid) ||
+              !kern->hasVariantDefined(vid)) ) {
+          file << "Not run";
+        } else if ( (mode == CSVRepMode::Timing) &&
+                    !kern->hasVariantDefined(vid) ) {
+          file << "Not run";
+        } else {
+          file << setprecision(prec) << std::fixed
+               << getReportDataEntry(mode, kern, vid);
         }
 
-        ofstream file(filename.c_str(), ios::out | ios::trunc);
-        if (!file) {
-            cout << " ERROR: Can't open output file " << filename << endl;
-        }
+    file.flush();
 
         if (file) {
 
@@ -838,11 +882,13 @@ namespace rajaperf {
             const string sepchr(" , ");
             size_t prec = 2;
 
-            size_t kercol_width = kernel_col_name.size();
-            for (size_t ik = 0; ik < kernels.size(); ++ik) {
-                kercol_width = max(kercol_width, kernels[ik]->getName().size());
-            }
-            kercol_width++;
+void Executor::writeFOMReport(const string& filename)
+{
+  vector<FOMGroup> fom_groups;
+  getFOMGroups(fom_groups);
+  if (fom_groups.empty() ) {
+    return;
+  }
 
             size_t fom_col_width = prec + 14;
 
@@ -863,15 +909,11 @@ namespace rajaperf {
                 pct_diff[ik] = vector<double>(ncols, 0.0);
             }
 
-            //
-            // Print title line.
-            //
-            file
-                    << "FOM Report : signed speedup(-)/slowdown(+) for each PM (base vs. RAJA) -> (T_RAJA - T_base) / T_base )";
-            for (size_t iv = 0; iv < ncols * 2; ++iv) {
-                file << sepchr;
-            }
-            file << endl;
+    size_t kercol_width = kernel_col_name.size();
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      kercol_width = max(kercol_width, kernels[ik]->getName().size());
+    }
+    kercol_width++;
 
             file << "'OVER_TOL' in column to right if RAJA speedup is over tolerance";
             for (size_t iv = 0; iv < ncols * 2; ++iv) {
@@ -879,8 +921,12 @@ namespace rajaperf {
             }
             file << endl;
 
-            string pass(",        ");
-            string fail(",OVER_TOL");
+    size_t ncols = 0;
+    for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+      const FOMGroup& group = fom_groups[ifg];
+      ncols += group.variants.size(); // num variants to compare
+                                      // to each PM baseline
+    }
 
             //
             // Print column title line.
@@ -906,23 +952,38 @@ namespace rajaperf {
             for (size_t ik = 0; ik < kernels.size(); ++ik) {
                 KernelBase *kern = kernels[ik];
 
-                file << left << setw(kercol_width) << kern->getName();
+    //
+    // Print column title line.
+    //
+    file <<left<< setw(kercol_width) << kernel_col_name;
+    for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+      const FOMGroup& group = fom_groups[ifg];
+      for (size_t gv = 0; gv < group.variants.size(); ++gv) {
+        string name = getVariantName(group.variants[gv]);
+        file << sepchr <<left<< setw(fom_col_width) << name << pass;
+      }
+    }
+    file << endl;
 
                 int col = 0;
                 for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
                     const FOMGroup &group = fom_groups[ifg];
 
-                    VariantID base_vid = group.base;
+    //
+    // Write CSV file contents for FOM report.
+    //
 
-                    for (size_t gv = 0; gv < group.variants.size(); ++gv) {
-                        VariantID comp_vid = group.variants[gv];
+    //
+    // Print row of FOM data for each kernel.
+    //
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];
 
-                        //
-                        // If kernel variant was run, generate data for it and
-                        // print (signed) percentage difference from baseline.
-                        //
-                        if (kern->wasVariantRun(comp_vid)) {
-                            col_exec_count[col]++;
+      file <<left<< setw(kercol_width) << kern->getName();
+
+      int col = 0;
+      for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
+        const FOMGroup& group = fom_groups[ifg];
 
                             pct_diff[ik][col] =
                                     (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
@@ -933,22 +994,28 @@ namespace rajaperf {
                                 pfstring = fail;
                             }
 
-                            file << sepchr << setw(fom_col_width) << setprecision(prec)
-                                 << left << pct_diff[ik][col] << right << pfstring;
+          //
+          // If kernel variant was run, generate data for it and
+          // print (signed) percentage difference from baseline.
+          //
+          if ( kern->wasVariantRun(comp_vid) ) {
+            col_exec_count[col]++;
 
-                            //
-                            // Gather data for column summaries (unsigned).
-                            //
-                            col_min[col] = min(col_min[col], pct_diff[ik][col]);
-                            col_max[col] = max(col_max[col], pct_diff[ik][col]);
-                            col_avg[col] += pct_diff[ik][col];
+            pct_diff[ik][col] =
+              (kern->getTotTime(comp_vid) - kern->getTotTime(base_vid)) /
+               kern->getTotTime(base_vid);
 
                         } else {  // variant was not run, print a big fat goose egg...
 
                             file << sepchr << left << setw(fom_col_width) << setprecision(prec)
                                  << 0.0 << pass;
 
-                        }
+            //
+            // Gather data for column summaries (unsigned).
+            //
+            col_min[col] = min( col_min[col], pct_diff[ik][col] );
+            col_max[col] = max( col_max[col], pct_diff[ik][col] );
+            col_avg[col] += pct_diff[ik][col];
 
                         col++;
 
@@ -978,23 +1045,31 @@ namespace rajaperf {
             for (size_t ik = 0; ik < kernels.size(); ++ik) {
                 KernelBase *kern = kernels[ik];
 
-                int col = 0;
-                for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
-                    const FOMGroup &group = fom_groups[ifg];
+    //
+    // Compute column summary data.
+    //
 
-                    for (size_t gv = 0; gv < group.variants.size(); ++gv) {
-                        VariantID comp_vid = group.variants[gv];
+    // Column average...
+    for (size_t col = 0; col < ncols; ++col) {
+      if ( col_exec_count[col] > 0 ) {
+        col_avg[col] /= col_exec_count[col];
+      } else {
+        col_avg[col] = 0.0;
+      }
+    }
 
-                        if (kern->wasVariantRun(comp_vid)) {
-                            col_stddev[col] += (pct_diff[ik][col] - col_avg[col]) *
-                                               (pct_diff[ik][col] - col_avg[col]);
-                        }
+    // Column standard deviaation...
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kern = kernels[ik];
 
                         col++;
 
                     } // loop over group variants
 
-                }  // loop over groups
+          if ( kern->wasVariantRun(comp_vid) ) {
+            col_stddev[col] += ( pct_diff[ik][col] - col_avg[col] ) *
+                               ( pct_diff[ik][col] - col_avg[col] );
+          }
 
             }  // loop over kernels
 
@@ -1015,39 +1090,53 @@ namespace rajaperf {
             }
             file << endl;
 
-            file << left << setw(kercol_width) << "Col Min";
-            for (size_t col = 0; col < ncols; ++col) {
-                file << sepchr << left << setw(fom_col_width) << setprecision(prec)
-                     << col_min[col] << pass;
-            }
-            file << endl;
+    }  // loop over kernels
 
-            file << left << setw(kercol_width) << "Col Max";
-            for (size_t col = 0; col < ncols; ++col) {
-                file << sepchr << left << setw(fom_col_width) << setprecision(prec)
-                     << col_max[col] << pass;
-            }
-            file << endl;
-
-            file << left << setw(kercol_width) << "Col Avg";
-            for (size_t col = 0; col < ncols; ++col) {
-                file << sepchr << left << setw(fom_col_width) << setprecision(prec)
-                     << col_avg[col] << pass;
-            }
-            file << endl;
-
-            file << left << setw(kercol_width) << "Col Std Dev";
-            for (size_t col = 0; col < ncols; ++col) {
-                file << sepchr << left << setw(fom_col_width) << setprecision(prec)
-                     << col_stddev[col] << pass;
-            }
-            file << endl;
-
-            file.flush();
-
-        } // note file will be closed when file stream goes out of scope
+    for (size_t col = 0; col < ncols; ++col) {
+      if ( col_exec_count[col] > 0 ) {
+        col_stddev[col] /= col_exec_count[col];
+      } else {
+        col_stddev[col] = 0.0;
+      }
     }
 
+    //
+    // Print column summaries.
+    //
+    file <<left<< setw(kercol_width) << " ";
+    for (size_t iv = 0; iv < ncols; ++iv) {
+      file << sepchr << setw(fom_col_width) <<left<< "  " <<right<< pass;
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Min";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+           << col_min[col] << pass;
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Max";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+           << col_max[col] << pass;
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Avg";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+           << col_avg[col] << pass;
+    }
+    file << endl;
+
+    file <<left<< setw(kercol_width) << "Col Std Dev";
+    for (size_t col = 0; col < ncols; ++col) {
+      file << sepchr <<left<< setw(fom_col_width) << setprecision(prec)
+           << col_stddev[col] << pass;
+    }
+
+    file.flush();
 
     void Executor::writeChecksumReport(const string &filename) {
         ofstream file(filename.c_str(), ios::out | ios::trunc);
@@ -1146,30 +1235,13 @@ namespace rajaperf {
 
             file.flush();
 
-        } // note file will be closed when file stream goes out of scope
+    size_t namecol_width = 0;
+    for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      namecol_width = max(namecol_width, kernels[ik]->getName().size());
     }
-
-
-    string Executor::getReportTitle(CSVRepMode mode) {
-        string title;
-        switch (mode) {
-            case CSVRepMode::Timing : {
-                title = string("Mean Runtime Report (sec.) ");
-                break;
-            }
-            case CSVRepMode::Speedup : {
-                if (haveReferenceVariant()) {
-                    title = string("Speedup Report (T_ref/T_var)") +
-                            string(": ref var = ") + getVariantName(reference_vid) +
-                            string(" ");
-                }
-                break;
-            }
-            default : {
-                cout << "\n Unknown CSV report mode = " << mode << endl;
-            }
-        };
-        return title;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      namecol_width = max(namecol_width,
+                          getVariantName(variant_ids[iv]).size());
     }
 
     long double Executor::getReportDataEntry(CSVRepMode mode,
@@ -1209,24 +1281,45 @@ namespace rajaperf {
     void Executor::getFOMGroups(vector<FOMGroup> &fom_groups) {
         fom_groups.clear();
 
-        for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-            VariantID vid = variant_ids[iv];
-            string vname = getVariantName(vid);
+    //
+    // Print column title line.
+    //
+    file <<left<< setw(namecol_width) << "Kernel  " << endl;
+    file << dot_line << endl;
+    file <<left<< setw(namecol_width) << "Variants  "
+         <<left<< setw(checksum_width) << "Checksum  "
+         <<left<< setw(checksum_width)
+         << "Checksum Diff (vs. first variant listed)";
+    file << endl;
+    file << dash_line << endl;
 
             if (vname.find("Base") != string::npos) {
 
-                FOMGroup group;
-                group.base = vid;
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+
+        if ( kern->wasVariantRun(vid) ) {
+          Checksum_type vcheck_sum = kern->getChecksum(vid);
+          Checksum_type diff = cksum_ref - kern->getChecksum(vid);
+
+          file <<left<< setw(namecol_width) << getVariantName(vid)
+               << showpoint << setprecision(prec)
+               <<left<< setw(checksum_width) << vcheck_sum
+               <<left<< setw(checksum_width) << diff << endl;
+        } else {
+          file <<left<< setw(namecol_width) << getVariantName(vid)
+               <<left<< setw(checksum_width) << "Not Run"
+               <<left<< setw(checksum_width) << "Not Run" << endl;
+        }
 
                 string::size_type pos = vname.find("_");
                 string pm(vname.substr(pos + 1, string::npos));
 
-                for (size_t ivs = iv + 1; ivs < variant_ids.size(); ++ivs) {
-                    VariantID vids = variant_ids[ivs];
-                    if (getVariantName(vids).find(pm) != string::npos) {
-                        group.variants.push_back(vids);
-                    }
-                }
+      file << endl;
+      file << dash_line_short << endl;
+    }
+
+    file.flush();
 
                 if (!group.variants.empty()) {
                     fom_groups.push_back(group);
@@ -1234,21 +1327,90 @@ namespace rajaperf {
 
             }  // if variant name contains 'Base'
 
-        }  // iterate over variant ids to run
-
-#if 0 //  RDH DEBUG   (leave this here, it's useful for debugging!)
-        cout << "\nFOMGroups..." << endl;
-        for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
-          const FOMGroup& group = fom_groups[ifg];
-          cout << "\tBase : " << getVariantName(group.base) << endl;
-          for (size_t iv = 0; iv < group.variants.size(); ++iv) {
-            cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
-          }
-        }
-#endif
+string Executor::getReportTitle(CSVRepMode mode)
+{
+  string title;
+  switch ( mode ) {
+    case CSVRepMode::Timing : {
+      title = string("Mean Runtime Report (sec.) ");
+      break;
     }
-// TODO:  AJP and DZP talk these functions through;
-// is the arrow operator here acting as a pointer object to registerGroup, etc.?
+    case CSVRepMode::Speedup : {
+      if ( haveReferenceVariant() ) {
+        title = string("Speedup Report (T_ref/T_var)") +
+                string(": ref var = ") + getVariantName(reference_vid) +
+                string(" ");
+      }
+      break;
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  };
+  return title;
+}
+
+long double Executor::getReportDataEntry(CSVRepMode mode,
+                                         KernelBase* kern,
+                                         VariantID vid)
+{
+  long double retval = 0.0;
+  switch ( mode ) {
+    case CSVRepMode::Timing : {
+      retval = kern->getTotTime(vid) / run_params.getNumPasses();
+      break;
+    }
+    case CSVRepMode::Speedup : {
+      if ( haveReferenceVariant() ) {
+        if ( kern->hasVariantDefined(reference_vid) &&
+             kern->hasVariantDefined(vid) ) {
+          retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+        } else {
+          retval = 0.0;
+        }
+#if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
+        cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
+        cout << "\tref_time, tot_time, retval = "
+             << kern->getTotTime(reference_vid) << " , "
+             << kern->getTotTime(vid) << " , "
+             << retval << endl;
+#endif
+      }
+      break;
+    }
+    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+  };
+  return retval;
+}
+
+void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
+{
+  fom_groups.clear();
+
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    VariantID vid = variant_ids[iv];
+    string vname = getVariantName(vid);
+
+    if ( vname.find("Base") != string::npos ) {
+
+      FOMGroup group;
+      group.base = vid;
+
+      string::size_type pos = vname.find("_");
+      string pm(vname.substr(pos+1, string::npos));
+
+      for (size_t ivs = iv+1; ivs < variant_ids.size(); ++ivs) {
+        VariantID vids = variant_ids[ivs];
+        if ( getVariantName(vids).find(pm) != string::npos ) {
+          group.variants.push_back(vids);
+        }
+      }
+
+      if ( !group.variants.empty() ) {
+        fom_groups.push_back( group );
+      }
+
+    }  // if variant name contains 'Base'
+
+  }  // iterate over variant ids to run
 
     void free_register_group(Executor *exec, std::string groupName) {
         exec->registerGroup(groupName);

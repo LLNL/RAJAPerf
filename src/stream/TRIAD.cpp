@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -23,6 +23,15 @@ TRIAD::TRIAD(const RunParams& params)
 {
   setDefaultSize(1000000);
   setDefaultReps(1000);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(2 * getRunSize());
+
+  setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

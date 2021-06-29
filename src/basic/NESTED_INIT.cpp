@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -24,12 +24,25 @@ namespace basic
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
-  m_ni = 500;
-  m_nj = 500;
-  m_nk = m_nk_init = 50;
+  m_n_init = 100;
 
-  setDefaultSize(m_ni * m_nj * m_nk);
-  setDefaultReps(100);
+  setDefaultSize(m_n_init * m_n_init * m_n_init);
+  setDefaultReps(1000);
+
+  auto n_final = std::cbrt(getRunSize());
+  m_ni = n_final;
+  m_nj = n_final;
+  m_nk = n_final;
+  m_array_length = m_ni * m_nj * m_nk;
+
+  setProblemSize( m_array_length );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length );
+  setFLOPsPerRep(3 * m_array_length);
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -61,9 +74,6 @@ NESTED_INIT::~NESTED_INIT()
 
 void NESTED_INIT::setUp(VariantID vid)
 {
-  m_nk = m_nk_init * static_cast<Real_type>( getRunSize() ) / getDefaultSize();
-  m_array_length = m_ni * m_nj * m_nk;
-
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
 }
 

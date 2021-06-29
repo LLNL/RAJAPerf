@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -85,12 +85,14 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       hipLaunchKernelGGL((poly_2mm_1), dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
                                                     tmp, A, B, alpha,
                                                     nj, nk);
+      hipErrchk( hipGetLastError() );
 
       dim3 nblocks2(1, ni, 1);
       dim3 nthreads_per_block2(nl, 1, 1);
       hipLaunchKernelGGL((poly_2mm_2), dim3(nblocks2), dim3(nthreads_per_block2), 0, 0,
                                                     tmp, C, D, beta,
                                                     nl, nj);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -119,6 +121,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel1,
         nblocks1, nthreads_per_block1, 0, 0,
         0, ni, 0, nj, poly_2mm_1_lambda);
+      hipErrchk( hipGetLastError() );
 
       auto poly_2mm_2_lambda = [=] __device__ (Index_type i, Index_type l) {
 
@@ -135,6 +138,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       hipLaunchKernelGGL(kernel2,
         nblocks2, nthreads_per_block2, 0, 0,
         0, ni, 0, nl, poly_2mm_2_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

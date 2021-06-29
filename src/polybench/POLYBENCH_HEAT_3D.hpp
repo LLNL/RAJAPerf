@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -19,7 +19,7 @@
 ///                      0.125*(A[i][j+1][k] - 2.0*A[i][j][k] + A[i][j-1][k]) +
 ///                      0.125*(A[i][j][k+1] - 2.0*A[i][j][k] + A[i][j][k-1]) +
 ///                      A[i][j][k];
-///       }         
+///       }
 ///     }
 ///   }
 ///
@@ -30,7 +30,7 @@
 ///                      0.125*(B[i][j+1][k] - 2.0*B[i][j][k] + B[i][j-1][k]) +
 ///                      0.125*(B[i][j][k+1] - 2.0*B[i][j][k] + B[i][j][k-1]) +
 ///                      B[i][j][k];
-///       }         
+///       }
 ///     }
 ///   }
 ///
@@ -99,7 +99,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -114,7 +114,6 @@ public:
   POLYBENCH_HEAT_3D(const RunParams& params);
 
   ~POLYBENCH_HEAT_3D();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

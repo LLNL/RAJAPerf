@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -35,7 +35,7 @@ void SORT::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::sort<RAJA::omp_parallel_for_exec>(SORT_STD_ARGS);
+        RAJA::sort<RAJA::omp_parallel_for_exec>(RAJA_SORT_ARGS);
 
       }
       stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,8 +21,17 @@ namespace algorithm
 SORTPAIRS::SORTPAIRS(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORTPAIRS, params)
 {
-   setDefaultSize(100000);
-   setDefaultReps(50);
+  setDefaultSize(1000000);
+  setDefaultReps(20);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() ); // touched data size, not actual number of stores and loads
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Sort);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );

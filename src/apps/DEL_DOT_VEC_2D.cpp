@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -13,6 +13,9 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
+#include <cmath>
+
+
 namespace rajaperf
 {
 namespace apps
@@ -22,12 +25,24 @@ namespace apps
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
-  setDefaultSize(312);  // See rzmax in ADomain struct
-  setDefaultReps(1050);
+  setDefaultSize(1000*1000);  // See rzmax in ADomain struct
+  setDefaultReps(100);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 2);
+  Index_type rzmax = std::sqrt(getRunSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 2);
 
   m_array_length = m_domain->nnalls;
+
+  setProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
+                  (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
+                  (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * (m_domain->imax+1-m_domain->imin)*(m_domain->jmax+1-m_domain->jmin) ) ; // touched data size, not actual number of stores and loads
+  setFLOPsPerRep(54 * m_domain->n_real_zones);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -52,11 +67,6 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
 DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
 {
   delete m_domain;
-}
-
-Index_type DEL_DOT_VEC_2D::getItsPerRep() const
-{
-  return m_domain->n_real_zones;
 }
 
 void DEL_DOT_VEC_2D::setUp(VariantID vid)
