@@ -465,7 +465,7 @@ void Executor::reportRunSummary(ostream& str) const
     dash_width += bytesrep_width + static_cast<Index_type>(sepchr.size());
 
     double frsize = log10( static_cast<double>(flopsrep_width) );
-    string flopsrep_head("Bytes/rep");
+    string flopsrep_head("FLOPS/rep");
     flopsrep_width = max( static_cast<Index_type>(flopsrep_head.size()),
                            static_cast<Index_type>(frsize) ) + 3;
     dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
