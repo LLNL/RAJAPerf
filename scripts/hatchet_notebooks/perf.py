@@ -23,8 +23,9 @@ sys.path.append(deploy_dir)
 sys.path.append(deploy_dir + "/hatchet")
 import hatchet as ht 
 
-
-import caliperreader as cr
+# if you didn't install caliperreader via pip3 point to it's deploy_dir
+# sys.path.append(deploy_dir + 'Caliper/python/caliper-reader/')
+import caliperreader as cr # pip3 install caliper-reader
 
 import importlib
 import pkgutil
@@ -56,7 +57,7 @@ class GenericFrame(ht.GraphFrame):
         generic_graph=gf.graph.copy()
         generic_exc_metrics = gf.exc_metrics
         generic_inc_metrics = gf.inc_metrics
-        generic_default_metric = gf.default_metric
+        #generic_default_metric = gf.default_metric  # in newer Hatchet
         generic_dataframe.iloc[0, generic_dataframe.columns.get_loc('name')] = 'Variant' 
         ii = generic_dataframe.index[0]
         fr = ht.frame.Frame({'name': 'Variant', 'type' : 'region'})
@@ -66,7 +67,7 @@ class GenericFrame(ht.GraphFrame):
         setattr(nn,'children',ii.children)
         generic_dataframe.rename(index={ii: nn},inplace=True)
         setattr(generic_graph,'roots',[nn])
-        super().__init__(generic_graph,generic_dataframe,generic_exc_metrics,generic_inc_metrics,generic_default_metric)
+        super().__init__(generic_graph,generic_dataframe,generic_exc_metrics,generic_inc_metrics)
 
 def CompareVariants(CALI_FILES):
     grouping_attribute = "prop:nested"
