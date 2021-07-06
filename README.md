@@ -205,7 +205,7 @@ All output files are text files. Other than the checksum file, all are in
 The kernel information that will appear on the screen when the Suite is run or
 located in the ''RAJAPerf-kernels.csv'' file includes the following:
 
-1. Kernel name -- Format is <group name>_<kernel name>.
+1. Kernel name -- Format is group name followed by kernel name, separated by an underscore. 
 2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel, available via a command line option.
 3. Problem size -- The largest parallel iteration space over all 'loop structures' (e.g., single loop, nested loops, etc.) run in an instance of the kernel. note: some kernels run multiple loops, possibly of different sizes in each kernel instance.
 4. Reps -- Number of time a kernel is run in a single pass through the Suite.
@@ -463,7 +463,7 @@ checksums can be compared at the end of a run.
 Note: to simplify these operations and help ensure consistency, there exist 
 utility methods to allocate, initialize, deallocate, and copy data, and compute
 checksums defined in the `DataUtils.hpp` `CudaDataUtils.hpp`,
-`OpenMPTargetDataUtils.hpp`, etc. header files in the 'common' directory.
+`OpenMPTargetDataUtils.hpp`, etc. header files in the `common` directory.
 
 ##### run methods
 
