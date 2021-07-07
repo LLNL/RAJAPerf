@@ -12,7 +12,7 @@ WORKDIR /home/axom/workspace
 RUN ls
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_WARNINGS=On -DENABLE_OPENMP=On -DRAJA_DEPRECATED_TESTS=On ..
 RUN cd build && make -j 16
-RUN cd build && ./bin/raja-perf.exe test --output-on-failure
+RUN cd build && ./bin/raja-perf.exe
 
 FROM axom/compilers:gcc-5 AS gcc5-debug
 ENV GTEST_COLOR=1
