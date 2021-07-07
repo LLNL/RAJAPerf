@@ -88,6 +88,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
 #endif
 
     default : {
+      ignore_unused(run_reps, ibegin, iend, x, list);
       std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
     }
 

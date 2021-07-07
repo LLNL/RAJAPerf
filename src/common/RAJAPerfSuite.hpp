@@ -320,6 +320,16 @@ const std::string& getFeatureName(FeatureID vid);
  */
 KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Empty function used to squash compiler warnings for unused variables.
+ *
+ *******************************************************************************
+ */
+template < typename... Ts >
+inline void ignore_unused(Ts&&...) { }
+
 }  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard
