@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,6 +23,26 @@ ENERGY::ENERGY(const RunParams& params)
 {
   setDefaultSize(1000000);
   setDefaultReps(130);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( 6 * getProblemSize() );
+  setKernelsPerRep(6);
+  // some branches are never taken due to the nature of the initialization of delvc
+  // the additional reads and writes that would be done if those branches were taken are noted in the comments
+  setBytesPerRep( (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getRunSize() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() + /* 1 + 8 */
+                  (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getRunSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
+                  (1*sizeof(Real_type) + 7*sizeof(Real_type)) * getRunSize() + /* 1 + 12 */
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() ); /* 1 + 8 */
+  setFLOPsPerRep((6  +
+                  11 + // 1 sqrt
+                  8  +
+                  2  +
+                  19 + // 1 sqrt
+                  9    // 1 sqrt
+                  ) * getProblemSize());
 
   setUsesFeature(Forall);
 
@@ -44,7 +64,7 @@ ENERGY::ENERGY(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-ENERGY::~ENERGY() 
+ENERGY::~ENERGY()
 {
 }
 
@@ -65,7 +85,7 @@ void ENERGY::setUp(VariantID vid)
   allocAndInitData(m_ql_old, getRunSize(), vid);
   allocAndInitData(m_qq_old, getRunSize(), vid);
   allocAndInitData(m_vnewc, getRunSize(), vid);
-  
+
   initData(m_rho0);
   initData(m_e_cut);
   initData(m_emin);

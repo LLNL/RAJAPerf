@@ -29,10 +29,24 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = run_params.getSizeFactor() * m_num_z_default;
+  m_num_z = getRunSize() / (m_num_d_default * m_num_g_default);
   m_num_g = m_num_g_default;
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
+
+  m_philen = m_num_m * m_num_g * m_num_z;
+  m_elllen = m_num_d * m_num_m;
+  m_psilen = m_num_d * m_num_g * m_num_z;
+
+  setProblemSize( m_num_d * m_num_g * m_num_z );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  // using total data size instead of writes and reads
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_elllen +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
+  setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
   setUsesFeature(Kernel);
 
@@ -60,17 +74,8 @@ LTIMES_NOVIEW::~LTIMES_NOVIEW()
 {
 }
 
-Index_type LTIMES_NOVIEW::getItsPerRep() const
-{
-  return m_num_d * m_num_m * m_num_g * m_num_z ;
-}
-
 void LTIMES_NOVIEW::setUp(VariantID vid)
 {
-  m_philen = m_num_m * m_num_g * m_num_z;
-  m_elllen = m_num_d * m_num_m;
-  m_psilen = m_num_d * m_num_g * m_num_z;
-
   allocAndInitDataConst(m_phidat, int(m_philen), Real_type(0.0), vid);
   allocAndInitData(m_elldat, int(m_elllen), vid);
   allocAndInitData(m_psidat, int(m_psilen), vid);

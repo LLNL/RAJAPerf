@@ -24,6 +24,14 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(50);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(6 * getRunSize() + 1);
+
   setUsesFeature(Forall);
   setUsesFeature(Atomic);
 

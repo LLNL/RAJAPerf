@@ -24,6 +24,7 @@
 
 #include <string>
 #include <iostream>
+#include <limits>
 
 namespace rajaperf {
 
@@ -37,7 +38,6 @@ namespace rajaperf {
 class KernelBase
 {
 public:
-
   KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
@@ -45,32 +45,57 @@ public:
   KernelID     getKernelID() const { return kernel_id; }
   const std::string& getName() const { return name; }
 
-  Index_type getDefaultSize() const { return default_size; }
-  Index_type getDefaultReps() const { return default_reps; }
-
-  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
+  //
+  // Methods called in kernel subclass constructors to set kernel
+  // properties used to describe kernel and define how it will run
+  //
 
   void setDefaultSize(Index_type size) { default_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
+  void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
+  void setItsPerRep(Index_type its) { its_per_rep = its; };
+  void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
+  void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
+  void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
+
+  void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
+  void setVariantDefined(VariantID vid);
+
+  //
+  // Getter methods used to generate kernel execution summary
+  // and kernel details report ouput.
+  //
+
+  Index_type getDefaultSize() const { return default_size; }
+  Index_type getDefaultReps() const { return default_reps; }
+  Index_type getProblemSize() const { return problem_size; }
+  Index_type getItsPerRep() const { return its_per_rep; };
+  Index_type getKernelsPerRep() const { return kernels_per_rep; };
+  Index_type getBytesPerRep() const { return bytes_per_rep; }
+  Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
   Index_type getRunSize() const;
   Index_type getRunReps() const;
 
-  bool wasVariantRun(VariantID vid) const 
+  bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
+
+  bool hasVariantDefined(VariantID vid) const
+    { return has_variant_defined[vid]; }
+
+
+  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
+
+  //
+  // Methods to get information about kernel execution for reports
+  // containing kernel execution information
+  //
+  bool wasVariantRun(VariantID vid) const
     { return num_exec[vid] > 0; }
 
   double getMinTime(VariantID vid) const { return min_time[vid]; }
   double getMaxTime(VariantID vid) const { return max_time[vid]; }
   double getTotTime(VariantID vid) { return tot_time[vid]; }
   Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
-
-  bool hasVariantToRun(VariantID vid) const { return has_variant_to_run[vid]; }
-
-  void setVariantDefined(VariantID vid);
-
-  bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
-
-  void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
 
   void execute(VariantID vid);
 
@@ -108,12 +133,10 @@ public:
 
   //
   // Virtual and pure virtual methods that may/must be implemented
-  // by each concrete kernel class.
+  // by concrete kernel subclass.
   //
 
-  virtual Index_type getItsPerRep() const { return getRunSize(); }
-
-  virtual void print(std::ostream& os) const; 
+  virtual void print(std::ostream& os) const;
 
   virtual void runKernel(VariantID vid);
 
@@ -143,15 +166,31 @@ protected:
 private:
   KernelBase() = delete;
 
-  void recordExecTime(); 
+  void recordExecTime();
 
+  //
+  // Static properties of kernel, independent of run
+  //
   KernelID    kernel_id;
   std::string name;
 
   Index_type default_size;
   Index_type default_reps;
 
-  VariantID running_variant; 
+  bool uses_feature[NumFeatures];
+
+  bool has_variant_defined[NumVariants];
+
+  //
+  // Properties of kernel dependent on how kernel is run
+  //
+  Index_type problem_size;
+  Index_type its_per_rep;
+  Index_type kernels_per_rep;
+  Index_type bytes_per_rep;
+  Index_type FLOPs_per_rep;
+
+  VariantID running_variant;
 
   int num_exec[NumVariants];
 
@@ -160,10 +199,6 @@ private:
   RAJA::Timer::ElapsedType min_time[NumVariants];
   RAJA::Timer::ElapsedType max_time[NumVariants];
   RAJA::Timer::ElapsedType tot_time[NumVariants];
-
-  bool has_variant_to_run[NumVariants];
-
-  bool uses_feature[NumFeatures];
 };
 
 }  // closing brace for rajaperf namespace

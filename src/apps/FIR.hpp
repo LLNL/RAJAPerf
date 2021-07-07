@@ -54,7 +54,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -68,8 +68,6 @@ public:
   FIR(const RunParams& params);
 
   ~FIR();
-
-  Index_type getItsPerRep() const;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

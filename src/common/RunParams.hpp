@@ -45,6 +45,29 @@ public:
     Undefined     /*!< input not defined (yet) */
   };
 
+  /*!
+   * \brief Enumeration indicating how to interpret size input
+   */
+  enum SizeMeaning {
+    Unset,    /*!< indicates value is unset */
+    Factor,   /*!< multiplier on default kernel iteration space */
+    Direct,   /*!< directly use as kernel iteration space */
+  };
+
+  static std::string SizeMeaningToStr(SizeMeaning sm)
+  {
+    switch (sm) {
+      case SizeMeaning::Unset:
+        return "Unset";
+      case SizeMeaning::Factor:
+        return "Factor";
+      case SizeMeaning::Direct:
+        return "Direct";
+      default:
+        return "Unknown";
+    }
+  }
+
 //@{
 //! @name Methods to get/set input state
 
@@ -67,7 +90,12 @@ public:
 
   double getRepFactor() const { return rep_fact; }
 
-  double getSizeFactor() const { return size_fact; }
+
+  SizeMeaning getSizeMeaning() const { return size_meaning; }
+
+  double getSize() const { return size; }
+
+  double getSizeFactor() const { return size_factor; }
 
   SizeSpec  getSizeSpec() const { return size_spec; }
 
@@ -134,8 +162,13 @@ private:
   bool show_progress;    /*!< true -> show run progress; false -> do not */
 
   int npasses;           /*!< Number of passes through suite  */
+
   double rep_fact;       /*!< pct of default kernel reps to run */
-  double size_fact;      /*!< pct of default kernel iteration space to run */
+
+  SizeMeaning size_meaning; /*!< meaning of size value */
+  double size;           /*!< kernel size to run (input option) */
+  double size_factor;    /*!< default kernel size multipier (input option) */
+
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
 

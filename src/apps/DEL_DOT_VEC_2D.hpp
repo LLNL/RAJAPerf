@@ -88,7 +88,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -103,8 +103,6 @@ public:
   DEL_DOT_VEC_2D(const RunParams& params);
 
   ~DEL_DOT_VEC_2D();
-
-  Index_type getItsPerRep() const;
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
