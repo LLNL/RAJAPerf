@@ -20,6 +20,7 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_WARNINGS=On -DENABLE_COVERAGE=On -DENABLE_OPENMP=On ..
 RUN cd build && make -j 16
+RUN cd build && ./bin/raja-perf.exe --checkrun -sp
 
 FROM axom/compilers:gcc-6 AS gcc6
 ENV GTEST_COLOR=1
@@ -59,6 +60,7 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_OPENMP=On -DCMAKE_CXX_FLAGS=-fsanitize=address ..
 RUN cd build && make -j 16
+RUN cd build && ./bin/raja-perf.exe --checkrun -sp
 
 FROM axom/compilers:nvcc-10.2 AS nvcc10
 ENV GTEST_COLOR=1
@@ -66,6 +68,7 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=g++ -DENABLE_CUDA=On -DCMAKE_CUDA_STANDARD=14 ..
 RUN cd build && make -j 2
+RUN cd build && ./bin/raja-perf.exe --dryrun
 
 FROM axom/compilers:nvcc-10.2 AS nvcc10-debug
 ENV GTEST_COLOR=1
@@ -73,6 +76,7 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_CUDA=On -DCMAKE_CUDA_STANDARD=14 ..
 RUN cd build && make -j 2
+RUN cd build && ./bin/raja-perf.exe --dryrun
 
 FROM axom/compilers:rocm AS hip
 ENV GTEST_COLOR=1
@@ -81,6 +85,7 @@ WORKDIR /home/axom/workspace
 ENV HCC_AMDGPU_TARGET=gfx900
 RUN mkdir build && cd build && cmake -DROCM_ROOT_DIR=/opt/rocm/include -DHIP_RUNTIME_INCLUDE_DIRS="/opt/rocm/include;/opt/rocm/hip/include" -DENABLE_HIP=On -DENABLE_OPENMP=Off -DENABLE_CUDA=Off -DENABLE_WARNINGS_AS_ERRORS=Off -DHIP_HIPCC_FLAGS=-fPIC ..
 RUN cd build && make -j 16
+RUN cd build && ./bin/raja-perf.exe --dryrun
 
 FROM axom/compilers:oneapi AS sycl
 ENV GTEST_COLOR=1
