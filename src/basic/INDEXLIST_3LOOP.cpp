@@ -26,7 +26,7 @@ INDEXLIST_3LOOP::INDEXLIST_3LOOP(const RunParams& params)
 
   setProblemSize( getRunSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( 3 * getProblemSize() + 1 );
   setKernelsPerRep(3);
   setBytesPerRep( (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
