@@ -24,6 +24,23 @@ INDEXLIST_3LOOP::INDEXLIST_3LOOP(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(100);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(3);
+  setBytesPerRep( (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
+
+                  (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
+                  (1*sizeof(Int_type) + 1*sizeof(Int_type)) * (getRunSize()+1) +
+
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * (getRunSize()+1) +
+                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() / 2 ); // about 50% output
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
+  setUsesFeature(Scan);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

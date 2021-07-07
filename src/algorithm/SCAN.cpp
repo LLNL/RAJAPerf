@@ -24,6 +24,15 @@ SCAN::SCAN(const RunParams& params)
    setDefaultSize(1000000);
    setDefaultReps(100);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(1);
+
+  setUsesFeature(Scan);
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
