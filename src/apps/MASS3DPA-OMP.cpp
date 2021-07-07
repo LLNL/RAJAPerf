@@ -38,37 +38,55 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
 
         MASS3DPA_0_CPU
 
-        FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D){MASS3DPA_1}
-          FOREACH_THREAD(dx, x, Q1D) {MASS3DPA_2}
+         FOREACH_THREAD(dy, y, D1D) {
+          FOREACH_THREAD(dx, x, D1D){
+            MASS3DPA_1
+          }
+          FOREACH_THREAD(dx, x, Q1D) {
+            MASS3DPA_2
+          }
         }
 
         FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_3 }
+          FOREACH_THREAD(qx, x, Q1D) {
+            MASS3DPA_3
+          }
         }
 
         FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_4 }
+          FOREACH_THREAD(qx, x, Q1D) {
+            MASS3DPA_4
+          }
         }
 
         FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_5 }
+          FOREACH_THREAD(qx, x, Q1D) {
+            MASS3DPA_5
+          }
         }
 
         FOREACH_THREAD(d, y, D1D) {
-          FOREACH_THREAD(q, x, Q1D) { MASS3DPA_6 }
+          FOREACH_THREAD(q, x, Q1D) {
+            MASS3DPA_6
+          }
         }
 
         FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(dx, x, D1D) { MASS3DPA_7 }
+          FOREACH_THREAD(dx, x, D1D) {
+            MASS3DPA_7
+          }
         }
 
         FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D) { MASS3DPA_8 }
+          FOREACH_THREAD(dx, x, D1D) {
+            MASS3DPA_8
+          }
         }
 
         FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D) { MASS3DPA_9 }
+          FOREACH_THREAD(dx, x, D1D) {
+            MASS3DPA_9
+          }
         }
 
       } // element loop

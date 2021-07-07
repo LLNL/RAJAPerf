@@ -46,41 +46,58 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   MASS3DPA_0_GPU
 
   FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D){MASS3DPA_1} FOREACH_THREAD(dx, x, Q1D) {
+    FOREACH_THREAD(dx, x, D1D){
+      MASS3DPA_1
+    }
+    FOREACH_THREAD(dx, x, Q1D) {
       MASS3DPA_2
     }
   }
   __syncthreads();
   FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_3 }
+    FOREACH_THREAD(qx, x, Q1D) {
+      MASS3DPA_3
+    }
   }
   __syncthreads();
   FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_4 }
+    FOREACH_THREAD(qx, x, Q1D) {
+      MASS3DPA_4
+    }
   }
   __syncthreads();
   FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(qx, x, Q1D) { MASS3DPA_5 }
+    FOREACH_THREAD(qx, x, Q1D) {
+      MASS3DPA_5
+    }
   }
 
   __syncthreads();
   FOREACH_THREAD(d, y, D1D) {
-    FOREACH_THREAD(q, x, Q1D) { MASS3DPA_6 }
+    FOREACH_THREAD(q, x, Q1D) {
+      MASS3DPA_6
+    }
   }
 
   __syncthreads();
   FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(dx, x, D1D) { MASS3DPA_7 }
+    FOREACH_THREAD(dx, x, D1D) {
+      MASS3DPA_7
+    }
   }
   __syncthreads();
 
   FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D) { MASS3DPA_8 }
+    FOREACH_THREAD(dx, x, D1D) {
+      MASS3DPA_8
+    }
   }
 
   __syncthreads();
   FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D) { MASS3DPA_9 }
+    FOREACH_THREAD(dx, x, D1D) {
+      MASS3DPA_9
+    }
   }
 }
 
