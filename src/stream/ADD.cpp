@@ -24,6 +24,13 @@ ADD::ADD(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(1000);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(1 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );

@@ -55,11 +55,11 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
                   m_grid_dims_default[2] );
   setDefaultReps(50);
 
-  double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
+  double cbrt_run_size = std::cbrt(getRunSize());
 
-  m_grid_dims[0] = cbrt_size_fact * m_grid_dims_default[0];
-  m_grid_dims[1] = cbrt_size_fact * m_grid_dims_default[1];
-  m_grid_dims[2] = cbrt_size_fact * m_grid_dims_default[2];
+  m_grid_dims[0] = cbrt_run_size;
+  m_grid_dims[1] = cbrt_run_size;
+  m_grid_dims[2] = cbrt_run_size;
   m_halo_width = m_halo_width_default;
   m_num_vars   = m_num_vars_default;
 
@@ -69,6 +69,16 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   m_var_size = m_grid_plus_halo_dims[0] *
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
+
+  setProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[2] );
+
+  setItsPerRep( m_num_vars * (m_var_size - getProblemSize()) );
+  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() );
+  setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
 
@@ -92,13 +102,6 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
 
 HALOEXCHANGE::~HALOEXCHANGE()
 {
-}
-
-Index_type HALOEXCHANGE::getItsPerRep() const
-{
-  return m_num_vars * (m_var_size - m_grid_dims[0] *
-                                    m_grid_dims[1] *
-                                    m_grid_dims[2] );
 }
 
 void HALOEXCHANGE::setUp(VariantID vid)

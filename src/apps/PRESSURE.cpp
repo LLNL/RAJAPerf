@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,6 +23,16 @@ PRESSURE::PRESSURE(const RunParams& params)
 {
   setDefaultSize(1000000);
   setDefaultReps(700);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( 2 * getProblemSize() );
+  setKernelsPerRep(2);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep((2 +
+                  1
+                  ) * getProblemSize());
 
   setUsesFeature(Forall);
 
@@ -44,7 +54,7 @@ PRESSURE::PRESSURE(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-PRESSURE::~PRESSURE() 
+PRESSURE::~PRESSURE()
 {
 }
 
@@ -55,7 +65,7 @@ void PRESSURE::setUp(VariantID vid)
   allocAndInitDataConst(m_p_new, getRunSize(), 0.0, vid);
   allocAndInitData(m_e_old, getRunSize(), vid);
   allocAndInitData(m_vnewc, getRunSize(), vid);
-  
+
   initData(m_cls);
   initData(m_p_cut);
   initData(m_pmin);
@@ -70,7 +80,7 @@ void PRESSURE::updateChecksum(VariantID vid)
 void PRESSURE::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_compression);
   deallocData(m_bvc);
   deallocData(m_p_new);

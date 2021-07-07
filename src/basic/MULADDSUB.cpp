@@ -24,6 +24,13 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(350);
 
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(3 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
