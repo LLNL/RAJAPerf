@@ -11,8 +11,8 @@
 ///
 /// Index_type count = 0;
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   if (x[i] < 0.0) { \
-///     list[count++] = i ; \
+///   if (x[i] < 0.0) {
+///     list[count++] = i ;
 ///   }
 /// }
 /// Index_type len = count;
