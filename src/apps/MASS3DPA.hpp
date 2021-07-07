@@ -83,6 +83,7 @@ Xsmem[dz][dy][dx] = X_(dx, dy, dz, e); \
 #define MASS3DPA_2 \
   Bsmem[dx][dy] = B_(dx, dy);
 
+// 2 * D1D * D1D * D1D * Q1D
 #define MASS3DPA_3 \
   double u[D1D]; \
 RAJA_UNROLL(MD1) \
@@ -101,6 +102,7 @@ for (int dz = 0; dz < D1D; ++dz) { \
 DDQ[dz][dy][qx] = u[dz]; \
 }
 
+//2 * D1D * D1D * Q1D * Q1D
 #define MASS3DPA_4 \
             double u[D1D]; \
             RAJA_UNROLL(MD1) \
@@ -119,6 +121,7 @@ DDQ[dz][dy][qx] = u[dz]; \
               DQQ[dz][qy][qx] = u[dz]; \
             }
 
+//2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D
 #define MASS3DPA_5 \
             double u[Q1D]; \
             RAJA_UNROLL(MQ1) \
@@ -140,6 +143,7 @@ DDQ[dz][dy][qx] = u[dz]; \
 #define MASS3DPA_6 \
   Btsmem[d][q] = Bt_(q, d);
 
+//2 * Q1D * Q1D * Q1D * D1D
 #define MASS3DPA_7 \
   double u[Q1D]; \
 RAJA_UNROLL(MQ1) \
@@ -158,6 +162,7 @@ for (int qz = 0; qz < Q1D; ++qz) { \
   QQD[qz][qy][dx] = u[qz]; \
  }
 
+// 2 * Q1D * Q1D * D1D * D1D
 #define MASS3DPA_8 \
             double u[Q1D]; \
             RAJA_UNROLL(MQ1) \
@@ -176,6 +181,7 @@ for (int qz = 0; qz < Q1D; ++qz) { \
               QDD[qz][dy][dx] = u[qz]; \
             }
 
+//2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D
 #define MASS3DPA_9 \
             double u[D1D]; \
             RAJA_UNROLL(MD1) \

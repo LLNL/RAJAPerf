@@ -26,6 +26,26 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setDefaultSize(m_NE_default);
   setDefaultReps(50);
 
+  setProblemSize( getRunSize() * Q1D * Q1D);
+
+  m_NE = (getProblemSize())/(Q1D*Q1D);
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+
+  setBytesPerRep( m_Q1D*m_D1D*sizeof(Real_type)  +
+                  m_Q1D*m_D1D*sizeof(Real_type)  +
+                  m_Q1D*m_Q1D*m_Q1D*m_NE*sizeof(Real_type) +
+                  m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) +
+                  m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) );
+
+  setFLOPsPerRep(getProblemSize() * (2 * D1D * D1D * D1D * Q1D +
+                                     2 * D1D * D1D * Q1D * Q1D +
+                                     2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D +
+                                     2 * Q1D * Q1D * Q1D * D1D +
+                                     2 * Q1D * Q1D * D1D * D1D +
+                                     2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D));
+
   setUsesFeature(Teams);
 
   setVariantDefined( Base_Seq );
@@ -48,7 +68,6 @@ MASS3DPA::~MASS3DPA()
 
 void MASS3DPA::setUp(VariantID vid)
 {
-  m_NE = run_params.getSizeFactor() * m_NE_default;
 
   allocAndInitDataConst(m_B, int(m_Q1D*m_D1D), Real_type(1.0), vid);
   allocAndInitDataConst(m_Bt,int(m_Q1D*m_D1D), Real_type(1.0), vid);
