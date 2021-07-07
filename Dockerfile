@@ -20,7 +20,6 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_WARNINGS=On -DENABLE_COVERAGE=On -DENABLE_OPENMP=On ..
 RUN cd build && make -j 16
-RUN cd build && ./bin/raja-perf.exe
 
 FROM axom/compilers:gcc-6 AS gcc6
 ENV GTEST_COLOR=1
@@ -60,7 +59,6 @@ COPY --chown=axom:axom . /home/axom/workspace
 WORKDIR /home/axom/workspace
 RUN mkdir build && cd build && cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_OPENMP=On -DCMAKE_CXX_FLAGS=-fsanitize=address ..
 RUN cd build && make -j 16
-RUN cd build && ./bin/raja-perf.exe
 
 FROM axom/compilers:nvcc-10.2 AS nvcc10
 ENV GTEST_COLOR=1
