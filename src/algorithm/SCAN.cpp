@@ -29,7 +29,7 @@ SCAN::SCAN(const RunParams& params)
   setItsPerRep( getProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(1);
+  setFLOPsPerRep(1 * getRunSize());
 
   setUsesFeature(Scan);
 
