@@ -9,13 +9,24 @@
 ///
 /// INDEXLIST_3LOOP kernel reference implementation:
 ///
-/// Index_type count = 0;
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   if (x[i] < 0.0) { \
-///     list[count++] = i ; \
+///   counts[i] = (x[i] < 0.0) ? 1 : 0;
+/// }
+///
+/// Index_type count = 0;
+/// for (Index_type i = ibegin; i < iend+1; ++i ) {
+///   Index_type inc = counts[i];
+///   counts[i] = count;
+///   count += inc;
+/// }
+///
+/// for (Index_type i = ibegin; i < iend; ++i ) {
+///   if (counts[i] != counts[i+1]) {
+///     list[counts[i]] = i;
 ///   }
 /// }
-/// Index_type len = count;
+///
+/// Index_type len = counts[iend];
 ///
 
 #ifndef RAJAPerf_Basic_INDEXLIST_3LOOP_HPP
