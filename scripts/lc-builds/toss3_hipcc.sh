@@ -23,7 +23,7 @@ COMP_ARCH=$2
 shift 2
 
 BUILD_SUFFIX=lc_toss3-hipcc-${COMP_VER}-${COMP_ARCH}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip_link_${COMP_VER}.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip.cmake
 
 echo
 echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
