@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -21,34 +21,45 @@ namespace lcals
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(16000);
+  setDefaultSize(1000000);
+  setDefaultReps(2000);
+
+  m_N = getRunSize()+1;
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_N );
+  setFLOPsPerRep(1 * getRunSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-FIRST_DIFF::~FIRST_DIFF() 
+FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
 void FIRST_DIFF::setUp(VariantID vid)
 {
-  m_N = getRunSize()+1; 
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }

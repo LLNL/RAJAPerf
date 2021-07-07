@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -21,28 +21,37 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(2000);
+  setDefaultSize(1000000);
+  setDefaultReps(200);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunSize());
+  setFLOPsPerRep(9 * getRunSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-DIFF_PREDICT::~DIFF_PREDICT() 
+DIFF_PREDICT::~DIFF_PREDICT()
 {
 }
 

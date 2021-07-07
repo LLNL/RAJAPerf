@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -34,7 +34,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -67,7 +67,7 @@ private:
   Index_type m_ni;
   Index_type m_nj;
   Index_type m_nk;
-  Index_type m_nk_init;
+  Index_type m_n_init;
 };
 
 } // end namespace basic

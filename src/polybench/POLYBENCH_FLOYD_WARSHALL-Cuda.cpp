@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -14,7 +14,7 @@
 
 #include "common/CudaDataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -37,7 +37,7 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
    Index_type i = blockIdx.y;
    Index_type j = threadIdx.x;
 
-   POLYBENCH_FLOYD_WARSHALL_BODY;              
+   POLYBENCH_FLOYD_WARSHALL_BODY;
 }
 
 
@@ -60,6 +60,33 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
         dim3 nthreads_per_block1(N, 1, 1);
         poly_floyd_warshall<<<nblocks1, nthreads_per_block1>>>(pout, pin,
                                                                k, N);
+        cudaErrchk( cudaGetLastError() );
+
+      }
+
+    }
+    stopTimer();
+
+    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      for (Index_type k = 0; k < N; ++k) {
+
+        dim3 nblocks1(1, N, 1);
+        dim3 nthreads_per_block1(N, 1, 1);
+        lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
+                          <<<nblocks1, nthreads_per_block1>>>(
+          0, N, 0, N,
+          [=] __device__ (Index_type i, Index_type j) {
+
+          POLYBENCH_FLOYD_WARSHALL_BODY;
+        });
 
       }
 
@@ -78,8 +105,8 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
           RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<1, RAJA::cuda_block_y_loop,
-              RAJA::statement::For<2, RAJA::cuda_thread_x_loop,
+            RAJA::statement::For<1, RAJA::cuda_block_y_direct,
+              RAJA::statement::For<2, RAJA::cuda_thread_x_direct,
                 RAJA::statement::Lambda<0>
               >
             >
@@ -113,4 +140,4 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+

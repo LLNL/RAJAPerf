@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -23,12 +23,12 @@
   Real_ptr c = m_c;
 
 #define ADD_BODY  \
-  c[i] = a[i] + b[i]; 
+  c[i] = a[i] + b[i];
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 

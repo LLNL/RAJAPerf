@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -36,13 +36,13 @@ namespace basic
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
 
-__global__ void daxpy(Real_ptr y, Real_ptr x, 
-                      Real_type a, 
-                      Index_type iend) 
+__global__ void daxpy(Real_ptr y, Real_ptr x,
+                      Real_type a,
+                      Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     DAXPY_BODY; 
+     DAXPY_BODY;
    }
 }
 
@@ -64,7 +64,29 @@ void DAXPY::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((daxpy),dim3(grid_size), dim3(block_size), 0, 0, y, x, a,
-                                        iend ); 
+                                        iend );
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    DAXPY_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    DAXPY_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto daxpy_lambda = [=] __device__ (Index_type i) {
+        DAXPY_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(daxpy_lambda)>,
+        grid_size, block_size, 0, 0, ibegin, iend, daxpy_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

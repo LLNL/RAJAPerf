@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -70,6 +70,7 @@ void EOS::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((eos), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z, u,
                                        q, r, t,
                                        iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

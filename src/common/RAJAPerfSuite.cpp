@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -13,7 +13,6 @@
 //
 // Basic kernels...
 //
-#include "basic/ATOMIC_PI.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
@@ -21,6 +20,8 @@
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
+#include "basic/PI_ATOMIC.hpp"
+#include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/TRAP_INT.hpp"
 
@@ -72,10 +73,18 @@
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
+#include "apps/HALOEXCHANGE.hpp"
+#include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
+
+//
+// Algorithm kernels...
+//
+#include "algorithm/SORT.hpp"
+#include "algorithm/SORTPAIRS.hpp"
 
 
 #include <iostream>
@@ -102,6 +111,7 @@ static const std::string GroupNames [] =
   std::string("Polybench"),
   std::string("Stream"),
   std::string("Apps"),
+  std::string("Algorithm"),
 
   std::string("Unknown Group")  // Keep this at the end and DO NOT remove....
 
@@ -126,7 +136,6 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
-  std::string("Basic_ATOMIC_PI"),
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
@@ -134,6 +143,8 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT_VIEW1D_OFFSET"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
+  std::string("Basic_PI_ATOMIC"),
+  std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_TRAP_INT"),
 
@@ -185,10 +196,18 @@ static const std::string KernelNames [] =
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
+  std::string("Apps_HALOEXCHANGE"),
+  std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
+
+//
+// Algorithm kernels...
+//
+  std::string("Algorithm_SORT"),
+  std::string("Algorithm_SORTPAIRS"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -200,7 +219,7 @@ static const std::string KernelNames [] =
  *
  * \brief Array of names for each VARIANT in suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
  *            ENUM OF VARIANT IDS IN HEADER FILE!!!
@@ -222,14 +241,49 @@ static const std::string VariantNames [] =
   std::string("RAJA_OMPTarget"),
 
   std::string("Base_CUDA"),
+  std::string("Lambda_CUDA"),
   std::string("RAJA_CUDA"),
 
   std::string("Base_HIP"),
+  std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each (RAJA) FEATURE used in suite.
+ *
+ * IMPORTANT: This is only modified when a new feature is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF FEATURE IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string FeatureNames [] =
+{
+
+  std::string("Forall"),
+  std::string("Kernel"),
+  std::string("Launch"),
+
+  std::string("Sort"),
+  std::string("Scan"),
+  std::string("Workgroup"),
+
+  std::string("Reduction"),
+  std::string("Atomic"),
+
+  std::string("View"),
+
+  std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
+
+}; // END FeatureNames
 
 
 /*
@@ -239,9 +293,9 @@ static const std::string VariantNames [] =
  *
  *******************************************************************************
  */
-const std::string& getGroupName(GroupID sid)
+const std::string& getGroupName(GroupID gid)
 {
-  return GroupNames[sid];
+  return GroupNames[gid];
 }
 
 
@@ -323,20 +377,34 @@ bool isVariantAvailable(VariantID vid)
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
-  if ( vid == Base_CUDA || 
+  if ( vid == Base_CUDA ||
+       vid == Lambda_CUDA ||
        vid == RAJA_CUDA ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  if ( vid == Base_HIP || 
+  if ( vid == Base_HIP ||
+       vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
     ret_val = true;
   }
 #endif
 
   return ret_val;
+}
+
+/*
+ *******************************************************************************
+ *
+ * Return feature name associated with FeatureID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFeatureName(FeatureID fid)
+{
+  return FeatureNames[fid];
 }
 
 /*
@@ -356,10 +424,6 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
-    case Basic_ATOMIC_PI : {
-       kernel = new basic::ATOMIC_PI(run_params);
-       break;
-    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -386,6 +450,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_NESTED_INIT : {
        kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_PI_ATOMIC : {
+       kernel = new basic::PI_ATOMIC(run_params);
+       break;
+    }
+    case Basic_PI_REDUCE : {
+       kernel = new basic::PI_REDUCE(run_params);
        break;
     }
     case Basic_REDUCE3_INT : {
@@ -544,6 +616,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::FIR(run_params);
        break;
     }
+    case Apps_HALOEXCHANGE : {
+       kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE_FUSED : {
+       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
+       break;
+    }
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;
@@ -558,6 +638,18 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+
+//
+// Algorithm kernels...
+//
+    case Algorithm_SORT: {
+       kernel = new algorithm::SORT(run_params);
+       break;
+    }
+    case Algorithm_SORTPAIRS: {
+       kernel = new algorithm::SORTPAIRS(run_params);
        break;
     }
 

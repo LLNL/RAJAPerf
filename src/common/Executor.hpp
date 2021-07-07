@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -44,7 +44,7 @@ public:
   void reportRunSummary(std::ostream& str) const;
 
   void runSuite();
-  
+
   void outputRunData();
 
 private:
@@ -60,23 +60,25 @@ private:
   struct FOMGroup {
     VariantID base;
     std::vector<VariantID> variants;
-  }; 
+  };
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
-  void writeCSVReport(const std::string& filename, CSVRepMode mode, 
+  void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
+
+  void writeCSVReport(const std::string& filename, CSVRepMode mode,
                       size_t prec);
   std::string getReportTitle(CSVRepMode mode);
-  long double getReportDataEntry(CSVRepMode mode, 
+  long double getReportDataEntry(CSVRepMode mode,
                                  KernelBase* kern, VariantID vid);
 
-  void writeChecksumReport(const std::string& filename);  
+  void writeChecksumReport(const std::string& filename);
 
   void writeFOMReport(const std::string& filename);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
-  
+
   RunParams run_params;
-  std::vector<KernelBase*> kernels;  
+  std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;

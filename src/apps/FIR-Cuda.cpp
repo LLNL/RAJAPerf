@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -56,7 +56,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    }
 }
 
-#else  // use global memry for coefficients 
+#else  // use global memry for coefficients
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr coeff; \
@@ -84,7 +84,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    }
 }
 
-#endif 
+#endif
 
 
 void FIR::runCudaVariant(VariantID vid)
@@ -110,11 +110,13 @@ void FIR::runCudaVariant(VariantID vid)
        fir<<<grid_size, block_size>>>( out, in,
                                        coefflen,
                                        iend );
+       cudaErrchk( cudaGetLastError() );
 #else
        fir<<<grid_size, block_size>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );
+       cudaErrchk( cudaGetLastError() );
 #endif
 
     }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -50,30 +50,45 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_N + m_N*2*m_N );
+  setDefaultSize( m_N );
   setDefaultReps(run_reps);
+
+  setProblemSize( m_N );
+
+  setItsPerRep( m_N + m_N );
+  setKernelsPerRep(2);
+  setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
+
+                  (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
+  setFLOPsPerRep(2 * m_N*m_N +
+                 2 * m_N*m_N );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
 POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
-
 }
 
 void POLYBENCH_ATAX::setUp(VariantID vid)

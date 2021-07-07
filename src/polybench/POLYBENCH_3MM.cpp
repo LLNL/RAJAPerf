@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -11,13 +11,15 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
 
-namespace rajaperf 
+
+namespace rajaperf
 {
 namespace polybench
 {
 
-  
+
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
 {
@@ -49,28 +51,51 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
       break;
   }
 
-  setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
+  setDefaultSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
   setDefaultReps(m_run_reps);
+
+  setProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
+
+  setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
+  setKernelsPerRep(3);
+  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+
+                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_nj * m_nl +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nm +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nl * m_nm +
+
+                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+  setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
+                 2 * m_nj*m_nl*m_nm +
+                 2 * m_ni*m_nj*m_nl );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_3MM::~POLYBENCH_3MM() 
+POLYBENCH_3MM::~POLYBENCH_3MM()
 {
 }
 

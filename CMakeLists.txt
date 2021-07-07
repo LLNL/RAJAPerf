@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
 # See the RAJAPerf/COPYRIGHT file for details.
 #
@@ -23,7 +23,7 @@ endif()
 
 set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
-set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
+set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
 set(CMAKE_CXX_STANDARD 11)
 set(BLT_CXX_STANDARD 11)
@@ -52,13 +52,6 @@ add_subdirectory(tpl/RAJA)
 
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
-
-# the following only for diagnostic purposes
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
 
 
 #
@@ -134,14 +127,12 @@ else()
   list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
-#configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-#  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
-message(STATUS "PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR}")
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
    ${PROJECT_BINARY_DIR}/include/rajaperf_config.hpp)
-# Make sure RAJA flag propagate
+
+# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
-set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.

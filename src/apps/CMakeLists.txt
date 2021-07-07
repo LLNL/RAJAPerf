@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/COPYRIGHT file for details.
 #
@@ -27,6 +27,18 @@ blt_add_library(
           FIR-Cuda.cpp
           FIR-OMP.cpp
           FIR-OMPTarget.cpp
+          HALOEXCHANGE.cpp
+          HALOEXCHANGE-Seq.cpp
+          HALOEXCHANGE-Hip.cpp
+          HALOEXCHANGE-Cuda.cpp
+          HALOEXCHANGE-OMP.cpp
+          HALOEXCHANGE-OMPTarget.cpp
+          HALOEXCHANGE_FUSED.cpp
+          HALOEXCHANGE_FUSED-Seq.cpp
+          HALOEXCHANGE_FUSED-Hip.cpp
+          HALOEXCHANGE_FUSED-Cuda.cpp
+          HALOEXCHANGE_FUSED-OMP.cpp
+          HALOEXCHANGE_FUSED-OMPTarget.cpp
           LTIMES.cpp
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp

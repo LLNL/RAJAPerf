@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -14,7 +14,7 @@
 
 #include <limits>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -25,9 +25,20 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 {
   setDefaultSize(1000000);
 //setDefaultReps(5000);
-// Set reps to low value until we resolve RAJA omp-target 
+// Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
-  setDefaultReps(100);
+  setDefaultReps(50);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize() );
+  setFLOPsPerRep(1 * getRunSize() + 1);
+
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -47,7 +58,7 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-REDUCE3_INT::~REDUCE3_INT() 
+REDUCE3_INT::~REDUCE3_INT()
 {
 }
 

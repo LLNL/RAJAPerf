@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -85,11 +85,13 @@ void PRESSURE::runCudaVariant(VariantID vid)
        pressurecalc1<<<grid_size, block_size>>>( bvc, compression,
                                                  cls,
                                                  iend );
+       cudaErrchk( cudaGetLastError() );
 
        pressurecalc2<<<grid_size, block_size>>>( p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -21,34 +21,46 @@ namespace lcals
 GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   : KernelBase(rajaperf::Lcals_GEN_LIN_RECUR, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultSize(1000000);
+  setDefaultReps(500);
+
+  m_N = getRunSize();
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(2);
+  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N +
+                  (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_N );
+  setFLOPsPerRep((3 +
+                  3 ) * getRunSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-GEN_LIN_RECUR::~GEN_LIN_RECUR() 
+GEN_LIN_RECUR::~GEN_LIN_RECUR()
 {
 }
 
 void GEN_LIN_RECUR::setUp(VariantID vid)
 {
-  m_N = getRunSize();
   m_kb5i = 0;
 
   allocAndInitDataConst(m_b5, m_N, 0.0, vid);

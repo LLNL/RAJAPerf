@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GESUMMV.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -44,7 +44,7 @@ namespace polybench
 __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
                              Real_ptr A, Real_ptr B,
                              Real_type alpha, Real_type beta,
-                             Index_type N) 
+                             Index_type N)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -73,10 +73,11 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_gesummv), dim3(grid_size), dim3(block_size),0,0,x, y, 
-                                              A, B, 
+      hipLaunchKernelGGL((poly_gesummv), dim3(grid_size), dim3(block_size),0,0,x, y,
+                                              A, B,
                                               alpha, beta,
                                               N);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -93,7 +94,7 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelAsync<
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::hip_block_x_loop,
+                                   RAJA::hip_block_x_direct,
             RAJA::statement::For<0, RAJA::hip_thread_x_direct,
               RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
               RAJA::statement::For<1, RAJA::seq_exec,
@@ -143,4 +144,4 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+

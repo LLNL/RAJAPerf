@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -59,7 +59,7 @@ __global__ void vol3d(Real_ptr vol,
                       Index_type ibegin, Index_type iend)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i = ii + ibegin; 
+   Index_type i = ii + ibegin;
    if (i < iend) {
      VOL3D_BODY;
    }
@@ -84,7 +84,7 @@ void VOL3D::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
- 
+
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
       vol3d<<<grid_size, block_size>>>(vol,
@@ -93,10 +93,11 @@ void VOL3D::runCudaVariant(VariantID vid)
                                        z0, z1, z2, z3, z4, z5, z6, z7,
                                        vnormq,
                                        ibegin, iend);
- 
+      cudaErrchk( cudaGetLastError() );
+
     }
     stopTimer();
- 
+
     VOL3D_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == RAJA_CUDA ) {
@@ -109,15 +110,15 @@ void VOL3D::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
- 
+
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         VOL3D_BODY;
       });
- 
+
     }
     stopTimer();
- 
+
     VOL3D_DATA_TEARDOWN_CUDA;
 
   } else {

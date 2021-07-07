@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -47,10 +47,10 @@ __global__ void ifquad(Real_ptr x1, Real_ptr x2,
                        Real_ptr a, Real_ptr b, Real_ptr c,
                        Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     IF_QUAD_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    IF_QUAD_BODY;
+  }
 }
 
 
@@ -69,9 +69,31 @@ void IF_QUAD::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((ifquad), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((ifquad), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
                                           iend );
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    IF_QUAD_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    IF_QUAD_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto ifquad_lambda = [=] __device__ (Index_type i) {
+        IF_QUAD_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(ifquad_lambda)>,
+        grid_size, block_size, 0, 0, ibegin, iend, ifquad_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -85,10 +107,10 @@ void IF_QUAD::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-         IF_QUAD_BODY;
-       });
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+        IF_QUAD_BODY;
+      });
 
     }
     stopTimer();

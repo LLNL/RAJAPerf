@@ -9,7 +9,7 @@
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -31,6 +31,7 @@ constexpr static const char* perfsuite_version = "@CMAKE_PROJECT_VERSION@";
 constexpr static const char* raja_version = "@RAJA_LOADED@";
 constexpr static const char* cmake_build_type = "@CMAKE_BUILD_TYPE@";
 constexpr static const char* compiler = "@RAJAPERF_COMPILER@"; 
+constexpr static const char* compiler_version = "@CMAKE_CXX_VERSION@"; 
 constexpr static const char* compiler_flags = "@CMAKE_CXX_FLAGS@"; 
 constexpr static const char* compiler_flags_release = "@CMAKE_CXX_FLAGS_RELEASE@"; 
 constexpr static const char* compiler_flags_relwithdebinfo = "@CMAKE_CXX_FLAGS_RELWITHDEBINFO@"; 

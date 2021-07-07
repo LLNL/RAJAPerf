@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -21,10 +21,20 @@ namespace apps
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(1600);
+  setDefaultSize(1000000);
+  setDefaultReps(160);
 
   m_coefflen = FIR_COEFFLEN;
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() - m_coefflen );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep((2 * m_coefflen) * (getRunSize() - m_coefflen));
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -44,12 +54,8 @@ FIR::FIR(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-FIR::~FIR() 
+FIR::~FIR()
 {
-}
-
-Index_type FIR::getItsPerRep() const { 
-  return getRunSize() - m_coefflen;
 }
 
 void FIR::setUp(VariantID vid)
@@ -66,7 +72,7 @@ void FIR::updateChecksum(VariantID vid)
 void FIR::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_in);
   deallocData(m_out);
 }
