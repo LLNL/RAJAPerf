@@ -61,9 +61,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          if (counts[i] != counts[i+1]) {
-            list[counts[i]] = i;
-          }
+          INDEXLIST_3LOOP_MAKE_LIST;
         }
 
         m_len = counts[iend];
@@ -85,9 +83,7 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid)
                                 };
 
       auto indexlist_make_list_lam = [=](Index_type i) {
-                                  if (counts[i] != counts[i+1]) {
-                                    list[counts[i]] = i;
-                                  }
+                                  INDEXLIST_3LOOP_MAKE_LIST;
                                 };
 
       startTimer();

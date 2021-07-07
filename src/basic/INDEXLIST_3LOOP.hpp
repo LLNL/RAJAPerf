@@ -28,9 +28,9 @@
 #define INDEXLIST_3LOOP_CONDITIONAL  \
   x[i] < 0.0
 
-#define INDEXLIST_3LOOP_BODY  \
-  if (INDEXLIST_3LOOP_CONDITIONAL) { \
-    list[count++] = i ; \
+#define INDEXLIST_3LOOP_MAKE_LIST  \
+  if (counts[i] != counts[i+1]) { \
+    list[counts[i]] = i ; \
   }
 
 

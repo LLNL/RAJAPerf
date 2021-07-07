@@ -58,9 +58,7 @@ __global__ void indexlist_make_list(Int_ptr list,
 {
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < iend) {
-    if (counts[i] != counts[i+1]) {
-      list[counts[i]] = i;
-    }
+    INDEXLIST_3LOOP_MAKE_LIST;
     if (i == iend-1) {
       *len = counts[i+1];
     }
