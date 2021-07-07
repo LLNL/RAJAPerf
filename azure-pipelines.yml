@@ -88,10 +88,10 @@ jobs:
       bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/0b376529f626b50b7d4a9fb734e0e50d28b9b91e/codecov) >& /dev/null
     displayName: 'Upload code coverage'
     condition: eq( variables['docker_target'], 'gcc')
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '**/Test.xml'
+  #- task: PublishTestResults@2
+  #  inputs:
+  #    testResultsFormat: 'cTest'
+  #    testResultsFiles: '**/Test.xml'
 - job: Mac 
   pool:
     vmImage: 'macOS-latest'
@@ -109,6 +109,11 @@ jobs:
       cd build
       make
     displayName: 'OSX Build'
+    condition: eq( variables['Agent.OS'], 'Darwin')
+  - script: |
+      cd build
+      ./bin/raja-perf.exe
+    displayName: 'Run Perf Suite'
     condition: eq( variables['Agent.OS'], 'Darwin')
 #  - script: |
 #      cd build
