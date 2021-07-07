@@ -39,13 +39,12 @@ MASS3DPA::MASS3DPA(const RunParams& params)
                   m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) +
                   m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) );
 
-  setFLOPsPerRep(getProblemSize() * (2 * D1D * D1D * D1D * Q1D +
-                                     2 * D1D * D1D * Q1D * Q1D +
-                                     2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D +
-                                     2 * Q1D * Q1D * Q1D * D1D +
-                                     2 * Q1D * Q1D * D1D * D1D +
-                                     2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D));
-
+  setFLOPsPerRep(m_NE * (2 * D1D * D1D * D1D * Q1D +
+                         2 * D1D * D1D * Q1D * Q1D +
+                         2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D +
+                         2 * Q1D * Q1D * Q1D * D1D +
+                         2 * Q1D * Q1D * D1D * D1D +
+                         2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D));
   setUsesFeature(Teams);
 
   setVariantDefined( Base_Seq );
