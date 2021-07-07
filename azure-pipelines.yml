@@ -6,28 +6,28 @@ variables:
 
 jobs:
 - job: Windows #temporarily commenting out until cmake/azure version issue resolved
-   strategy:
-     matrix:
-       shared:
-         SHARED_ARGS: '-DBUILD_SHARED_LIBS=On -DCMAKE_CXX_FLAGS="/DRAJASHAREDDLL_EXPORTS" '
-       static:
-         SHARED_ARGS: '-DBUILD_SHARED_LIBS=Off'
-   pool:
-     vmImage: 'windows-2019'
-   variables:
-     CMAKE_EXTRA_FLAGS: '-DENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD="" -DCMAKE_CXX_STANDARD=17'
-   steps:
-   - checkout: self
-     clean: boolean
-     submodules: recursive
-   - task: CMake@1
-     inputs:
-       workingDir: 'build'
-       cmakeArgs: '$(CMAKE_EXTRA_FLAGS) $(SHARED_ARGS) ../'
-   - task: CMake@1
-     inputs:
-       workingDir: 'build'
-       cmakeArgs: '--build . --config Release --verbose'
+  strategy:
+    matrix:
+      shared:
+        SHARED_ARGS: '-DBUILD_SHARED_LIBS=On -DCMAKE_CXX_FLAGS="/DRAJASHAREDDLL_EXPORTS" '
+      static:
+        SHARED_ARGS: '-DBUILD_SHARED_LIBS=Off'
+  pool:
+    vmImage: 'windows-2019'
+  variables:
+    CMAKE_EXTRA_FLAGS: '-DENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD="" -DCMAKE_CXX_STANDARD=17'
+  steps:
+  - checkout: self
+    clean: boolean
+    submodules: recursive
+  - task: CMake@1
+    inputs:
+      workingDir: 'build'
+      cmakeArgs: '$(CMAKE_EXTRA_FLAGS) $(SHARED_ARGS) ../'
+  - task: CMake@1
+    inputs:
+      workingDir: 'build'
+      cmakeArgs: '--build . --config Release --verbose'
  #   - task: CmdLine@2
  #     inputs:
  #       script: 'ctest.exe -T test -C Release'
