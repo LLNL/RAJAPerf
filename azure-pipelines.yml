@@ -77,13 +77,13 @@ jobs:
       command: build
       dockerFile: 'Dockerfile'
       arguments: '--target $(docker_target)'
-  #- script: |
-  #    CID=$(docker create llnl/raja:$(Build.BuildId))
-  #    echo ${CID}
-  #    docker cp ${CID}:/home/axom/workspace/build local-build
-  #    docker rm ${CID}
-  #  displayName: 'Copy test artifacts'
-  #  condition: ne( variables['docker_target'], 'nvcc')
+  - script: |
+      CID=$(docker create llnl/rajaperf:$(Build.BuildId))
+      echo ${CID}
+      docker cp ${CID}:/home/axom/workspace/build local-build
+      docker rm ${CID}
+    displayName: 'Copy test artifacts'
+    condition: ne( variables['docker_target'], 'nvcc')
   - script: |
       bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/0b376529f626b50b7d4a9fb734e0e50d28b9b91e/codecov) >& /dev/null
     displayName: 'Upload code coverage'
