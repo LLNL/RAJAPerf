@@ -8,7 +8,12 @@
 
 blt_add_library(
   NAME algorithm
-  SOURCES SORT.cpp
+  SOURCES SCAN.cpp
+          SCAN-Seq.cpp
+          SCAN-Hip.cpp
+          SCAN-Cuda.cpp
+          SCAN-OMP.cpp
+          SORT.cpp
           SORT-Seq.cpp
           SORT-Hip.cpp
           SORT-Cuda.cpp

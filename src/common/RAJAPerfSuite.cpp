@@ -15,6 +15,8 @@
 //
 #include "basic/DAXPY.hpp"
 #include "basic/IF_QUAD.hpp"
+#include "basic/INDEXLIST.hpp"
+#include "basic/INDEXLIST_3LOOP.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
@@ -84,6 +86,7 @@
 //
 // Algorithm kernels...
 //
+#include "algorithm/SCAN.hpp"
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
 
@@ -139,6 +142,8 @@ static const std::string KernelNames [] =
 //
   std::string("Basic_DAXPY"),
   std::string("Basic_IF_QUAD"),
+  std::string("Basic_INDEXLIST"),
+  std::string("Basic_INDEXLIST_3LOOP"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
@@ -208,6 +213,7 @@ static const std::string KernelNames [] =
 //
 // Algorithm kernels...
 //
+  std::string("Algorithm_SCAN"),
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
 
@@ -434,6 +440,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::IF_QUAD(run_params);
        break;
     }
+    case Basic_INDEXLIST : {
+       kernel = new basic::INDEXLIST(run_params);
+       break;
+    }
+    case Basic_INDEXLIST_3LOOP : {
+       kernel = new basic::INDEXLIST_3LOOP(run_params);
+       break;
+    }
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;
@@ -650,6 +664,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Algorithm kernels...
 //
+    case Algorithm_SCAN: {
+       kernel = new algorithm::SCAN(run_params);
+       break;
+    }
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;
