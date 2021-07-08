@@ -15,7 +15,13 @@
 namespace rajaperf {
 namespace apps {
 
+//#define USE_RAJA_UNROLL
+#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
+#if defined(USE_RAJA_UNROLL)
+#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#else
 #define RAJA_UNROLL(N)
+#endif
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 
 void MASS3DPA::runSeqVariant(VariantID vid) {

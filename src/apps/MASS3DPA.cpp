@@ -12,6 +12,8 @@
 
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
+
 namespace rajaperf
 {
 namespace apps
@@ -21,23 +23,23 @@ namespace apps
 MASS3DPA::MASS3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_MASS3DPA, params)
 {
-  m_NE_default = 924385;
+  m_NE_default = 8000;
 
-  setDefaultSize(m_NE_default);
+  setDefaultSize(m_NE_default*Q1D*Q1D*Q1D);
   setDefaultReps(50);
 
-  setProblemSize( getRunSize() * Q1D * Q1D);
+  m_NE = std::max(getRunSize()/(Q1D*Q1D*Q1D), Index_type(1));
 
-  m_NE = (getProblemSize())/(Q1D*Q1D);
+  setProblemSize(m_NE*Q1D*Q1D*Q1D);
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep(getProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( m_Q1D*m_D1D*sizeof(Real_type)  +
-                  m_Q1D*m_D1D*sizeof(Real_type)  +
-                  m_Q1D*m_Q1D*m_Q1D*m_NE*sizeof(Real_type) +
-                  m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) +
-                  m_D1D*m_D1D*m_D1D*m_NE*sizeof(Real_type) );
+  setBytesPerRep( Q1D*D1D*sizeof(Real_type)  +
+                  Q1D*D1D*sizeof(Real_type)  +
+                  Q1D*Q1D*Q1D*m_NE*sizeof(Real_type) +
+                  D1D*D1D*D1D*m_NE*sizeof(Real_type) +
+                  D1D*D1D*D1D*m_NE*sizeof(Real_type) );
 
   setFLOPsPerRep(m_NE * (2 * D1D * D1D * D1D * Q1D +
                          2 * D1D * D1D * Q1D * Q1D +
@@ -68,16 +70,16 @@ MASS3DPA::~MASS3DPA()
 void MASS3DPA::setUp(VariantID vid)
 {
 
-  allocAndInitDataConst(m_B, int(m_Q1D*m_D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_Bt,int(m_Q1D*m_D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_D, int(m_Q1D*m_Q1D*m_Q1D*m_NE), Real_type(1.0), vid);
-  allocAndInitDataConst(m_X, int(m_D1D*m_D1D*m_D1D*m_NE), Real_type(1.0), vid);
-  allocAndInitDataConst(m_Y, int(m_D1D*m_D1D*m_D1D*m_NE), Real_type(0.0), vid);
+  allocAndInitDataConst(m_B, int(Q1D*D1D), Real_type(1.0), vid);
+  allocAndInitDataConst(m_Bt,int(Q1D*D1D), Real_type(1.0), vid);
+  allocAndInitDataConst(m_D, int(Q1D*Q1D*Q1D*m_NE), Real_type(1.0), vid);
+  allocAndInitDataConst(m_X, int(D1D*D1D*D1D*m_NE), Real_type(1.0), vid);
+  allocAndInitDataConst(m_Y, int(D1D*D1D*D1D*m_NE), Real_type(0.0), vid);
 }
 
 void MASS3DPA::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_Y, m_D1D*m_D1D*m_D1D*m_NE);
+  checksum[vid] += calcChecksum(m_Y, D1D*D1D*D1D*m_NE);
 }
 
 void MASS3DPA::tearDown(VariantID vid)

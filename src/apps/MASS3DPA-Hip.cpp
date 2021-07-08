@@ -19,22 +19,28 @@
 namespace rajaperf {
 namespace apps {
 
-#define MASS3DPA_DATA_SETUP_HIP                                               \
-  allocAndInitHipDeviceData(B, m_B, m_Q1D *m_D1D);                            \
-  allocAndInitHipDeviceData(Bt, m_Bt, m_Q1D *m_D1D);                          \
-  allocAndInitHipDeviceData(D, m_D, m_Q1D *m_Q1D *m_Q1D *m_NE);               \
-  allocAndInitHipDeviceData(X, m_X, m_D1D *m_D1D *m_D1D *m_NE);               \
-  allocAndInitHipDeviceData(Y, m_Y, m_D1D *m_D1D *m_D1D *m_NE);
+#define MASS3DPA_DATA_SETUP_HIP                                           \
+  allocAndInitHipDeviceData(B, m_B, Q1D *D1D);                            \
+  allocAndInitHipDeviceData(Bt, m_Bt, Q1D *D1D);                          \
+  allocAndInitHipDeviceData(D, m_D, Q1D *Q1D *Q1D *m_NE);                 \
+  allocAndInitHipDeviceData(X, m_X, D1D *D1D *D1D *m_NE);                 \
+  allocAndInitHipDeviceData(Y, m_Y, D1D *D1D *D1D *m_NE);
 
-#define MASS3DPA_DATA_TEARDOWN_HIP                                            \
-  getHipDeviceData(m_Y, Y, m_D1D *m_D1D *m_D1D *m_NE);                        \
-  deallocHipDeviceData(B);                                                    \
-  deallocHipDeviceData(Bt);                                                   \
-  deallocHipDeviceData(D);                                                    \
-  deallocHipDeviceData(X);                                                    \
+#define MASS3DPA_DATA_TEARDOWN_HIP                                        \
+  getHipDeviceData(m_Y, Y, D1D *D1D *D1D *m_NE);                          \
+  deallocHipDeviceData(B);                                                \
+  deallocHipDeviceData(Bt);                                               \
+  deallocHipDeviceData(D);                                                \
+  deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
+//#define USE_RAJA_UNROLL
+#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
+#if defined(USE_RAJA_UNROLL)
+#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#else
 #define RAJA_UNROLL(N)
+#endif
 #define FOREACH_THREAD(i, k, N)                                                \
   for(int i=hipThreadIdx_ ##k; i<N; i+=hipBlockDim_ ##k)
 

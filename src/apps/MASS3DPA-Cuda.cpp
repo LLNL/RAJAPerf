@@ -19,23 +19,28 @@
 namespace rajaperf {
 namespace apps {
 
-#define MASS3DPA_DATA_SETUP_CUDA                                               \
-  allocAndInitCudaDeviceData(B, m_B, m_Q1D *m_D1D);                            \
-  allocAndInitCudaDeviceData(Bt, m_Bt, m_Q1D *m_D1D);                          \
-  allocAndInitCudaDeviceData(D, m_D, m_Q1D *m_Q1D *m_Q1D *m_NE);               \
-  allocAndInitCudaDeviceData(X, m_X, m_D1D *m_D1D *m_D1D *m_NE);               \
-  allocAndInitCudaDeviceData(Y, m_Y, m_D1D *m_D1D *m_D1D *m_NE);
+#define MASS3DPA_DATA_SETUP_CUDA                                        \
+  allocAndInitCudaDeviceData(B, m_B, Q1D *D1D);                         \
+  allocAndInitCudaDeviceData(Bt, m_Bt, Q1D *D1D);                       \
+  allocAndInitCudaDeviceData(D, m_D, Q1D *Q1D *Q1D *m_NE);              \
+  allocAndInitCudaDeviceData(X, m_X, D1D *D1D *D1D *m_NE);              \
+  allocAndInitCudaDeviceData(Y, m_Y, D1D *D1D *D1D *m_NE);
 
-#define MASS3DPA_DATA_TEARDOWN_CUDA                                            \
-  getCudaDeviceData(m_Y, Y, m_D1D *m_D1D *m_D1D *m_NE);                        \
-  deallocCudaDeviceData(B);                                                    \
-  deallocCudaDeviceData(Bt);                                                   \
-  deallocCudaDeviceData(D);                                                    \
-  deallocCudaDeviceData(X);                                                    \
+#define MASS3DPA_DATA_TEARDOWN_CUDA                                      \
+  getCudaDeviceData(m_Y, Y, D1D *D1D *D1D *m_NE);                        \
+  deallocCudaDeviceData(B);                                              \
+  deallocCudaDeviceData(Bt);                                             \
+  deallocCudaDeviceData(D);                                              \
+  deallocCudaDeviceData(X);                                              \
   deallocCudaDeviceData(Y);
 
+//#define USE_RAJA_UNROLL
 #define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
+#if defined(USE_RAJA_UNROLL)
 #define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#else
+#define RAJA_UNROLL(N)
+#endif
 #define FOREACH_THREAD(i, k, N)                                                \
   for (int i = threadIdx.k; i < N; i += blockDim.k)
 
