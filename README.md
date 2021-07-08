@@ -165,7 +165,7 @@ Lastly, the program will generate a summary of provided input if it is given
 input that the code does not know how to parse. Hopefully, this will make it 
 easy for users to correct erroneous usage, such as mis-spellled option names.
 
-# Important note
+## Important note
 
  * The OpenMP target offload variants of the kernels in the Suite are a 
    work-in-progress since the RAJA OpenMP target offload back-end is also
@@ -195,10 +195,10 @@ Currently, there are five files generated:
 3. Speedup -- runtime speedup of each loop kernel and variant with respect to a reference variant. The reference variant can be set with a command line option. If not specified, the first variant run will be used as the reference. The reference variant used will be noted in the file.
 4. Figure of Merit (FOM) -- basic statistics about speedup of RAJA variant vs. baseline for each programming model run. Also, when a RAJA variant timing differs from the corresponding baseline variant timing by more than some tolerance, this will be noted in the file with `OVER_TOL`. By default the tolerance is 10%. This can be changed via a command line option.
 5. Kernel -- Basic information about each kernel that is run, which is the same
-for each variant of the kernel that is run.
+for each variant of the kernel that is run. See descriptions below.
 
 All output files are text files. Other than the checksum file, all are in 
-'csv' format for easy processing by comoon tools and generating plots.
+'csv' format for easy processing by common tools and generating plots.
 
 ## Kernel information definitions
 
@@ -207,12 +207,77 @@ located in the ''RAJAPerf-kernels.csv'' file includes the following:
 
 1. Kernel name -- Format is group name followed by kernel name, separated by an underscore. 
 2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel, available via a command line option.
-3. Problem size -- The largest parallel iteration space over all 'loop structures' (e.g., single loop, nested loops, etc.) run in an instance of the kernel. note: some kernels run multiple loops, possibly of different sizes in each kernel instance.
-4. Reps -- Number of time a kernel is run in a single pass through the Suite.
-5. Iterations/rep -- Sum of sizes of all parallel iteration spaces for all loops run in a kernel instance (see 'problem size' above).
-6. Kernels/rep -- total number of loop structures run in each kernel instance.
+3. Problem size -- Size of the problem represented by a kernel. Please see notes below for more information..
+4. Reps -- Number of times a kernel runs in a single pass through the Suite.
+5. Iterations/rep -- Sum of sizes of all parallel iteration spaces for all loops run in a single kernel execution (see 'problem size' above).
+6. Kernels/rep -- total number of loop structures run in each kernel repetition.
 7. Bytes/rep -- Total number of bytes read from and written to memory for each repetition of kernel.
 8. FLOPs/rep -- Total number of floating point operations executed for each repetition of kernel. Currently, we count arithmetic operations (+, -, *, /) and functions, such as exp, sin, code, etc. as on FLOP. We do not currently count operations like abs and comparisons (<, >, etc.) in the FLOP count.
+
+### Notes about 'problem size'
+
+ * The Suite uses three notions of problem size: 'default', 'target', and 'run'.
+   Default is the problem size defined for a kernel and the size that will run 
+   if no runtime options are provided to run a different size. Target is the
+   desired problem size based on runtime options. Run is the actual problem
+   size that is run when the Suite executes.
+ * The concept of problem size is subjective and can be interpreted differently
+   depending on the kernel structure and what one is trying to measure. For 
+   example, problem size could refer to the amount of data needed to be stored 
+   in memory to run the problem, or it could refer to the amount of parallel 
+   work that is possible, etc. 
+ * We employ the following, admittedly somewhat loose definition, which 
+   depends on the particular kernel structure. Of all the 
+   'loop structures' (e.g., single loop, nested loops, etc.) that are run for 
+   a kernel (note that some kernels run multiple loops, possibly of different 
+   sizes or loop structures), problem size refers to the size of the 
+   data set required to generate the kernel result. The interpretation of 
+   this and the definition of problem size for each kernel in the suite is
+   determined by the kernel developer and team discussion.
+
+Here are a few examples to give a better sense of how we determine problem 
+size for various kernels in the Suite.
+
+Vector addition.
+```cpp
+for (int i = 0; i < 0; i < N; ++i) {
+  c[i] = a[i] + b[i]; 
+}
+```
+The problem size for this kernel is 'N', the loop length. Note that this 
+happens to match the size of the vectors a, b, c and the total amount of 
+parallel work in the kernel. This is common for simple, single loop kernels.
+
+Matrix-vector multiplication.
+```cpp
+for (int r = 0; r < N_r; ++r) {
+  b[r] = 0;
+  for (int c = 0; c < N_c; ++c) {
+    b[r] += A[r][c] + x[c];
+  }
+}
+```
+The problem size if N_r * N_c, the size of the matrix. Note that this matches
+the total size of the problem iteration space, but the total amount of parallel
+work is N_r, the number of rows in the matrix and the length of the vector b.
+
+Matrix-matrix multiplication.
+```cpp
+for (int i = 0; i < N_i; ++i) {  
+  for (int j = 0; j < N_j; ++j) {
+    A[i][j] = 0;
+    for (int k = 0; k < N_k; ++k) {
+      A[i][j] += B[i][k] + C[k][j];
+    }
+  }
+}
+```
+Here, we are multiplying matrix B (N_i x N_k) and matrix C (N_k x N_j) and
+storing the result in matrix A (N_i X N_j). Problem size could be chosen to
+be the maximum number of entries in matrix B or C. We choose the size of 
+matrix C (N_i * N_j), which is more closely aligned with the number of 
+independent operations (i.e., the amount of parallel work) in the kernels. 
+
 
 * * *
 
@@ -397,7 +462,7 @@ key steps and conventions that must be followed to ensure that all kernels
 interact with the performance Suite machinery in the same way:
 
 1. Initialize the `KernelBase` class object with `KernelID` and `RunParams` object passed to the FOO class constructor.
-2. Set the default size, and default run repetition count in the FOO class constructor. Then, set kernel run information, problem size, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the corresponding members in the `KernelBase`` class, also in the constructor. See the *.cpp file for any existing kernel in the suite for examples of how to do this..
+2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, target problem size, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase`` class, also in the constructor. See the *.cpp file for any existing kernel in the suite for examples of how to do this..
 3. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
@@ -421,12 +486,12 @@ FOO::FOO(const RunParams& params)
   : KernelBase(rajaperf::Basic_Foo, params),
     // default initialization of class members
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
  
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( ... );
   setFLOPsPerRep( ... );
