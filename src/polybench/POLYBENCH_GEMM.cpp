@@ -53,12 +53,12 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
-  setDefaultSize( m_ni * m_nj );
+  setDefaultProblemSize( m_ni * m_nj );
   setDefaultReps(run_reps);
 
-  setProblemSize( m_ni * m_nj );
+  setTargetProblemSize( m_ni * m_nj );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( m_ni * m_nj );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +

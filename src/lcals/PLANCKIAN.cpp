@@ -21,15 +21,15 @@ namespace lcals
 PLANCKIAN::PLANCKIAN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_PLANCKIAN, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunSize() );
-  setFLOPsPerRep(4 * getRunSize()); // 1 exp
+  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunProblemSize() );
+  setFLOPsPerRep(4 * getRunProblemSize()); // 1 exp
 
   setUsesFeature(Forall);
 
@@ -57,16 +57,16 @@ PLANCKIAN::~PLANCKIAN()
 
 void PLANCKIAN::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunSize(), vid);
-  allocAndInitData(m_y, getRunSize(), vid);
-  allocAndInitData(m_u, getRunSize(), vid);
-  allocAndInitData(m_v, getRunSize(), vid);
-  allocAndInitDataConst(m_w, getRunSize(), 0.0, vid);
+  allocAndInitData(m_x, getRunProblemSize(), vid);
+  allocAndInitData(m_y, getRunProblemSize(), vid);
+  allocAndInitData(m_u, getRunProblemSize(), vid);
+  allocAndInitData(m_v, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_w, getRunProblemSize(), 0.0, vid);
 }
 
 void PLANCKIAN::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_w, getRunSize());
+  checksum[vid] += calcChecksum(m_w, getRunProblemSize());
 }
 
 void PLANCKIAN::tearDown(VariantID vid)

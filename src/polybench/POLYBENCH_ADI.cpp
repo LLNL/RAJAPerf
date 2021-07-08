@@ -49,10 +49,10 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       break;
   }
 
-  setDefaultSize( (m_n-2)*(m_n-2) );
+  setDefaultProblemSize( (m_n-2)*(m_n-2) );
   setDefaultReps(run_reps);
 
-  setProblemSize( (m_n-2)*(m_n-2) );
+  setTargetProblemSize( (m_n-2)*(m_n-2) );
 
   setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
                              (m_n-2)*(m_n-2 + m_n-2) ) );

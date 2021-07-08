@@ -50,9 +50,10 @@ public:
   // properties used to describe kernel and define how it will run
   //
 
-  void setDefaultSize(Index_type size) { default_size = size; }
+  void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
-  void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
+  void setTargetProblemSize(Index_type prob_size) 
+    { target_prob_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
   void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
@@ -66,15 +67,15 @@ public:
   // and kernel details report ouput.
   //
 
-  Index_type getDefaultSize() const { return default_size; }
+  Index_type getDefaultProblemSize() const { return default_prob_size; }
   Index_type getDefaultReps() const { return default_reps; }
-  Index_type getProblemSize() const { return problem_size; }
+  Index_type getTargetProblemSize() const { return target_prob_size; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
-  Index_type getRunSize() const;
+  Index_type getRunProblemSize() const;
   Index_type getRunReps() const;
 
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
@@ -174,7 +175,7 @@ private:
   KernelID    kernel_id;
   std::string name;
 
-  Index_type default_size;
+  Index_type default_prob_size;
   Index_type default_reps;
 
   bool uses_feature[NumFeatures];
@@ -184,7 +185,7 @@ private:
   //
   // Properties of kernel dependent on how kernel is run
   //
-  Index_type problem_size;
+  Index_type target_prob_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
   Index_type bytes_per_rep;

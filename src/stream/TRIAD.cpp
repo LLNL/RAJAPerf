@@ -21,15 +21,16 @@ namespace stream
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(2 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+                  getRunProblemSize() );
+  setFLOPsPerRep(2 * getRunProblemSize());
 
   setUsesFeature( Forall );
 
@@ -59,15 +60,15 @@ TRIAD::~TRIAD()
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_b, getRunProblemSize(), vid);
+  allocAndInitData(m_c, getRunProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getRunProblemSize());
 }
 
 void TRIAD::tearDown(VariantID vid)

@@ -21,18 +21,18 @@ namespace lcals
 FIRST_SUM::FIRST_SUM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  m_N = getRunSize();
+  m_N = getRunProblemSize();
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
-  setFLOPsPerRep(1 * (getRunSize()-1));
+  setFLOPsPerRep(1 * (getRunProblemSize()-1));
 
   setUsesFeature(Forall);
 
@@ -66,7 +66,7 @@ void FIRST_SUM::setUp(VariantID vid)
 
 void FIRST_SUM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getRunProblemSize());
 }
 
 void FIRST_SUM::tearDown(VariantID vid)

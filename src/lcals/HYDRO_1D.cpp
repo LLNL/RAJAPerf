@@ -21,18 +21,18 @@ namespace lcals
 HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  m_array_length = getRunSize() + 12;
+  m_array_length = getRunProblemSize() + 12;
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getRunSize() +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getRunSize()+1) );
-  setFLOPsPerRep(5 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getRunProblemSize() +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getRunProblemSize()+1) );
+  setFLOPsPerRep(5 * getRunProblemSize());
 
   setUsesFeature(Forall);
 
@@ -71,7 +71,7 @@ void HYDRO_1D::setUp(VariantID vid)
 
 void HYDRO_1D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getRunProblemSize());
 }
 
 void HYDRO_1D::tearDown(VariantID vid)

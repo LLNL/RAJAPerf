@@ -21,14 +21,14 @@ namespace algorithm
 SORT::SORT(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() ); // touched data size, not actual number of stores and loads
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() ); // touched data size, not actual number of stores and loads
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);
@@ -49,12 +49,12 @@ SORT::~SORT()
 
 void SORT::setUp(VariantID vid)
 {
-  allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);
+  allocAndInitDataRandValue(m_x, getRunProblemSize()*getRunReps(), vid);
 }
 
 void SORT::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize()*getRunReps());
+  checksum[vid] += calcChecksum(m_x, getRunProblemSize()*getRunReps());
 }
 
 void SORT::tearDown(VariantID vid)

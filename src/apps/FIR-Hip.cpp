@@ -36,13 +36,13 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(in, m_in, getRunSize()); \
-  allocAndInitHipDeviceData(out, m_out, getRunSize()); \
+  allocAndInitHipDeviceData(in, m_in, getRunProblemSize()); \
+  allocAndInitHipDeviceData(out, m_out, getRunProblemSize()); \
   hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getRunSize()); \
+  getHipDeviceData(m_out, out, getRunProblemSize()); \
   deallocHipDeviceData(in); \
   deallocHipDeviceData(out);
 
@@ -61,14 +61,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 #define FIR_DATA_SETUP_HIP \
   Real_ptr coeff; \
 \
-  allocAndInitHipDeviceData(in, m_in, getRunSize()); \
-  allocAndInitHipDeviceData(out, m_out, getRunSize()); \
+  allocAndInitHipDeviceData(in, m_in, getRunProblemSize()); \
+  allocAndInitHipDeviceData(out, m_out, getRunProblemSize()); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitHipDeviceData(coeff, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getRunSize()); \
+  getHipDeviceData(m_out, out, getRunProblemSize()); \
   deallocHipDeviceData(in); \
   deallocHipDeviceData(out); \
   deallocHipDeviceData(coeff);
@@ -91,7 +91,7 @@ void FIR::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getRunProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 

@@ -50,10 +50,10 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_N );
+  setDefaultProblemSize( m_N );
   setDefaultReps(run_reps);
 
-  setProblemSize( m_N );
+  setTargetProblemSize( m_N );
 
   setItsPerRep( m_N + m_N );
   setKernelsPerRep(2);

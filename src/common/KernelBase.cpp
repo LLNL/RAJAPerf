@@ -20,7 +20,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   kernel_id = kid;
   name = getFullKernelName(kernel_id);
 
-  default_size = -1;
+  default_prob_size = -1;
   default_reps = -1;
  
   for (size_t fid = 0; fid < NumFeatures; ++fid) {
@@ -31,7 +31,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
     has_variant_defined[vid] = false;
   }
 
-  problem_size = -1;
+  target_prob_size = -1;
   its_per_rep = -1;
   kernels_per_rep = -1;
   FLOPs_per_rep = -1;
@@ -53,11 +53,12 @@ KernelBase::~KernelBase()
 }
 
 
-Index_type KernelBase::getRunSize() const
+Index_type KernelBase::getRunProblemSize() const
 { 
   Index_type run_size = static_cast<Index_type>(0);
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    run_size = static_cast<Index_type>(default_size*run_params.getSizeFactor());
+    run_size = 
+      static_cast<Index_type>(default_prob_size*run_params.getSizeFactor());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
     run_size = static_cast<Index_type>(run_params.getSize());
   }
@@ -185,7 +186,7 @@ void KernelBase::print(std::ostream& os) const
 {
   os << "\nKernelBase::print..." << std::endl;
   os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
-  os << "\t\t\t default_size = " << default_size << std::endl;
+  os << "\t\t\t default_prob_size = " << default_prob_size << std::endl;
   os << "\t\t\t default_reps = " << default_reps << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {

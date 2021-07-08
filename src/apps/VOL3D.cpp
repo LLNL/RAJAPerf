@@ -25,15 +25,15 @@ namespace apps
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
-  setDefaultSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::cbrt(getRunSize())+1;
+  Index_type rzmax = std::cbrt(getRunProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
 
-  setProblemSize( m_domain->n_real_zones );
+  setTargetProblemSize( m_domain->n_real_zones );
 
   setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
   setKernelsPerRep(1);

@@ -21,14 +21,14 @@ namespace algorithm
 SORTPAIRS::SORTPAIRS(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORTPAIRS, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() ); // touched data size, not actual number of stores and loads
+  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() ); // touched data size, not actual number of stores and loads
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);
@@ -49,14 +49,14 @@ SORTPAIRS::~SORTPAIRS()
 
 void SORTPAIRS::setUp(VariantID vid)
 {
-  allocAndInitDataRandValue(m_x, getRunSize()*getRunReps(), vid);
-  allocAndInitDataRandValue(m_i, getRunSize()*getRunReps(), vid);
+  allocAndInitDataRandValue(m_x, getRunProblemSize()*getRunReps(), vid);
+  allocAndInitDataRandValue(m_i, getRunProblemSize()*getRunReps(), vid);
 }
 
 void SORTPAIRS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize()*getRunReps());
-  checksum[vid] += calcChecksum(m_i, getRunSize()*getRunReps());
+  checksum[vid] += calcChecksum(m_x, getRunProblemSize()*getRunReps());
+  checksum[vid] += calcChecksum(m_i, getRunProblemSize()*getRunReps());
 }
 
 void SORTPAIRS::tearDown(VariantID vid)

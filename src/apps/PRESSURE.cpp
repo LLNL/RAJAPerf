@@ -21,18 +21,18 @@ namespace apps
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(700);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( 2 * getProblemSize() );
+  setItsPerRep( 2 * getRunProblemSize() );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
-                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
   setFLOPsPerRep((2 +
                   1
-                  ) * getProblemSize());
+                  ) * getRunProblemSize());
 
   setUsesFeature(Forall);
 
@@ -60,11 +60,11 @@ PRESSURE::~PRESSURE()
 
 void PRESSURE::setUp(VariantID vid)
 {
-  allocAndInitData(m_compression, getRunSize(), vid);
-  allocAndInitData(m_bvc, getRunSize(), vid);
-  allocAndInitDataConst(m_p_new, getRunSize(), 0.0, vid);
-  allocAndInitData(m_e_old, getRunSize(), vid);
-  allocAndInitData(m_vnewc, getRunSize(), vid);
+  allocAndInitData(m_compression, getRunProblemSize(), vid);
+  allocAndInitData(m_bvc, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_p_new, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_e_old, getRunProblemSize(), vid);
+  allocAndInitData(m_vnewc, getRunProblemSize(), vid);
 
   initData(m_cls);
   initData(m_p_cut);
@@ -74,7 +74,7 @@ void PRESSURE::setUp(VariantID vid)
 
 void PRESSURE::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_p_new, getRunSize());
+  checksum[vid] += calcChecksum(m_p_new, getRunProblemSize());
 }
 
 void PRESSURE::tearDown(VariantID vid)

@@ -21,15 +21,15 @@ namespace basic
 INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(1 * getRunSize());
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
+  setFLOPsPerRep(1 * getRunProblemSize());
 
   setUsesFeature(Forall);
 
@@ -59,18 +59,18 @@ INIT3::~INIT3()
 
 void INIT3::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_out1, getRunSize(), 0.0, vid);
-  allocAndInitDataConst(m_out2, getRunSize(), 0.0, vid);
-  allocAndInitDataConst(m_out3, getRunSize(), 0.0, vid);
-  allocAndInitData(m_in1, getRunSize(), vid);
-  allocAndInitData(m_in2, getRunSize(), vid);
+  allocAndInitDataConst(m_out1, getRunProblemSize(), 0.0, vid);
+  allocAndInitDataConst(m_out2, getRunProblemSize(), 0.0, vid);
+  allocAndInitDataConst(m_out3, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_in1, getRunProblemSize(), vid);
+  allocAndInitData(m_in2, getRunProblemSize(), vid);
 }
 
 void INIT3::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out1, getRunSize());
-  checksum[vid] += calcChecksum(m_out2, getRunSize());
-  checksum[vid] += calcChecksum(m_out3, getRunSize());
+  checksum[vid] += calcChecksum(m_out1, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_out2, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_out3, getRunProblemSize());
 }
 
 void INIT3::tearDown(VariantID vid)

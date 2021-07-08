@@ -21,14 +21,15 @@ namespace stream
 COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
+                  getRunProblemSize() );
   setFLOPsPerRep(0);
 
   setUsesFeature( Forall );
@@ -59,13 +60,13 @@ COPY::~COPY()
 
 void COPY::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
-  allocAndInitDataConst(m_c, getRunSize(), 0.0, vid);
+  allocAndInitData(m_a, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_c, getRunProblemSize(), 0.0, vid);
 }
 
 void COPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_c, getRunSize());
+  checksum[vid] += calcChecksum(m_c, getRunProblemSize());
 }
 
 void COPY::tearDown(VariantID vid)

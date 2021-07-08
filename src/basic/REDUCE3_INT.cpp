@@ -23,19 +23,19 @@ namespace basic
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
   setDefaultReps(50);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
-                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunSize() );
-  setFLOPsPerRep(1 * getRunSize() + 1);
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunProblemSize() );
+  setFLOPsPerRep(1 * getRunProblemSize() + 1);
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
@@ -64,7 +64,7 @@ REDUCE3_INT::~REDUCE3_INT()
 
 void REDUCE3_INT::setUp(VariantID vid)
 {
-  allocAndInitData(m_vec, getRunSize(), vid);
+  allocAndInitData(m_vec, getRunProblemSize(), vid);
 
   m_vsum = 0;
   m_vsum_init = 0;

@@ -21,15 +21,16 @@ namespace stream
 MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(1 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
+                  getRunProblemSize() );
+  setFLOPsPerRep(1 * getRunProblemSize());
 
   setUsesFeature( Forall );
 
@@ -59,14 +60,14 @@ MUL::~MUL()
 
 void MUL::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_b, getRunSize(), 0.0, vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_b, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_c, getRunProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void MUL::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_b, getRunSize());
+  checksum[vid] += calcChecksum(m_b, getRunProblemSize());
 }
 
 void MUL::tearDown(VariantID vid)

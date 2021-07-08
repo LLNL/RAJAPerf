@@ -30,15 +30,15 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_s = 0.0041;
   m_t = 0.0037;
 
-  setDefaultSize(m_kn * m_jn);
+  setDefaultProblemSize(m_kn * m_jn);
   setDefaultReps(100);
 
-  m_jn = m_kn = std::sqrt(getRunSize());
+  m_jn = m_kn = std::sqrt(getRunProblemSize());
   m_array_length = m_kn * m_jn;
 
-  setProblemSize( m_array_length );
+  setTargetProblemSize( m_array_length );
 
-  setItsPerRep( 3 * getProblemSize() );
+  setItsPerRep( 3 * getRunProblemSize() );
   setKernelsPerRep(3);
   setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
                   (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +

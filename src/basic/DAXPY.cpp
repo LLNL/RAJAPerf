@@ -21,15 +21,15 @@ namespace basic
 DAXPY::DAXPY(const RunParams& params)
   : KernelBase(rajaperf::Basic_DAXPY, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(2 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
+  setFLOPsPerRep(2 * getRunProblemSize());
 
   setUsesFeature(Forall);
 
@@ -59,14 +59,14 @@ DAXPY::~DAXPY()
 
 void DAXPY::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);
-  allocAndInitData(m_x, getRunSize(), vid);
+  allocAndInitDataConst(m_y, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_x, getRunProblemSize(), vid);
   initData(m_a);
 }
 
 void DAXPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, getRunSize());
+  checksum[vid] += calcChecksum(m_y, getRunProblemSize());
 }
 
 void DAXPY::tearDown(VariantID vid)

@@ -21,15 +21,15 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(200);
 
-  setProblemSize( getRunSize() );
+  setTargetProblemSize( getRunProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunSize());
-  setFLOPsPerRep(9 * getRunSize());
+  setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunProblemSize());
+  setFLOPsPerRep(9 * getRunProblemSize());
 
   setUsesFeature(Forall);
 
@@ -57,8 +57,8 @@ DIFF_PREDICT::~DIFF_PREDICT()
 
 void DIFF_PREDICT::setUp(VariantID vid)
 {
-  m_array_length = getRunSize() * 14;
-  m_offset = getRunSize();
+  m_array_length = getRunProblemSize() * 14;
+  m_offset = getRunProblemSize();
 
   allocAndInitDataConst(m_px, m_array_length, 0.0, vid);
   allocAndInitData(m_cx, m_array_length, vid);

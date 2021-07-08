@@ -436,7 +436,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     kercol_width = max(kercol_width, kernels[ik]->getName().size());
-    psize_width = max(psize_width, kernels[ik]->getProblemSize());
+    psize_width = max(psize_width, kernels[ik]->getRunProblemSize());
     reps_width = max(reps_width, kernels[ik]->getRunReps());
     itsrep_width = max(reps_width, kernels[ik]->getItsPerRep());
     bytesrep_width = max(bytesrep_width, kernels[ik]->getBytesPerRep());
@@ -502,7 +502,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     KernelBase* kern = kernels[ik];
     str <<left<< setw(kercol_width) <<  kern->getName()
-        << sepchr <<right<< setw(psize_width) << kern->getProblemSize()
+        << sepchr <<right<< setw(psize_width) << kern->getRunProblemSize()
         << sepchr <<right<< setw(reps_width) << kern->getRunReps()
         << sepchr <<right<< setw(itsrep_width) << kern->getItsPerRep()
         << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()

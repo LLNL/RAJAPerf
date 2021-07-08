@@ -26,18 +26,18 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
 {
   m_n_init = 100;
 
-  setDefaultSize(m_n_init * m_n_init * m_n_init);
+  setDefaultProblemSize(m_n_init * m_n_init * m_n_init);
   setDefaultReps(1000);
 
-  auto n_final = std::cbrt(getRunSize());
+  auto n_final = std::cbrt(getRunProblemSize());
   m_ni = n_final;
   m_nj = n_final;
   m_nk = n_final;
   m_array_length = m_ni * m_nj * m_nk;
 
-  setProblemSize( m_array_length );
+  setTargetProblemSize( m_array_length );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length );
   setFLOPsPerRep(3 * m_array_length);
