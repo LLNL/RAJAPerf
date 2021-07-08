@@ -77,6 +77,7 @@
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DPA.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
@@ -200,6 +201,7 @@ static const std::string KernelNames [] =
   std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DPA"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
@@ -270,7 +272,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Launch"),
+  std::string("Teams"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -630,6 +632,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_LTIMES_NOVIEW : {
        kernel = new apps::LTIMES_NOVIEW(run_params);
+       break;
+    }
+    case Apps_MASS3DPA : {
+       kernel = new apps::MASS3DPA(run_params);
        break;
     }
     case Apps_PRESSURE : {
