@@ -26,7 +26,9 @@ BUILD_SUFFIX=lc_toss3-hipcc-${COMP_VER}-${COMP_ARCH}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip_link_X.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -53,5 +55,5 @@ cmake \
 
 echo
 echo "***********************************************************************"
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo "***********************************************************************"
