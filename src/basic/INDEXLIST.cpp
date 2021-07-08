@@ -44,6 +44,8 @@ INDEXLIST::INDEXLIST(const RunParams& params)
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
 #endif
+
+  setVariantDefined( Base_CUDA );
 }
 
 INDEXLIST::~INDEXLIST()
