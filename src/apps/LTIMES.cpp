@@ -12,6 +12,8 @@
 
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
+
 namespace rajaperf
 {
 namespace apps
@@ -29,7 +31,7 @@ LTIMES::LTIMES(const RunParams& params)
   setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = getRunSize() / (m_num_d_default * m_num_g_default);
+  m_num_z = std::max(getRunSize() / (m_num_d_default * m_num_g_default), Index_type(1));
   m_num_g = m_num_g_default;
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
