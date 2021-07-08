@@ -44,63 +44,51 @@
 ///   for(int dy=0; dy<D1D; ++dy) {
 ///     for(int dx=0; dx<Q1D; ++dx) {
 ///       double u[D1D];
-///       RAJA_UNROLL(MD1)
-///         for (int dz = 0; dz < D1D; dz++) {
+///       for (int dz = 0; dz < D1D; dz++) {
 ///           u[dz] = 0;
-///         }
-///       RAJA_UNROLL(MD1)
-///         for (int dx = 0; dx < D1D; ++dx) {
-///           RAJA_UNROLL(MD1)
-///             for (int dz = 0; dz < D1D; ++dz) {
-///               u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx];
-///             }
-///         }
-///       RAJA_UNROLL(MD1)
+///       }
+///       for (int dx = 0; dx < D1D; ++dx) {
 ///         for (int dz = 0; dz < D1D; ++dz) {
-///           DDQ[dz][dy][qx] = u[dz];
-///         }
+///           u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx];
+///          }
+///       }
+///       for (int dz = 0; dz < D1D; ++dz) {
+///         DDQ[dz][dy][qx] = u[dz];
+///       }
 ///     }
 ///   }
 ///
 ///   for(int qy=0; qy<Q1D; ++qy) {
 ///     for(int qx=0; qx<Q1D; ++qx) {
 ///       double u[D1D];
-///       RAJA_UNROLL(MD1)
+///       for (int dz = 0; dz < D1D; dz++) {
+///         u[dz] = 0;
+///       }
+///       for (int dy = 0; dy < D1D; ++dy) {
 ///         for (int dz = 0; dz < D1D; dz++) {
-///           u[dz] = 0;
+///           u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy];
 ///         }
-///       RAJA_UNROLL(MD1)
-///         for (int dy = 0; dy < D1D; ++dy) {
-///           RAJA_UNROLL(MD1)
-///             for (int dz = 0; dz < D1D; dz++) {
-///               u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy];
-///             }
-///         }
-///       RAJA_UNROLL(MD1)
-///         for (int dz = 0; dz < D1D; dz++) {
-///           DQQ[dz][qy][qx] = u[dz];
-///         }
+///       }
+///       for (int dz = 0; dz < D1D; dz++) {
+///         DQQ[dz][qy][qx] = u[dz];
+///       }
 ///     }
 ///   }
 ///
 ///   for(int qy=0; qy<Q1D; ++qy) {
 ///     for(int qx=0; qx<Q1D; ++qx) {
 ///       double u[Q1D];
-///       RAJA_UNROLL(MQ1)
+///       for (int qz = 0; qz < Q1D; qz++) {
+///         u[qz] = 0;
+///       }
+///       for (int dz = 0; dz < D1D; ++dz) {
 ///         for (int qz = 0; qz < Q1D; qz++) {
-///           u[qz] = 0;
-///         }
-///       RAJA_UNROLL(MD1)
-///         for (int dz = 0; dz < D1D; ++dz) {
-///           RAJA_UNROLL(MQ1)
-///             for (int qz = 0; qz < Q1D; qz++) {
-///               u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz];
-///             }
-///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qz = 0; qz < Q1D; qz++) {
-///           QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e);
-///         }
+///            u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz];
+///          }
+///       }
+///       for (int qz = 0; qz < Q1D; qz++) {
+///         QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e);
+///       }
 ///     }
 ///   }
 ///
@@ -113,63 +101,51 @@
 ///   for(int qy=0; qy<Q1D; ++qy) {
 ///     for(int dx=0; dx<D1D; ++dx) {
 ///       double u[Q1D];
-///       RAJA_UNROLL(MQ1)
+///       for (int qz = 0; qz < Q1D; ++qz) {
+///         u[qz] = 0;
+///       }
+///       for (int qx = 0; qx < Q1D; ++qx) {
 ///         for (int qz = 0; qz < Q1D; ++qz) {
-///           u[qz] = 0;
+///           u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx];
 ///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qx = 0; qx < Q1D; ++qx) {
-///           RAJA_UNROLL(MQ1)
-///             for (int qz = 0; qz < Q1D; ++qz) {
-///               u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx];
-///             }
-///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qz = 0; qz < Q1D; ++qz) {
-///           QQD[qz][qy][dx] = u[qz];
-///         }
+///       }
+///       for (int qz = 0; qz < Q1D; ++qz) {
+///          QQD[qz][qy][dx] = u[qz];
+///       }
 ///     }
 ///   }
 ///
 ///   for(int dy=0; dy<D1D; ++dy) {
 ///     for(int dx=0; dx<D1D; ++dx) {
 ///       double u[Q1D];
-///       RAJA_UNROLL(MQ1)
+///       for (int qz = 0; qz < Q1D; ++qz) {
+///          u[qz] = 0;
+///       }
+///       for (int qy = 0; qy < Q1D; ++qy) {
 ///         for (int qz = 0; qz < Q1D; ++qz) {
-///           u[qz] = 0;
-///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qy = 0; qy < Q1D; ++qy) {
-///           RAJA_UNROLL(MQ1)
-///             for (int qz = 0; qz < Q1D; ++qz) {
-///               u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy];
-///             }
-///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qz = 0; qz < Q1D; ++qz) {
-///           QDD[qz][dy][dx] = u[qz];
-///         }
+///           u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy];
+///          }
+///       }
+///       for (int qz = 0; qz < Q1D; ++qz) {
+///         QDD[qz][dy][dx] = u[qz];
+///       }
 ///     }
 ///   }
 ///
 ///   for(int dy=0; dy<D1D; ++dy) {
 ///     for(int dx=0; dx<D1D; ++dx) {
 ///       double u[D1D];
-///       RAJA_UNROLL(MD1)
+///       for (int dz = 0; dz < D1D; ++dz) {
+///        u[dz] = 0;
+///       }
+///       for (int qz = 0; qz < Q1D; ++qz) {
 ///         for (int dz = 0; dz < D1D; ++dz) {
-///           u[dz] = 0;
-///         }
-///       RAJA_UNROLL(MQ1)
-///         for (int qz = 0; qz < Q1D; ++qz) {
-///           RAJA_UNROLL(MD1)
-///             for (int dz = 0; dz < D1D; ++dz) {
-///               u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz];
-///             }
-///         }
-///       RAJA_UNROLL(MD1)
-///         for (int dz = 0; dz < D1D; ++dz) {
-///           Y_(dx, dy, dz, e) += u[dz];
-///         }
+///            u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz];
+///          }
+///       }
+///       for (int dz = 0; dz < D1D; ++dz) {
+///         Y_(dx, dy, dz, e) += u[dz];
+///       }
 ///     }
 ///   }
 ///
