@@ -38,6 +38,15 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
 }
 
 /*!
+ * \brief Simple cuda kernel that runs a lambda.
+ */
+template < typename Lambda >
+__global__ void lambda_cuda(Lambda body)
+{
+    body();
+}
+
+/*!
  * \brief Getters for cuda kernel indices.
  */
 template < typename Index >
@@ -191,4 +200,3 @@ void deallocCudaPinnedData(T& pptr)
 #endif // RAJA_ENABLE_CUDA
 
 #endif  // closing endif for header file include guard
-

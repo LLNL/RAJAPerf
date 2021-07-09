@@ -38,6 +38,11 @@ __global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda bod
 }
 
 /*!
+* \brief Simple hip kernel that runs a lambda.
+*/
+template <typename Lambda> __global__ void lambda_hip(Lambda body) { body(); }
+
+/*!
  * \brief Getters for hip kernel indices.
  */
 template < typename Index >
@@ -192,4 +197,3 @@ void deallocHipPinnedData(T& pptr)
 #endif // RAJA_ENABLE_HIP
 
 #endif  // closing endif for header file include guard
-
