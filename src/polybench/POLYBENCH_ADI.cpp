@@ -52,8 +52,6 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   setDefaultProblemSize( (m_n-2)*(m_n-2) );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( (m_n-2)*(m_n-2) );
-
   setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
                              (m_n-2)*(m_n-2 + m_n-2) ) );
   setKernelsPerRep( m_tsteps * 2 );

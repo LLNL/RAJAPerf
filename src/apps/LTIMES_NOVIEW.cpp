@@ -40,8 +40,6 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   m_elllen = m_num_d * m_num_m;
   m_psilen = m_num_d * m_num_g * m_num_z;
 
-  setTargetProblemSize( m_num_d * m_num_g * m_num_z );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   // using total data size instead of writes and reads

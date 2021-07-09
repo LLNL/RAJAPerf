@@ -35,8 +35,6 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   m_nk = n_final;
   m_array_length = m_ni * m_nj * m_nk;
 
-  setTargetProblemSize( m_array_length );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length );

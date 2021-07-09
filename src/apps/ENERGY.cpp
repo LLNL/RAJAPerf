@@ -24,8 +24,6 @@ ENERGY::ENERGY(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(130);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( 6 * getRunProblemSize() );
   setKernelsPerRep(6);
   // some branches are never taken due to the nature of the initialization of delvc

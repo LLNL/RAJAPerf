@@ -24,8 +24,6 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunProblemSize() );

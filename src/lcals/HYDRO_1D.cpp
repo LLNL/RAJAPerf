@@ -26,8 +26,6 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
 
   m_array_length = getRunProblemSize() + 12;
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getRunProblemSize() +

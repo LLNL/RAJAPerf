@@ -24,8 +24,6 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(2500);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() );

@@ -26,8 +26,6 @@ EOS::EOS(const RunParams& params)
 
   m_array_length = getRunProblemSize() + 7;
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() +

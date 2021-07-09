@@ -24,8 +24,6 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() ); // touched data size, not actual number of stores and loads

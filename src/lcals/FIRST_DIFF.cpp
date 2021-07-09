@@ -26,8 +26,6 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
 
   m_N = getRunProblemSize()+1;
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() +

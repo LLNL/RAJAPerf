@@ -24,8 +24,6 @@ PRESSURE::PRESSURE(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(700);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( 2 * getRunProblemSize() );
   setKernelsPerRep(2);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() +

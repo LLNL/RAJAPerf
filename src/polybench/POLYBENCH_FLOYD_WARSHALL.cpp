@@ -53,8 +53,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setDefaultProblemSize( m_N*m_N );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( m_N*m_N );
-
   setItsPerRep( m_N*m_N );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );

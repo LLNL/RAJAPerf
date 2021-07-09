@@ -24,8 +24,6 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(400);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 10*sizeof(Real_type )) * getRunProblemSize() );

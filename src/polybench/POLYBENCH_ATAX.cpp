@@ -53,8 +53,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultProblemSize( m_N );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( m_N );
-
   setItsPerRep( m_N + m_N );
   setKernelsPerRep(2);
   setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +

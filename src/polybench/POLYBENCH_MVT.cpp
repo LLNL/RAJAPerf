@@ -53,8 +53,6 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   setDefaultProblemSize( m_N );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( m_N );
-
   setItsPerRep( 2 * m_N );
   setKernelsPerRep(2);
   setBytesPerRep( (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +

@@ -57,8 +57,6 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setDefaultProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
-
   setItsPerRep( m_ni*m_nj + m_ni*m_nl );
   setKernelsPerRep(2);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +

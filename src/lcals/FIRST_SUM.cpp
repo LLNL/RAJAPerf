@@ -26,8 +26,6 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
 
   m_N = getRunProblemSize();
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +

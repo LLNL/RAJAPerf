@@ -56,8 +56,6 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   setDefaultProblemSize( m_n*m_n );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( m_n*m_n );
-
   setItsPerRep( m_n*m_n +
                 m_n*m_n +
                 m_n +

@@ -24,8 +24,6 @@ MUL::MUL(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 

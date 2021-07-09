@@ -26,8 +26,6 @@ FIR::FIR(const RunParams& params)
 
   m_coefflen = FIR_COEFFLEN;
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() - m_coefflen );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +

@@ -24,8 +24,6 @@ ADD::ADD(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 

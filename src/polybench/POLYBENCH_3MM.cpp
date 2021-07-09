@@ -54,8 +54,6 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setDefaultProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
   setDefaultReps(m_run_reps);
 
-  setTargetProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
-
   setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
   setKernelsPerRep(3);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +

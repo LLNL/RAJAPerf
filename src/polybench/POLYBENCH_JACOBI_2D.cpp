@@ -59,8 +59,6 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setDefaultProblemSize( (m_N-2) * (m_N-2) );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( (m_N-2) * (m_N-2) );
-
   setItsPerRep( m_tsteps * (2 * (m_N-2) * (m_N-2)) );
   setKernelsPerRep(2);
   setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-2) * (m_N-2) +

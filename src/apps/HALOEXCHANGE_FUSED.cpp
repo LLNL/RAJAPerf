@@ -70,8 +70,6 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
 
-  setTargetProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[2] );
-
   setItsPerRep( m_num_vars * (m_var_size - getRunProblemSize()) );
   setKernelsPerRep( 2 );
   setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +

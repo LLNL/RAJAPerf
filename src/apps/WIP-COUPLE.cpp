@@ -37,8 +37,6 @@ COUPLE::COUPLE(const RunParams& params)
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
 
-  setTargetProblemSize( m_domain->n_real_zones );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones );

@@ -56,8 +56,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   setDefaultProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
-
   setItsPerRep( m_tsteps * ( m_ny +
                              (m_nx-1)*m_ny +
                              m_nx*(m_ny-1) +

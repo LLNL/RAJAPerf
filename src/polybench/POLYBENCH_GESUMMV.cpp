@@ -56,8 +56,6 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   setDefaultProblemSize( m_N );
   setDefaultReps(run_reps);
 
-  setTargetProblemSize( m_N );
-
   setItsPerRep( m_N );
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +

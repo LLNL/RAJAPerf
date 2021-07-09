@@ -52,8 +52,6 @@ public:
 
   void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
-  void setTargetProblemSize(Index_type prob_size) 
-    { target_prob_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
   void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
@@ -69,7 +67,6 @@ public:
 
   Index_type getDefaultProblemSize() const { return default_prob_size; }
   Index_type getDefaultReps() const { return default_reps; }
-  Index_type getTargetProblemSize() const { return target_prob_size; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
@@ -185,7 +182,6 @@ private:
   //
   // Properties of kernel dependent on how kernel is run
   //
-  Index_type target_prob_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
   Index_type bytes_per_rep;

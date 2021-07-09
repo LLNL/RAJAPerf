@@ -29,8 +29,6 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 // reduction performance issues
   setDefaultReps(50);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +

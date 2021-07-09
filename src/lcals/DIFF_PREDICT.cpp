@@ -24,8 +24,6 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(200);
 
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunProblemSize());
