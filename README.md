@@ -216,11 +216,10 @@ located in the ''RAJAPerf-kernels.csv'' file includes the following:
 
 ### Notes about 'problem size'
 
- * The Suite uses three notions of problem size: 'default', 'target', and 'run'.
+ * The Suite uses two types of problem size: 'default' and 'run'.
    Default is the problem size defined for a kernel and the size that will run 
-   if no runtime options are provided to run a different size. Target is the
-   desired problem size based on runtime options. Run is the actual problem
-   size that is run when the Suite executes.
+   if no runtime options are provided to run a different size. Run is the actual
+   problem size that is run when the Suite executes.
  * The concept of problem size is subjective and can be interpreted differently
    depending on the kernel structure and what one is trying to measure. For 
    example, problem size could refer to the amount of data needed to be stored 
@@ -462,7 +461,7 @@ key steps and conventions that must be followed to ensure that all kernels
 interact with the performance Suite machinery in the same way:
 
 1. Initialize the `KernelBase` class object with `KernelID` and `RunParams` object passed to the FOO class constructor.
-2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, target problem size, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase`` class, also in the constructor. See the *.cpp file for any existing kernel in the suite for examples of how to do this..
+2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase`` class, also in the constructor. See the *.cpp file for any existing kernel in the suite for examples of how to do this..
 3. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
@@ -489,8 +488,6 @@ FOO::FOO(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
  
-  setTargetProblemSize( getRunProblemSize() );
-
   setItsPerRep( getRunProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( ... );
