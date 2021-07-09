@@ -69,7 +69,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -83,11 +83,6 @@ public:
   DIFF_PREDICT(const RunParams& params);
 
   ~DIFF_PREDICT();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

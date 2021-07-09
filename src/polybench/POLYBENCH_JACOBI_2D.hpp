@@ -65,7 +65,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -80,11 +80,6 @@ public:
   POLYBENCH_JACOBI_2D(const RunParams& params);
 
   ~POLYBENCH_JACOBI_2D();
-
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

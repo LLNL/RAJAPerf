@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -24,34 +24,42 @@ EOS::EOS(const RunParams& params)
   setDefaultSize(1000000);
   setDefaultReps(500);
 
+  m_array_length = getRunSize() + 7;
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
+  setFLOPsPerRep(16 * getRunSize());
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-EOS::~EOS() 
+EOS::~EOS()
 {
 }
 
 void EOS::setUp(VariantID vid)
 {
-  m_array_length = getRunSize() + 7;
-
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitData(m_y, m_array_length, vid);
   allocAndInitData(m_z, m_array_length, vid);

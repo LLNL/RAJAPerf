@@ -34,7 +34,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -48,11 +48,6 @@ public:
   MULADDSUB(const RunParams& params);
 
   ~MULADDSUB();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -69,7 +64,7 @@ private:
   Real_ptr m_out2;
   Real_ptr m_out3;
   Real_ptr m_in1;
-  Real_ptr m_in2; 
+  Real_ptr m_in2;
 };
 
 } // end namespace basic

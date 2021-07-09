@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -36,21 +36,26 @@ COUPLE::COUPLE(const RunParams& params)
   m_jmax = m_domain->jmax;
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
+
+  setProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones );
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
 }
 
-COUPLE::~COUPLE() 
+COUPLE::~COUPLE()
 {
   delete m_domain;
-}
-
-Index_type COUPLE::getProblemSize() const
-{
-  return m_domain->n_real_zones;
-}
-
-Index_type COUPLE::getItsPerRep() const
-{
-  return m_domain->n_real_zones;
 }
 
 void COUPLE::setUp(VariantID vid)
@@ -72,7 +77,7 @@ void COUPLE::setUp(VariantID vid)
   m_fratio = sqrt(m_omegar / m_omega0);
   m_r_fratio = 1.0/m_fratio;
   m_c20 = 0.25 * (m_clight / m_csound) * m_r_fratio;
-  m_ireal = Complex_type(0.0, 1.0); 
+  m_ireal = Complex_type(0.0, 1.0);
 }
 
 void COUPLE::runKernel(VariantID vid)
@@ -96,7 +101,7 @@ void COUPLE::runKernel(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
@@ -107,10 +112,10 @@ void COUPLE::runKernel(VariantID vid)
         RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
-        }); 
+        });
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
@@ -122,7 +127,7 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (Index_type k = kmin ; k < kmax ; ++k ) {
           COUPLE_BODY;
         }
@@ -140,10 +145,10 @@ void COUPLE::runKernel(VariantID vid)
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
-        }); 
+        });
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
@@ -186,7 +191,7 @@ void COUPLE::updateChecksum(VariantID vid)
 void COUPLE::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_t0);
   deallocData(m_t1);
   deallocData(m_t2);

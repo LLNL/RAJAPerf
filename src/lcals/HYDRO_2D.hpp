@@ -129,7 +129,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -143,11 +143,6 @@ public:
   HYDRO_2D(const RunParams& params);
 
   ~HYDRO_2D();
-
-  Index_type getProblemSize() const override
-  {
-    return m_array_length;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

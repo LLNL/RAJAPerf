@@ -46,7 +46,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -60,11 +60,6 @@ public:
   REDUCE3_INT(const RunParams& params);
 
   ~REDUCE3_INT();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

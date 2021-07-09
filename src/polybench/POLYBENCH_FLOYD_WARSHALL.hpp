@@ -16,9 +16,9 @@
 ///   for (Index_type i = 0; i < N; i++) {
 ///     for (Index_type j = 0; j < N; j++) {
 ///       pout[i][j] = pin[i][j] < pin[i][k] + pin[k][j] ?
-///                    pin[i][j] : pin[i][k] + pin[k][j]; 
-///     } 
-///   } 
+///                    pin[i][j] : pin[i][k] + pin[k][j];
+///     }
+///   }
 /// }
 
 
@@ -51,7 +51,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -66,11 +66,6 @@ public:
   POLYBENCH_FLOYD_WARSHALL(const RunParams& params);
 
   ~POLYBENCH_FLOYD_WARSHALL();
-
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

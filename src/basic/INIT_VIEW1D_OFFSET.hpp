@@ -15,7 +15,7 @@
 ///   a[i-ibegin] = i * val;
 /// }
 ///
-/// RAJA variants use a "View" and "Layout" to do the same thing. These 
+/// RAJA variants use a "View" and "Layout" to do the same thing. These
 /// RAJA constructs provide little benfit in 1D, but they are used here
 /// to exercise those RAJA mechanics in the simplest scenario.
 ///
@@ -41,7 +41,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -55,11 +55,6 @@ public:
   INIT_VIEW1D_OFFSET(const RunParams& params);
 
   ~INIT_VIEW1D_OFFSET();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

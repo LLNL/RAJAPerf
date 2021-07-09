@@ -34,7 +34,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -48,11 +48,6 @@ public:
   NESTED_INIT(const RunParams& params);
 
   ~NESTED_INIT();
-
-  Index_type getProblemSize() const override
-  {
-    return m_array_length;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

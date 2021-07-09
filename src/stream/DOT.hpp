@@ -27,7 +27,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -41,11 +41,6 @@ public:
   DOT(const RunParams& params);
 
   ~DOT();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

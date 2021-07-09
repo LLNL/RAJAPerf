@@ -33,7 +33,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -47,11 +47,6 @@ public:
   HYDRO_1D(const RunParams& params);
 
   ~HYDRO_1D();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -72,7 +67,7 @@ private:
   Real_type m_r;
   Real_type m_t;
 
-  Index_type m_array_length; 
+  Index_type m_array_length;
 };
 
 } // end namespace lcals

@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -23,6 +23,14 @@ TRAP_INT::TRAP_INT(const RunParams& params)
 {
   setDefaultSize(1000000);
   setDefaultReps(50);
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(10 * getRunSize()); // 1 sqrt
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
@@ -45,13 +53,13 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-TRAP_INT::~TRAP_INT() 
+TRAP_INT::~TRAP_INT()
 {
 }
 
 void TRAP_INT::setUp(VariantID vid)
 {
-  Real_type xn; 
+  Real_type xn;
   initData(xn, vid);
 
   initData(m_x0, vid);

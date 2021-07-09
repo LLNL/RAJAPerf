@@ -44,7 +44,7 @@
   C[j + i*nj] *= beta;
 
 #define POLYBENCH_GEMM_BODY3 \
-  dot += alpha * A[k + i*nk] * B[j + k*nj];  
+  dot += alpha * A[k + i*nk] * B[j + k*nj];
 
 #define POLYBENCH_GEMM_BODY4 \
   C[j + i*nj] = dot;
@@ -57,7 +57,7 @@
   Cview(i, j) *= beta;
 
 #define POLYBENCH_GEMM_BODY3_RAJA \
-  dot += alpha * Aview(i, k) * Bview(k, j);  
+  dot += alpha * Aview(i, k) * Bview(k, j);
 
 #define POLYBENCH_GEMM_BODY4_RAJA \
   Cview(i, j) = dot;
@@ -74,7 +74,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -89,11 +89,6 @@ public:
   POLYBENCH_GEMM(const RunParams& params);
 
   ~POLYBENCH_GEMM();
-
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

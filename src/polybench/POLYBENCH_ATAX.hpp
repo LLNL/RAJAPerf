@@ -90,7 +90,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -106,15 +106,10 @@ public:
 
   ~POLYBENCH_ATAX();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
-  
+
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);

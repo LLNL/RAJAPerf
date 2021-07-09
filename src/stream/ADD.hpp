@@ -23,12 +23,12 @@
   Real_ptr c = m_c;
 
 #define ADD_BODY  \
-  c[i] = a[i] + b[i]; 
+  c[i] = a[i] + b[i];
 
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -42,11 +42,6 @@ public:
   ADD(const RunParams& params);
 
   ~ADD();
-
-  Index_type getProblemSize() const override
-  {
-    return getRunSize();
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

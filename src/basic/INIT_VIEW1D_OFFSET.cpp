@@ -23,7 +23,14 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
 {
   setDefaultSize(1000000);
   setDefaultReps(2500);
- 
+
+  setProblemSize( getRunSize() );
+
+  setItsPerRep( getProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
+  setFLOPsPerRep(1 * getRunSize());
+
   setUsesFeature(Forall);
   setUsesFeature(View);
 

@@ -18,17 +18,17 @@
 ///       tmp[i][j] += alpha * A[i][k] * B[k][j];
 ///     }
 ///   }
-/// } 
+/// }
 /// for (Index_type i = 0; i < ni; i++) {
 ///   for (Index_type l = 0; l < nl; l++) {
-///     D[i][l] *= beta;  // NOTE: Changed to 'D[i][l] = beta;' 
+///     D[i][l] *= beta;  // NOTE: Changed to 'D[i][l] = beta;'
 ///                       // to avoid need for memset operation
 ///                       // to zero out matrix.
 ///     for (Index_type j = 0; j < nj; ++j) {
 ///       D[i][l] += tmp[i][j] * C[j][l];
-///     } 
+///     }
 ///   }
-/// } 
+/// }
 ///
 
 
@@ -102,7 +102,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -117,11 +117,6 @@ public:
   POLYBENCH_2MM(const RunParams& params);
 
   ~POLYBENCH_2MM();
-
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -144,7 +139,7 @@ private:
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;
-  Real_ptr m_D; 
+  Real_ptr m_D;
 };
 
 } // end namespace polybench

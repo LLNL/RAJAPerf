@@ -128,20 +128,6 @@ public:
 
   ~HALOEXCHANGE_FUSED();
 
-  Index_type getProblemSize() const override
-  {
-    return m_grid_dims[0] *
-           m_grid_dims[1] *
-           m_grid_dims[2];
-  }
-
-  Index_type getItsPerRep() const override
-  {
-    return m_num_vars * (m_var_size - m_grid_dims[0] *
-                                      m_grid_dims[1] *
-                                      m_grid_dims[2] );
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
@@ -165,6 +151,7 @@ private:
 
   Index_type m_grid_plus_halo_dims[3];
   Index_type m_var_size;
+  Index_type m_var_halo_size;
 
   std::vector<Real_ptr> m_vars;
   std::vector<Real_ptr> m_buffers;

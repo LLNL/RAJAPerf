@@ -164,6 +164,7 @@ enum KernelID {
   Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DPA,
   Apps_PRESSURE,
   Apps_VOL3D,
 
@@ -232,7 +233,7 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Launch,
+  Teams,
 
   Sort,
   Scan,

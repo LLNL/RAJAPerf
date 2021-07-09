@@ -10,8 +10,8 @@
 /// POLYBENCH_GESUMMV kernel reference implementation:
 ///
 /// for (Index_type i = 0; i < N; i++) {
-///     tmp[i] = 0.0;
-///     y[i] = 0.0;
+///   tmp[i] = 0.0;
+///   y[i] = 0.0;
 ///   for (Index_type j = 0; j < N; j++) {
 ///     tmp[i] += A[i][j] * x[j];
 ///     y[i] += B[i][j] * x[j];
@@ -73,7 +73,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -89,15 +89,10 @@ public:
 
   ~POLYBENCH_GESUMMV();
 
-  Index_type getProblemSize() const override
-  {
-    return 0;
-  }
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
-  
+
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
