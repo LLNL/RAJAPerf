@@ -115,6 +115,12 @@ void KernelBase::runKernel(VariantID vid)
     return;
   }
 
+#ifdef RAJAPERF_USE_CALIPER
+  if(doCaliperTiming) {
+    KernelBase::setCaliperMgrStart(vid);
+  }
+#endif
+   
   switch ( vid ) {
 
     case Base_Seq :
@@ -179,6 +185,11 @@ void KernelBase::runKernel(VariantID vid)
     }
 
   }
+#ifdef RAJAPERF_USE_CALIPER
+  if(doCaliperTiming) {
+    setCaliperMgrStop(vid); 
+  }
+#endif
 }
 
 void KernelBase::print(std::ostream& os) const
@@ -209,5 +220,10 @@ void KernelBase::print(std::ostream& os) const
   }
   os << std::endl;
 }
-
+#ifdef RAJAPERF_USE_CALIPER
+// initialize a KernelBase static 
+std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
+#endif
 }  // closing brace for rajaperf namespace
+
+

@@ -31,7 +31,6 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
   switch ( vid ) {
 
     case Base_OpenMP : {
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -46,7 +45,6 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 
       }
       stopTimer();
-
       break;
     }
 
@@ -70,7 +68,6 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 
       }
       stopTimer();
-
       break;
     }
 

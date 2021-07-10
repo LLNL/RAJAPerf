@@ -85,6 +85,27 @@ if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
+#
+# Are we using Caliper
+#
+set(ENABLE_CALIPER off CACHE BOOL "")
+set(RAJAPERF_USE_CALIPER off)
+if (ENABLE_CALIPER)
+   find_package(caliper REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
+   set(RAJAPERF_USE_CALIPER on)
+   add_definitions(-DRAJAPERF_USE_CALIPER)
+   message(STATUS "Using Caliper")
+   find_package(adiak REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS adiak)
+   message(STATUS "Using Adiak")
+   if (ENABLE_CUDA)
+      # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
+      # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
+      set_target_properties(adiak PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+   endif ()
+endif ()
+
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
@@ -95,7 +116,7 @@ if (ENABLE_CUDA)
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
-elseif (ENABLE_HIP)
+  elseif (ENABLE_HIP)
   set(RAJAPERF_COMPILER "${HIP_HIPCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${HIP_HIPCC_FLAGS}")
@@ -107,7 +128,7 @@ else()
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
+   ${PROJECT_BINARY_DIR}/include/rajaperf_config.hpp)
 
 # Make sure RAJA flag propagate (we need to do some house cleaning to 
 # remove project-specific CMake variables that are no longer needed)
