@@ -18,6 +18,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <regex>
 
 #include <iostream>
 #include <iomanip>
@@ -31,46 +32,71 @@ namespace rajaperf {
 
 using namespace std;
 
+vector<string> split(const string str, const string regex_str)
+{
+    regex regexz(regex_str);
+    vector<string> list(sregex_token_iterator(str.begin(), str.end(), regexz, -1),
+                                  sregex_token_iterator());
+    return list;
+}
+
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
 #ifdef RAJAPERF_USE_CALIPER
-   struct configuration  cc;
-   adiak::init(NULL);
-   adiak::user();
-   adiak::launchdate();
-   adiak::libraries();
-   adiak::cmdline();
-   adiak::clustername();
-   adiak::value("perfsuite_version",cc.perfsuite_version);
-   adiak::value("raja_version",cc.raja_version);
-   adiak::value("cmake_build_type",cc.cmake_build_type);
+  struct configuration cc;
+  adiak::init(NULL);
+  adiak::user();
+  adiak::launchdate();
+  adiak::libraries();
+  adiak::cmdline();
+  adiak::clustername();
+  adiak::value("perfsuite_version", cc.perfsuite_version);
+  adiak::value("raja_version", cc.raja_version);
+  adiak::value("cmake_build_type", cc.cmake_build_type);
 
-   adiak::value("compiler",cc.compiler);
-   std::string compiler_str(cc.compiler);
-   std::size_t found = compiler_str.find_last_of("/\\");
-   std::string  compiler_suffix = compiler_str.substr(found+1);
-   adiak::value("compiler_suffix",compiler_suffix.c_str());
+  adiak::value("compiler_path", cc.compiler);
+  cout << "Compiler path: " << cc.compiler << "\n";
+  auto tokens = split(cc.compiler, "/");
+  string compiler_exec = tokens.back();
+  adiak::value("compiler_version", cc.compiler_version);
+  // todo setup compiler version gleaned from path as separate key
+  string compiler = compiler_exec + "-" + cc.compiler_version;
+  cout << "Compiler: " << compiler << "\n";
+  adiak::value("compiler", compiler.c_str());
+  auto tsize = tokens.size();
+  if (tsize >= 3) {
+    // pickup path version <compiler-version-hash|date>/bin/exec
+    string path_version = tokens[tsize-3];
+    cout << "Compiler path version: " << path_version << "\n";
+    auto s = split(path_version,"-");
+    if (s.size() >= 2) {
+      string path_version_short = s[0] + "-" + s[1];
+      cout << "Compiler path version short: " << path_version_short << "\n";
+      adiak::value("Compiler_path_version",path_version_short.c_str());
+    } 
+  }
 
-   adiak::value("compiler_flags",cc.compiler_flags);
-   if(!strcmp(cc.cmake_build_type,"Release"))
-      adiak::value("compiler_flags_release",cc.compiler_flags_release);
-   else if(!strcmp(cc.cmake_build_type,"RelWithDebInfo"))
-      adiak::value("compiler_flags_relwithdebinfo",cc.compiler_flags_relwithdebinfo);
-   else if(!strcmp(cc.cmake_build_type,"Debug"))
-      adiak::value("compiler_flags_debug",cc.compiler_flags_debug);
 
-   if(strlen(cc.cuda_compiler_version) > 0) {
-      adiak::value("cuda_compiler_version",cc.cuda_compiler_version);
-      adiak::value("cuda_flags",cc.cuda_flags);
-      adiak::value("cuda_flags_release",cc.cuda_flags_release);
-   }
+  adiak::value("compiler_flags", cc.compiler_flags);
+  if (!strcmp(cc.cmake_build_type, "Release"))
+    adiak::value("compiler_flags_release", cc.compiler_flags_release);
+  else if (!strcmp(cc.cmake_build_type, "RelWithDebInfo"))
+    adiak::value("compiler_flags_relwithdebinfo", cc.compiler_flags_relwithdebinfo);
+  else if (!strcmp(cc.cmake_build_type, "Debug"))
+    adiak::value("compiler_flags_debug", cc.compiler_flags_debug);
 
-   if(strlen(cc.systype_build) > 0)
-      adiak::value("systype_build",cc.systype_build);
-   if(strlen(cc.machine_build) > 0)
-      adiak::value("machine_build",cc.machine_build);
+  if (strlen(cc.cuda_compiler_version) > 0) {
+    adiak::value("cuda_compiler_version", cc.cuda_compiler_version);
+    adiak::value("cuda_flags", cc.cuda_flags);
+    adiak::value("cuda_flags_release", cc.cuda_flags_release);
+  }
+
+  if (strlen(cc.systype_build) > 0)
+    adiak::value("systype_build", cc.systype_build);
+  if (strlen(cc.machine_build) > 0)
+    adiak::value("machine_build", cc.machine_build);
 #endif
 }
 
