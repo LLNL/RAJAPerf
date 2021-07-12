@@ -216,10 +216,13 @@ located in the ''RAJAPerf-kernels.csv'' file includes the following:
 
 ### Notes about 'problem size'
 
- * The Suite uses two types of problem size: 'default' and 'run'.
-   Default is the problem size defined for a kernel and the size that will run 
-   if no runtime options are provided to run a different size. Run is the actual
-   problem size that is run when the Suite executes.
+ * The Suite uses three notions of problem size for each kernel: 'default', 
+   'target', and 'actual'. Default is the 'default' problem size defined for a 
+   kernel and the size that will attempt to be run if no runtime options are 
+   provided to run a different size. Target is the desired problem size to run
+   based on default settings and alterations to that if input is provided to
+   change the default. Actual is the problem size that is run based on how 
+   each kernel calculates this.
  * The concept of problem size is subjective and can be interpreted differently
    depending on the kernel structure and what one is trying to measure. For 
    example, problem size could refer to the amount of data needed to be stored 
@@ -476,24 +479,34 @@ variant.
 
 The constructor must pass the kernel ID and RunParams object to the base
 class `KernelBase` constructor. The body of the constructor must also call
-base class methods to set kernel information as described above. The code
-snippet below illustrates how this typically looks. Note that the arguments
-passed to each method may be specific to each kernel.
+base class methods to set kernel information as described above. Note that 
+the arguments passed to each method are specific to each kernel, in general. 
+This code snippets shows a typical way this looks for a simple single for-loop
+data parallel kernel.
 
 ```cpp
 FOO::FOO(const RunParams& params)
   : KernelBase(rajaperf::Basic_Foo, params),
-    // default initialization of class members
 {
-  setDefaultProblemSize(1000000);
-  setDefaultReps(1000);
- 
-  setItsPerRep( getRunProblemSize() );
-  setKernelsPerRep(1);
-  setBytesPerRep( ... );
-  setFLOPsPerRep( ... );
+  setDefaultProblemSize(1000000);  // length of the for-loop
+  setDefaultReps(1000);            // number of times the kernel will execute
+                                   // to generate an execution run time value
 
-  setUsesFeature(Forall);
+  setActualProblemSize( getTargetProblemSize() );  // actual problem size may
+                                                   // be different than the 
+                                                   // default size based on
+                                                   // user-provided run time
+                                                   // options
+ 
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( ... );  // value set based on data read and written when
+                          // kernel executes
+  setFLOPsPerRep( ... );  // value set based on floating-point operations
+                          // performed when kernel executes
+
+  setUsesFeature(Forall); // the kernel uses the RAJA::forall construct and
+                          // no other RAJA features.
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
