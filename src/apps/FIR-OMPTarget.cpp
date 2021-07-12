@@ -33,14 +33,14 @@ namespace apps
 \
   Real_ptr coeff; \
 \
-  allocAndInitOpenMPDeviceData(in, m_in, getRunSize(), did, hid); \
-  allocAndInitOpenMPDeviceData(out, m_out, getRunSize(), did, hid); \
+  allocAndInitOpenMPDeviceData(in, m_in, getActualProblemSize(), did, hid); \
+  allocAndInitOpenMPDeviceData(out, m_out, getActualProblemSize(), did, hid); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitOpenMPDeviceData(coeff, tcoeff, FIR_COEFFLEN, did, hid);
 
 
 #define FIR_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_out, out, getRunSize(), hid, did); \
+  getOpenMPDeviceData(m_out, out, getActualProblemSize(), hid, did); \
   deallocOpenMPDeviceData(in, did); \
   deallocOpenMPDeviceData(out, did); \
   deallocOpenMPDeviceData(coeff, did);
@@ -50,7 +50,7 @@ void FIR::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 

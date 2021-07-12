@@ -28,10 +28,12 @@ LTIMES::LTIMES(const RunParams& params)
   m_num_g_default = 32;
   m_num_m_default = 25;
 
-  setDefaultSize(m_num_d_default * m_num_g_default * m_num_z_default);
+  setDefaultProblemSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = std::max(getRunSize() / (m_num_d_default * m_num_g_default), Index_type(1));
+  m_num_z = std::max( getTargetProblemSize() / 
+                      (m_num_d_default * m_num_g_default),
+                      Index_type(1) );
   m_num_g = m_num_g_default;
   m_num_m = m_num_m_default;
   m_num_d = m_num_d_default;
@@ -40,9 +42,9 @@ LTIMES::LTIMES(const RunParams& params)
   m_elllen = m_num_d * m_num_m;
   m_psilen = m_num_d * m_num_g * m_num_z;
 
-  setProblemSize( m_num_d * m_num_g * m_num_z );
+  setActualProblemSize( m_psilen );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   // using total data size instead of writes and reads
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_philen +

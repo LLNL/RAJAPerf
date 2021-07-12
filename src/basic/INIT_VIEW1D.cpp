@@ -21,15 +21,15 @@ namespace basic
 INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(2500);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(1 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
   setUsesFeature(View);
@@ -60,13 +60,13 @@ INIT_VIEW1D::~INIT_VIEW1D()
 
 void INIT_VIEW1D::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   m_val = 0.00000123;
 }
 
 void INIT_VIEW1D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void INIT_VIEW1D::tearDown(VariantID vid)

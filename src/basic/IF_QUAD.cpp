@@ -21,15 +21,15 @@ namespace basic
 IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(180);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() ); 
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(11 * getRunSize()); // 1 sqrt
+  setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(11 * getActualProblemSize()); // 1 sqrt
 
   setUsesFeature(Forall);
 
@@ -59,17 +59,17 @@ IF_QUAD::~IF_QUAD()
 
 void IF_QUAD::setUp(VariantID vid)
 {
-  allocAndInitDataRandSign(m_a, getRunSize(), vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
-  allocAndInitDataConst(m_x1, getRunSize(), 0.0, vid);
-  allocAndInitDataConst(m_x2, getRunSize(), 0.0, vid);
+  allocAndInitDataRandSign(m_a, getActualProblemSize(), vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
+  allocAndInitData(m_c, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_x1, getActualProblemSize(), 0.0, vid);
+  allocAndInitDataConst(m_x2, getActualProblemSize(), 0.0, vid);
 }
 
 void IF_QUAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x1, getRunSize());
-  checksum[vid] += calcChecksum(m_x2, getRunSize());
+  checksum[vid] += calcChecksum(m_x1, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_x2, getActualProblemSize());
 }
 
 void IF_QUAD::tearDown(VariantID vid)

@@ -21,18 +21,18 @@ namespace apps
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(160);
 
   m_coefflen = FIR_COEFFLEN;
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() - m_coefflen );
+  setItsPerRep( getActualProblemSize() - m_coefflen );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep((2 * m_coefflen) * (getRunSize() - m_coefflen));
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep((2 * m_coefflen) * (getActualProblemSize() - m_coefflen));
 
   setUsesFeature(Forall);
 
@@ -60,13 +60,13 @@ FIR::~FIR()
 
 void FIR::setUp(VariantID vid)
 {
-  allocAndInitData(m_in, getRunSize(), vid);
-  allocAndInitDataConst(m_out, getRunSize(), 0.0, vid);
+  allocAndInitData(m_in, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_out, getActualProblemSize(), 0.0, vid);
 }
 
 void FIR::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out, getRunSize());
+  checksum[vid] += calcChecksum(m_out, getActualProblemSize());
 }
 
 void FIR::tearDown(VariantID vid)
