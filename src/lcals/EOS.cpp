@@ -24,13 +24,16 @@ EOS::EOS(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  m_array_length = getRunProblemSize() + 7;
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getRunProblemSize() );
+  m_array_length = getActualProblemSize() + 7;
+
+  setItsPerRep( getActualProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() +
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
-  setFLOPsPerRep(16 * getRunProblemSize());
+  setFLOPsPerRep(16 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -70,7 +73,7 @@ void EOS::setUp(VariantID vid)
 
 void EOS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void EOS::tearDown(VariantID vid)

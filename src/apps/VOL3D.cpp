@@ -28,10 +28,12 @@ VOL3D::VOL3D(const RunParams& params)
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::cbrt(getRunProblemSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
+
+  setActualProblemSize( m_domain->lpz+1 - m_domain->fpz );
 
   setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
   setKernelsPerRep(1);

@@ -30,10 +30,10 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, getRunProblemSize(), did, hid);
+  allocAndInitOpenMPDeviceData(a, m_a, getActualProblemSize(), did, hid);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_a, a, getRunProblemSize(), hid, did); \
+  getOpenMPDeviceData(m_a, a, getActualProblemSize(), hid, did); \
   deallocOpenMPDeviceData(a, did);
 
 
@@ -41,7 +41,7 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunProblemSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 

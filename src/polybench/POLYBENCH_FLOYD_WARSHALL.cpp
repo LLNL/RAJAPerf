@@ -50,8 +50,23 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type N_default = 1000;
+
+  setDefaultProblemSize( N_default * N_default ); 
+  setDefaultReps(8);
+
+  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+
+#else  // this is what we have now...
+
   setDefaultProblemSize( m_N*m_N );
   setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( m_N * m_N );
 
   setItsPerRep( m_N*m_N );
   setKernelsPerRep(1);

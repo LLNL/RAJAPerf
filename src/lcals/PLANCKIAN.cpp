@@ -24,10 +24,12 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getRunProblemSize() );
-  setFLOPsPerRep(4 * getRunProblemSize()); // 1 exp
+  setBytesPerRep( (2*sizeof(Real_type ) + 3*sizeof(Real_type )) * getActualProblemSize() );
+  setFLOPsPerRep(4 * getActualProblemSize()); // 1 exp
 
   setUsesFeature(Forall);
 
@@ -55,16 +57,16 @@ PLANCKIAN::~PLANCKIAN()
 
 void PLANCKIAN::setUp(VariantID vid)
 {
-  allocAndInitData(m_x, getRunProblemSize(), vid);
-  allocAndInitData(m_y, getRunProblemSize(), vid);
-  allocAndInitData(m_u, getRunProblemSize(), vid);
-  allocAndInitData(m_v, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_w, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_x, getActualProblemSize(), vid);
+  allocAndInitData(m_y, getActualProblemSize(), vid);
+  allocAndInitData(m_u, getActualProblemSize(), vid);
+  allocAndInitData(m_v, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_w, getActualProblemSize(), 0.0, vid);
 }
 
 void PLANCKIAN::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_w, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_w, getActualProblemSize());
 }
 
 void PLANCKIAN::tearDown(VariantID vid)

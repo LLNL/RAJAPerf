@@ -24,13 +24,16 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  m_N = getRunProblemSize()+1;
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getRunProblemSize() );
+  m_N = getActualProblemSize()+1;
+
+  setItsPerRep( getActualProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() +
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_N );
-  setFLOPsPerRep(1 * getRunProblemSize());
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -64,7 +67,7 @@ void FIRST_DIFF::setUp(VariantID vid)
 
 void FIRST_DIFF::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void FIRST_DIFF::tearDown(VariantID vid)

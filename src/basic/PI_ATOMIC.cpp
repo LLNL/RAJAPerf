@@ -24,11 +24,13 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep(6 * getRunProblemSize() + 1);
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);
   setUsesFeature(Atomic);
@@ -59,7 +61,7 @@ PI_ATOMIC::~PI_ATOMIC()
 
 void PI_ATOMIC::setUp(VariantID vid)
 {
-  m_dx = 1.0 / double(getRunProblemSize());
+  m_dx = 1.0 / double(getActualProblemSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
 }

@@ -24,11 +24,13 @@ MUL::MUL(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
-                  getRunProblemSize() );
-  setFLOPsPerRep(1 * getRunProblemSize());
+                  getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature( Forall );
 
@@ -58,14 +60,14 @@ MUL::~MUL()
 
 void MUL::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_b, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_c, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_b, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void MUL::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_b, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_b, getActualProblemSize());
 }
 
 void MUL::tearDown(VariantID vid)

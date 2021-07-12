@@ -24,10 +24,12 @@ COPY::COPY(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
-                  getRunProblemSize() );
+                  getActualProblemSize() );
   setFLOPsPerRep(0);
 
   setUsesFeature( Forall );
@@ -58,13 +60,13 @@ COPY::~COPY()
 
 void COPY::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_c, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_a, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
 void COPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_c, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
 }
 
 void COPY::tearDown(VariantID vid)

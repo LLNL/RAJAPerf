@@ -24,10 +24,12 @@ INIT3::INIT3(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep(1 * getRunProblemSize());
+  setBytesPerRep( (3*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -57,18 +59,18 @@ INIT3::~INIT3()
 
 void INIT3::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_out1, getRunProblemSize(), 0.0, vid);
-  allocAndInitDataConst(m_out2, getRunProblemSize(), 0.0, vid);
-  allocAndInitDataConst(m_out3, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_in1, getRunProblemSize(), vid);
-  allocAndInitData(m_in2, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
+  allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
+  allocAndInitDataConst(m_out3, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_in1, getActualProblemSize(), vid);
+  allocAndInitData(m_in2, getActualProblemSize(), vid);
 }
 
 void INIT3::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out1, getRunProblemSize());
-  checksum[vid] += calcChecksum(m_out2, getRunProblemSize());
-  checksum[vid] += calcChecksum(m_out3, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
 }
 
 void INIT3::tearDown(VariantID vid)

@@ -24,11 +24,13 @@ TRIAD::TRIAD(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
-                  getRunProblemSize() );
-  setFLOPsPerRep(2 * getRunProblemSize());
+                  getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature( Forall );
 
@@ -58,15 +60,15 @@ TRIAD::~TRIAD()
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_b, getRunProblemSize(), vid);
-  allocAndInitData(m_c, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
+  allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void TRIAD::tearDown(VariantID vid)

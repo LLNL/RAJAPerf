@@ -24,10 +24,12 @@ DAXPY::DAXPY(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep(2 * getRunProblemSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -57,14 +59,14 @@ DAXPY::~DAXPY()
 
 void DAXPY::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_y, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_x, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_x, getActualProblemSize(), vid);
   initData(m_a);
 }
 
 void DAXPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_y, getActualProblemSize());
 }
 
 void DAXPY::tearDown(VariantID vid)

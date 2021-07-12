@@ -24,13 +24,15 @@ PRESSURE::PRESSURE(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(700);
 
-  setItsPerRep( 2 * getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( 2 * getActualProblemSize() );
   setKernelsPerRep(2);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() +
-                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() );
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep((2 +
                   1
-                  ) * getRunProblemSize());
+                  ) * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -58,11 +60,11 @@ PRESSURE::~PRESSURE()
 
 void PRESSURE::setUp(VariantID vid)
 {
-  allocAndInitData(m_compression, getRunProblemSize(), vid);
-  allocAndInitData(m_bvc, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_p_new, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_e_old, getRunProblemSize(), vid);
-  allocAndInitData(m_vnewc, getRunProblemSize(), vid);
+  allocAndInitData(m_compression, getActualProblemSize(), vid);
+  allocAndInitData(m_bvc, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_p_new, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_e_old, getActualProblemSize(), vid);
+  allocAndInitData(m_vnewc, getActualProblemSize(), vid);
 
   initData(m_cls);
   initData(m_p_cut);
@@ -72,7 +74,7 @@ void PRESSURE::setUp(VariantID vid)
 
 void PRESSURE::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_p_new, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
 void PRESSURE::tearDown(VariantID vid)

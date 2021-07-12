@@ -24,23 +24,25 @@ ENERGY::ENERGY(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(130);
 
-  setItsPerRep( 6 * getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( 6 * getActualProblemSize() );
   setKernelsPerRep(6);
   // some branches are never taken due to the nature of the initialization of delvc
   // the additional reads and writes that would be done if those branches were taken are noted in the comments
-  setBytesPerRep( (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getRunProblemSize() +
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() + /* 1 + 8 */
-                  (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getRunProblemSize() +
-                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() +
-                  (1*sizeof(Real_type) + 7*sizeof(Real_type)) * getRunProblemSize() + /* 1 + 12 */
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() ); /* 1 + 8 */
+  setBytesPerRep( (1*sizeof(Real_type) + 5*sizeof(Real_type)) * getActualProblemSize() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() + /* 1 + 8 */
+                  (1*sizeof(Real_type) + 6*sizeof(Real_type)) * getActualProblemSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
+                  (1*sizeof(Real_type) + 7*sizeof(Real_type)) * getActualProblemSize() + /* 1 + 12 */
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() ); /* 1 + 8 */
   setFLOPsPerRep((6  +
                   11 + // 1 sqrt
                   8  +
                   2  +
                   19 + // 1 sqrt
                   9    // 1 sqrt
-                  ) * getRunProblemSize());
+                  ) * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -68,21 +70,21 @@ ENERGY::~ENERGY()
 
 void ENERGY::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_e_new, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_e_old, getRunProblemSize(), vid);
-  allocAndInitData(m_delvc, getRunProblemSize(), vid);
-  allocAndInitData(m_p_new, getRunProblemSize(), vid);
-  allocAndInitData(m_p_old, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_q_new, getRunProblemSize(), 0.0, vid);
-  allocAndInitData(m_q_old, getRunProblemSize(), vid);
-  allocAndInitData(m_work, getRunProblemSize(), vid);
-  allocAndInitData(m_compHalfStep, getRunProblemSize(), vid);
-  allocAndInitData(m_pHalfStep, getRunProblemSize(), vid);
-  allocAndInitData(m_bvc, getRunProblemSize(), vid);
-  allocAndInitData(m_pbvc, getRunProblemSize(), vid);
-  allocAndInitData(m_ql_old, getRunProblemSize(), vid);
-  allocAndInitData(m_qq_old, getRunProblemSize(), vid);
-  allocAndInitData(m_vnewc, getRunProblemSize(), vid);
+  allocAndInitDataConst(m_e_new, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_e_old, getActualProblemSize(), vid);
+  allocAndInitData(m_delvc, getActualProblemSize(), vid);
+  allocAndInitData(m_p_new, getActualProblemSize(), vid);
+  allocAndInitData(m_p_old, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_q_new, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_q_old, getActualProblemSize(), vid);
+  allocAndInitData(m_work, getActualProblemSize(), vid);
+  allocAndInitData(m_compHalfStep, getActualProblemSize(), vid);
+  allocAndInitData(m_pHalfStep, getActualProblemSize(), vid);
+  allocAndInitData(m_bvc, getActualProblemSize(), vid);
+  allocAndInitData(m_pbvc, getActualProblemSize(), vid);
+  allocAndInitData(m_ql_old, getActualProblemSize(), vid);
+  allocAndInitData(m_qq_old, getActualProblemSize(), vid);
+  allocAndInitData(m_vnewc, getActualProblemSize(), vid);
 
   initData(m_rho0);
   initData(m_e_cut);
@@ -92,8 +94,8 @@ void ENERGY::setUp(VariantID vid)
 
 void ENERGY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_e_new, getRunProblemSize());
-  checksum[vid] += calcChecksum(m_q_new, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_e_new, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_q_new, getActualProblemSize());
 }
 
 void ENERGY::tearDown(VariantID vid)

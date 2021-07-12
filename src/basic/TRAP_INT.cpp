@@ -24,11 +24,13 @@ TRAP_INT::TRAP_INT(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep(10 * getRunProblemSize()); // 1 sqrt
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(10 * getActualProblemSize()); // 1 sqrt
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);

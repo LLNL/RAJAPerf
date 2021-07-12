@@ -24,12 +24,14 @@ DOT::DOT(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
                   (0*sizeof(Real_type) + 2*sizeof(Real_type)) * 
-                  getRunProblemSize() );
-  setFLOPsPerRep(2 * getRunProblemSize());
+                  getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature( Forall );
   setUsesFeature( Reduction );
@@ -58,8 +60,8 @@ DOT::~DOT()
 
 void DOT::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunProblemSize(), vid);
-  allocAndInitData(m_b, getRunProblemSize(), vid);
+  allocAndInitData(m_a, getActualProblemSize(), vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
 
   m_dot = 0.0;
   m_dot_init = 0.0;

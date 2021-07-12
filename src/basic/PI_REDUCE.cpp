@@ -24,11 +24,13 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep(6 * getRunProblemSize() + 1);
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
@@ -58,7 +60,7 @@ PI_REDUCE::~PI_REDUCE()
 void PI_REDUCE::setUp(VariantID vid)
 {
   (void) vid;
-  m_dx = 1.0 / double(getRunProblemSize());
+  m_dx = 1.0 / double(getActualProblemSize());
   m_pi_init = 0.0;
   m_pi = 0.0;
 }

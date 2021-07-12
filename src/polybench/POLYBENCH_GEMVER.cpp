@@ -50,11 +50,29 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type n_default = 1000;
+
+  setDefaultProblemSize( n_default * n_default ) );
+  setDefaultReps(20);
+
+  m_n =  std::sqrt( getTargetProblemSize() ) + 1;
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
+
+#else // this is what we have now...
+
   m_alpha = 1.5;
   m_beta = 1.2;
 
   setDefaultProblemSize( m_n*m_n );
   setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( m_n * m_n );
 
   setItsPerRep( m_n*m_n +
                 m_n*m_n +

@@ -26,11 +26,13 @@ FIR::FIR(const RunParams& params)
 
   m_coefflen = FIR_COEFFLEN;
 
-  setItsPerRep( getRunProblemSize() - m_coefflen );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() - m_coefflen );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunProblemSize() );
-  setFLOPsPerRep((2 * m_coefflen) * (getRunProblemSize() - m_coefflen));
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep((2 * m_coefflen) * (getActualProblemSize() - m_coefflen));
 
   setUsesFeature(Forall);
 
@@ -58,13 +60,13 @@ FIR::~FIR()
 
 void FIR::setUp(VariantID vid)
 {
-  allocAndInitData(m_in, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_out, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_in, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_out, getActualProblemSize(), 0.0, vid);
 }
 
 void FIR::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_out, getActualProblemSize());
 }
 
 void FIR::tearDown(VariantID vid)

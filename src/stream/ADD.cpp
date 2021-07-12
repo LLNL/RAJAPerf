@@ -24,11 +24,13 @@ ADD::ADD(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
-                  getRunProblemSize() );
-  setFLOPsPerRep(1 * getRunProblemSize());
+                  getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -58,14 +60,14 @@ ADD::~ADD()
 
 void ADD::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunProblemSize(), vid);
-  allocAndInitData(m_b, getRunProblemSize(), vid);
-  allocAndInitDataConst(m_c, getRunProblemSize(), 0.0, vid);
+  allocAndInitData(m_a, getActualProblemSize(), vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
 void ADD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_c, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
 }
 
 void ADD::tearDown(VariantID vid)

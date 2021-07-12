@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getRunProblemSize());
+  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getRunProblemSize()); \
+  getCudaDeviceData(m_a, a, getActualProblemSize()); \
   deallocCudaDeviceData(a);
 
 __global__ void initview1d_offset(Real_ptr a,
@@ -50,7 +50,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunProblemSize()+1;
+  const Index_type iend = getActualProblemSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 

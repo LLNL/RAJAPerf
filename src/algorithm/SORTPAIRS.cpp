@@ -24,9 +24,11 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunProblemSize() ); // touched data size, not actual number of stores and loads
+  setBytesPerRep( (2*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() ); // touched data size, not actual number of stores and loads
   setFLOPsPerRep(0);
 
   setUsesFeature(Sort);
@@ -47,14 +49,14 @@ SORTPAIRS::~SORTPAIRS()
 
 void SORTPAIRS::setUp(VariantID vid)
 {
-  allocAndInitDataRandValue(m_x, getRunProblemSize()*getRunReps(), vid);
-  allocAndInitDataRandValue(m_i, getRunProblemSize()*getRunReps(), vid);
+  allocAndInitDataRandValue(m_x, getActualProblemSize()*getRunReps(), vid);
+  allocAndInitDataRandValue(m_i, getActualProblemSize()*getRunReps(), vid);
 }
 
 void SORTPAIRS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunProblemSize()*getRunReps());
-  checksum[vid] += calcChecksum(m_i, getRunProblemSize()*getRunReps());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
+  checksum[vid] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
 }
 
 void SORTPAIRS::tearDown(VariantID vid)

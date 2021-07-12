@@ -22,7 +22,7 @@ void FIRST_SUM::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunProblemSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_SUM_DATA_SETUP;
 

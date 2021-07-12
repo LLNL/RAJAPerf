@@ -11,7 +11,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/DataUtils.hpp"
-
 namespace rajaperf
 {
 namespace lcals
@@ -24,10 +23,13 @@ DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(200);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+
   setKernelsPerRep(1);
-  setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getRunProblemSize());
-  setFLOPsPerRep(9 * getRunProblemSize());
+  setBytesPerRep( (10*sizeof(Real_type) + 10*sizeof(Real_type)) * getActualProblemSize());
+  setFLOPsPerRep(9 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -55,8 +57,8 @@ DIFF_PREDICT::~DIFF_PREDICT()
 
 void DIFF_PREDICT::setUp(VariantID vid)
 {
-  m_array_length = getRunProblemSize() * 14;
-  m_offset = getRunProblemSize();
+  m_array_length = getActualProblemSize() * 14;
+  m_offset = getActualProblemSize();
 
   allocAndInitDataConst(m_px, m_array_length, 0.0, vid);
   allocAndInitData(m_cx, m_array_length, vid);

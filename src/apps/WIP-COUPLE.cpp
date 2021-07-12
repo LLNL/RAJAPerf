@@ -27,7 +27,7 @@ COUPLE::COUPLE(const RunParams& params)
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(50);
 
-  Index_type rzmax = std::cbrt(getRunProblemSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_imin = m_domain->imin;
@@ -37,7 +37,9 @@ COUPLE::COUPLE(const RunParams& params)
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones );
   setFLOPsPerRep(0);

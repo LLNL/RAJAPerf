@@ -24,13 +24,15 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  m_N = getRunProblemSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getRunProblemSize() );
+  m_N = getActualProblemSize();
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
-  setFLOPsPerRep(1 * (getRunProblemSize()-1));
+  setFLOPsPerRep(1 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);
 
@@ -64,7 +66,7 @@ void FIRST_SUM::setUp(VariantID vid)
 
 void FIRST_SUM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void FIRST_SUM::tearDown(VariantID vid)

@@ -24,12 +24,14 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  m_N = getRunProblemSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getRunProblemSize() );
+  m_N = getActualProblemSize();
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1) );
-  setFLOPsPerRep(2 * (getRunProblemSize()-1));
+  setFLOPsPerRep(2 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);
 
@@ -65,7 +67,7 @@ void TRIDIAG_ELIM::setUp(VariantID vid)
 
 void TRIDIAG_ELIM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_xout, getRunProblemSize());
+  checksum[vid] += calcChecksum(m_xout, getActualProblemSize());
 }
 
 void TRIDIAG_ELIM::tearDown(VariantID vid)

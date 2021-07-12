@@ -29,11 +29,13 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 // reduction performance issues
   setDefaultReps(50);
 
-  setItsPerRep( getRunProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
-                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getRunProblemSize() );
-  setFLOPsPerRep(1 * getRunProblemSize() + 1);
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
@@ -62,7 +64,7 @@ REDUCE3_INT::~REDUCE3_INT()
 
 void REDUCE3_INT::setUp(VariantID vid)
 {
-  allocAndInitData(m_vec, getRunProblemSize(), vid);
+  allocAndInitData(m_vec, getActualProblemSize(), vid);
 
   m_vsum = 0;
   m_vsum_init = 0;

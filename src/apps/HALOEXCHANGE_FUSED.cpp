@@ -51,11 +51,11 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
   m_num_vars_default     = 3;
 
   setDefaultProblemSize( m_grid_dims_default[0] *
-                  m_grid_dims_default[1] *
-                  m_grid_dims_default[2] );
+                         m_grid_dims_default[1] *
+                         m_grid_dims_default[2] );
   setDefaultReps(50);
 
-  double cbrt_run_size = std::cbrt(getRunProblemSize());
+  double cbrt_run_size = std::cbrt(getTargetProblemSize());
 
   m_grid_dims[0] = cbrt_run_size;
   m_grid_dims[1] = cbrt_run_size;
@@ -70,7 +70,9 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
                m_grid_plus_halo_dims[1] *
                m_grid_plus_halo_dims[2] ;
 
-  setItsPerRep( m_num_vars * (m_var_size - getRunProblemSize()) );
+  setActualProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[1] );
+
+  setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
   setKernelsPerRep( 2 );
   setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
                   (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +

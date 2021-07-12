@@ -50,14 +50,28 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type N_default = 1000;
+
+  setDefaultProblemSize( N_default * N_default );
+  setDefaultReps(16);
+
+  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+
+#else // this is what we have now...
+
   setDefaultProblemSize( m_N );
   setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( m_N * m_N );
 
   setItsPerRep( 2 * m_N );
   setKernelsPerRep(2);
   setBytesPerRep( (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N +
-
                   (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
   setFLOPsPerRep(2 * m_N*m_N +

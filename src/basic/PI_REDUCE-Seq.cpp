@@ -22,7 +22,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunProblemSize();
+  const Index_type iend = getActualProblemSize();
 
   PI_REDUCE_DATA_SETUP;
 

@@ -28,9 +28,11 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setDefaultProblemSize(m_NE_default*Q1D*Q1D*Q1D);
   setDefaultReps(50);
 
-  m_NE = std::max(getRunProblemSize()/(Q1D*Q1D*Q1D), Index_type(1));
+  m_NE = std::max(getTargetProblemSize()/(Q1D*Q1D*Q1D), Index_type(1));
 
-  setItsPerRep(getRunProblemSize());
+  setActualProblemSize( m_NE*Q1D*Q1D*Q1D );
+
+  setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
   setBytesPerRep( Q1D*D1D*sizeof(Real_type)  +

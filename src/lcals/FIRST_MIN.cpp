@@ -27,9 +27,11 @@ FIRST_MIN::FIRST_MIN(const RunParams& params)
 // reduction performance issues
   setDefaultReps(100);
 
-  m_N = getRunProblemSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getRunProblemSize() );
+  m_N = getActualProblemSize();
+
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
                   (1*sizeof(Index_type) + 1*sizeof(Index_type)) +

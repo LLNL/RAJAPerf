@@ -51,6 +51,7 @@ public:
   //
 
   void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
+  void setActualProblemSize(Index_type size) { actual_prob_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
@@ -66,13 +67,14 @@ public:
   //
 
   Index_type getDefaultProblemSize() const { return default_prob_size; }
+  Index_type getActualProblemSize() const { return actual_prob_size; }
   Index_type getDefaultReps() const { return default_reps; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
-  Index_type getRunProblemSize() const;
+  Index_type getTargetProblemSize() const;
   Index_type getRunReps() const;
 
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
@@ -174,6 +176,8 @@ private:
 
   Index_type default_prob_size;
   Index_type default_reps;
+
+  Index_type actual_prob_size;
 
   bool uses_feature[NumFeatures];
 
