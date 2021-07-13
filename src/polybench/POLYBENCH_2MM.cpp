@@ -63,9 +63,9 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setDefaultReps(4);
 
   m_ni = std::sqrt( getTargetProblemSize() ) + 1;
-  m_nj = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
   m_nk = nk_default;
-  m_nl = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nl = m_ni;
 
   m_alpha = 1.5;
   m_beta = 1.2;
