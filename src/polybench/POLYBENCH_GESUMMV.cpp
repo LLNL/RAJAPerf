@@ -52,7 +52,7 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
 #if 0 // we want this...
 
-  Index_type N_default = 1600;
+  Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(120); 

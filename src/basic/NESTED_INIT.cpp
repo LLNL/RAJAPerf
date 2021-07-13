@@ -29,7 +29,7 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setDefaultProblemSize(m_n_init * m_n_init * m_n_init);
   setDefaultReps(1000);
 
-  auto n_final = std::cbrt(getTargetProblemSize())+1;
+  auto n_final = std::cbrt( getTargetProblemSize() );
   m_ni = n_final;
   m_nj = n_final;
   m_nk = n_final;

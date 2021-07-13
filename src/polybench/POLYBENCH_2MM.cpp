@@ -53,23 +53,19 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
 #if 0 // we want this...
 
-  Index_type ni_default = 820;
-  Index_type nj_default = 920;
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
   Index_type nk_default = 1120;
-  Index_type nl_default = 1220;
+  Index_type nl_default = 1000;
 
-  setDefaultProblemSize( std::max( ni_default*nj_default,
+  setDefaultProblemSize( std::max( ni_default*nj_default, 
                                    ni_default*nl_default ) );
   setDefaultReps(4);
 
-  if ( nj_default < nl_default ) {
-    m_ni = getTargetProblemSize() / nl_default;
-  } else {
-    m_ni = getTargetProblemSize() / nj_default;
-  }
-  m_nj = nj_default;
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = std::sqrt( getTargetProblemSize() ) + 1;
   m_nk = nk_default;
-  m_nl = nl_default;
+  m_nl = std::sqrt( getTargetProblemSize() ) + 1;
 
   m_alpha = 1.5;
   m_beta = 1.2;

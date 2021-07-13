@@ -55,15 +55,15 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
 
 #if 0 // we want this...
 
-  Index_type nx_default = 800;
-  Index_type ny_default = 1260;
+  Index_type nx_default = 1000;
+  Index_type ny_default = 1000;
 
   setDefaultProblemSize( std::max( (nx_default-1) * ny_default, 
                                     nx_default * (ny_default-1) ) );
   setDefaultReps(8);
 
-  m_nx = getTargetProblemSize() / ny_default;
-  m_ny = ny_default;
+  m_nx = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ny = m_nx;
   m_tsteps = 40;
 
 #else // this is what we have now...
