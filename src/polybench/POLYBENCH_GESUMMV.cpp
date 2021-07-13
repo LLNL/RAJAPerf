@@ -50,15 +50,31 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type N_default = 1000;
+
+  setDefaultProblemSize( N_default * N_default );
+  setDefaultReps(120); 
+
+  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+
   m_alpha = 0.62;
   m_beta = 1.002;
 
-  setDefaultSize( m_N );
+#else // this is what we have now...
+
+  m_alpha = 0.62;
+  m_beta = 1.002;
+
+  setDefaultProblemSize( m_N * m_N );
   setDefaultReps(run_reps);
 
-  setProblemSize( m_N );
+#endif
 
-  setItsPerRep( getProblemSize() );
+  setActualProblemSize( m_N * m_N );
+
+  setItsPerRep( m_N );
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N +
                   (0*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_N * m_N );

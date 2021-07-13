@@ -21,15 +21,15 @@ namespace lcals
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(400);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 10*sizeof(Real_type )) * getRunSize() );
-  setFLOPsPerRep(17 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type ) + 10*sizeof(Real_type )) * getActualProblemSize() );
+  setFLOPsPerRep(17 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -57,8 +57,8 @@ INT_PREDICT::~INT_PREDICT()
 
 void INT_PREDICT::setUp(VariantID vid)
 {
-  m_array_length = getRunSize() * 13;
-  m_offset = getRunSize();
+  m_array_length = getActualProblemSize() * 13;
+  m_offset = getActualProblemSize();
 
   m_px_initval = 1.0;
   allocAndInitDataConst(m_px, m_array_length, m_px_initval, vid);
@@ -75,11 +75,11 @@ void INT_PREDICT::setUp(VariantID vid)
 
 void INT_PREDICT::updateChecksum(VariantID vid)
 {
-  for (Index_type i = 0; i < getRunSize(); ++i) {
+  for (Index_type i = 0; i < getActualProblemSize(); ++i) {
     m_px[i] -= m_px_initval;
   }
 
-  checksum[vid] += calcChecksum(m_px, getRunSize());
+  checksum[vid] += calcChecksum(m_px, getActualProblemSize());
 }
 
 void INT_PREDICT::tearDown(VariantID vid)
