@@ -43,6 +43,7 @@ blt_add_library(
           MAT_MAT_SHARED-Hip.cpp
           MAT_MAT_SHARED-Cuda.cpp
           MAT_MAT_SHARED-OMP.cpp
+          MAT_MAT_SHARED-OMPTarget.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
