@@ -103,6 +103,20 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
 
   case RAJA_OpenMP: {
 
+#if defined(RAJA_ENABLE_CUDA)
+    using device_launch = RAJA::expt::cuda_launch_t<true>;
+    using gpu_block_x_policy = RAJA::cuda_block_x_direct;
+    using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
+    using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    using device_launch = RAJA::expt::hip_launch_t<true>;
+    using gpu_block_x_policy = RAJA::hip_block_x_direct;
+    using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
+    using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
+#endif
+
     //Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
 #if defined(RAJA_DEVICE_ACTIVE)

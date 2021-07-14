@@ -20,7 +20,7 @@ namespace rajaperf {
 namespace basic {
 
 #define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
-  const Index_type NN = getRunSize() * getRunSize();                           \
+  const Index_type NN = m_N * m_N;                                             \
   allocAndInitHipDeviceData(A, m_A, NN);                                       \
   allocAndInitHipDeviceData(B, m_B, NN);                                       \
   allocAndInitHipDeviceData(C, m_C, NN);

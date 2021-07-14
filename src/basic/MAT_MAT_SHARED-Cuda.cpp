@@ -20,7 +20,7 @@ namespace rajaperf {
 namespace basic {
 
 #define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
-  const Index_type NN = getRunSize() * getRunSize();                           \
+  const Index_type NN = m_N * m_N;                                             \
   allocAndInitCudaDeviceData(A, m_A, NN);                                      \
   allocAndInitCudaDeviceData(B, m_B, NN);                                      \
   allocAndInitCudaDeviceData(C, m_C, NN);
@@ -62,7 +62,7 @@ __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
 void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
 
   const Index_type run_reps = getRunReps();
-  const Index_type N = getRunSize();
+  const Index_type N = m_N;
 
   dim3 block_size(TL_SZ, TL_SZ);
   dim3 grid_size(RAJA_DIVIDE_CEILING_INT(N, block_size.x),

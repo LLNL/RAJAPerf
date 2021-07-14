@@ -19,7 +19,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();
-  const Index_type N = getRunSize();
+  const Index_type N = m_N;
 
   MAT_MAT_SHARED_DATA_SETUP;
 
@@ -157,6 +157,22 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
   }
 
   case RAJA_OpenMP: {
+
+#if defined(RAJA_ENABLE_CUDA)
+    using device_launch = RAJA::expt::cuda_launch_t<true>;
+    using gpu_block_x_policy = RAJA::cuda_block_x_direct;
+    using gpu_block_y_policy = RAJA::cuda_block_y_direct;
+    using gpu_thread_x_policy = RAJA::cuda_thread_x_direct;
+    using gpu_thread_y_policy = RAJA::cuda_thread_y_direct;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    using device_launch = RAJA::expt::hip_launch_t<true>;
+    using gpu_block_x_policy = RAJA::hip_block_x_direct;
+    using gpu_block_y_policy = RAJA::hip_block_y_direct;
+    using gpu_thread_x_policy = RAJA::hip_thread_x_direct;
+    using gpu_thread_y_policy = RAJA::hip_thread_y_direct;
+#endif
 
     //Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t

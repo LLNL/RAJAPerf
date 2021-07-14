@@ -66,23 +66,6 @@
   if (Row < N && Col < N)                                                      \
     C[Col + N * Row] = Cs[ty][tx];
 
-
-#if defined(RAJA_ENABLE_CUDA)
-using device_launch = RAJA::expt::cuda_launch_t<true>;
-using gpu_block_x_policy = RAJA::cuda_block_x_direct;
-using gpu_block_y_policy = RAJA::cuda_block_y_direct;
-using gpu_thread_x_policy = RAJA::cuda_thread_x_direct;
-using gpu_thread_y_policy = RAJA::cuda_thread_y_direct;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-using device_launch = RAJA::expt::hip_launch_t<true>;
-using gpu_block_x_policy = RAJA::hip_block_x_direct;
-using gpu_block_y_policy = RAJA::hip_block_y_direct;
-using gpu_thread_x_policy = RAJA::hip_thread_x_direct;
-using gpu_thread_y_policy = RAJA::hip_thread_y_direct;
-#endif
-
 namespace rajaperf {
 class RunParams;
 
@@ -108,6 +91,9 @@ private:
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;
+
+  Index_type m_N;
+  Index_type m_N_default;
 };
 
 } // end namespace basic

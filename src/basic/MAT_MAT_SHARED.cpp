@@ -12,13 +12,31 @@
 
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
+
 namespace rajaperf {
 namespace basic {
 
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params) {
-  setDefaultSize(1000);
+
+  m_N_default = 1000;
+  setDefaultProblemSize(m_N_default*m_N_default);
   setDefaultReps(50);
+
+  m_N = std::max(Index_type(std::sqrt(getTargetProblemSize())), Index_type(1));
+
+  setActualProblemSize(m_N * m_N);
+
+  setItsPerRep(getActualProblemSize());
+  setKernelsPerRep(1);
+
+  setBytesPerRep( m_N*m_N*sizeof(Real_type) +
+                  m_N*m_N*sizeof(Real_type) );
+
+  const int no_tiles = (TL_SZ + m_N - 1) / TL_SZ;
+  const int no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
+  setFLOPsPerRep(2 * TL_SZ * TL_SZ * TL_SZ * no_tiles * no_blocks * no_blocks);
 
   setUsesFeature(Teams);
 
@@ -42,14 +60,14 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}
 
 void MAT_MAT_SHARED::setUp(VariantID vid) {
-  const Index_type NN = getRunSize() * getRunSize();
+  const Index_type NN = m_N * m_N;
   allocAndInitData(m_A, NN, vid);
   allocAndInitData(m_B, NN, vid);
   allocAndInitData(m_C, NN, vid);
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid) {
-  checksum[vid] += calcChecksum(m_C, getRunSize());
+  checksum[vid] += calcChecksum(m_C, m_N*m_N);
 }
 
 void MAT_MAT_SHARED::tearDown(VariantID vid) {
