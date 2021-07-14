@@ -62,7 +62,7 @@ __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
 void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
 
   const Index_type run_reps = getRunReps();
-  const Index_type N = getRunSize();
+  const Index_type N = m_N;
 
   dim3 block_size(TL_SZ, TL_SZ);
   dim3 grid_size(RAJA_DIVIDE_CEILING_INT(N, block_size.x),

@@ -81,7 +81,8 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 
       auto outer_y = [&](Index_type by) {
         auto outer_x = [&](Index_type bx) {
-          MAT_MAT_SHARED_BODY_0
+
+          MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU
 
           auto inner_y_1 = [&](Index_type ty) {
             auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 };
