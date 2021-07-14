@@ -177,25 +177,25 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 #endif
                                                    >;
 
-    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                            ,gpu_block_x_policy
 #endif
                                            >;
 
-    using teams_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                            ,gpu_block_y_policy
 #endif
                                            >;
 
-    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                              ,gpu_thread_x_policy
 #endif
                                              >;
 
-    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
                                              ,gpu_thread_y_policy
 #endif
@@ -208,29 +208,29 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
       RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Resources(),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
-               RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+            RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
+               RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
 
                    MAT_MAT_SHARED_BODY_0
 
-                   RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                     RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
                          MAT_MAT_SHARED_BODY_1
                      });
                    });
 
                    for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
 
-                     RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                       RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                     RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
                            MAT_MAT_SHARED_BODY_2
                         });
                       });
 
                       ctx.teamSync();
 
-                      RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                        RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                      RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
                         });
                       });
@@ -238,8 +238,8 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                       ctx.teamSync();
                     }
 
-                    RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_4
                       });
                     });
