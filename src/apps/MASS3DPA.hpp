@@ -337,21 +337,6 @@ for (int qz = 0; qz < Q1D; ++qz) { \
               Y_(dx, dy, dz, e) += u[dz]; \
             }
 
-
-#if defined(RAJA_ENABLE_CUDA)
-  using device_launch = RAJA::expt::cuda_launch_t<true>;
-  using gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  using device_launch = RAJA::expt::hip_launch_t<true>;
-  using gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
-#endif
-
 namespace rajaperf
 {
 class RunParams;
