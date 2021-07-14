@@ -8,6 +8,58 @@
 
 ///
 /// Matrix matrix multiplication with shared memory
+/// reference implementation:
+///
+///      for (Index_type by = 0; by < Ny; ++by) {
+///        for (Index_type bx = 0; bx < Nx; ++bx) {
+///
+///          double As[TL_SZ][TL_SZ];
+///          double Bs[TL_SZ][TL_SZ];
+///          double Cs[TL_SZ][TL_SZ];
+///
+///          for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+///            for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+///                Cs[ty][tx] = 0;
+///            }
+///          }
+///
+///          for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+///
+///            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+///              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+///                const Index_type Row = by * TL_SZ + ty;
+///                const Index_type Col = bx * TL_SZ + tx;
+///                if (k * TL_SZ + tx < N && Row < N)
+///                  As[ty][tx] = A[Row * N + k * TL_SZ + tx];
+///                else
+///                  As[ty][tx] = 0.0;
+///                if (k * TL_SZ + ty < N && Col < N)
+///                  Bs[ty][tx] = B[(k * TL_SZ + ty) * N + Col];
+///                else
+///                  Bs[ty][tx] = 0.0;
+///              }
+///            }
+///
+///            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+///              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+///                for (Index_type n = 0; n < TL_SZ; ++n)
+///                  Cs[ty][tx] += As[ty][n] * Bs[n][tx];
+///              }
+///            }
+///
+///          }
+///
+///          for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+///            for (Index_type tx = 0; tx < TL_SZ; ++tx) {
+///
+///              const Index_type Row = by * TL_SZ + ty;
+///              const Index_type Col = bx * TL_SZ + tx;
+///              if (Row < N && Col < N)
+///                C[Col + N * Row] = Cs[ty][tx];
+///            }
+///          }
+///        }
+///      }
 ///
 ///
 
