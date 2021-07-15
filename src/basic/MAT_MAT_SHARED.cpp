@@ -34,8 +34,8 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setBytesPerRep( m_N*m_N*sizeof(Real_type) +
                   m_N*m_N*sizeof(Real_type) );
 
-  const int no_tiles = (TL_SZ + m_N - 1) / TL_SZ;
-  const int no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
+  const Index_type no_tiles = (TL_SZ + m_N - 1) / TL_SZ;
+  const Index_type no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
   setFLOPsPerRep(2 * TL_SZ * TL_SZ * TL_SZ * no_tiles * no_blocks * no_blocks);
 
   setUsesFeature(Teams);

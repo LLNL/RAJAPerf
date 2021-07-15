@@ -69,7 +69,7 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
-#define TL_SZ 16
+constexpr rajaperf::Index_type TL_SZ = 16;
 
 #define MAT_MAT_SHARED_DATA_SETUP                                              \
   Real_ptr A = m_A;                                                            \
