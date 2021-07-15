@@ -17,23 +17,23 @@
 #include <iostream>
 
 namespace rajaperf {
-  namespace basic {
+namespace basic {
 
 
-    void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid) {
-      const Index_type run_reps = getRunReps();
+  void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid) {
+    const Index_type run_reps = getRunReps();
 
-      switch (vid) {
+    switch (vid) {
 
-      default: {
+    default: {
 
-        std::cout << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
-        break;
-      }
-      }
+      std::cout << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
+      break;
     }
+    }
+  }
 
-  } // end namespace basic
+} // end namespace basic
 } // end namespace rajaperf
 
 #endif // RAJA_ENABLE_TARGET_OPENMP

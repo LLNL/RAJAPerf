@@ -118,6 +118,22 @@
   if (Row < N && Col < N)                                                      \
     C[Col + N * Row] = Cs[ty][tx];
 
+#if defined(RAJA_ENABLE_CUDA)
+    using mms_device_launch = RAJA::expt::cuda_launch_t<true>;
+    using mms_gpu_block_x_policy = RAJA::cuda_block_x_direct;
+    using mms_gpu_block_y_policy = RAJA::cuda_block_y_direct;
+    using mms_gpu_thread_x_policy = RAJA::cuda_thread_x_direct;
+    using mms_gpu_thread_y_policy = RAJA::cuda_thread_y_direct;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    using mms_device_launch = RAJA::expt::hip_launch_t<true>;
+    using mms_gpu_block_x_policy = RAJA::hip_block_x_direct;
+    using mms_gpu_block_y_policy = RAJA::hip_block_y_direct;
+    using mms_gpu_thread_x_policy = RAJA::hip_thread_x_direct;
+    using mms_gpu_thread_y_policy = RAJA::hip_thread_y_direct;
+#endif
+
 namespace rajaperf {
 class RunParams;
 

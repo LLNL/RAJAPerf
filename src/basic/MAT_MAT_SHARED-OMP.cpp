@@ -158,50 +158,34 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 
   case RAJA_OpenMP: {
 
-#if defined(RAJA_ENABLE_CUDA)
-    using device_launch = RAJA::expt::cuda_launch_t<true>;
-    using gpu_block_x_policy = RAJA::cuda_block_x_direct;
-    using gpu_block_y_policy = RAJA::cuda_block_y_direct;
-    using gpu_thread_x_policy = RAJA::cuda_thread_x_direct;
-    using gpu_thread_y_policy = RAJA::cuda_thread_y_direct;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-    using device_launch = RAJA::expt::hip_launch_t<true>;
-    using gpu_block_x_policy = RAJA::hip_block_x_direct;
-    using gpu_block_y_policy = RAJA::hip_block_y_direct;
-    using gpu_thread_x_policy = RAJA::hip_thread_x_direct;
-    using gpu_thread_y_policy = RAJA::hip_thread_y_direct;
-#endif
-
     //Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
 #if defined(RAJA_DEVICE_ACTIVE)
-                                                   ,device_launch
+                                                   ,mms_device_launch
 #endif
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                           ,gpu_block_x_policy
+                                           ,mms_gpu_block_x_policy
 #endif
                                            >;
 
     using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                           ,gpu_block_y_policy
+                                           ,mms_gpu_block_y_policy
 #endif
                                            >;
 
     using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,gpu_thread_x_policy
+                                             ,mms_gpu_thread_x_policy
 #endif
                                              >;
 
     using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,gpu_thread_y_policy
+                                             ,mms_gpu_thread_y_policy
 #endif
                                              >;
 
