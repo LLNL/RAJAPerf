@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -106,25 +106,25 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
     //Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
 #if defined(RAJA_DEVICE_ACTIVE)
-                                                   ,device_launch
+                                                   ,m3d_device_launch
 #endif
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                           ,gpu_block_x_policy
+                                           ,m3d_gpu_block_x_policy
 #endif
                                            >;
 
     using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,gpu_thread_x_policy
+                                             ,m3d_gpu_thread_x_policy
 #endif
                                              >;
 
     using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,gpu_thread_y_policy
+                                             ,m3d_gpu_thread_y_policy
 #endif
                                              >;
 
