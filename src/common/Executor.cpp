@@ -653,27 +653,121 @@ namespace rajaperf {
             }
         }
 
-    str << "\nKernels(problem size , iterations/rep , kernels/rep , bytes/rep , FLOPs/rep , reps)"
-        << "\n-------------------------------------------------------------------------------\n";
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      KernelBase* kern = kernels[ik];
-      str << kern->getName()
-          << " (" << kern->getProblemSize() << " , "
-          << kern->getItsPerRep() << " , "
-          << kern->getKernelsPerRep() << " , "
-          << kern->getBytesPerRep() << " , "
-          << kern->getFLOPsPerRep() << " , "
-          << kern->getRunReps() << ")" << endl;
+    str << endl;
+
+    bool to_file = false;
+    writeKernelInfoSummary(str, to_file);
+
+  }
+
+  str.flush();
+}
+
+
+void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
+{
+
+//
+// Set up column headers and column widths for kernel summary output.
+//
+  string kern_head("Kernels");
+  size_t kercol_width = kern_head.size();
+
+  Index_type psize_width = 0;
+  Index_type reps_width = 0;
+  Index_type itsrep_width = 0;
+  Index_type bytesrep_width = 0;
+  Index_type flopsrep_width = 0;
+  Index_type dash_width = 0;
+
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    kercol_width = max(kercol_width, kernels[ik]->getName().size());
+    psize_width = max(psize_width, kernels[ik]->getActualProblemSize());
+    reps_width = max(reps_width, kernels[ik]->getRunReps());
+    itsrep_width = max(reps_width, kernels[ik]->getItsPerRep());
+    bytesrep_width = max(bytesrep_width, kernels[ik]->getBytesPerRep());
+    flopsrep_width = max(bytesrep_width, kernels[ik]->getFLOPsPerRep());
+  }
+
+  const string sepchr(" , ");
+
+  kercol_width += 2;
+  dash_width += kercol_width;
+
+  double psize = log10( static_cast<double>(psize_width) );
+  string psize_head("Problem size");
+  psize_width = max( static_cast<Index_type>(psize_head.size()),
+                     static_cast<Index_type>(psize) ) + 3;
+  dash_width += psize_width + static_cast<Index_type>(sepchr.size());
+
+  double rsize = log10( static_cast<double>(reps_width) );
+  string rsize_head("Reps");
+  reps_width = max( static_cast<Index_type>(rsize_head.size()),
+                    static_cast<Index_type>(rsize) ) + 3;
+  dash_width += reps_width + static_cast<Index_type>(sepchr.size());
+
+  double irsize = log10( static_cast<double>(itsrep_width) );
+  string itsrep_head("Iterations/rep");
+  itsrep_width = max( static_cast<Index_type>(itsrep_head.size()),
+                      static_cast<Index_type>(irsize) ) + 3;
+  dash_width += itsrep_width + static_cast<Index_type>(sepchr.size());
+
+  string kernsrep_head("Kernels/rep");
+  Index_type kernsrep_width = 
+    max( static_cast<Index_type>(kernsrep_head.size()),
+         static_cast<Index_type>(4) );
+  dash_width += kernsrep_width + static_cast<Index_type>(sepchr.size());
+
+  double brsize = log10( static_cast<double>(bytesrep_width) );
+  string bytesrep_head("Bytes/rep");
+  bytesrep_width = max( static_cast<Index_type>(bytesrep_head.size()),
+                        static_cast<Index_type>(brsize) ) + 3;
+  dash_width += bytesrep_width + static_cast<Index_type>(sepchr.size());
+
+  double frsize = log10( static_cast<double>(flopsrep_width) );
+  string flopsrep_head("FLOPS/rep");
+  flopsrep_width = max( static_cast<Index_type>(flopsrep_head.size()),
+                         static_cast<Index_type>(frsize) ) + 3;
+  dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
+
+  str <<left<< setw(kercol_width) << kern_head 
+      << sepchr <<right<< setw(psize_width) << psize_head
+      << sepchr <<right<< setw(reps_width) << rsize_head
+      << sepchr <<right<< setw(itsrep_width) << itsrep_head
+      << sepchr <<right<< setw(kernsrep_width) << kernsrep_head
+      << sepchr <<right<< setw(bytesrep_width) << bytesrep_head
+      << sepchr <<right<< setw(flopsrep_width) << flopsrep_head << endl;
+
+  if ( !to_file ) {
+    for (Index_type i = 0; i < dash_width; ++i) {
+      str << "-";
     }
+    str << endl;
+  }
 
-    void Executor::runSuite() {
-        RunParams::InputOpt in_state = run_params.getInputState();
-        if (in_state != RunParams::PerfRun &&
-            in_state != RunParams::CheckRun) {
-            return;
-        }
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    KernelBase* kern = kernels[ik];
+    str <<left<< setw(kercol_width) <<  kern->getName()
+        << sepchr <<right<< setw(psize_width) << kern->getActualProblemSize()
+        << sepchr <<right<< setw(reps_width) << kern->getRunReps()
+        << sepchr <<right<< setw(itsrep_width) << kern->getItsPerRep()
+        << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()
+        << sepchr <<right<< setw(bytesrep_width) << kern->getBytesPerRep()
+        << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep() 
+        << endl;
+  }
 
-        cout << "\n\nRun warmup kernel...\n";
+  str.flush();
+}
+
+
+void Executor::runSuite()
+{
+  RunParams::InputOpt in_state = run_params.getInputState();
+  if ( in_state != RunParams::PerfRun &&
+       in_state != RunParams::CheckRun ) {
+    return;
+  }
 
         KernelBase *warmup_kernel = new basic::DAXPY(run_params);
 

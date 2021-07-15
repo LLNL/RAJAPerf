@@ -21,18 +21,19 @@ namespace lcals
 EOS::EOS(const RunParams& params)
   : KernelBase(rajaperf::Lcals_EOS, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
-  m_array_length = getRunSize() + 7;
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_array_length = getActualProblemSize() + 7;
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() +
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
-  setFLOPsPerRep(16 * getRunSize());
+  setFLOPsPerRep(16 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -74,7 +75,7 @@ void EOS::setUp(VariantID vid)
 
 void EOS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void EOS::tearDown(VariantID vid)

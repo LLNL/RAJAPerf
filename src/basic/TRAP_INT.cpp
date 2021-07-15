@@ -21,16 +21,16 @@ namespace basic
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(10 * getRunSize()); // 1 sqrt
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(10 * getActualProblemSize()); // 1 sqrt
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);

@@ -51,10 +51,36 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
       break;
   }
 
-  setDefaultSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
+#if 0 // we want this...
+
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
+  Index_type nk_default = 1010;
+  Index_type nl_default = 1000;
+  Index_type nm_default = 1200;
+
+  setDefaultProblemSize( std::max( std::max( ni_default*nj_default, 
+                                             nj_default*nl_default ), 
+                                  ni_default*nl_default ) );
+  setDefaultProblemSize( ni_default * nj_default );
+  setDefaultReps(4);
+
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
+  m_nk = nk_default;
+  m_nl = m_ni;
+  m_nm = nm_default;
+
+#else  // this is what we have now...
+
+  setDefaultProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
+
   setDefaultReps(m_run_reps);
 
-  setProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
+#endif
+
+  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ), 
+                                  m_ni*m_nl ) );
 
   setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
   setKernelsPerRep(3);

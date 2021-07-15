@@ -89,6 +89,8 @@ private:
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
+  void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
+
   void writeCSVReport(const std::string& filename, CSVRepMode mode,
                       size_t prec);
   std::string getReportTitle(CSVRepMode mode);

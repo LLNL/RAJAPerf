@@ -50,15 +50,35 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
+  Index_type nk_default = 1200;
+
+  setDefaultProblemSize( ni_default * nj_default ) );
+  setDefaultReps(4);
+
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
+  m_nk = nk_default;
+  
   m_alpha = 0.62;
   m_beta = 1.002;
 
-  setDefaultSize( m_ni * m_nj );
+#else // this is what we have now...
+
+  m_alpha = 0.62;
+  m_beta = 1.002;
+
+  setDefaultProblemSize( m_ni * m_nj );
   setDefaultReps(run_reps);
 
-  setProblemSize( m_ni * m_nj );
+#endif
 
-  setItsPerRep( getProblemSize() );
+  setActualProblemSize( m_ni * m_nj );
+
+  setItsPerRep( m_ni * m_nj );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
