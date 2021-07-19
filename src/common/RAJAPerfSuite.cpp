@@ -205,7 +205,6 @@ namespace rajaperf {
     static const std::string KernelNames[] =
             {
 
-//
 // Basic kernels...
 //
                     std::string("Basic_ATOMIC_PI"),
@@ -234,7 +233,6 @@ namespace rajaperf {
   std::string("Lcals_PLANCKIAN"),
   std::string("Lcals_TRIDIAG_ELIM"),
 //
-////
 //// Polybench kernels...
 ////
 //  std::string("Polybench_2MM"),
@@ -263,14 +261,14 @@ namespace rajaperf {
 // Apps kernels...
 //
 //  std::string("Apps_COUPLE"),
-//  std::string("Apps_DEL_DOT_VEC_2D"),
-//  std::string("Apps_ENERGY"),
-//  std::string("Apps_FIR"),
-//  std::string("Apps_HALOEXCHANGE"),
-//  std::string("Apps_LTIMES"),
-//  std::string("Apps_LTIMES_NOVIEW"),
-//  std::string("Apps_PRESSURE"),
-//  std::string("Apps_VOL3D"),
+  std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_ENERGY"),
+  std::string("Apps_FIR"),
+  std::string("Apps_HALOEXCHANGE"),
+  std::string("Apps_LTIMES"),
+  std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_PRESSURE"),
+  std::string("Apps_VOL3D"),
 
 //
 // Algorithm kernels...

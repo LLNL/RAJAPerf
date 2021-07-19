@@ -373,15 +373,15 @@ enum KernelID {
 //
 // Apps kernels...
 //
-//Apps_COUPLE,
-//Apps_DEL_DOT_VEC_2D,
-//Apps_ENERGY,
-//Apps_FIR,
-//Apps_HALOEXCHANGE,
-//Apps_LTIMES,
-//Apps_LTIMES_NOVIEW,
-//Apps_PRESSURE,
-//Apps_VOL3D,
+// Apps_COUPLE,
+Apps_DEL_DOT_VEC_2D,
+Apps_ENERGY,
+Apps_FIR,
+Apps_HALOEXCHANGE,
+Apps_LTIMES,
+Apps_LTIMES_NOVIEW,
+Apps_PRESSURE,
+Apps_VOL3D,
 
 //
 // Algorithm kernels...
