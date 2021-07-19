@@ -10,7 +10,7 @@
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../apps)
 
 blt_add_library(
-  NAME apps
+  NAME apps-kokkos
   SOURCES AppsData.cpp
           DEL_DOT_VEC_2D-Kokkos.cpp 
           ENERGY-Kokkos.cpp
