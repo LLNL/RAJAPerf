@@ -51,11 +51,11 @@ def get_spec_path(spec, package_name, path_replacements = {}, use_bin = False) :
     return path
 
 
-class Raja(CMakePackage, CudaPackage):
-    """RAJA Parallel Framework."""
+class RajaPerf(CMakePackage, CudaPackage):
+    """RAJAPerf Suite Framework."""
 
-    homepage = "http://software.llnl.gov/RAJA/"
-    git      = "https://github.com/LLNL/RAJA.git"
+    homepage = "http://software.llnl.gov/RAJAPerf/"
+    git      = "https://github.com/LLNL/RAJAPerf.git"
 
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
