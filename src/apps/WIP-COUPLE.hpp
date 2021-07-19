@@ -174,6 +174,8 @@ public:
   void runHipVariant(VariantID vid) {(void) vid;}
   void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
 
+  void runKokkosVariant(VariantID vid) {(void) vid;}
+
 private:
   Complex_ptr m_t0;
   Complex_ptr m_t1;
