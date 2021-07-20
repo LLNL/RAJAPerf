@@ -62,7 +62,7 @@ namespace rajaperf {
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
         void runOpenMPVariant(VariantID vid) override {
-           auto size = getRunSize();
+           auto size = getActualProblemSize();
            for(int x =0; x< getRunReps(); ++x){
               m_execute(x, size);
            }
@@ -82,14 +82,14 @@ namespace rajaperf {
 
         template<size_t... Is>
         void rkv_helper(std::index_sequence<Is...>) {
-            auto size = getRunSize();
+            auto size = getActualProblemSize();
             for (int x = 0; x < getRunReps(); ++x) {
                 m_execute(x, size, std::get<Is>(rd)...);
             }
         }
 
         void rkv_helper(empty em) {
-            auto size = getRunSize();
+            auto size = getActualProblemSize();
             for (int x = 0; x < getRunReps(); ++x) {
                 m_execute(x, size);
             }

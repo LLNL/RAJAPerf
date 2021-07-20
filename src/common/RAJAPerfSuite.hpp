@@ -31,7 +31,6 @@ void free_register_group(Executor*, std::string); // forward declaration
 void free_register_kernel(Executor*, std::string, KernelBase*); // forward declaration
 void make_perfsuite_executor(Executor* exec, int argc, char* argv[]);
 #if defined(RUN_KOKKOS)
-
 // Kokkos Design Spirit:
 // WE NEED:
 // 1) Use KokkosViews --> a wrapper around pointers for host and device memory
@@ -373,7 +372,6 @@ enum KernelID {
 
 //
 // Apps kernels...
-/*
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_ENERGY,
@@ -385,7 +383,6 @@ enum KernelID {
   Apps_MASS3DPA,
   Apps_PRESSURE,
   Apps_VOL3D,
-*/
 
 //
 // Algorithm kernels...

@@ -53,7 +53,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
             : run_params(params),
               kernel_id(Basic_DAXPY), // TODO DZP: better
               name(name),
-              default_size(0),
+              default_prob_size(0),
               default_reps(0),
               running_variant(NumVariants)
     {
@@ -63,7 +63,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
             min_time[ivar] = std::numeric_limits<double>::max();
             max_time[ivar] = -std::numeric_limits<double>::max();
             tot_time[ivar] = 0.0;
-            has_variant_to_run[ivar] = false;
+            has_variant_defined[ivar] = false;
         }
     }
 

@@ -507,12 +507,13 @@ void RunParams::printKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
-  for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
-  }
+// TODO DZP reimplement
+//  for (int kid = 0; kid < NumKernels; ++kid) {
+///// RDH DISABLE COUPLE KERNEL
+//    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
+//      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
+//    }
+//  }
   str.flush();
 }
 
@@ -521,12 +522,13 @@ void RunParams::printFullKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
-  for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
-  }
+// TODO DZP: reimplement
+//  for (int kid = 0; kid < NumKernels; ++kid) {
+///// RDH DISABLE COUPLE KERNEL
+//    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
+//      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
+//    }
+//  }
   str.flush();
 }
 
@@ -569,17 +571,18 @@ void RunParams::printFeatureKernels(std::ostream& str) const
   for (int fid = 0; fid < NumFeatures; ++fid) {
     FeatureID tfid = static_cast<FeatureID>(fid);
     str << getFeatureName(tfid) << std::endl;
-    for (int kid = 0; kid < NumKernels; ++kid) {
-      KernelID tkid = static_cast<KernelID>(kid);
-///   RDH DISABLE COUPLE KERNEL
-      if (tkid != Apps_COUPLE) {
-         KernelBase* kern = getKernelObject(tkid, *this);
-         if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFullKernelName(tkid) << std::endl;
-         }
-         delete kern;
-      }
-    }  // loop over kernels
+// TODO DZP: reimplement
+//    for (int kid = 0; kid < NumKernels; ++kid) {
+//      KernelID tkid = static_cast<KernelID>(kid);
+/////   RDH DISABLE COUPLE KERNEL
+//      if (tkid != Apps_COUPLE) {
+//         KernelBase* kern = getKernelObject(tkid, *this);
+//         if ( kern->usesFeature(tfid) ) {
+//           str << "\t" << getFullKernelName(tkid) << std::endl;
+//         }
+//         delete kern;
+//      }
+//    }  // loop over kernels
     str << std::endl;
   }  // loop over features
   str.flush();
@@ -589,21 +592,22 @@ void RunParams::printKernelFeatures(std::ostream& str) const
 {
   str << "\nAvailable kernels and features each uses:";
   str << "\n-----------------------------------------\n";
-  for (int kid = 0; kid < NumKernels; ++kid) {
-    KernelID tkid = static_cast<KernelID>(kid); 
-/// RDH DISABLE COUPLE KERNEL
-    if (tkid != Apps_COUPLE) {
-      str << getFullKernelName(tkid) << std::endl;
-      KernelBase* kern = getKernelObject(tkid, *this);
-      for (int fid = 0; fid < NumFeatures; ++fid) {
-        FeatureID tfid = static_cast<FeatureID>(fid);
-        if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFeatureName(tfid) << std::endl;
-        }
-      }  // loop over features
-      delete kern;
-    }  
-  }  // loop over kernels
+// TODO DZP: reimplement
+//  for (int kid = 0; kid < NumKernels; ++kid) {
+//    KernelID tkid = static_cast<KernelID>(kid); 
+///// RDH DISABLE COUPLE KERNEL
+//    if (tkid != Apps_COUPLE) {
+//      str << getFullKernelName(tkid) << std::endl;
+//      KernelBase* kern = getKernelObject(tkid, *this);
+//      for (int fid = 0; fid < NumFeatures; ++fid) {
+//        FeatureID tfid = static_cast<FeatureID>(fid);
+//        if ( kern->usesFeature(tfid) ) {
+//           str << "\t" << getFeatureName(tfid) << std::endl;
+//        }
+//      }  // loop over features
+//      delete kern;
+//    }  
+//  }  // loop over kernels
   str.flush();
 }
 

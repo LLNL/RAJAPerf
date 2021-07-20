@@ -171,6 +171,7 @@ public:
   void runCudaVariant(VariantID vid) {(void) vid;}
   void runHipVariant(VariantID vid) {(void) vid;}
   void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
+  void runKokkosVariant(VariantID vid);
 
 private:
   Complex_ptr m_t0;

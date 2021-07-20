@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "ATOMIC_PI.hpp"
+#include "PI_ATOMIC.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -15,14 +15,14 @@
 namespace rajaperf {
 namespace basic {
 
-void ATOMIC_PI::runKokkosVariant(VariantID vid) {
+void PI_ATOMIC::runKokkosVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
-  ATOMIC_PI_DATA_SETUP;
+  PI_ATOMIC_DATA_SETUP;
 
-  // Declare Kokkos View that will wrap the pointer defined in ATOMIC_PI.hpp
+  // Declare Kokkos View that will wrap the pointer defined in PI_ATOMIC.hpp
   auto pi_view = getViewFromPointer(pi, 1);
 
 #if defined(RUN_KOKKOS)
@@ -74,7 +74,7 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      // Here, making a pointer of pi defined in ATOMIC_PI.hpp; we will use a
+      // Here, making a pointer of pi defined in PI_ATOMIC.hpp; we will use a
       // KokkosView instead
       // *pi = m_pi_init;
       //      RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
@@ -94,11 +94,11 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
       pi_view = getViewFromPointer(pi, 1);
 
       Kokkos::parallel_for(
-          "ATOMIC_PI-Kokkos Kokkos_Lambda",
+          "PI_ATOMIC-Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) {
-            // Original ATOMIC_PI kernel reference implementation
-            // defined in ATOMIC_PI.hpp
+            // Original PI_ATOMIC kernel reference implementation
+            // defined in PI_ATOMIC.hpp
             double x = (double(i) + 0.5) * dx;
             // Make a reference to the 0th element of a 1D view with one
             // element
@@ -124,7 +124,7 @@ void ATOMIC_PI::runKokkosVariant(VariantID vid) {
   }
 
   default: {
-    std::cout << "\n  ATOMIC_PI : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
   }
   }
 #endif // RUN_KOKKOS
