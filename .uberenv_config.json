@@ -1,5 +1,5 @@
 {
-"package_name" : "raja-perf",
+"package_name" : "raja_perf",
 "package_version" : "develop",
 "package_final_phase" : "hostconfig",
 "package_source_dir" : "../..",
