@@ -47,7 +47,7 @@ __global__ void nested_init(Real_ptr array,
   }
 }
 
-template<typename Lambda >
+template< typename Lambda >
 __global__ void nested_init_lam(Index_type ni, Index_type nj, Index_type nk,
                                 Lambda body)
 { 

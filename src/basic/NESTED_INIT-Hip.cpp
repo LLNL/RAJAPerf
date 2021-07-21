@@ -96,18 +96,19 @@ void NESTED_INIT::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      auto nested_init_lambda = [=] __device__ (Index_type i, Index_type j, 
+                                                Index_type k) {
+        NESTED_INIT_BODY;
+      };
+
       dim3 nthreads_per_block(i_block_sz, j_block_sz, k_block_sz);
       dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)),
                    static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)),
                    static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
 
-      hipLaunchKernelGGL((nested_init_lam), 
+      hipLaunchKernelGGL((nested_init_lam< decltype(nested_init_lambda) >), 
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
-                         ni, nj, nk,
-        [=] __device__ (Index_type i, Index_type j, Index_type k) {
-          NESTED_INIT_BODY;
-        }
-      );
+                         ni, nj, nk, nested_init_lambda);
       hipErrchk( hipGetLastError() );
 
     }
