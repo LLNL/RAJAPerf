@@ -6,13 +6,9 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "COPY.hpp"
+#include "TRIAD.hpp"
 
 #include "RAJA/RAJA.hpp"
-
-#include <ranges>
-#include <algorithm>
-#include <execution>
 
 #include <iostream>
 
@@ -22,33 +18,27 @@ namespace stream
 {
 
 
-void COPY::runStdParVariant(VariantID vid)
+void TRIAD::runSeqVariant(VariantID vid)
 {
-#if defined(RUN_STDPAR)
-
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  COPY_DATA_SETUP;
+  TRIAD_DATA_SETUP;
 
-  auto copy_lam = [=](Index_type i) {
-                    COPY_BODY;
-                  };
+  auto triad_lam = [=](Index_type i) {
+                     TRIAD_BODY;
+                   };
 
   switch ( vid ) {
 
-    case Base_StdPar : {
-
-      auto range = std::views::iota(ibegin, iend);
+    case Base_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::transform( std::execution::par_unseq,
-                        std::cbegin(range), std::cend(range),
-                        [=](RepIndex_type i){
-          COPY_BODY;
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          TRIAD_BODY;
         }
 
       }
@@ -57,16 +47,14 @@ void COPY::runStdParVariant(VariantID vid)
       break;
     }
 
-    case Lambda_StdPar : {
-
-      auto range = std::views::iota(ibegin, iend);
+#if defined(RUN_RAJA_SEQ)
+    case Lambda_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::transform( std::execution::par_unseq,
-                        std::cbegin(range), std::cend(range),
-          copy_lam(i);
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          triad_lam(i);
         }
 
       }
@@ -75,29 +63,27 @@ void COPY::runStdParVariant(VariantID vid)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
+    case RAJA_Seq : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
-          RAJA::RangeSegment(ibegin, iend), copy_lam);
+        RAJA::forall<RAJA::simd_exec>(
+          RAJA::RangeSegment(ibegin, iend), triad_lam);
 
       }
       stopTimer();
 
       break;
     }
-#endif // RUN_RAJA_STDPAR
+#endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  COPY : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#endif
 }
 
 } // end namespace stream

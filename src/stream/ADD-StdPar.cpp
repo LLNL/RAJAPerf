@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "COPY.hpp"
+#include "ADD.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -22,7 +22,7 @@ namespace stream
 {
 
 
-void COPY::runStdParVariant(VariantID vid)
+void ADD::runStdParVariant(VariantID vid)
 {
 #if defined(RUN_STDPAR)
 
@@ -30,11 +30,11 @@ void COPY::runStdParVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  COPY_DATA_SETUP;
+  ADD_DATA_SETUP;
 
-  auto copy_lam = [=](Index_type i) {
-                    COPY_BODY;
-                  };
+  auto add_lam = [=](Index_type i) {
+                   ADD_BODY;
+                 };
 
   switch ( vid ) {
 
@@ -48,7 +48,7 @@ void COPY::runStdParVariant(VariantID vid)
         std::transform( std::execution::par_unseq,
                         std::cbegin(range), std::cend(range),
                         [=](RepIndex_type i){
-          COPY_BODY;
+          ADD_BODY;
         }
 
       }
@@ -66,7 +66,7 @@ void COPY::runStdParVariant(VariantID vid)
 
         std::transform( std::execution::par_unseq,
                         std::cbegin(range), std::cend(range),
-          copy_lam(i);
+          add_lam(i);
         }
 
       }
@@ -82,7 +82,7 @@ void COPY::runStdParVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::forall<RAJA::stdpar_par_unseq_exec>(
-          RAJA::RangeSegment(ibegin, iend), copy_lam);
+          RAJA::RangeSegment(ibegin, iend), add_lam);
 
       }
       stopTimer();
@@ -92,7 +92,7 @@ void COPY::runStdParVariant(VariantID vid)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  COPY : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
     }
 
   }
