@@ -174,6 +174,22 @@ void KernelBase::runKernel(VariantID vid)
       break;
     }
 
+    case Base_StdPar :
+    {
+      runStdParVariant(vid);
+      break;
+    }
+
+    case Lambda_StdPar :
+    case RAJA_StdPar :
+    {
+#if defined(RUN_RAJA_STDPAR)
+      runStdParVariant(vid);
+#endif
+      break;
+    }
+
+
     default : {
 #if 0
       std::cout << "\n  " << getName() 

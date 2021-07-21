@@ -252,6 +252,10 @@ static const std::string VariantNames [] =
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
 
+  std::string("Base_StdPar"),
+  std::string("Lambda_StdPar"),
+  std::string("RAJA_StdPar"),
+
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -392,6 +396,16 @@ bool isVariantAvailable(VariantID vid)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+  if ( vid == Base_StdPar ) {
+    ret_val = true;
+  }
+#if defined(RUN_RAJA_SEQ)
+  if ( vid == Lambda_StdPar ||
+       vid == RAJA_StdPar ) {
     ret_val = true;
   }
 #endif
