@@ -127,7 +127,7 @@ if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
   if(ENABLE_HIP)
     set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds with AMD HIP require a ... build...AJP FINISH")	
-    set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
+    #set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
     #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE /ascldap/users/ajpowel/RAJAPerf/amd_build/compiler_unscrewer)
   endif()
   if(ENABLE_TARGET_OPENMP)
