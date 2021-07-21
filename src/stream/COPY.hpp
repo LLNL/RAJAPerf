@@ -51,6 +51,7 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
+  void runStdParVariant(VariantID vid);
 
 private:
   Real_ptr m_a;
