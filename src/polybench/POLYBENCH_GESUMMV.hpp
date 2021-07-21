@@ -98,6 +98,7 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
+  void runStdParVariant(VariantID vid);
 
 private:
   Index_type m_N;

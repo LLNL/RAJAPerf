@@ -212,6 +212,10 @@ enum VariantID {
   Lambda_HIP,
   RAJA_HIP,
 
+  Base_StdPar,
+  Lambda_StdPar,
+  RAJA_StdPar,
+
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };

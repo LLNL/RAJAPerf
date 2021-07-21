@@ -53,6 +53,7 @@ public:
   {
     std::cout << "\n  SORTPAIRS : Unknown OMP Target variant id = " << vid << std::endl;
   }
+  void runStdParVariant(VariantID vid);
 
 private:
   Real_ptr m_x;

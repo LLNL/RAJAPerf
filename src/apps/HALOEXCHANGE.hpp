@@ -93,6 +93,7 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
+  void runStdParVariant(VariantID vid);
 
 private:
   static const int s_num_neighbors = 26;
