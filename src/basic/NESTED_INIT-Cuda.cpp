@@ -28,6 +28,15 @@ namespace basic
   constexpr size_t j_block_sz = 8;
   constexpr size_t k_block_sz = 1;
 
+#define NESTED_INIT_THREADS_PER_BLOCK_CUDA \
+  dim3 nthreads_per_block(i_block_sz, j_block_sz, k_block_sz);
+
+#define NESTED_INIT_NBLOCKS_CUDA \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
+
+
 #define NESTED_INIT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(array, m_array, m_array_length);
 
@@ -74,11 +83,9 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(i_block_sz, j_block_sz, k_block_sz);
-      dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)),
-                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)),
-                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
-
+      NESTED_INIT_THREADS_PER_BLOCK_CUDA;
+      NESTED_INIT_NBLOCKS_CUDA;
+ 
       nested_init<<<nblocks, nthreads_per_block>>>(array,
                                                    ni, nj, nk);
       cudaErrchk( cudaGetLastError() );
@@ -95,10 +102,8 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(i_block_sz, j_block_sz, k_block_sz);
-      dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)),
-                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)),
-                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
+      NESTED_INIT_THREADS_PER_BLOCK_CUDA;
+      NESTED_INIT_NBLOCKS_CUDA;
 
       nested_init_lam<<<nblocks, nthreads_per_block>>>(ni, nj, nk,
         [=] __device__ (Index_type i, Index_type j, Index_type k) {

@@ -22,9 +22,21 @@ namespace polybench
 {
 
 //
-// Define thread block size for HIP execution
+// Define thread block size for Hip execution
 //
 const size_t block_size = 256;
+
+constexpr size_t i_block_sz = 8;
+constexpr size_t j_block_sz = 32;
+
+#define GEMVER_THREADS_PER_BLOCK_HIP \
+  dim3 nthreads_per_block1(j_block_sz, i_block_sz, 1);
+
+#define GEMVER_NBLOCKS_HIP \
+  dim3 nblocks1(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(n, j_block_sz)), \
+                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(n, i_block_sz)), \
+                static_cast<size_t>(1));
+
 
 #define POLYBENCH_GEMVER_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(A, m_A, m_n * m_n); \
@@ -55,10 +67,23 @@ __global__ void poly_gemmver_1(Real_ptr A,
                                Real_ptr u2, Real_ptr v2,
                                Index_type n)
 {
-  Index_type i = blockIdx.y;
-  Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-  POLYBENCH_GEMVER_BODY1;
+  if (i < n && j < n) {
+    POLYBENCH_GEMVER_BODY1;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < n && j < n) {
+    body(i, j);
+  }
 }
 
 __global__ void poly_gemmver_2(Real_ptr A,
@@ -114,30 +139,31 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks(1, n, 1);
-      dim3 nthreads_per_block(n, 1, 1);
-      hipLaunchKernelGGL((poly_gemmver_1) , dim3(nblocks), dim3(nthreads_per_block), 0, 0,
-                                A, u1, v1, u2, v2, n);
+      GEMVER_THREADS_PER_BLOCK_HIP;
+      GEMVER_NBLOCKS_HIP;
+
+      hipLaunchKernelGGL((poly_gemmver_1), 
+                         dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
+                         A, u1, v1, u2, v2, n);
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
-      hipLaunchKernelGGL((poly_gemmver_2), dim3(grid_size), dim3(block_size), 0, 0,
-                                                A, x, y,
-                                                beta,
-                                                n);
+      hipLaunchKernelGGL((poly_gemmver_2), 
+                         dim3(grid_size), dim3(block_size), 0, 0,
+                         A, x, y, beta, n);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_3), dim3(grid_size), dim3(block_size), 0, 0,
-                                                x, z,
-                                                n);
+      hipLaunchKernelGGL((poly_gemmver_3), 
+                         dim3(grid_size), dim3(block_size), 0, 0,
+                         x, z, n);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_4), dim3(grid_size), dim3(block_size), 0, 0,
-                                                A, x, w,
-                                                alpha,
-                                                n);
+      hipLaunchKernelGGL((poly_gemmver_4), 
+                         dim3(grid_size), dim3(block_size), 0, 0,
+                         A, x, w, alpha, n);
       hipErrchk( hipGetLastError() );
+
     }
     stopTimer();
 
@@ -150,16 +176,16 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      GEMVER_THREADS_PER_BLOCK_CUDA;
+      GEMVER_NBLOCKS_CUDA;
+
       auto poly_gemmver_1_lambda = [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;
       };
 
-      dim3 nblocks(1, n, 1);
-      dim3 nthreads_per_block(n, 1, 1);
-      auto kernel1 = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_gemmver_1_lambda)>;
-      hipLaunchKernelGGL(kernel1,
-        nblocks, nthreads_per_block, 0, 0,
-        0, n, 0, n, poly_gemmver_1_lambda);
+      hipLaunchKernelGGL((poly_gemmver_1_lam<decltype(poly_gemmver_1_lambda)>),
+                         dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
+                         n, poly_gemmver_1_lambda); 
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
@@ -212,14 +238,20 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
-        RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<0, RAJA::hip_block_y_direct,
-            RAJA::statement::For<1, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0>
+        RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
+                                   RAJA::hip_block_y_direct,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
+                                     RAJA::hip_block_x_direct,
+              RAJA::statement::For<0, RAJA::hip_thread_y_direct,   // i
+                RAJA::statement::For<1, RAJA::hip_thread_x_direct, // j
+                  RAJA::statement::Lambda<0>
+                >
+              >
             >
           >
         >
-      >;
+      >;      
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<

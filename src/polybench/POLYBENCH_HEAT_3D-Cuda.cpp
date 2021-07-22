@@ -28,6 +28,15 @@ namespace polybench
   constexpr size_t j_block_sz = 8;
   constexpr size_t k_block_sz = 32;
 
+#define HEAT_3D_THREADS_PER_BLOCK_CUDA \
+  dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
+
+#define HEAT_3D_NBLOCKS_CUDA \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
+
+
 #define POLYBENCH_HEAT_3D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(A, m_Ainit, m_N*m_N*m_N); \
   allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N*m_N);
@@ -90,17 +99,13 @@ void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
-        dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
+        HEAT_3D_THREADS_PER_BLOCK_CUDA;
+        HEAT_3D_NBLOCKS_CUDA;
 
         poly_heat_3D_1<<<nblocks, nthreads_per_block>>>(A, B, N);
-
         cudaErrchk( cudaGetLastError() );
 
         poly_heat_3D_2<<<nblocks, nthreads_per_block>>>(A, B, N);
-
         cudaErrchk( cudaGetLastError() );
 
       }
@@ -119,10 +124,8 @@ void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
-        dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
+        HEAT_3D_THREADS_PER_BLOCK_CUDA;
+        HEAT_3D_NBLOCKS_CUDA;
 
         poly_heat_3D_lam<<<nblocks, nthreads_per_block>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {

@@ -26,6 +26,18 @@ namespace polybench
 //
 const size_t block_size = 256;
 
+constexpr size_t i_block_sz = 8;
+constexpr size_t j_block_sz = 32;
+
+#define GEMVER_THREADS_PER_BLOCK_CUDA \
+  dim3 nthreads_per_block1(j_block_sz, i_block_sz, 1);
+
+#define GEMVER_NBLOCKS_CUDA \
+  dim3 nblocks1(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(n, j_block_sz)), \
+                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(n, i_block_sz)), \
+                static_cast<size_t>(1));
+
+
 #define POLYBENCH_GEMVER_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(A, m_A, m_n * m_n); \
   allocAndInitCudaDeviceData(u1, m_u1, m_n); \
@@ -55,10 +67,23 @@ __global__ void poly_gemmver_1(Real_ptr A,
                                Real_ptr u2, Real_ptr v2,
                                Index_type n)
 {
-  Index_type i = blockIdx.y;
-  Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-  POLYBENCH_GEMVER_BODY1;
+  if (i < n && j < n) {
+    POLYBENCH_GEMVER_BODY1;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_gemmver_1_lam(Index_type n, Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < n && j < n) {
+    body(i, j);
+  }
 }
 
 __global__ void poly_gemmver_2(Real_ptr A,
@@ -114,10 +139,11 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks(1, n, 1);
-      dim3 nthreads_per_block(n, 1, 1);
-      poly_gemmver_1<<<nblocks, nthreads_per_block>>>(A, u1, v1, u2, v2,
-                                                      n);
+      GEMVER_THREADS_PER_BLOCK_CUDA;
+      GEMVER_NBLOCKS_CUDA;
+
+      poly_gemmver_1<<<nblocks1, nthreads_per_block1>>>(A, u1, v1, u2, v2,
+                                                        n);
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
@@ -148,14 +174,14 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks(1, n, 1);
-      dim3 nthreads_per_block(n, 1, 1);
-      lambda_cuda_kernel<RAJA::cuda_block_y_direct, RAJA::cuda_thread_x_direct>
-                        <<<nblocks, nthreads_per_block>>>(
-        0, n, 0, n,
+      GEMVER_THREADS_PER_BLOCK_CUDA;
+      GEMVER_NBLOCKS_CUDA;
+
+      poly_gemmver_1_lam<<<nblocks1, nthreads_per_block1>>>(n,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;
-      });
+        }
+      );
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
@@ -202,14 +228,20 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_y_direct,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0>,
+        RAJA::statement::CudaKernelFixedAsync<i_block_sz * j_block_sz,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
+                                   RAJA::cuda_block_y_direct,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
+                                     RAJA::cuda_block_x_direct,
+              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // i
+                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
+                  RAJA::statement::Lambda<0>
+                >
+              >
             >
           >
         >
-      >;
+      >;       
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<

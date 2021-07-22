@@ -28,6 +28,15 @@ namespace polybench
   constexpr size_t j_block_sz = 8;
   constexpr size_t k_block_sz = 32;
 
+#define HEAT_3D_THREADS_PER_BLOCK_HIP \
+  dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
+
+#define HEAT_3D_NBLOCKS_HIP \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
+
+
 #define POLYBENCH_HEAT_3D_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(A, m_Ainit, m_N*m_N*m_N); \
   allocAndInitHipDeviceData(B, m_Binit, m_N*m_N*m_N);
@@ -90,10 +99,8 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
-        dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
+        HEAT_3D_THREADS_PER_BLOCK_HIP;
+        HEAT_3D_NBLOCKS_HIP;
 
         hipLaunchKernelGGL((poly_heat_3D_1), 
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
@@ -121,6 +128,9 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
+        HEAT_3D_THREADS_PER_BLOCK_HIP;
+        HEAT_3D_NBLOCKS_HIP;
+
         auto poly_heat_3D_1_lambda = [=] __device__ (Index_type i, Index_type j,
                                                      Index_type k) {
           POLYBENCH_HEAT_3D_BODY1;
@@ -129,11 +139,6 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         auto poly_heat_3D_2_lambda = [=] __device__ (Index_type i, Index_type j,                                                     Index_type k) {
           POLYBENCH_HEAT_3D_BODY2;
         };
-
-        dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
-        dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)),
-                     static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz))); 
 
         hipLaunchKernelGGL((poly_heat_3D_lam<decltype(poly_heat_3D_1_lambda)>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
