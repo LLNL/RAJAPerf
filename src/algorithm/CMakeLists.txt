@@ -10,11 +10,13 @@ blt_add_library(
   NAME algorithm
   SOURCES SORT.cpp
           SORT-Seq.cpp
+          SORT-StdPar.cpp
           SORT-Hip.cpp
           SORT-Cuda.cpp
           SORT-OMP.cpp
           SORTPAIRS.cpp
           SORTPAIRS-Seq.cpp
+          SORTPAIRS-StdPar.cpp
           SORTPAIRS-Hip.cpp
           SORTPAIRS-Cuda.cpp
           SORTPAIRS-OMP.cpp
