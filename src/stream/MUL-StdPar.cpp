@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -18,8 +22,10 @@ namespace stream
 {
 
 
-void MUL::runSeqVariant(VariantID vid)
+void MUL::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -32,7 +38,7 @@ void MUL::runSeqVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
+    case Base_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -47,8 +53,8 @@ void MUL::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
+#if defined(RUN_RAJA_STDPAR)
+    case Lambda_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -63,12 +69,12 @@ void MUL::runSeqVariant(VariantID vid)
       break;
     }
 
-    case RAJA_Seq : {
+    case RAJA_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
           RAJA::RangeSegment(ibegin, iend), mul_lam);
 
       }
@@ -76,7 +82,7 @@ void MUL::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+#endif // RUN_RAJA_STDPAR
 
     default : {
       std::cout << "\n  MUL : Unknown variant id = " << vid << std::endl;
@@ -84,6 +90,7 @@ void MUL::runSeqVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace stream

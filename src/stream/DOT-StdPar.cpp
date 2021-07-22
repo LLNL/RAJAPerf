@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -18,8 +22,10 @@ namespace stream
 {
 
 
-void DOT::runSeqVariant(VariantID vid)
+void DOT::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -28,7 +34,7 @@ void DOT::runSeqVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
+    case Base_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -47,38 +53,15 @@ void DOT::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      auto dot_base_lam = [=](Index_type i) -> Real_type {
-                            return a[i] * b[i];
-                          };
+#if defined(RUN_RAJA_STDPAR)
+    case RAJA_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type dot = m_dot_init;
+        RAJA::ReduceSum<RAJA::stdpar_reduce, Real_type> dot(m_dot_init);
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          dot += dot_base_lam(i);
-        }
-
-        m_dot += dot;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
-
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
         });
@@ -90,7 +73,7 @@ void DOT::runSeqVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+#endif // RUN_RAJA_STDPAR
 
     default : {
       std::cout << "\n  DOT : Unknown variant id = " << vid << std::endl;
@@ -98,6 +81,7 @@ void DOT::runSeqVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace stream

@@ -45,29 +45,11 @@ void ADD::runStdParVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::transform( std::execution::par_unseq,
-                        std::cbegin(range), std::cend(range),
-                        [=](RepIndex_type i){
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           ADD_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_StdPar : {
-
-      auto range = std::views::iota(ibegin, iend);
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        std::transform( std::execution::par_unseq,
-                        std::cbegin(range), std::cend(range),
-          add_lam(i);
-        }
+        });
 
       }
       stopTimer();
