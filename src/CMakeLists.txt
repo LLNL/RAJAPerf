@@ -177,19 +177,15 @@ blt_add_executable(
   stream/ADD-OMPTarget.cpp
   stream/COPY.cpp
   stream/COPY-Seq.cpp
-  stream/COPY-StdPar.cpp
   stream/COPY-OMPTarget.cpp
   stream/DOT.cpp
   stream/DOT-Seq.cpp
-  stream/DOT-StdPar.cpp
   stream/DOT-OMPTarget.cpp
   stream/MUL.cpp
   stream/MUL-Seq.cpp
-  stream/MUL-StdPar.cpp
   stream/MUL-OMPTarget.cpp
   stream/TRIAD.cpp
   stream/TRIAD-Seq.cpp
-  stream/TRIAD-StdPar.cpp
   stream/TRIAD-OMPTarget.cpp
   common/DataUtils.cpp
   common/Executor.cpp
