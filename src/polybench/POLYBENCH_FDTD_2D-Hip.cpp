@@ -192,7 +192,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
             POLYBENCH_FDTD_2D_BODY1;
         };
 
-        hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_fdtd2d_1_lambda)>,
+        hipLaunchKernelGGL(poly_fdtd2d_2_lam<decltype(poly_fdtd2d_1_lambda)>,
           grid_size1, block_size, 0, 0,
           0, ny, poly_fdtd2d_1_lambda);
         hipErrchk( hipGetLastError() );

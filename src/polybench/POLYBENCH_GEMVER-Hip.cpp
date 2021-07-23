@@ -176,8 +176,8 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      GEMVER_THREADS_PER_BLOCK_CUDA;
-      GEMVER_NBLOCKS_CUDA;
+      GEMVER_THREADS_PER_BLOCK_HIP;
+      GEMVER_NBLOCKS_HIP;
 
       auto poly_gemmver_1_lambda = [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;

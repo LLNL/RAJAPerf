@@ -132,9 +132,9 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
             POLYBENCH_JACOBI_2D_BODY1;
           };
 
-        hipLaunchKernelGGL((poly_jacobi_2d_lam<decltype(poly_jacobi_2D_1_lambda)>),
-                           dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
-                           n, poly_jacobi_2D_1_lambda);
+        hipLaunchKernelGGL((poly_jacobi_2D_lam<decltype(poly_jacobi_2D_1_lambda)>),
+                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           N, poly_jacobi_2D_1_lambda);
         hipErrchk( hipGetLastError() );
 
         auto poly_jacobi_2D_2_lambda = 
@@ -142,9 +142,9 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
             POLYBENCH_JACOBI_2D_BODY2;
           };
 
-        hipLaunchKernelGGL((poly_jacobi_2d_lam<decltype(poly_jacobi_2D_2_lambda)>),
-                           dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
-                           n, poly_jacobi_2D_2_lambda);
+        hipLaunchKernelGGL((poly_jacobi_2D_lam<decltype(poly_jacobi_2D_2_lambda)>),
+                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           N, poly_jacobi_2D_2_lambda);
         hipErrchk( hipGetLastError() );
 
       }
@@ -162,13 +162,13 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelFixedAsync<i_block_sz * j_block_sz,
+        RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
           RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
-                                   RAJA::cuda_block_y_direct,
+                                   RAJA::hip_block_y_direct,
             RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
-                                     RAJA::cuda_block_x_direct,
-              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // i
-                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
+                                     RAJA::hip_block_x_direct,
+              RAJA::statement::For<0, RAJA::hip_thread_y_direct,   // i
+                RAJA::statement::For<1, RAJA::hip_thread_x_direct, // j
                   RAJA::statement::Lambda<0>
                 >
               >

@@ -138,7 +138,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
 
       POLY_2MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_2), 
-                         dim3(nblocks2), dim3(nthreads_per_block2), 0, 0,
+                         dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          tmp, C, D, beta,
                          ni, nl, nj);
       hipErrchk( hipGetLastError() );
@@ -155,7 +155,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      POLY_2MM_THREADS_PER_BLOCK_CUDA;
+      POLY_2MM_THREADS_PER_BLOCK_HIP;
 
       auto poly_2mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_2MM_BODY1;
@@ -165,7 +165,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
         POLYBENCH_2MM_BODY3;
       };
 
-      POLY_2MM_1_NBLOCKS_CUDA;      
+      POLY_2MM_1_NBLOCKS_HIP;      
       hipLaunchKernelGGL((poly_2mm_1_lam<decltype(poly_2mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          ni, nj, nk, poly_2mm_1_lambda);
@@ -179,7 +179,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
         POLYBENCH_2MM_BODY6;
       };
 
-      POLY_2MM_2_NBLOCKS_CUDA;
+      POLY_2MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_2_lam<decltype(poly_2mm_2_lambda)>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          ni, nj, nj, poly_2mm_2_lambda);
