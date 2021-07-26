@@ -692,7 +692,8 @@ KernelBase* getKernelObject(KernelID kid,
 }
 
 #if defined(RAJA_ENABLE_SYCL)
-camp::resources::Resource KernelBase::sycl_res{camp::resources::Sycl()};
+cl::sycl::context ctx;
+camp::resources::Resource KernelBase::sycl_res{camp::resources::Sycl(ctx)};
 cl::sycl::queue* KernelBase::qu;
 #endif
 
