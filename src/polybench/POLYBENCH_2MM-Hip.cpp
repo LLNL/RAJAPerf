@@ -182,7 +182,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       POLY_2MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_2_lam<decltype(poly_2mm_2_lambda)>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
-                         ni, nj, nj, poly_2mm_2_lambda);
+                         ni, nl, nj, poly_2mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
     }

@@ -222,7 +222,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2_lam<decltype(poly_3mm_2_lambda)>),
-                         dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          nj, nl, nm, poly_3mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -236,7 +236,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3_lam<decltype(poly_3mm_3_lambda)>),
-                         dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
                          ni, nl, nj, poly_3mm_3_lambda);
       hipErrchk( hipGetLastError() );
 
