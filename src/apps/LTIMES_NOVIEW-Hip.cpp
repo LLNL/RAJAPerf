@@ -125,9 +125,9 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((ltimes_noview_lam<decltype(ltimes_noview_lambda)>), 
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
-                         phidat, elldat, psidat,
                          num_d,
-                         num_m, num_g, num_z);
+                         num_m, num_g, num_z,
+                         ltimes_noview_lambda);
       hipErrchk( hipGetLastError() );
 
     }

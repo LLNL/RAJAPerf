@@ -123,7 +123,7 @@ void LTIMES::runHipVariant(VariantID vid)
           }
         };
 
-      hipLaunchKernelGGL((ltime_lam<decltype(ltimes_lambda)>),
+      hipLaunchKernelGGL((ltimes_lam<decltype(ltimes_lambda)>),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          num_d,
                          num_m, num_g, num_z, ltimes_lambda);
