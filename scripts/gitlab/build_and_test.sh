@@ -140,7 +140,8 @@ then
 fi
 
 cd ${build_dir}
-if [[grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path} ]]
+
+if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
 then
     ./bin/raja-perf.exe -sp
 else
