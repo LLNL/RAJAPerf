@@ -147,16 +147,6 @@ else
     ./bin/raja-perf.exe --checkrun -sp
 fi
 
-echo "Copying Testing xml reports for export"
-tree Testing
-xsltproc -o junit.xml ${project_dir}/blt/tests/ctest-to-junit.xsl Testing/*/Test.xml
-mv junit.xml ${project_dir}/junit.xml
-
-if grep -q "Errors while running CTest" ./tests_output.txt
-then
-    echo "ERROR: failure(s) while running CTest" && exit 1
-fi
-
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~ CLEAN UP"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
