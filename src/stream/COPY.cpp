@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,8 +21,18 @@ namespace stream
 COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1800);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
+                  getActualProblemSize() );
+  setFLOPsPerRep(0);
+
+  setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -52,13 +62,13 @@ COPY::~COPY()
 
 void COPY::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
-  allocAndInitDataConst(m_c, getRunSize(), 0.0, vid);
+  allocAndInitData(m_a, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
 void COPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_c, getRunSize());
+  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
 }
 
 void COPY::tearDown(VariantID vid)

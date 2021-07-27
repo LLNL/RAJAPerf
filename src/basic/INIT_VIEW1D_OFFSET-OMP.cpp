@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -24,7 +24,7 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize()+1;
+  const Index_type iend = getActualProblemSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 

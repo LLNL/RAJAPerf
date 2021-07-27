@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -52,7 +52,7 @@ void INT_PREDICT::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INT_PREDICT_DATA_SETUP;
 
@@ -69,6 +69,7 @@ void INT_PREDICT::runHipVariant(VariantID vid)
                                                dm26, dm27, dm28, c0,
                                                offset,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -100,17 +100,21 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
         hipLaunchKernelGGL((poly_fdtd2d_1), dim3(grid_size1), dim3(block_size), 0, 0, ey, fict, ny, t);
+        hipErrchk( hipGetLastError() );
 
         dim3 nblocks234(1, nx, 1);
         dim3 nthreads_per_block234(ny, 1, 1);
         hipLaunchKernelGGL((poly_fdtd2d_2), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, ey, hz, ny);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_fdtd2d_3), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, ex, hz, ny);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_fdtd2d_4), dim3(nblocks234), dim3(nthreads_per_block234),
                                     0, 0, hz, ex, ey, nx, ny);
+        hipErrchk( hipGetLastError() );
 
       } // tstep loop
 
@@ -136,6 +140,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_fdtd2d_1_lambda)>,
           grid_size1, block_size, 0, 0,
           0, ny, poly_fdtd2d_1_lambda);
+        hipErrchk( hipGetLastError() );
 
         auto poly_fdtd2d_2_lambda = [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY2;
@@ -147,6 +152,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel2,
           nblocks234, nthreads_per_block234, 0, 0,
           1, nx, 0, ny, poly_fdtd2d_2_lambda);
+        hipErrchk( hipGetLastError() );
 
         auto poly_fdtd2d_3_lambda = [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY3;
@@ -156,6 +162,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel3,
           nblocks234, nthreads_per_block234, 0, 0,
           0, nx, 1, ny, poly_fdtd2d_3_lambda);
+        hipErrchk( hipGetLastError() );
 
         auto poly_fdtd2d_4_lambda = [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY4;
@@ -165,6 +172,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         hipLaunchKernelGGL(kernel4,
           nblocks234, nthreads_per_block234, 0, 0,
           0, nx-1, 0, ny-1, poly_fdtd2d_4_lambda);
+        hipErrchk( hipGetLastError() );
 
       } // tstep loop
 

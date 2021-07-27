@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -121,15 +121,34 @@ void initCudaDeviceData(T& dptr, const T hptr, int len)
 }
 
 /*!
+ * \brief Allocate CUDA device data array (dptr).
+ */
+template <typename T>
+void allocCudaDeviceData(T& dptr, int len)
+{
+  cudaErrchk( cudaMalloc( (void**)&dptr,
+              len * sizeof(typename std::remove_pointer<T>::type) ) );
+}
+
+/*!
+ * \brief Allocate CUDA pinned data array (pptr).
+ */
+template <typename T>
+void allocCudaPinnedData(T& pptr, int len)
+{
+  cudaErrchk( cudaHostAlloc( (void**)&pptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaHostAllocMapped ) );
+}
+
+/*!
  * \brief Allocate CUDA device data array (dptr) and copy given hptr (host)
  * data to device array.
  */
 template <typename T>
 void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
 {
-  cudaErrchk( cudaMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
-
+  allocCudaDeviceData(dptr, len);
   initCudaDeviceData(dptr, hptr, len);
 }
 
@@ -154,7 +173,17 @@ template <typename T>
 void deallocCudaDeviceData(T& dptr)
 {
   cudaErrchk( cudaFree( dptr ) );
-  dptr = 0;
+  dptr = nullptr;
+}
+
+/*!
+ * \brief Free pinned data array.
+ */
+template <typename T>
+void deallocCudaPinnedData(T& pptr)
+{
+  cudaErrchk( cudaFreeHost( pptr ) );
+  pptr = nullptr;
 }
 
 }  // closing brace for rajaperf namespace

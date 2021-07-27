@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -52,7 +52,7 @@ void TRIAD::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   TRIAD_DATA_SETUP;
 
@@ -66,6 +66,7 @@ void TRIAD::runCudaVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       triad<<<grid_size, block_size>>>( a, b, c, alpha,
                                         iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -84,6 +85,7 @@ void TRIAD::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         TRIAD_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

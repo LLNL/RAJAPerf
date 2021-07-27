@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -87,7 +87,7 @@ __global__ void energycalc2(Real_ptr delvc, Real_ptr q_new,
 }
 
 __global__ void energycalc3(Real_ptr e_new, Real_ptr delvc,
-                            Real_ptr p_old, Real_ptr q_old, 
+                            Real_ptr p_old, Real_ptr q_old,
                             Real_ptr pHalfStep, Real_ptr q_new,
                             Index_type iend)
 {
@@ -141,12 +141,12 @@ void ENERGY::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   ENERGY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-    
+
     ENERGY_DATA_SETUP_CUDA;
 
     startTimer();
@@ -157,6 +157,7 @@ void ENERGY::runCudaVariant(VariantID vid)
        energycalc1<<<grid_size, block_size>>>( e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
        energycalc2<<<grid_size, block_size>>>( delvc, q_new,
                                                compHalfStep, pHalfStep,
@@ -164,15 +165,18 @@ void ENERGY::runCudaVariant(VariantID vid)
                                                ql_old, qq_old,
                                                rho0,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
        energycalc3<<<grid_size, block_size>>>( e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
        energycalc4<<<grid_size, block_size>>>( e_new, work,
                                                e_cut, emin,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
        energycalc5<<<grid_size, block_size>>>( delvc,
                                                pbvc, e_new, vnewc,
@@ -182,6 +186,7 @@ void ENERGY::runCudaVariant(VariantID vid)
                                                pHalfStep, q_new,
                                                rho0, e_cut, emin,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
        energycalc6<<<grid_size, block_size>>>( delvc,
                                                pbvc, e_new, vnewc,
@@ -190,6 +195,7 @@ void ENERGY::runCudaVariant(VariantID vid)
                                                ql_old, qq_old,
                                                rho0, q_cut,
                                                iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -220,22 +226,22 @@ void ENERGY::runCudaVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
- 
+
         RAJA::forall< RAJA::cuda_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
- 
+
         RAJA::forall< RAJA::cuda_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
- 
+
         RAJA::forall< RAJA::cuda_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
- 
+
         RAJA::forall< RAJA::cuda_exec<block_size, async> >(
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;

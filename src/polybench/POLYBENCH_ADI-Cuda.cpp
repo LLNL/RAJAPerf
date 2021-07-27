@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -97,10 +97,12 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
         adi1<<<grid_size, block_size>>>(n,
                                         a, b, c, d, f,
                                         P, Q, U, V);
+        cudaErrchk( cudaGetLastError() );
 
         adi2<<<grid_size, block_size>>>(n,
                                         a, c, d, e, f,
                                         P, Q, U, V);
+        cudaErrchk( cudaGetLastError() );
 
       }  // tstep loop
 
@@ -133,6 +135,7 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
              POLYBENCH_ADI_BODY5;
           }
         });
+        cudaErrchk( cudaGetLastError() );
 
         lambda_cuda_forall<<<grid_size, block_size>>>(
           1, n-1,
@@ -147,6 +150,7 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
             POLYBENCH_ADI_BODY9;
           }
         });
+        cudaErrchk( cudaGetLastError() );
       }  // tstep loop
 
     }

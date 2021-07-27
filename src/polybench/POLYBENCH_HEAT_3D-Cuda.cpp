@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -76,7 +76,11 @@ void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
 
         poly_heat_3D_1<<<nblocks, nthreads_per_block>>>(A, B, N);
 
+        cudaErrchk( cudaGetLastError() );
+
         poly_heat_3D_2<<<nblocks, nthreads_per_block>>>(A, B, N);
+
+        cudaErrchk( cudaGetLastError() );
 
       }
 

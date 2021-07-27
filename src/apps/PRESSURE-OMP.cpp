@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -24,7 +24,7 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PRESSURE_DATA_SETUP;
 
@@ -45,12 +45,12 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY1;
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             PRESSURE_BODY2;
           }
@@ -71,12 +71,12 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
         #pragma omp parallel
         {
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam1(i);
           }
 
-          #pragma omp for nowait
+          #pragma omp for schedule(static) nowait
           for (Index_type i = ibegin; i < iend; ++i ) {
             pressure_lam2(i);
           }
@@ -96,10 +96,10 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          RAJA::forall<RAJA::omp_for_nowait_exec>(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
-          RAJA::forall<RAJA::omp_for_nowait_exec>(
+          RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end omp parallel region

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -49,8 +49,36 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_tsteps * 2*m_n*(m_n+m_n) );
+#if 0 // we want this...
+
+  Index_type n_default = 1000;
+  
+  setDefaultProblemSize( (n_default-2) * (n_default-2) );
+  setDefaultReps(4);
+
+  m_n = std::sqrt( getTargetProblemSize() ) + 1;
+  m_tsteps = 4;
+
+  setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );
+
+#else // this is what we have now...
+
+  setDefaultProblemSize( (m_n-2)*(m_n-2) );
   setDefaultReps(run_reps);
+
+  setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
+                             (m_n-2)*(m_n-2 + m_n-2) ) );
+#endif
+
+  setActualProblemSize( (m_n-2) * (m_n-2) );
+
+  setKernelsPerRep( m_tsteps * 2 );
+  setBytesPerRep( m_tsteps * ( (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
+                               (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
+  setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
+                               (15 + 2) * (m_n-2)*(m_n-2) ) );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );

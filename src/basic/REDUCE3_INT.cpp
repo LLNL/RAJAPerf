@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -14,7 +14,7 @@
 
 #include <limits>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -23,11 +23,22 @@ namespace basic
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
 //setDefaultReps(5000);
-// Set reps to low value until we resolve RAJA omp-target 
+// Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
-  setDefaultReps(100);
+  setDefaultReps(50);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Int_type) + 3*sizeof(Int_type)) +
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize() + 1);
+
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -52,13 +63,13 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
 }
 
-REDUCE3_INT::~REDUCE3_INT() 
+REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
 void REDUCE3_INT::setUp(VariantID vid)
 {
-  allocAndInitData(m_vec, getRunSize(), vid);
+  allocAndInitData(m_vec, getActualProblemSize(), vid);
 
   m_vsum = 0;
   m_vsum_init = 0;

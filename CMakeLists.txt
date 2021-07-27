@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
 # See the RAJAPerf/COPYRIGHT file for details.
 #
@@ -23,10 +23,7 @@ endif()
 
 set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
-set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
-set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-set(CMAKE_CUDA_HOST_LINK_LAUNCHER ${CMAKE_CUDA_COMPILER})
-include(blt/SetupBLT.cmake)
+set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
 set(CMAKE_CXX_STANDARD 14)
 set(BLT_CXX_STANDARD 14)
@@ -113,9 +110,9 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate
+# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
-set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 
 # HACKS TO FIX COMPILATION ISSUES
 include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)

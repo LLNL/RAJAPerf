@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -145,7 +145,7 @@ for (Index_type j = jmin; j < jmax; j++) { \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -161,8 +161,6 @@ public:
 
   ~COUPLE();
 
-  Index_type getItsPerRep() const;
-
   void setUp(VariantID vid);
   void runKernel(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -173,6 +171,7 @@ public:
   void runCudaVariant(VariantID vid) {(void) vid;}
   void runHipVariant(VariantID vid) {(void) vid;}
   void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
+  void runKokkosVariant(VariantID vid);
 
   void runKokkosVariant(VariantID vid) {(void) vid;}
 

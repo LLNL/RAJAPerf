@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getRunSize());
+  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getRunSize()); \
+  getCudaDeviceData(m_a, a, getActualProblemSize()); \
   deallocCudaDeviceData(a);
 
 __global__ void initview1d(Real_ptr a,
@@ -49,7 +49,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 
@@ -62,6 +62,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       initview1d<<<grid_size, block_size>>>( a, v, iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -80,6 +81,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

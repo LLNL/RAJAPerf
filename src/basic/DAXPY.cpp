@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,8 +21,17 @@ namespace basic
 DAXPY::DAXPY(const RunParams& params)
   : KernelBase(rajaperf::Basic_DAXPY, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(5000);
+  setDefaultProblemSize(1000000);
+  setDefaultReps(500);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -57,14 +66,14 @@ DAXPY::~DAXPY()
 
 void DAXPY::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);
-  allocAndInitData(m_x, getRunSize(), vid);
+  allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_x, getActualProblemSize(), vid);
   initData(m_a);
 }
 
 void DAXPY::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, getRunSize());
+  checksum[vid] += calcChecksum(m_y, getActualProblemSize());
 }
 
 void DAXPY::tearDown(VariantID vid)

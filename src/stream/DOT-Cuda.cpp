@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -17,7 +17,7 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -38,13 +38,13 @@ namespace stream
 
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
-                    Index_type iend) 
+                    Index_type iend)
 {
   extern __shared__ Real_type pdot[ ];
 
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
-  pdot[ threadIdx.x ] = dprod_init; 
+  pdot[ threadIdx.x ] = dprod_init;
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
     pdot[ threadIdx.x ] += a[ i ] * b[i];
   }
@@ -74,7 +74,7 @@ void DOT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   DOT_DATA_SETUP;
 
@@ -91,15 +91,16 @@ void DOT::runCudaVariant(VariantID vid)
       initCudaDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<<<grid_size, block_size, 
-            sizeof(Real_type)*block_size>>>( a, b, 
+      dot<<<grid_size, block_size,
+            sizeof(Real_type)*block_size>>>( a, b,
                                              dprod, m_dot_init,
-                                             iend ); 
+                                             iend );
+      cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
       Real_ptr plprod = &lprod;
       getCudaDeviceData(plprod, dprod, 1);
-      m_dot += lprod;  
+      m_dot += lprod;
 
     }
     stopTimer();

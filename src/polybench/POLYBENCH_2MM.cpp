@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
+
+#include <algorithm>
 
 
 namespace rajaperf
@@ -49,11 +51,50 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_ni*m_nj*(1+m_nk) + m_ni*m_nl*(1+m_nj) );
-  setDefaultReps(run_reps);
+#if 0 // we want this...
+
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
+  Index_type nk_default = 1120;
+  Index_type nl_default = 1000;
+
+  setDefaultProblemSize( std::max( ni_default*nj_default, 
+                                   ni_default*nl_default ) );
+  setDefaultReps(4);
+
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
+  m_nk = nk_default;
+  m_nl = m_ni;
 
   m_alpha = 1.5;
   m_beta = 1.2;
+
+#else  // this is what we have now...
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
+
+  setDefaultProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+  setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+
+  setItsPerRep( m_ni*m_nj + m_ni*m_nl );
+  setKernelsPerRep(2);
+  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+
+                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+  setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
+                 2 * m_ni*m_nj*m_nl );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -77,7 +118,6 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
 POLYBENCH_2MM::~POLYBENCH_2MM()
 {
-
 }
 
 void POLYBENCH_2MM::setUp(VariantID vid)

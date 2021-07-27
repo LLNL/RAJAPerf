@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -21,8 +21,18 @@ namespace basic
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D_OFFSET, params)
 {
-  setDefaultSize(500000);
-  setDefaultReps(5000);
+  setDefaultProblemSize(1000000);
+  setDefaultReps(2500);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
+
+  setUsesFeature(Forall);
+  setUsesFeature(View);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -55,13 +65,13 @@ INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 
 void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
+  allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   m_val = 0.00000123;
 }
 
 void INIT_VIEW1D_OFFSET::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void INIT_VIEW1D_OFFSET::tearDown(VariantID vid)

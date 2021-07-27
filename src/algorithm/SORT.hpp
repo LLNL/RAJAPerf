@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -18,8 +18,11 @@
 #define SORT_DATA_SETUP \
   Real_ptr x = m_x;
 
-#define SORT_STD_ARGS  \
+#define STD_SORT_ARGS  \
   x + iend*irep + ibegin, x + iend*irep + iend
+
+#define RAJA_SORT_ARGS \
+  RAJA::make_span(x + iend*irep + ibegin, iend - ibegin)
 
 
 #include "common/KernelBase.hpp"

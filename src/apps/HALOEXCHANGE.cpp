@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -50,11 +50,37 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   m_halo_width_default   = 1;
   m_num_vars_default     = 3;
 
-  setDefaultSize((m_grid_dims_default[0] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[1] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[2] + 2*m_halo_width_default) *
-                 m_num_vars_default);
+  setDefaultProblemSize( m_grid_dims_default[0] *
+                         m_grid_dims_default[1] *
+                         m_grid_dims_default[2] );
   setDefaultReps(50);
+
+  double cbrt_run_size = std::cbrt(getTargetProblemSize());
+
+  m_grid_dims[0] = cbrt_run_size;
+  m_grid_dims[1] = cbrt_run_size;
+  m_grid_dims[2] = cbrt_run_size;
+  m_halo_width = m_halo_width_default;
+  m_num_vars   = m_num_vars_default;
+
+  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
+  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
+  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
+  m_var_size = m_grid_plus_halo_dims[0] *
+               m_grid_plus_halo_dims[1] *
+               m_grid_plus_halo_dims[2] ;
+
+  setActualProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[1] );
+
+  setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
+  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() );
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -69,13 +95,9 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
 
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-  setVariantDefined( RAJA_WORKGROUP_CUDA );
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
-  setVariantDefined( RAJA_WORKGROUP_HIP );
-#endif
 }
 
 HALOEXCHANGE::~HALOEXCHANGE()
@@ -84,21 +106,6 @@ HALOEXCHANGE::~HALOEXCHANGE()
 
 void HALOEXCHANGE::setUp(VariantID vid)
 {
-  double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
-
-  m_grid_dims[0] = cbrt_size_fact * m_grid_dims_default[0];
-  m_grid_dims[1] = cbrt_size_fact * m_grid_dims_default[1];
-  m_grid_dims[2] = cbrt_size_fact * m_grid_dims_default[2];
-  m_halo_width = m_halo_width_default;
-  m_num_vars   = m_num_vars_default;
-
-  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
-  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
-  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
-  m_var_size = m_grid_plus_halo_dims[0] *
-               m_grid_plus_halo_dims[1] *
-               m_grid_plus_halo_dims[2] ;
-
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
     allocAndInitData(m_vars[v], m_var_size, vid);

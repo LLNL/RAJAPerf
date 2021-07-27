@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -98,6 +98,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
                                              real_zones,
                                              half, ptiny,
                                              iend);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -125,6 +126,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -42,11 +42,11 @@ namespace lcals
 
 __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
                     Real_type q, Real_type r, Real_type t,
-                    Index_type iend) 
+                    Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     EOS_BODY; 
+     EOS_BODY;
    }
 }
 
@@ -55,7 +55,7 @@ void EOS::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   EOS_DATA_SETUP;
 
@@ -67,9 +67,10 @@ void EOS::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       eos<<<grid_size, block_size>>>( x, y, z, u, 
+       eos<<<grid_size, block_size>>>( x, y, z, u,
                                        q, r, t,
-                                       iend ); 
+                                       iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

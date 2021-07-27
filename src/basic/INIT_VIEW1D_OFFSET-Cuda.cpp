@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getRunSize());
+  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getRunSize()); \
+  getCudaDeviceData(m_a, a, getActualProblemSize()); \
   deallocCudaDeviceData(a);
 
 __global__ void initview1d_offset(Real_ptr a,
@@ -50,7 +50,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize()+1;
+  const Index_type iend = getActualProblemSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
@@ -65,6 +65,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
       initview1d_offset<<<grid_size, block_size>>>( a, v,
                                                     ibegin,
                                                     iend );
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -83,6 +84,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariant(VariantID vid)
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

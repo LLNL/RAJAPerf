@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -98,16 +98,19 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       dim3 nthreads_per_block1(nj, 1, 1);
       poly_3mm_1<<<nblocks1, nthreads_per_block1>>>(E, A, B,
                                                     nj, nk);
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks2(1, nj, 1);
       dim3 nthreads_per_block2(nl, 1, 1);
       poly_3mm_2<<<nblocks2, nthreads_per_block2>>>(F, C, D,
                                                     nl, nm);
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks3(1, ni, 1);
       dim3 nthreads_per_block3(nl, 1, 1);
       poly_3mm_3<<<nblocks3, nthreads_per_block3>>>(G, E, F,
                                                     nl, nj);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -134,6 +137,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_3MM_BODY3;
       });
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks2(1, nj, 1);
       dim3 nthreads_per_block2(nl, 1, 1);
@@ -148,6 +152,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_3MM_BODY6;
       });
+      cudaErrchk( cudaGetLastError() );
 
       dim3 nblocks3(1, ni, 1);
       dim3 nthreads_per_block3(nl, 1, 1);
@@ -162,6 +167,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         }
         POLYBENCH_3MM_BODY9;
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

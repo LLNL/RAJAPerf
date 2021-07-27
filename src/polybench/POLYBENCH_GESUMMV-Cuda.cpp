@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -77,6 +77,7 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
                                               A, B,
                                               alpha, beta,
                                               N);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

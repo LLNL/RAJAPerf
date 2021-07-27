@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -49,7 +49,7 @@ void MUL::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   MUL_DATA_SETUP;
 
@@ -63,6 +63,7 @@ void MUL::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((mul), dim3(grid_size), dim3(block_size), 0, 0,  b, c, alpha,
                                       iend );
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -83,6 +84,7 @@ void MUL::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL(lambda_hip_forall<decltype(mul_lambda)>,
         grid_size, block_size, 0, 0, ibegin, iend, mul_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

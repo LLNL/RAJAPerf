@@ -22,7 +22,7 @@ void HYDRO_1D::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   HYDRO_1D_DATA_SETUP;
 
@@ -129,7 +129,7 @@ void HYDRO_1D::runKokkosVariant(VariantID vid)
 
     // ATTN:  Adjust arr dimensions to be congruent with the setup 
     // in the .cpp file:
-    // m_array_length = getRunSize() + 12;
+    // m_array_length = getActualProblemSize() + 12;
 
 
     moveDataToHostFromKokkosView(x, x_view, iend + 12);

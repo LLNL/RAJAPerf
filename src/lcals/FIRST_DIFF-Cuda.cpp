@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -37,11 +37,11 @@ namespace lcals
   deallocCudaDeviceData(y);
 
 __global__ void first_diff(Real_ptr x, Real_ptr y,
-                           Index_type iend) 
+                           Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     FIRST_DIFF_BODY; 
+     FIRST_DIFF_BODY;
    }
 }
 
@@ -50,7 +50,7 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_DIFF_DATA_SETUP;
 
@@ -63,7 +63,8 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        first_diff<<<grid_size, block_size>>>( x, y,
-                                              iend ); 
+                                              iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

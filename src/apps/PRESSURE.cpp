@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -21,8 +21,20 @@ namespace apps
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(7000);
+  setDefaultProblemSize(1000000);
+  setDefaultReps(700);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( 2 * getActualProblemSize() );
+  setKernelsPerRep(2);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() +
+                  (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep((2 +
+                  1
+                  ) * getActualProblemSize());
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -42,18 +54,18 @@ PRESSURE::PRESSURE(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-PRESSURE::~PRESSURE() 
+PRESSURE::~PRESSURE()
 {
 }
 
 void PRESSURE::setUp(VariantID vid)
 {
-  allocAndInitData(m_compression, getRunSize(), vid);
-  allocAndInitData(m_bvc, getRunSize(), vid);
-  allocAndInitDataConst(m_p_new, getRunSize(), 0.0, vid);
-  allocAndInitData(m_e_old, getRunSize(), vid);
-  allocAndInitData(m_vnewc, getRunSize(), vid);
-  
+  allocAndInitData(m_compression, getActualProblemSize(), vid);
+  allocAndInitData(m_bvc, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_p_new, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_e_old, getActualProblemSize(), vid);
+  allocAndInitData(m_vnewc, getActualProblemSize(), vid);
+
   initData(m_cls);
   initData(m_p_cut);
   initData(m_pmin);
@@ -62,13 +74,13 @@ void PRESSURE::setUp(VariantID vid)
 
 void PRESSURE::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_p_new, getRunSize());
+  checksum[vid] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
 void PRESSURE::tearDown(VariantID vid)
 {
   (void) vid;
- 
+
   deallocData(m_compression);
   deallocData(m_bvc);
   deallocData(m_p_new);

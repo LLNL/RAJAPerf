@@ -1,6 +1,3 @@
-[submodule "src/polybench"]
-	path = src/polybench
-	url = ssh://git@cz-bitbucket.llnl.gov:7999/raja/polybench-raja.git
 [submodule "blt"]
 	path = blt
 	url = https://github.com/LLNL/blt.git

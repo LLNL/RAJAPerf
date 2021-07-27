@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_1D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -76,9 +76,11 @@ void POLYBENCH_JACOBI_1D::runHipVariant(VariantID vid)
 
         hipLaunchKernelGGL((poly_jacobi_1D_1), dim3(grid_size), dim3(block_size), 0, 0,
                                             A, B, N);
+        hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_jacobi_1D_2), dim3(grid_size), dim3(block_size), 0, 0,
                                             A, B, N);
+        hipErrchk( hipGetLastError() );
 
       }
 
@@ -98,12 +100,12 @@ void POLYBENCH_JACOBI_1D::runHipVariant(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1}, 
+        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });
@@ -125,4 +127,4 @@ void POLYBENCH_JACOBI_1D::runHipVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+

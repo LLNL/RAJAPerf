@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -112,18 +112,21 @@ void HYDRO_2D::runHipVariant(VariantID vid)
                                                   zadat, zbdat,
                                                   zpdat, zqdat, zrdat, zmdat,
                                                   jn, kn);
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((hydro_2d2), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                                                   zudat, zvdat,
                                                   zadat, zbdat, zzdat, zrdat,
                                                   s,
                                                   jn, kn);
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((hydro_2d3), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                                                   zroutdat, zzoutdat,
                                                   zrdat, zudat, zzdat, zvdat,
                                                   t,
                                                   jn, kn);
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

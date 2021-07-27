@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -64,6 +64,7 @@ void LTIMES::runCudaVariant(VariantID vid)
 
       ltimes<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
                                               num_d, num_g, num_m);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -89,6 +90,7 @@ void LTIMES::runCudaVariant(VariantID vid)
           LTIMES_BODY;
         }
       });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

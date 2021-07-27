@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -24,7 +24,7 @@ void FIRST_SUM::runOpenMPVariant(VariantID vid)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_SUM_DATA_SETUP;
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -58,7 +58,7 @@ void PLANCKIAN::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PLANCKIAN_DATA_SETUP;
 
@@ -73,6 +73,7 @@ void PLANCKIAN::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((planckian), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
                                              u, v, w,
                                              iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

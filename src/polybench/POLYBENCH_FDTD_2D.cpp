@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -11,6 +11,7 @@
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 
@@ -52,8 +53,51 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_tsteps * (m_ny + 3 * m_nx*m_ny) );
+#if 0 // we want this...
+
+  Index_type nx_default = 1000;
+  Index_type ny_default = 1000;
+
+  setDefaultProblemSize( std::max( (nx_default-1) * ny_default, 
+                                    nx_default * (ny_default-1) ) );
+  setDefaultReps(8);
+
+  m_nx = std::sqrt( getTargetProblemSize() ) + 1;
+  m_ny = m_nx;
+  m_tsteps = 40;
+
+#else // this is what we have now...
+
+  setDefaultProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
   setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) ); 
+
+  setItsPerRep( m_tsteps * ( m_ny +
+                             (m_nx-1)*m_ny +
+                             m_nx*(m_ny-1) +
+                             (m_nx-1)*(m_ny-1) ) );
+  setKernelsPerRep(m_tsteps * 4);
+  setBytesPerRep( m_tsteps * ( (0*sizeof(Real_type ) + 1*sizeof(Real_type )) +
+                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ny +
+
+                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+
+                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * m_ny +
+
+                               (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * (m_ny-1) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (m_nx-1) * m_ny +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nx * (m_ny-1) ) );
+  setFLOPsPerRep( m_tsteps * ( 0 * m_ny +
+                               3 * (m_nx-1)*m_ny +
+                               3 * m_nx*(m_ny-1) +
+                               5 * (m_nx-1)*(m_ny-1) ) );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -77,7 +121,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
-
 }
 
 void POLYBENCH_FDTD_2D::setUp(VariantID vid)

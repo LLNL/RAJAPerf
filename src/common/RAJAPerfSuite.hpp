@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels and variants.
+/// Tyoes and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -31,7 +31,6 @@ void free_register_group(Executor*, std::string); // forward declaration
 void free_register_kernel(Executor*, std::string, KernelBase*); // forward declaration
 void make_perfsuite_executor(Executor* exec, int argc, char* argv[]);
 #if defined(RUN_KOKKOS)
-
 // Kokkos Design Spirit:
 // WE NEED:
 // 1) Use KokkosViews --> a wrapper around pointers for host and device memory
@@ -318,14 +317,15 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_ATOMIC_PI = 0,
-  Basic_DAXPY,
+  Basic_DAXPY = 0,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
+  Basic_PI_ATOMIC,
+  Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
 
@@ -372,16 +372,17 @@ enum KernelID {
 
 //
 // Apps kernels...
-//
-// Apps_COUPLE,
-Apps_DEL_DOT_VEC_2D,
-Apps_ENERGY,
-Apps_FIR,
-Apps_HALOEXCHANGE,
-Apps_LTIMES,
-Apps_LTIMES_NOVIEW,
-Apps_PRESSURE,
-Apps_VOL3D,
+  //Apps_COUPLE,
+  Apps_DEL_DOT_VEC_2D,
+  Apps_ENERGY,
+  Apps_FIR,
+  Apps_HALOEXCHANGE,
+  Apps_HALOEXCHANGE_FUSED,
+  Apps_LTIMES,
+  Apps_LTIMES_NOVIEW,
+  Apps_MASS3DPA,
+  Apps_PRESSURE,
+  Apps_VOL3D,
 
 //
 // Algorithm kernels...
@@ -399,7 +400,7 @@ Apps_VOL3D,
  *
  * \brief Enumeration defining unique id for each VARIANT in suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
  *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
@@ -422,17 +423,47 @@ enum VariantID {
   Base_CUDA,
   Lambda_CUDA,
   RAJA_CUDA,
-  RAJA_WORKGROUP_CUDA,
 
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
-  RAJA_WORKGROUP_HIP,
 
   Kokkos_Lambda,
   Kokkos_Functor,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each (RAJA) FEATURE used in suite.
+ *
+ * IMPORTANT: This is only modified when a new feature is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum FeatureID {
+
+  Forall = 0,
+  Kernel,
+  Teams,
+
+  Sort,
+  Scan,
+  Workgroup, 
+
+  Reduction,
+  Atomic,
+
+  View,
+
+  NumFeatures // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -486,6 +517,15 @@ const std::string& getVariantName(VariantID vid);
  *******************************************************************************
  */
 bool isVariantAvailable(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return feature name associated with FeatureID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFeatureName(FeatureID vid);
 
 /*!
  *******************************************************************************
