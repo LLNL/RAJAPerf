@@ -1,7 +1,7 @@
 {
 	"plots" : {
 		"files" : {
-			"fileName": "RAJAPerfSuite_*",
+			"fileName": "RAJAPerf*",
  			"type" : "xml",
 			"ignoreOldFiles" : true,
  			"recurseDirectories" : true
