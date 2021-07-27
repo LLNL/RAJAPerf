@@ -80,7 +80,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<<<grid_size, block_size>>>(N, A, B, C);
+      mat_mat_shared<<<grid_size, block_size>>>(N, C, A, B);
 
       cudaErrchk( cudaGetLastError() );
     }
