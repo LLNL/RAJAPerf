@@ -80,7 +80,6 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
   void runKokkosVariant(VariantID vid);
 
-  void runKokkosVariant(VariantID vid);
 
 private:
   Real_ptr m_in;

@@ -169,7 +169,6 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
-  void runKokkosVariant(VariantID vid);
 
   void runKokkosVariant(VariantID vid);
 

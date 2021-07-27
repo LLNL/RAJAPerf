@@ -95,7 +95,6 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
   void runKokkosVariant(VariantID vid);
 
-  void runKokkosVariant(VariantID vid);
 
 private:
   static const int s_num_neighbors = 26;
