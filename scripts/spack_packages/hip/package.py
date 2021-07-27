@@ -7,18 +7,18 @@ class Hip(CMakePackage):
        single source code."""
 
     homepage = "https://github.com/ROCm-Developer-Tools/HIP"
-    url      = "https://github.com/ROCm-Developer-Tools/HIP/archive/rocm-3.10.0.tar.gz"
+    url      = "https://github.com/ROCm-Developer-Tools/HIP/archive/refs/tags/rocm-4.0.0.tar.gz"
 
     maintainers = ['srekolam', 'arjun-raj-kuppala']
 
-    version('3.10.0', sha256='0082c402f890391023acdfd546760f41cb276dffc0ffeddc325999fd2331d4e8')
-    version('3.9.0', sha256='25ad58691456de7fd9e985629d0ed775ba36a2a0e0b21c086bd96ba2fb0f7ed1')
+    version('4.1.0', sha256='25ad58691456de7fd9e985629d0ed775ba36a2a0e0b21c086bd96ba2fb0f7ed1')
+    version('4.0.0', sha256='0082c402f890391023acdfd546760f41cb276dffc0ffeddc325999fd2331d4e8')
 
     depends_on('cmake@3:', type='build')
     depends_on('perl@5.10:', type=('build', 'run'))
     depends_on('mesa~llvm@18.3:')
 
-    for ver in ['3.9.0', '3.10.0']:
+    for ver in ['4.0.0', '4.1.0']:
         depends_on('rocclr@' + ver,  type='build', when='@' + ver)
         depends_on('hsakmt-roct@' + ver, type='build', when='@' + ver)
         depends_on('hsa-rocr-dev@' + ver, type='link', when='@' + ver)
