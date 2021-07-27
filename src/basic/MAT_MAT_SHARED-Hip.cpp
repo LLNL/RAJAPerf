@@ -81,7 +81,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipLaunchKernelGGL((mat_mat_shared), dim3(grid_size), dim3(block_size), 0, 0,
-                         N, A, B, C);
+                         N, C, A, B);
 
       hipErrchk( hipGetLastError() );
     }
