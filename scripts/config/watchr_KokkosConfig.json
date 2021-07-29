@@ -1,11 +1,11 @@
 {
 	"plots" : {
 		"files" : {
-			"fileName": "RAJAPerf*",
+			"fileName": "RAJAPerf-timing_*",
  			"type" : "xml",
 			"ignoreOldFiles" : true,
  			"recurseDirectories" : true,
-            "formatByRemovingPrefix" : "\\/RAJAPerf\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.xml\\/"
+            "formatByRemovingPrefix" : "\\/RAJAPerf-timing_\\d{4}\\_\\d{2}\\_\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.xml\\/"
 		},
 		"categories": [
 			"kokkos_lambda",
