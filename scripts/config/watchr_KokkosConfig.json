@@ -4,7 +4,8 @@
 			"fileName": "RAJAPerf*",
  			"type" : "xml",
 			"ignoreOldFiles" : true,
- 			"recurseDirectories" : true
+ 			"recurseDirectories" : true,
+            "formatByRemovingPrefix" : "\\/RAJAPerf\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.xml\\/"
 		},
 		"categories": [
 			"kokkos_lambda",
