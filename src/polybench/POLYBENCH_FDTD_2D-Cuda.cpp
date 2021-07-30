@@ -62,6 +62,16 @@ __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
   }
 }
 
+template< typename Lambda >
+__global__ void poly_fdtd2d_1_lam(Index_type ny, Lambda body)
+{
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (j < ny) {
+    body(j);
+  }
+}
+
 __global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz, 
                               Index_type nx, Index_type ny)
 {
@@ -182,11 +192,11 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
 
-        lambda_cuda_forall<<<grid_size1, block_size>>>(
-          0, ny,
+        poly_fdtd2d_1_lam<<<grid_size1, block_size>>>(ny,
           [=] __device__ (Index_type j) {
             POLYBENCH_FDTD_2D_BODY1;
-        });
+          }
+        );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;

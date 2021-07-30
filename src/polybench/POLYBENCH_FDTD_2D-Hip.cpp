@@ -61,6 +61,16 @@ __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
    }
 }
 
+template< typename Lambda >
+__global__ void poly_fdtd2d_1_lam(Index_type ny, Lambda body)
+{
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (j < ny) {
+    body(j);
+  }
+}
+
 __global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz,
                               Index_type nx, Index_type ny)
 {
@@ -189,12 +199,12 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
 
         auto poly_fdtd2d_1_lambda = [=] __device__ (Index_type j) {
-            POLYBENCH_FDTD_2D_BODY1;
+          POLYBENCH_FDTD_2D_BODY1;
         };
 
-        hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_fdtd2d_1_lambda)>,
-          grid_size1, block_size, 0, 0,
-          0, ny, poly_fdtd2d_1_lambda);
+        hipLaunchKernelGGL(poly_fdtd2d_1_lam<decltype(poly_fdtd2d_1_lambda)>,
+          dim3(grid_size1), dim3(block_size), 0, 0,
+          ny, poly_fdtd2d_1_lambda);
         hipErrchk( hipGetLastError() );
 
         FDTD_2D_THREADS_PER_BLOCK_HIP;

@@ -125,6 +125,15 @@ __global__ void poly_gemmver_4(Real_ptr A,
   }
 }
 
+template< typename Lambda >
+__global__ void poly_gemmver_234_lam(Index_type n, Lambda body)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) {
+    body(i);
+  }
+}
+
 
 void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
 {
@@ -198,18 +207,18 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY4;
       };
 
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_2_lambda)>,
-        grid_size, block_size, 0, 0,
-        0, n, poly_gemmver_2_lambda);
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_2_lambda)>,
+        dim3(grid_size), dim3(block_size), 0, 0,
+        n, poly_gemmver_2_lambda);
       hipErrchk( hipGetLastError() );
 
       auto poly_gemmver_3_lambda = [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
       };
 
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_3_lambda)>,
-        grid_size, block_size, 0, 0,
-        0, n, poly_gemmver_3_lambda);
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_3_lambda)>,
+        dim3(grid_size), dim3(block_size), 0, 0,
+        n, poly_gemmver_3_lambda);
       hipErrchk( hipGetLastError() );
 
       auto poly_gemmver_4_lambda = [=] __device__ (Index_type i) {
@@ -220,9 +229,9 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY8;
       };
 
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(poly_gemmver_4_lambda)>,
-        grid_size, block_size, 0, 0,
-        0, n, poly_gemmver_4_lambda);
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_4_lambda)>,
+        dim3(grid_size), dim3(block_size), 0, 0,
+        n, poly_gemmver_4_lambda);
       hipErrchk( hipGetLastError() );
 
     }
@@ -253,14 +262,14 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
         >
       >;      
 
-    using EXEC_POL2 =
+    using EXEC_POL24 =
       RAJA::KernelPolicy<
-        RAJA::statement::HipKernelAsync<
+        RAJA::statement::HipKernelFixedAsync<block_size,
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
                                    RAJA::hip_block_x_direct,
-            RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
+            RAJA::statement::For<0, RAJA::hip_thread_x_direct,   // i
+              RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+              RAJA::statement::For<1, RAJA::seq_exec,            // j
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
               >,
               RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
@@ -270,22 +279,6 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       >;
 
     using EXEC_POL3 = RAJA::hip_exec<block_size, true /*async*/>;
-
-    using EXEC_POL4 =
-      RAJA::KernelPolicy<
-        RAJA::statement::HipKernelAsync<
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::hip_block_x_direct,
-            RAJA::statement::For<0, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-            >
-          >
-        >
-      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -297,12 +290,12 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
 
-        [=] __device__ (Real_type &dot) {
+        [=] __device__ (Index_type /* i */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
         },
         [=] __device__ (Index_type i, Index_type j, Real_type &dot) {

@@ -125,6 +125,15 @@ __global__ void poly_gemmver_4(Real_ptr A,
   }
 }
 
+template< typename Lambda >
+__global__ void poly_gemmver_234_lam(Index_type n, Lambda body)
+{
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < n) {
+    body(i);
+  }
+}
+
 
 void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 {
@@ -186,33 +195,33 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
-        0, n,
+      poly_gemmver_234_lam<<<grid_size, block_size>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; ++j) {
             POLYBENCH_GEMVER_BODY3;
           }
           POLYBENCH_GEMVER_BODY4;
-      });
+        }
+      );
       cudaErrchk( cudaGetLastError() );
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
-        0, n,
+      poly_gemmver_234_lam<<<grid_size, block_size>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
-      });
+        }
+      );
       cudaErrchk( cudaGetLastError() );
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
-        0, n,
+      poly_gemmver_234_lam<<<grid_size, block_size>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; ++j) {
             POLYBENCH_GEMVER_BODY7;
           }
           POLYBENCH_GEMVER_BODY8;
-      });
+        }
+      );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -243,14 +252,14 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
         >
       >;       
 
-    using EXEC_POL2 =
+    using EXEC_POL24 =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
+        RAJA::statement::CudaKernelFixedAsync<block_size,
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
                                    RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,   // i
+              RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+              RAJA::statement::For<1, RAJA::seq_exec,             // j
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>,
               >,
               RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
@@ -260,22 +269,6 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
       >;
 
     using EXEC_POL3 = RAJA::cuda_exec<block_size, true /*async*/>;
-
-    using EXEC_POL4 =
-      RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>,
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-            >
-          >
-        >
-      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -287,12 +280,12 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
 
-        [=] __device__ (Real_type &dot) {
+        [=] __device__ (Index_type /* i */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
         },
         [=] __device__ (Index_type i, Index_type j, Real_type &dot) {
@@ -309,7 +302,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL4>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
