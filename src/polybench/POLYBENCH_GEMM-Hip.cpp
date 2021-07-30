@@ -125,7 +125,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
         POLYBENCH_GEMM_BODY4;
       };
 
-      hipLaunchKernelGGL((poly_gemm_lam), 
+      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>), 
         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
         ni, nj, nk, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );

@@ -128,9 +128,9 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
         POLYBENCH_ATAX_BODY3;
       };
 
-      hipLaunchKernelGGL(poly_atax_lam<decltype(poly_atax_1_lambda)>,
+      hipLaunchKernelGGL((poly_atax_lam<decltype(poly_atax_1_lambda)>),
         dim3(grid_size), dim3(block_size), 0, 0,
-        0, N, poly_atax_1_lambda);
+        N, poly_atax_1_lambda);
       hipErrchk( hipGetLastError() );
 
       auto poly_atax_2_lambda = [=] __device__ (Index_type j) {
@@ -141,9 +141,9 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
         POLYBENCH_ATAX_BODY6;
       };
 
-      hipLaunchKernelGGL(poly_atax_lam<decltype(poly_atax_2_lambda)>,
+      hipLaunchKernelGGL((poly_atax_lam<decltype(poly_atax_2_lambda)>),
         dim3(grid_size), dim3(block_size), 0, 0,
-        0, N, poly_atax_2_lambda);
+        N, poly_atax_2_lambda);
       hipErrchk( hipGetLastError() );
 
     }

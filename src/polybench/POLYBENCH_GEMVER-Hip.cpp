@@ -207,7 +207,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY4;
       };
 
-      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_2_lambda)>,
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_2_lambda)>),
         dim3(grid_size), dim3(block_size), 0, 0,
         n, poly_gemmver_2_lambda);
       hipErrchk( hipGetLastError() );
@@ -216,7 +216,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY5;
       };
 
-      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_3_lambda)>,
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_3_lambda)>),
         dim3(grid_size), dim3(block_size), 0, 0,
         n, poly_gemmver_3_lambda);
       hipErrchk( hipGetLastError() );
@@ -229,7 +229,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY8;
       };
 
-      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_4_lambda)>,
+      hipLaunchKernelGGL(poly_gemmver_234_lam<decltype(poly_gemmver_4_lambda)>),
         dim3(grid_size), dim3(block_size), 0, 0,
         n, poly_gemmver_4_lambda);
       hipErrchk( hipGetLastError() );
@@ -312,7 +312,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL4>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
