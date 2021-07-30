@@ -155,7 +155,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
                                                         n);
       cudaErrchk( cudaGetLastError() );
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
+      size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
       poly_gemmver_2<<<grid_size, block_size>>>(A, x, y,
                                                 beta,
@@ -193,7 +193,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
       );
       cudaErrchk( cudaGetLastError() );
 
-      size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
+      size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
       poly_gemmver_234_lam<<<grid_size, block_size>>>(n,
         [=] __device__ (Index_type i) {
