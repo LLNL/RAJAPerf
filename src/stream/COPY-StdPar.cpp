@@ -57,6 +57,24 @@ void COPY::runStdParVariant(VariantID vid)
       break;
     }
 
+    case Lambda_StdPar : {
+
+      auto range = std::views::iota(ibegin, iend);
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
+          copy_lam(i);
+        });
+      }
+      stopTimer();
+
+      break;
+    }
+
 #ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
