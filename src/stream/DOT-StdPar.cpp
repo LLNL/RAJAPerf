@@ -10,8 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <ranges>
-#include <span>
+//#include <ranges>
 #include <algorithm>
 #include <execution>
 
@@ -43,7 +42,7 @@ void DOT::runStdParVariant(VariantID vid)
         Real_type dot = m_dot_init;
 
         dot += std::transform_reduce( std::execution::par_unseq,
-                                      &a[ibegin], &a[iend], &a[ibegin],
+                                      &a[ibegin], &a[iend], &b[ibegin],
                                       (Real_type)0, std::plus<>(), std::multiplies<>());
 
         m_dot += dot;
@@ -65,7 +64,7 @@ void DOT::runStdParVariant(VariantID vid)
         Real_type dot = m_dot_init;
 
         dot += std::transform_reduce( std::execution::par_unseq,
-                                      &a[ibegin], &a[iend], &a[ibegin],
+                                      &a[ibegin], &a[iend], &b[ibegin],
                                       (Real_type)0, std::plus<>(), std::multiplies<>());
 
         m_dot += dot;
