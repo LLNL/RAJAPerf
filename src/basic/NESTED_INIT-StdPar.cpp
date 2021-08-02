@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace basic
 
 void NESTED_INIT::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   NESTED_INIT_DATA_SETUP;
@@ -32,16 +38,72 @@ void NESTED_INIT::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto range = std::views::iota((Index_type)0, ni*nj*nk);
+#else
+      auto range = std::views::iota((Index_type)0, nk);
+#endif
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type k = 0; k < nk; ++k ) {
-          for (Index_type j = 0; j < nj; ++j ) {
-            for (Index_type i = 0; i < ni; ++i ) {
-              NESTED_INIT_BODY;
-            }
-          }
-        }
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type idx) {
+              const auto k  = idx / (nj*ni);
+              const auto ij = idx % (nj*ni);
+              const auto j  = ij / ni;
+              const auto i  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type k) {
+            for (Index_type j = 0; j < nj; ++j )
+              for (Index_type i = 0; i < ni; ++i )
+#endif
+              {
+                NESTED_INIT_BODY;
+                //std::cout << i << "," << j << "," << k << ";" << idx << " PAR\n";
+              }
+        });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case Lambda_StdPar : {
+
+#ifdef USE_STDPAR_COLLAPSE
+      auto range = std::views::iota((Index_type)0, ni*nj*nk);
+#else
+      auto range = std::views::iota((Index_type)0, nk);
+#endif
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type idx) {
+              const auto k  = idx / (nj*ni);
+              const auto ij = idx % (nj*ni);
+              const auto j  = ij / ni;
+              const auto i  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type k) {
+            for (Index_type j = 0; j < nj; ++j )
+              for (Index_type i = 0; i < ni; ++i )
+#endif
+              {
+                nestedinit_lam(i, j, k);
+              }
+          });
 
       }
       stopTimer();
@@ -50,25 +112,6 @@ void NESTED_INIT::runStdParVariant(VariantID vid)
     }
 
 #if defined(RUN_RAJA_STDPAR)
-    case Lambda_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-          for (Index_type k = 0; k < nk; ++k ) {
-            for (Index_type j = 0; j < nj; ++j ) {
-              for (Index_type i = 0; i < ni; ++i ) {
-                nestedinit_lam(i, j, k);
-              }
-            }
-          }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
     case RAJA_StdPar : {
 
       using EXEC_POL = 
@@ -104,6 +147,7 @@ void NESTED_INIT::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace basic

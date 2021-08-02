@@ -39,6 +39,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
           for (Index_type j = 0; j < nj; ++j ) {
             for (Index_type i = 0; i < ni; ++i ) {
               NESTED_INIT_BODY;
+              //std::cout << i << "," << j << "," << k << ";" << k*nj*ni+j*ni+i << " SEQ\n";
             }
           }
         }
