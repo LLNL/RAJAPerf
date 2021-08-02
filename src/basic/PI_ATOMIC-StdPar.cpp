@@ -10,6 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <atomic>
 #include <ranges>
 #include <algorithm>
 #include <execution>
@@ -41,20 +42,14 @@ void PI_ATOMIC::runStdParVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
-        //for (Index_type i = ibegin; i < iend; ++i ) {
-        //  double x = (double(i) + 0.5) * dx;
-        //  *pi += dx / (1.0 + x * x);
-        //}
-        *pi += std::transform_reduce( std::execution::par_unseq,
-                                      //&x[ibegin], &x[iend],
-                                      std::begin(range), std::end(range),
-                                      0.0, std::plus<>(),
-                        [=](Index_type i) {
+        std::atomic<double> a_pi{m_pi_init};
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range),
+                        [=,&a_pi](Index_type i) {
           double x = (double(i) + 0.5) * dx;
-          return dx / (1.0 + x * x);
+          a_pi += dx / (1.0 + x * x);
         });
-        *pi *= 4.0;
+        *pi = a_pi * 4.0;
 
       }
       stopTimer();
@@ -64,19 +59,19 @@ void PI_ATOMIC::runStdParVariant(VariantID vid)
 
     case Lambda_StdPar : {
 
-      auto piatomic_base_lam = [=](Index_type i) {
+      auto piatomic_base_lam = [=](Index_type i, std::atomic<double> &a_pi) {
                                  double x = (double(i) + 0.5) * dx;
-                                 *pi += dx / (1.0 + x * x);
+                                 a_pi += dx / (1.0 + x * x);
                                };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        *pi = m_pi_init;
+        std::atomic<double> a_pi{m_pi_init};
         for (Index_type i = ibegin; i < iend; ++i ) {
-          piatomic_base_lam(i);
+          piatomic_base_lam(i,a_pi);
         }
-        *pi *= 4.0;
+        *pi = a_pi * 4.0;
 
       }
       stopTimer();
