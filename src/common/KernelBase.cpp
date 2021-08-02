@@ -175,12 +175,12 @@ void KernelBase::runKernel(VariantID vid)
     }
 
     case Base_StdPar :
+    case Lambda_StdPar :
     {
       runStdParVariant(vid);
       break;
     }
 
-    case Lambda_StdPar :
     case RAJA_StdPar :
     {
 #if defined(RUN_RAJA_STDPAR)
