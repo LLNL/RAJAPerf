@@ -53,6 +53,29 @@ void DOT::runStdParVariant(VariantID vid)
       break;
     }
 
+    case Lambda_StdPar : {
+
+      auto dot_base_lam = [=](Index_type i) -> Real_type {
+                            return a[i] * b[i];
+                          };
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type dot = m_dot_init;
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          dot += dot_base_lam(i);
+        }
+
+        m_dot += dot;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
 #if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 

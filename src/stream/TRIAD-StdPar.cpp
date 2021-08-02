@@ -40,12 +40,16 @@ void TRIAD::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           TRIAD_BODY;
-        }
+        });
 
       }
       stopTimer();
@@ -53,22 +57,25 @@ void TRIAD::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           triad_lam(i);
-        }
-
+        });
       }
       stopTimer();
 
       break;
     }
 
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
