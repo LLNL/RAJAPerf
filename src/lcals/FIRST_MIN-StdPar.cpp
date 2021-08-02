@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace lcals
 
 void FIRST_MIN::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -33,13 +39,12 @@ void FIRST_MIN::runStdParVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        FIRST_MIN_MINLOC_INIT;
+        auto result =
+        std::min_element( std::execution::par_unseq,
+                          &x[ibegin], &x[iend]);
+        auto loc = std::distance(&x[ibegin], result);
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_MIN_BODY;
-        }
-
-        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+        m_minloc = RAJA_MAX(m_minloc, loc);
 
       }
       stopTimer();
@@ -47,7 +52,7 @@ void FIRST_MIN::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
+#ifdef RAJA_ENABLE_STDPAR
     case Lambda_StdPar : {
 
       auto firstmin_base_lam = [=](Index_type i) -> Real_type {
@@ -102,6 +107,7 @@ void FIRST_MIN::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace lcals
