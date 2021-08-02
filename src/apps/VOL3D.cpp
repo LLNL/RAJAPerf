@@ -42,6 +42,10 @@ VOL3D::VOL3D(const RunParams& params)
                   (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -85,7 +89,7 @@ void VOL3D::setUp(VariantID vid)
 
 void VOL3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_vol, m_array_length);
+  checksum[vid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
 void VOL3D::tearDown(VariantID vid)

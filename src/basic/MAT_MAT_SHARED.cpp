@@ -38,6 +38,10 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   const Index_type no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
   setFLOPsPerRep(2 * TL_SZ * TL_SZ * TL_SZ * no_tiles * no_blocks * no_blocks);
 
+  checksum_scale_factor = 10e-12 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Teams);
 
   setVariantDefined(Base_Seq);
@@ -67,7 +71,7 @@ void MAT_MAT_SHARED::setUp(VariantID vid) {
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid) {
-  checksum[vid] += calcChecksum(m_C, m_N*m_N);
+  checksum[vid] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
 }
 
 void MAT_MAT_SHARED::tearDown(VariantID vid) {

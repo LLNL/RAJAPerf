@@ -35,6 +35,10 @@ EOS::EOS(const RunParams& params)
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
   setFLOPsPerRep(16 * getActualProblemSize());
 
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -73,7 +77,7 @@ void EOS::setUp(VariantID vid)
 
 void EOS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
 void EOS::tearDown(VariantID vid)
