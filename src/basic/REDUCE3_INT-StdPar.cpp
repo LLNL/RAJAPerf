@@ -10,7 +10,11 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <limits>
+#include <array>
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -21,6 +25,8 @@ namespace basic
 
 void REDUCE3_INT::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -31,20 +37,33 @@ void REDUCE3_INT::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
+        typedef std::array<Int_type,3> Reduce_type;
+        Reduce_type result =
+        std::transform_reduce( std::execution::par_unseq,
+                                      std::begin(range), std::end(range),
+                                      Reduce_type{m_vsum_init,m_vmin_init,m_vmax_init},
+                        [=](Reduce_type a, Reduce_type b) -> Reduce_type {
+                             auto plus = a[0] + b[0];
+                             auto min  = std::min(a[1],b[1]);
+                             auto max  = std::max(a[2],b[2]);
+                             Reduce_type red{ plus, min, max };
+                             return red; 
+                        },
+                        [=](Index_type i) -> std::array<Int_type,3>{
+                             Reduce_type val{ vec[i], vec[i], vec[i] };
+                             return val; 
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          REDUCE3_INT_BODY;
-        }
+                        }
+        );
 
-        m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
+        m_vsum += result[0];
+        m_vmin = RAJA_MIN(m_vmin, result[1]);
+        m_vmax = RAJA_MAX(m_vmax, result[2]);
 
       }
       stopTimer();
@@ -113,6 +132,7 @@ void REDUCE3_INT::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace basic

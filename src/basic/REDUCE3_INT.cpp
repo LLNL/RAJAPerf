@@ -56,6 +56,10 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 REDUCE3_INT::~REDUCE3_INT()
