@@ -24,41 +24,6 @@ namespace polybench
 POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FDTD_2D, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps;
-  switch(lsizespec) {
-    case Mini:
-      m_nx=20; m_ny=30; m_tsteps=20;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_nx=60; m_ny=80; m_tsteps=40;
-      run_reps = 500;
-      break;
-    case Medium:
-      m_nx=200; m_ny=240; m_tsteps=100;
-      run_reps = 200;
-      break;
-    case Large:
-      m_nx=800; m_ny=1000; m_tsteps=500;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_nx=2000; m_ny=2600; m_tsteps=1000;
-      run_reps = 1;
-      break;
-    default:
-      m_nx=800; m_ny=1000; m_tsteps=60;
-      run_reps = 10;
-      break;
-  }
-
-  setDefaultProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type nx_default = 1000;
   Index_type ny_default = 1000;
 
@@ -70,7 +35,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   m_ny = m_nx;
   m_tsteps = 40;
 
-#endif
 
   setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) ); 
 

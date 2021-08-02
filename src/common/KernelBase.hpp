@@ -83,8 +83,6 @@ public:
     { return has_variant_defined[vid]; }
 
 
-  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
-
   //
   // Methods to get information about kernel execution for reports
   // containing kernel execution information

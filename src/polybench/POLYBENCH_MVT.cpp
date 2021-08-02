@@ -21,41 +21,6 @@ namespace polybench
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   : KernelBase(rajaperf::Polybench_MVT, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_N=40;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_N=120;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_N=1000;
-      run_reps = 100;
-      break;
-    case Large:
-      m_N=2000;
-      run_reps = 40;
-      break;
-    case Extralarge:
-      m_N=4000;
-      run_reps = 10;
-      break;
-    default:
-      m_N=4000;
-      run_reps = 10;
-      break;
-  }
-
-  setDefaultProblemSize( m_N );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -63,7 +28,6 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
 
-#endif
 
   setActualProblemSize( m_N * m_N );
 

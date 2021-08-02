@@ -21,41 +21,6 @@ namespace polybench
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_N=42;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_N=124;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_N=410;
-      run_reps = 100;
-      break;
-    case Large:
-      m_N=2100;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_N=2200;
-      run_reps = 1;
-      break;
-    default:
-      m_N=2100;
-      run_reps = 100;
-      break;
-  }
-
-  setDefaultProblemSize( m_N );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type N_default = 2100;
 
   setDefaultProblemSize( N_default * N_default );
@@ -63,7 +28,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
 
   m_N = std::sqrt( getTargetProblemSize() )+1;
 
-#endif
 
   setActualProblemSize( m_N * m_N ); 
 

@@ -21,44 +21,6 @@ namespace polybench
 POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMM, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_ni = 20; m_nj = 25; m_nk = 30;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_ni = 60; m_nj = 70; m_nk = 80;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_ni = 200; m_nj = 220; m_nk = 240;
-      run_reps = 100;
-      break;
-    case Large:
-      m_ni = 1000; m_nj = 1100; m_nk = 1200;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_ni = 2000; m_nj = 2300; m_nk = 2600;
-      run_reps = 1;
-      break;
-    default:
-      m_ni = 200; m_nj = 220; m_nk = 240;
-      run_reps = 100;
-      break;
-  }
-
-  m_alpha = 0.62;
-  m_beta = 1.002;
-
-  setDefaultProblemSize( m_ni * m_nj );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1200;
@@ -73,7 +35,6 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
-#endif
 
   setActualProblemSize( m_ni * m_nj );
 

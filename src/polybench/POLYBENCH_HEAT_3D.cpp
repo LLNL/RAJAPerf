@@ -22,58 +22,6 @@ namespace polybench
 POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_HEAT_3D, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-//
-// Note: 'factor' was added to keep the checksums (which can get very large
-//       for this kernel) within a reasonable range for comparison across
-//       variants.
-//
-  switch(lsizespec) {
-    case Mini:
-      m_N=10;
-      m_tsteps=20;
-      run_reps = 1000;
-      m_factor = 0.1;
-      break;
-    case Small:
-      m_N=20;
-      m_tsteps=40;
-      run_reps = 500;
-      m_factor = 0.01;
-      break;
-    case Medium:
-      m_N=40;
-      m_tsteps=100;
-      run_reps = 300;
-      m_factor = 0.001;
-      break;
-    case Large:
-      m_N=120;
-      m_tsteps=50;
-      run_reps = 10;
-      m_factor = 0.0001;
-      break;
-    case Extralarge:
-      m_N=400;
-      m_tsteps=10;
-      run_reps = 1;
-      m_factor = 0.00001;
-      break;
-    default:
-      m_N=120;
-      m_tsteps=20;
-      run_reps = 10;
-      m_factor = 0.0001;
-      break;
-  }
-
-  setDefaultProblemSize( (m_N-2) * (m_N-2) * (m_N-2) );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type N_default = 100;
 
   setDefaultProblemSize( (N_default-2)*(N_default-2)*(N_default-2) );
@@ -81,9 +29,7 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
 
   m_N = std::cbrt( getTargetProblemSize() ) + 1;
   m_tsteps = 20;
-  m_factor = 0.0001;
 
-#endif
 
   setActualProblemSize( (m_N-2) * (m_N-2) * (m_N-2) );
 
@@ -100,7 +46,7 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   setFLOPsPerRep( m_tsteps * ( 15 * (m_N-2) * (m_N-2) * (m_N-2) +
                                15 * (m_N-2) * (m_N-2) * (m_N-2) ) );
 
-  checksum_scale_factor = 1.0 *
+  checksum_scale_factor = 0.0001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -141,8 +87,8 @@ void POLYBENCH_HEAT_3D::setUp(VariantID vid)
 
 void POLYBENCH_HEAT_3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += m_factor * calcChecksum(m_A, m_N*m_N*m_N, checksum_scale_factor );
-  checksum[vid] += m_factor * calcChecksum(m_B, m_N*m_N*m_N, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_A, m_N*m_N*m_N, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_B, m_N*m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_HEAT_3D::tearDown(VariantID vid)

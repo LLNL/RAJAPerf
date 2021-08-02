@@ -21,41 +21,6 @@ namespace polybench
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FLOYD_WARSHALL, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_N=60;
-      run_reps = 100000;
-      break;
-    case Small:
-      m_N=180;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_N=500;
-      run_reps = 100;
-      break;
-    case Large:
-      m_N=2800;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_N=5600;
-      run_reps = 1;
-      break;
-    default:
-      m_N=300;
-      run_reps = 60;
-      break;
-  }
-
-  setDefaultProblemSize( m_N*m_N );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default ); 
@@ -63,7 +28,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
 
-#endif
 
   setActualProblemSize( m_N * m_N );
 

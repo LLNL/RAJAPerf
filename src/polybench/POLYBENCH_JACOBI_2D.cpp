@@ -21,47 +21,6 @@ namespace polybench
 POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_2D, params)
 {
-#if 0
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_N=30;
-      m_tsteps=20;
-      run_reps = 1000;
-      break;
-    case Small:
-      m_N=90;
-      m_tsteps=40;
-      run_reps = 500;
-      break;
-    case Medium:
-      m_N=250;
-      m_tsteps=100;
-      run_reps = 300;
-      break;
-    case Large:
-      m_N=1500;
-      m_tsteps=20;
-      run_reps = 10;
-      break;
-    case Extralarge:
-      m_N=2800;
-      m_tsteps=10;
-      run_reps = 1;
-      break;
-    default:
-      m_N=1000;
-      m_tsteps=40;
-      run_reps = 10;
-      break;
-  }
-
-  setDefaultProblemSize( (m_N-2) * (m_N-2) );
-  setDefaultReps(run_reps);
-
-#else
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -70,7 +29,6 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
   m_tsteps = 40;
 
-#endif
 
   setActualProblemSize( (m_N-2) * (m_N-2) );
 
