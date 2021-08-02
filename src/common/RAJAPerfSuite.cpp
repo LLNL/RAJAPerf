@@ -400,12 +400,12 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
-  if ( vid == Base_StdPar ) {
+  if ( vid == Base_StdPar ||
+       vid == Lambda_StdPar) {
     ret_val = true;
   }
-#if defined(RUN_RAJA_SEQ)
-  if ( vid == Lambda_StdPar ||
-       vid == RAJA_StdPar ) {
+#if defined(RUN_RAJA_STDPAR)
+  if ( vid == RAJA_StdPar ) {
     ret_val = true;
   }
 #endif
