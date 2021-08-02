@@ -21,6 +21,7 @@ namespace polybench
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -50,7 +51,10 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  setDefaultProblemSize( m_N );
+  setDefaultReps(run_reps);
+
+#else
 
   Index_type N_default = 2100;
 
@@ -58,10 +62,6 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setDefaultReps(100);
 
   m_N = std::sqrt( getTargetProblemSize() )+1;
-
-#else  // this is what we have now...
-  setDefaultProblemSize( m_N );
-  setDefaultReps(run_reps);
 
 #endif
 
@@ -76,6 +76,10 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
+
+  checksum_scale_factor = 0.001 * 
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -114,7 +118,7 @@ void POLYBENCH_ATAX::setUp(VariantID vid)
 
 void POLYBENCH_ATAX::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, m_N);
+  checksum[vid] += calcChecksum(m_y, m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_ATAX::tearDown(VariantID vid)

@@ -21,6 +21,7 @@ namespace polybench
 POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_2D, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -56,20 +57,18 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  setDefaultProblemSize( (m_N-2) * (m_N-2) );
+  setDefaultReps(run_reps);
+
+#else
 
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
-  setDefaultReps(10);
+  setDefaultReps(50);
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
   m_tsteps = 40;
-
-#else // this is what we have now...
-
-  setDefaultProblemSize( (m_N-2) * (m_N-2) );
-  setDefaultReps(run_reps);
 
 #endif
 
@@ -87,6 +86,10 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
                                (m_N * m_N  - 4) ) );
   setFLOPsPerRep( m_tsteps * ( 5 * (m_N-2)*(m_N-2) +
                                5 * (m_N -2)*(m_N-2) ) );
+
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -125,8 +128,8 @@ void POLYBENCH_JACOBI_2D::setUp(VariantID vid)
 
 void POLYBENCH_JACOBI_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_A, m_N*m_N);
-  checksum[vid] += calcChecksum(m_B, m_N*m_N);
+  checksum[vid] += calcChecksum(m_A, m_N*m_N, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_B, m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_JACOBI_2D::tearDown(VariantID vid)

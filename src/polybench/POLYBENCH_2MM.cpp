@@ -22,6 +22,7 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
+#if 0 
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -51,8 +52,13 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  m_alpha = 1.5;
+  m_beta = 1.2;
 
+  setDefaultProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+  setDefaultReps(run_reps);
+
+#else 
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1120;
@@ -60,7 +66,7 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
   setDefaultProblemSize( std::max( ni_default*nj_default, 
                                    ni_default*nl_default ) );
-  setDefaultReps(4);
+  setDefaultReps(2);
 
   m_ni = std::sqrt( getTargetProblemSize() ) + 1;
   m_nj = m_ni;
@@ -69,14 +75,6 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
 
   m_alpha = 1.5;
   m_beta = 1.2;
-
-#else  // this is what we have now...
-
-  m_alpha = 1.5;
-  m_beta = 1.2;
-
-  setDefaultProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
-  setDefaultReps(run_reps);
 
 #endif
 
@@ -94,6 +92,10 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 
+  checksum_scale_factor = 0.000001 * 
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+                                       
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -132,7 +134,7 @@ void POLYBENCH_2MM::setUp(VariantID vid)
 
 void POLYBENCH_2MM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_D, m_ni * m_nl);
+  checksum[vid] += calcChecksum(m_D, m_ni * m_nl, checksum_scale_factor );
 }
 
 void POLYBENCH_2MM::tearDown(VariantID vid)

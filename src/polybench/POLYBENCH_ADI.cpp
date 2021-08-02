@@ -20,6 +20,7 @@ namespace polybench
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps;
   switch(lsizespec) {
@@ -49,7 +50,13 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  setDefaultProblemSize( (m_n-2)*(m_n-2) );
+  setDefaultReps(run_reps);
+
+  setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
+                             (m_n-2)*(m_n-2 + m_n-2) ) );
+
+#else
 
   Index_type n_default = 1000;
   
@@ -61,13 +68,6 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );
 
-#else // this is what we have now...
-
-  setDefaultProblemSize( (m_n-2)*(m_n-2) );
-  setDefaultReps(run_reps);
-
-  setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
-                             (m_n-2)*(m_n-2 + m_n-2) ) );
 #endif
 
   setActualProblemSize( (m_n-2) * (m_n-2) );
@@ -77,6 +77,10 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
                                (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
   setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
                                (15 + 2) * (m_n-2)*(m_n-2) ) );
+
+  checksum_scale_factor = 0.0000001 * 
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -114,7 +118,7 @@ void POLYBENCH_ADI::setUp(VariantID vid)
 
 void POLYBENCH_ADI::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_U, m_n * m_n);
+  checksum[vid] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
 }
 
 void POLYBENCH_ADI::tearDown(VariantID vid)

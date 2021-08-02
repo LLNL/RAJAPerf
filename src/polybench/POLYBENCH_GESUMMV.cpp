@@ -21,6 +21,7 @@ namespace polybench
 POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GESUMMV, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -50,7 +51,13 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  m_alpha = 0.62;
+  m_beta = 1.002;
+
+  setDefaultProblemSize( m_N * m_N );
+  setDefaultReps(run_reps);
+
+#else
 
   Index_type N_default = 1000;
 
@@ -61,14 +68,6 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
   m_alpha = 0.62;
   m_beta = 1.002;
-
-#else // this is what we have now...
-
-  m_alpha = 0.62;
-  m_beta = 1.002;
-
-  setDefaultProblemSize( m_N * m_N );
-  setDefaultReps(run_reps);
 
 #endif
 

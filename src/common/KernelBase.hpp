@@ -162,6 +162,7 @@ protected:
   const RunParams& run_params;
 
   Checksum_type checksum[NumVariants];
+  Checksum_type checksum_scale_factor;
 
 private:
   KernelBase() = delete;

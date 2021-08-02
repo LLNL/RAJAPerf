@@ -21,6 +21,7 @@ namespace polybench
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -56,20 +57,18 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  setDefaultProblemSize( m_N-2 );
+  setDefaultReps(run_reps);
+
+#else
 
   Index_type N_default = 1000000;
 
   setDefaultProblemSize( N_default-2 );
-  setDefaultReps(20);
+  setDefaultReps(100);
  
   m_N = getTargetProblemSize(); 
   m_tsteps = 16;
-
-#else // this is what we have now...
-
-  setDefaultProblemSize( m_N-2 );
-  setDefaultReps(run_reps);
 
 #endif
 
@@ -87,6 +86,10 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
                                m_N ) );
   setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
                                3 * (m_N-2) ) );
+
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -123,8 +126,8 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
 
 void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_A, m_N);
-  checksum[vid] += calcChecksum(m_B, m_N);
+  checksum[vid] += calcChecksum(m_A, m_N, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_B, m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_JACOBI_1D::tearDown(VariantID vid)

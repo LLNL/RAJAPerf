@@ -21,6 +21,7 @@ namespace polybench
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FLOYD_WARSHALL, params)
 {
+#if 0
   SizeSpec lsizespec = KernelBase::getSizeSpec();
   int run_reps = 0;
   switch(lsizespec) {
@@ -50,7 +51,10 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
       break;
   }
 
-#if 0 // we want this...
+  setDefaultProblemSize( m_N*m_N );
+  setDefaultReps(run_reps);
+
+#else
 
   Index_type N_default = 1000;
 
@@ -58,11 +62,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setDefaultReps(8);
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
-
-#else  // this is what we have now...
-
-  setDefaultProblemSize( m_N*m_N );
-  setDefaultReps(run_reps);
 
 #endif
 
@@ -72,6 +71,10 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
   setFLOPsPerRep(1 * m_N*m_N*m_N );
+
+  checksum_scale_factor = 1.0 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -108,7 +111,7 @@ void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
 
 void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_pout, m_N*m_N);
+  checksum[vid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid)
