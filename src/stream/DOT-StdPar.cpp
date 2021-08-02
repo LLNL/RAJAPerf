@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-//#include <ranges>
+#include <ranges>
 #include <algorithm>
 #include <execution>
 
@@ -54,9 +54,11 @@ void DOT::runStdParVariant(VariantID vid)
 
     case Lambda_StdPar : {
 
-      //auto dot_base_lam = [=](Index_type i) -> Real_type {
-      //                      return a[i] * b[i];
-      //                    };
+      auto dot_base_lam = [=](Index_type i) -> Real_type {
+                            return a[i] * b[i];
+                          };
+
+      auto range = std::views::iota(ibegin, iend);
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,8 +66,8 @@ void DOT::runStdParVariant(VariantID vid)
         Real_type dot = m_dot_init;
 
         dot += std::transform_reduce( std::execution::par_unseq,
-                                      &a[ibegin], &a[iend], &b[ibegin],
-                                      (Real_type)0, std::plus<>(), std::multiplies<>());
+                                      std::begin(range), std::end(range),
+                                      (Real_type)0, std::plus<>(), dot_base_lam);
 
         m_dot += dot;
 
