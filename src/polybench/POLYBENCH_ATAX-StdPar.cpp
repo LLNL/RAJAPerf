@@ -10,8 +10,11 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <iostream>
+#include <ranges>
+#include <algorithm>
+#include <execution>
 
+#include <iostream>
 
 namespace rajaperf
 {
@@ -20,6 +23,8 @@ namespace polybench
 
 void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps= getRunReps();
 
   POLYBENCH_ATAX_DATA_SETUP;
@@ -28,24 +33,34 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)0,N);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           POLYBENCH_ATAX_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
+          std::for_each( std::execution::unseq,
+                          std::begin(range), std::end(range),
+                          [=,&dot](Index_type j) {
             POLYBENCH_ATAX_BODY2;
-          }
+          });
           POLYBENCH_ATAX_BODY3;
-        }
+        });
 
-        for (Index_type j = 0; j < N; ++j ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type j) {
           POLYBENCH_ATAX_BODY4;
-          for (Index_type i = 0; i < N; ++i ) {
+          std::for_each( std::execution::unseq,
+                          std::begin(range), std::end(range),
+                          [=,&dot](Index_type i) {
             POLYBENCH_ATAX_BODY5;
-          }
+          });
           POLYBENCH_ATAX_BODY6;
-        }
+        });
 
       }
       stopTimer();
@@ -53,8 +68,6 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
       break;
     }
 
-
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, 
@@ -74,24 +87,34 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
                                    POLYBENCH_ATAX_BODY6;
                                   };
 
+      auto range = std::views::iota((Index_type)0,N);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           POLYBENCH_ATAX_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
+          std::for_each( std::execution::unseq,
+                          std::begin(range), std::end(range),
+                          [=,&dot](Index_type j) {
             poly_atax_base_lam2(i, j, dot);
-          }
+          });
           poly_atax_base_lam3(i, dot);
-        }
+        });
 
-        for (Index_type j = 0; j < N; ++j ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type j) {
           POLYBENCH_ATAX_BODY4;
-          for (Index_type i = 0; i < N; ++i ) {
+          std::for_each( std::execution::unseq,
+                          std::begin(range), std::end(range),
+                          [=,&dot](Index_type i) {
             poly_atax_base_lam5(i, j, dot);
-          }
+          });
           poly_atax_base_lam6(j, dot);
-        }
+        });
 
       }
       stopTimer();
@@ -99,6 +122,7 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_ATAX_VIEWS_RAJA;
@@ -183,6 +207,7 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench
