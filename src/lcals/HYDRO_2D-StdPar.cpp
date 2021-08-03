@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace lcals
 
 void HYDRO_2D::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type kbeg = 1;
   const Index_type kend = m_kn - 1;
@@ -32,26 +38,41 @@ void HYDRO_2D::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto rangeK = std::views::iota(kbeg, kend);
+      auto rangeJ = std::views::iota(jbeg, jend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             HYDRO_2D_BODY1;
-          }
-        }
+          });
+        });
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             HYDRO_2D_BODY2;
-          }
-        }
+          });
+        });
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             HYDRO_2D_BODY3;
-          }
-        }
+          });
+        });
 
       }
       stopTimer();
@@ -59,7 +80,6 @@ void HYDRO_2D::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
@@ -72,26 +92,41 @@ void HYDRO_2D::runStdParVariant(VariantID vid)
                                  HYDRO_2D_BODY3;
                                };
 
+      auto rangeK = std::views::iota(kbeg, kend);
+      auto rangeJ = std::views::iota(jbeg, jend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             hydro2d_base_lam1(k, j);
-          }
-        }
+          });
+        });
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             hydro2d_base_lam2(k, j);
-          }
-        }
+          });
+        });
 
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
+        std::for_each( std::execution::par,
+                        std::begin(rangeK), std::end(rangeK),
+                        [=](Index_type k) {
+          std::for_each( std::execution::unseq,
+                        std::begin(rangeJ), std::end(rangeJ),
+                        [=](Index_type j) {
             hydro2d_base_lam3(k, j);
-          }
-        }
+          });
+        });
 
       }
       stopTimer();
@@ -99,6 +134,7 @@ void HYDRO_2D::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       HYDRO_2D_VIEWS_RAJA;
@@ -153,6 +189,7 @@ void HYDRO_2D::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace lcals

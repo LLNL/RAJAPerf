@@ -49,6 +49,10 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 PLANCKIAN::~PLANCKIAN()
