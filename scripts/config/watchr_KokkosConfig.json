@@ -47,18 +47,7 @@
 						"color" : "202,77,77"
 					}
 				]
-			}, {
-				"inherit" : "kokkos_template",
-				"category" : "kokkos_lambda",
-				"dataLines" : [
-					{
-                      "inherit" : "Line_Template",
-						"y" : {
-							"getKey" : "kokkos_lambda"
-						}
-					}
-				]
-			}, {
+			},{
 				"inherit" : "kokkos_template",
 				"category" : "base_cuda",
 				"dataLines" : [
@@ -92,7 +81,19 @@
 						}
 					}
 				]
-			}, {
+
+			},{ 
+				"inherit" : "kokkos_template",
+				"category" : "lambda_cuda",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "lambda_cuda"
+						}
+					}
+				]
+            }, {
             "inherit" : "kokkos_template",
             "category" : "lambda_cuda",
             "dataLines" : [
