@@ -52,7 +52,6 @@ void FIRST_MIN::runStdParVariant(VariantID vid)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
     case Lambda_StdPar : {
 
       auto firstmin_base_lam = [=](Index_type i) -> Real_type {
@@ -79,6 +78,7 @@ void FIRST_MIN::runStdParVariant(VariantID vid)
       break;
     }
 
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();

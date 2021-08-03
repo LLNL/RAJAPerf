@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace lcals
 
 void FIRST_DIFF::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -27,7 +33,7 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
   FIRST_DIFF_DATA_SETUP;
 
   auto firstdiff_lam = [=](Index_type i) {
-                         FIRST_DIFF_BODY;
+                         x[i] = y[i+1] - y[i];
                        };
 
   switch ( vid ) {
@@ -37,9 +43,12 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_DIFF_BODY;
-        }
+        //for (Index_type i = ibegin; i < iend; ++i ) {
+        //  x[i] = y[i+1] - y[i];
+        //}
+        //x[ibegin] = y[ibegin+1] - y[ibegin];
+        //std::adjacent_difference( std::execution::par_unseq,
+        //                          &y[ibegin], &y[iend], &x[ibegin+1]);
 
       }
       stopTimer();
@@ -47,7 +56,6 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       startTimer();
@@ -63,6 +71,7 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
       break;
     }
 
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
@@ -84,6 +93,7 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace lcals
