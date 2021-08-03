@@ -93,18 +93,7 @@
 						}
 					}
 				]
-            }, {
-            "inherit" : "kokkos_template",
-            "category" : "lambda_cuda",
-            "dataLines" : [
-                    {
-                            "inherit" : "Line_Template",
-                            "y" : {
-                                    "getKey" : "lambda_cuda"
-                            }
-                    }
-            ]
-            }, {
+            },{
 				"inherit" : "kokkos_template",
 				"category" : "raja_cuda",
 				"dataLines" : [
