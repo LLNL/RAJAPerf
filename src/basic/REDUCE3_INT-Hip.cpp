@@ -34,51 +34,8 @@ namespace basic
   deallocHipDeviceData(vec);
 
 
-__global__ void reduce3int(Int_ptr vec,
-                           Int_ptr vsum, Int_type vsum_init,
-                           Int_ptr vmin, Int_type vmin_init,
-                           Int_ptr vmax, Int_type vmax_init,
-                           Index_type iend)
+__global__ void emptykernel597679()
 {
-  HIP_DYNAMIC_SHARED( Int_type, psum)
-  Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
-  Int_type* pmax = (Int_type*)&psum[ 2 * blockDim.x ];
-
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-
-  psum[ threadIdx.x ] = vsum_init;
-  pmin[ threadIdx.x ] = vmin_init;
-  pmax[ threadIdx.x ] = vmax_init;
-
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
-    psum[ threadIdx.x ] += vec[ i ];
-    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
-    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
-  }
-  __syncthreads();
-
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
-      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( vsum, psum[ 0 ] );
-    RAJA::atomicMin<RAJA::hip_atomic>( vmin, pmin[ 0 ] );
-    RAJA::atomicMax<RAJA::hip_atomic>( vmax, pmax[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *vsum += psum[ 0 ];
-    *vmin = RAJA_MIN( *vmin, pmin[ 0 ] );
-    *vmax = RAJA_MAX( *vmax, pmax[ 0 ] );
-  }
-#endif
 }
 
 
@@ -92,13 +49,18 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    REDUCE3_INT_DATA_SETUP_HIP;
-
     Int_ptr vmem_init;
     allocHipPinnedData(vmem_init, 3);
 
     Int_ptr vmem;
     allocHipDeviceData(vmem, 3);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1, t2, t3, t4;
+    t0 = std::chrono::high_resolution_clock::now();
+
+    REDUCE3_INT_DATA_SETUP_HIP;
+
+    t2 = std::chrono::high_resolution_clock::now();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -107,26 +69,23 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
       vmem_init[1] = m_vmin_init;
       vmem_init[2] = m_vmax_init;
       hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice ) );
+                                 hipMemcpyHostToDevice, camp::resources::Hip::get_default().get_stream() ) );
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce3int), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
-                                                    vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
-                                                    iend );
-      hipErrchk( hipGetLastError() );
+      t3 = std::chrono::high_resolution_clock::now();
 
-      Int_type lmem[3];
-      Int_ptr plmem = &lmem[0];
-      getHipDeviceData(plmem, vmem, 3);
-      m_vsum += lmem[0];
-      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
-      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+      auto func = (const void*)(emptykernel597679);
+      void* args[] = {nullptr};
+      hipErrchk( hipLaunchKernel( func, 1, 1, args, 0, camp::resources::Hip::get_default().get_stream() ) );
 
     }
     stopTimer();
+
+    t4 = std::chrono::high_resolution_clock::now();
+
+    double us2 = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count();
+    double us3 = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+    double us4 = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+    std::printf("%s took %.3fus %.3fus %.3fus\n", "REDUCE3_INT_Base_HIP", us2, us3, us4); std::fflush(stdout);
 
     REDUCE3_INT_DATA_TEARDOWN_HIP;
 
@@ -135,26 +94,31 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
 
   } else if ( vid == RAJA_HIP ) {
 
+    std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1, t2, t3, t4;
+    t0 = std::chrono::high_resolution_clock::now();
+
     REDUCE3_INT_DATA_SETUP_HIP;
+
+    t2 = std::chrono::high_resolution_clock::now();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::hip_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::hip_reduce, Int_type> vmax(m_vmax_init);
+      t3 = std::chrono::high_resolution_clock::now();
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        REDUCE3_INT_BODY_RAJA;
-      });
-
-      m_vsum += static_cast<Int_type>(vsum.get());
-      m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-      m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
+      auto func = (const void*)(emptykernel597679);
+      void* args[] = {nullptr};
+      hipErrchk( hipLaunchKernel( func, 1, 1, args, 0, camp::resources::Hip::get_default().get_stream() ) );
 
     }
     stopTimer();
+
+    t4 = std::chrono::high_resolution_clock::now();
+
+    double us2 = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t0).count();
+    double us3 = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+    double us4 = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+    std::printf("%s took %.3fus %.3fus %.3fus\n", "REDUCE3_INT_RAJA_HIP", us2, us3, us4); std::fflush(stdout);
 
     REDUCE3_INT_DATA_TEARDOWN_HIP;
 
