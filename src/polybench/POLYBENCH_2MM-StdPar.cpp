@@ -10,8 +10,13 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
@@ -20,7 +25,9 @@ namespace polybench
 
 void POLYBENCH_2MM::runStdParVariant(VariantID vid)
 {
-  const Index_type run_reps= getRunReps();
+#if defined(RUN_STDPAR)
+
+  const Index_type run_reps = getRunReps();
 
   POLYBENCH_2MM_DATA_SETUP;
 
@@ -28,28 +35,58 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto rangeIJ = std::views::iota((Index_type)0, ni*nj);
+      auto rangeIL = std::views::iota((Index_type)0, ni*nl);
+#else
+      auto rangeI = std::views::iota((Index_type)0, ni);
+      auto rangeL = std::views::iota((Index_type)0, nl);
+#endif
+      auto rangeJ = std::views::iota((Index_type)0, nj);
+      auto rangeK = std::views::iota((Index_type)0, nk);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; i++ ) { 
-          for (Index_type j = 0; j < nj; j++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
+            const auto i  = ij / ni;
+            const auto j  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+#endif
             POLYBENCH_2MM_BODY1;
-            for (Index_type k = 0; k < nk; k++) {
+            std::for_each( std::begin(rangeK), std::end(rangeK), [=,&dot](Index_type k) {
               POLYBENCH_2MM_BODY2;
-            }
+            });
             POLYBENCH_2MM_BODY3;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
-        for (Index_type i = 0; i < ni; i++) {
-          for (Index_type l = 0; l < nl; l++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIL), std::end(rangeIL), [=](Index_type il) {
+            const auto i  = il / ni;
+            const auto l  = il % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeL), std::end(rangeL), [=](Index_type l) {
+#endif
             POLYBENCH_2MM_BODY4;
-            for (Index_type j = 0; j < nj; j++) {
+            std::for_each( std::begin(rangeJ), std::end(rangeJ), [=,&dot](Index_type j) {
               POLYBENCH_2MM_BODY5;
-            }
+            });
             POLYBENCH_2MM_BODY6;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
       }
       stopTimer();
@@ -57,8 +94,6 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
       break;
     }
 
-
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_2mm_base_lam2 = [=](Index_type i, Index_type j,
@@ -107,6 +142,7 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_2MM_VIEWS_RAJA;
@@ -170,13 +206,14 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
           poly_2mm_lam4, 
           poly_2mm_lam5, 
           poly_2mm_lam6
+
         );
 
       }
       stopTimer();
+
       break;
     }
-
 #endif // RUN_RAJA_STDPAR
 
     default : {
@@ -185,6 +222,7 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench

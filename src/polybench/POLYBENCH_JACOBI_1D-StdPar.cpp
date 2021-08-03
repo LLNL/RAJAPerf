@@ -21,7 +21,7 @@ namespace rajaperf
 namespace polybench
 {
 
- 
+
 void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid)
 {
 #if defined(RUN_STDPAR)
@@ -29,13 +29,6 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid)
   const Index_type run_reps= getRunReps();
 
   POLYBENCH_JACOBI_1D_DATA_SETUP;
-
-  auto poly_jacobi1d_lam1 = [=] (Index_type i) {
-                              POLYBENCH_JACOBI_1D_BODY1;
-                            };
-  auto poly_jacobi1d_lam2 = [=] (Index_type i) {
-                              POLYBENCH_JACOBI_1D_BODY2;
-                            };
 
   switch ( vid ) {
 
@@ -70,6 +63,13 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid)
     }
 
     case Lambda_StdPar : {
+
+  auto poly_jacobi1d_lam1 = [=] (Index_type i) {
+                              POLYBENCH_JACOBI_1D_BODY1;
+                            };
+  auto poly_jacobi1d_lam2 = [=] (Index_type i) {
+                              POLYBENCH_JACOBI_1D_BODY2;
+                            };
 
       auto range = std::views::iota((Index_type)1,N-1);
 

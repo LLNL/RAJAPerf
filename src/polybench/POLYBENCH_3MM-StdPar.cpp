@@ -10,18 +10,24 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <iostream>
-#include <cstring>
+#include <ranges>
+#include <algorithm>
+#include <execution>
 
+#include <iostream>
+//#include <cstring>
+
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
 namespace polybench
 {
 
-  
 void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_3MM_DATA_SETUP;
@@ -69,7 +75,6 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_3mm_base_lam2 = [=] (Index_type i, Index_type j, Index_type k,
@@ -136,6 +141,7 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_3MM_VIEWS_RAJA;
@@ -234,12 +240,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  POLYBENCH_2MM : Unknown variant id = " << vid << std::endl;
+      std::cout << "\n  POLYBENCH_3MM : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#endif
 }
 
-} // end namespace basic
+} // end namespace polybench
 } // end namespace rajaperf
