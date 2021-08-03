@@ -10,18 +10,24 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
 namespace polybench
 {
 
-
 void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
 {
-  const Index_type run_reps= getRunReps();
+#if defined(RUN_STDPAR)
+
+  const Index_type run_reps = getRunReps();
 
   POLYBENCH_GEMM_DATA_SETUP;
 
@@ -29,19 +35,37 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto rangeIJ = std::views::iota((Index_type)0, ni*nj);
+#else
+      auto rangeI = std::views::iota((Index_type)0, ni);
+      auto rangeJ = std::views::iota((Index_type)0, nj);
+#endif
+      auto rangeK = std::views::iota((Index_type)0, nk);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; ++i ) { 
-          for (Index_type j = 0; j < nj; ++j ) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
+            const auto i  = ij / ni;
+            const auto j  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+#endif
             POLYBENCH_GEMM_BODY1;
             POLYBENCH_GEMM_BODY2;
-            for (Index_type k = 0; k < nk; ++k ) {
+            std::for_each( std::begin(rangeK), std::end(rangeK), [=,&dot](Index_type k) {
                POLYBENCH_GEMM_BODY3;
-            }
+            });
             POLYBENCH_GEMM_BODY4;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
       }
       stopTimer();
@@ -49,7 +73,6 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_gemm_base_lam2 = [=](Index_type i, Index_type j) {
@@ -84,6 +107,7 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_GEMM_VIEWS_RAJA;
@@ -147,6 +171,7 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench

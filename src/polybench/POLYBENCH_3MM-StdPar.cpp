@@ -15,7 +15,6 @@
 #include <execution>
 
 #include <iostream>
-//#include <cstring>
 
 #define USE_STDPAR_COLLAPSE 1
 
@@ -36,38 +35,80 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto rangeIJ = std::views::iota((Index_type)0, ni*nj);
+      auto rangeIL = std::views::iota((Index_type)0, ni*nl);
+      auto rangeJL = std::views::iota((Index_type)0, nj*nl);
+#else
+      auto rangeI = std::views::iota((Index_type)0, ni);
+      auto rangeL = std::views::iota((Index_type)0, nl);
+#endif
+      auto rangeJ = std::views::iota((Index_type)0, nj);
+      auto rangeK = std::views::iota((Index_type)0, nk);
+      auto rangeM = std::views::iota((Index_type)0, nm);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; i++ ) {
-          for (Index_type j = 0; j < nj; j++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
+            const auto i  = ij / ni;
+            const auto j  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+#endif
             POLYBENCH_3MM_BODY1;
-            for (Index_type k = 0; k < nk; k++) {
+            std::for_each( std::begin(rangeK), std::end(rangeK), [=,&dot](Index_type k) {
               POLYBENCH_3MM_BODY2;
-            }
+            });
             POLYBENCH_3MM_BODY3;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
-        for (Index_type j = 0; j < nj; j++) {
-          for (Index_type l = 0; l < nl; l++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeJL), std::end(rangeJL), [=](Index_type jl) {
+            const auto j  = jl / nj;
+            const auto l  = jl % nj;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+          std::for_each( std::begin(rangeL), std::end(rangeL), [=](Index_type l) {
+#endif
             POLYBENCH_3MM_BODY4;
-            for (Index_type m = 0; m < nm; m++) {
+            std::for_each( std::begin(rangeM), std::end(rangeM), [=,&dot](Index_type m) {
               POLYBENCH_3MM_BODY5;
-            }
+            });
             POLYBENCH_3MM_BODY6;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
-        for (Index_type i = 0; i < ni; i++) {
-          for (Index_type l = 0; l < nl; l++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIL), std::end(rangeIL), [=](Index_type il) {
+            const auto i  = il / ni;
+            const auto l  = il % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeL), std::end(rangeL), [=](Index_type l) {
+#endif
             POLYBENCH_3MM_BODY7;
-            for (Index_type j = 0; j < nj; j++) {
+            std::for_each( std::begin(rangeJ), std::end(rangeJ), [=,&dot](Index_type j) {
               POLYBENCH_3MM_BODY8;
-            }
+            });
             POLYBENCH_3MM_BODY9;
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
       }
       stopTimer();
