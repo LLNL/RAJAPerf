@@ -10,8 +10,11 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
-#include <cstring>
 
 namespace rajaperf 
 {
@@ -20,6 +23,8 @@ namespace polybench
 
 void POLYBENCH_ADI::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_ADI_DATA_SETUP;
@@ -28,12 +33,16 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)1,n-1);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 1; t <= tsteps; ++t) { 
 
-          for (Index_type i = 1; i < n-1; ++i) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
               POLYBENCH_ADI_BODY3;
@@ -42,9 +51,11 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
             for (Index_type k = n-2; k >= 1; --k) {
               POLYBENCH_ADI_BODY5;
             }  
-          }
+          });
 
-          for (Index_type i = 1; i < n-1; ++i) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
             POLYBENCH_ADI_BODY6;
             for (Index_type j = 1; j < n-1; ++j) {
               POLYBENCH_ADI_BODY7;
@@ -53,7 +64,7 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
             for (Index_type k = n-2; k >= 1; --k) {
               POLYBENCH_ADI_BODY9;
             }  
-          }
+          });
 
         }  // tstep loop
 
@@ -63,7 +74,6 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_adi_base_lam2 = [=](Index_type i) {
@@ -91,12 +101,16 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
                                   POLYBENCH_ADI_BODY9;
                                 };
 
+      auto range = std::views::iota((Index_type)1,n-1);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 1; t <= tsteps; ++t) {
 
-          for (Index_type i = 1; i < n-1; ++i) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
             poly_adi_base_lam2(i);
             for (Index_type j = 1; j < n-1; ++j) {
               poly_adi_base_lam3(i, j);
@@ -105,9 +119,11 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
             for (Index_type k = n-2; k >= 1; --k) {
               poly_adi_base_lam5(i, k);
             }
-          }
+          });
 
-          for (Index_type i = 1; i < n-1; ++i) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
             poly_adi_base_lam6(i);
             for (Index_type j = 1; j < n-1; ++j) {
               poly_adi_base_lam7(i, j);
@@ -116,7 +132,7 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
             for (Index_type k = n-2; k >= 1; --k) {
               poly_adi_base_lam9(i, k);
             }
-          }
+          });
 
         }  // tstep loop
 
@@ -126,6 +142,7 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_ADI_VIEWS_RAJA;
@@ -213,6 +230,7 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench

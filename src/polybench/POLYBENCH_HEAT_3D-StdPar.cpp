@@ -21,12 +21,11 @@ namespace rajaperf
 namespace polybench
 {
 
-
 void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
 {
 #if defined(RUN_STDPAR)
 
-  const Index_type run_reps= getRunReps();
+  const Index_type run_reps = getRunReps();
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
