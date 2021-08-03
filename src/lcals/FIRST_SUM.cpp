@@ -52,6 +52,10 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 FIRST_SUM::~FIRST_SUM()

@@ -33,22 +33,23 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
   FIRST_DIFF_DATA_SETUP;
 
   auto firstdiff_lam = [=](Index_type i) {
-                         x[i] = y[i+1] - y[i];
+                         FIRST_DIFF_BODY;
                        };
 
   switch ( vid ) {
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        //for (Index_type i = ibegin; i < iend; ++i ) {
-        //  x[i] = y[i+1] - y[i];
-        //}
-        //x[ibegin] = y[ibegin+1] - y[ibegin];
-        //std::adjacent_difference( std::execution::par_unseq,
-        //                          &y[ibegin], &y[iend], &x[ibegin+1]);
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
+          FIRST_DIFF_BODY;
+        });
 
       }
       stopTimer();
@@ -58,13 +59,16 @@ void FIRST_DIFF::runStdParVariant(VariantID vid)
 
     case Lambda_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           firstdiff_lam(i);
-        }
-
+        });
       }
       stopTimer();
 
