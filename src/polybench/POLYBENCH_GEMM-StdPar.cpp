@@ -87,19 +87,37 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
                                    POLYBENCH_GEMM_BODY4;
                                   };
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto rangeIJ = std::views::iota((Index_type)0, ni*nj);
+#else
+      auto rangeI = std::views::iota((Index_type)0, ni);
+      auto rangeJ = std::views::iota((Index_type)0, nj);
+#endif
+      auto rangeK = std::views::iota((Index_type)0, nk);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; ++i ) {
-          for (Index_type j = 0; j < nj; ++j ) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
+            const auto i  = ij / ni;
+            const auto j  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+#endif
             POLYBENCH_GEMM_BODY1;
             poly_gemm_base_lam2(i, j);
-            for (Index_type k = 0; k < nk; ++k ) {
+            std::for_each( std::begin(rangeK), std::end(rangeK), [=,&dot](Index_type k) {
               poly_gemm_base_lam3(i, j, k, dot);
-            }
+            });
             poly_gemm_base_lam4(i, j, dot);
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
       }
       stopTimer();

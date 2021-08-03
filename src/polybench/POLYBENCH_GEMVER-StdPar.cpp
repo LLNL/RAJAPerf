@@ -10,18 +10,23 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <iostream>
-#include <cstring>
+#include <ranges>
+#include <algorithm>
+#include <execution>
 
+#include <iostream>
+
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
 namespace polybench
 {
 
-
 void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_GEMVER_DATA_SETUP;
@@ -30,34 +35,40 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)0, n);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < n; i++ ) {
-          for (Index_type j = 0; j < n; j++) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
+          std::for_each( std::begin(range), std::end(range), [=](Index_type j) {
             POLYBENCH_GEMVER_BODY1;
-          }
-        }
+          });
+        });
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GEMVER_BODY2;
-          for (Index_type j = 0; j < n; j++) {
+          std::for_each( std::begin(range), std::end(range), [=,&dot](Index_type j) {
             POLYBENCH_GEMVER_BODY3;
-          }
+          });
           POLYBENCH_GEMVER_BODY4;
-        }
+        });
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GEMVER_BODY5;
-        }
+        });
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GEMVER_BODY6;
-          for (Index_type j = 0; j < n; j++) {
+          std::for_each( std::begin(range), std::end(range), [=,&dot](Index_type j) {
             POLYBENCH_GEMVER_BODY7;
-          }
+          });
           POLYBENCH_GEMVER_BODY8;
-        }
+        });
 
       }
       stopTimer();
@@ -65,7 +76,6 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_gemver_base_lam1 = [=](Index_type i, Index_type j) {
@@ -89,34 +99,40 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
                                      POLYBENCH_GEMVER_BODY8;
                                    };
 
+      auto range = std::views::iota((Index_type)0, n);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < n; i++ ) {
-          for (Index_type j = 0; j < n; j++) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
+          std::for_each( std::begin(range), std::end(range), [=](Index_type j) {
             poly_gemver_base_lam1(i, j);
-          }
-        }
+          });
+        });
 
-        for (Index_type i = 0; i < n; i++ ) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GEMVER_BODY2;
-          for (Index_type j = 0; j < n; j++) {
+          std::for_each( std::begin(range), std::end(range), [=,&dot](Index_type j) {
             poly_gemver_base_lam3(i, j, dot);
-          }
+          });
           poly_gemver_base_lam4(i, dot);
-        }
+        });
 
-        for (Index_type i = 0; i < n; i++ ) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           poly_gemver_base_lam5(i);
-        }
+        });
 
-        for (Index_type i = 0; i < n; i++ ) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GEMVER_BODY6;
-          for (Index_type j = 0; j < n; j++) {
+          std::for_each( std::begin(range), std::end(range), [=,&dot](Index_type j) {
             poly_gemver_base_lam7(i, j, dot);
-          }
+          });
           poly_gemver_base_lam8(i, dot);
-        }
+        });
 
       }
       stopTimer();
@@ -124,6 +140,7 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_GEMVER_VIEWS_RAJA;
@@ -232,6 +249,7 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace basic

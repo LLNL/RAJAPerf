@@ -113,28 +113,58 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid)
                                   POLYBENCH_2MM_BODY6;
                                 };
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto rangeIJ = std::views::iota((Index_type)0, ni*nj);
+      auto rangeIL = std::views::iota((Index_type)0, ni*nl);
+#else
+      auto rangeI = std::views::iota((Index_type)0, ni);
+      auto rangeL = std::views::iota((Index_type)0, nl);
+#endif
+      auto rangeJ = std::views::iota((Index_type)0, nj);
+      auto rangeK = std::views::iota((Index_type)0, nk);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; i++ ) {
-          for(Index_type j = 0; j < nj; j++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
+            const auto i  = ij / ni;
+            const auto j  = ij % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
+#endif
             POLYBENCH_2MM_BODY1;
-            for (Index_type k = 0; k < nk; k++) {
+            std::for_each( std::begin(rangeK), std::end(rangeK), [=,&dot](Index_type k) {
               poly_2mm_base_lam2(i, j, k, dot);
-            }
+            });
             poly_2mm_base_lam3(i, j, dot);
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
-        for(Index_type i = 0; i < ni; i++) {
-          for(Index_type l = 0; l < nl; l++) {
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeIL), std::end(rangeIL), [=](Index_type il) {
+            const auto i  = il / ni;
+            const auto l  = il % ni;
+#else
+        std::for_each( std::execution::par_unseq,
+                       std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
+          std::for_each( std::begin(rangeL), std::end(rangeL), [=](Index_type l) {
+#endif
             POLYBENCH_2MM_BODY4;
-            for (Index_type j = 0; j < nj; j++) {
+            std::for_each( std::begin(rangeJ), std::end(rangeJ), [=,&dot](Index_type j) {
               poly_2mm_base_lam5(i, l, j, dot);
-            }
+            });
             poly_2mm_base_lam6(i, l, dot);
-          }
-        }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
+        });
 
       }
       stopTimer();

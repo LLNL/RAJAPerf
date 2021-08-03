@@ -70,7 +70,6 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid)
       break;
     }
 
-
     case Lambda_StdPar : {
 
       auto poly_jacobi2d_base_lam1 = [=](Index_type i, Index_type j) {

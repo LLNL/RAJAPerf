@@ -10,8 +10,11 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <iostream>
+#include <ranges>
+#include <algorithm>
+#include <execution>
 
+#include <iostream>
 
 namespace rajaperf 
 {
@@ -21,6 +24,8 @@ namespace polybench
 
 void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps= getRunReps();
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
@@ -29,26 +34,40 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)1,N-1);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type t = 0; t < tsteps; ++t) { 
 
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
-              for (Index_type k = 1; k < N-1; ++k ) { 
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
+            std::for_each( std::execution::unseq,
+                            std::begin(range), std::end(range),
+                            [=](Index_type j) {
+              std::for_each( std::execution::unseq,
+                            std::begin(range), std::end(range),
+                            [=](Index_type k) {
                 POLYBENCH_HEAT_3D_BODY1;
-              }
-            }
-          }
+              });
+            });
+          });
 
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
-              for (Index_type k = 1; k < N-1; ++k ) { 
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range), std::end(range),
+                          [=](Index_type i) {
+            std::for_each( std::execution::unseq,
+                            std::begin(range), std::end(range),
+                            [=](Index_type j) {
+              std::for_each( std::execution::unseq,
+                            std::begin(range), std::end(range),
+                            [=](Index_type k) {
                 POLYBENCH_HEAT_3D_BODY2;
-              }
-            }
-          }
+              });
+            });
+          });
 
         }
 
@@ -60,7 +79,6 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, 
@@ -103,6 +121,7 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_HEAT_3D_VIEWS_RAJA;
@@ -162,6 +181,7 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench
