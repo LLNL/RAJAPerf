@@ -141,11 +141,15 @@ fi
 
 cd ${build_dir}
 
-if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-    ./bin/raja-perf.exe -sp
-else
-    ./bin/raja-perf.exe --checkrun -sp
+
+    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+    then
+        ./bin/raja-perf.exe -sp
+    else
+        ./bin/raja-perf.exe --checkrun -sp
+    fi
 fi
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
