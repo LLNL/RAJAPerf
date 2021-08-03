@@ -71,7 +71,6 @@ void REDUCE3_INT::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto init3_base_lam = [=](Index_type i) -> Int_type {
@@ -101,6 +100,7 @@ void REDUCE3_INT::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       startTimer();
