@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -104,6 +104,7 @@ enum KernelID {
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MAT_MAT_SHARED,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
   Basic_PI_ATOMIC,
@@ -163,6 +164,7 @@ enum KernelID {
   Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DPA,
   Apps_PRESSURE,
   Apps_VOL3D,
 
@@ -231,7 +233,7 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Launch,
+  Teams,
 
   Sort,
   Scan,

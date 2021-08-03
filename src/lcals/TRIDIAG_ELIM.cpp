@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,17 +21,17 @@ namespace lcals
 TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_TRIDIAG_ELIM, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  m_N = getRunSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_N = getActualProblemSize();
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 3*sizeof(Real_type )) * (m_N-1) );
-  setFLOPsPerRep(2 * (getRunSize()-1));
+  setFLOPsPerRep(2 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);
 
@@ -67,7 +67,7 @@ void TRIDIAG_ELIM::setUp(VariantID vid)
 
 void TRIDIAG_ELIM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_xout, getRunSize());
+  checksum[vid] += calcChecksum(m_xout, getActualProblemSize());
 }
 
 void TRIDIAG_ELIM::tearDown(VariantID vid)

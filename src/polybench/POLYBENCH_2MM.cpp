@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -51,13 +51,36 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
       break;
   }
 
+#if 0 // we want this...
+
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
+  Index_type nk_default = 1120;
+  Index_type nl_default = 1000;
+
+  setDefaultProblemSize( std::max( ni_default*nj_default, 
+                                   ni_default*nl_default ) );
+  setDefaultReps(4);
+
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
+  m_nk = nk_default;
+  m_nl = m_ni;
+
   m_alpha = 1.5;
   m_beta = 1.2;
 
-  setDefaultSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+#else  // this is what we have now...
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
+
+  setDefaultProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
   setDefaultReps(run_reps);
 
-  setProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
+#endif
+
+  setActualProblemSize( std::max( m_ni*m_nj, m_ni*m_nl ) );
 
   setItsPerRep( m_ni*m_nj + m_ni*m_nl );
   setKernelsPerRep(2);

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,18 +21,18 @@ namespace lcals
 HYDRO_1D::HYDRO_1D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_1D, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
-  m_array_length = getRunSize() + 12;
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_array_length = getActualProblemSize() + 12;
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getRunSize() +
-                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getRunSize()+1) );
-  setFLOPsPerRep(5 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * getActualProblemSize() +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getActualProblemSize()+1) );
+  setFLOPsPerRep(5 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -71,7 +71,7 @@ void HYDRO_1D::setUp(VariantID vid)
 
 void HYDRO_1D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void HYDRO_1D::tearDown(VariantID vid)

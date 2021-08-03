@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJAPerf/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -10,10 +10,10 @@
 if [[ $# -ne 3 ]]; then
   echo
   echo "You must pass 3 arguments to the script (in this order): "
-  echo "   1) compiler version number for nvcc"  
+  echo "   1) compiler version number for nvcc"
   echo "   2) CUDA compute architecture"
   echo "   3) compiler version number for clang. "
-  echo 
+  echo
   echo "For example: "
   echo "    blueos_nvcc_clang.sh 10.2.89 sm_70 10.0.1"
   exit
@@ -28,7 +28,9 @@ BUILD_SUFFIX=lc_blueos-nvcc${COMP_NVCC_VER}-${COMP_ARCH}-clang${COMP_CLANG_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_clang_X.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -53,11 +55,11 @@ cmake \
 echo
 echo "***********************************************************************"
 echo
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo
-echo "  Please note that you have to disable CUDA GPU hooks when you run" 
+echo "  Please note that you have to disable CUDA GPU hooks when you run"
 echo "  the RAJA Perf Suite; for example,"
-echo 
+echo
 echo "    lrun -1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe"
 echo
 echo "***********************************************************************"

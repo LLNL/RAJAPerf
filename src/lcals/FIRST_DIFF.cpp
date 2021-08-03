@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,18 +21,19 @@ namespace lcals
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  m_N = getRunSize()+1;
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_N = getActualProblemSize()+1;
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() +
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_N );
-  setFLOPsPerRep(1 * getRunSize());
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Forall);
 
@@ -66,7 +67,7 @@ void FIRST_DIFF::setUp(VariantID vid)
 
 void FIRST_DIFF::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void FIRST_DIFF::tearDown(VariantID vid)

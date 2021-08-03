@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -25,17 +25,17 @@ namespace apps
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
-  setDefaultSize(1000*1000);  // See rzmax in ADomain struct
+  setDefaultProblemSize(1000*1000);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::sqrt(getRunSize())+1;
+  Index_type rzmax = std::sqrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 2);
 
   m_array_length = m_domain->nnalls;
 
-  setProblemSize( m_domain->n_real_zones );
+  setActualProblemSize(m_domain->n_real_zones);
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
                   (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
