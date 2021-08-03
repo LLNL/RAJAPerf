@@ -10,8 +10,13 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
@@ -20,6 +25,8 @@ namespace polybench
 
 void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps= getRunReps();
 
   POLYBENCH_GESUMMV_DATA_SETUP;
@@ -28,16 +35,19 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)0, N);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) { 
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GESUMMV_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
+          std::for_each( std::begin(range), std::end(range), [=,&tmpdot,&ydot](Index_type j) {
             POLYBENCH_GESUMMV_BODY2;
-          }
+          });
           POLYBENCH_GESUMMV_BODY3;
-        }
+        });
 
       }
       stopTimer();
@@ -46,7 +56,6 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
     }
 
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto poly_gesummv_base_lam2 = [=](Index_type i, Index_type j, 
@@ -58,16 +67,19 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
                                       POLYBENCH_GESUMMV_BODY3;
                                     };
 
+      auto range = std::views::iota((Index_type)0, N);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < N; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range), std::end(range), [=](Index_type i) {
           POLYBENCH_GESUMMV_BODY1;
-          for (Index_type j = 0; j < N; ++j ) {
+          std::for_each( std::begin(range), std::end(range), [=,&tmpdot,&ydot](Index_type j) {
             poly_gesummv_base_lam2(i, j, tmpdot, ydot);
-          }
+          });
           poly_gesummv_base_lam3(i, tmpdot, ydot);
-        }
+        });
 
       }
       stopTimer();
@@ -75,6 +87,7 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_GESUMMV_VIEWS_RAJA;
@@ -129,6 +142,7 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench

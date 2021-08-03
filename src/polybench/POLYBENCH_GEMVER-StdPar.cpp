@@ -238,7 +238,7 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid)
         
       }
       stopTimer();
-      
+
       break;
     }
 #endif // RUN_RAJA_STDPAR
