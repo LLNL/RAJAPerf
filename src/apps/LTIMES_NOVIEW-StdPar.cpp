@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace apps
 
 void LTIMES_NOVIEW::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   LTIMES_NOVIEW_DATA_SETUP;
@@ -33,10 +39,14 @@ void LTIMES_NOVIEW::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)0,num_z);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type z = 0; z < num_z; ++z ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type z) {
           for (Index_type g = 0; g < num_g; ++g ) {
             for (Index_type m = 0; m < num_m; ++m ) {
               for (Index_type d = 0; d < num_d; ++d ) {
@@ -44,29 +54,7 @@ void LTIMES_NOVIEW::runStdParVariant(VariantID vid)
               }
             }
           }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-#if defined(RUN_RAJA_STDPAR)
-    case Lambda_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type z = 0; z < num_z; ++z ) {
-          for (Index_type g = 0; g < num_g; ++g ) {
-            for (Index_type m = 0; m < num_m; ++m ) {
-              for (Index_type d = 0; d < num_d; ++d ) {
-                ltimesnoview_lam(d, z, g, m);
-              }
-            }
-          }
-        }
+        });
 
       }
       stopTimer();
@@ -74,6 +62,32 @@ void LTIMES_NOVIEW::runStdParVariant(VariantID vid)
       break;
     }
 
+    case Lambda_StdPar : {
+
+      auto range = std::views::iota((Index_type)0,num_z);
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type z) {
+          for (Index_type g = 0; g < num_g; ++g ) {
+            for (Index_type m = 0; m < num_m; ++m ) {
+              for (Index_type d = 0; d < num_d; ++d ) {
+                ltimesnoview_lam(d, z, g, m);
+              }
+            }
+          }
+        });
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       using EXEC_POL =
@@ -111,7 +125,7 @@ void LTIMES_NOVIEW::runStdParVariant(VariantID vid)
     }
 
   }
-
+#endif
 }
 
 } // end namespace apps
