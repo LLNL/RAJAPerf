@@ -74,7 +74,7 @@ __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
 }
 
 template< typename Lambda >
-__global__ void poly_2mm_1_lam(Index_type ni, Index_type nj, Index_type nk,
+__global__ void poly_2mm_1_lam(Index_type ni, Index_type nj,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -102,7 +102,7 @@ __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
 }
 
 template< typename Lambda >
-__global__ void poly_2mm_2_lam(Index_type ni,  Index_type nl, Index_type nj,
+__global__ void poly_2mm_2_lam(Index_type ni,  Index_type nl,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -168,7 +168,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       POLY_2MM_1_NBLOCKS_HIP;      
       hipLaunchKernelGGL((poly_2mm_1_lam<decltype(poly_2mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
-                         ni, nj, nk, poly_2mm_1_lambda);
+                         ni, nj, poly_2mm_1_lambda);
       hipErrchk( hipGetLastError() );
  
       auto poly_2mm_2_lambda = [=] __device__ (Index_type i, Index_type l) {
@@ -182,7 +182,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       POLY_2MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_2_lam<decltype(poly_2mm_2_lambda)>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
-                         ni, nl, nj, poly_2mm_2_lambda);
+                         ni, nl, poly_2mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
     }
