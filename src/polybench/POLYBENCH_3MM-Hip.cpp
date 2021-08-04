@@ -82,7 +82,7 @@ __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_1_lam(Index_type ni, Index_type nj, Index_type nk,
+__global__ void poly_3mm_1_lam(Index_type ni, Index_type nj,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -109,7 +109,7 @@ __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_2_lam(Index_type nj, Index_type nl, Index_type nm,
+__global__ void poly_3mm_2_lam(Index_type nj, Index_type nl,
                                Lambda body)
 {
   Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -136,7 +136,7 @@ __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_3_lam(Index_type ni, Index_type nl, Index_type nj,
+__global__ void poly_3mm_3_lam(Index_type ni, Index_type nl,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -209,7 +209,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
       POLY_3MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_1_lam<decltype(poly_3mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
-                         ni, nj, nk, poly_3mm_1_lambda);
+                         ni, nj, poly_3mm_1_lambda);
       hipErrchk( hipGetLastError() );
 
       auto poly_3mm_2_lambda = [=] __device__ (Index_type j, Index_type l) {
@@ -223,7 +223,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2_lam<decltype(poly_3mm_2_lambda)>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
-                         nj, nl, nm, poly_3mm_2_lambda);
+                         nj, nl, poly_3mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
       auto poly_3mm_3_lambda = [=] __device__ (Index_type i, Index_type l) {
@@ -237,7 +237,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3_lam<decltype(poly_3mm_3_lambda)>),
                          dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
-                         ni, nl, nj, poly_3mm_3_lambda);
+                         ni, nl, poly_3mm_3_lambda);
       hipErrchk( hipGetLastError() );
 
     }

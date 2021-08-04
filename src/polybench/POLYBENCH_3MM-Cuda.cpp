@@ -82,7 +82,7 @@ __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_1_lam(Index_type ni, Index_type nj, Index_type nk,
+__global__ void poly_3mm_1_lam(Index_type ni, Index_type nj,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -109,7 +109,7 @@ __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_2_lam(Index_type nj, Index_type nl, Index_type nm,
+__global__ void poly_3mm_2_lam(Index_type nj, Index_type nl,
                                Lambda body)
 {
   Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -136,7 +136,7 @@ __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
 }
 
 template< typename Lambda >
-__global__ void poly_3mm_3_lam(Index_type ni, Index_type nl, Index_type nj,
+__global__ void poly_3mm_3_lam(Index_type ni, Index_type nl,
                                Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -194,7 +194,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       POLY_3MM_THREADS_PER_BLOCK_CUDA;
 
       POLY_3MM_1_NBLOCKS_CUDA;
-      poly_3mm_1_lam<<<nblocks1, nthreads_per_block>>>(ni, nj, nk,
+      poly_3mm_1_lam<<<nblocks1, nthreads_per_block>>>(ni, nj,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_3MM_BODY1;
           for (Index_type k=0; k < nk; ++k) {
@@ -206,7 +206,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_2_NBLOCKS_CUDA;
-      poly_3mm_2_lam<<<nblocks2, nthreads_per_block>>>(nj, nl, nm,
+      poly_3mm_2_lam<<<nblocks2, nthreads_per_block>>>(nj, nl,
         [=] __device__ (Index_type j, Index_type l) {
           POLYBENCH_3MM_BODY4;
           for (Index_type m=0; m < nm; ++m) {
@@ -218,7 +218,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       POLY_3MM_3_NBLOCKS_CUDA;
-      poly_3mm_3_lam<<<nblocks3, nthreads_per_block>>>(ni, nl, nj,
+      poly_3mm_3_lam<<<nblocks3, nthreads_per_block>>>(ni, nl,
         [=] __device__ (Index_type i, Index_type l) {
           POLYBENCH_3MM_BODY7;
           for (Index_type j=0; j < nj; ++j) {
