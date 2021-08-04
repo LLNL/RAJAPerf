@@ -216,6 +216,9 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
     std::cout << "\n MASS3DPA : Unknown OpenMP variant id = " << vid
               << std::endl;
   }
+
+#else 
+  (void) vid;
 #endif
 }
 

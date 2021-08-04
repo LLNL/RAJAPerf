@@ -246,6 +246,8 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
   }
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

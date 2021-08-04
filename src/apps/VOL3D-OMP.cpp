@@ -92,6 +92,8 @@ void VOL3D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

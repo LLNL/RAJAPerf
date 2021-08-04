@@ -116,6 +116,8 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

@@ -114,6 +114,8 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

@@ -300,6 +300,8 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

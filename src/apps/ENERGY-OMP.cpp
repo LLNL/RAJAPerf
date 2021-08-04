@@ -177,6 +177,8 @@ void ENERGY::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

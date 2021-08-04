@@ -119,6 +119,8 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 
