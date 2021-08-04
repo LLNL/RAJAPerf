@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,6 +24,8 @@ namespace apps
 
 void HALOEXCHANGE::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   HALOEXCHANGE_DATA_SETUP;
@@ -28,10 +34,14 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota((Index_type)0,num_neighbors);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type l = 0; l < num_neighbors; ++l) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -42,9 +52,11 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
             }
             buffer += len;
           }
-        }
+        });
 
-        for (Index_type l = 0; l < num_neighbors; ++l) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -55,7 +67,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
             }
             buffer += len;
           }
-        }
+        });
 
       }
       stopTimer();
@@ -63,13 +75,16 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
+
+      auto range = std::views::iota((Index_type)0,num_neighbors);
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type l = 0; l < num_neighbors; ++l) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -83,9 +98,11 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
             }
             buffer += len;
           }
-        }
+        });
 
-        for (Index_type l = 0; l < num_neighbors; ++l) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -99,7 +116,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
             }
             buffer += len;
           }
-        }
+        });
 
       }
       stopTimer();
@@ -107,6 +124,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       using EXEC_POL = RAJA::loop_exec;
@@ -158,7 +176,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid)
     }
 
   }
-
+#endif
 }
 
 } // end namespace apps

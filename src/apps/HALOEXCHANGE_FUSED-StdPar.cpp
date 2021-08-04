@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,6 +24,8 @@ namespace apps
 
 void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   HALOEXCHANGE_FUSED_DATA_SETUP;
@@ -47,7 +53,11 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
             buffer += len;
           }
         }
-        for (Index_type j = 0; j < pack_index; j++) {
+
+        auto range = std::views::iota((Index_type)0,pack_index);
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type j) {
           Real_ptr   buffer = pack_ptr_holders[j].buffer;
           Int_ptr    list   = pack_ptr_holders[j].list;
           Real_ptr   var    = pack_ptr_holders[j].var;
@@ -55,7 +65,7 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
           for (Index_type i = 0; i < len; i++) {
             HALOEXCHANGE_FUSED_PACK_BODY;
           }
-        }
+        });
 
         Index_type unpack_index = 0;
 
@@ -71,7 +81,11 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
             buffer += len;
           }
         }
-        for (Index_type j = 0; j < unpack_index; j++) {
+
+        auto range2 = std::views::iota((Index_type)0,unpack_index);
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range2), std::end(range2),
+                        [=](Index_type j) {
           Real_ptr   buffer = unpack_ptr_holders[j].buffer;
           Int_ptr    list   = unpack_ptr_holders[j].list;
           Real_ptr   var    = unpack_ptr_holders[j].var;
@@ -79,7 +93,7 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
           for (Index_type i = 0; i < len; i++) {
             HALOEXCHANGE_FUSED_UNPACK_BODY;
           }
-        }
+        });
 
       }
       stopTimer();
@@ -89,7 +103,6 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP;
@@ -111,13 +124,16 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
             buffer += len;
           }
         }
-        for (Index_type j = 0; j < pack_index; j++) {
+        auto range = std::views::iota((Index_type)0,pack_index);
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type j) {
           auto       pack_lambda = pack_lambdas[j];
           Index_type len         = pack_lens[j];
           for (Index_type i = 0; i < len; i++) {
             pack_lambda(i);
           }
-        }
+        });
 
         Index_type unpack_index = 0;
 
@@ -149,6 +165,7 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       using AllocatorHolder = RAJAPoolAllocatorHolder<
@@ -233,7 +250,7 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid)
     }
 
   }
-
+#endif
 }
 
 } // end namespace apps
