@@ -86,6 +86,8 @@ void IF_QUAD::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

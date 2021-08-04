@@ -131,6 +131,8 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

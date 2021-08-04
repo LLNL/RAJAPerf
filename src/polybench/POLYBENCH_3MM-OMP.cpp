@@ -290,6 +290,8 @@ void POLYBENCH_3MM::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

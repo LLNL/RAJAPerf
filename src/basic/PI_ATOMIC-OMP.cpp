@@ -99,6 +99,8 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

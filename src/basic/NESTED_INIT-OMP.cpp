@@ -127,6 +127,8 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

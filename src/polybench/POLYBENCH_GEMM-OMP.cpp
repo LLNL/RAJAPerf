@@ -148,6 +148,8 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 
