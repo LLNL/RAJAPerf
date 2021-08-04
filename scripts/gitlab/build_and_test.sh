@@ -126,7 +126,18 @@ then
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
-    cmake --build . -j ${core_counts[$truehostname]}
+    if grep -q -i "icpc" ${spec}
+    then
+        cmake --build . -j 16
+        echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
+        echo "cmake --build . -j 16"
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    else
+        cmake --build . -j ${core_counts[$truehostname]}
+        echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
+        echo "cmake --build . -j ${core_counts[$truehostname]}"
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    fi
     date
 fi
 
