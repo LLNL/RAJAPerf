@@ -43,7 +43,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
 
         MASS3DPA_0_CPU
 
-         FOREACH_THREAD(dy, y, D1D) {
+        FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D){
             MASS3DPA_1
           }
