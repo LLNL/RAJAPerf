@@ -86,6 +86,8 @@ void DIFF_PREDICT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

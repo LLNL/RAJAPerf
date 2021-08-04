@@ -173,6 +173,8 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

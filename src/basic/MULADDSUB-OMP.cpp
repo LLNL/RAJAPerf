@@ -86,6 +86,8 @@ void MULADDSUB::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

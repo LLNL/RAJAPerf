@@ -218,6 +218,8 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

@@ -92,6 +92,8 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

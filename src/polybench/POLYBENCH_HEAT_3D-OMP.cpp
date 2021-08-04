@@ -164,6 +164,8 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

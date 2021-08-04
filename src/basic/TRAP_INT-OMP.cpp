@@ -115,6 +115,8 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 
