@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace polybench
 
 void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_FDTD_2D_DATA_SETUP;
@@ -28,29 +34,44 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto rangeX = std::views::iota((Index_type)0,nx);
+      auto rangeY = std::views::iota((Index_type)0,ny);
+      auto range1X = std::views::iota((Index_type)1,nx);
+      //auto range1Y = std::views::iota((Index_type)1,ny);
+      auto rangeXm1 = std::views::iota((Index_type)0,nx-1);
+      //auto rangeYm1 = std::views::iota((Index_type)0,ny-1);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (t = 0; t < tsteps; ++t) { 
+        for (t = 0; t < tsteps; ++t) {
 
-          for (Index_type j = 0; j < ny; j++) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeY), std::end(rangeY),
+                          [=](Index_type j) {
             POLYBENCH_FDTD_2D_BODY1;
-          }
-          for (Index_type i = 1; i < nx; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range1X), std::end(range1X),
+                          [=](Index_type i) {
             for (Index_type j = 0; j < ny; j++) {
               POLYBENCH_FDTD_2D_BODY2;
             }
-          }
-          for (Index_type i = 0; i < nx; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeX), std::end(rangeX),
+                          [=](Index_type i) {
             for (Index_type j = 1; j < ny; j++) {
               POLYBENCH_FDTD_2D_BODY3;
             }
-          }
-          for (Index_type i = 0; i < nx - 1; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeXm1), std::end(rangeXm1),
+                          [=](Index_type i) {
             for (Index_type j = 0; j < ny - 1; j++) {
               POLYBENCH_FDTD_2D_BODY4;
             }
-          }
+          });
 
         }  // tstep loop
 
@@ -60,7 +81,6 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       //
@@ -81,29 +101,44 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
                                      POLYBENCH_FDTD_2D_BODY4;
                                    };
 
+      auto rangeX = std::views::iota((Index_type)0,nx);
+      auto rangeY = std::views::iota((Index_type)0,ny);
+      auto range1X = std::views::iota((Index_type)1,nx);
+      //auto range1Y = std::views::iota((Index_type)1,ny);
+      auto rangeXm1 = std::views::iota((Index_type)0,nx-1);
+      //auto rangeYm1 = std::views::iota((Index_type)0,ny-1);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (t = 0; t < tsteps; ++t) {
 
-          for (Index_type j = 0; j < ny; j++) {
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeY), std::end(rangeY),
+                          [=](Index_type j) {
             poly_fdtd2d_base_lam1(j);
-          }
-          for (Index_type i = 1; i < nx; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(range1X), std::end(range1X),
+                          [=](Index_type i) {
             for (Index_type j = 0; j < ny; j++) {
               poly_fdtd2d_base_lam2(i, j);
             }
-          }
-          for (Index_type i = 0; i < nx; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeX), std::end(rangeX),
+                          [=](Index_type i) {
             for (Index_type j = 1; j < ny; j++) {
               poly_fdtd2d_base_lam3(i, j);
             }
-          }
-          for (Index_type i = 0; i < nx - 1; i++) {
+          });
+          std::for_each( std::execution::par_unseq,
+                          std::begin(rangeXm1), std::end(rangeXm1),
+                          [=](Index_type i) {
             for (Index_type j = 0; j < ny - 1; j++) {
               poly_fdtd2d_base_lam4(i, j);
             }
-          }
+          });
 
         }  // tstep loop
 
@@ -113,6 +148,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       POLYBENCH_FDTD_2D_VIEWS_RAJA;
@@ -189,6 +225,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace polybench
