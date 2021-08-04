@@ -10,6 +10,9 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,6 +23,8 @@ namespace algorithm
 
 void SORT::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -33,7 +38,8 @@ void SORT::runStdParVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::sort(STD_SORT_ARGS);
+        std::sort(std::execution::par_unseq,
+                  STD_SORT_ARGS);
 
       }
       stopTimer();
@@ -41,7 +47,7 @@ void SORT::runStdParVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
@@ -62,6 +68,7 @@ void SORT::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace algorithm

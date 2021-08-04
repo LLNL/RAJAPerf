@@ -10,7 +10,9 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
 #include <algorithm>
+#include <execution>
 #include <vector>
 #include <utility>
 #include <iostream>
@@ -23,6 +25,8 @@ namespace algorithm
 
 void SORTPAIRS::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -32,6 +36,8 @@ void SORTPAIRS::runStdParVariant(VariantID vid)
   switch ( vid ) {
 
     case Base_StdPar : {
+
+      auto range = std::views::iota(ibegin, iend);
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -45,23 +51,28 @@ void SORTPAIRS::runStdParVariant(VariantID vid)
           vector_of_pairs.emplace_back(x[iend*irep + iemp], i[iend*irep + iemp]);
         }
 
-        std::sort(vector_of_pairs.begin(), vector_of_pairs.end(),
+        std::sort(std::execution::par_unseq,
+                  vector_of_pairs.begin(), vector_of_pairs.end(),
             [](pair_type const& lhs, pair_type const& rhs) {
               return lhs.first < rhs.first;
             });
 
-        for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
-          pair_type& pair = vector_of_pairs[iemp - ibegin];
+        //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type iemp) {
+          const pair_type& pair = vector_of_pairs[iemp - ibegin];
           x[iend*irep + iemp] = pair.first;
           i[iend*irep + iemp] = pair.second;
-        }
+        });
 
       }
       stopTimer();
 
       break;
     }
-#if defined(RUN_RAJA_STDPAR)
+
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
@@ -82,6 +93,7 @@ void SORTPAIRS::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace algorithm
