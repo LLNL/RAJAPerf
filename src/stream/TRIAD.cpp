@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,8 +21,16 @@ namespace stream
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+                  getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature( Forall );
 
@@ -52,15 +60,15 @@ TRIAD::~TRIAD()
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
+  allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void TRIAD::tearDown(VariantID vid)

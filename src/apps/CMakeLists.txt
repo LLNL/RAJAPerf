@@ -1,7 +1,7 @@
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -51,6 +51,12 @@ blt_add_library(
           LTIMES_NOVIEW-Cuda.cpp
           LTIMES_NOVIEW-OMP.cpp
           LTIMES_NOVIEW-OMPTarget.cpp
+          MASS3DPA.cpp
+          MASS3DPA-Cuda.cpp
+          MASS3DPA-Hip.cpp
+          MASS3DPA-Seq.cpp
+          MASS3DPA-OMP.cpp
+          MASS3DPA-OMPTarget.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -35,6 +35,15 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
   if (i < iend) {
     body(i);
   }
+}
+
+/*!
+ * \brief Simple cuda kernel that runs a lambda.
+ */
+template < typename Lambda >
+__global__ void lambda_cuda(Lambda body)
+{
+    body();
 }
 
 /*!
@@ -191,4 +200,3 @@ void deallocCudaPinnedData(T& pptr)
 #endif // RAJA_ENABLE_CUDA
 
 #endif  // closing endif for header file include guard
-

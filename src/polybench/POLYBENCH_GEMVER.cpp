@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -50,11 +50,49 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
       break;
   }
 
-  setDefaultSize(m_n*m_n + m_n*m_n + m_n + m_n*m_n);
-  setDefaultReps(run_reps);
+#if 0 // we want this...
+
+  Index_type n_default = 1000;
+
+  setDefaultProblemSize( n_default * n_default ) );
+  setDefaultReps(20);
+
+  m_n =  std::sqrt( getTargetProblemSize() ) + 1;
 
   m_alpha = 1.5;
   m_beta = 1.2;
+
+#else // this is what we have now...
+
+  m_alpha = 1.5;
+  m_beta = 1.2;
+
+  setDefaultProblemSize( m_n*m_n );
+  setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( m_n * m_n );
+
+  setItsPerRep( m_n*m_n +
+                m_n*m_n +
+                m_n +
+                m_n*m_n );
+  setKernelsPerRep(4);
+  setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_n +
+
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
+
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n +
+
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_n * m_n +
+                  (1*sizeof(Real_type ) + 2*sizeof(Real_type )) * m_n );
+  setFLOPsPerRep(4 * m_n*m_n +
+                 3 * m_n*m_n +
+                 1 * m_n +
+                 3 * m_n*m_n );
 
   setUsesFeature(Forall);
   setUsesFeature(Kernel);

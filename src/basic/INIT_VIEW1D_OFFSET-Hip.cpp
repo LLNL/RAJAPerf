@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, getRunSize());
+  allocAndInitHipDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_a, a, getRunSize()); \
+  getHipDeviceData(m_a, a, getActualProblemSize()); \
   deallocHipDeviceData(a);
 
 __global__ void initview1d_offset(Real_ptr a,
@@ -50,7 +50,7 @@ void INIT_VIEW1D_OFFSET::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize()+1;
+  const Index_type iend = getActualProblemSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 

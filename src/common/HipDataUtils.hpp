@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -36,6 +36,11 @@ __global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda bod
      body(i);
    }
 }
+
+/*!
+* \brief Simple hip kernel that runs a lambda.
+*/
+template <typename Lambda> __global__ void lambda_hip(Lambda body) { body(); }
 
 /*!
  * \brief Getters for hip kernel indices.
@@ -192,4 +197,3 @@ void deallocHipPinnedData(T& pptr)
 #endif // RAJA_ENABLE_HIP
 
 #endif  // closing endif for header file include guard
-

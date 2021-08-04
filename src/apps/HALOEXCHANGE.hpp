@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -84,8 +84,6 @@ public:
 
   ~HALOEXCHANGE();
 
-  Index_type getItsPerRep() const;
-
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
@@ -109,6 +107,7 @@ private:
 
   Index_type m_grid_plus_halo_dims[3];
   Index_type m_var_size;
+  Index_type m_var_halo_size;
 
   std::vector<Real_ptr> m_vars;
   std::vector<Real_ptr> m_buffers;

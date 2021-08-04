@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 #include "common/DataUtils.hpp"
+
+#include <algorithm>
 
 
 namespace rajaperf
@@ -49,8 +51,53 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
       break;
   }
 
-  setDefaultSize(m_ni*m_nj*(1+m_nk) + m_nj*m_nl*(1+m_nm) + m_ni*m_nl*(1+m_nj));
+#if 0 // we want this...
+
+  Index_type ni_default = 1000;
+  Index_type nj_default = 1000;
+  Index_type nk_default = 1010;
+  Index_type nl_default = 1000;
+  Index_type nm_default = 1200;
+
+  setDefaultProblemSize( std::max( std::max( ni_default*nj_default, 
+                                             nj_default*nl_default ), 
+                                  ni_default*nl_default ) );
+  setDefaultProblemSize( ni_default * nj_default );
+  setDefaultReps(4);
+
+  m_ni = std::sqrt( getTargetProblemSize() ) + 1;
+  m_nj = m_ni;
+  m_nk = nk_default;
+  m_nl = m_ni;
+  m_nm = nm_default;
+
+#else  // this is what we have now...
+
+  setDefaultProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
+
   setDefaultReps(m_run_reps);
+
+#endif
+
+  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ), 
+                                  m_ni*m_nl ) );
+
+  setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
+  setKernelsPerRep(3);
+  setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nk +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk +
+
+                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_nj * m_nl +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nm +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nl * m_nm +
+
+                  (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * m_ni * m_nl +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_ni * m_nj +
+                  (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nl );
+  setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
+                 2 * m_nj*m_nl*m_nm +
+                 2 * m_ni*m_nj*m_nl );
 
   setUsesFeature(Kernel);
 

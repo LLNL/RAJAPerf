@@ -1,7 +1,7 @@
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -57,6 +57,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DPA.cpp
+  apps/MASS3DPA-Seq.cpp
+  apps/MASS3DPA-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
@@ -76,6 +79,9 @@ blt_add_executable(
   basic/INIT_VIEW1D_OFFSET.cpp
   basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
+  basic/MAT_MAT_SHARED.cpp
+  basic/MAT_MAT_SHARED-Seq.cpp
+  basic/MAT_MAT_SHARED-OMPTarget.cpp
   basic/MULADDSUB.cpp
   basic/MULADDSUB-Seq.cpp
   basic/MULADDSUB-OMPTarget.cpp

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -56,8 +56,37 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
       break;
   }
 
-  setDefaultSize( m_tsteps * 2 * m_N * m_N );
+#if 0 // we want this...
+
+  Index_type N_default = 1000;
+
+  setDefaultProblemSize( N_default * N_default );
+  setDefaultReps(10);
+
+  m_N = std::sqrt( getTargetProblemSize() ) + 1;
+  m_tsteps = 40;
+
+#else // this is what we have now...
+
+  setDefaultProblemSize( (m_N-2) * (m_N-2) );
   setDefaultReps(run_reps);
+
+#endif
+
+  setActualProblemSize( (m_N-2) * (m_N-2) );
+
+  setItsPerRep( m_tsteps * (2 * (m_N-2) * (m_N-2)) );
+  setKernelsPerRep(2);
+  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) * (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               (m_N * m_N - 4) +
+                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) * (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               (m_N * m_N  - 4) ) );
+  setFLOPsPerRep( m_tsteps * ( 5 * (m_N-2)*(m_N-2) +
+                               5 * (m_N -2)*(m_N-2) ) );
 
   setUsesFeature(Kernel);
 

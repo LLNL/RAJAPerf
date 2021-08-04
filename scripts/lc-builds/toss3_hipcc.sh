@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJAPerf/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -23,10 +23,12 @@ COMP_ARCH=$2
 shift 2
 
 BUILD_SUFFIX=lc_toss3-hipcc-${COMP_VER}-${COMP_ARCH}
-RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip_link_${COMP_VER}.cmake
+RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/hip_link_X.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -37,6 +39,7 @@ module load cmake/3.14.5
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
+  -DROCM_ROOT_DIR="/opt/rocm-${COMP_VER}" \
   -DHIP_ROOT_DIR="/opt/rocm-${COMP_VER}/hip" \
   -DHIP_CLANG_PATH=/opt/rocm-${COMP_VER}/llvm/bin \
   -DCMAKE_C_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/clang \
@@ -52,5 +55,5 @@ cmake \
 
 echo
 echo "***********************************************************************"
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo "***********************************************************************"
