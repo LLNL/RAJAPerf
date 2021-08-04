@@ -10,13 +10,12 @@
 
 #include "RAJA/RAJA.hpp"
 
-//#include <ranges>
 #include <algorithm>
 #include <execution>
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -32,24 +31,12 @@ void COPY::runStdParVariant(VariantID vid)
 
   COPY_DATA_SETUP;
 
-  //auto copy_lam = [=](Index_type i) {
-  //                  COPY_BODY;
-  //                };
-
   switch ( vid ) {
 
     case Base_StdPar : {
 
-      //auto range = std::views::iota(ibegin, iend);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        //std::for_each( std::execution::par_unseq,
-        //                std::begin(range), std::end(range),
-        //                [=](Index_type i) {
-        //  COPY_BODY;
-        //});
 
         std::copy( std::execution::par_unseq,
                    &a[ibegin], &a[iend], &c[ibegin]);
@@ -61,16 +48,9 @@ void COPY::runStdParVariant(VariantID vid)
 
     case Lambda_StdPar : {
 
-      //auto range = std::views::iota(ibegin, iend);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        //std::for_each( std::execution::par_unseq,
-        //                std::begin(range), std::end(range),
-        //                [=](Index_type i) {
-        //  copy_lam(i);
-        //});
         std::copy( std::execution::par_unseq,
                    &a[ibegin], &a[iend], &c[ibegin]);
       }
