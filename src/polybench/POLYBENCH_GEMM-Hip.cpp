@@ -67,7 +67,7 @@ __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
 }
 
 template< typename Lambda >
-__global__ void poly_gemm_lam(Index_type ni, Index_type nj, Index_type nk,
+__global__ void poly_gemm_lam(Index_type ni, Index_type nj,
                               Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -127,7 +127,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>), 
         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
-        ni, nj, nk, poly_gemm_lambda);
+        ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
 
     }

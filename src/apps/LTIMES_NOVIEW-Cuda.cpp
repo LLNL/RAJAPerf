@@ -65,8 +65,7 @@ __global__ void ltimes_noview(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
 }
 
 template< typename Lambda >
-__global__ void ltimes_noview_lam(Index_type num_d,
-                                  Index_type num_m, Index_type num_g, Index_type num_z,
+__global__ void ltimes_noview_lam(Index_type num_m, Index_type num_g, Index_type num_z,
                                   Lambda body)
 {
    Index_type m = blockIdx.x * blockDim.x + threadIdx.x;
@@ -115,8 +114,7 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
       LTIMES_NOVIEW_THREADS_PER_BLOCK_CUDA;
       LTIMES_NOVIEW_NBLOCKS_CUDA;
 
-      ltimes_noview_lam<<<nblocks, nthreads_per_block>>>(num_d,
-                                                         num_m, num_g, num_z,
+      ltimes_noview_lam<<<nblocks, nthreads_per_block>>>(num_m, num_g, num_z,
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;

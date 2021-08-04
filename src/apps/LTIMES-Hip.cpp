@@ -64,8 +64,7 @@ __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
 }
 
 template< typename Lambda >
-__global__ void ltimes_lam(Index_type num_d,
-                           Index_type num_m, Index_type num_g, Index_type num_z,
+__global__ void ltimes_lam(Index_type num_m, Index_type num_g, Index_type num_z,
                            Lambda body)
 {
    Index_type m = blockIdx.x * blockDim.x + threadIdx.x;
@@ -125,7 +124,6 @@ void LTIMES::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL((ltimes_lam<decltype(ltimes_lambda)>),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
-                         num_d,
                          num_m, num_g, num_z, ltimes_lambda);
       hipErrchk( hipGetLastError() );
 

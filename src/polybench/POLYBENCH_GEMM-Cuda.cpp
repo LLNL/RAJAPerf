@@ -67,7 +67,7 @@ __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
 }
 
 template< typename Lambda >
-__global__ void poly_gemm_lam(Index_type ni, Index_type nj, Index_type nk,
+__global__ void poly_gemm_lam(Index_type ni, Index_type nj,
                               Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -115,7 +115,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
       POLY_GEMM_THREADS_PER_BLOCK_CUDA;
       POLY_GEMM_NBLOCKS_CUDA;
 
-      poly_gemm_lam<<<nblocks, nthreads_per_block>>>(ni, nj, nk,
+      poly_gemm_lam<<<nblocks, nthreads_per_block>>>(ni, nj,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMM_BODY1;
           POLYBENCH_GEMM_BODY2;

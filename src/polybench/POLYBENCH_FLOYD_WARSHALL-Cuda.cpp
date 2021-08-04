@@ -58,8 +58,7 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
 }
 
 template< typename Lambda >
-__global__ void poly_floyd_warshall_lam(Index_type k,
-                                        Index_type N, 
+__global__ void poly_floyd_warshall_lam(Index_type N, 
                                         Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -112,7 +111,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA;
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
 
-        poly_floyd_warshall_lam<<<nblocks, nthreads_per_block>>>(k, N,
+        poly_floyd_warshall_lam<<<nblocks, nthreads_per_block>>>(N,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FLOYD_WARSHALL_BODY;
           }
