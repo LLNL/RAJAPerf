@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -20,6 +24,8 @@ namespace apps
 
 void PRESSURE::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -37,16 +43,22 @@ void PRESSURE::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           PRESSURE_BODY1;
-        }
+        });
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
           PRESSURE_BODY2;
-        }
+        });
 
       }
       stopTimer();
@@ -54,19 +66,24 @@ void PRESSURE::runStdParVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
+
+      auto range = std::views::iota(ibegin, iend);
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       for (Index_type i = ibegin; i < iend; ++i ) {
+       std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
          pressure_lam1(i);
-       }
+       });
 
-       for (Index_type i = ibegin; i < iend; ++i ) {
+       std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type i) {
          pressure_lam2(i);
-       }
+       });
 
       }
       stopTimer();
@@ -74,6 +91,7 @@ void PRESSURE::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       startTimer();
@@ -102,6 +120,7 @@ void PRESSURE::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace apps
