@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf 
@@ -31,9 +35,10 @@ Real_type trap_int_func(Real_type x,
    return denom;
 }
 
-
 void TRAP_INT::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -44,14 +49,45 @@ void TRAP_INT::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin, iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type sumx = m_sumx_init;
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRAP_INT_BODY;
-        }
+        sumx += std::transform_reduce( std::execution::par_unseq,
+                                      std::begin(range), std::end(range),
+                                      0.0, std::plus<>(),
+                        [=](Index_type i) {
+          Real_type x = x0 + i*h;
+          return trap_int_func(x, y, xp, yp);
+        });
+        m_sumx += sumx * h;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    case Lambda_StdPar : {
+
+      auto trapint_base_lam = [=](Index_type i) -> Real_type {
+                                Real_type x = x0 + i*h;
+                                return trap_int_func(x, y, xp, yp);
+                              };
+
+      auto range = std::views::iota(ibegin, iend);
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sumx = m_sumx_init;
+
+        sumx += std::transform_reduce( std::execution::par_unseq,
+                                      std::begin(range), std::end(range),
+                                      0.0, std::plus<>(), trapint_base_lam);
 
         m_sumx += sumx * h;
 
@@ -62,30 +98,6 @@ void TRAP_INT::runStdParVariant(VariantID vid)
     }
 
 #if defined(RUN_RAJA_STDPAR)
-    case Lambda_StdPar : {
-
-      auto trapint_base_lam = [=](Index_type i) -> Real_type {
-                                Real_type x = x0 + i*h;
-                                return trap_int_func(x, y, xp, yp);
-                              };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type sumx = m_sumx_init;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          sumx += trapint_base_lam(i);
-        }
-
-        m_sumx += sumx * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-
     case RAJA_StdPar : {
 
       startTimer();
@@ -113,6 +125,7 @@ void TRAP_INT::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace basic
