@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include <iostream>
 
 namespace rajaperf {
@@ -25,6 +29,8 @@ namespace apps {
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 
 void MASS3DPA::runStdParVariant(VariantID vid) {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -33,10 +39,14 @@ void MASS3DPA::runStdParVariant(VariantID vid) {
 
   case Base_StdPar: {
 
+    auto range = std::views::iota(0,(int)NE);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (int e = 0; e < NE; ++e) {
+      std::for_each( std::execution::par_unseq,
+                      std::begin(range), std::end(range),
+                      [=](int e) {
 
         MASS3DPA_0_CPU
 
@@ -91,7 +101,7 @@ void MASS3DPA::runStdParVariant(VariantID vid) {
           }
         }
 
-      } // element loop
+      }); // element loop
     }
     stopTimer();
 
@@ -213,6 +223,7 @@ void MASS3DPA::runStdParVariant(VariantID vid) {
   default:
     std::cout << "\n MASS3DPA : Unknown Seq variant id = " << vid << std::endl;
   }
+#endif
 }
 
 } // end namespace apps
