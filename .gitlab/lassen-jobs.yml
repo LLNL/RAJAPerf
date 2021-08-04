@@ -9,14 +9,14 @@
 ## CPU ONLY
 ###########
 
-ibm_clang_9:
+ibm_clang_11:
   variables:
-    SPEC: "%clang@9.0.0ibm"
+    SPEC: "%clang@11.0.0ibm"
   extends: .build_and_test_on_lassen
 
-ibm_clang_9_gcc_8:
+ibm_clang_11_gcc_8:
   variables:
-    SPEC: "%clang@9.0.0ibm cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
+    SPEC: "%clang@11.0.0ibm cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1:
@@ -40,14 +40,14 @@ xl_16_1_1_7_gcc_8_3_1:
 ## CUDA
 ###########
 
-ibm_clang_9_cuda:
+ibm_clang_11_cuda:
   variables:
-    SPEC: "+cuda+allow-untested-versions cuda_arch=70 %clang@9.0.0ibm ^cuda@10.1.168"
+    SPEC: "+cuda+allow-untested-versions cuda_arch=70 %clang@11.0.0ibm ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
-ibm_clang_9_gcc_8_cuda:
+ibm_clang_11_gcc_8_cuda:
   variables:
-    SPEC: "+cuda %clang@9.0.0ibm cuda_arch=70 +allow-untested-versions cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
+    SPEC: "+cuda %clang@11.0.0ibm cuda_arch=70 +allow-untested-versions cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
@@ -73,13 +73,13 @@ xl_16_1_1_7_gcc_8_3_1_cuda_11:
 ## EXTRAS
 ###########
 
-clang_9_0_0_libcpp (build and test on lassen):
+clang_11_0_0_libcpp (build and test on lassen):
   variables:
-    SPEC: "%clang@9.0.0+libcpp"
+    SPEC: "%clang@11.0.0+libcpp"
   extends: .build_and_test_on_lassen
 
-clang_9_0_0_memleak (build and test on lassen):
+clang_11_0_0_memleak (build and test on lassen):
   variables:
-    SPEC: "%clang@9.0.0 cxxflags=-fsanitize=address"
+    SPEC: "%clang@11.0.0 cxxflags=-fsanitize=address"
     ASAN_OPTIONS: "detect_leaks=1"
   extends: .build_and_test_on_lassen
