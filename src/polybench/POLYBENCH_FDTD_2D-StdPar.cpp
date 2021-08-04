@@ -21,7 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-
 void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid)
 {
 #if defined(RUN_STDPAR)
