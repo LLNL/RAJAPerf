@@ -10,6 +10,10 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <ranges>
+#include <algorithm>
+#include <execution>
+
 #include "AppsData.hpp"
 
 #include "camp/resource.hpp"
@@ -24,6 +28,8 @@ namespace apps
 
 void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
@@ -39,13 +45,17 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+      auto range = std::views::iota(ibegin,iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type ii) {
           DEL_DOT_VEC_2D_BODY_INDEX;
           DEL_DOT_VEC_2D_BODY;
-        }
+        });
 
       }
       stopTimer();
@@ -53,7 +63,6 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto deldotvec2d_base_lam = [=](Index_type ii) {
@@ -61,12 +70,16 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
                                     DEL_DOT_VEC_2D_BODY;
                                   };
 
+      auto range = std::views::iota(ibegin,iend);
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
+        std::for_each( std::execution::par_unseq,
+                        std::begin(range), std::end(range),
+                        [=](Index_type ii) {
           deldotvec2d_base_lam(ii);
-        }
+        });
 
       }
       stopTimer();
@@ -74,6 +87,7 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       camp::resources::Resource working_res{camp::resources::Host()};
@@ -103,6 +117,7 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid)
 
   }
 
+#endif
 }
 
 } // end namespace apps
