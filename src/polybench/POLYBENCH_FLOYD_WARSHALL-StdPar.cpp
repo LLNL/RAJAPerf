@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+//#define USE_STDPAR_COLLAPSE 1
+
 namespace rajaperf 
 {
 namespace polybench
@@ -25,7 +27,7 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid)
 {
 #if defined(RUN_STDPAR)
 
-  const Index_type run_reps= getRunReps();
+  const Index_type run_reps = getRunReps();
 
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
@@ -33,19 +35,33 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid)
 
     case Base_StdPar : {
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto range2 = std::views::iota((Index_type)0,N*N);
+#else
       auto range = std::views::iota((Index_type)0,N);
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range2), std::end(range2), [=](Index_type ki) {
+            const auto k  = ki / N;
+            const auto i  = ki % N;
+#else
         std::for_each( std::execution::par_unseq,
                         std::begin(range), std::end(range),
                         [=](Index_type k) {
-          for (Index_type i = 0; i < N; ++i) { 
+          std::for_each( std::begin(range), std::end(range),
+                          [=](Index_type i) {
+#endif
             for (Index_type j = 0; j < N; ++j) { 
               POLYBENCH_FLOYD_WARSHALL_BODY;
             }
-          }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
         });
 
       }
@@ -61,19 +77,33 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid)
                                            POLYBENCH_FLOYD_WARSHALL_BODY;
                                          };
 
+#ifdef USE_STDPAR_COLLAPSE
+      auto range2 = std::views::iota((Index_type)0,N*N);
+#else
       auto range = std::views::iota((Index_type)0,N);
+#endif
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                       std::begin(range2), std::end(range2), [=](Index_type ki) {
+            const auto k  = ki / N;
+            const auto i  = ki % N;
+#else
         std::for_each( std::execution::par_unseq,
                         std::begin(range), std::end(range),
                         [=](Index_type k) {
-          for (Index_type i = 0; i < N; ++i) {
+          std::for_each( std::begin(range), std::end(range),
+                          [=](Index_type i) {
+#endif
             for (Index_type j = 0; j < N; ++j) {
               poly_floydwarshall_base_lam(k, i, j);
             }
-          }
+#ifndef USE_STDPAR_COLLAPSE
+          });
+#endif
         });
 
       }
