@@ -196,6 +196,8 @@ void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

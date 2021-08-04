@@ -105,6 +105,8 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

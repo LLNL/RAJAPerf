@@ -86,6 +86,8 @@ void TRIDIAG_ELIM::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 

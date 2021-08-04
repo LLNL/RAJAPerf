@@ -151,6 +151,8 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  (void) vid;
 #endif
 }
 
