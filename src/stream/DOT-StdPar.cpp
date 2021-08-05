@@ -41,12 +41,9 @@ void DOT::runStdParVariant(VariantID vid)
 
         Real_type dot = m_dot_init;
 
-        // std::plus deduces as float rather than double (Real_type)
         dot += std::transform_reduce( std::execution::par_unseq,
                                       &a[ibegin], &a[iend], &b[ibegin],
-                                      (Real_type)0,
-                                      std::plus<Real_type>(),
-                                      std::multiplies<Real_type>());
+                                      (Real_type)0);
 
         m_dot += dot;
       }
@@ -72,7 +69,7 @@ void DOT::runStdParVariant(VariantID vid)
                                       std::begin(range), std::end(range),
                                       (Real_type)0,
                                       std::plus<Real_type>(),
-                                       dot_base_lam);
+                                      dot_base_lam);
 
         m_dot += dot;
 
