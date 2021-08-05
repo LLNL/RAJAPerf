@@ -53,8 +53,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
-            const auto i  = ij / ni;
-            const auto j  = ij % ni;
+            const auto i  = ij / nj;
+            const auto j  = ij % nj;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
@@ -73,8 +73,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeJL), std::end(rangeJL), [=](Index_type jl) {
-            const auto j  = jl / nj;
-            const auto l  = jl % nj;
+            const auto j  = jl / nl;
+            const auto l  = jl % nl;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
@@ -93,8 +93,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIL), std::end(rangeIL), [=](Index_type il) {
-            const auto i  = il / ni;
-            const auto l  = il % ni;
+            const auto i  = il / nl;
+            const auto l  = il % nl;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
@@ -161,8 +161,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
-            const auto i  = ij / ni;
-            const auto j  = ij % ni;
+            const auto i  = ij / nj;
+            const auto j  = ij % nj;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
@@ -181,8 +181,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeJL), std::end(rangeJL), [=](Index_type jl) {
-            const auto j  = jl / nj;
-            const auto l  = jl % nj;
+            const auto j  = jl / nl;
+            const auto l  = jl % nl;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeJ), std::end(rangeJ), [=](Index_type j) {
@@ -201,8 +201,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIL), std::end(rangeIL), [=](Index_type il) {
-            const auto i  = il / ni;
-            const auto l  = il % ni;
+            const auto i  = il / nl;
+            const auto l  = il % nl;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
