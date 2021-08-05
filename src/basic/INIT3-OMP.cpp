@@ -87,7 +87,7 @@ void INIT3::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

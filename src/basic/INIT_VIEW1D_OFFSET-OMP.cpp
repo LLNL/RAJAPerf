@@ -93,7 +93,7 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

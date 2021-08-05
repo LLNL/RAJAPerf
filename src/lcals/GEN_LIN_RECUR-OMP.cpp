@@ -101,7 +101,7 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 
