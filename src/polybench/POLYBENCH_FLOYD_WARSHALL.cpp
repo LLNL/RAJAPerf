@@ -21,37 +21,6 @@ namespace polybench
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FLOYD_WARSHALL, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_N=60;
-      run_reps = 100000;
-      break;
-    case Small:
-      m_N=180;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_N=500;
-      run_reps = 100;
-      break;
-    case Large:
-      m_N=2800;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_N=5600;
-      run_reps = 1;
-      break;
-    default:
-      m_N=300;
-      run_reps = 60;
-      break;
-  }
-
-#if 0 // we want this...
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default ); 
@@ -59,12 +28,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
 
-#else  // this is what we have now...
-
-  setDefaultProblemSize( m_N*m_N );
-  setDefaultReps(run_reps);
-
-#endif
 
   setActualProblemSize( m_N * m_N );
 
@@ -72,6 +35,10 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N * m_N );
   setFLOPsPerRep(1 * m_N*m_N*m_N );
+
+  checksum_scale_factor = 1.0 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -108,7 +75,7 @@ void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
 
 void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_pout, m_N*m_N);
+  checksum[vid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid)

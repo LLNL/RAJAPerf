@@ -112,25 +112,12 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
 
       POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
-      auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY1_RAJA;
-                              };
-      auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY2_RAJA;
-                              };
-     
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                     RAJA::ArgList<0, 1>,
             RAJA::statement::For<2, RAJA::loop_exec,
               RAJA::statement::Lambda<0>
-            >
-          >,
-          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
-                                    RAJA::ArgList<0, 1>,
-            RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
             >
           >
         >;
@@ -143,9 +130,17 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY1_RAJA;
+            }
+          );
 
-            poly_heat3d_lam1,
-            poly_heat3d_lam2
+          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1}),
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY2_RAJA;
+            }
           );
 
         }

@@ -40,6 +40,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
 
   running_variant = NumVariants;
 
+  checksum_scale_factor = 1.0;
+
   for (size_t vid = 0; vid < NumVariants; ++vid) {
     checksum[vid] = 0.0;
     num_exec[vid] = 0;
