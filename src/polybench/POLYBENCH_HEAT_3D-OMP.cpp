@@ -160,7 +160,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

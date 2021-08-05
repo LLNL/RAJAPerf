@@ -218,7 +218,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 
