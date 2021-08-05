@@ -49,8 +49,8 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
-            const auto i  = ij / ni;
-            const auto j  = ij % ni;
+            const auto i  = ij / nj;
+            const auto j  = ij % nj;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
@@ -101,8 +101,8 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid)
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeIJ), std::end(rangeIJ), [=](Index_type ij) {
-            const auto i  = ij / ni;
-            const auto j  = ij % ni;
+            const auto i  = ij / nj;
+            const auto j  = ij % nj;
 #else
         std::for_each( std::execution::par_unseq,
                        std::begin(rangeI), std::end(rangeI), [=](Index_type i) {
