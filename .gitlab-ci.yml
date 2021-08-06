@@ -49,7 +49,6 @@ stages:
   - q_build_and_test
   - q_release_resources
   - l_build_and_test
-  - b_build_and_test
   - c_build_and_test
   - multi_project
 
