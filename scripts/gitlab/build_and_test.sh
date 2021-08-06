@@ -154,11 +154,21 @@ cd ${build_dir}
 
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+    if grep -q -i "blueos" ${spec} && grep -q -i "ENABLE_CUDA.*ON" ${hostconfig_path}
     then
-        ./bin/raja-perf.exe -sp
+        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        then
+            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
+        else
+            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" --checkrun -sp
+        fi
     else
-        ./bin/raja-perf.exe --checkrun -sp
+        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        then
+            ./bin/raja-perf.exe -sp
+        else
+            ./bin/raja-perf.exe --checkrun -sp
+        fi
     fi
 fi
 
