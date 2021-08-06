@@ -126,7 +126,7 @@ then
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
-    if grep -q -i "icpc" ${spec}
+    if grep -q -i "intel" ${spec}
     then
         cmake --build . -j 16
         echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
@@ -154,12 +154,20 @@ cd ${build_dir}
 
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-
-    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-    then
-        ./bin/raja-perf.exe -sp
+    if [[ ${truehostname} == "lassen" ]]
+        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        then
+            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
+        else
+            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" --checkrun -sp
+        fi
     else
-        ./bin/raja-perf.exe --checkrun -sp
+        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        then
+            ./bin/raja-perf.exe -sp
+        else
+            ./bin/raja-perf.exe --checkrun -sp
+        fi
     fi
 fi
 
