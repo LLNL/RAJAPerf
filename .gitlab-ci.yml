@@ -77,7 +77,7 @@ stages:
 # allow pre-allocation the same way slurm does.
 .build_blueos_3_ppc64le_ib_script:
   script:
-    - lalloc 1 -W ${DEFAULT_TIME} scripts/gitlab/build_and_test.sh
+    - lalloc 1 -W ${DEFAULT_TIME} $(echo "--smpiargs='-disable_gpu_hooks'") scripts/gitlab/build_and_test.sh
 
 .build_blueos_3_ppc64le_ib_p9_script:
   extends: .build_blueos_3_ppc64le_ib_script

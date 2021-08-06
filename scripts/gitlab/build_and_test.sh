@@ -154,20 +154,11 @@ cd ${build_dir}
 
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-    if [[ ${truehostname} == "lassen" ]]
-        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-        then
-            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
-        else
-            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" --checkrun -sp
-        fi
+    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+    then
+        ./bin/raja-perf.exe -sp
     else
-        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-        then
-            ./bin/raja-perf.exe -sp
-        else
-            ./bin/raja-perf.exe --checkrun -sp
-        fi
+        ./bin/raja-perf.exe --checkrun -sp
     fi
 fi
 
