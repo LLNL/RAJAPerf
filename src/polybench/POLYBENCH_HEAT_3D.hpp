@@ -129,8 +129,6 @@ private:
   Index_type m_N;
   Index_type m_tsteps;
 
-  Real_type m_factor;
-
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_Ainit;

@@ -92,6 +92,8 @@ void VOL3D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

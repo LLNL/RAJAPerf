@@ -36,36 +36,36 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 #pragma omp parallel
       {
 #pragma omp for
-        for (int by = 0; by < Ny; ++by) {
-          for (int bx = 0; bx < Nx; ++bx) {
+        for (Index_type by = 0; by < Ny; ++by) {
+          for (Index_type bx = 0; bx < Nx; ++bx) {
 
             MAT_MAT_SHARED_BODY_0
 
-            for (int ty = 0; ty < TL_SZ; ++ty) {
-              for (int tx = 0; tx < TL_SZ; ++tx) {
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 MAT_MAT_SHARED_BODY_1
               }
             }
 
-            for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+            for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
-              for (int ty = 0; ty < TL_SZ; ++ty) {
-                for (int tx = 0; tx < TL_SZ; ++tx) {
+              for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+                for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
                   MAT_MAT_SHARED_BODY_2
                 }
               }
 
-              for (int ty = 0; ty < TL_SZ; ++ty) {
-                for (int tx = 0; tx < TL_SZ; ++tx) {
+              for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+                for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
                   MAT_MAT_SHARED_BODY_3
                 }
               }
             }
 
-            for (int ty = 0; ty < TL_SZ; ++ty) {
-              for (int tx = 0; tx < TL_SZ; ++tx) {
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 MAT_MAT_SHARED_BODY_4
               }
             }
@@ -246,6 +246,8 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
   }
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

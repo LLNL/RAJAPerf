@@ -218,6 +218,8 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

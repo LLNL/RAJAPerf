@@ -226,6 +226,8 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

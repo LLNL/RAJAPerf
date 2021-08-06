@@ -24,37 +24,6 @@ namespace polybench
 POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FDTD_2D, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps;
-  switch(lsizespec) {
-    case Mini:
-      m_nx=20; m_ny=30; m_tsteps=20;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_nx=60; m_ny=80; m_tsteps=40;
-      run_reps = 500;
-      break;
-    case Medium:
-      m_nx=200; m_ny=240; m_tsteps=100;
-      run_reps = 200;
-      break;
-    case Large:
-      m_nx=800; m_ny=1000; m_tsteps=500;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_nx=2000; m_ny=2600; m_tsteps=1000;
-      run_reps = 1;
-      break;
-    default:
-      m_nx=800; m_ny=1000; m_tsteps=60;
-      run_reps = 10;
-      break;
-  }
-
-#if 0 // we want this...
-
   Index_type nx_default = 1000;
   Index_type ny_default = 1000;
 
@@ -66,12 +35,6 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   m_ny = m_nx;
   m_tsteps = 40;
 
-#else // this is what we have now...
-
-  setDefaultProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
-  setDefaultReps(run_reps);
-
-#endif
 
   setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) ); 
 
@@ -96,6 +59,10 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
                                3 * (m_nx-1)*m_ny +
                                3 * m_nx*(m_ny-1) +
                                5 * (m_nx-1)*(m_ny-1) ) );
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -133,7 +100,7 @@ void POLYBENCH_FDTD_2D::setUp(VariantID vid)
 
 void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_hz, m_nx * m_ny);
+  checksum[vid] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
 }
 
 void POLYBENCH_FDTD_2D::tearDown(VariantID vid)

@@ -89,10 +89,6 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<0, 1, 2>,
           RAJA::statement::Lambda<0>
-        >,
-        RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
-                                  RAJA::ArgList<0, 1, 2>,
-          RAJA::statement::Lambda<1>
         >
       >;
 
@@ -106,7 +102,12 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
                                                  RAJA::RangeSegment{1, N-1}),
           [=] (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1_RAJA;
-          },
+          }
+        );
+
+        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                                                 RAJA::RangeSegment{1, N-1},
+                                                 RAJA::RangeSegment{1, N-1}),
           [=] (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }
