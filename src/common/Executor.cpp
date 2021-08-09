@@ -61,7 +61,6 @@ Executor::Executor(int argc, char** argv)
   auto tokens = split(cc.compiler, "/");
   string compiler_exec = tokens.back();
   adiak::value("compiler_version", cc.compiler_version);
-  // todo setup compiler version gleaned from path as separate key
   string compiler = compiler_exec + "-" + cc.compiler_version;
   cout << "Compiler: " << compiler << "\n";
   adiak::value("compiler", compiler.c_str());
