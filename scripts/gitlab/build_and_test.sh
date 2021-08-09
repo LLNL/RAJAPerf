@@ -159,15 +159,27 @@ then
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
             ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "./bin/raja-perf.exe --smpiargs='-disable_gpu_hooks' -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
             ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" --checkrun -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "./bin/raja-perf.exe --smpiargs='-disable_gpu_hook' --checkrun -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     else
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
             ./bin/raja-perf.exe -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "./bin/raja-perf.exe -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
             ./bin/raja-perf.exe --checkrun -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "./bin/raja-perf.exe --checkrun -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     fi
 fi
