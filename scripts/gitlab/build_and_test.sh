@@ -154,7 +154,7 @@ cd ${build_dir}
 
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-    if grep -q -i "blueos" ${spec} && grep -q -i "ENABLE_CUDA.*ON" ${hostconfig_path}
+    if grep -q -i "blueos" ${sys_type} && grep -q -i "ENABLE_CUDA.*ON" ${hostconfig_path}
     then
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
