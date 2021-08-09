@@ -126,7 +126,7 @@ then
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
-    if grep "intel" ${spec}
+    if grep -q "intel" ${spec}
     then
         cmake --build . -j 16
         echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
@@ -152,11 +152,11 @@ fi
 
 cd ${build_dir}
 
-if grep "ENABLE_TESTS.*ON" ${hostconfig_path}
+if grep -q "ENABLE_TESTS.*ON" ${hostconfig}
 then
-    if grep "blueos" ${sys_type} && grep "cuda" ${spec}
+    if grep -q "blueos" ${sys_type} && grep -q "cuda" ${spec}
     then
-        if grep "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        if grep -q "CMAKE_BUILD_TYPE.*Release" ${hostconfig}
         then
             ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
@@ -169,7 +169,7 @@ then
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     else
-        if grep "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        if grep -q "CMAKE_BUILD_TYPE.*Release" ${hostconfig}
         then
             ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
