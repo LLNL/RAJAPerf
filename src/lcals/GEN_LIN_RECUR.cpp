@@ -35,6 +35,10 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   setFLOPsPerRep((3 +
                   3 ) * getActualProblemSize());
 
+  checksum_scale_factor = 0.01 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -71,7 +75,7 @@ void GEN_LIN_RECUR::setUp(VariantID vid)
 
 void GEN_LIN_RECUR::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_b5, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_b5, getActualProblemSize(), checksum_scale_factor );
 }
 
 void GEN_LIN_RECUR::tearDown(VariantID vid)

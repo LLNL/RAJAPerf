@@ -301,7 +301,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

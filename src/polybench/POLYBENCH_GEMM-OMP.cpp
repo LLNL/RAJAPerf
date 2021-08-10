@@ -149,7 +149,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

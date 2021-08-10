@@ -187,7 +187,7 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
   }
 
 #else 
-  (void) vid;
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 
