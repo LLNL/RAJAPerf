@@ -156,14 +156,14 @@ then
     if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
-            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" -sp
+            --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --smpiargs='-disable_gpu_hooks' -sp"
+            echo ".--smpiargs='-disable_gpu_hooks' /bin/raja-perf.exe -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
-            ./bin/raja-perf.exe --smpiargs="-disable_gpu_hooks" --checkrun -sp
+            --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe --checkrun -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --smpiargs='-disable_gpu_hook' --checkrun -sp"
+            echo "--smpiargs='-disable_gpu_hook' ./bin/raja-perf.exe --checkrun -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     else
