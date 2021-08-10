@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -25,15 +25,15 @@ namespace apps
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
-  setDefaultSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
-  Index_type rzmax = std::cbrt(getRunSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
 
-  setProblemSize( m_domain->n_real_zones );
+  setActualProblemSize( m_domain->lpz+1 - m_domain->fpz );
 
   setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
   setKernelsPerRep(1);
@@ -41,6 +41,10 @@ VOL3D::VOL3D(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -85,7 +89,7 @@ void VOL3D::setUp(VariantID vid)
 
 void VOL3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_vol, m_array_length);
+  checksum[vid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
 void VOL3D::tearDown(VariantID vid)

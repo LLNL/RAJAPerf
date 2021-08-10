@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -97,12 +97,6 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
-  SizeSpec  getSizeSpec() const { return size_spec; }
-
-  void  setSizeSpec(std::string inputString);
-
-  const std::string& getSizeSpecString();
-
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -173,10 +167,6 @@ private:
                               each PM case to pass/fail acceptance */
 
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
-
-  SizeSpec size_spec;    /*!< optional use/parse polybench spec file for size */
-
-  std::string size_spec_string;
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */ 

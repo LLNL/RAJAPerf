@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -35,8 +35,6 @@ RunParams::RunParams(int argc, char** argv)
    size_factor(0.0),
    pf_tol(0.1),
    checkrun_reps(1),
-   size_spec(Specundefined),
-   size_spec_string("SPECUNDEFINED"),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
@@ -80,7 +78,6 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_factor = " << size_factor;
   str << "\n pf_tol = " << pf_tol; 
   str << "\n checkrun_reps = " << checkrun_reps; 
-  str << "\n size_spec_string = " << size_spec_string;  
   str << "\n reference_variant = " << reference_variant; 
   str << "\n outdir = " << outdir; 
   str << "\n outfile_prefix = " << outfile_prefix; 
@@ -251,16 +248,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if (opt == std::string("--sizespec") ) {
-      i++;
-      if ( i < argc ) {
-        setSizeSpec(argv[i]);
-      } else {
-        std::cout << "\nBad input:"
-                  << " must give --sizespec a value for size specification: one of  MINI,SMALL,MEDIUM,LARGE,EXTRALARGE (string : any case)"
-                  << std::endl;
-        input_state = BadInput;
-      }
     } else if ( opt == std::string("--pass-fail-tol") ||
                 opt == std::string("-pftol") ) {
 
@@ -445,9 +432,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
 
-  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
-      << "\t      (used to set specific sizes for polybench kernels)\n\n"; 
-
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
   str << "\t\t Example...\n"
@@ -603,48 +587,6 @@ void RunParams::printKernelFeatures(std::ostream& str) const
     }  
   }  // loop over kernels
   str.flush();
-}
-
-const std::string& RunParams::getSizeSpecString()
-{
-  switch(size_spec) {
-    case Mini:
-      size_spec_string = "MINI";
-      break;
-    case Small:
-      size_spec_string = "SMALL";
-      break;
-    case Medium:
-      size_spec_string = "MEDIUM";
-      break;
-    case Large:
-      size_spec_string = "LARGE";
-      break;
-    case Extralarge:
-      size_spec_string = "EXTRALARGE";
-      break;
-    default:
-      size_spec_string = "SPECUNDEFINED";
-  }
-  return size_spec_string;
-}
-
-void RunParams::setSizeSpec(std::string inputString)
-{
-  for (auto & c: inputString) c = std::toupper(c);
-  if (inputString == "MINI")
-    size_spec = Mini;
-  else if (inputString == "SMALL")
-    size_spec = Small;
-  else if (inputString == "MEDIUM")
-    size_spec = Medium;
-  else if (inputString == "LARGE")
-    size_spec = Large;
-  else if (inputString == "EXTRALARGE")
-    size_spec = Extralarge;
-  else
-    size_spec = Specundefined;
-  std::cout << "Size Specification : " << getSizeSpecString() << std::endl;
 }
 
 }  // closing brace for rajaperf namespace

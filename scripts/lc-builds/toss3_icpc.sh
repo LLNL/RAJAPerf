@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJAPerf/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -22,14 +22,16 @@ GCC_HEADER_VER=7
 
 if [ ${COMP_MAJOR_VER} -gt 18 ]
 then
-  GCC_HEADER_VER=8 
+  GCC_HEADER_VER=8
 fi
 
 BUILD_SUFFIX=lc_toss3-icpc-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/icpc_X_gcc${GCC_HEADER_VER}headers.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
@@ -38,7 +40,7 @@ mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 module load cmake/3.14.5
 
 ##
-# CMake option -DENABLE_FORCEINLINE_RECURSIVE=Off used to speed up compile 
+# CMake option -DENABLE_FORCEINLINE_RECURSIVE=Off used to speed up compile
 # times at a potential cost of slower 'forall' execution.
 ##
 
@@ -55,5 +57,5 @@ cmake \
 
 echo
 echo "***********************************************************************"
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo "***********************************************************************"

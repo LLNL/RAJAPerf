@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,17 +21,17 @@ namespace lcals
 FIRST_MIN::FIRST_MIN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_MIN, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
 //setDefaultReps(1000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
   setDefaultReps(100);
 
-  m_N = getRunSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_N = getActualProblemSize();
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 1*sizeof(Real_type )) +
                   (1*sizeof(Index_type) + 1*sizeof(Index_type)) +

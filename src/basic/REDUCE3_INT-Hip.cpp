@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -86,7 +86,7 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   REDUCE3_INT_DATA_SETUP;
 
@@ -94,51 +94,44 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
 
     REDUCE3_INT_DATA_SETUP_HIP;
 
-    Int_ptr vsum;
-    allocAndInitHipDeviceData(vsum, &m_vsum_init, 1);
-    Int_ptr vmin;
-    allocAndInitHipDeviceData(vmin, &m_vmin_init, 1);
-    Int_ptr vmax;
-    allocAndInitHipDeviceData(vmax, &m_vmax_init, 1);
+    Int_ptr vmem_init;
+    allocHipPinnedData(vmem_init, 3);
+
+    Int_ptr vmem;
+    allocHipDeviceData(vmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(vsum, &m_vsum_init, 1);
-      initHipDeviceData(vmin, &m_vmin_init, 1);
-      initHipDeviceData(vmax, &m_vmax_init, 1);
+      vmem_init[0] = m_vsum_init;
+      vmem_init[1] = m_vmin_init;
+      vmem_init[2] = m_vmax_init;
+      hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
+                                 hipMemcpyHostToDevice ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce3int), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0, vec,
-                                                    vsum, m_vsum_init,
-                                                    vmin, m_vmin_init,
-                                                    vmax, m_vmax_init,
+      hipLaunchKernelGGL((reduce3int), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
+                                                    vec,
+                                                    vmem + 0, m_vsum_init,
+                                                    vmem + 1, m_vmin_init,
+                                                    vmem + 2, m_vmax_init,
                                                     iend );
       hipErrchk( hipGetLastError() );
 
-      Int_type lsum;
-      Int_ptr plsum = &lsum;
-      getHipDeviceData(plsum, vsum, 1);
-      m_vsum += lsum;
-
-      Int_type lmin;
-      Int_ptr plmin = &lmin;
-      getHipDeviceData(plmin, vmin, 1);
-      m_vmin = RAJA_MIN(m_vmin, lmin);
-
-      Int_type lmax;
-      Int_ptr plmax = &lmax;
-      getHipDeviceData(plmax, vmax, 1);
-      m_vmax = RAJA_MAX(m_vmax, lmax);
+      Int_type lmem[3];
+      Int_ptr plmem = &lmem[0];
+      getHipDeviceData(plmem, vmem, 3);
+      m_vsum += lmem[0];
+      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
 
     }
     stopTimer();
 
     REDUCE3_INT_DATA_TEARDOWN_HIP;
 
-    deallocHipDeviceData(vsum);
-    deallocHipDeviceData(vmin);
-    deallocHipDeviceData(vmax);
+    deallocHipDeviceData(vmem);
+    deallocHipPinnedData(vmem_init);
 
   } else if ( vid == RAJA_HIP ) {
 

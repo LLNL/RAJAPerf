@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -30,15 +30,15 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_s = 0.0041;
   m_t = 0.0037;
 
-  setDefaultSize(m_kn * m_jn);
+  setDefaultProblemSize(m_kn * m_jn);
   setDefaultReps(100);
 
-  m_jn = m_kn = std::sqrt(getRunSize());
+  m_jn = m_kn = std::sqrt(getTargetProblemSize());
   m_array_length = m_kn * m_jn;
 
-  setProblemSize( m_array_length );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( 3 * getProblemSize() );
+  setItsPerRep( 3 * getActualProblemSize() );
   setKernelsPerRep(3);
   setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
                   (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
@@ -48,6 +48,10 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   setFLOPsPerRep((14 +
                   26 +
                   4  ) * (m_jn-2)*(m_kn-2));
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -90,8 +94,8 @@ void HYDRO_2D::setUp(VariantID vid)
 
 void HYDRO_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_zzout, m_array_length);
-  checksum[vid] += calcChecksum(m_zrout, m_array_length);
+  checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
 void HYDRO_2D::tearDown(VariantID vid)

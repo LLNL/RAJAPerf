@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -120,18 +120,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         >
       >;
 
-    using EXEC_POL2 =
-      RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
-          RAJA::statement::Lambda<0, RAJA::Params<0>>,
-          RAJA::statement::For<1, RAJA::seq_exec,
-            RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-          >,
-          RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-        >
-      >;
-
-    using EXEC_POL4 =
+    using EXEC_POL24 =
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
           RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
@@ -141,7 +130,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
           RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
         >
       >;
-  
+
     using EXEC_POL3 = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
     startTimer();
@@ -154,12 +143,12 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
 
-        [=] (Real_type &dot) {
+        [=] (Index_type /* i */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
         },
         [=] (Index_type i, Index_type j, Real_type &dot) {
@@ -176,7 +165,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL4>(
+      RAJA::kernel_param<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
