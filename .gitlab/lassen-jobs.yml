@@ -43,11 +43,13 @@ xl_16_1_1_7_gcc_8_3_1:
 ibm_clang_11_cuda:
   variables:
     SPEC: "+cuda cuda_arch=70 %clang@11.0.0ibm ^cuda@10.1.168"
+    EXTRA_FLAGS: '--smpiargs="-disable_gpu_hooks"'
   extends: .build_and_test_on_lassen
 
 ibm_clang_11_gcc_8_cuda:
   variables:
     SPEC: "+cuda %clang@11.0.0ibm cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
+    EXTRA_FLAGS: '--smpiargs="-disable_gpu_hooks"'
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
@@ -58,14 +60,16 @@ gcc_8_3_1_cuda:
 
 xl_16_1_1_7_cuda:
   variables:
-    SPEC: "+cuda %xl@16.1.1.7 tests=none cuda_arch=70 ^cuda@10.1.168 ^cmake@3.14.5"
+    SPEC: "+cuda %xl@16.1.1.7 cuda_arch=70 ^cuda@10.1.168 ^cmake@3.14.5"
     DEFAULT_TIME: 60
+    EXTRA_FLAGS: '--smpiargs="-disable_gpu_hooks"'
   allow_failure: true
   extends: .build_and_test_on_lassen
 
 xl_16_1_1_7_gcc_8_3_1_cuda_11:
   variables:
-    SPEC: "+cuda %xl@16.1.1.7 tests=none cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@11.0.2 ^cmake@3.14.5"
+    SPEC: "+cuda %xl@16.1.1.7 cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@11.0.2 ^cmake@3.14.5"
+    EXTRA_FLAGS: '--smpiargs="-disable_gpu_hooks"'
     DEFAULT_TIME: 60
   allow_failure: true
   extends: .build_and_test_on_lassen
