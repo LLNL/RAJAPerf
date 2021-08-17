@@ -205,7 +205,6 @@ class RajaPerf(CMakePackage, CudaPackage):
         if cxxflags:
             cfg.write(cmake_cache_entry("CMAKE_CXX_FLAGS", cxxflags))
 
-        # TODO (bernede1@llnl.gov): Is this useful for RAJA?
         if ("gfortran" in f_compiler) and ("clang" in cpp_compiler):
             libdir = pjoin(os.path.dirname(
                            os.path.dirname(f_compiler)), "lib")
@@ -258,10 +257,12 @@ class RajaPerf(CMakePackage, CudaPackage):
                 cuda_debug_flags = "-O0 -g"
 
                 cfg.write(cmake_cache_string("BLT_CXX_STD", "c++14"))
+                cfg.write(cmake_cache_option("ENABLE_TESTS", False))
             else:
                 cuda_release_flags = "-O3 -Xcompiler -Ofast -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -Ofast -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
                 cuda_debug_flags = "-O0 -g -Xcompiler -O0 -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
+                cfg.write(cmake_cache_option("ENABLE_TESTS", True))
    
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE", cuda_release_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO", cuda_reldebinf_flags))
@@ -280,6 +281,7 @@ class RajaPerf(CMakePackage, CudaPackage):
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", True))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
@@ -327,13 +329,13 @@ class RajaPerf(CMakePackage, CudaPackage):
         # BLT removes -Werror from GTest flags
         # Note 2: Tests are either built if variant is set, or if run-tests
         # option is passed.
-        #if self.spec.satisfies('%clang target=ppc64le:'):
-        #    cfg.write(cmake_cache_option("ENABLE_TESTS",False))
-        #    if 'tests=benchmarks' in spec or not 'tests=none' in spec:
-        #        print("MSG: no testing supported on %clang target=ppc64le:")
-        #else:
-        cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-            #cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        if ("+cuda" in spec) and (self.spec.satisfies('%clang target=ppc64le:')):
+            cfg.write(cmake_cache_option("ENABLE_TESTS",False))
+            if 'tests=benchmarks' in spec or not 'tests=none' in spec:
+                print("MSG: no testing supported on %clang target=ppc64le:")
+        else:
+            cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
         #######################
         # Close and save
