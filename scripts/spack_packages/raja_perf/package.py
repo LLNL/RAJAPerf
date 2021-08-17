@@ -332,8 +332,8 @@ class RajaPerf(CMakePackage, CudaPackage):
         #    if 'tests=benchmarks' in spec or not 'tests=none' in spec:
         #        print("MSG: no testing supported on %clang target=ppc64le:")
         #else:
-            cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
+            #cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
         #######################
         # Close and save
