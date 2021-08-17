@@ -60,6 +60,9 @@ blt_add_executable(
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
+  apps/NODAL_ACCUMULATION_3D.cpp
+  apps/NODAL_ACCUMULATION_3D-Seq.cpp
+  apps/NODAL_ACCUMULATION_3D-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp

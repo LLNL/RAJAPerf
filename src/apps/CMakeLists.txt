@@ -57,6 +57,12 @@ blt_add_library(
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
+          NODAL_ACCUMULATION_3D.cpp
+          NODAL_ACCUMULATION_3D-Seq.cpp
+          NODAL_ACCUMULATION_3D-Hip.cpp
+          NODAL_ACCUMULATION_3D-Cuda.cpp
+          NODAL_ACCUMULATION_3D-OMP.cpp
+          NODAL_ACCUMULATION_3D-OMPTarget.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 
