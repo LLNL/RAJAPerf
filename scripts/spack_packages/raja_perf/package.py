@@ -327,11 +327,11 @@ class RajaPerf(CMakePackage, CudaPackage):
         # BLT removes -Werror from GTest flags
         # Note 2: Tests are either built if variant is set, or if run-tests
         # option is passed.
-        if self.spec.satisfies('%clang target=ppc64le:'):
-            cfg.write(cmake_cache_option("ENABLE_TESTS",False))
-            if 'tests=benchmarks' in spec or not 'tests=none' in spec:
-                print("MSG: no testing supported on %clang target=ppc64le:")
-        else:
+        #if self.spec.satisfies('%clang target=ppc64le:'):
+        #    cfg.write(cmake_cache_option("ENABLE_TESTS",False))
+        #    if 'tests=benchmarks' in spec or not 'tests=none' in spec:
+        #        print("MSG: no testing supported on %clang target=ppc64le:")
+        #else:
             cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
             cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 

@@ -153,20 +153,20 @@ cd ${build_dir}
 
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
-    #if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
-    #    if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
-    #    then
-    #        --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe -sp
-    #        echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-    #        echo ".--smpiargs='-disable_gpu_hooks' /bin/raja-perf.exe -sp"
-    #        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    #    else
-    #        --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe --checkrun -sp
-    #        echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-    #        echo "--smpiargs='-disable_gpu_hook' ./bin/raja-perf.exe --checkrun -sp"
-    #        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    #    fi
-    #else
+    if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
+        if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
+        then
+            lrun --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "lrun --smpiargs='-disable_gpu_hooks' /bin/raja-perf.exe -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        else
+            lrun --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe --checkrun -sp
+            echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
+            echo "lrun --smpiargs='-disable_gpu_hook' ./bin/raja-perf.exe --checkrun -sp"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        fi
+    else
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
             ./bin/raja-perf.exe -sp
