@@ -44,6 +44,7 @@ Table of Contents
 2. [Running the Suite](#running-the-suite)
 3. [Generated output](#generated-output)
 4. [Adding kernels and variants](#adding-kernels-and-variants)
+4. [Continuous Integration](#continuous-integration)
 5. [Contributions](#contributions)
 6. [Authors](#authors)
 7. [Copyright and Release](#copyright-and-release)
@@ -703,6 +704,14 @@ define the variant for those kernels in the kernel class constructors by
 calling `setVariantDefined(NewVariant)` so that the variant can be run. 
 These operations are described in earlier sections for adding a new kernel 
 above.
+
+* * *
+
+# Continuous Integration
+
+RAJAPerf Suite uses continuous integration to ensure that changes added to the repository are well integrated and tested for compatability with the rest of the existing code base. Our CI tests incude a variety of vetted configurations that run on different LC machines.
+
+RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentation is therefore [shared](https://radiuss-ci.readthedocs.io/en/latest/uberenv.html#ci).
 
 * * *
 
