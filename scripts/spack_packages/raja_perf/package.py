@@ -76,6 +76,7 @@ class RajaPerf(CMakePackage, CudaPackage):
     version('0.4.0', tag='v0.4.0', submodules="True")
 
     variant('openmp', default=True, description='Build OpenMP backend')
+    variant('openmp_target', default=False, description='Build with OpenMP target support')
     variant('shared', default=False, description='Build Shared Libs')
     variant('libcpp', default=False, description='Uses libc++ instead of libstdc++')
     variant('hip', default=False, description='Build with HIP support')
@@ -87,6 +88,7 @@ class RajaPerf(CMakePackage, CudaPackage):
     depends_on('hip', when='+hip')
 
     conflicts('+openmp', when='+hip')
+    conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
 
@@ -311,6 +313,15 @@ class RajaPerf(CMakePackage, CudaPackage):
 
         else:
             cfg.write(cmake_cache_option("ENABLE_HIP", False))
+
+        cfg.write(cmake_cache_option("ENABLE_OPENMP_TARGET", "+openmp_target" in spec))
+        if "+openmp_target" in spec:
+            if ('%xl' in spec):
+                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-qsmp=omp;-qoffload;-qnoeh;-qalias=noansi"))
+            if ('%clang' in spec):
+                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
+                cfg.write(cmake_cache_option("ENABLE_CUDA", False))
+
 
         cfg.write("#------------------{0}\n".format("-" * 60))
         cfg.write("# Other\n")

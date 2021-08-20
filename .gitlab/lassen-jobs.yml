@@ -9,14 +9,14 @@
 ## CPU ONLY
 ###########
 
-ibm_clang_11:
+clang_11_0_0:
   variables:
-    SPEC: "%clang@11.0.0ibm"
+    SPEC: "%clang@11.0.0"
   extends: .build_and_test_on_lassen
 
-ibm_clang_11_gcc_8:
+clang_11_gcc_8:
   variables:
-    SPEC: "%clang@11.0.0ibm cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
+    SPEC: "%clang@11.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1:
@@ -40,14 +40,14 @@ xl_16_1_1_7_gcc_8_3_1:
 ## CUDA
 ###########
 
-ibm_clang_11_cuda:
+clang_11_cuda:
   variables:
-    SPEC: "+cuda cuda_arch=70 %clang@11.0.0ibm ^cuda@10.1.168"
+    SPEC: "+cuda cuda_arch=70 %clang@11.0.0 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
-ibm_clang_11_gcc_8_cuda:
+clang_11_gcc_8_cuda:
   variables:
-    SPEC: "+cuda %clang@11.0.0ibm cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
+    SPEC: "+cuda %clang@11.0.0 cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
@@ -72,6 +72,16 @@ xl_16_1_1_7_gcc_8_3_1_cuda_11:
 ##########
 ## EXTRAS
 ###########
+
+xl_16_1_1_7_omp_target (build and test on lassen):
+  variables:
+    SPEC: "%xl@16.1.1.7+openmp+openmp_target ^cmake@3.14.5"
+  extends: .build_and_test_on_lassen
+
+clang_11_0_0_omp_target (build and test on lassen):
+  variables:
+    SPEC: "%clang@11.0.0+openmp+openmp_target ^cmake@3.14.5"
+  extends: .build_and_test_on_lassen
 
 clang_11_0_0_libcpp (build and test on lassen):
   variables:
