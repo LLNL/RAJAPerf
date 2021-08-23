@@ -71,7 +71,7 @@ xl_16_1_1_7_gcc_8_3_1_cuda_11:
 
 ##########
 ## EXTRAS
-###########
+##########
 
 xl_16_1_1_7_omp_target (build and test on lassen):
   variables:
