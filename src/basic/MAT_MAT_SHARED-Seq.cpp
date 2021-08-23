@@ -189,49 +189,75 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      //Resources is empty as the host does not need a compute grid to be specified
-      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Resources(),
-          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      //Grid is empty as the host does not need a compute grid to be specified
+      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Grid(),
+        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-            RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
-               RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), 
+            [&](Index_type by) {
+              RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx), 
+                [&](Index_type bx) {
 
-                   MAT_MAT_SHARED_BODY_0
+                  MAT_MAT_SHARED_BODY_0
 
-                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                         MAT_MAT_SHARED_BODY_1
-                     });
-                   });
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
 
-                   for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
-
-                     RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                           MAT_MAT_SHARED_BODY_2
-                        });
-                      });
-
-                      ctx.teamSync();
-
-                      RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                            MAT_MAT_SHARED_BODY_3
-                        });
-                      });
-
-                      ctx.teamSync();
+                    [&](Index_type ty) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                        [&](Index_type tx) {
+                          MAT_MAT_SHARED_BODY_1
+                        }
+                      );  // RAJA::expt::loop<inner_x>
                     }
+                  );  // RAJA::expt::loop<inner_y>
 
-                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                  for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+
+                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                      [&](Index_type ty) {
+                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type tx) {
+                            MAT_MAT_SHARED_BODY_2
+                          }
+                        );  // RAJA::expt::loop<inner_x>
+                      }
+                    );  // RAJA::expt::loop<inner_y>
+
+                    ctx.teamSync();
+
+                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                      [&](Index_type ty) {
+                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type tx) {
+                            MAT_MAT_SHARED_BODY_3
+                          }
+                        );  // RAJA::expt::loop<inner_x> 
+                      }
+                    );  // RAJA::expt::loop<inner_y>
+
+                    ctx.teamSync();
+
+                  }  // for (k)
+
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                    [&](Index_type ty) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                        [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_4
-                      });
-                    });
-               });
-            });
-          }); // kernel
-    }
+                        }
+                      );  // RAJA::expt::loop<inner_x>
+                    }
+                  );  // RAJA::expt::loop<inner_y>
+
+                }  // lambda (bx)
+              );  // RAJA::expt::loop<outer_x>
+            }  // lambda (by)
+          );  // RAJA::expt::loop<outer_y>
+
+        }  // outer lambda (ctx)
+      );  // RAJA::expt::launch
+
+    }  // loop over kernel reps
     stopTimer();
 
     break;
