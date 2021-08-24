@@ -21,7 +21,7 @@ namespace polybench
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
-  Index_type N_default = 2100;
+  Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
   setDefaultReps(100);
