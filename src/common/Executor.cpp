@@ -12,8 +12,10 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-// Warmup kernel to run first to remove startup overheads in timings
+// Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
+#include "basic/REDUCE3_INT.hpp"
+#include "algorithm/SORT.hpp"
 
 #include <list>
 #include <vector>
@@ -392,7 +394,7 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << run_params.getNumPasses() << endl;
     if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-      str << "\t Kernel size factor = " << run_params.getSize() << endl;
+      str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
     } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
       str << "\t Kernel size = " << run_params.getSize() << endl;
     }
@@ -523,26 +525,33 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRun warmup kernel...\n";
+  cout << "\n\nRun warmup kernels...\n";
 
-  KernelBase* warmup_kernel = new basic::DAXPY(run_params);
+  vector<KernelBase*> warmup_kernels;
 
-  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-    VariantID vid = variant_ids[iv];
-    if ( run_params.showProgress() ) {
-      if ( warmup_kernel->hasVariantDefined(vid) ) {
-        cout << "   Running ";
-      } else {
-        cout << "   No ";
+  warmup_kernels.push_back(new basic::DAXPY(run_params)); 
+  warmup_kernels.push_back(new basic::REDUCE3_INT(run_params)); 
+  warmup_kernels.push_back(new algorithm::SORT(run_params)); 
+
+  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+    KernelBase* warmup_kernel = warmup_kernels[ik];
+    cout << "Kernel : " << warmup_kernel->getName() << endl;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      VariantID vid = variant_ids[iv];
+      if ( run_params.showProgress() ) {
+        if ( warmup_kernel->hasVariantDefined(vid) ) {
+          cout << "   Running ";
+        } else {
+          cout << "   No ";
+        }
+        cout << getVariantName(vid) << " variant" << endl;
       }
-      cout << getVariantName(vid) << " variant" << endl;
+      if ( warmup_kernel->hasVariantDefined(vid) ) {
+        warmup_kernel->execute(vid);
+      }
     }
-    if ( warmup_kernel->hasVariantDefined(vid) ) {
-      warmup_kernel->execute(vid);
-    }
+    delete warmup_kernels[ik];
   }
-
-  delete warmup_kernel;
 
 
   cout << "\n\nRunning specified kernels and variants...\n";

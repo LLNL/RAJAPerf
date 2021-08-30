@@ -52,6 +52,10 @@ LTIMES::LTIMES(const RunParams& params)
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
   setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() ); 
+
   setUsesFeature(Kernel);
   setUsesFeature(View);
 
@@ -92,7 +96,7 @@ void LTIMES::setUp(VariantID vid)
 
 void LTIMES::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_phidat, m_philen);
+  checksum[vid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
 }
 
 void LTIMES::tearDown(VariantID vid)

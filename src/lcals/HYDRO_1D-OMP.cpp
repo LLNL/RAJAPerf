@@ -87,6 +87,8 @@ void HYDRO_1D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

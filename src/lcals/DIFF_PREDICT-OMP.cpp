@@ -86,6 +86,8 @@ void DIFF_PREDICT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

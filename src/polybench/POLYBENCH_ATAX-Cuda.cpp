@@ -69,6 +69,17 @@ __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
   }
 }
 
+template< typename Lambda >
+__global__ void poly_atax_lam(Index_type N,
+                              Lambda body)
+{
+  Index_type ti = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (ti < N) {
+    body(ti);
+  }
+}
+
 
 void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 {
@@ -105,28 +116,26 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
-        0, N,
+      poly_atax_lam<<<grid_size, block_size>>>(N,
         [=] __device__ (Index_type i) {
-
-        POLYBENCH_ATAX_BODY1;
-        for (Index_type j = 0; j < N; ++j ) {
-          POLYBENCH_ATAX_BODY2;
+          POLYBENCH_ATAX_BODY1;
+          for (Index_type j = 0; j < N; ++j ) {
+            POLYBENCH_ATAX_BODY2;
+          }
+          POLYBENCH_ATAX_BODY3;
         }
-        POLYBENCH_ATAX_BODY3;
-      });
+      );
       cudaErrchk( cudaGetLastError() );
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
-        0, N,
+      poly_atax_lam<<<grid_size, block_size>>>(N,
         [=] __device__ (Index_type j) {
-
-        POLYBENCH_ATAX_BODY4;
-        for (Index_type i = 0; i < N; ++i ) {
-          POLYBENCH_ATAX_BODY5;
+          POLYBENCH_ATAX_BODY4;
+          for (Index_type i = 0; i < N; ++i ) {
+            POLYBENCH_ATAX_BODY5;
+          }
+          POLYBENCH_ATAX_BODY6;
         }
-        POLYBENCH_ATAX_BODY6;
-      });
+      );
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -142,7 +151,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
+        RAJA::statement::CudaKernelFixedAsync<block_size,
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
                                    RAJA::cuda_block_x_direct,
             RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
@@ -158,7 +167,7 @@ void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
 
     using EXEC_POL2 =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
+        RAJA::statement::CudaKernelFixedAsync<block_size,
           RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>,
                                    RAJA::cuda_block_x_direct,
             RAJA::statement::For<1, RAJA::cuda_thread_x_direct,

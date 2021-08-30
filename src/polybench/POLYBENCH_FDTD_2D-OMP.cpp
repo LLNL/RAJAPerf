@@ -196,6 +196,8 @@ void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

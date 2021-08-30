@@ -49,6 +49,10 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
                   26 +
                   4  ) * (m_jn-2)*(m_kn-2));
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -94,8 +98,8 @@ void HYDRO_2D::setUp(VariantID vid)
 
 void HYDRO_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_zzout, m_array_length);
-  checksum[vid] += calcChecksum(m_zrout, m_array_length);
+  checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
 void HYDRO_2D::tearDown(VariantID vid)

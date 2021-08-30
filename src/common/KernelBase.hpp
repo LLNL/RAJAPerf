@@ -83,8 +83,6 @@ public:
     { return has_variant_defined[vid]; }
 
 
-  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
-
   //
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
@@ -163,6 +161,7 @@ protected:
   const RunParams& run_params;
 
   Checksum_type checksum[NumVariants];
+  Checksum_type checksum_scale_factor;
 
 private:
   KernelBase() = delete;

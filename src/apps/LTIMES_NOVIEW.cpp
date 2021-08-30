@@ -52,6 +52,10 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_psilen );
   setFLOPsPerRep(2 * m_num_z * m_num_g * m_num_m * m_num_d);
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -91,7 +95,7 @@ void LTIMES_NOVIEW::setUp(VariantID vid)
 
 void LTIMES_NOVIEW::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_phidat, m_philen);
+  checksum[vid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
 }
 
 void LTIMES_NOVIEW::tearDown(VariantID vid)

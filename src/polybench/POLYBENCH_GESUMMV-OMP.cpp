@@ -96,9 +96,9 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,   // i
             RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-            RAJA::statement::For<1, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,             // j
               RAJA::statement::Lambda<1, RAJA::Segs<0, 1>, RAJA::Params<0,1>>
             >,
             RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
@@ -131,6 +131,8 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

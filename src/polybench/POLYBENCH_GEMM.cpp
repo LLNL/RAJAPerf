@@ -21,42 +21,11 @@ namespace polybench
 POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMM, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0;
-  switch(lsizespec) {
-    case Mini:
-      m_ni = 20; m_nj = 25; m_nk = 30;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_ni = 60; m_nj = 70; m_nk = 80;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_ni = 200; m_nj = 220; m_nk = 240;
-      run_reps = 100;
-      break;
-    case Large:
-      m_ni = 1000; m_nj = 1100; m_nk = 1200;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_ni = 2000; m_nj = 2300; m_nk = 2600;
-      run_reps = 1;
-      break;
-    default:
-      m_ni = 200; m_nj = 220; m_nk = 240;
-      run_reps = 100;
-      break;
-  }
-
-#if 0 // we want this...
-
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1200;
 
-  setDefaultProblemSize( ni_default * nj_default ) );
+  setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(4);
 
   m_ni = std::sqrt( getTargetProblemSize() ) + 1;
@@ -66,15 +35,6 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_alpha = 0.62;
   m_beta = 1.002;
 
-#else // this is what we have now...
-
-  m_alpha = 0.62;
-  m_beta = 1.002;
-
-  setDefaultProblemSize( m_ni * m_nj );
-  setDefaultReps(run_reps);
-
-#endif
 
   setActualProblemSize( m_ni * m_nj );
 
@@ -85,6 +45,10 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_nj * m_nk );
   setFLOPsPerRep((1 +
                   3 * m_nk) * m_ni*m_nj);
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -126,7 +90,7 @@ void POLYBENCH_GEMM::setUp(VariantID vid)
 
 void POLYBENCH_GEMM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_C, m_ni * m_nj);
+  checksum[vid] += calcChecksum(m_C, m_ni * m_nj, checksum_scale_factor );
 }
 
 void POLYBENCH_GEMM::tearDown(VariantID vid)

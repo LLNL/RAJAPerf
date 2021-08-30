@@ -34,6 +34,10 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * (getActualProblemSize()+1) );
   setFLOPsPerRep(5 * getActualProblemSize());
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
@@ -75,7 +79,7 @@ void HYDRO_1D::setUp(VariantID vid)
 
 void HYDRO_1D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
 void HYDRO_1D::tearDown(VariantID vid)

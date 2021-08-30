@@ -32,6 +32,10 @@ TRIAD::TRIAD(const RunParams& params)
                   getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
 
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
   setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );
@@ -72,7 +76,7 @@ void TRIAD::setUp(VariantID vid)
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
 void TRIAD::tearDown(VariantID vid)

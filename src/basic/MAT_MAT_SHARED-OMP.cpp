@@ -36,36 +36,36 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 #pragma omp parallel
       {
 #pragma omp for
-        for (int by = 0; by < Ny; ++by) {
-          for (int bx = 0; bx < Nx; ++bx) {
+        for (Index_type by = 0; by < Ny; ++by) {
+          for (Index_type bx = 0; bx < Nx; ++bx) {
 
             MAT_MAT_SHARED_BODY_0
 
-            for (int ty = 0; ty < TL_SZ; ++ty) {
-              for (int tx = 0; tx < TL_SZ; ++tx) {
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 MAT_MAT_SHARED_BODY_1
               }
             }
 
-            for (int k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
+            for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
-              for (int ty = 0; ty < TL_SZ; ++ty) {
-                for (int tx = 0; tx < TL_SZ; ++tx) {
+              for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+                for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
                   MAT_MAT_SHARED_BODY_2
                 }
               }
 
-              for (int ty = 0; ty < TL_SZ; ++ty) {
-                for (int tx = 0; tx < TL_SZ; ++tx) {
+              for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+                for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
                   MAT_MAT_SHARED_BODY_3
                 }
               }
             }
 
-            for (int ty = 0; ty < TL_SZ; ++ty) {
-              for (int tx = 0; tx < TL_SZ; ++tx) {
+            for (Index_type ty = 0; ty < TL_SZ; ++ty) {
+              for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 MAT_MAT_SHARED_BODY_4
               }
             }
@@ -192,49 +192,74 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      //Resources is empty as the host does not need a compute grid to be specified
-      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Resources(),
-          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      //Grid is empty as the host does not need a compute grid to be specified
+      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Grid(),
+        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-            RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), [&](Index_type by) {
-               RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx), [&](Index_type bx) {
+          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), 
+            [&](Index_type by) {
+              RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx),
+                [&](Index_type bx) {
 
-                   MAT_MAT_SHARED_BODY_0
+                  MAT_MAT_SHARED_BODY_0
 
-                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                         MAT_MAT_SHARED_BODY_1
-                     });
-                   });
-
-                   for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
-
-                     RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                           MAT_MAT_SHARED_BODY_2
-                        });
-                      });
-
-                      ctx.teamSync();
-
-                      RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
-                            MAT_MAT_SHARED_BODY_3
-                        });
-                      });
-
-                      ctx.teamSync();
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                    [&](Index_type ty) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                        [&](Index_type tx) {
+                          MAT_MAT_SHARED_BODY_1
+                        }
+                      );  // RAJA::expt::loop<inner_x>
                     }
+                  );  // RAJA::expt::loop<inner_y
 
-                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type ty) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), [&](Index_type tx) {
+                  for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
+
+                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                      [&](Index_type ty) {
+                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type tx) {
+                            MAT_MAT_SHARED_BODY_2
+                          }
+                        );  // RAJA::expt::loop<inner_x>
+                      }
+                    );  // RAJA::expt::loop<inner_y>
+
+                    ctx.teamSync();
+
+                    RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                      [&](Index_type ty) {
+                        RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                          [&](Index_type tx) {
+                            MAT_MAT_SHARED_BODY_3
+                          }
+                        );  // RAJA::expt::loop<inner_x>
+                      }
+                    );  // RAJA::expt::loop<inner_y>
+
+                    ctx.teamSync();
+
+                  }  // for (k)
+
+                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                    [&](Index_type ty) {
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
+                        [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_4
-                      });
-                    });
-               });
-            });
-          }); // kernel
-    }
+                        }
+                      );  // RAJA::expt::loop<inner_x>
+                    }
+                  );  //  RAJA::expt::loop<inner_y>
+
+                }  // lambda (bx)
+              );  // RAJA::expt::loop<outer_x>
+            }  // lambda (by) 
+          );  // RAJA::expt::loop<outer_y>
+
+        }  // outer lambda (ctx)
+      );  // RAJA::expt::launch 
+
+    }  // loop over kernel reps 
     stopTimer();
 
     break;
@@ -246,6 +271,8 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
   }
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 
