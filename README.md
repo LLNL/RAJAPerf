@@ -166,7 +166,7 @@ or
 Lastly, the program will generate a summary of provided input if it is given 
 input that the code does not know how to parse. Ill-formed input will be noted
 in the summary output. Hopefully, this will make it easy for users to correct 
-erroneous usage, such as mis-spellled option names.
+erroneous usage, such as mis-spelled option names.
 
 ## Important note
 
