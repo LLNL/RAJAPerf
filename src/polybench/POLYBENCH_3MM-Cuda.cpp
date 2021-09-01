@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//  
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_3MM.hpp"
 
@@ -16,10 +16,35 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
+
+//
+// Define thread block size for CUDA execution
+//
+constexpr size_t out_block_sz = 8;
+constexpr size_t in_block_sz = 32;
+
+#define POLY_3MM_THREADS_PER_BLOCK_CUDA \
+  dim3 nthreads_per_block(in_block_sz, out_block_sz, 1);
+
+#define POLY_3MM_1_NBLOCKS_CUDA \
+  dim3 nblocks1(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, in_block_sz)), \
+                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, out_block_sz)), \
+                static_cast<size_t>(1));
+
+#define POLY_3MM_2_NBLOCKS_CUDA \
+  dim3 nblocks2(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nl, in_block_sz)), \
+                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, out_block_sz)), \
+                static_cast<size_t>(1));
+
+#define POLY_3MM_3_NBLOCKS_CUDA \
+  dim3 nblocks3(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nl, in_block_sz)), \
+                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, out_block_sz)), \
+                static_cast<size_t>(1));
+
 
 #define POLYBENCH_3MM_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
@@ -28,7 +53,7 @@ namespace polybench
   allocAndInitCudaDeviceData(D, m_D, m_nm * m_nl); \
   allocAndInitCudaDeviceData(E, m_E, m_ni * m_nj); \
   allocAndInitCudaDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitCudaDeviceData(G, m_G, m_ni * m_nl); 
+  allocAndInitCudaDeviceData(G, m_G, m_ni * m_nl);
 
 
 #define POLYBENCH_3MM_TEARDOWN_CUDA \
@@ -42,43 +67,86 @@ namespace polybench
   deallocCudaDeviceData(G);
 
 __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
-                           Index_type nj, Index_type nk)
+                           Index_type ni, Index_type nj, Index_type nk)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-   POLYBENCH_3MM_BODY1;
-   for (Index_type k=0; k < nk; ++k) {
-     POLYBENCH_3MM_BODY2;
-   }
-   POLYBENCH_3MM_BODY3;
+  if ( i < ni && j < nj ) {
+    POLYBENCH_3MM_BODY1;
+    for (Index_type k=0; k < nk; ++k) {
+      POLYBENCH_3MM_BODY2;
+    }
+    POLYBENCH_3MM_BODY3;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_3mm_1_lam(Index_type ni, Index_type nj,
+                               Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if ( i < ni && j < nj ) {
+    body(i, j);
+  }
 }
 
 __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
-                           Index_type nl, Index_type nm)
+                           Index_type nj, Index_type nl, Index_type nm)
 {
-   Index_type j = blockIdx.y;
-   Index_type l = threadIdx.x;
+  Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
 
-   POLYBENCH_3MM_BODY4;
-   for (Index_type m=0; m < nm; ++m) {
-     POLYBENCH_3MM_BODY5;
-   }
-   POLYBENCH_3MM_BODY6;
+  if ( j < nj && l < nl ) {
+    POLYBENCH_3MM_BODY4;
+    for (Index_type m=0; m < nm; ++m) {
+      POLYBENCH_3MM_BODY5;
+    }
+    POLYBENCH_3MM_BODY6;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_3mm_2_lam(Index_type nj, Index_type nl,
+                               Lambda body)
+{
+  Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if ( j < nj && l < nl ) {
+    body(j, l);
+  }
 }
 
 __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
-                           Index_type nl, Index_type nj)
+                           Index_type ni, Index_type nl, Index_type nj)
 {
-   Index_type i = blockIdx.y;
-   Index_type l = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
 
-   POLYBENCH_3MM_BODY7;
-   for (Index_type j=0; j < nj; ++j) {
-     POLYBENCH_3MM_BODY8;
-   }
-   POLYBENCH_3MM_BODY9;
+  if ( i < ni && l < nl ) {
+    POLYBENCH_3MM_BODY7;
+    for (Index_type j=0; j < nj; ++j) {
+      POLYBENCH_3MM_BODY8;
+    }
+    POLYBENCH_3MM_BODY9;
+  }
 }
+
+template< typename Lambda >
+__global__ void poly_3mm_3_lam(Index_type ni, Index_type nl,
+                               Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if ( i < ni && l < nl ) {
+    body(i, l);
+  }
+}
+
 
 
 void POLYBENCH_3MM::runCudaVariant(VariantID vid)
@@ -86,7 +154,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
 
   POLYBENCH_3MM_DATA_SETUP;
-  
+
   if ( vid == Base_CUDA ) {
 
     POLYBENCH_3MM_DATA_SETUP_CUDA;
@@ -94,24 +162,76 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks1(1, ni, 1);
-      dim3 nthreads_per_block1(nj, 1, 1);
-      poly_3mm_1<<<nblocks1, nthreads_per_block1>>>(E, A, B,
-                                                    nj, nk);
+      POLY_3MM_THREADS_PER_BLOCK_CUDA;
 
-      dim3 nblocks2(1, nj, 1);
-      dim3 nthreads_per_block2(nl, 1, 1);
-      poly_3mm_2<<<nblocks2, nthreads_per_block2>>>(F, C, D,
-                                                    nl, nm);
+      POLY_3MM_1_NBLOCKS_CUDA;
+      poly_3mm_1<<<nblocks1, nthreads_per_block>>>(E, A, B,
+                                                   ni, nj, nk);
+      cudaErrchk( cudaGetLastError() );
 
-      dim3 nblocks3(1, ni, 1);
-      dim3 nthreads_per_block3(nl, 1, 1);
-      poly_3mm_3<<<nblocks3, nthreads_per_block3>>>(G, E, F,
-                                                    nl, nj);
+      POLY_3MM_2_NBLOCKS_CUDA;
+      poly_3mm_2<<<nblocks2, nthreads_per_block>>>(F, C, D,
+                                                   nj, nl, nm);
+      cudaErrchk( cudaGetLastError() );
+
+      POLY_3MM_3_NBLOCKS_CUDA;
+      poly_3mm_3<<<nblocks3, nthreads_per_block>>>(G, E, F,
+                                                   ni, nl, nj);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
-    
+
+    POLYBENCH_3MM_TEARDOWN_CUDA;
+
+  } else if (vid == Lambda_CUDA) {
+
+    POLYBENCH_3MM_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      POLY_3MM_THREADS_PER_BLOCK_CUDA;
+
+      POLY_3MM_1_NBLOCKS_CUDA;
+      poly_3mm_1_lam<<<nblocks1, nthreads_per_block>>>(ni, nj,
+        [=] __device__ (Index_type i, Index_type j) {
+          POLYBENCH_3MM_BODY1;
+          for (Index_type k=0; k < nk; ++k) {
+            POLYBENCH_3MM_BODY2;
+          }
+          POLYBENCH_3MM_BODY3;
+        }
+      );
+      cudaErrchk( cudaGetLastError() );
+
+      POLY_3MM_2_NBLOCKS_CUDA;
+      poly_3mm_2_lam<<<nblocks2, nthreads_per_block>>>(nj, nl,
+        [=] __device__ (Index_type j, Index_type l) {
+          POLYBENCH_3MM_BODY4;
+          for (Index_type m=0; m < nm; ++m) {
+            POLYBENCH_3MM_BODY5;
+          }
+          POLYBENCH_3MM_BODY6;
+        }
+      );
+      cudaErrchk( cudaGetLastError() );
+
+      POLY_3MM_3_NBLOCKS_CUDA;
+      poly_3mm_3_lam<<<nblocks3, nthreads_per_block>>>(ni, nl,
+        [=] __device__ (Index_type i, Index_type l) {
+          POLYBENCH_3MM_BODY7;
+          for (Index_type j=0; j < nj; ++j) {
+            POLYBENCH_3MM_BODY8;
+          }
+          POLYBENCH_3MM_BODY9;
+        }
+      );
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
     POLYBENCH_3MM_TEARDOWN_CUDA;
 
   } else if (vid == RAJA_CUDA) {
@@ -122,14 +242,20 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
-          RAJA::statement::For<0, RAJA::cuda_block_x_loop,
-            RAJA::statement::For<1, RAJA::cuda_thread_y_loop,
-              RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
+        RAJA::statement::CudaKernelFixedAsync<out_block_sz * in_block_sz,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<out_block_sz>,
+                                   RAJA::cuda_block_y_direct,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<in_block_sz>,
+                                     RAJA::cuda_block_x_direct,
+              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // outer
+                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // inner
+                  RAJA::statement::Lambda<0, RAJA::Params<0>>,
+                  RAJA::statement::For<2, RAJA::seq_exec,
+                    RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+                  >,
+                  RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
+                >
+              >
             >
           >
         >
@@ -147,7 +273,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         [=] __device__ (Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type j, Index_type k, 
+        [=] __device__ (Index_type i, Index_type j, Index_type k,
                         Real_type &dot) {
           POLYBENCH_3MM_BODY2_RAJA;
         },
@@ -167,7 +293,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         [=] __device__ (Real_type &dot) {
           POLYBENCH_3MM_BODY4_RAJA;
         },
-        [=] __device__ (Index_type j, Index_type l, Index_type m, 
+        [=] __device__ (Index_type j, Index_type l, Index_type m,
                         Real_type &dot) {
           POLYBENCH_3MM_BODY5_RAJA;
         },
@@ -187,7 +313,7 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
         [=] __device__ (Real_type &dot) {
           POLYBENCH_3MM_BODY7_RAJA;
         },
-        [=] __device__ (Index_type i, Index_type l, Index_type j, 
+        [=] __device__ (Index_type i, Index_type l, Index_type j,
                         Real_type &dot) {
           POLYBENCH_3MM_BODY8_RAJA;
         },
@@ -213,4 +339,4 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
-  
+

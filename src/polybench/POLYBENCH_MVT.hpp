@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -56,7 +56,7 @@
   dot = 0.0;
 
 #define POLYBENCH_MVT_BODY2_RAJA \
-  dot += Aview(i, j) * y1view(j); 
+  dot += Aview(i, j) * y1view(j);
 
 #define POLYBENCH_MVT_BODY3_RAJA \
   x1view(i) += dot;
@@ -65,7 +65,7 @@
   dot = 0.0;
 
 #define POLYBENCH_MVT_BODY5_RAJA \
-  dot += Aview(j, i) * y2view(i); 
+  dot += Aview(j, i) * y2view(i);
 
 #define POLYBENCH_MVT_BODY6_RAJA \
   x2view(i) += dot;
@@ -87,7 +87,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -102,7 +102,6 @@ public:
   POLYBENCH_MVT(const RunParams& params);
 
   ~POLYBENCH_MVT();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

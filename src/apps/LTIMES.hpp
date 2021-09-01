@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -11,7 +11,7 @@
 ///
 /// for (Index_type z = 0; z < num_z; ++z ) {
 ///   for (Index_type g = 0; g < num_g; ++g ) {
-///     for (Index_type m = 0; z < num_m; ++m ) {
+///     for (Index_type m = 0; m < num_m; ++m ) {
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
 ///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=
@@ -22,7 +22,7 @@
 ///   }
 /// }
 ///
-/// The RAJA variants of this kernel use RAJA multi-dimensional data layouts 
+/// The RAJA variants of this kernel use RAJA multi-dimensional data layouts
 /// and views to do the same thing without explicit index calculations (see
 /// the loop body definitions below).
 ///
@@ -81,7 +81,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -122,15 +122,15 @@ private:
   Real_ptr m_elldat;
   Real_ptr m_psidat;
 
-  Index_type m_num_d_default; 
-  Index_type m_num_z_default; 
-  Index_type m_num_g_default; 
-  Index_type m_num_m_default; 
+  Index_type m_num_d_default;
+  Index_type m_num_z_default;
+  Index_type m_num_g_default;
+  Index_type m_num_m_default;
 
-  Index_type m_num_d; 
-  Index_type m_num_z; 
-  Index_type m_num_g; 
-  Index_type m_num_m; 
+  Index_type m_num_d;
+  Index_type m_num_z;
+  Index_type m_num_g;
+  Index_type m_num_m;
 
   Index_type m_philen;
   Index_type m_elllen;

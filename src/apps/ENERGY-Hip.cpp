@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -141,7 +141,7 @@ void ENERGY::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   ENERGY_DATA_SETUP;
 
@@ -157,6 +157,7 @@ void ENERGY::runHipVariant(VariantID vid)
        hipLaunchKernelGGL((energycalc1), dim3(grid_size), dim3(block_size), 0, 0,  e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((energycalc2), dim3(grid_size), dim3(block_size), 0, 0,  delvc, q_new,
                                                compHalfStep, pHalfStep,
@@ -164,15 +165,18 @@ void ENERGY::runHipVariant(VariantID vid)
                                                ql_old, qq_old,
                                                rho0,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((energycalc3), dim3(grid_size), dim3(block_size), 0, 0,  e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((energycalc4), dim3(grid_size), dim3(block_size), 0, 0,  e_new, work,
                                                e_cut, emin,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((energycalc5), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
                                                pbvc, e_new, vnewc,
@@ -182,6 +186,7 @@ void ENERGY::runHipVariant(VariantID vid)
                                                pHalfStep, q_new,
                                                rho0, e_cut, emin,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((energycalc6), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
                                                pbvc, e_new, vnewc,
@@ -190,6 +195,7 @@ void ENERGY::runHipVariant(VariantID vid)
                                                ql_old, qq_old,
                                                rho0, q_cut,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -237,7 +243,7 @@ void ENERGY::runHipVariant(VariantID vid)
           ENERGY_BODY6;
         });
 
-      });  // end sequential region (for single-source code) 
+      });  // end sequential region (for single-source code)
 
     }
     stopTimer();

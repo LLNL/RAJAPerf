@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -38,12 +38,12 @@ __global__ void int_predict(Real_ptr px,
                             Real_type dm22, Real_type dm23, Real_type dm24,
                             Real_type dm25, Real_type dm26, Real_type dm27,
                             Real_type dm28, Real_type c0,
-                            const Index_type offset, 
-                            Index_type iend) 
+                            const Index_type offset,
+                            Index_type iend)
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     INT_PREDICT_BODY; 
+     INT_PREDICT_BODY;
    }
 }
 
@@ -52,7 +52,7 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INT_PREDICT_DATA_SETUP;
 
@@ -64,11 +64,12 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       int_predict<<<grid_size, block_size>>>( px, 
+       int_predict<<<grid_size, block_size>>>( px,
                                                dm22, dm23, dm24, dm25,
                                                dm26, dm27, dm28, c0,
                                                offset,
-                                               iend ); 
+                                               iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -37,7 +37,7 @@
 
 
 #define POLYBENCH_JACOBI_1D_BODY1 \
-  B[i] = 0.33333 * (A[i-1] + A[i] + A[i + 1]);  
+  B[i] = 0.33333 * (A[i-1] + A[i] + A[i + 1]);
 
 #define POLYBENCH_JACOBI_1D_BODY2 \
   A[i] = 0.33333 * (B[i-1] + B[i] + B[i + 1]);
@@ -45,7 +45,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -60,7 +60,6 @@ public:
   POLYBENCH_JACOBI_1D(const RunParams& params);
 
   ~POLYBENCH_JACOBI_1D();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);

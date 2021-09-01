@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -35,7 +35,7 @@ namespace lcals
 
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
-                          Index_type iend) 
+                          Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
@@ -52,17 +52,17 @@ __global__ void first_min(Real_ptr x,
   for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       if ( minloc[ threadIdx.x + i].val < minloc[ threadIdx.x ].val ) {
-        minloc[ threadIdx.x ] = minloc[ threadIdx.x + i]; 
+        minloc[ threadIdx.x ] = minloc[ threadIdx.x + i];
       }
     }
      __syncthreads();
   }
- 
+
   if ( threadIdx.x == 0 ) {
     if ( minloc[ 0 ].val < (*dminloc).val ) {
       *dminloc = minloc[ 0 ];
     }
-  } 
+  }
 }
 
 
@@ -70,7 +70,7 @@ void FIRST_MIN::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_MIN_DATA_SETUP;
 
@@ -82,17 +82,18 @@ void FIRST_MIN::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        FIRST_MIN_MINLOC_INIT;
-    
+
        MyMinLoc* dminloc;
        cudaErrchk( cudaMalloc( (void**)&dminloc, sizeof(MyMinLoc) ) );
        cudaErrchk( cudaMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
                                cudaMemcpyHostToDevice ) );
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_min<<<grid_size, block_size, 
-                   sizeof(MyMinLoc)*block_size>>>( x, 
+       first_min<<<grid_size, block_size,
+                   sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
-                                                   iend ); 
+                                                   iend );
+       cudaErrchk( cudaGetLastError() );
 
        cudaErrchk( cudaMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
                                cudaMemcpyDeviceToHost ) );

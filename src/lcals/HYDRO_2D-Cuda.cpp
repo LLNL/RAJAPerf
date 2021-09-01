@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,10 +16,25 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
+
+  //
+  // Define thread block size for CUDA execution
+  //
+  constexpr size_t j_block_sz = 32;
+  constexpr size_t k_block_sz = 8;
+
+#define HYDRO_2D_THREADS_PER_BLOCK_CUDA \
+  dim3 nthreads_per_block(j_block_sz, k_block_sz, 1);
+
+#define HYDRO_2D_NBLOCKS_CUDA \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(jn-2, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(kn-2, k_block_sz)), \
+               static_cast<size_t>(1));
+
 
 #define HYDRO_2D_DATA_SETUP_CUDA \
 \
@@ -34,6 +49,7 @@ namespace lcals
   allocAndInitCudaDeviceData(zzdat, m_zz, m_array_length); \
   allocAndInitCudaDeviceData(zroutdat, m_zrout, m_array_length); \
   allocAndInitCudaDeviceData(zzoutdat, m_zzout, m_array_length);
+
 
 #define HYDRO_2D_DATA_TEARDOWN_CUDA \
   getCudaDeviceData(m_zrout, zroutdat, m_array_length); \
@@ -50,40 +66,43 @@ namespace lcals
   deallocCudaDeviceData(zroutdat); \
   deallocCudaDeviceData(zzoutdat);
 
-__global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat, 
-                          Real_ptr zpdat, Real_ptr zqdat, 
+__global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
+                          Real_ptr zpdat, Real_ptr zqdat,
                           Real_ptr zrdat, Real_ptr zmdat,
-                          Index_type jn, Index_type kn) 
+                          Index_type jn, Index_type kn)
 {
-   Index_type k = blockIdx.y;
-   Index_type j = threadIdx.x;
-   if (k > 0 && k < kn-1 && j > 0 && j < jn-1) {
-     HYDRO_2D_BODY1; 
+   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+
+   if (k < kn-1 && j < jn-1) {
+     HYDRO_2D_BODY1;
    }
 }
 
 __global__ void hydro_2d2(Real_ptr zudat, Real_ptr zvdat,
-                          Real_ptr zadat, Real_ptr zbdat, 
+                          Real_ptr zadat, Real_ptr zbdat,
                           Real_ptr zzdat, Real_ptr zrdat,
                           Real_type s,
                           Index_type jn, Index_type kn)
 {
-   Index_type k = blockIdx.y;
-   Index_type j = threadIdx.x;
-   if (k > 0 && k < kn-1 && j > 0 && j < jn-1) {
+   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+
+   if (k < kn-1 && j < jn-1) {
      HYDRO_2D_BODY2;
    }
 }
 
 __global__ void hydro_2d3(Real_ptr zroutdat, Real_ptr zzoutdat,
-                          Real_ptr zrdat, Real_ptr zudat, 
+                          Real_ptr zrdat, Real_ptr zudat,
                           Real_ptr zzdat, Real_ptr zvdat,
                           Real_type t,
                           Index_type jn, Index_type kn)
 {
-   Index_type k = blockIdx.y;
-   Index_type j = threadIdx.x;
-   if (k > 0 && k < kn-1 && j > 0 && j < jn-1) {
+   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+
+   if (k < kn-1 && j < jn-1) {
      HYDRO_2D_BODY3;
    }
 }
@@ -106,22 +125,25 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       dim3 nthreads_per_block(jn, 1, 1);
-       dim3 nblocks(1, kn, 1);
+      HYDRO_2D_THREADS_PER_BLOCK_CUDA;
+      HYDRO_2D_NBLOCKS_CUDA;
+ 
+      hydro_2d1<<<nblocks, nthreads_per_block>>>(zadat, zbdat,
+                                                 zpdat, zqdat, zrdat, zmdat,
+                                                 jn, kn);
+      cudaErrchk( cudaGetLastError() );
 
-       hydro_2d1<<<nblocks, nthreads_per_block>>>(zadat, zbdat,
-                                                  zpdat, zqdat, zrdat, zmdat,
-                                                  jn, kn);
+      hydro_2d2<<<nblocks, nthreads_per_block>>>(zudat, zvdat,
+                                                 zadat, zbdat, zzdat, zrdat,
+                                                 s,
+                                                 jn, kn);
+      cudaErrchk( cudaGetLastError() );
 
-       hydro_2d2<<<nblocks, nthreads_per_block>>>(zudat, zvdat,
-                                                  zadat, zbdat, zzdat, zrdat,
-                                                  s,
-                                                  jn, kn);
-
-       hydro_2d3<<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
-                                                  zrdat, zudat, zzdat, zvdat,
-                                                  t,
-                                                  jn, kn);
+      hydro_2d3<<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
+                                                 zrdat, zudat, zzdat, zvdat,
+                                                 t,
+                                                 jn, kn);
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -134,17 +156,23 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
 
     HYDRO_2D_VIEWS_RAJA;
 
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::CudaKernelAsync<
-            RAJA::statement::For<0, RAJA::cuda_block_y_loop,  // k
-              RAJA::statement::For<1, RAJA::cuda_thread_x_loop,  // j
-                RAJA::statement::Lambda<0>
+    using EXECPOL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernelFixedAsync<j_block_sz * k_block_sz,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>, 
+                                   RAJA::cuda_block_y_direct,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>, 
+                                   RAJA::cuda_block_x_direct,
+              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // k
+                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
+                  RAJA::statement::Lambda<0>
+                >
               >
             >
           >
-        >;
-
+        >
+      >;
+      
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -174,7 +202,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
 
     HYDRO_2D_DATA_TEARDOWN_CUDA;
 
-  } else { 
+  } else {
      std::cout << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }

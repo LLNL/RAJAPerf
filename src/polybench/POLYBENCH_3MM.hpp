@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -9,9 +9,9 @@
 ///
 /// POLYBENCH_3MM kernel reference implementation:
 ///
-/// E := A*B 
-/// F := C*D 
-/// G := E*F 
+/// E := A*B
+/// F := C*D
+/// G := E*F
 ///
 /// for (Index_type i = 0; i < NI; i++) {
 ///   for (Index_type j = 0; j < NJ; j++) {
@@ -20,12 +20,12 @@
 ///       E[i][j] += A[i][k] * B[k][j];
 ///     }
 ///   }
-/// } 
+/// }
 /// for (Index_type j = 0; j < NJ; j++) {
 ///   for (Index_type l = 0; l < NL; l++) {
-///	F[j][l] = 0.0;
-///	for (Index_type m = 0; m < NM; ++m) {
-///	  F[j][l] += C[j][m] * D[m][l];
+///     F[j][l] = 0.0;
+///     for (Index_type m = 0; m < NM; ++m) {
+///       F[j][l] += C[j][m] * D[m][l];
 ///     }
 ///   }
 /// }
@@ -33,7 +33,7 @@
 ///   for (Index_type l = 0; l < NL; l++) {
 ///     G[i][l] = 0.0;
 ///     for (Index_type j = 0; j < NJ; ++j) {
-///	  G[i][l] += E[i][j] * F[j][l];
+///       G[i][l] += E[i][j] * F[j][l];
 ///     }
 ///   }
 /// }
@@ -128,7 +128,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -143,7 +143,6 @@ public:
   POLYBENCH_3MM(const RunParams& params);
 
   ~POLYBENCH_3MM();
-
 
   void setUp(VariantID vid);
   void updateChecksum(VariantID vid);
@@ -165,7 +164,7 @@ private:
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;
-  Real_ptr m_D; 
+  Real_ptr m_D;
   Real_ptr m_E;
   Real_ptr m_F;
   Real_ptr m_G;

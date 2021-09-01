@@ -1,7 +1,7 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -23,7 +23,7 @@ endif()
 
 set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
-set(ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
+set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
 set(CMAKE_CXX_STANDARD 11)
 set(BLT_CXX_STANDARD 11)
@@ -70,7 +70,7 @@ if (ENABLE_OPENMP)
 endif ()
 
 set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 10)
+set(RAJA_PERFSUITE_VERSION_MINOR 11)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
@@ -109,9 +109,9 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate
+# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
-set (HIP_HIPCC_FLAGS ${RAJA_HIPCC_FLAGS})
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.

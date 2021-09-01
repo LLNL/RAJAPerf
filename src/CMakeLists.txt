@@ -1,7 +1,7 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -14,6 +14,7 @@ add_subdirectory(basic)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
@@ -21,8 +22,9 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     lcals
     polybench
-    stream)
-list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
+    stream
+    algorithm)
+list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
@@ -43,19 +45,25 @@ blt_add_executable(
   apps/PRESSURE.cpp
   apps/PRESSURE-Seq.cpp
   apps/PRESSURE-OMPTarget.cpp
+  apps/HALOEXCHANGE.cpp
+  apps/HALOEXCHANGE-Seq.cpp
+  apps/HALOEXCHANGE-OMPTarget.cpp
+  apps/HALOEXCHANGE_FUSED.cpp
+  apps/HALOEXCHANGE_FUSED-Seq.cpp
+  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DPA.cpp
+  apps/MASS3DPA-Seq.cpp
+  apps/MASS3DPA-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
-  basic/ATOMIC_PI.cpp
-  basic/ATOMIC_PI-Seq.cpp
-  basic/ATOMIC_PI-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -71,12 +79,21 @@ blt_add_executable(
   basic/INIT_VIEW1D_OFFSET.cpp
   basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
+  basic/MAT_MAT_SHARED.cpp
+  basic/MAT_MAT_SHARED-Seq.cpp
+  basic/MAT_MAT_SHARED-OMPTarget.cpp
   basic/MULADDSUB.cpp
   basic/MULADDSUB-Seq.cpp
   basic/MULADDSUB-OMPTarget.cpp
   basic/NESTED_INIT.cpp
   basic/NESTED_INIT-Seq.cpp
   basic/NESTED_INIT-OMPTarget.cpp
+  basic/PI_ATOMIC.cpp
+  basic/PI_ATOMIC-Seq.cpp
+  basic/PI_ATOMIC-OMPTarget.cpp
+  basic/PI_REDUCE.cpp
+  basic/PI_REDUCE-Seq.cpp
+  basic/PI_REDUCE-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
@@ -177,6 +194,10 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  algorithm/SORT.cpp
+  algorithm/SORT-Seq.cpp
+  algorithm/SORTPAIRS.cpp
+  algorithm/SORTPAIRS-Seq.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

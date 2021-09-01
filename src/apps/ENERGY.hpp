@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -179,7 +179,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 class RunParams;
 
@@ -209,17 +209,17 @@ private:
   Real_ptr m_e_old;
   Real_ptr m_delvc;
   Real_ptr m_p_new;
-  Real_ptr m_p_old; 
-  Real_ptr m_q_new; 
-  Real_ptr m_q_old; 
-  Real_ptr m_work; 
-  Real_ptr m_compHalfStep; 
-  Real_ptr m_pHalfStep; 
-  Real_ptr m_bvc; 
-  Real_ptr m_pbvc; 
-  Real_ptr m_ql_old; 
-  Real_ptr m_qq_old; 
-  Real_ptr m_vnewc; 
+  Real_ptr m_p_old;
+  Real_ptr m_q_new;
+  Real_ptr m_q_old;
+  Real_ptr m_work;
+  Real_ptr m_compHalfStep;
+  Real_ptr m_pHalfStep;
+  Real_ptr m_bvc;
+  Real_ptr m_pbvc;
+  Real_ptr m_ql_old;
+  Real_ptr m_qq_old;
+  Real_ptr m_vnewc;
 
   Real_type m_rho0;
   Real_type m_e_cut;

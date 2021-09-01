@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -38,10 +38,10 @@ __global__ void initview1d(Real_ptr a,
                            Real_type v,
                            const Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT_VIEW1D_BODY;
-   }
+  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    INIT_VIEW1D_BODY;
+  }
 }
 
 
@@ -49,7 +49,7 @@ void INIT_VIEW1D::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 
@@ -60,10 +60,31 @@ void INIT_VIEW1D::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((initview1d), dim3(grid_size), dim3(block_size), 0, 0,  a,
-                                              v,
-                                              iend );
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((initview1d), dim3(grid_size), dim3(block_size), 0, 0,
+          a, v, iend );
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    INIT_VIEW1D_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    INIT_VIEW1D_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto initview1d_lambda = [=] __device__ (Index_type i) {
+        INIT_VIEW1D_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL(lambda_hip_forall<decltype(initview1d_lambda)>,
+        grid_size, block_size, 0, 0, ibegin, iend, initview1d_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();

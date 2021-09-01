@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -21,42 +21,58 @@ namespace stream
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(1000);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+                  getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
+  setUsesFeature( Forall );
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-TRIAD::~TRIAD() 
+TRIAD::~TRIAD()
 {
 }
 
 void TRIAD::setUp(VariantID vid)
 {
-  allocAndInitDataConst(m_a, getRunSize(), 0.0, vid);
-  allocAndInitData(m_b, getRunSize(), vid);
-  allocAndInitData(m_c, getRunSize(), vid);
+  allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
+  allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getRunSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
 void TRIAD::tearDown(VariantID vid)

@@ -1,20 +1,14 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
 blt_add_library(
   NAME basic
-  SOURCES ATOMIC_PI.cpp
-          ATOMIC_PI-Seq.cpp
-          ATOMIC_PI-Hip.cpp
-          ATOMIC_PI-Cuda.cpp
-          ATOMIC_PI-OMP.cpp
-          ATOMIC_PI-OMPTarget.cpp
-          DAXPY.cpp
+  SOURCES DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
@@ -44,6 +38,12 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          MAT_MAT_SHARED.cpp
+          MAT_MAT_SHARED-Seq.cpp
+          MAT_MAT_SHARED-Hip.cpp
+          MAT_MAT_SHARED-Cuda.cpp
+          MAT_MAT_SHARED-OMP.cpp
+          MAT_MAT_SHARED-OMPTarget.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
@@ -56,6 +56,18 @@ blt_add_library(
           NESTED_INIT-Cuda.cpp
           NESTED_INIT-OMP.cpp
           NESTED_INIT-OMPTarget.cpp
+          PI_ATOMIC.cpp
+          PI_ATOMIC-Seq.cpp
+          PI_ATOMIC-Hip.cpp
+          PI_ATOMIC-Cuda.cpp
+          PI_ATOMIC-OMP.cpp
+          PI_ATOMIC-OMPTarget.cpp
+          PI_REDUCE.cpp
+          PI_REDUCE-Seq.cpp
+          PI_REDUCE-Hip.cpp
+          PI_REDUCE-Cuda.cpp
+          PI_REDUCE-OMP.cpp
+          PI_REDUCE-OMPTarget.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp

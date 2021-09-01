@@ -1,13 +1,13 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels and variants.
+/// Tyoes and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -22,37 +22,6 @@ namespace rajaperf
 
 class KernelBase;
 class RunParams;
-
-/*!
- *******************************************************************************
- *
- * \brief Enumeration defining size specification for the polybench kernels
- *
- * Polybench comes with a spec file to setup the iteration space for 
- * various sizes: Mini, Small, Medium, Large, Extralarge
- *
- * We adapt those entries within this perfsuite.
- *
- * The default size is Medium, which can be overridden at run-time.
- *
- * An example partial entry from that file showing the MINI and SMALL spec 
- * for the kernel 3mm is:
- *
- * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
- * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
- * *
- *******************************************************************************
- */
-enum SizeSpec {
-  
-  Mini = 0,
-  Small,
-  Medium,
-  Large,
-  Extralarge,
-  Specundefined
-
-};
 
 
 /*!
@@ -74,6 +43,7 @@ enum GroupID {
   Polybench,
   Stream,
   Apps,
+  Algorithm,
 
   NumGroups // Keep this one last and DO NOT remove (!!)
 
@@ -98,14 +68,16 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_ATOMIC_PI = 0,
-  Basic_DAXPY,
+  Basic_DAXPY = 0,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MAT_MAT_SHARED,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
+  Basic_PI_ATOMIC,
+  Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
 
@@ -157,10 +129,19 @@ enum KernelID {
   Apps_DEL_DOT_VEC_2D,
   Apps_ENERGY,
   Apps_FIR,
+  Apps_HALOEXCHANGE,
+  Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DPA,
   Apps_PRESSURE,
   Apps_VOL3D,
+
+//
+// Algorithm kernels...
+//
+  Algorithm_SORT,
+  Algorithm_SORTPAIRS,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -172,7 +153,7 @@ enum KernelID {
  *
  * \brief Enumeration defining unique id for each VARIANT in suite.
  *
- * IMPORTANT: This is only modified when a new kernel is added to the suite.
+ * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
  *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
@@ -193,12 +174,46 @@ enum VariantID {
   RAJA_OpenMPTarget,
 
   Base_CUDA,
+  Lambda_CUDA,
   RAJA_CUDA,
 
   Base_HIP,
+  Lambda_HIP,
   RAJA_HIP,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each (RAJA) FEATURE used in suite.
+ *
+ * IMPORTANT: This is only modified when a new feature is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum FeatureID {
+
+  Forall = 0,
+  Kernel,
+  Teams,
+
+  Sort,
+  Scan,
+  Workgroup, 
+
+  Reduction,
+  Atomic,
+
+  View,
+
+  NumFeatures // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -252,6 +267,15 @@ const std::string& getVariantName(VariantID vid);
  *******************************************************************************
  */
 bool isVariantAvailable(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return feature name associated with FeatureID enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getFeatureName(FeatureID vid);
 
 /*!
  *******************************************************************************

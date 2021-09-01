@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,10 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+#include <cmath>
+
+
+namespace rajaperf
 {
 namespace lcals
 {
@@ -27,36 +30,55 @@ HYDRO_2D::HYDRO_2D(const RunParams& params)
   m_s = 0.0041;
   m_t = 0.0037;
 
-  setDefaultSize(m_jn);
-  setDefaultReps(200);
+  setDefaultProblemSize(m_kn * m_jn);
+  setDefaultReps(100);
+
+  m_jn = m_kn = std::sqrt(getTargetProblemSize());
+  m_array_length = m_kn * m_jn;
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( 3 * getActualProblemSize() );
+  setKernelsPerRep(3);
+  setBytesPerRep( (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+                  (2*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) +
+                  (0*sizeof(Real_type ) + 4*sizeof(Real_type )) * m_array_length +
+                  (2*sizeof(Real_type ) + 4*sizeof(Real_type )) * (m_kn-2) * (m_jn-2) );
+  setFLOPsPerRep((14 +
+                  26 +
+                  4  ) * (m_jn-2)*(m_kn-2));
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-HYDRO_2D::~HYDRO_2D() 
+HYDRO_2D::~HYDRO_2D()
 {
 }
 
 void HYDRO_2D::setUp(VariantID vid)
 {
-  m_kn = getRunSize();
-  m_array_length = m_kn * m_jn;
-
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_zzout, m_array_length, 0.0, vid);
   allocAndInitData(m_za, m_array_length, vid);
@@ -72,8 +94,8 @@ void HYDRO_2D::setUp(VariantID vid)
 
 void HYDRO_2D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_zzout, m_array_length);
-  checksum[vid] += calcChecksum(m_zrout, m_array_length);
+  checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
 void HYDRO_2D::tearDown(VariantID vid)
