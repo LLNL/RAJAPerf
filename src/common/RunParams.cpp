@@ -416,7 +416,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --npasses 2 (runs complete Suite twice\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (percentage of default # reps to run each kernel)\n";
+      << "\t      (multiplier on default # reps to run each kernel)\n";
   str << "\t\t Example...\n"
       << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
