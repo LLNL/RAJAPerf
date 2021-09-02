@@ -396,13 +396,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --help, -h (print options with descriptions)\n\n";
 
-  str << "\t --show-progress, -sp (print progress during run)\n\n";
+  str << "\t --show-progress, -sp (print execution progress during run)\n\n";
 
-  str << "\t --print-kernels, -pk (print all valid kernel names)\n\n";
+  str << "\t --print-kernels, -pk (print names of available kernels to run)\n\n";
 
-  str << "\t --print-variants, -pv (print all valid variant names)\n\n";
+  str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
 
-  str << "\t --print-features, -pf (print all valid feature names)\n\n";
+  str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
   str << "\t --print-feature-kernels, -pfk \n"
       << "\t      (print names of kernels that use each feature)\n\n";
@@ -411,17 +411,17 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (print names of features used by each kernel)\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n"; 
+      << "\t      (num passes through Suite)\n"; 
   str << "\t\t Example...\n"
-      << "\t\t --npasses 2 (runs complete suite twice\n\n";
+      << "\t\t --npasses 2 (runs complete Suite twice\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (fraction of default # reps to run each kernel)\n";
+      << "\t      (multiplier on default # reps to run each kernel)\n";
   str << "\t\t Example...\n"
       << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel size to run)\n"
+      << "\t      (fraction of default kernel sizes to run)\n"
       << "\t      (may not be set if --size is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --sizefact 2.0 (kernels will run with size twice the default)\n\n";
@@ -437,6 +437,25 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
 
+  str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
+  str << "\t\t Examples...\n"
+      << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
+      << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
+
+  str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
+      << "\t      (names of variants to run)\n"; 
+  str << "\t\t Examples...\n"
+      << "\t\t --variants RAJA_CUDA (run all RAJA_CUDA kernel variants)\n"
+      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
+      << "\t      (names of features to run)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
+      << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
+
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
   str << "\t\t Examples...\n"
@@ -449,36 +468,17 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
       << "\t\t -of dat (output data will be in files 'dat*')\n\n";
 
-  str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
-      << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
-  str << "\t\t Examples...\n"
-      << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
-      << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
-
-  str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
-      << "\t      (names of variants)\n"; 
-  str << "\t\t Examples...\n"
-      << "\t\t --variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq, RAJA_CUDA variants)\n\n";
-
   str << "\t --refvar, -rv <string> [Default is none]\n"
       << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
       << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
-      << "\t      (names of features)\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --features Forall (run kernels that use RAJA forall)\n"
-      << "\t\t -f Forall Reduction (run kernels that use RAJA forall or RAJA reductions)\n\n";
+  str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (run each kernel given number of times; usually to check things are working)\n"; 
+<< "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n"; 
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
-
-  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
 
   str << std::endl;
   str.flush();
