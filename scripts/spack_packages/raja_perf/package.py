@@ -267,7 +267,10 @@ class RajaPerf(CMakePackage, CudaPackage):
                 cfg.write(cmake_cache_string("BLT_CXX_STD", "c++11"))
                 cfg.write(cmake_cache_option("ENABLE_TESTS", True))
                 
-   
+            if ("clang" in cpp_compiler):
+                cfg.write(cmake_cache_string("BLT_CMAKE_IMPLICIT_LINK_DIRECTORIES_EXCLUDE", 
+                          "/usr/tce/packages/gcc/gcc-4.9.3/lib64;/usr/tce/packages/gcc/gcc-4.9.3/lib64/gcc/powerpc64le-unknown-linux-gnu/4.9.3"))
+ 
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE", cuda_release_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO", cuda_reldebinf_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_DEBUG", cuda_debug_flags))
