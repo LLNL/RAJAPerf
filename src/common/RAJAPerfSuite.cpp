@@ -24,6 +24,7 @@
 #include "basic/PI_ATOMIC.hpp"
 #include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
+#include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
 
 //
@@ -149,6 +150,7 @@ static const std::string KernelNames [] =
   std::string("Basic_PI_ATOMIC"),
   std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
 
 //
@@ -472,6 +474,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::REDUCE3_INT(run_params);
        break;
     }
+    case Basic_REDUCE_STRUCT : { 
+        kernel = new basic::REDUCE_STRUCT(run_params);
+        break;
+    } 	
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
        break;

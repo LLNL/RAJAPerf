@@ -97,6 +97,9 @@ blt_add_executable(
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
+  basic/REDUCE_STRUCT.cpp
+  basic/REDUCE_STRUCT-Seq.cpp
+  basic/REDUCE_STRUCT-OMPTarget.cpp  
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
