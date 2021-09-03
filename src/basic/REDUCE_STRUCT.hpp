@@ -21,8 +21,8 @@
 ///
 /// particles.xcenter += xsum;
 /// particles.xcenter /= particles.N
-/// particles.xmin = RAJA_MIN(m_xmin, xmin);
-/// particles.xmax = RAJA_MAX(m_xmax, xmax);
+/// particles.xmin = xmin;
+/// particles.xmax = xmax;
 ///
 /// RAJA_MIN/MAX are macros that do what you would expect.
 ///
@@ -41,13 +41,16 @@
   Real_type dx = Lx/(Real_type)(particles.N); \
   Real_type dy = Ly/(Real_type)(particles.N); \
   Real_type DX = dx*(particles.N-1); \
-  Real_type DY = dy*(particles.N-1); 
+  Real_type DY = dy*(particles.N-1); \
+  for (int i=0;i<particles.N+1;i++){ \
+      particles.x[i] = i*dx; \
+      particles.y[i] = i*dy; \
+  }
 
 #define REDUCE_STRUCT_BODY  \
-  particles.xcenter += particles.x[i] ; \
-  particles.xcenter /= particles.N \
-  particles.xmin = RAJA_MIN(particles.xmin, particles.x[i]) ; \
-  particles.xmax = RAJA_MAX(particles.xmax, particles.x[i]) ;
+  xsum += particles.x[i] ; \
+  xmin = RAJA_MIN(xmin, particles.x[i]) ; \
+  xmax = RAJA_MAX(xmax, particles.x[i]) ;
 
 #define REDUCE_STRUCT_BODY_RAJA  \
   xsum += particles.x[i] ; \
@@ -101,7 +104,7 @@ private:
     void SetYMax(Real_type val){this->ymax=val;};
     //results
     private:
-    Real_type center[2];
+    Real_type center[2] = {0.0,0.0};
     Real_type xmin, xmax;
     Real_type ymin, ymax;
     }; 

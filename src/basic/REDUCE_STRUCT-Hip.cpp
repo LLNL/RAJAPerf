@@ -116,10 +116,10 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_HIP;
 
-  	for (int i=0;i<particles.N+1;i++){
-  	    particles.x[i] = i*dx;  
-  	    particles.y[i] = i*dy; 
-	}
+  	//for (int i=0;i<particles.N+1;i++){
+  	//    particles.x[i] = i*dx;  
+  	//    particles.y[i] = i*dy; 
+	//}
 
 
 	Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
@@ -146,14 +146,6 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       particles.SetXMax(lmem[2]);
       particles.SetYMin(lmem[4]);
 	  particles.SetYMax(lmem[5]);
-
-	  //printf("x center = %f\n", particles.GetCenter()[0]);
-	  //printf("x min = %f\n", particles.GetXMin());
-	  //printf("x max = %f\n", particles.GetXMax());
-
-	  //printf("y center = %f\n", particles.GetCenter()[1]);
-	  //printf("y min = %f\n", particles.GetYMin());
-	  //printf("y max = %f\n", particles.GetYMax());
 
     }
     stopTimer();
@@ -188,10 +180,6 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N+1)),0.0);
 	  particles.SetXMin(static_cast<Real_type>(xmin.get()));
 	  particles.SetXMax(static_cast<Real_type>(xmax.get()));
-
- 	  //printf("x center = %f\n", particles.GetCenter()[0]);
-	  //printf("x min = %f\n", particles.GetXMin());
-	  //printf("x max = %f\n", particles.GetXMax());
 
     }
     stopTimer();
