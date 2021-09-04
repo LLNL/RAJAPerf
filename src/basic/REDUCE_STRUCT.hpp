@@ -42,10 +42,8 @@
   Real_type dy = Ly/(Real_type)(particles.N); \
   Real_type DX = dx*(particles.N-1); \
   Real_type DY = dy*(particles.N-1); \
-  for (int i=0;i<particles.N+1;i++){ \
-      particles.x[i] = i*dx; \
-      particles.y[i] = i*dy; \
-  }
+  particles.x = m_x; \
+  particles.y = m_y; 
 
 #define REDUCE_STRUCT_BODY  \
   xsum += particles.x[i] ; \
@@ -56,6 +54,7 @@
   xsum += particles.x[i] ; \
   xmin.min(particles.x[i]) ; \
   xmax.max(particles.x[i]) ;
+
 
 
 #include "common/KernelBase.hpp"

@@ -116,10 +116,10 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_HIP;
 
-  	//for (int i=0;i<particles.N+1;i++){
-  	//    particles.x[i] = i*dx;  
-  	//    particles.y[i] = i*dy; 
-	//}
+  	for (int i=0;i<particles.N+1;i++){
+  	    particles.x[i] = i*dx;  
+  	    particles.y[i] = i*dy; 
+	}
 
 
 	Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
