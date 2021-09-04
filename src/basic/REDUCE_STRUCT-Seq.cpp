@@ -93,24 +93,23 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
-      //startTimer();
-      //for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      //  RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
-      //  RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
-      //  RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum;
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin;
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax;
 
-      //  RAJA::forall<RAJA::loop_exec>(
-      //    RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-      //    REDUCE3_INT_BODY_RAJA;
-      //  });
+        RAJA::forall<RAJA::loop_exec>(
+          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
+        });
 
-      //  m_vsum += static_cast<Int_type>(vsum.get());
-      //  m_vmin = RAJA_MIN(m_vmin, static_cast<Int_type>(vmin.get()));
-      //  m_vmax = RAJA_MAX(m_vmax, static_cast<Int_type>(vmax.get()));
-
-      //}
-      //stopTimer();
+      	particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N+1)),0.0);
+	  	particles.SetXMin(static_cast<Real_type>(xmin.get()));
+	  	particles.SetXMax(static_cast<Real_type>(xmax.get()));
+      }
+      stopTimer();
 
       break;
     }
