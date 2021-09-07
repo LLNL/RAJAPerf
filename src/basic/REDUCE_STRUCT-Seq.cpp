@@ -88,9 +88,9 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(0.0);, ysum(0.0);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(0.0);, ymin(0.0);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(0.0);, ymax(0.0);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(0.0), ysum(0.0);
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(0.0), ymin(0.0);
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(0.0), ymax(0.0);
 
         RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
