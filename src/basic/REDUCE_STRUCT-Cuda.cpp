@@ -30,6 +30,10 @@ namespace basic
 #define REDUCE_STRUCT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(particles.x, m_x, particles.N); \
   allocAndInitCudaDeviceData(particles.y, m_y, particles.N); \
+  for (int i=0;i<particles.N;i++){ \
+      particles.x[i] = i*dx;  \
+      particles.y[i] = i*dy;  \
+  }
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(particles.x); \
@@ -108,7 +112,7 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = 1;
   const Index_type ibegin = 0;
-  const Index_type iend = 101;
+  const Index_type iend = getActualProblemSize();
 
   REDUCE_STRUCT_DATA_SETUP;
 
@@ -116,19 +120,13 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_CUDA;
 
-  	for (int i=0;i<particles.N+1;i++){
-  	    particles.x[i] = i*dx;  
-  	    particles.y[i] = i*dy; 
-	}
-
-
 	Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
 	allocCudaDeviceData(mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N+1, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
                                                             
       reduce_struct<<<grid_size, block_size,6*sizeof(Real_type)*block_size>>>
 	                                                  (particles.x, particles.y,
@@ -146,7 +144,7 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
       particles.SetXMax(lmem[2]);
       particles.SetYMin(lmem[4]);
 	  particles.SetYMax(lmem[5]);
-
+      m_particles=particles;
     }
     stopTimer();
 
@@ -158,29 +156,22 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_CUDA;
 
-  	for (int i=0;i<particles.N+1;i++){
-  	    particles.x[i] = i*dx;  
-  	    particles.y[i] = i*dy; 
-	}
-
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum;
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin;
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax;
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum, ysum;
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin, ymin;
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax, ymax;
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, particles.N+1), [=] __device__ (Index_type i) {
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         REDUCE_STRUCT_BODY_RAJA;
       });
 
-
-      particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N+1)),0.0);
-	  particles.SetXMin(static_cast<Real_type>(xmin.get()));
-	  particles.SetXMax(static_cast<Real_type>(xmax.get()));
-
+      particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
+	  particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
+	  particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
+      m_particles=particles;
     }
     stopTimer();
 
