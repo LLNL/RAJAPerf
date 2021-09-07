@@ -19,11 +19,11 @@
 ///   ymin = RAJA_MIN(ymin, y[i]) ; ymax = RAJA_MAX(ymax, y[i]) ;
 /// }
 ///
-/// particles.xcenter += xsum;
+/// particles.xcenter = xsum;
 /// particles.xcenter /= particles.N
 /// particles.xmin = xmin;
 /// particles.xmax = xmax;
-/// particles.ycenter += ysum;
+/// particles.ycenter = ysum;
 /// particles.ycenter /= particles.N
 /// particles.ymin = ymin;
 /// particles.ymax = ymax;

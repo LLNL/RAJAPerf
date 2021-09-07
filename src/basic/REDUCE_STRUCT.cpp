@@ -27,12 +27,12 @@ REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
-  setDefaultReps(1);
+  setDefaultReps(50);
 
   setActualProblemSize( 101 );
 //  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( 1 );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( 6*sizeof(Real_type) + getActualProblemSize());
   setFLOPsPerRep(1 * getActualProblemSize() + 1);

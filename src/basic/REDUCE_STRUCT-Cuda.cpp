@@ -132,7 +132,7 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 	                                                  (particles.x, particles.y,
 													  mem,  mem+1,mem+2, //xcenter,xmin,xmax
 													  mem+3,mem+4,mem+5, //ycenter,ymin,ymax
-													  particles.N+1);
+													  particles.N);
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6];
@@ -159,9 +159,9 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum, ysum;
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin, ymin;
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax, ymax;
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum=0.0, ysum=0.0;
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin=0.0, ymin=0.0;
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax=0.0, ymax=0.0;
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
