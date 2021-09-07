@@ -23,18 +23,18 @@ namespace basic
 REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE_STRUCT, params)
 {
-  setDefaultProblemSize(100);
+  setDefaultProblemSize(101);
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
   setDefaultReps(1);
 
-  setActualProblemSize( 100 );
+  setActualProblemSize( 101 );
+//  setActualProblemSize( getTargetProblemSize() );
 
   setItsPerRep( 1 );
   setKernelsPerRep(1);
-  setBytesPerRep( (6*sizeof(Real_type) + 6*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
+  setBytesPerRep( 6*sizeof(Real_type) + getActualProblemSize());
   setFLOPsPerRep(1 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);
@@ -70,6 +70,13 @@ void REDUCE_STRUCT::setUp(VariantID vid)
 
 void REDUCE_STRUCT::updateChecksum(VariantID vid)
 {
+  checksum[vid] += m_particles.GetCenter()[0];
+  checksum[vid] += m_particles.GetXMin();
+  checksum[vid] += m_particles.GetXMax();
+  checksum[vid] += m_particles.GetCenter()[1];
+  checksum[vid] += m_particles.GetYMin();
+  checksum[vid] += m_particles.GetYMax();
+
   return;
 }
 
