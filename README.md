@@ -716,7 +716,7 @@ above.
 
 RAJAPerf Suite uses continuous integration to ensure that changes added to the repository are well integrated and tested for compatibility with the rest of the existing code base. Our CI tests include a variety of vetted configurations that run on different LC machines.
 
-RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentation is therefore [shared](https://radiuss-ci.readthedocs.io/en/latest/uberenv.html#ci).
+RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentation is therefore [shared](https://radiuss-ci.readthedocs.io/en/latest).
 
 * * *
 
