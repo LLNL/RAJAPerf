@@ -129,9 +129,9 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
       hipLaunchKernelGGL((reduce_struct), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
 	                                                  particles.x, particles.y,
-													  mem,  mem+1,mem+2, //xcenter,xmin,xmax
-													  mem+3,mem+4,mem+5, //ycenter,ymin,ymax
-													  particles.N);
+							  mem,  mem+1,mem+2, //xcenter,xmin,xmax
+							  mem+3,mem+4,mem+5, //ycenter,ymin,ymax
+							  particles.N);
 
       hipErrchk( hipGetLastError() );
 
@@ -139,11 +139,11 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       Real_ptr plmem = &lmem[0];
       getHipDeviceData(plmem, mem, 6);
 
-	  particles.SetCenter(lmem[0],lmem[3]);
+      particles.SetCenter(lmem[0],lmem[3]);
       particles.SetXMin(lmem[1]);
       particles.SetXMax(lmem[2]);
       particles.SetYMin(lmem[4]);
-	  particles.SetYMax(lmem[5]);
+      particles.SetYMax(lmem[5]);
       m_particles=particles;
     }
     stopTimer();
@@ -164,16 +164,15 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(0.0), ymax(0.0);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        REDUCE_STRUCT_BODY_RAJA;
+      RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+      REDUCE_STRUCT_BODY_RAJA;
       });
 
 
       particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
-	  particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
-	  particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
+      particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
+      particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
       m_particles=particles;
-
     }
     stopTimer();
 
