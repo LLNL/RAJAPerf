@@ -23,14 +23,13 @@ namespace basic
 REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE_STRUCT, params)
 {
-  setDefaultProblemSize(100);
+  setDefaultProblemSize(1000000);
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target
 // reduction performance issues
   setDefaultReps(50);
 
-  setActualProblemSize( 100 );
-//  setActualProblemSize( getTargetProblemSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
