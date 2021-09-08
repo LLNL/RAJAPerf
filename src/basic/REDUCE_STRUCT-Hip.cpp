@@ -135,7 +135,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
 
       hipErrchk( hipGetLastError() );
 
-      Real_type lmem[6] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
       Real_ptr plmem = &lmem[0];
       getHipDeviceData(plmem, mem, 6);
 
