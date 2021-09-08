@@ -34,7 +34,7 @@ allocate_resources (on ruby):
 
 ###
 # In post-build phase, deallocate resources
-# Note : make sure this is run even on build phase failure
+# Note : make sure this is run even on build phase failure (see "rules:" in ".on_ruby:").
 release_resources (on ruby):
   variables:
     GIT_STRATEGY: none
