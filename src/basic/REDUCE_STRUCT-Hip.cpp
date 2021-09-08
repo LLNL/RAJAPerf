@@ -126,6 +126,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      hipErrchk(hipMemset(mem, 0.0, 6*sizeof(Real_type)));
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
       hipLaunchKernelGGL((reduce_struct), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
 	                                                  particles.x, particles.y,
