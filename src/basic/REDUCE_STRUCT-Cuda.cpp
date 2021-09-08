@@ -130,20 +130,20 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
                                                             
       reduce_struct<<<grid_size, block_size,6*sizeof(Real_type)*block_size>>>
 	                                                  (particles.x, particles.y,
-													  mem,  mem+1,mem+2, //xcenter,xmin,xmax
-													  mem+3,mem+4,mem+5, //ycenter,ymin,ymax
-													  particles.N);
+							   mem,  mem+1,mem+2, //xcenter,xmin,xmax
+							   mem+3,mem+4,mem+5, //ycenter,ymin,ymax
+							   particles.N);
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6];
       Real_ptr plmem = &lmem[0];
       getCudaDeviceData(plmem, mem, 6);
 
-	  particles.SetCenter(lmem[0],lmem[3]);
+      particles.SetCenter(lmem[0],lmem[3]);
       particles.SetXMin(lmem[1]);
       particles.SetXMax(lmem[2]);
       particles.SetYMin(lmem[4]);
-	  particles.SetYMax(lmem[5]);
+      particles.SetYMax(lmem[5]);
       m_particles=particles;
     }
     stopTimer();
@@ -164,13 +164,13 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
       RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax=0.0, ymax=0.0;
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        REDUCE_STRUCT_BODY_RAJA;
+      RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+      REDUCE_STRUCT_BODY_RAJA;
       });
 
       particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
-	  particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
-	  particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
+      particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
+      particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
       m_particles=particles;
     }
     stopTimer();
