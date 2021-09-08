@@ -30,10 +30,7 @@ namespace basic
 #define REDUCE_STRUCT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(particles.x, m_x, particles.N); \
   allocAndInitCudaDeviceData(particles.y, m_y, particles.N); \
-  for (int i=0;i<particles.N;i++){ \
-      particles.x[i] = i*dx;  \
-      particles.y[i] = i*dy;  \
-  }
+  
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(particles.x); \

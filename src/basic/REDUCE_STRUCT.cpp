@@ -65,6 +65,12 @@ void REDUCE_STRUCT::setUp(VariantID vid)
 {
   allocAndInitData(m_x, getActualProblemSize(), vid);
   allocAndInitData(m_y, getActualProblemSize(), vid);
+  Real_type dx = Lx/(Real_type)(getActualProblemSize());
+  Real_type dy = Ly/(Real_type)(getActualProblemSize());
+  for (int i=0;i<getActualProblemSize();i++){ \
+      m_x[i] = i*dx;  
+      m_y[i] = i*dy; 
+  } 
 }
 
 void REDUCE_STRUCT::updateChecksum(VariantID vid)

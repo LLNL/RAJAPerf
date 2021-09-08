@@ -39,20 +39,8 @@
 #define REDUCE_STRUCT_DATA_SETUP \
   particles_t particles; \
   particles.N = getActualProblemSize(); \
-  Real_type X_MIN = 0.0, X_MAX = 100.0; \
-  Real_type Y_MIN = 0.0, Y_MAX = 50.0; \
-  Real_type Lx = (X_MAX) - (X_MIN); \
-  Real_type Ly = (Y_MAX) - (Y_MIN); \
-  Real_type dx = Lx/(Real_type)(particles.N); \
-  Real_type dy = Ly/(Real_type)(particles.N); \
-  Real_type DX = dx*(particles.N-1); \
-  Real_type DY = dy*(particles.N-1); \
   particles.x = m_x; \
   particles.y = m_y; \
-  for (int i=0;i<particles.N;i++){ \
-      particles.x[i] = i*dx;  \
-      particles.y[i] = i*dy; \
-  } 
 
 #define REDUCE_STRUCT_BODY  \
   xsum += particles.x[i] ; \
@@ -124,6 +112,11 @@ private:
 
   Real_ptr m_x; Real_ptr m_y;
   particles_t m_particles;
+  Real_type X_MIN = 0.0, X_MAX = 100.0; 
+  Real_type Y_MIN = 0.0, Y_MAX = 50.0; 
+  Real_type Lx = (X_MAX) - (X_MIN); 
+  Real_type Ly = (Y_MAX) - (Y_MIN);
+ 
 };
 
 } // end namespace basic
