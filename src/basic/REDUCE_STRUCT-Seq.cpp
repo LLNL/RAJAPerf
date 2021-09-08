@@ -93,13 +93,13 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid)
         RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(0.0), ymax(0.0);
 
         RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          REDUCE_STRUCT_BODY_RAJA;
+        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+        REDUCE_STRUCT_BODY_RAJA;
         });
 
       	particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),static_cast<Real_type>(ysum.get()/(particles.N)));
-	  	particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
-	  	particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
+	particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
+	particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
         m_particles=particles;
       }
       stopTimer();
