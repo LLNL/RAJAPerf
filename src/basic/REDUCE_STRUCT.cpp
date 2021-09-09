@@ -33,8 +33,9 @@ REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( 2*sizeof(Real_type) + getActualProblemSize());
+  setBytesPerRep( 6*sizeof(Real_type) + 2*sizeof(Real_type)*getActualProblemSize());
   setFLOPsPerRep(2 * getActualProblemSize() + 2);
+    
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
