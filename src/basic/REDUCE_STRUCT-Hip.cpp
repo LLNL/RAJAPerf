@@ -36,8 +36,8 @@ namespace basic
   deallocHipDeviceData(particles.y); \
 
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
-                              Real_ptr xcenter, Real_ptr xmin, Real_ptr xmax, 
-                              Real_ptr ycenter, Real_ptr ymin, Real_ptr ymax, 
+                              Real_ptr xsum, Real_ptr xmin, Real_ptr xmax, 
+                              Real_ptr ysum, Real_ptr ymin, Real_ptr ymax, 
                               Index_type iend)
 {
 
@@ -93,11 +93,11 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 
 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( xcenter, pxsum[ 0 ] / (Real_type)iend);
+    RAJA::atomicAdd<RAJA::hip_atomic>( xsum, pxsum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( xmin, pxmin[ 0 ] );
     RAJA::atomicMax<RAJA::hip_atomic>( xmax, pxmax[ 0 ] );
 
-    RAJA::atomicAdd<RAJA::hip_atomic>( ycenter, pysum[ 0 ] / (Real_type)iend);
+    RAJA::atomicAdd<RAJA::hip_atomic>( ysum, pysum[ 0 ] );
     RAJA::atomicMin<RAJA::hip_atomic>( ymin, pymin[ 0 ] );
     RAJA::atomicMax<RAJA::hip_atomic>( ymax, pymax[ 0 ] );
   }
@@ -136,7 +136,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
       Real_ptr plmem = &lmem[0];
       getHipDeviceData(plmem, mem, 6);
 
-      particles.SetCenter(lmem[0],lmem[3]);
+      particles.SetCenter(lmem[0]/particles.N,lmem[3]/particles.N);
       particles.SetXMin(lmem[1]);
       particles.SetXMax(lmem[2]);
       particles.SetYMin(lmem[4]);
