@@ -42,6 +42,11 @@ list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 if(ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 include_directories(basic)
+include_directories(lcals)
+include_directories(apps)
+include_directories(algorithm)
+include_directories(stream)
+include_directories(polybench)
 blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
@@ -78,7 +83,6 @@ blt_add_executable(
   apps/VOL3D-OMPTarget.cpp
   #apps/WIP-COUPLE.cpp
   #Kokkos bloc
-  apps-kokkos/AppsData.cpp
   apps-kokkos/DEL_DOT_VEC_2D-Kokkos.cpp
   apps-kokkos/ENERGY-Kokkos.cpp
   apps-kokkos/FIR-Kokkos.cpp
@@ -88,9 +92,12 @@ blt_add_executable(
   apps-kokkos/LTIMES_NOVIEW-Kokkos.cpp
   apps-kokkos/VOL3D-Kokkos.cpp
   #apps-kokkos/WIP-COUPLE.cpp
-  basic/ATOMIC_PI.cpp
-  basic/ATOMIC_PI-Seq.cpp
-  basic/ATOMIC_PI-OMPTarget.cpp
+  #basic/ATOMIC_PI.cpp
+  #basic/ATOMIC_PI-Seq.cpp
+  #basic/ATOMIC_PI-OMPTarget.cpp
+  basic/PI_ATOMIC.cpp
+  basic/PI_ATOMIC-Seq.cpp
+  basic/PI_ATOMIC-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -124,7 +131,7 @@ blt_add_executable(
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
-  basic-kokkos/ATOMIC_PI-Kokkos.cpp
+  basic-kokkos/PI_ATOMIC-Kokkos.cpp
   basic-kokkos/DAXPY-Kokkos.cpp
   basic-kokkos/IF_QUAD-Kokkos.cpp
   basic-kokkos/INIT3-Kokkos.cpp
