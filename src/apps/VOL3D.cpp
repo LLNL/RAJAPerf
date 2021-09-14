@@ -60,6 +60,8 @@ VOL3D::VOL3D(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 VOL3D::~VOL3D()

@@ -18,6 +18,30 @@ namespace lcals
 {
 
 
+template<class px_type, class cx_type>
+void diff_predict_helper(Index_type run_reps,
+                         Index_type ibegin,
+                         Index_type iend,
+                         Index_type offset,
+                         // a Kokkos View
+                         px_type& px, 
+                         // a Kokkos View
+                         cx_type& cx){
+
+      
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+             
+              Kokkos::parallel_for("DIFF_PREDICT_Kokkos Kokkos_Lambda",
+                                   Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                                   KOKKOS_LAMBDA(Index_type i) {
+                                   DIFF_PREDICT_BODY
+                                   });
+
+      }
+}
+
+
+
 void DIFF_PREDICT::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -27,11 +51,12 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid)
 
   DIFF_PREDICT_DATA_SETUP;
 
+
   // Instiating KokkosViews using getViewFromPointer;
   // Wrapping pointers in KokkosViews
 
   // You need to know the actual array size here to catch errors;
-  //
+  
   auto px_view = getViewFromPointer(px, iend*14);
   auto cx_view = getViewFromPointer(cx, iend*14);
   
@@ -91,81 +116,26 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid)
     }
 */
 
+
+
 // Kokkos-ifying here:
 //
     case Kokkos_Lambda : {
-
-      // Define ar, br cr because you are not using the DIFF_PREDICT_BODY
-      
       Kokkos::fence();
       startTimer();
 
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-             
-              Kokkos::parallel_for("DIFF_PREDICT_Kokkos Kokkos_Lambda",
-/*   
-(gdb) p offset
-$1 = 100000
-(gdb) 
-$2 = 100000
-(gdb) p iend
-$3 = 100000
-*/
+	  diff_predict_helper( run_reps,
+                          ibegin,
+                          iend,
+                          offset,
+                          px_view,
+                          cx_view);
 
-                                   Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                                   KOKKOS_LAMBDA(Index_type i) {
-                                   // DIFF_PREDICT_BODY definition in
-                                   // DIFF_PREDICT.hpp:
-                                   /*
-                                     ar                  = cx[i + offset * 4];       \
-                                     br                  = ar - px[i + offset * 4];  \
-                                     px[i + offset * 4]  = ar;                       \
-                                     cr                  = br - px[i + offset * 5];  \
-                                     px[i + offset * 5]  = br;                       \
-                                     ar                  = cr - px[i + offset * 6];  \
-                                     px[i + offset * 6]  = cr;                       \
-                                     br                  = ar - px[i + offset * 7];  \
-                                     px[i + offset * 7]  = ar;                       \
-                                     cr                  = br - px[i + offset * 8];  \
-                                     px[i + offset * 8]  = br;                       \
-                                     ar                  = cr - px[i + offset * 9];  \
-                                     px[i + offset * 9]  = cr;                       \
-                                     br                  = ar - px[i + offset * 10]; \
-                                     px[i + offset * 10] = ar;                       \
-                                     cr                  = br - px[i + offset * 11]; \
-                                     px[i + offset * 11] = br;                       \
-                                     px[i + offset * 13] = cr - px[i + offset * 12]; \
-                                     px[i + offset * 12] = cr;
 
-                                     */
-
-                                     Real_type ar, br, cr; 
-                                     ar                  = cx_view[i + offset * 4];       \
-                                     br                  = ar - px_view[i + offset * 4];  \
-                                     px_view[i + offset * 4]  = ar;                       \
-                                     cr                  = br - px_view[i + offset * 5];  \
-                                     px_view[i + offset * 5]  = br;                       \
-                                     ar                  = cr - px_view[i + offset * 6];  \
-                                     px_view[i + offset * 6]  = cr;                       \
-                                     br                  = ar - px_view[i + offset * 7];  \
-                                     px_view[i + offset * 7]  = ar;                       \
-                                     cr                  = br - px_view[i + offset * 8];  \
-                                     px_view[i + offset * 8]  = br;                       \
-                                     ar                  = cr - px_view[i + offset * 9];  \
-                                     px_view[i + offset * 9]  = cr;                       \
-                                     br                  = ar - px_view[i + offset * 10]; \
-                                     px_view[i + offset * 10] = ar;                       \
-                                     cr                  = br - px_view[i + offset * 11]; \
-                                     px_view[i + offset * 11] = br;                       \
-                                     px_view[i + offset * 13] = cr - px_view[i + offset * 12]; \
-                                     px_view[i + offset * 12] = cr;
-                                   });
-
-      }
       Kokkos::fence();
       stopTimer();
-
       break;
+
     }
 
 

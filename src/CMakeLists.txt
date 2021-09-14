@@ -19,7 +19,8 @@ add_subdirectory(lcals-kokkos)
 #add_subdirectory(polybench)
 add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
-#add_subdirectory(algorithm)
+add_subdirectory(algorithm)
+add_subdirectory(algorithm-kokkos)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
@@ -33,7 +34,8 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     #polybench
     stream
     stream-kokkos
-    #algorithm
+    algorithm
+    algorithm-kokkos
     )
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
@@ -236,6 +238,12 @@ blt_add_executable(
   stream-kokkos/DOT-Kokkos.cpp
   stream-kokkos/MUL-Kokkos.cpp
   stream-kokkos/TRIAD-Kokkos.cpp
+  algorithm/SORT.cpp
+  algorithm/SORT-Seq.cpp
+  algorithm/SORTPAIRS.cpp
+  algorithm/SORTPAIRS-Seq.cpp
+  algorithm-kokkos/SORT-Kokkos.cpp
+  algorithm-kokkos/SORTPAIRS-Kokkos.cpp
   common/DataUtils.cpp
   common/Executor.cpp
   common/KernelBase.cpp
@@ -243,10 +251,6 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
-  #algorithm/SORT.cpp
-  #algorithm/SORT-Seq.cpp
-  #algorithm/SORTPAIRS.cpp
-  #algorithm/SORTPAIRS-Seq.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

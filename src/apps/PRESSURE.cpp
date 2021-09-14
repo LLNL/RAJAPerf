@@ -52,6 +52,8 @@ PRESSURE::PRESSURE(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 PRESSURE::~PRESSURE()

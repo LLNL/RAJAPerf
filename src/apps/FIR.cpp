@@ -24,6 +24,9 @@ FIR::FIR(const RunParams& params)
   setDefaultProblemSize(1000000);
   setDefaultReps(160);
 
+  //setDefaultProblemSize(10);
+  //setDefaultReps(1);
+
   m_coefflen = FIR_COEFFLEN;
 
   setActualProblemSize( getTargetProblemSize() );
@@ -52,6 +55,8 @@ FIR::FIR(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 FIR::~FIR()

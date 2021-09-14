@@ -159,12 +159,10 @@ namespace rajaperf {
         free_register_kernel(exec, "Apps", new apps::LTIMES_NOVIEW(run_params));
         free_register_kernel(exec, "Apps", new apps::PRESSURE(run_params));
         free_register_kernel(exec, "Apps", new apps::VOL3D(run_params));
-
-/**
         // Algorithm
         free_register_kernel(exec, "Algorithm", new algorithm::SORT(run_params));
         free_register_kernel(exec, "Algorithm", new algorithm::SORTPAIRS(run_params));
-        */
+
     }
 
 /*!
@@ -276,11 +274,10 @@ namespace rajaperf {
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
-//
 // Algorithm kernels...
 //
-//  std::string("Algorithm_SORT"),
-//  std::string("Algorithm_SORTPAIRS"),
+  std::string("Algorithm_SORT"),
+  std::string("Algorithm_SORTPAIRS"),
 
                     std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 

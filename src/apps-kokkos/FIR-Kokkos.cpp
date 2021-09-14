@@ -21,23 +21,35 @@ namespace apps
 
 void FIR::runKokkosVariant(VariantID vid)
 {
-        // FIXME
-        return;
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
+  // Macro for 1D Array of defined length of coefficients
   FIR_COEFF;
 
+  // Declare & initialize pointers, coefflen
   FIR_DATA_SETUP;
 
+  // Declare coeff array
   Real_type coeff[FIR_COEFFLEN];
+
+
+  //  std::copy(iterator source_first, iterator source_end, iterator target_start);
+  // Copy the "coeff_array" (in FIR.hpp) into the "coeff" array; both are
+  // "Real_type" 
   std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));
+
+  auto in_view =  getViewFromPointer(in, iend +  m_coefflen);
+  auto out_view = getViewFromPointer(out, iend + m_coefflen);
 
   auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
   
+#if defined(RUN_KOKKOS)
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -55,7 +67,6 @@ void FIR::runKokkosVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
@@ -70,7 +81,7 @@ void FIR::runKokkosVariant(VariantID vid)
 
       break;
     }
-
+/*
     case RAJA_Seq : {
 
       startTimer();
@@ -84,13 +95,47 @@ void FIR::runKokkosVariant(VariantID vid)
 
       break;
     }
-#endif // RUN_RAJA_SEQ
+
+    */
+
+
+    case Kokkos_Lambda : {
+      
+      Kokkos::fence();
+      startTimer();
+
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Kokkos::parallel_for("FIR - Kokkos_Lambda",
+                              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                              KOKKOS_LAMBDA(Index_type i) {
+                              // #define FIR_BODY
+                                  Real_type sum = 0.0;
+
+                                  for (Index_type j = 0; j < coefflen; ++j ) {
+                                    sum += coeff[j]*in_view[i+j];
+                                  } 
+                                  out_view[i] = sum;
+                                  });
+
+      }
+      Kokkos::fence();
+      stopTimer(); 
+
+      break;
+    }
 
     default : {
       std::cout << "\n  FIR : Unknown variant id = " << vid << std::endl;
     }
 
   }
+
+#endif // RUN_KOKKOS
+  
+  moveDataToHostFromKokkosView(in, in_view, iend + m_coefflen);
+  moveDataToHostFromKokkosView(out, out_view, iend + m_coefflen);
+
 
 }
 

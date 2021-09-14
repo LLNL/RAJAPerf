@@ -17,14 +17,6 @@ namespace rajaperf
 namespace stream
 {
 
-/*
-void DOT::runSeqVariant(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-*/
-
 
 void DOT::runKokkosVariant(VariantID vid) {
 
@@ -39,10 +31,6 @@ void DOT::runKokkosVariant(VariantID vid) {
   // Instantiation of pointer - wrapped views:
   auto a_view = getViewFromPointer(a, iend);
   auto b_view = getViewFromPointer(b, iend);
-  //
-  // From basic-kokkos - REDUCE3 
-  // Instantiation of a view from a pointer to a vector
-  // auto vec_view = getViewFromPointer(vec, iend);
 
 
 
@@ -70,7 +58,6 @@ void DOT::runKokkosVariant(VariantID vid) {
       break;
     }
 
-// #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       auto dot_base_lam = [=](Index_type i) -> Real_type {
@@ -152,9 +139,6 @@ void DOT::runKokkosVariant(VariantID vid) {
                          }
 
 
-
-// #endif // RUN_RAJA_SEQ
-
     default : {
       std::cout << "\n  DOT : Unknown variant id = " << vid << std::endl;
     }
@@ -165,11 +149,8 @@ void DOT::runKokkosVariant(VariantID vid) {
 #endif // RUN_KOKKOS
               
          std::cout << " FIX ME STREAM DOT -- GET DATA FROM VIEWS " << std::endl;
-        //moveDataToHostFromKokkosView(a, a_view, iend);
-        //moveDataToHostFromKokkosView(b, b_view, iend);
-        
-        // From REDUCE3-INT
-        // moveDataToHostFromKokkosView(vec, vec_view, iend);
+        moveDataToHostFromKokkosView(a, a_view, iend);
+        moveDataToHostFromKokkosView(b, b_view, iend);
 
 }
 
