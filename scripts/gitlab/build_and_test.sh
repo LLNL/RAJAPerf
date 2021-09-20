@@ -19,6 +19,7 @@ build_root=${BUILD_ROOT:-""}
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
+raja_version=${UPDATE_RAJA:-""}
 
 sys_type=${SYS_TYPE:-""}
 py_env_path=${PYTHON_ENVIRONMENT_PATH:-""}
@@ -53,6 +54,11 @@ then
         prefix="${prefix}/${job_unique_id}"
         mkdir -p ${prefix}
         prefix_opt="--prefix=${prefix}"
+    fi
+
+    if [[ -n ${raja_version} ]]
+    then
+      spec="${spec} ^raja@${raja_version}"
     fi
 
     python scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
@@ -117,6 +123,9 @@ then
     #       use max cores.
     rm -rf ${build_dir} 2>/dev/null
     mkdir -p ${build_dir} && cd ${build_dir}
+
+    #git checkout "task/kab163/set-up-multi-project-ci"
+    #git pull
 
     date
     cmake \
