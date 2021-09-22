@@ -38,10 +38,16 @@ RunParams::RunParams(int argc, char** argv)
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
+   exclude_kernel_input(),
+   invalid_exclude_kernel_input(),
    variant_input(),
    invalid_variant_input(),
+   exclude_variant_input(),
+   invalid_exclude_variant_input(),
    feature_input(),
    invalid_feature_input(),
+   exclude_feature_input(),
+   invalid_exclude_feature_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
 {
@@ -70,19 +76,19 @@ RunParams::~RunParams()
  */
 void RunParams::print(std::ostream& str) const
 {
-  str << "\n show_progress = " << show_progress; 
-  str << "\n npasses = " << npasses; 
+  str << "\n show_progress = " << show_progress;
+  str << "\n npasses = " << npasses;
   str << "\n rep_fact = " << rep_fact;
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
-  str << "\n pf_tol = " << pf_tol; 
-  str << "\n checkrun_reps = " << checkrun_reps; 
-  str << "\n reference_variant = " << reference_variant; 
-  str << "\n outdir = " << outdir; 
-  str << "\n outfile_prefix = " << outfile_prefix; 
+  str << "\n pf_tol = " << pf_tol;
+  str << "\n checkrun_reps = " << checkrun_reps;
+  str << "\n reference_variant = " << reference_variant;
+  str << "\n outdir = " << outdir;
+  str << "\n outfile_prefix = " << outfile_prefix;
 
-  str << "\n kernel_input = "; 
+  str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
   }
@@ -91,13 +97,31 @@ void RunParams::print(std::ostream& str) const
     str << "\n\t" << invalid_kernel_input[j];
   }
 
-  str << "\n variant_input = "; 
+  str << "\n exclude_kernel_input = ";
+  for (size_t j = 0; j < exclude_kernel_input.size(); ++j) {
+    str << "\n\t" << exclude_kernel_input[j];
+  }
+  str << "\n invalid_exclude_kernel_input = ";
+  for (size_t j = 0; j < invalid_exclude_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_kernel_input[j];
+  }
+
+  str << "\n variant_input = ";
   for (size_t j = 0; j < variant_input.size(); ++j) {
     str << "\n\t" << variant_input[j];
   }
-  str << "\n invalid_variant_input = "; 
+  str << "\n invalid_variant_input = ";
   for (size_t j = 0; j < invalid_variant_input.size(); ++j) {
     str << "\n\t" << invalid_variant_input[j];
+  }
+
+  str << "\n exclude_variant_input = ";
+  for (size_t j = 0; j < exclude_variant_input.size(); ++j) {
+    str << "\n\t" << exclude_variant_input[j];
+  }
+  str << "\n invalid_exclude_variant_input = ";
+  for (size_t j = 0; j < invalid_exclude_variant_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_variant_input[j];
   }
 
   str << "\n feature_input = ";
@@ -107,6 +131,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_feature_input = ";
   for (size_t j = 0; j < invalid_feature_input.size(); ++j) {
     str << "\n\t" << invalid_feature_input[j];
+  }
+
+  str << "\n exclude_feature_input = ";
+  for (size_t j = 0; j < exclude_feature_input.size(); ++j) {
+    str << "\n\t" << exclude_feature_input[j];
+  }
+  str << "\n invalid_exclude_feature_input = ";
+  for (size_t j = 0; j < invalid_exclude_feature_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_feature_input[j];
   }
 
   str << std::endl;
@@ -142,14 +175,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( opt == std::string("--print-kernels") ||
                 opt == std::string("-pk") ) {
-     
-      printFullKernelNames(std::cout);     
+
+      printFullKernelNames(std::cout);
       input_state = InfoRequest;
- 
+
     } else if ( opt == std::string("--print-variants") ||
                 opt == std::string("-pv") ) {
 
-      printVariantNames(std::cout);     
+      printVariantNames(std::cout);
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -169,28 +202,28 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       printKernelFeatures(std::cout);
       input_state = InfoRequest;
- 
+
     } else if ( opt == std::string("--npasses") ) {
 
       i++;
-      if ( i < argc ) { 
+      if ( i < argc ) {
         npasses = ::atoi( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --npasses a value for number of passes (int)" 
-                  << std::endl; 
+                  << " must give --npasses a value for number of passes (int)"
+                  << std::endl;
         input_state = BadInput;
       }
 
     } else if ( opt == std::string("--repfact") ) {
 
       i++;
-      if ( i < argc ) { 
+      if ( i < argc ) {
         rep_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --rep_fact a value (double)" 
-                  << std::endl;       
+                  << " must give --rep_fact a value (double)"
+                  << std::endl;
         input_state = BadInput;
       }
 
@@ -277,6 +310,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( opt == std::string("--exclude-kernels") ||
+                opt == std::string("-ek") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_kernel_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--variants") ||
                 std::string(argv[i]) == std::string("-v") ) {
 
@@ -293,6 +342,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( std::string(argv[i]) == std::string("--exclude-variants") ||
+                std::string(argv[i]) == std::string("-ev") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_variant_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--features") ||
                 std::string(argv[i]) == std::string("-f") ) {
 
@@ -305,6 +370,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           done = true;
         } else {
           feature_input.push_back(opt);
+          ++i;
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--exclude-features") ||
+                std::string(argv[i]) == std::string("-ef") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_feature_input.push_back(opt);
           ++i;
         }
       }
@@ -353,10 +434,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
        if (input_state != BadInput) {
          input_state = DryRun;
        }
-   
+
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
-      input_state = CheckRun; 
+      input_state = CheckRun;
 
       i++;
       if ( i < argc ) {
@@ -370,10 +451,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       }
 
     } else {
-     
+
       input_state = BadInput;
 
-      std::string huh(argv[i]);   
+      std::string huh(argv[i]);
       std::cout << "\nUnknown option: " << huh << std::endl;
       std::cout.flush();
 
@@ -392,7 +473,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 void RunParams::printHelpMessage(std::ostream& str) const
 {
   str << "\nUsage: ./raja-perf.exe [options]\n";
-  str << "Valid options are:\n"; 
+  str << "Valid options are:\n";
 
   str << "\t --help, -h (print options with descriptions)\n\n";
 
@@ -411,7 +492,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (print names of features used by each kernel)\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through Suite)\n"; 
+      << "\t      (num passes through Suite)\n";
   str << "\t\t Example...\n"
       << "\t\t --npasses 2 (runs complete Suite twice\n\n";
 
@@ -438,23 +519,42 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
-      << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
+      << "\t      (names of individual kernels and/or groups of kernels to run)\n";
   str << "\t\t Examples...\n"
       << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels)\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
+      << "\t\t -k INIT3 Apps (run INIT3 kernel and all kernels in Apps group)\n\n";
+
+  str << "\t --exclude-kernels, -ek <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-kernels Polybench (exclude all kernels in Polybench group)\n"
+      << "\t\t -ek INIT3 MULADDSUB (exclude INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -ek INIT3 Apps (exclude INIT3 kernel and all kernels in Apps group)\n\n";
 
   str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
-      << "\t      (names of variants to run)\n"; 
+      << "\t      (names of variants to run)\n";
   str << "\t\t Examples...\n"
       << "\t\t --variants RAJA_CUDA (run all RAJA_CUDA kernel variants)\n"
       << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --exclude-variants, -ev <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of variants to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
+      << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
   str << "\t\t Examples...\n"
       << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
       << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
+
+  str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of features to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
+      << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
@@ -476,7 +576,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n"; 
+<< "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
 
@@ -572,7 +672,7 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str << "\nAvailable kernels and features each uses:";
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
-    KernelID tkid = static_cast<KernelID>(kid); 
+    KernelID tkid = static_cast<KernelID>(kid);
 /// RDH DISABLE COUPLE KERNEL
     if (tkid != Apps_COUPLE) {
       str << getFullKernelName(tkid) << std::endl;
@@ -584,7 +684,7 @@ void RunParams::printKernelFeatures(std::ostream& str) const
         }
       }  // loop over features
       delete kern;
-    }  
+    }
   }  // loop over kernels
   str.flush();
 }
