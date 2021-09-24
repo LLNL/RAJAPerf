@@ -37,11 +37,11 @@ public:
   enum InputOpt {
     InfoRequest,  /*!< option requesting information */
     DryRun,       /*!< report summary of how suite will run w/o running */
-    CheckRun,     /*!< run suite with small rep count to make sure 
+    CheckRun,     /*!< run suite with small rep count to make sure
                        everything works properly */
-    PerfRun,      /*!< input defines a valid performance run, 
+    PerfRun,      /*!< input defines a valid performance run,
                        suite will run as specified */
-    BadInput,     /*!< erroneous input given */ 
+    BadInput,     /*!< erroneous input given */
     Undefined     /*!< input not defined (yet) */
   };
 
@@ -71,7 +71,7 @@ public:
 //@{
 //! @name Methods to get/set input state
 
-  InputOpt getInputState() const { return input_state; } 
+  InputOpt getInputState() const { return input_state; }
 
   /*!
    * \brief Set whether run parameters (from input) are valid.
@@ -103,19 +103,33 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
-  const std::vector<std::string>& getKernelInput() const 
+  const std::vector<std::string>& getKernelInput() const
                                   { return kernel_input; }
   void setInvalidKernelInput( std::vector<std::string>& svec )
                               { invalid_kernel_input = svec; }
   const std::vector<std::string>& getInvalidKernelInput() const
                                   { return invalid_kernel_input; }
 
-  const std::vector<std::string>& getVariantInput() const 
+  const std::vector<std::string>& getExcludeKernelInput() const
+                                  { return exclude_kernel_input; }
+  void setInvalidExcludeKernelInput( std::vector<std::string>& svec )
+                              { invalid_exclude_kernel_input = svec; }
+  const std::vector<std::string>& getInvalidExcludeKernelInput() const
+                                  { return invalid_exclude_kernel_input; }
+
+  const std::vector<std::string>& getVariantInput() const
                                   { return variant_input; }
   void setInvalidVariantInput( std::vector<std::string>& svec )
                                { invalid_variant_input = svec; }
   const std::vector<std::string>& getInvalidVariantInput() const
                                   { return invalid_variant_input; }
+
+  const std::vector<std::string>& getExcludeVariantInput() const
+                                  { return exclude_variant_input; }
+  void setInvalidExcludeVariantInput( std::vector<std::string>& svec )
+                               { invalid_exclude_variant_input = svec; }
+  const std::vector<std::string>& getInvalidExcludeVariantInput() const
+                                  { return invalid_exclude_variant_input; }
 
   const std::vector<std::string>& getFeatureInput() const
                                   { return feature_input; }
@@ -123,6 +137,13 @@ public:
                                { invalid_feature_input = svec; }
   const std::vector<std::string>& getInvalidFeatureInput() const
                                   { return invalid_feature_input; }
+
+  const std::vector<std::string>& getExcludeFeatureInput() const
+                                  { return exclude_feature_input; }
+  void setInvalidExcludeFeatureInput( std::vector<std::string>& svec )
+                               { invalid_exclude_feature_input = svec; }
+  const std::vector<std::string>& getInvalidExcludeFeatureInput() const
+                                  { return invalid_exclude_feature_input; }
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
@@ -169,18 +190,24 @@ private:
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
-                                        calculations */ 
+                                        calculations */
 
   //
-  // Arrays to hold input strings for valid/invalid input. Helpful for  
+  // Arrays to hold input strings for valid/invalid input. Helpful for
   // debugging command line args.
   //
   std::vector<std::string> kernel_input;
   std::vector<std::string> invalid_kernel_input;
+  std::vector<std::string> exclude_kernel_input;
+  std::vector<std::string> invalid_exclude_kernel_input;
   std::vector<std::string> variant_input;
   std::vector<std::string> invalid_variant_input;
+  std::vector<std::string> exclude_variant_input;
+  std::vector<std::string> invalid_exclude_variant_input;
   std::vector<std::string> feature_input;
   std::vector<std::string> invalid_feature_input;
+  std::vector<std::string> exclude_feature_input;
+  std::vector<std::string> invalid_exclude_feature_input;
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
