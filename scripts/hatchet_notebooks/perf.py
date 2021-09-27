@@ -18,6 +18,12 @@ from IPython.display import display, HTML
 
 machine = platform.uname().machine
 
+use_native_reader=False
+grouping_attribute = "prop:nested"
+default_metric = "avg#inclusive#sum#time.duration" 
+query = "select %s,sum(%s) group by %s format json-split" % (grouping_attribute, default_metric, grouping_attribute)
+
+
 # Add hatchet to PYTHONPATH
 deploy_dir = "/home/skip/workspace/hatchet/"
 sys.path.append(deploy_dir)
@@ -59,6 +65,7 @@ class GenericFrame(ht.GraphFrame):
         generic_exc_metrics = gf.exc_metrics
         generic_inc_metrics = gf.inc_metrics
         #generic_default_metric = gf.default_metric  # in newer Hatchet
+        #print('Default Metric = ' + gf.default_metric)
         generic_dataframe.iloc[0, generic_dataframe.columns.get_loc('name')] = 'Variant' 
         ii = generic_dataframe.index[0]
         #fr = ht.frame.Frame({'name': 'Variant', 'type' : 'region'})
@@ -104,12 +111,16 @@ def CompareVariants(CALI_FILES) -> (list):
     grouping_attribute = "prop:nested"
     default_metric = "avg#inclusive#sum#time.duration" 
     query = "select %s,sum(%s) group by %s format json-split" % (grouping_attribute, default_metric, grouping_attribute)
+
     gflist = []
     vstrs = []
     for i in range(len(CALI_FILES)):
         (records,globals) = cr.read_caliper_contents(CALI_FILES[i]['cali_file'])
         cstr = globals['compiler']
-        gflist.append(ht.GraphFrame.from_caliper(CALI_FILES[i]['cali_file'], query))
+        if use_native_reader:
+            gflist.append(ht.GraphFrame.from_caliperreader(CALI_FILES[i]['cali_file']))
+        else:
+            gflist.append(ht.GraphFrame.from_caliper(CALI_FILES[i]['cali_file'], query))
         v  = gflist[i]
         vstrs.append(v.dataframe.iloc[0,v.dataframe.columns.get_loc('name')] + '_' + cstr)
 
@@ -121,7 +132,10 @@ def CompareVariants(CALI_FILES) -> (list):
             c_common = ExtractCommonSubtree(GenericFrame(gflist[c]),GenericFrame(gflist[r]))
             scale = r_common / c_common
             df = scale.dataframe
-            val = df.iloc[0, df.columns.get_loc('time (inc)')] 
+            if use_native_reader:
+                val = df.iloc[0, df.columns.get_loc(default_metric)] 
+            else:
+                val = df.iloc[0, df.columns.get_loc('time (inc)')] 
             compare.loc[vstrs[r],vstrs[c]] = val
             print(".",end="")
     print(" ")
@@ -149,10 +163,25 @@ CALI_FILES = [
  { "cali_file": data_path+"Lambda_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
 ]
 
-grouping_attribute = "prop:nested"
-default_metric = "avg#inclusive#sum#time.duration" 
-query = "select %s,sum(%s) group by %s format json-split" % (grouping_attribute, default_metric, grouping_attribute)
 
+
+# In[ ]:
+if use_native_reader:
+    # New technique
+    gf0=ht.GraphFrame.from_caliperreader(CALI_FILES[2]['cali_file'])
+    display(HTML(gf0.dataframe.to_html()))
+    print("New technique: ")
+    print(gf0.show_metric_columns())
+    print(GenericFrame(gf0).tree(metric_column="avg#inclusive#sum#time.duration"))
+
+# In[ ]:
+if not use_native_reader:
+    #Old technique
+    gf1 = ht.GraphFrame.from_caliper(CALI_FILES[2]['cali_file'], query)
+    display(HTML(gf1.dataframe.to_html()))
+    print("Old technique: ")
+    print(gf1.show_metric_columns())
+    print(GenericFrame(gf1).tree(metric_column='time (inc)'))
 
 # In[ ]:
 print("Comparing all variants to each other in new pandas dataframe")
