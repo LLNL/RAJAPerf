@@ -98,6 +98,15 @@ Executor::Executor(int argc, char** argv)
     adiak::value("systype_build", cc.systype_build);
   if (strlen(cc.machine_build) > 0)
     adiak::value("machine_build", cc.machine_build);
+
+  adiak::value("ProblemSize",1.0);
+  adiak::value("SizeMeaning",run_params.SizeMeaningToStr(run_params.getSizeMeaning()).c_str());
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    adiak::value("ProblemSize",run_params.getSizeFactor());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    adiak::value("ProblemSize",run_params.getSize());
+  }
+
 #endif
 }
 
@@ -793,19 +802,17 @@ void Executor::runSuite()
         cout << getVariantName(vid) << " variant" << endl;
       }
       if ( warmup_kernel->hasVariantDefined(vid) ) {
+#ifdef RAJAPERF_USE_CALIPER
+        warmup_kernel->caliperOff();
+#endif
         warmup_kernel->execute(vid);
+#ifdef RAJAPERF_USE_CALIPER
+        warmup_kernel->caliperOn();
+#endif
       }
       cout << getVariantName(vid) << " variant" << endl;
     }
-    if ( warmup_kernel->hasVariantDefined(vid) ) {
-#ifdef RAJAPERF_USE_CALIPER
-      warmup_kernel->caliperOff();
-#endif
-      warmup_kernel->execute(vid);
-#ifdef RAJAPERF_USE_CALIPER
-      warmup_kernel->caliperOn();
-#endif
-    }
+
     delete warmup_kernels[ik];
   }
 
