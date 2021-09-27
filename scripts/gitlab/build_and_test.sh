@@ -56,11 +56,6 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    if [[ -n ${raja_version} ]]
-    then
-      spec="${spec} ^raja@${raja_version}"
-    fi
-
     python scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
 
 fi
@@ -117,15 +112,21 @@ then
     # Map CPU core allocations
     declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32)
 
+    # If using Multi-project, set up the submodule
+    if [[ -n ${raja_version} ]]
+    then
+      cd tpl/RAJA  
+      git checkout "task/kab163/set-up-multi-project-ci"
+      git pull
+      cd -
+    fi
+
     # If building, then delete everything first
     # NOTE: 'cmake --build . -j core_counts' attempts to reduce individual build resources.
     #       If core_counts does not contain hostname, then will default to '-j ', which should
     #       use max cores.
     rm -rf ${build_dir} 2>/dev/null
     mkdir -p ${build_dir} && cd ${build_dir}
-
-    #git checkout "task/kab163/set-up-multi-project-ci"
-    #git pull
 
     date
     cmake \
