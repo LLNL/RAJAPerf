@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -18,6 +18,7 @@
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#include "basic/MAT_MAT_SHARED.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
@@ -77,6 +78,7 @@
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DPA.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
@@ -141,6 +143,7 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  std::string("Basic_MAT_MAT_SHARED"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
@@ -200,6 +203,7 @@ static const std::string KernelNames [] =
   std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DPA"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
@@ -270,7 +274,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Launch"),
+  std::string("Teams"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -442,6 +446,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_INIT_VIEW1D_OFFSET : {
        kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
+    case Basic_MAT_MAT_SHARED : {
+       kernel = new basic::MAT_MAT_SHARED(run_params);
        break;
     }
     case Basic_MULADDSUB : {
@@ -630,6 +638,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_LTIMES_NOVIEW : {
        kernel = new apps::LTIMES_NOVIEW(run_params);
+       break;
+    }
+    case Apps_MASS3DPA : {
+       kernel = new apps::MASS3DPA(run_params);
        break;
     }
     case Apps_PRESSURE : {

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -92,12 +92,12 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::CudaKernelAsync<
+        RAJA::statement::CudaKernelFixedAsync<block_size,
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
                                    RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,  // i
               RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::For<1, RAJA::seq_exec,            // j
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0,1>>
               >,
               RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>

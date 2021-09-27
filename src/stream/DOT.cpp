@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,16 +21,17 @@ namespace stream
 DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 2*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(2 * getRunSize());
+                  (0*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+                  getActualProblemSize() );
+  setFLOPsPerRep(2 * getActualProblemSize());
 
   setUsesFeature( Forall );
   setUsesFeature( Reduction );
@@ -59,8 +60,8 @@ DOT::~DOT()
 
 void DOT::setUp(VariantID vid)
 {
-  allocAndInitData(m_a, getRunSize(), vid);
-  allocAndInitData(m_b, getRunSize(), vid);
+  allocAndInitData(m_a, getActualProblemSize(), vid);
+  allocAndInitData(m_b, getActualProblemSize(), vid);
 
   m_dot = 0.0;
   m_dot_init = 0.0;

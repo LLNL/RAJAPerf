@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -38,6 +38,15 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
 }
 
 /*!
+ * \brief Simple cuda kernel that runs a lambda.
+ */
+template < typename Lambda >
+__global__ void lambda_cuda(Lambda body)
+{
+    body();
+}
+
+/*!
  * \brief Getters for cuda kernel indices.
  */
 template < typename Index >
@@ -67,41 +76,6 @@ __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() 
 template < >
 __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
   return blockIdx.z;
-}
-
-/*!
- * \brief Simple kernel cuda kernel that runs a lambda.
- */
-template < typename I_Index, typename J_Index, typename Lambda >
-__global__ void lambda_cuda_kernel(Index_type ibegin, Index_type iend,
-                                   Index_type jbegin, Index_type jend,
-                                   Lambda body)
-{
-  Index_type i = ibegin + lambda_cuda_get_index<I_Index>();
-  Index_type j = jbegin + lambda_cuda_get_index<J_Index>();
-  if (i < iend) {
-    if (j < jend) {
-      body(i, j);
-    }
-  }
-}
-///
-template < typename I_Index, typename J_Index, typename K_Index, typename Lambda >
-__global__ void lambda_cuda_kernel(Index_type ibegin, Index_type iend,
-                                   Index_type jbegin, Index_type jend,
-                                   Index_type kbegin, Index_type kend,
-                                   Lambda body)
-{
-  Index_type i = ibegin + lambda_cuda_get_index<I_Index>();
-  Index_type j = jbegin + lambda_cuda_get_index<J_Index>();
-  Index_type k = kbegin + lambda_cuda_get_index<K_Index>();
-  if (i < iend) {
-    if (j < jend) {
-      if (k < kend) {
-        body(i, j, k);
-      }
-    }
-  }
 }
 
 /*!
@@ -191,4 +165,3 @@ void deallocCudaPinnedData(T& pptr)
 #endif // RAJA_ENABLE_CUDA
 
 #endif  // closing endif for header file include guard
-

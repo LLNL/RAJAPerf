@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -24,10 +24,10 @@ namespace apps
 COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
 {
-  setDefaultSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(50);
 
-  Index_type rzmax = std::cbrt(getRunSize())+1;
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_imin = m_domain->imin;
@@ -37,9 +37,9 @@ COUPLE::COUPLE(const RunParams& params)
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
 
-  setProblemSize( m_domain->n_real_zones );
+  setActualProblemSize( m_domain->n_real_zones );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones );
   setFLOPsPerRep(0);

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -107,26 +107,12 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
 
       POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
-      auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY1_RAJA;
-                              };
-      auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY2_RAJA;
-                              };
-
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
               RAJA::statement::For<2, RAJA::loop_exec,
                 RAJA::statement::Lambda<0>
-              >
-            >
-          >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::For<2, RAJA::loop_exec,
-                RAJA::statement::Lambda<1>
               >
             >
           >
@@ -141,8 +127,20 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
                                                    RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
 
-            poly_heat3d_lam1,
-            poly_heat3d_lam2
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY1_RAJA;
+            }
+
+          );
+
+          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1}),
+
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY2_RAJA;
+            }
+
           );
 
         }

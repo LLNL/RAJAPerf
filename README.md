@@ -1,7 +1,7 @@
 [comment]: # (#################################################################)
 [comment]: # (Copyright 2017-2021, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
-[comment]: # (See the RAJA/COPYRIGHT file for details.)
+[comment]: # (See the RAJA/LICENSE file for details.)
 [comment]: #
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
@@ -44,6 +44,7 @@ Table of Contents
 2. [Running the Suite](#running-the-suite)
 3. [Generated output](#generated-output)
 4. [Adding kernels and variants](#adding-kernels-and-variants)
+4. [Continuous Integration](#continuous-integration)
 5. [Contributions](#contributions)
 6. [Authors](#authors)
 7. [Copyright and Release](#copyright-and-release)
@@ -88,7 +89,9 @@ the Lawrence Livermore Computing Center. Each build script creates a
 descriptively-named build space directory in the top-level Performance Suite 
 directory and runs CMake with a configuration appropriate for the platform and 
 compilers used. After CMake completes, enter the build directory and type 
-`make` (or `make -j <N>` for a parallel build) to compile the code. For example,
+`make` (or `make -j <N>` for a parallel build using N processor cores; if you
+omit the number of cores, the code will build in parallel using all available
+cores on the node you are running on) to compile the code. For example,
 
 ```
 > ./scripts/blueos_nvcc_clang.sh 10.2.89 sm_70 10.0.1
@@ -98,10 +101,11 @@ compilers used. After CMake completes, enter the build directory and type
 
 The build scripts and associated CMake `host-config` files in RAJA are 
 useful sources of information for building the Suite on various platforms.
-For example, they show how to enable specific back-end kernel variants.
+For example, they show how to enable specific back-end kernel variants and
+compiler options we use for testing.
 
 You can also create your own build directory and run CMake with your own
-options from there; e.g., :
+options from there. For example, :
 
 ```
 > mkdir my-build
@@ -133,18 +137,17 @@ build space directory. For example, if you provide no command line options,
 the entire Suite (all kernels and variants) will execute in their default 
 configurations. How the Suite will run and some details about each kernel 
 will appear on the screen before it is run. Kernel detail information will
-also appear in one of the run report files generated in your run directory
+also appear in a run report file generated in your run directory
 after the Suite executes. You can pass the ''--dryrun'' option along with 
 any other runtime options to see a summary of how the Suite will execute
 without actually running it.
 
-The Suite can be run in a variety of ways via the options that may be passed 
-to the executable. For example, you can run subsets of kernels by specifying 
+The Suite can be run in a variety of ways via options passed to the executable.
+For example, you can run subsets of kernels and variants by specifying 
 variants, groups, or individual kernels explicitly. Other configuration 
 options to set problem sizes, number of times each kernel is run, etc. can 
-also be specified. In other words, you build the code once and use scripts or 
-other mechanisms to run the Suite in different ways for analyses you want to 
-perform.
+also be specified. You build the code once and use scripts or other mechanisms 
+to run the Suite in different ways for analyses you want to perform.
 
 All options appear in a 'long form' with a double hyphen prefix (i.e., '--').
 Some options are available in a one or two character 'short form' with a 
@@ -162,10 +165,11 @@ or
 ```
 
 Lastly, the program will generate a summary of provided input if it is given 
-input that the code does not know how to parse. Hopefully, this will make it 
-easy for users to correct erroneous usage, such as mis-spellled option names.
+input that the code does not know how to parse. Ill-formed input will be noted
+in the summary output. Hopefully, this will make it easy for users to correct 
+erroneous usage, such as mis-spelled option names.
 
-# Important note
+## Important note
 
  * The OpenMP target offload variants of the kernels in the Suite are a 
    work-in-progress since the RAJA OpenMP target offload back-end is also
@@ -191,28 +195,94 @@ indicating the contents of the file.
 Currently, there are five files generated:
 
 1. Timing -- execution time (sec.) of each loop kernel and variant run
-2. Checksum -- checksum values for each loop kernel and variant run to ensure they are producing the same results
+2. Checksum -- checksum values for each loop kernel and variant run to ensure they are producing the same results (typically, checksum differences of ~1e-10 or less indicate that all kernel variants ran correctly).
 3. Speedup -- runtime speedup of each loop kernel and variant with respect to a reference variant. The reference variant can be set with a command line option. If not specified, the first variant run will be used as the reference. The reference variant used will be noted in the file.
 4. Figure of Merit (FOM) -- basic statistics about speedup of RAJA variant vs. baseline for each programming model run. Also, when a RAJA variant timing differs from the corresponding baseline variant timing by more than some tolerance, this will be noted in the file with `OVER_TOL`. By default the tolerance is 10%. This can be changed via a command line option.
 5. Kernel -- Basic information about each kernel that is run, which is the same
-for each variant of the kernel that is run.
+for each variant of the kernel that is run. See description of output information below.
 
 All output files are text files. Other than the checksum file, all are in 
-'csv' format for easy processing by comoon tools and generating plots.
+'csv' format for easy processing by common tools and generating plots.
 
 ## Kernel information definitions
 
-The kernel information that will appear on the screen when the Suite is run or
-located in the ''RAJAPerf-kernels.csv'' file includes the following:
+Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'' file, which includes the following:
 
 1. Kernel name -- Format is group name followed by kernel name, separated by an underscore. 
-2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel, available via a command line option.
-3. Problem size -- The largest parallel iteration space over all 'loop structures' (e.g., single loop, nested loops, etc.) run in an instance of the kernel. note: some kernels run multiple loops, possibly of different sizes in each kernel instance.
-4. Reps -- Number of time a kernel is run in a single pass through the Suite.
-5. Iterations/rep -- Sum of sizes of all parallel iteration spaces for all loops run in a kernel instance (see 'problem size' above).
-6. Kernels/rep -- total number of loop structures run in each kernel instance.
+2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel.
+3. Problem size -- Size of the problem represented by a kernel. Please see notes below for more information.
+4. Reps -- Number of times a kernel runs in a single pass through the Suite.
+5. Iterations/rep -- Sum of sizes of all parallel iteration spaces for all loops run in a single kernel execution (see 'problem size' above).
+6. Kernels/rep -- total number of loop structures run (or GPU kernels launched) in each kernel repetition.
 7. Bytes/rep -- Total number of bytes read from and written to memory for each repetition of kernel.
-8. FLOPs/rep -- Total number of floating point operations executed for each repetition of kernel. Currently, we count arithmetic operations (+, -, *, /) and functions, such as exp, sin, code, etc. as on FLOP. We do not currently count operations like abs and comparisons (<, >, etc.) in the FLOP count.
+8. FLOPs/rep -- Total number of floating point operations executed for each repetition of kernel. Currently, we count arithmetic operations (+, -, *, /) and functions, such as exp, sin, code, etc. as on FLOP. We do not currently count operations like abs and comparisons (<, >, etc.) in the FLOP count. So these numbers are rough estimates. For actual FLOP counts, a performancce analysis tool should be used.
+
+### Notes about 'problem size'
+
+ * The Suite uses three notions of problem size for each kernel: 'default', 
+   'target', and 'actual'. Default is the 'default' problem size defined for a 
+   kernel and the size that will be run if no runtime options are 
+   provided to run a different size. Target is the desired problem size to run
+   based on default settings and alterations to that if input is provided to
+   change the default. Actual is the problem size that is run based on how 
+   each kernel calculates this.
+ * The concept of problem size is subjective and can be interpreted differently
+   depending on the kernel structure and what one is trying to measure. For 
+   example, problem size could refer to the amount of data needed to be stored 
+   in memory to run the problem, or it could refer to the amount of parallel 
+   work that is possible, etc. 
+ * We employ the following, admittedly loose definition, which depends on the 
+   particular kernel structure. Of all the 'loop structures' (e.g., single 
+   loop, nested loops, etc.) that are run for a kernel (note that some kernels 
+   run multiple loops, possibly with different sizes or loop structures), 
+   problem size refers to the size of the data set required to generate the 
+   kernel result. The interpretation of this and the definition of problem 
+   size for each kernel in the suite is determined by the kernel developer 
+   and team discussion.
+
+Here are a few examples to give a better sense of how we determine problem 
+size for various kernels in the Suite.
+
+Vector addition.
+```cpp
+for (int i = 0; i < 0; i < N; ++i) {
+  c[i] = a[i] + b[i]; 
+}
+```
+The problem size for this kernel is 'N', the loop length. Note that this 
+happens to match the size of the vectors a, b, c and the total amount of 
+parallel work in the kernel. This is common for simple, data parallel kernels.
+
+Matrix-vector multiplication.
+```cpp
+for (int r = 0; r < N_r; ++r) {
+  b[r] = 0;
+  for (int c = 0; c < N_c; ++c) {
+    b[r] += A[r][c] + x[c];
+  }
+}
+```
+The problem size if N_r * N_c, the size of the matrix. Note that this matches
+the total size of the problem iteration space, but the total amount of parallel
+work is N_r, the number of rows in the matrix and the length of the vector b.
+
+Matrix-matrix multiplication.
+```cpp
+for (int i = 0; i < N_i; ++i) {  
+  for (int j = 0; j < N_j; ++j) {
+    A[i][j] = 0;
+    for (int k = 0; k < N_k; ++k) {
+      A[i][j] += B[i][k] * C[k][j];
+    }
+  }
+}
+```
+Here, we are multiplying matrix B (N_i x N_k) and matrix C (N_k x N_j) and
+storing the result in matrix A (N_i X N_j). Problem size could be chosen to
+be the maximum number of entries in matrix B or C. We choose the size of 
+matrix A (N_i * N_j), which is more closely aligned with the number of 
+independent operations (i.e., the amount of parallel work) in the kernels. 
+
 
 * * *
 
@@ -280,7 +350,8 @@ Note: the kernel string name is just a string version of the kernel ID.
 This convention must be followed so that the kernel works properly with the
 Performance Suite machinery. Also, the values in the KernelID enum and the
 strings in the `KernelNames` array must be kept consistent (i.e., same order
-and matching one-to-one).
+and matching one-to-one). Within each kernel group, we keep the kernel names
+and IDs in alphabetical order to make the organization clear.
 
 
 ### Add new group if needed
@@ -307,14 +378,19 @@ the Performance Suite framework, the kernel class must be a subclass of the
 
 Continuing with our example, we add a 'FOO' class header file `FOO.hpp`, 
 and multiple implementation files described in the following sections: 
+
   * `FOO.cpp` contains the methods to setup and teardown the memory for the
     'FOO' kernel, and compute and record a checksum on the result after it 
-    executes. It also specifies kernel information (described earlier).
-  * `FOO-Seq.cpp` contains sequential CPU variants of the kernel
-  * `FOO-OMP.cpp` contains OpenMP CPU multithreading variants of the kernel
-  * `FOO-OMPTarget.cpp` contains OpenMP target offload variants of the kernel
-  * `FOO-Cuda.cpp` contains CUDA GPU variants of the kernel
-  * `FOO-Hip.cpp` contains HIP GPU variants of the kernel
+    executes. It also specifies kernel information in the kernel class 
+    constructor.
+  * `FOO-Seq.cpp` contains sequential CPU variants of the kernel.
+  * `FOO-OMP.cpp` contains OpenMP CPU multithreading variants of the kernel.
+  * `FOO-OMPTarget.cpp` contains OpenMP target offload variants of the kernel.
+  * `FOO-Cuda.cpp` contains CUDA GPU variants of the kernel.
+  * `FOO-Hip.cpp` contains HIP GPU variants of the kernel.
+
+All kernels in the Suite follow the same implementation pattern. Inspect the
+files for any kernel to understand the overall organization.
   
 Note: if a new execution back-end variant is added that is not listed here,
 that variant should go in the file `FOO-<backend-name>.cpp`. Keeping the 
@@ -329,7 +405,7 @@ Here is what a header file for the FOO kernel object should look like:
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -397,7 +473,7 @@ key steps and conventions that must be followed to ensure that all kernels
 interact with the performance Suite machinery in the same way:
 
 1. Initialize the `KernelBase` class object with `KernelID` and `RunParams` object passed to the FOO class constructor.
-2. Set the default size, and default run repetition count in the FOO class constructor. Then, set kernel run information, problem size, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the corresponding members in the `KernelBase`` class, also in the constructor. See the *.cpp file for any existing kernel in the suite for examples of how to do this..
+2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase`` class. See the *.cpp file for any existing kernel in the suite for examples of how this is done.
 3. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
@@ -407,31 +483,39 @@ interact with the performance Suite machinery in the same way:
 
 It is important to note that there will only be one instance of each kernel
 class created by the program. Thus, each kernel class constructor and 
-destructor must only perform operations that are non-specific to any kernel 
+destructor must only perform operations that are not specific to any kernel 
 variant.
 
 The constructor must pass the kernel ID and RunParams object to the base
 class `KernelBase` constructor. The body of the constructor must also call
-base class methods to set kernel information as described above. The code
-snippet below illustrates how this typically looks. Note that the arguments
-passed to each method may be specific to each kernel.
+base class methods to set kernel information described above. Note that 
+the arguments passed to each method are specific to each kernel, in general. 
+This code snippets shows a typical way this looks for a simple single for-loop
+data parallel kernel.
 
 ```cpp
 FOO::FOO(const RunParams& params)
   : KernelBase(rajaperf::Basic_Foo, params),
-    // default initialization of class members
 {
-  setDefaultSize(1000000);
-  setDefaultReps(1000);
+  setDefaultProblemSize(1000000);  // length of the for-loop
+  setDefaultReps(1000);            // number of times the kernel will execute
+                                   // to generate an execution run time value
+
+  setActualProblemSize( getTargetProblemSize() );  // actual problem size may
+                                                   // be different than the 
+                                                   // default size based on
+                                                   // user-provided run time
+                                                   // options
  
-  setProblemSize( getRunSize() );
-
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( ... );
-  setFLOPsPerRep( ... );
+  setBytesPerRep( ... );  // value set based on data read and written when
+                          // kernel executes
+  setFLOPsPerRep( ... );  // value set based on floating-point operations
+                          // performed when kernel executes
 
-  setUsesFeature(Forall);
+  setUsesFeature(Forall); // the kernel uses the RAJA::forall construct and
+                          // no other RAJA features.
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -456,9 +540,7 @@ mapped to CPU cores, a CUDA variant may initialize data in host memory,
 which will be copied to device memory when a CUDA variant executes, etc.
 
 It is important to use the same data allocation and initialization operations
-for RAJA and non-RAJA variants that use the same back-end. Also, the state of 
-all input data for the kernel should be the same for all variants so that 
-checksums can be compared at the end of a run.
+for all kernel variants so that checksums can be compared at the end of a run.
 
 Note: to simplify these operations and help ensure consistency, there exist 
 utility methods to allocate, initialize, deallocate, and copy data, and compute
@@ -468,11 +550,10 @@ checksums defined in the `DataUtils.hpp` `CudaDataUtils.hpp`,
 ##### run methods
 
 Which files contain which 'run' methods and associated variant implementations 
-is described above. Each method take a variant ID argument which identifies
-the variant to be run for each programming model back-end. Each method is also 
-responsible for calling base class methods to start and stop execution timers 
-when a loop variant is run. A typical kernel execution code section may look 
-like:
+is described above. Each method takes a variant ID argument which identifies
+the variant to be run. Each method is also responsible for calling base class 
+methods to start and stop execution timers when a loop variant is run. A 
+typical kernel execution code section may look like:
 
 ```cpp
 void Foo::runSeqVariant(VariantID vid)
@@ -532,7 +613,7 @@ void Foo::runSeqVariant(VariantID vid)
 ```
 
 All kernel implementation files are organized in this way. So following this
-pattern will keep all new additions consistent. 
+pattern will ensure all new additions are consistent.
 
 Important notes:
 
@@ -558,7 +639,7 @@ in the KernelBase base class object.
 
 It is important that the checksum be computed in the same way for
 each variant of the kernel so that checksums for different variants can be 
-compared to help identify differences, and potentially errors, in 
+compared to help identify differences, and potential errors in 
 implementations, compiler optimizations, programming model execution, etc.
 
 Note: to simplify checksum computations and help ensure consistency, there 
@@ -631,18 +712,26 @@ above.
 
 * * *
 
+# Continuous Integration
+
+RAJAPerf Suite uses continuous integration to ensure that changes added to the repository are well integrated and tested for compatibility with the rest of the existing code base. Our CI tests include a variety of vetted configurations that run on different LC machines.
+
+RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentation is therefore [shared](https://radiuss-ci.readthedocs.io/en/latest).
+
+* * *
+
 # Contributions
 
 The RAJA Performance Suite is a work-in-progress, with new kernels and variants 
-added over time as new features and back-end support are developed in RAJA. 
-We encourage interested parties to contribute to it so that C++ compiler 
-optimizations and support for programming models like RAJA continue to improve. 
+added as new features and back-end support are developed in RAJA. We encourage 
+interested parties to contribute to it so that C++ compiler optimizations and 
+support for programming models like RAJA continue to improve. 
 
 The Suite developers follow the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) development model. Folks wishing to contribute to the Suite,
-should include their work in a feature branch created from the Performance Suite 
-`develop` branch. Then, create a pull request with the `develop` branch as the 
-destination when it is ready to be reviewed. The `develop` branch contains the 
-latest work in RAJA Performance Suite. Periodically, we will merge the
+should include their work in a feature branch created from the Performance 
+Suite `develop` branch. Then, create a pull request with the `develop` branch 
+as the destination when it is ready to be reviewed. The `develop` branch 
+contains the latest work in RAJA Performance Suite. Periodically, we merge the
 develop branch into the `main` branch and tag a new release.
 
 If you would like to contribute to the RAJA Performance Suite, or have 

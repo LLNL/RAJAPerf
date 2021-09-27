@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -19,6 +19,21 @@ namespace rajaperf
 namespace polybench
 {
 
+//
+// Define thread block size for Hip execution
+//
+constexpr size_t i_block_sz = 8;
+constexpr size_t j_block_sz = 32;
+
+#define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP \
+  dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
+
+#define POLY_FLOYD_WARSHALL_NBLOCKS_HIP \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, i_block_sz)), \
+               static_cast<size_t>(1));
+
+
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(pin, m_pin, m_N * m_N); \
   allocAndInitHipDeviceData(pout, m_pout, m_N * m_N);
@@ -29,15 +44,28 @@ namespace polybench
   deallocHipDeviceData(pin); \
   deallocHipDeviceData(pout);
 
-
 __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
                                     Index_type k,
                                     Index_type N)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-   POLYBENCH_FLOYD_WARSHALL_BODY;
+  if ( i < N && j < N ) {
+    POLYBENCH_FLOYD_WARSHALL_BODY;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_floyd_warshall_lam(Index_type N,
+                                        Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if ( i < N && j < N ) {
+    body(i, j);
+  }
 }
 
 
@@ -56,10 +84,13 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        dim3 nblocks1(1, N, 1);
-        dim3 nthreads_per_block1(N, 1, 1);
-        hipLaunchKernelGGL((poly_floyd_warshall),dim3(nblocks1), dim3(nthreads_per_block1),0,0,pout, pin,
-                                                               k, N);
+        POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
+        POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+
+        hipLaunchKernelGGL((poly_floyd_warshall),
+                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           pout, pin,
+                           k, N);
         hipErrchk( hipGetLastError() );
 
       }
@@ -78,17 +109,18 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        auto poly_floyd_warshall_lambda = [=] __device__ (Index_type i, Index_type j) {
+        auto poly_floyd_warshall_lambda = 
+          [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_FLOYD_WARSHALL_BODY;
+          };
 
-          POLYBENCH_FLOYD_WARSHALL_BODY;
-        };
+        POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
+        POLY_FLOYD_WARSHALL_NBLOCKS_HIP; 
 
-        dim3 nblocks1(1, N, 1);
-        dim3 nthreads_per_block1(N, 1, 1);
-        auto kernel = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_floyd_warshall_lambda)>;
-        hipLaunchKernelGGL(kernel,
-          nblocks1, nthreads_per_block1,0,0,
-          0, N, 0, N, poly_floyd_warshall_lambda);
+        hipLaunchKernelGGL(
+          (poly_floyd_warshall_lam<decltype(poly_floyd_warshall_lambda)>),
+          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+          N, poly_floyd_warshall_lambda);
         hipErrchk( hipGetLastError() );
 
       }
@@ -107,10 +139,16 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
-          RAJA::statement::HipKernelAsync<
-            RAJA::statement::For<1, RAJA::hip_block_y_direct,
-              RAJA::statement::For<2, RAJA::hip_thread_x_direct,
-                RAJA::statement::Lambda<0>
+          RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<i_block_sz>,
+                                     RAJA::hip_block_y_direct,
+              RAJA::statement::Tile<2, RAJA::tile_fixed<j_block_sz>,
+                                       RAJA::hip_block_x_direct,
+                RAJA::statement::For<1, RAJA::hip_thread_y_direct,   // i
+                  RAJA::statement::For<2, RAJA::hip_thread_x_direct, // j
+                    RAJA::statement::Lambda<0>
+                  >
+                >
               >
             >
           >

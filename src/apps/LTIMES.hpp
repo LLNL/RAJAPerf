@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -11,7 +11,7 @@
 ///
 /// for (Index_type z = 0; z < num_z; ++z ) {
 ///   for (Index_type g = 0; g < num_g; ++g ) {
-///     for (Index_type m = 0; z < num_m; ++m ) {
+///     for (Index_type m = 0; m < num_m; ++m ) {
 ///       for (Index_type d = 0; d < num_d; ++d ) {
 ///
 ///         phi[m+ (g * num_m) + (z * num_m * num_g)] +=

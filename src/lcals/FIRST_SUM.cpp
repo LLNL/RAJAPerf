@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,18 +21,18 @@ namespace lcals
 FIRST_SUM::FIRST_SUM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
-  m_N = getRunSize();
+  setActualProblemSize( getTargetProblemSize() );
 
-  setProblemSize( getRunSize() );
+  m_N = getActualProblemSize();
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * (m_N-1) +
                   (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * m_N );
-  setFLOPsPerRep(1 * (getRunSize()-1));
+  setFLOPsPerRep(1 * (getActualProblemSize()-1));
 
   setUsesFeature(Forall);
 
@@ -66,7 +66,7 @@ void FIRST_SUM::setUp(VariantID vid)
 
 void FIRST_SUM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getRunSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void FIRST_SUM::tearDown(VariantID vid)
