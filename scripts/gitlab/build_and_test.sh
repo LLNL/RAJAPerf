@@ -116,6 +116,7 @@ then
     if [[ -n ${raja_version} ]]
     then
       cd tpl/RAJA  
+      git pull origin develop
       git checkout "task/kab163/set-up-multi-project-ci"
       git pull
       cd -
