@@ -34,8 +34,6 @@ jobs:
     matrix: 
       gcc5: 
         docker_target: gcc5
-      gcc5-debug: 
-        docker_target: gcc5-debug
       gcc6:
         docker_target: gcc6
       gcc7:

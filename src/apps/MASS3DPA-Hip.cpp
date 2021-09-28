@@ -42,7 +42,7 @@ namespace apps {
 #define RAJA_UNROLL(N)
 #endif
 #define FOREACH_THREAD(i, k, N)                                                \
-  for(int i=hipThreadIdx_ ##k; i<N; i+=hipBlockDim_ ##k)
+  for (int i = threadIdx.k; i < N; i += blockDim.k)
 
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
