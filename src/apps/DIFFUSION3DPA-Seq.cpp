@@ -24,9 +24,6 @@ namespace apps {
 #endif
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 
-#define MFEM_SHARED
-#define MFEM_SYNC_THREAD
-
 void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -52,43 +49,43 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
           }
         }
 
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(dy, y, DPA_D1D) {
           FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_3;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(qy, y, DPA_Q1D) {
           FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_4;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(qy, y, DPA_Q1D) {
           FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_5;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(d, y, DPA_D1D) {
           FOREACH_THREAD(q, x, DPA_Q1D) {
             DIFFUSION3DPA_6;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(qy, y, DPA_Q1D) {
           FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_7;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(dy, y, DPA_D1D) {
           FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_8;
           }
         }
-        MFEM_SYNC_THREAD;
+
         FOREACH_THREAD(dy, y, DPA_D1D) {
           FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_9;
