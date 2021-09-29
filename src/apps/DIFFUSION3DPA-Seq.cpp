@@ -43,54 +43,54 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
         DIFFUSION3DPA_0_CPU;
 
-        FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D) {
+        FOREACH_THREAD(dy, y, DPA_D1D) {
+          FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_1;
           }
-          FOREACH_THREAD(qx, x, Q1D) {
+          FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_2;
           }
         }
 
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(qx, x, Q1D) {
+        FOREACH_THREAD(dy, y, DPA_D1D) {
+          FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_3;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(qx, x, Q1D) {
+        FOREACH_THREAD(qy, y, DPA_Q1D) {
+          FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_4;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(qx, x, Q1D) {
+        FOREACH_THREAD(qy, y, DPA_Q1D) {
+          FOREACH_THREAD(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_5;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(d, y, D1D) {
-          FOREACH_THREAD(q, x, Q1D) {
+        FOREACH_THREAD(d, y, DPA_D1D) {
+          FOREACH_THREAD(q, x, DPA_Q1D) {
             DIFFUSION3DPA_6;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(qy, y, Q1D) {
-          FOREACH_THREAD(dx, x, D1D) {
+        FOREACH_THREAD(qy, y, DPA_Q1D) {
+          FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_7;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D) {
+        FOREACH_THREAD(dy, y, DPA_D1D) {
+          FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_8;
           }
         }
         MFEM_SYNC_THREAD;
-        FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D) {
+        FOREACH_THREAD(dy, y, DPA_D1D) {
+          FOREACH_THREAD(dx, x, DPA_D1D) {
             DIFFUSION3DPA_9;
           }
         }
@@ -146,14 +146,14 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
               DIFFUSION3DPA_0_CPU;
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dx) {
                       DIFFUSION3DPA_1;
                     }
                   );  // RAJA::expt::loop<inner_x>
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                     [&](int qx) {
                       DIFFUSION3DPA_2;
                     }
@@ -163,9 +163,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                [&](int dy) {
-                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                    [&](int qx) {
                      DIFFUSION3DPA_3;
                    }
@@ -175,9 +175,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
               [&](int qy) {
-                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                   [&](int qx) {
                     DIFFUSION3DPA_4;
                   }
@@ -187,9 +187,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
               [&](int qy) {
-                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                   [&](int qx) {
                     DIFFUSION3DPA_5;
                   }
@@ -199,9 +199,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                [&](int d) {
-                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                    [&](int q) {
                      DIFFUSION3DPA_6;
                    }
@@ -211,9 +211,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                [&](int qy) {
-                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int dx) {
                      DIFFUSION3DPA_7;
                    }
@@ -223,9 +223,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+             RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                [&](int dy) {
-                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                 RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int dx) {
                      DIFFUSION3DPA_8;
                    }
@@ -234,9 +234,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
              ); // RAJA::expt::loop<inner_y>
 
               ctx.teamSync();
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dx) {
                       DIFFUSION3DPA_9;
                     }

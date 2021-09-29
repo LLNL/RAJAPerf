@@ -25,27 +25,27 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
 {
   m_NE_default = 8000;
 
-  setDefaultProblemSize(m_NE_default*Q1D*Q1D*Q1D);
+  setDefaultProblemSize(m_NE_default*DPA_Q1D*DPA_Q1D*DPA_Q1D);
   setDefaultReps(50);
 
-  m_NE = std::max(getTargetProblemSize()/(Q1D*Q1D*Q1D), Index_type(1));
+  m_NE = std::max(getTargetProblemSize()/(DPA_Q1D*DPA_Q1D*DPA_Q1D), Index_type(1));
 
-  setActualProblemSize( m_NE*Q1D*Q1D*Q1D );
+  setActualProblemSize( m_NE*DPA_Q1D*DPA_Q1D*DPA_Q1D );
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 4*Q1D*D1D*sizeof(Real_type)  +
-                  Q1D*Q1D*Q1D*m_NE*sizeof(Real_type) +
-                  D1D*D1D*D1D*m_NE*sizeof(Real_type) +
-                  D1D*D1D*D1D*m_NE*sizeof(Real_type) );
+  setBytesPerRep( 4*DPA_Q1D*DPA_D1D*sizeof(Real_type)  +
+                  DPA_Q1D*DPA_Q1D*DPA_Q1D*m_NE*sizeof(Real_type) +
+                  DPA_D1D*DPA_D1D*DPA_D1D*m_NE*sizeof(Real_type) +
+                  DPA_D1D*DPA_D1D*DPA_D1D*m_NE*sizeof(Real_type) );
 
-  setFLOPsPerRep(m_NE * (2 * D1D * D1D * D1D * Q1D +
-                         2 * D1D * D1D * Q1D * Q1D +
-                         2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D +
-                         2 * Q1D * Q1D * Q1D * D1D +
-                         2 * Q1D * Q1D * D1D * D1D +
-                         2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D));
+  setFLOPsPerRep(m_NE * (2 * DPA_D1D * DPA_D1D * DPA_D1D * DPA_Q1D +
+                         2 * DPA_D1D * DPA_D1D * DPA_Q1D * DPA_Q1D +
+                         2 * DPA_D1D * DPA_Q1D * DPA_Q1D * DPA_Q1D + DPA_Q1D * DPA_Q1D * DPA_Q1D +
+                         2 * DPA_Q1D * DPA_Q1D * DPA_Q1D * DPA_D1D +
+                         2 * DPA_Q1D * DPA_Q1D * DPA_D1D * DPA_D1D +
+                         2 * DPA_Q1D * DPA_D1D * DPA_D1D * DPA_D1D + DPA_D1D * DPA_D1D * DPA_D1D));
   setUsesFeature(Teams);
 
   setVariantDefined( Base_Seq );
@@ -69,16 +69,16 @@ DIFFUSION3DPA::~DIFFUSION3DPA()
 void DIFFUSION3DPA::setUp(VariantID vid)
 {
 
-  allocAndInitDataConst(m_B, int(Q1D*D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_G, int(Q1D*D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_D, int(Q1D*Q1D*Q1D*SYM*m_NE), Real_type(1.0), vid);
-  allocAndInitDataConst(m_X, int(D1D*D1D*D1D*m_NE), Real_type(1.0), vid);
-  allocAndInitDataConst(m_Y, int(D1D*D1D*D1D*m_NE), Real_type(0.0), vid);
+  allocAndInitDataConst(m_B, int(DPA_Q1D*DPA_D1D), Real_type(1.0), vid);
+  allocAndInitDataConst(m_G, int(DPA_Q1D*DPA_D1D), Real_type(1.0), vid);
+  allocAndInitDataConst(m_D, int(DPA_Q1D*DPA_Q1D*DPA_Q1D*SYM*m_NE), Real_type(1.0), vid);
+  allocAndInitDataConst(m_X, int(DPA_D1D*DPA_D1D*DPA_D1D*m_NE), Real_type(1.0), vid);
+  allocAndInitDataConst(m_Y, int(DPA_D1D*DPA_D1D*DPA_D1D*m_NE), Real_type(0.0), vid);
 }
 
 void DIFFUSION3DPA::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_Y, D1D*D1D*D1D*m_NE);
+  checksum[vid] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
 }
 
 void DIFFUSION3DPA::tearDown(VariantID vid)

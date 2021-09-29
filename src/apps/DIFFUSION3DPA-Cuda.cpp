@@ -20,14 +20,14 @@ namespace rajaperf {
 namespace apps {
 
 #define DIFFUSION3DPA_DATA_SETUP_CUDA                                        \
-  //  allocAndInitCudaDeviceData(B, m_B, Q1D *D1D);                     \
-  //  allocAndInitCudaDeviceData(Bt, m_Bt, Q1D *D1D);                   \
-  allocAndInitCudaDeviceData(D, m_D, Q1D *Q1D *Q1D *m_NE);              \
-  allocAndInitCudaDeviceData(X, m_X, D1D *D1D *D1D *m_NE);              \
-  allocAndInitCudaDeviceData(Y, m_Y, D1D *D1D *D1D *m_NE);
+  //  allocAndInitCudaDeviceData(B, m_B, DPA_Q1D *DPA_D1D);                     \
+  //  allocAndInitCudaDeviceData(Bt, m_Bt, DPA_Q1D *DPA_D1D);                   \
+  allocAndInitCudaDeviceData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *m_NE);              \
+  allocAndInitCudaDeviceData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);              \
+  allocAndInitCudaDeviceData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
 
 #define DIFFUSION3DPA_DATA_TEARDOWN_CUDA                                      \
-  //  getCudaDeviceData(m_Y, Y, D1D *D1D *D1D *m_NE);                   \
+  //  getCudaDeviceData(m_Y, Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);                   \
   //  deallocCudaDeviceData(B);                                         \
   //  deallocCudaDeviceData(Bt);                                        \
   //  deallocCudaDeviceData(D);                                         \
@@ -65,7 +65,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(Q1D, Q1D, 1);
+      dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, 1);
 
       //      Diffusion3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
 
