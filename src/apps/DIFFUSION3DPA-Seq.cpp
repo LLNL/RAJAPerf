@@ -24,6 +24,9 @@ namespace apps {
 #endif
 #define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 
+#define MFEM_SHARED
+#define MFEM_SYNC_THREAD
+
 void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -38,56 +41,57 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
       for (int e = 0; e < NE; ++e) {
 
-        DIFFUSION3DPA_0_CPU
+        DIFFUSION3DPA_0_CPU;
 
         FOREACH_THREAD(dy, y, D1D) {
-          FOREACH_THREAD(dx, x, D1D){
-            DIFFUSION3DPA_1
+          FOREACH_THREAD(dx, x, D1D) {
+            DIFFUSION3DPA_1;
           }
-          FOREACH_THREAD(dx, x, Q1D) {
-            DIFFUSION3DPA_2
+          FOREACH_THREAD(qx, x, Q1D) {
+            DIFFUSION3DPA_2;
           }
         }
 
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(qx, x, Q1D) {
-            DIFFUSION3DPA_3
+            DIFFUSION3DPA_3;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(qx, x, Q1D) {
-            DIFFUSION3DPA_4
+            DIFFUSION3DPA_4;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(qx, x, Q1D) {
-            DIFFUSION3DPA_5
+            DIFFUSION3DPA_5;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(d, y, D1D) {
           FOREACH_THREAD(q, x, Q1D) {
-            DIFFUSION3DPA_6
+            DIFFUSION3DPA_6;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(qy, y, Q1D) {
           FOREACH_THREAD(dx, x, D1D) {
-            DIFFUSION3DPA_7
+            DIFFUSION3DPA_7;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D) {
-            DIFFUSION3DPA_8
+            DIFFUSION3DPA_8;
           }
         }
-
+        MFEM_SYNC_THREAD;
         FOREACH_THREAD(dy, y, D1D) {
           FOREACH_THREAD(dx, x, D1D) {
-            DIFFUSION3DPA_9
+            DIFFUSION3DPA_9;
           }
         }
 
@@ -101,150 +105,110 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 #if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
-    //Currently Teams requires two policies if compiled with a device
+    // Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
 #if defined(RAJA_DEVICE_ACTIVE)
-                                                   ,m3d_device_launch
+                                                   ,
+                                                   m3d_device_launch
 #endif
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                           ,m3d_gpu_block_x_policy
+                                           ,
+                                           m3d_gpu_block_x_policy
 #endif
                                            >;
 
     using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,m3d_gpu_thread_x_policy
+                                           ,
+                                           m3d_gpu_thread_x_policy
 #endif
-                                             >;
+                                           >;
 
     using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
 #if defined(RAJA_DEVICE_ACTIVE)
-                                             ,m3d_gpu_thread_y_policy
+                                           ,
+                                           m3d_gpu_thread_y_policy
 #endif
-                                             >;
+                                           >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<launch_policy>(
-        RAJA::expt::HOST, RAJA::expt::Grid(),
-        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      RAJA::expt::launch<launch_policy>
+        (RAJA::expt::HOST, RAJA::expt::Grid(),
+          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE), 
-            [&](int e) {
+          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE), [&](int e) {
 
-              DIFFUSION3DPA_0_CPU
+              DIFFUSION3DPA_0_CPU;
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
-                [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
-                    [&](int dx) {
-                      DIFFUSION3DPA_1
-                    }
-                  );  // RAJA::expt::loop<inner_x>
+            RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+                    DIFFUSION3DPA_1;
+                  });
+                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                    DIFFUSION3DPA_2;
+                  });
+              });
 
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
-                    [&](int dx) {
-                      DIFFUSION3DPA_2
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                } // lambda (dy)
-              );  // RAJA::expt::loop<inner_y>
+            ctx.teamSync();
+            RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+                RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                    DIFFUSION3DPA_3;
+                  });
+              });
 
-              ctx.teamSync();
+            ctx.teamSync();
+            RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+              RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                  DIFFUSION3DPA_4;
+                });
+              });
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
-                [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
-                    [&](int qx) {
-                      DIFFUSION3DPA_3
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
+            ctx.teamSync();
+            RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+              RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qx) {
+                  DIFFUSION3DPA_5;
+                });
+              });
 
-              ctx.teamSync();
+            ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
-                [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
-                    [&](int qx) {
-                      DIFFUSION3DPA_4
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
+        RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int d) {
+            RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D), [&](int q) {
+                DIFFUSION3DPA_6;
+              });
+          });
 
-              ctx.teamSync();
+       ctx.teamSync();
+       RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D), [&](int qy) {
+           RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+               DIFFUSION3DPA_7;
+           });
+         });
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
-                [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
-                    [&](int qx) {
-                      DIFFUSION3DPA_5
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
 
-              ctx.teamSync();
+        ctx.teamSync();
+        RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+          RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {
+              DIFFUSION3DPA_8;
+            });
+         });
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
-                [&](int d) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
-                    [&](int q) {
-                      DIFFUSION3DPA_6
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
+        ctx.teamSync();
+        RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D), [&](int dy) {
+            RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D), [&](int dx) {                
+                DIFFUSION3DPA_9;
+              });
+          });
+        
+            }); 
+    }); // RAJA::expt::launch
 
-              ctx.teamSync();
-
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
-                [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
-                    [&](int dx) {
-                      DIFFUSION3DPA_7
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
-                [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
-                    [&](int dx) {
-                      DIFFUSION3DPA_8
-                    }
-                  ); // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
-                [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
-                    [&](int dx) {
-                      DIFFUSION3DPA_9
-                    }
-                  );  // RAJA::expt::loop<inner_x>
-                }
-              );  // RAJA::expt::loop<inner_y>
-
-            }  // lambda (e)
-          );  // RAJA::expt::loop<outer_x>
-
-        }  // outer lambda (ctx)
-      );  // RAJA::expt::launch
-
-    }  // loop over kernel reps
+    } // loop over kernel reps
     stopTimer();
 
     return;
@@ -252,7 +216,8 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 #endif // RUN_RAJA_SEQ
 
   default:
-    std::cout << "\n DIFFUSION3DPA : Unknown Seq variant id = " << vid << std::endl;
+    std::cout << "\n DIFFUSION3DPA : Unknown Seq variant id = " << vid
+              << std::endl;
   }
 }
 

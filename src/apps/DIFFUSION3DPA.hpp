@@ -284,40 +284,313 @@
 #define RAJAPerf_Apps_DIFFUSION3DPA_HPP
 
 #define DIFFUSION3DPA_DATA_SETUP \
-Real_ptr B = m_B; \
-Real_ptr Bt = m_Bt; \
+Real_ptr Basis = m_B; \
+Real_ptr dBasis = m_G; \
 Real_ptr D = m_D; \
 Real_ptr X = m_X; \
 Real_ptr Y = m_Y; \
-Index_type NE = m_NE;
+Index_type NE = m_NE; \
+const bool symmetric = true;
 
 #include "common/KernelBase.hpp"
 
 #include "RAJA/RAJA.hpp"
 
 //Number of Dofs/Qpts in 1D
-#define D1D 4
-#define Q1D 5
-#define B_(x, y) B[x + Q1D * y]
-#define Bt_(x, y) Bt[x + D1D * y]
+#define D1D 3
+#define Q1D 4
+#define SYM 6
+#define b(x, y) Basis[x + Q1D * y]
+#define g(x, y) dBasis[x + Q1D * y]
 #define X_(dx, dy, dz, e)                                                      \
   X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
 #define Y_(dx, dy, dz, e)                                                      \
   Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
-#define D_(qx, qy, qz, e)                                                      \
-  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
+#define d(qx, qy, qz, s, e)                                                    \
+  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * s  +  Q1D * Q1D * Q1D * SYM * e]
 
-#define DIFFUSION3DPA_0_GPU
-#define DIFFUSION3DPA_0_CPU
-#define DIFFUSION3DPA_1
-#define DIFFUSION3DPA_2
-#define DIFFUSION3DPA_3
-#define DIFFUSION3DPA_4
-#define DIFFUSION3DPA_5
-#define DIFFUSION3DPA_6
-#define DIFFUSION3DPA_7
-#define DIFFUSION3DPA_8
-#define DIFFUSION3DPA_9
+// Half of B and G are stored in shared to get B, Bt, G and Gt.
+// Indices computation for SmemPADiffusionApply3D.
+static RAJA_HOST_DEVICE inline int qi(const int q, const int d, const int Q)
+{
+  return (q<=d) ? q : Q-1-q;
+}
+
+static RAJA_HOST_DEVICE inline int dj(const int q, const int d, const int D)
+{
+  return (q<=d) ? d : D-1-d;
+}
+
+static RAJA_HOST_DEVICE inline int qk(const int q, const int d, const int Q)
+{
+  return (q<=d) ? Q-1-q : q;
+}
+
+static RAJA_HOST_DEVICE inline int dl(const int q, const int d, const int D)
+{
+  return (q<=d) ? D-1-d : d;
+}
+
+static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
+{
+  return (q<=d) ? -1.0 : 1.0;
+}
+
+
+#define DIFFUSION3DPA_0_GPU \
+        constexpr int MQ1 = Q1D; \
+        constexpr int MD1 = D1D; \
+        constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
+        RAJA_TEAM_SHARED double sBG[MQ1*MD1]; \
+        double (*B)[MD1] = (double (*)[MD1]) sBG; \
+        double (*G)[MD1] = (double (*)[MD1]) sBG; \
+        double (*Bt)[MQ1] = (double (*)[MQ1]) sBG; \
+        double (*Gt)[MQ1] = (double (*)[MQ1]) sBG; \
+        RAJA_TEAM_SHARED double sm0[3][MDQ*MDQ*MDQ]; \
+        RAJA_TEAM_SHARED double sm1[3][MDQ*MDQ*MDQ]; \
+        double (*s_X)[MD1][MD1]    = (double (*)[MD1][MD1]) (sm0+2); \
+        double (*DDQ0)[MD1][MQ1] = (double (*)[MD1][MQ1]) (sm0+0); \
+        double (*DDQ1)[MD1][MQ1] = (double (*)[MD1][MQ1]) (sm0+1); \
+        double (*DQQ0)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+0); \
+        double (*DQQ1)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+1); \
+        double (*DQQ2)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+2); \
+        double (*QQQ0)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+0); \
+        double (*QQQ1)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+1); \
+        double (*QQQ2)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+2); \
+        double (*QQD0)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+0); \
+        double (*QQD1)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+1); \
+        double (*QQD2)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+2); \
+        double (*QDD0)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+0); \
+        double (*QDD1)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+1); \
+        double (*QDD2)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+2);
+
+
+#define DIFFUSION3DPA_0_CPU \
+        constexpr int MQ1 = Q1D; \
+        constexpr int MD1 = D1D; \
+        constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
+        double sBG[MQ1*MD1]; \
+        double (*B)[MD1] = (double (*)[MD1]) sBG; \
+        double (*G)[MD1] = (double (*)[MD1]) sBG; \
+        double (*Bt)[MQ1] = (double (*)[MQ1]) sBG; \
+        double (*Gt)[MQ1] = (double (*)[MQ1]) sBG; \
+        double sm0[3][MDQ*MDQ*MDQ]; \
+        double sm1[3][MDQ*MDQ*MDQ]; \
+        double (*s_X)[MD1][MD1]    = (double (*)[MD1][MD1]) (sm0+2); \
+        double (*DDQ0)[MD1][MQ1] = (double (*)[MD1][MQ1]) (sm0+0); \
+        double (*DDQ1)[MD1][MQ1] = (double (*)[MD1][MQ1]) (sm0+1); \
+        double (*DQQ0)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+0); \
+        double (*DQQ1)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+1); \
+        double (*DQQ2)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm1+2); \
+        double (*QQQ0)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+0); \
+        double (*QQQ1)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+1); \
+        double (*QQQ2)[MQ1][MQ1] = (double (*)[MQ1][MQ1]) (sm0+2); \
+        double (*QQD0)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+0); \
+        double (*QQD1)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+1); \
+        double (*QQD2)[MQ1][MD1] = (double (*)[MQ1][MD1]) (sm1+2); \
+        double (*QDD0)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+0); \
+        double (*QDD1)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+1); \
+        double (*QDD2)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+2);
+
+#define DIFFUSION3DPA_1 \
+        RAJA_UNROLL(MD1) \
+        for (int dz = 0; dz < D1D; ++dz) \
+        { \
+          s_X[dz][dy][dx] = X_(dx,dy,dz,e); \
+        }
+
+#define DIFFUSION3DPA_2 \
+            const int i = qi(qx,dy,Q1D); \
+            const int j = dj(qx,dy,D1D); \
+            const int k = qk(qx,dy,Q1D); \
+            const int l = dl(qx,dy,D1D); \
+            B[i][j] = b(qx,dy); \
+            G[k][l] = g(qx,dy) * sign(qx,dy);
+
+#define DIFFUSION3DPA_3 \
+            double u[D1D], v[D1D]; \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; dz++) { u[dz] = v[dz] = 0.0; } \
+            RAJA_UNROLL(MD1) \
+            for (int dx = 0; dx < D1D; ++dx) \
+            { \
+              const int i = qi(qx,dx,Q1D); \
+              const int j = dj(qx,dx,D1D); \
+              const int k = qk(qx,dx,Q1D); \
+              const int l = dl(qx,dx,D1D); \
+              const double s = sign(qx,dx); \
+              RAJA_UNROLL(MD1) \
+                for (int dz = 0; dz < D1D; ++dz) \
+                  { \
+                    const double coords = s_X[dz][dy][dx]; \
+                    u[dz] += coords * B[i][j]; \
+                    v[dz] += coords * G[k][l] * s; \
+                  } \
+            } \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; ++dz) \
+            { \
+              DDQ0[dz][dy][qx] = u[dz]; \
+              DDQ1[dz][dy][qx] = v[dz]; \
+            }
+
+#define DIFFUSION3DPA_4 \
+            double u[D1D], v[D1D], w[D1D]; \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; dz++) { u[dz] = v[dz] = w[dz] = 0.0; } \
+            RAJA_UNROLL(MD1) \
+              for (int dy = 0; dy < D1D; ++dy) \
+                { \
+                  const int i = qi(qy,dy,Q1D); \
+                  const int j = dj(qy,dy,D1D); \
+                  const int k = qk(qy,dy,Q1D); \
+                  const int l = dl(qy,dy,D1D); \
+                  const double s = sign(qy,dy); \
+                  RAJA_UNROLL(MD1) \
+                    for (int dz = 0; dz < D1D; dz++) \
+                      { \
+                        u[dz] += DDQ1[dz][dy][qx] * B[i][j]; \
+                        v[dz] += DDQ0[dz][dy][qx] * G[k][l] * s; \
+                        w[dz] += DDQ0[dz][dy][qx] * B[i][j]; \
+                      } \
+                } \
+            RAJA_UNROLL(MD1) \
+              for (int dz = 0; dz < D1D; dz++) \
+                {  \
+                  DQQ0[dz][qy][qx] = u[dz]; \
+                  DQQ1[dz][qy][qx] = v[dz]; \
+                  DQQ2[dz][qy][qx] = w[dz]; \
+                }
+
+#define DIFFUSION3DPA_5 \
+            double u[Q1D], v[Q1D], w[Q1D]; \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; qz++) { u[qz] = v[qz] = w[qz] = 0.0; } \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; ++dz) \
+            { \
+              RAJA_UNROLL(MQ1) \
+                for (int qz = 0; qz < Q1D; qz++) \
+                { \
+                  const int i = qi(qz,dz,Q1D); \
+                  const int j = dj(qz,dz,D1D); \
+                  const int k = qk(qz,dz,Q1D); \
+                  const int l = dl(qz,dz,D1D); \
+                  const double s = sign(qz,dz); \
+                  u[qz] += DQQ0[dz][qy][qx] * B[i][j]; \
+                  v[qz] += DQQ1[dz][qy][qx] * B[i][j]; \
+                  w[qz] += DQQ2[dz][qy][qx] * G[k][l] * s; \
+                } \
+            } \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; qz++) \
+            { \
+              const double O11 = d(qx,qy,qz,0,e); \
+              const double O12 = d(qx,qy,qz,1,e); \
+              const double O13 = d(qx,qy,qz,2,e); \
+              const double O21 = symmetric ? O12 : d(qx,qy,qz,3,e); \
+              const double O22 = symmetric ? d(qx,qy,qz,3,e) : d(qx,qy,qz,4,e); \
+              const double O23 = symmetric ? d(qx,qy,qz,4,e) : d(qx,qy,qz,5,e); \
+              const double O31 = symmetric ? O13 : d(qx,qy,qz,6,e); \
+              const double O32 = symmetric ? O23 : d(qx,qy,qz,7,e); \
+              const double O33 = symmetric ? d(qx,qy,qz,5,e) : d(qx,qy,qz,8,e); \
+              const double gX = u[qz]; \
+              const double gY = v[qz]; \
+              const double gZ = w[qz]; \
+              QQQ0[qz][qy][qx] = (O11*gX) + (O12*gY) + (O13*gZ); \
+              QQQ1[qz][qy][qx] = (O21*gX) + (O22*gY) + (O23*gZ); \
+              QQQ2[qz][qy][qx] = (O31*gX) + (O32*gY) + (O33*gZ); \
+            }
+
+#define DIFFUSION3DPA_6 \
+              const int i = qi(q,d,Q1D); \
+              const int j = dj(q,d,D1D); \
+              const int k = qk(q,d,Q1D); \
+              const int l = dl(q,d,D1D); \
+              Bt[j][i] = b(q,d); \
+              Gt[l][k] = g(q,d) * sign(q,d); 
+
+#define DIFFUSION3DPA_7 \
+            double u[Q1D], v[Q1D], w[Q1D]; \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; ++qz) { u[qz] = v[qz] = w[qz] = 0.0; } \
+            RAJA_UNROLL(MQ1) \
+            for (int qx = 0; qx < Q1D; ++qx) \
+            { \
+              const int i = qi(qx,dx,Q1D); \
+              const int j = dj(qx,dx,D1D); \
+              const int k = qk(qx,dx,Q1D); \
+              const int l = dl(qx,dx,D1D); \
+              const double s = sign(qx,dx); \
+              RAJA_UNROLL(MQ1) \
+              for (int qz = 0; qz < Q1D; ++qz) \
+              { \
+                u[qz] += QQQ0[qz][qy][qx] * Gt[l][k] * s; \
+                v[qz] += QQQ1[qz][qy][qx] * Bt[j][i]; \
+                w[qz] += QQQ2[qz][qy][qx] * Bt[j][i]; \
+              } \
+            } \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; ++qz) \
+            { \
+              QQD0[qz][qy][dx] = u[qz]; \
+              QQD1[qz][qy][dx] = v[qz]; \
+              QQD2[qz][qy][dx] = w[qz]; \
+            }
+
+#define DIFFUSION3DPA_8 \
+            double u[Q1D], v[Q1D], w[Q1D]; \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; ++qz) { u[qz] = v[qz] = w[qz] = 0.0; } \
+            RAJA_UNROLL(MQ1) \
+            for (int qy = 0; qy < Q1D; ++qy) \
+            { \
+              const int i = qi(qy,dy,Q1D); \
+              const int j = dj(qy,dy,D1D); \
+              const int k = qk(qy,dy,Q1D); \
+              const int l = dl(qy,dy,D1D); \
+              const double s = sign(qy,dy); \
+              RAJA_UNROLL(MQ1) \
+              for (int qz = 0; qz < Q1D; ++qz) \
+              { \
+                u[qz] += QQD0[qz][qy][dx] * Bt[j][i]; \
+                v[qz] += QQD1[qz][qy][dx] * Gt[l][k] * s; \
+                w[qz] += QQD2[qz][qy][dx] * Bt[j][i]; \
+              } \
+            } \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; ++qz) \
+            { \
+              QDD0[qz][dy][dx] = u[qz]; \
+              QDD1[qz][dy][dx] = v[qz]; \
+              QDD2[qz][dy][dx] = w[qz]; \
+            } \
+
+#define DIFFUSION3DPA_9 \
+            double u[D1D], v[D1D], w[D1D]; \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; ++dz) { u[dz] = v[dz] = w[dz] = 0.0; } \
+            RAJA_UNROLL(MQ1) \
+            for (int qz = 0; qz < Q1D; ++qz) \
+            { \
+              RAJA_UNROLL(MD1) \
+              for (int dz = 0; dz < D1D; ++dz) \
+              { \
+                const int i = qi(qz,dz,Q1D); \
+                const int j = dj(qz,dz,D1D); \
+                const int k = qk(qz,dz,Q1D); \
+                const int l = dl(qz,dz,D1D); \
+                const double s = sign(qz,dz); \
+                u[dz] += QDD0[qz][dy][dx] * Bt[j][i]; \
+                v[dz] += QDD1[qz][dy][dx] * Bt[j][i]; \
+                w[dz] += QDD2[qz][dy][dx] * Gt[l][k] * s;\
+              } \
+            } \
+            RAJA_UNROLL(MD1) \
+            for (int dz = 0; dz < D1D; ++dz) \
+            { \
+              Y_(dx,dy,dz,e) += (u[dz] + v[dz] + w[dz]); \
+            }
 
 #if defined(RAJA_ENABLE_CUDA)
   using m3d_device_launch = RAJA::expt::cuda_launch_t<true>;
@@ -362,6 +635,8 @@ private:
 
   Real_ptr m_B;
   Real_ptr m_Bt;
+  Real_ptr m_G;
+  Real_ptr m_Gt;
   Real_ptr m_D;
   Real_ptr m_X;
   Real_ptr m_Y;

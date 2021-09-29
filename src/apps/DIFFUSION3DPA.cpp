@@ -35,8 +35,7 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( Q1D*D1D*sizeof(Real_type)  +
-                  Q1D*D1D*sizeof(Real_type)  +
+  setBytesPerRep( 4*Q1D*D1D*sizeof(Real_type)  +
                   Q1D*Q1D*Q1D*m_NE*sizeof(Real_type) +
                   D1D*D1D*D1D*m_NE*sizeof(Real_type) +
                   D1D*D1D*D1D*m_NE*sizeof(Real_type) );
@@ -71,8 +70,8 @@ void DIFFUSION3DPA::setUp(VariantID vid)
 {
 
   allocAndInitDataConst(m_B, int(Q1D*D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_Bt,int(Q1D*D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_D, int(Q1D*Q1D*Q1D*m_NE), Real_type(1.0), vid);
+  allocAndInitDataConst(m_G, int(Q1D*D1D), Real_type(1.0), vid);
+  allocAndInitDataConst(m_D, int(Q1D*Q1D*Q1D*SYM*m_NE), Real_type(1.0), vid);
   allocAndInitDataConst(m_X, int(D1D*D1D*D1D*m_NE), Real_type(1.0), vid);
   allocAndInitDataConst(m_Y, int(D1D*D1D*D1D*m_NE), Real_type(0.0), vid);
 }
@@ -87,7 +86,7 @@ void DIFFUSION3DPA::tearDown(VariantID vid)
   (void) vid;
 
   deallocData(m_B);
-  deallocData(m_Bt);
+  deallocData(m_G);
   deallocData(m_D);
   deallocData(m_X);
   deallocData(m_Y);
