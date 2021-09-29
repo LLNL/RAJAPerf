@@ -35,17 +35,22 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 4*DPA_Q1D*DPA_D1D*sizeof(Real_type)  +
-                  DPA_Q1D*DPA_Q1D*DPA_Q1D*m_NE*sizeof(Real_type) +
+  setBytesPerRep( 2*DPA_Q1D*DPA_D1D*sizeof(Real_type)  +
+                  DPA_Q1D*DPA_Q1D*DPA_Q1D*SYM*m_NE*sizeof(Real_type) +
                   DPA_D1D*DPA_D1D*DPA_D1D*m_NE*sizeof(Real_type) +
                   DPA_D1D*DPA_D1D*DPA_D1D*m_NE*sizeof(Real_type) );
 
-  setFLOPsPerRep(m_NE * (2 * DPA_D1D * DPA_D1D * DPA_D1D * DPA_Q1D +
-                         2 * DPA_D1D * DPA_D1D * DPA_Q1D * DPA_Q1D +
-                         2 * DPA_D1D * DPA_Q1D * DPA_Q1D * DPA_Q1D + DPA_Q1D * DPA_Q1D * DPA_Q1D +
-                         2 * DPA_Q1D * DPA_Q1D * DPA_Q1D * DPA_D1D +
-                         2 * DPA_Q1D * DPA_Q1D * DPA_D1D * DPA_D1D +
-                         2 * DPA_Q1D * DPA_D1D * DPA_D1D * DPA_D1D + DPA_D1D * DPA_D1D * DPA_D1D));
+  setFLOPsPerRep(m_NE * (DPA_Q1D * DPA_D1D +
+                         5 * DPA_D1D * DPA_D1D * DPA_Q1D * DPA_D1D +
+                         7 * DPA_D1D * DPA_D1D * DPA_Q1D * DPA_Q1D +
+                         7 * DPA_Q1D * DPA_D1D * DPA_Q1D * DPA_Q1D +
+                         15 * DPA_Q1D * DPA_Q1D * DPA_Q1D +
+                         DPA_Q1D * DPA_D1D +
+                         7 * DPA_Q1D * DPA_Q1D * DPA_D1D * DPA_Q1D +
+                         7 * DPA_Q1D * DPA_Q1D * DPA_D1D * DPA_D1D +
+                         7 * DPA_D1D * DPA_Q1D * DPA_D1D * DPA_D1D +
+                         3 * DPA_D1D * DPA_D1D * DPA_D1D));
+
   setUsesFeature(Teams);
 
   setVariantDefined( Base_Seq );

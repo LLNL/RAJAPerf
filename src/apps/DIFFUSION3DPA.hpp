@@ -47,7 +47,7 @@
 ///       {
 ///         X[dz][dy][dx] = x(dx,dy,dz,e);
 ///       }
-///   }
+///     }
 ///     for(int qx=0; qx<DPA_Q1D; ++qx)
 ///     {
 ///       const int i = qi(qx,dy,DPA_Q1D);
@@ -336,7 +336,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
   return (q<=d) ? -1.0 : 1.0;
 }
 
-
 #define DIFFUSION3DPA_0_GPU \
         constexpr int MQ1 = DPA_Q1D; \
         constexpr int MD1 = DPA_D1D; \
@@ -508,7 +507,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
               const int k = qk(q,d,DPA_Q1D); \
               const int l = dl(q,d,DPA_D1D); \
               Bt[j][i] = b(q,d); \
-              Gt[l][k] = g(q,d) * sign(q,d); 
+              Gt[l][k] = g(q,d) * sign(q,d);
 
 #define DIFFUSION3DPA_7 \
             double u[DPA_Q1D], v[DPA_Q1D], w[DPA_Q1D]; \
