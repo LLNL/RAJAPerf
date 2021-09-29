@@ -137,6 +137,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      //Grid is empty as the host does not need a compute grid to be specified
       RAJA::expt::launch<launch_policy>(
         RAJA::expt::HOST, RAJA::expt::Grid(),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
