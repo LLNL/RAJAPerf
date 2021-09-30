@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Action of 3D Mass matrix via partial assembly
+/// Action of 3D diffusion matrix via partial assembly
 ///
 /// Based on MFEM's/CEED algorithms.
 /// Reference implementation
@@ -293,6 +293,7 @@ Index_type NE = m_NE; \
 const bool symmetric = true;
 
 #include "common/KernelBase.hpp"
+#include "FEM_MACROS.hpp"
 
 #include "RAJA/RAJA.hpp"
 

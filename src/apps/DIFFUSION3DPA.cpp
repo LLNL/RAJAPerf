@@ -23,7 +23,7 @@ namespace apps
 DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_DIFFUSION3DPA, params)
 {
-  m_NE_default = 8000;
+  m_NE_default = 15625;
 
   setDefaultProblemSize(m_NE_default*DPA_Q1D*DPA_Q1D*DPA_Q1D);
   setDefaultReps(50);

@@ -19,11 +19,11 @@
 namespace rajaperf {
 namespace apps {
 
-#define DIFFUSION3DPA_DATA_SETUP_HIP                                   \
-  allocAndInitHipDeviceData(Basis, m_B, DPA_Q1D *DPA_D1D);             \
-  allocAndInitHipDeviceData(dBasis, m_G, DPA_Q1D *DPA_D1D);            \
+#define DIFFUSION3DPA_DATA_SETUP_HIP                                        \
+  allocAndInitHipDeviceData(Basis, m_B, DPA_Q1D *DPA_D1D);                  \
+  allocAndInitHipDeviceData(dBasis, m_G, DPA_Q1D *DPA_D1D);                 \
   allocAndInitHipDeviceData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);  \
-  allocAndInitHipDeviceData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);  \
+  allocAndInitHipDeviceData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);       \
   allocAndInitHipDeviceData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
 
 #define DIFFUSION3DPA_DATA_TEARDOWN_HIP                                   \
@@ -34,15 +34,8 @@ namespace apps {
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
+// Uncomment to add compiler directives for loop unrolling
 //#define USE_RAJA_UNROLL
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#if defined(USE_RAJA_UNROLL)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
-#else
-#define RAJA_UNROLL(N)
-#endif
-#define FOREACH_THREAD(i, k, N)                                                \
-  for (int i = threadIdx.k; i < N; i += blockDim.k)
 
 __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_ptr dBasis,
                               const Real_ptr D, const Real_ptr X, Real_ptr Y, bool symmetric) {

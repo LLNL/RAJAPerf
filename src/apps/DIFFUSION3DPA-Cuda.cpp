@@ -34,15 +34,8 @@ namespace apps {
   deallocCudaDeviceData(X);                                         \
   deallocCudaDeviceData(Y);
 
+// Uncomment to add compiler directives for loop unrolling
 //#define USE_RAJA_UNROLL
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#if defined(USE_RAJA_UNROLL)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
-#else
-#define RAJA_UNROLL(N)
-#endif
-#define FOREACH_THREAD(i, k, N)                                                \
-  for (int i = threadIdx.k; i < N; i += blockDim.k)
 
 __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_ptr dBasis,
                               const Real_ptr D, const Real_ptr X, Real_ptr Y, bool symmetric) {
