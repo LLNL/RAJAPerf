@@ -12,7 +12,6 @@
 clang_11_0_0:
   variables:
     SPEC: "%clang@11.0.0"
-    MULTI_PROJECT: "On"
   extends: .build_and_test_on_lassen
 
 clang_11_gcc_8:
