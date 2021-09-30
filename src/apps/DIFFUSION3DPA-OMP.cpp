@@ -37,54 +37,54 @@ void DIFFUSION3DPA::runOpenMPVariant(VariantID vid) {
 
         DIFFUSION3DPA_0_CPU;
 
-        FOREACH_THREAD(dy, y, DPA_D1D) {
-          FOREACH_THREAD(dx, x, DPA_D1D) {
+        CPU_FOREACH(dy, y, DPA_D1D) {
+          CPU_FOREACH(dx, x, DPA_D1D) {
             DIFFUSION3DPA_1;
           }
-          FOREACH_THREAD(qx, x, DPA_Q1D) {
+          CPU_FOREACH(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_2;
           }
         }
 
 
-        FOREACH_THREAD(dy, y, DPA_D1D) {
-          FOREACH_THREAD(qx, x, DPA_Q1D) {
+        CPU_FOREACH(dy, y, DPA_D1D) {
+          CPU_FOREACH(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_3;
           }
         }
 
-        FOREACH_THREAD(qy, y, DPA_Q1D) {
-          FOREACH_THREAD(qx, x, DPA_Q1D) {
+        CPU_FOREACH(qy, y, DPA_Q1D) {
+          CPU_FOREACH(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_4;
           }
         }
 
-        FOREACH_THREAD(qy, y, DPA_Q1D) {
-          FOREACH_THREAD(qx, x, DPA_Q1D) {
+        CPU_FOREACH(qy, y, DPA_Q1D) {
+          CPU_FOREACH(qx, x, DPA_Q1D) {
             DIFFUSION3DPA_5;
           }
         }
 
-        FOREACH_THREAD(d, y, DPA_D1D) {
-          FOREACH_THREAD(q, x, DPA_Q1D) {
+        CPU_FOREACH(d, y, DPA_D1D) {
+          CPU_FOREACH(q, x, DPA_Q1D) {
             DIFFUSION3DPA_6;
           }
         }
 
-        FOREACH_THREAD(qy, y, DPA_Q1D) {
-          FOREACH_THREAD(dx, x, DPA_D1D) {
+        CPU_FOREACH(qy, y, DPA_Q1D) {
+          CPU_FOREACH(dx, x, DPA_D1D) {
             DIFFUSION3DPA_7;
           }
         }
 
-        FOREACH_THREAD(dy, y, DPA_D1D) {
-          FOREACH_THREAD(dx, x, DPA_D1D) {
+        CPU_FOREACH(dy, y, DPA_D1D) {
+          CPU_FOREACH(dx, x, DPA_D1D) {
             DIFFUSION3DPA_8;
           }
         }
 
-        FOREACH_THREAD(dy, y, DPA_D1D) {
-          FOREACH_THREAD(dx, x, DPA_D1D) {
+        CPU_FOREACH(dy, y, DPA_D1D) {
+          CPU_FOREACH(dx, x, DPA_D1D) {
             DIFFUSION3DPA_9;
           }
         }

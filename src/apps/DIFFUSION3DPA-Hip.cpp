@@ -44,54 +44,54 @@ __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_pt
 
   DIFFUSION3DPA_0_GPU;
 
-  FOREACH_THREAD(dy, y, DPA_D1D) {
-    FOREACH_THREAD(dx, x, DPA_D1D) {
+  GPU_FOREACH_THREAD(dy, y, DPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, DPA_D1D) {
       DIFFUSION3DPA_1;
     }
-    FOREACH_THREAD(qx, x, DPA_Q1D) {
+    GPU_FOREACH_THREAD(qx, x, DPA_Q1D) {
       DIFFUSION3DPA_2;
     }
   }
 
   __syncthreads();
-  FOREACH_THREAD(dy, y, DPA_D1D) {
-    FOREACH_THREAD(qx, x, DPA_Q1D) {
+  GPU_FOREACH_THREAD(dy, y, DPA_D1D) {
+    GPU_FOREACH_THREAD(qx, x, DPA_Q1D) {
       DIFFUSION3DPA_3;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(qy, y, DPA_Q1D) {
-    FOREACH_THREAD(qx, x, DPA_Q1D) {
+  GPU_FOREACH_THREAD(qy, y, DPA_Q1D) {
+    GPU_FOREACH_THREAD(qx, x, DPA_Q1D) {
       DIFFUSION3DPA_4;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(qy, y, DPA_Q1D) {
-    FOREACH_THREAD(qx, x, DPA_Q1D) {
+  GPU_FOREACH_THREAD(qy, y, DPA_Q1D) {
+    GPU_FOREACH_THREAD(qx, x, DPA_Q1D) {
       DIFFUSION3DPA_5;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(d, y, DPA_D1D) {
-    FOREACH_THREAD(q, x, DPA_Q1D) {
+  GPU_FOREACH_THREAD(d, y, DPA_D1D) {
+    GPU_FOREACH_THREAD(q, x, DPA_Q1D) {
       DIFFUSION3DPA_6;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(qy, y, DPA_Q1D) {
-    FOREACH_THREAD(dx, x, DPA_D1D) {
+  GPU_FOREACH_THREAD(qy, y, DPA_Q1D) {
+    GPU_FOREACH_THREAD(dx, x, DPA_D1D) {
       DIFFUSION3DPA_7;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(dy, y, DPA_D1D) {
-    FOREACH_THREAD(dx, x, DPA_D1D) {
+  GPU_FOREACH_THREAD(dy, y, DPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, DPA_D1D) {
       DIFFUSION3DPA_8;
     }
   }
   __syncthreads();
-  FOREACH_THREAD(dy, y, DPA_D1D) {
-    FOREACH_THREAD(dx, x, DPA_D1D) {
+  GPU_FOREACH_THREAD(dy, y, DPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, DPA_D1D) {
       DIFFUSION3DPA_9;
     }
   }

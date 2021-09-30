@@ -15,11 +15,15 @@
 #define RAJA_UNROLL(N)
 #endif
 
-#if defined(RAJA_DEVICE_CODE)
-#define FOREACH_THREAD(i, k, N)                                                \
+// Need two different host/device macros due to
+// how hipcc/clang works.
+// See note in MAT_MAT_SHARED regarding hipcc/clang
+// builds.
+#if defined(RAJA_ENABLE_CUDA) || defined(RAJA_ENABLE_HIP)
+#define GPU_FOREACH_THREAD(i, k, N)                    \
   for (int i = threadIdx.k; i < N; i += blockDim.k)
-#else
-#define FOREACH_THREAD(i, k, N) for (int i = 0; i < N; i++)
 #endif
+
+#define CPU_FOREACH(i, k, N) for (int i = 0; i < N; i++)
 
 #endif // closing endif for header file include guard
