@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// Uncomment to add compiler directives loop unrolling
+//#define USE_RAJA_UNROLL
+
 #include "MASS3DPA.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -33,9 +36,6 @@ namespace apps {
   deallocCudaDeviceData(D);                                              \
   deallocCudaDeviceData(X);                                              \
   deallocCudaDeviceData(Y);
-
-// Uncomment to add compiler directives loop unrolling
-//#define USE_RAJA_UNROLL
 
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {

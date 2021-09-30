@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// Uncomment to add compiler directives for loop unrolling
+//#define USE_RAJA_UNROLL
+
 #include "DIFFUSION3DPA.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -33,9 +36,6 @@ namespace apps {
   deallocHipDeviceData(D);                                                \
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
-
-// Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJA_UNROLL
 
 __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_ptr dBasis,
                               const Real_ptr D, const Real_ptr X, Real_ptr Y, bool symmetric) {

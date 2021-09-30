@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// Uncomment to add compiler directives for loop unrolling
+//#define USE_RAJA_UNROLL
+
 #include "DIFFUSION3DPA.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -15,8 +18,6 @@
 namespace rajaperf {
 namespace apps {
 
-// Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJA_UNROLL
 
 void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
