@@ -72,6 +72,7 @@
 //
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -197,6 +198,7 @@ static const std::string KernelNames [] =
 //
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -614,6 +616,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
+       break;
+    }
+    case Apps_DIFFUSION3DPA : {
+       kernel = new apps::DIFFUSION3DPA(run_params);
        break;
     }
     case Apps_ENERGY : {
