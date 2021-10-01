@@ -116,6 +116,9 @@ then
     if [[ -n ${raja_version} ]]
     then
       cd tpl/RAJA  
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating RAJA Submodule to develop ~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       git pull origin develop
       cd -
     fi
