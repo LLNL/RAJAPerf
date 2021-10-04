@@ -43,6 +43,9 @@ blt_add_executable(
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp
+  apps/DIFFUSION3DPA.cpp
+  apps/DIFFUSION3DPA-Seq.cpp
+  apps/DIFFUSION3DPA-OMPTarget.cpp
   apps/ENERGY.cpp
   apps/ENERGY-Seq.cpp
   apps/ENERGY-OMPTarget.cpp
