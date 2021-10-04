@@ -9,16 +9,21 @@
 import sys
 import subprocess
 import json
-import os
+from os import walk
+from os.path import join
+from collections import defaultdict
 import platform
 import ipykernel
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 import pandas as pd
 from IPython.display import display, HTML
 
+
 machine = platform.uname().machine
 
-use_native_reader=False
+use_native_reader=True
 grouping_attribute = "prop:nested"
 default_metric = "avg#inclusive#sum#time.duration" 
 query = "select %s,sum(%s) group by %s format json-split" % (grouping_attribute, default_metric, grouping_attribute)
@@ -64,7 +69,7 @@ class GenericFrame(ht.GraphFrame):
         generic_graph=gf.graph.copy()
         generic_exc_metrics = gf.exc_metrics
         generic_inc_metrics = gf.inc_metrics
-        #generic_default_metric = gf.default_metric  # in newer Hatchet
+        generic_default_metric = gf.default_metric  # in newer Hatchet
         #print('Default Metric = ' + gf.default_metric)
         generic_dataframe.iloc[0, generic_dataframe.columns.get_loc('name')] = 'Variant' 
         ii = generic_dataframe.index[0]
@@ -78,7 +83,7 @@ class GenericFrame(ht.GraphFrame):
         setattr(generic_graph,'roots',[nn])
         super().__init__(generic_graph,generic_dataframe,generic_exc_metrics,generic_inc_metrics)
 
-def ExtractCommonSubtree(gf1: ht.GraphFrame,gf2: ht.GraphFrame) -> (ht.GraphFrame):
+def ExtractCommonSubtree(gf1: ht.GraphFrame,gf2: ht.GraphFrame,metric:str) -> (ht.GraphFrame):
     if (gf1.graph == gf2.graph):
         return gf1
     else:
@@ -96,13 +101,13 @@ def ExtractCommonSubtree(gf1: ht.GraphFrame,gf2: ht.GraphFrame) -> (ht.GraphFram
         # replace subtree values with sum of kernels that have run
         for nn in tt:
             if nn._depth == 2:
-                s2 += common_subtree.dataframe.loc[nn,'time (inc)']
+                s2 += common_subtree.dataframe.loc[nn,metric]
             elif nn._depth == 1:
                 s1 += s2
-                common_subtree.dataframe.loc[nn,'time (inc)'] = s2
+                common_subtree.dataframe.loc[nn,metric] = s2
                 s2 = 0.0
             elif nn._depth == 0:
-                common_subtree.dataframe.loc[nn,'time (inc)'] = s1
+                common_subtree.dataframe.loc[nn,metric] = s1
                 s1 = 0.0
     
         return common_subtree
@@ -128,8 +133,8 @@ def CompareVariants(CALI_FILES) -> (list):
 
     for r in range(len(CALI_FILES)):
         for c in range(len(CALI_FILES)):
-            r_common = ExtractCommonSubtree(GenericFrame(gflist[r]),GenericFrame(gflist[c]))
-            c_common = ExtractCommonSubtree(GenericFrame(gflist[c]),GenericFrame(gflist[r]))
+            r_common = ExtractCommonSubtree(GenericFrame(gflist[r]),GenericFrame(gflist[c]),default_metric)
+            c_common = ExtractCommonSubtree(GenericFrame(gflist[c]),GenericFrame(gflist[r]),default_metric)
             scale = r_common / c_common
             df = scale.dataframe
             if use_native_reader:
@@ -142,6 +147,61 @@ def CompareVariants(CALI_FILES) -> (list):
     print(compare)
     return(gflist)
 
+def ReadCali(directory) -> (list):
+    CALI_FILES = []
+    allfiles = [join(root,f) for root,dirs,files in os.walk(directory) for f in files if f.endswith('.cali')]
+    for f in allfiles:
+        dd = {'cali_file': f , 'metric_name' : 'avg#inclusive#sum#time.duration'}
+        CALI_FILES.append(dd)
+    return CALI_FILES
+    
+def ExtractKernelList(CALI_FILES,variants):
+    kernel_list=[]
+    candidate_list=[]
+    for i in range(len(CALI_FILES)):
+        (records,globals) = cr.read_caliper_contents(CALI_FILES[i]['cali_file'])
+        variant = globals['variant']
+        if variant in variants:
+            gf = ht.GraphFrame.from_caliperreader(CALI_FILES[i]['cali_file'])
+            tt = gf.graph.roots[0].traverse(order="post")
+            for nn in tt:
+                if nn._depth == 2:
+                    candidate_list.append(gf.dataframe.loc[nn,'name'])
+            kernel_list = list(set(candidate_list) | set(kernel_list))
+    return kernel_list
+
+def PlotSweep(CALI_FILES,kernel,variants):
+    plt.title(kernel)
+    vdata = defaultdict(list)
+    for i in range(len(CALI_FILES)):
+        (records,globals) = cr.read_caliper_contents(CALI_FILES[i]['cali_file'])
+        psize = float(globals['ProblemSize'])
+        variant = globals['variant']
+        cluster = globals['cluster']
+        if variant in variants:
+            gf = ht.GraphFrame.from_caliperreader(CALI_FILES[i]['cali_file'])
+            df = gf.dataframe
+            metric = CALI_FILES[i]['metric_name']
+            val = 0.0
+            try:
+                val = df.loc[df['name']==kernel].iloc[0][metric]
+            except: pass
+            vdata[cluster+'_'+variant].append((psize,val))
+    legend = []    
+    for k,v in vdata.items():
+        legend.append(k)
+        ll = sorted(v,key = lambda x: x[0])
+        x = [num[0] for num in ll]
+        y = [num[1] for num in ll]
+        plt.plot(x,y)
+    plt.xlabel('problem size')
+    plt.ylabel('time')
+    plt.xscale('log',base=2)
+    plt.yscale('log',base=2)
+    plt.legend(legend)
+
+
+        
 
 # In[ ]:
 # Add cali-query to PATH
@@ -149,30 +209,53 @@ def CompareVariants(CALI_FILES) -> (list):
 #cali_query_path = "/usr/gapps/spot/live/caliper/" + machine + "/bin"
 cali_query_path = "/home/skip/workspace/spack/opt/spack/linux-ubuntu20.04-haswell/gcc-10.2.0/caliper-2.5.0-y64d5flp5ph55dj74dpvaigjn62txxmc/bin"
 os.environ["PATH"] += os.pathsep + cali_query_path
-data_path="/home/skip/workspace/Caliper_test/testcommon/lassen_gcc831_cuda11/"
+data_path="/home/skip/cali_sweep/RAJAPerf_0"
 
-CALI_FILES = [ 
- { "cali_file": data_path+"RAJA_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"RAJA_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"RAJA_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Base_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Base_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Base_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Lambda_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Lambda_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
- { "cali_file": data_path+"Lambda_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
-]
+CALI_FILES = ReadCali(data_path)
+#print(CALI_FILES)
 
+#CALI_FILES = [ 
+# { "cali_file": data_path+"RAJA_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"RAJA_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"RAJA_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Base_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Base_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Base_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Lambda_CUDA.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Lambda_OpenMP.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+# { "cali_file": data_path+"Lambda_Seq.cali", "metric_name": "avg#inclusive#sum#time.duration"}, 
+#]
+
+# In[]:
+pp = PdfPages('RAJAPERF_Sweep.pdf')
+variants = ['Lambda_OpenMP','Base_OpenMP','RAJA_OpenMP']
+klist = sorted(ExtractKernelList(CALI_FILES,variants))
+fignum = 0
+for i in range(len(klist)):
+    fig = plt.figure(fignum)
+    PlotSweep(CALI_FILES,klist[i],variants)
+    plt.show()
+    pp.savefig(fig)
+    fignum += 1
+pp.close()
 
 
 # In[ ]:
 if use_native_reader:
     # New technique
-    gf0=ht.GraphFrame.from_caliperreader(CALI_FILES[2]['cali_file'])
+    gf0=GenericFrame(ht.GraphFrame.from_caliperreader(CALI_FILES[0]['cali_file']))
     display(HTML(gf0.dataframe.to_html()))
+
+    (records,globals) = cr.read_caliper_contents(CALI_FILES[0]['cali_file'])
+    print(globals)
+
     print("New technique: ")
     print(gf0.show_metric_columns())
-    print(GenericFrame(gf0).tree(metric_column="avg#inclusive#sum#time.duration"))
+    print(gf0.tree(metric_column="avg#inclusive#sum#time.duration"))
+    gf1=GenericFrame(ht.GraphFrame.from_caliperreader(CALI_FILES[1]['cali_file']))
+    print(gf1.tree(metric_column="avg#inclusive#sum#time.duration"))
+    outvar=gf0/gf1
+    print(outvar.tree(metric_column="avg#inclusive#sum#time.duration"))
 
 # In[ ]:
 if not use_native_reader:
@@ -183,9 +266,10 @@ if not use_native_reader:
     print(gf1.show_metric_columns())
     print(GenericFrame(gf1).tree(metric_column='time (inc)'))
 
+
 # In[ ]:
 print("Comparing all variants to each other in new pandas dataframe")
-gflist = CompareVariants(CALI_FILES)
+gflist = CompareVariants(CALI_FILES[0:6])
 
 #print(gflist[0].tree(metric_column="time (inc)"))
 #display(HTML(gflist[0].dataframe.to_html()))
@@ -196,42 +280,9 @@ gflist = CompareVariants(CALI_FILES)
 #print('\n')
 #print(globals)
 
-Base_OpenMP = gflist[4]
-Base_Seq = gflist[5]
-Lambda_CUDA = gflist[6]
+#Base_OpenMP = gflist[4]
+#Base_Seq = gflist[5]
+#Lambda_CUDA = gflist[6]
 
-# In[ ]:
-print("Illustrates two incompatible trees Base_OpenMP/Base_Seq")
-#print(Base_OpenMP.tree(metric_column="time (inc)"))
-#print(Lambda_CUDA.tree(metric_column="time (inc)"))
-# compare Base_OpenMP to Base_Seq and display tree (illustrates incompatible trees)
-invar =  Base_OpenMP / Base_Seq
-print(invar.tree(metric_column="time (inc)"))
 
-# In[ ]:
-print("Illustrates a bit more compatible tree by fixing root nodes via GenericFrame ")
-# compare  Base_OpenMP to Base_Seq and display tree (illustrates compatible trees by fixing Root Node)
-outvar = GenericFrame(Base_OpenMP) / GenericFrame(Base_Seq)
-print(outvar.tree(metric_column="time (inc)"))
-
-# In[ ]:
-# compare GenericFrame versions of Base_OpenMP to Lambda_CUDA and display tree (illustrates somewhat less compatible trees due to missing kernels)
-print("Show variants that have a large difference in kernels run Base_OpenMP vs Lambda_CUDA")
-cudavar = GenericFrame(Base_OpenMP) / GenericFrame(Lambda_CUDA)
-print(cudavar.tree(metric_column="time (inc)"))
-
-#cudavar2 = GenericFrame(Lambda_CUDA) / GenericFrame(Base_OpenMP)
-#print(cudavar2.tree(metric_column="time (inc)"))
-
-# In[ ]:
-print("show use of ExtractCommonSubtree to fix variants with different kernels run")
-common_subtree = ExtractCommonSubtree(GenericFrame(Base_OpenMP),GenericFrame(Lambda_CUDA))
-print(common_subtree.tree(metric_column="time (inc)"))
-
-common_subtree2 = ExtractCommonSubtree(GenericFrame(Lambda_CUDA),GenericFrame(Base_OpenMP))
-print(common_subtree2.tree(metric_column="time (inc)"))
-
-calc = common_subtree / common_subtree2
-print(calc.tree(metric_column="time (inc)"))
-display(HTML(calc.dataframe.to_html()))
 # %%
