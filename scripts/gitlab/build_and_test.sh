@@ -120,6 +120,10 @@ then
       echo "~~~~ Updating RAJA Submodule to develop ~~~"
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       git pull origin develop
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating Submodules within RAJA ~~~~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      git submodule init && git submodule update --recursive
       cd -
     fi
 
