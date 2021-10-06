@@ -34,7 +34,7 @@ struct arrayOffSetStruct3D {
                       Real_ptr head
                     ):
             // ":" = list of things to initialize
-            // Initialize v 
+           // Initialize v 
             v (getViewFromPointer(head, num_elements)), 
             v0(v),
             v1(Kokkos::subview(v0, std::make_pair(static_cast<unsigned long>(1), v0.extent(0)))),
@@ -103,6 +103,7 @@ void VOL3D::runKokkosVariant(VariantID vid)
                      VOL3D_BODY;
                    };
 
+#if defined(RUN_KOKKOS)
   switch ( vid ) {
 
     case Base_Seq : {
@@ -120,7 +121,6 @@ void VOL3D::runKokkosVariant(VariantID vid)
       break;
     } 
 
-#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
