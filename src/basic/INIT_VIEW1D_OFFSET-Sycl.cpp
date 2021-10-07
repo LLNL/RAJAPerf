@@ -88,7 +88,7 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<block_size, false /*async*/> >(
+      RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, false /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY_RAJA;
       });

@@ -63,7 +63,7 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
       RAJA::ReduceMin<RAJA::sycl_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::sycl_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::sycl_exec<block_size, false> >(
+      RAJA::forall< RAJA::sycl_exec_nontrivial<block_size, false> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
