@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
@@ -56,12 +56,12 @@ void INIT_VIEW1D_OFFSET::runSyclVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        qu->submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (sycl::handler& h)
         {
           const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-          h.parallel_for<class syclInit3_View1d_Offset>(cl::sycl::nd_range<1>{grid_size, block_size},
-                                          [=] (cl::sycl::nd_item<1> item ) {
+          h.parallel_for<class syclInit3_View1d_Offset>(sycl::nd_range<1>{grid_size, block_size},
+                                          [=] (sycl::nd_item<1> item ) {
 
             Index_type i = item.get_group(0) * item.get_local_range(0) + item.get_local_id(0);
             i++;

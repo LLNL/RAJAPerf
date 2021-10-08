@@ -27,12 +27,12 @@
 #include <limits>
 
 #if defined(RAJA_ENABLE_SYCL)
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "camp/resource.hpp"
 #endif
 
 #if defined(RAJA_ENABLE_SYCL)
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "camp/resource.hpp"
 #endif
 
@@ -165,7 +165,7 @@ public:
 #if defined(RAJA_ENABLE_SYCL)
   virtual void runSyclVariant(VariantID vid) = 0;
 
-  static cl::sycl::queue* qu;
+  static sycl::queue* qu;
   static camp::resources::Resource sycl_res;
 #endif  
 #if defined(RAJA_ENABLE_TARGET_OPENMP)

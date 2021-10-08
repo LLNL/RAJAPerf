@@ -23,7 +23,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -46,11 +46,11 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 
-/*  cl::sycl::buffer<Real_type> d_tmp {m_tmp, m_ni * m_nj}; \
-  cl::sycl::buffer<Real_type> d_A {m_A, m_ni * m_nk}; \
-  cl::sycl::buffer<Real_type> d_B {m_B, m_nk * m_nj}; \
-  cl::sycl::buffer<Real_type> d_C {m_C, m_nj * m_nl}; \
-  cl::sycl::buffer<Real_type> d_D {m_D, m_ni * m_nl}; \*/
+/*  sycl::buffer<Real_type> d_tmp {m_tmp, m_ni * m_nj}; \
+  sycl::buffer<Real_type> d_A {m_A, m_ni * m_nk}; \
+  sycl::buffer<Real_type> d_B {m_B, m_nk * m_nj}; \
+  sycl::buffer<Real_type> d_C {m_C, m_nj * m_nl}; \
+  sycl::buffer<Real_type> d_D {m_D, m_ni * m_nl}; \*/
 \
 
 #define POLYBENCH_2MM_TEARDOWN_SYCL \
@@ -77,13 +77,13 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        qu->submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (sycl::handler& h)
         {
 
-          h.parallel_for<class polybench2MM_1>(cl::sycl::nd_range<2> 
-                                                 {cl::sycl::range<2> {ni_grid_size, nj_grid_size},
-                                                  cl::sycl::range<2> {block_size, block_size}},
-                                               [=] (cl::sycl::nd_item<2> item) {
+          h.parallel_for<class polybench2MM_1>(sycl::nd_range<2> 
+                                                 {sycl::range<2> {ni_grid_size, nj_grid_size},
+                                                  sycl::range<2> {block_size, block_size}},
+                                               [=] (sycl::nd_item<2> item) {
 
            Index_type i = item.get_global_id(0); //get_group(0) * item.get_local_range().get(0) + item.get_local_id(0);
            Index_type j = item.get_global_id(1); //roup(1) * item.get_local_range().get(1) + item.get_local_id(1);
@@ -98,13 +98,13 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
           });
         });
 
-        qu->submit([&] (cl::sycl::handler& h)
+        qu->submit([&] (sycl::handler& h)
         {
 
-          h.parallel_for<class polybench2MM_2>(cl::sycl::nd_range<2>
-                                                 {cl::sycl::range<2> {ni_grid_size, nl_grid_size},
-                                                  cl::sycl::range<2> {block_size, block_size}},
-                                               [=] (cl::sycl::nd_item<2> item) {
+          h.parallel_for<class polybench2MM_2>(sycl::nd_range<2>
+                                                 {sycl::range<2> {ni_grid_size, nl_grid_size},
+                                                  sycl::range<2> {block_size, block_size}},
+                                               [=] (sycl::nd_item<2> item) {
 
            Index_type i = item.get_global_id(0); //group(0) * item.get_local_range().get(0) + item.get_local_id(0);
            Index_type l = item.get_global_id(1); //roup(1) * item.get_local_range().get(1) + item.get_local_id(1);
@@ -134,8 +134,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::SyclKernelNonTrivial<
-          RAJA::statement::For<0, RAJA::sycl_global_2<1>,
-            RAJA::statement::For<1, RAJA::sycl_global_1<256>,
+          RAJA::statement::For<0, RAJA::sycl_global_0<16>,
+            RAJA::statement::For<1, RAJA::sycl_global_1<16>,
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
               RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>

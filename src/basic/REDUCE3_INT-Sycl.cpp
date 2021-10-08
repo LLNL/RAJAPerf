@@ -19,7 +19,7 @@
 
 #if defined(RAJA_ENABLE_SYCL)
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 #include <iostream>
 #include "common/SyclDataUtils.hpp"

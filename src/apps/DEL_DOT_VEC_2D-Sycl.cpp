@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -75,9 +75,9 @@ void DEL_DOT_VEC_2D::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class DelDotVec>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                        [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class DelDotVec>(sycl::nd_range<1> (grid_size, block_size),
+                                        [=] (sycl::nd_item<1> item) {
 
           Index_type ii = item.get_global_id(0);
           if (ii < iend) {

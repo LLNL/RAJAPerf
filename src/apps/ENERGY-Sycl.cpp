@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -79,8 +79,8 @@ void ENERGY::runSyclVariant(VariantID vid)
 
   ENERGY_DATA_SETUP;
 
-  using cl::sycl::sqrt;
-  using cl::sycl::fabs;
+  using sycl::sqrt;
+  using sycl::fabs;
 
   if ( vid == Base_SYCL ) {
 
@@ -91,9 +91,9 @@ void ENERGY::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size); 
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class Energy_1>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class Energy_1>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -103,9 +103,9 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class Energy_2>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class Energy_2>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
             
           Index_type i = item.get_global_id(0);            
           if(i < iend) {
@@ -115,9 +115,9 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class Energy_3>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class Energy_3>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -126,9 +126,9 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class Energy_4>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class Energy_4>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -138,9 +138,9 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class Energy_5>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class Energy_5>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {
@@ -150,10 +150,10 @@ void ENERGY::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h)
+      qu->submit([&] (sycl::handler& h)
       {
-        h.parallel_for<class Energy_6>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                       [=] (cl::sycl::nd_item<1> item) {
+        h.parallel_for<class Energy_6>(sycl::nd_range<1> (grid_size, block_size),
+                                       [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if(i < iend) {

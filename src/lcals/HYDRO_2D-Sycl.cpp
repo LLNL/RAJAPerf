@@ -21,13 +21,19 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
 {
 namespace lcals
 {
+
+  //
+  // Define thread block size for SYCL execution
+  //
+  constexpr size_t j_block_sz = 32;
+  constexpr size_t k_block_sz = 8;
 
 #define HYDRO_2D_DATA_SETUP_SYCL \
   allocAndInitSyclDeviceData(zadat, m_za, m_array_length, qu); \
@@ -70,24 +76,60 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
   if ( vid == Base_SYCL ) {
 
     HYDRO_2D_DATA_SETUP_SYCL;
+ 
+    auto kn_grid_size = k_block_sz * RAJA_DIVIDE_CEILING_INT(kn-2, k_block_sz);
+    auto jn_grid_size = j_block_sz * RAJA_DIVIDE_CEILING_INT(jn-2, j_block_sz);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      qu->submit([&] (cl::sycl::handler& h) { 
-        h.parallel_for<class syclHydro2dBody1>(cl::sycl::range<2>(kn-2, jn-2),
-                                               cl::sycl::id<2>(1, 1), // offset to start a idx 1
-                                               [=] (cl::sycl::item<2> item ) {
-          int j = item.get_id(1);
-          int k = item.get_id(0); 
-          HYDRO_2D_BODY1
+      qu->submit([&] (sycl::handler& h) { 
+
+        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_grid_size, jn_grid_size),
+                                         sycl::range<2>(k_block_sz,j_block_sz)),
+                       [=] (sycl::nd_item<2> item) {
+
+          int j = item.get_global_id(1) + 1;
+          int k = item.get_global_id(0) + 1; 
+
+          if (j < jn-1 && k < kn-1) {
+            HYDRO_2D_BODY1
+          }
+
+        });
+      });
+      qu->submit([&] (sycl::handler& h) { 
+        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_grid_size, jn_grid_size),
+                                         sycl::range<2>(k_block_sz,j_block_sz)),
+                       [=] (sycl::nd_item<2> item) {
+
+          int j = item.get_global_id(1) + 1;
+          int k = item.get_global_id(0) + 1; 
+
+          if (j < jn-1 && k < kn-1) {
+            HYDRO_2D_BODY2
+          }
 
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) { 
-        h.parallel_for<class syclHydro2dBody2>(cl::sycl::range<2>(kn-2, jn-2),
-                                               cl::sycl::id<2>(1, 1), // offset to start a idx 1
-                                               [=] (cl::sycl::item<2> item ) {
+      qu->submit([&] (sycl::handler& h) { 
+        h.parallel_for(sycl::nd_range<2>(sycl::range<2>(kn_grid_size, jn_grid_size),
+                                         sycl::range<2>(k_block_sz,j_block_sz)),
+                       [=] (sycl::nd_item<2> item) {
+
+          int j = item.get_global_id(1) + 1;
+          int k = item.get_global_id(0) + 1; 
+
+          if (j < jn-1 && k < kn-1) {
+            HYDRO_2D_BODY3
+          }
+
+        });
+      });
+/*      qu->submit([&] (sycl::handler& h) { 
+        h.parallel_for<class syclHydro2dBody2>(sycl::range<2>(kn-2, jn-2),
+                                               sycl::id<2>(1, 1), // offset to start a idx 1
+                                               [=] (sycl::item<2> item ) {
           int j = item.get_id(1);
           int k = item.get_id(0);
           HYDRO_2D_BODY2
@@ -95,16 +137,16 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) { 
-        h.parallel_for<class syclHydro2dBody3>(cl::sycl::range<2>(kn-2, jn-2),
-                                               cl::sycl::id<2>(1, 1), // offset to start a idx 1
-                                               [=] (cl::sycl::item<2> item ) {
+      qu->submit([&] (sycl::handler& h) { 
+        h.parallel_for<class syclHydro2dBody3>(sycl::range<2>(kn-2, jn-2),
+                                               sycl::id<2>(1, 1), // offset to start a idx 1
+                                               [=] (sycl::item<2> item ) {
           int j = item.get_id(1);
           int k = item.get_id(0);
           HYDRO_2D_BODY3
 
         });
-      });
+      });*/
 
     }
     qu->wait(); // Wait for computation to finish before stopping timer
@@ -121,8 +163,8 @@ void HYDRO_2D::runSyclVariant(VariantID vid)
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::SyclKernel<
-            RAJA::statement::For<0, RAJA::sycl_global_2<1>,  // k
-              RAJA::statement::For<1, RAJA::sycl_global_1<256>,  // j
+            RAJA::statement::For<0, RAJA::sycl_global_1<8>,  // k
+              RAJA::statement::For<1, RAJA::sycl_global_2<32>,  // j
                 RAJA::statement::Lambda<0>
               >
             >

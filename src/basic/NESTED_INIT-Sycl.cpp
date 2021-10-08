@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
@@ -56,11 +56,11 @@ void NESTED_INIT::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(ni, block_size); 
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class NestedInit>(cl::sycl::nd_range<3> (
-                                             cl::sycl::range<3> (nk, nj, grid_size),
-                                             cl::sycl::range<3> (1, 1, block_size)),
-                                         [=] (cl::sycl::nd_item<3> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class NestedInit>(sycl::nd_range<3> (
+                                             sycl::range<3> (nk, nj, grid_size),
+                                             sycl::range<3> (1, 1, block_size)),
+                                         [=] (sycl::nd_item<3> item) {
 
           Index_type i = item.get_global_id(2);
           Index_type j = item.get_global_id(1);

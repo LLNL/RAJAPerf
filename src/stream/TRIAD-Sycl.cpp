@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -61,9 +61,9 @@ void TRIAD::runSyclVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class TRIAD>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                    [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class TRIAD>(sycl::nd_range<1> (grid_size, block_size),
+                                    [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {

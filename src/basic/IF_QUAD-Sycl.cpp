@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
@@ -58,7 +58,7 @@ void IF_QUAD::runSyclVariant(VariantID vid)
   const unsigned long iend = getActualProblemSize();
 
   IF_QUAD_DATA_SETUP;
-  using cl::sycl::sqrt;
+  using sycl::sqrt;
 
   if ( vid == Base_SYCL ) {
 
@@ -69,9 +69,9 @@ void IF_QUAD::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class IfQuad>(cl::sycl::nd_range<1>(grid_size, block_size),
-                                     [=] (cl::sycl::nd_item<1> item ) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class IfQuad>(sycl::nd_range<1>(grid_size, block_size),
+                                     [=] (sycl::nd_item<1> item ) {
 
           Index_type i = item.get_global_id(0);
 
@@ -95,7 +95,7 @@ void IF_QUAD::runSyclVariant(VariantID vid)
 
        RAJA::forall< RAJA::sycl_exec<block_size, true> >(
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-       //  using cl::sycl::sqrt;
+       //  using sycl::sqrt;
          IF_QUAD_BODY;
        });
 

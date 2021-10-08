@@ -54,9 +54,9 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size1 = block_size * RAJA_DIVIDE_CEILING_INT(N, block_size);
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class GenLin1>(cl::sycl::nd_range<1> (grid_size1, block_size),
-                                      [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class GenLin1>(sycl::nd_range<1> (grid_size1, block_size),
+                                      [=] (sycl::nd_item<1> item) {
 
           Index_type k = item.get_global_id(0);
           if (k < N) {
@@ -67,9 +67,9 @@ void GEN_LIN_RECUR::runSyclVariant(VariantID vid)
       });
 
       const size_t grid_size2 = block_size * RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class GenLin2>(cl::sycl::nd_range<1> (grid_size2, block_size),
-                                      [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class GenLin2>(sycl::nd_range<1> (grid_size2, block_size),
+                                      [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i > 0 && i < N+1) {

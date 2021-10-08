@@ -22,7 +22,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -59,7 +59,7 @@ void PLANCKIAN::runSyclVariant(VariantID vid)
 
   PLANCKIAN_DATA_SETUP;
 
-  using cl::sycl::exp;
+  using sycl::exp;
 
   if ( vid == Base_SYCL ) {
 
@@ -69,10 +69,10 @@ void PLANCKIAN::runSyclVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      qu->submit([&] (cl::sycl::handler& h)
+      qu->submit([&] (sycl::handler& h)
       {
-        h.parallel_for<class syclPlankian>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                           [=] (cl::sycl::nd_item<1> item) {
+        h.parallel_for<class syclPlankian>(sycl::nd_range<1> (grid_size, block_size),
+                                           [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {

@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
@@ -69,9 +69,9 @@ void MULADDSUB::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class MulAddSub>(cl::sycl::nd_range<1>(grid_size, block_size),
-                                        [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class MulAddSub>(sycl::nd_range<1>(grid_size, block_size),
+                                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {

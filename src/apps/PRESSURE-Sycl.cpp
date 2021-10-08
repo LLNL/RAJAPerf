@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -57,7 +57,7 @@ void PRESSURE::runSyclVariant(VariantID vid)
   const Index_type iend = getActualProblemSize();
 
   PRESSURE_DATA_SETUP;
-  using cl::sycl::fabs;
+  using sycl::fabs;
 
   if ( vid == Base_SYCL ) {
 
@@ -68,9 +68,9 @@ void PRESSURE::runSyclVariant(VariantID vid)
 
       const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class PRESSURE_1>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                         [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class PRESSURE_1>(sycl::nd_range<1> (grid_size, block_size),
+                                         [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {
@@ -80,9 +80,9 @@ void PRESSURE::runSyclVariant(VariantID vid)
         });
       });
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class PRESSURE_2>(cl::sycl::nd_range<1> (grid_size, block_size),
-                                        [=] (cl::sycl::nd_item<1> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class PRESSURE_2>(sycl::nd_range<1> (grid_size, block_size),
+                                        [=] (sycl::nd_item<1> item) {
 
           Index_type i = item.get_global_id(0);
           if (i < iend) {

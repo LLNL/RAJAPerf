@@ -19,7 +19,7 @@
 
 #if defined(RAJA_ENABLE_SYCL)
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 #include <iostream>
 
@@ -39,7 +39,7 @@ Real_type trap_int_func(Real_type x,
                         Real_type yp)
 {
    Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/cl::sycl::sqrt(denom);
+   denom = 1.0/sycl::sqrt(denom);
    return denom;
 }
 

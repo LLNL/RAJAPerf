@@ -19,7 +19,7 @@
 #if defined(RAJA_ENABLE_SYCL)
 
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 
 
 namespace rajaperf
@@ -32,7 +32,7 @@ namespace rajaperf
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void initSyclDeviceData(T& dptr, const T hptr, int len, cl::sycl::queue* qu)
+void initSyclDeviceData(T& dptr, const T hptr, int len, sycl::queue* qu)
 {
   auto e = qu->memcpy( dptr, hptr,
                        len * sizeof(typename std::remove_pointer<T>::type));
@@ -46,9 +46,9 @@ void initSyclDeviceData(T& dptr, const T hptr, int len, cl::sycl::queue* qu)
  * data to device array.
  */
 template <typename T>
-void allocAndInitSyclDeviceData(T& dptr, const T hptr, int len, cl::sycl::queue *qu)
+void allocAndInitSyclDeviceData(T& dptr, const T hptr, int len, sycl::queue *qu)
 {
-  dptr = cl::sycl::malloc_device<typename std::remove_pointer<T>::type>(len, *qu);
+  dptr = sycl::malloc_device<typename std::remove_pointer<T>::type>(len, *qu);
 
   initSyclDeviceData(dptr, hptr, len, qu);
 }
@@ -60,7 +60,7 @@ void allocAndInitSyclDeviceData(T& dptr, const T hptr, int len, cl::sycl::queue 
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getSyclDeviceData(T& hptr, const T dptr, int len, cl::sycl::queue *qu)
+void getSyclDeviceData(T& hptr, const T dptr, int len, sycl::queue *qu)
 {
   auto e = qu->memcpy( hptr, dptr,
                       len * sizeof(typename std::remove_pointer<T>::type));
@@ -71,9 +71,9 @@ void getSyclDeviceData(T& hptr, const T dptr, int len, cl::sycl::queue *qu)
  * \brief Free device data array.
  */
 template <typename T>
-void deallocSyclDeviceData(T& dptr, cl::sycl::queue *qu)
+void deallocSyclDeviceData(T& dptr, sycl::queue *qu)
 {
-  cl::sycl::free(dptr, *qu);
+  sycl::free(dptr, *qu);
   dptr = 0;
 }
 

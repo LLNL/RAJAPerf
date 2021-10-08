@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include <CL/sycl.hpp>
+#include <sycl.hpp>
 #include "common/SyclDataUtils.hpp"
 
 namespace rajaperf 
@@ -53,11 +53,11 @@ void LTIMES::runSyclVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      qu->submit([&] (cl::sycl::handler& h) {
-        h.parallel_for<class LTIMES>(cl::sycl::nd_range<3> (
-                                       cl::sycl::range<3>(num_z, num_g, num_m),
-                                       cl::sycl::range<3>(1,1,1)),
-                                     [=] (cl::sycl::nd_item<3> item) {
+      qu->submit([&] (sycl::handler& h) {
+        h.parallel_for<class LTIMES>(sycl::nd_range<3> (
+                                       sycl::range<3>(num_z, num_g, num_m),
+                                       sycl::range<3>(1,1,1)),
+                                     [=] (sycl::nd_item<3> item) {
 
           Index_type z = item.get_global_id(0);
           Index_type g = item.get_global_id(1);
