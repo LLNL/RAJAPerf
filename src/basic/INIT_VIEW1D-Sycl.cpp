@@ -46,7 +46,7 @@ void INIT_VIEW1D::runSyclVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const unsigned long iend = getRunSize();
+  const unsigned long iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 

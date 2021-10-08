@@ -38,14 +38,14 @@ namespace apps
 #define FIR_DATA_SETUP_SYCL \
   Real_ptr coeff; \
 \
-  allocAndInitSyclDeviceData(in, m_in, getRunSize(), qu); \
-  allocAndInitSyclDeviceData(out, m_out, getRunSize(), qu); \
+  allocAndInitSyclDeviceData(in, m_in, getActualProblemSize(), qu); \
+  allocAndInitSyclDeviceData(out, m_out, getActualProblemSize(), qu); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitSyclDeviceData(coeff, tcoeff, FIR_COEFFLEN, qu);
 
 
 #define FIR_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_out, out, getRunSize(), qu); \
+  getSyclDeviceData(m_out, out, getActualProblemSize(), qu); \
   deallocSyclDeviceData(in, qu); \
   deallocSyclDeviceData(out, qu); \
   deallocSyclDeviceData(coeff, qu);
@@ -54,7 +54,7 @@ void FIR::runSyclVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 

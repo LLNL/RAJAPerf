@@ -56,7 +56,7 @@ void MULADDSUB::runSyclVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const unsigned long iend = getRunSize();
+  const unsigned long iend = getActualProblemSize();
 
   MULADDSUB_DATA_SETUP;
 
