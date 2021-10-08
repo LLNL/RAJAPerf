@@ -141,8 +141,8 @@ enum KernelID {
 //
 // Algorithm kernels...
 //
-//  Algorithm_SORT,
- // Algorithm_SORTPAIRS,
+  Algorithm_SORT,
+  Algorithm_SORTPAIRS,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
