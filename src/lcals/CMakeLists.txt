@@ -58,7 +58,7 @@ blt_add_library(
           HYDRO_2D.cpp
           HYDRO_2D-Seq.cpp
           HYDRO_2D-Hip.cpp
-	  HYDRO_2D-Cuda.cpp
+          HYDRO_2D-Cuda.cpp
           HYDRO_2D-Sycl.cpp
           HYDRO_2D-OMP.cpp
           HYDRO_2D-OMPTarget.cpp
