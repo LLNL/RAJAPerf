@@ -50,7 +50,57 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
 
   REDUCE3_INT_DATA_SETUP;
 
-  if (0) {// vid == Base_SYCL_ ) {
+  if ( vid == Base_SYCL ) {
+
+    REDUCE3_INT_DATA_SETUP_SYCL;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Int_type vsum = m_vsum_init;
+      Int_type vmin = m_vmin_init;
+      Int_type vmax = m_vmax_init;
+
+      {
+        sycl::buffer<Int_type, 1> buf_vsum(&vsum, 1);
+        sycl::buffer<Int_type, 1> buf_vmin(&vmin, 1);
+        sycl::buffer<Int_type, 1> buf_vmax(&vmax, 1);
+
+//      buf_vsum.set_final_data(vsum);
+//      buf_vmin.set_final_data(vmin);
+//      buf_vmax.set_final_data(vmax);
+
+        const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+        qu->submit([&] (sycl::handler& h) {
+
+          auto sumReduction = reduction(buf_vsum, h, sycl::plus<Int_type>());
+          auto minReduction = reduction(buf_vmin, h, sycl::minimum<Int_type>());
+          auto maxReduction = reduction(buf_vmax, h, sycl::maximum<Int_type>());
+
+          h.parallel_for(sycl::nd_range<1>{grid_size, block_size},
+                         sumReduction, minReduction, maxReduction,
+                         [=] (sycl::nd_item<1> item, auto& vsum, auto& vmin, auto& vmax) {
+
+           Index_type i = item.get_global_id(0);
+           if (i < iend) {
+             vsum += vec[i];
+	     vmin.combine(vec[i]);
+	     vmax.combine(vec[i]);
+	   }
+
+          });
+        });
+      }
+
+      m_vsum += vsum;
+      m_vmin = RAJA_MIN(m_vmin, vmin);
+      m_vmax = RAJA_MAX(m_vmax, vmax);
+      
+    }
+    stopTimer();
+
+    REDUCE3_INT_DATA_TEARDOWN_SYCL;
 
   } else if ( vid == RAJA_SYCL ) {
 
