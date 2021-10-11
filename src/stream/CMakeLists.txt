@@ -28,6 +28,7 @@ blt_add_library(
           DOT-Cuda.cpp 
           DOT-OMP.cpp 
           DOT-OMPTarget.cpp 
+          DOT-Sycl.cpp 
           MUL.cpp 
           MUL-Seq.cpp 
           MUL-Hip.cpp 
