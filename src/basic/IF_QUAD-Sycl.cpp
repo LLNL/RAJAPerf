@@ -64,11 +64,10 @@ void IF_QUAD::runSyclVariant(VariantID vid)
 
     IF_QUAD_DATA_SETUP_SYCL;
 
+    const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
       qu->submit([&] (sycl::handler& h) {
         h.parallel_for<class IfQuad>(sycl::nd_range<1>(grid_size, block_size),
                                      [=] (sycl::nd_item<1> item ) {
@@ -95,7 +94,6 @@ void IF_QUAD::runSyclVariant(VariantID vid)
 
        RAJA::forall< RAJA::sycl_exec<block_size, true> >(
          RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-       //  using sycl::sqrt;
          IF_QUAD_BODY;
        });
 

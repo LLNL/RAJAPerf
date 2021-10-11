@@ -66,10 +66,6 @@ void REDUCE3_INT::runSyclVariant(VariantID vid)
         sycl::buffer<Int_type, 1> buf_vmin(&vmin, 1);
         sycl::buffer<Int_type, 1> buf_vmax(&vmax, 1);
 
-//      buf_vsum.set_final_data(vsum);
-//      buf_vmin.set_final_data(vmin);
-//      buf_vmax.set_final_data(vmax);
-
         const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
         qu->submit([&] (sycl::handler& h) {

@@ -46,12 +46,6 @@ namespace polybench
   Real_type alpha = m_alpha; \
   Real_type beta = m_beta; \
 
-/*  sycl::buffer<Real_type> d_tmp {m_tmp, m_ni * m_nj}; \
-  sycl::buffer<Real_type> d_A {m_A, m_ni * m_nk}; \
-  sycl::buffer<Real_type> d_B {m_B, m_nk * m_nj}; \
-  sycl::buffer<Real_type> d_C {m_C, m_nj * m_nl}; \
-  sycl::buffer<Real_type> d_D {m_D, m_ni * m_nl}; \*/
-\
 
 #define POLYBENCH_2MM_TEARDOWN_SYCL \
   getSyclDeviceData(m_D, D, m_ni * m_nl, qu); \
@@ -85,8 +79,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
                                                   sycl::range<2> {block_size, block_size}},
                                                [=] (sycl::nd_item<2> item) {
 
-           Index_type i = item.get_global_id(0); //get_group(0) * item.get_local_range().get(0) + item.get_local_id(0);
-           Index_type j = item.get_global_id(1); //roup(1) * item.get_local_range().get(1) + item.get_local_id(1);
+           Index_type i = item.get_global_id(0); 
+           Index_type j = item.get_global_id(1); 
 
            if (i < ni && j < nj) {
              POLYBENCH_2MM_BODY1;
@@ -106,8 +100,8 @@ void POLYBENCH_2MM::runSyclVariant(VariantID vid)
                                                   sycl::range<2> {block_size, block_size}},
                                                [=] (sycl::nd_item<2> item) {
 
-           Index_type i = item.get_global_id(0); //group(0) * item.get_local_range().get(0) + item.get_local_id(0);
-           Index_type l = item.get_global_id(1); //roup(1) * item.get_local_range().get(1) + item.get_local_id(1);
+           Index_type i = item.get_global_id(0); 
+           Index_type l = item.get_global_id(1);
 
            if(i < ni && l < nl) {        
              POLYBENCH_2MM_BODY4;

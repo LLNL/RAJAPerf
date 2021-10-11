@@ -39,7 +39,7 @@ Real_type trap_int_func(Real_type x,
                         Real_type yp)
 {
    Real_type denom = (x - xp)*(x - xp) + (y - yp)*(y - yp);
-   denom = 1.0/sycl::sqrt(denom);
+   denom = 1.0/sqrt(denom);
    return denom;
 }
 
@@ -61,7 +61,41 @@ void TRAP_INT::runSyclVariant(VariantID vid)
 
   TRAP_INT_DATA_SETUP;
 
-  if (0) {// vid == Base_SYCL ) {
+  if ( vid == Base_SYCL ) {
+
+    TRAP_INT_DATA_SETUP_SYCL;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Real_type sumx = m_sumx_init;
+      
+      {
+        sycl::buffer<Real_type, 1> buf_sumx(&sumx, 1);
+
+        const size_t grid_size = block_size * RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+        qu->submit([&] (sycl::handler& cgh) {
+
+         auto sumReduction = reduction(buf_sumx, cgh, sycl::plus<Real_type>());
+
+         cgh.parallel_for(sycl::nd_range<1>{grid_size, block_size},
+       	                sumReduction,
+                        [=] (sycl::nd_item<1> item, auto& sumx) {
+
+            Index_type i = item.get_global_id(0);
+	    if (i < iend) {
+              TRAP_INT_BODY;
+            }
+
+          });
+        });
+      }
+
+      m_sumx += sumx *h;
+      
+    }
+    stopTimer();
 
   } else if ( vid == RAJA_SYCL ) {
 

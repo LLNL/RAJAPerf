@@ -13,7 +13,7 @@ blt_add_library(
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
           DAXPY-Sycl.cpp
-	  DAXPY-OMP.cpp
+          DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
           IF_QUAD.cpp
           IF_QUAD-Seq.cpp
