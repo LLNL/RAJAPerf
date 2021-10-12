@@ -26,20 +26,17 @@ void FIR::runKokkosVariant(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
-  // Macro for 1D Array of defined length of coefficients
-  FIR_COEFF;
-
-  // Declare & initialize pointers, coefflen
   FIR_DATA_SETUP;
 
-  // Declare coeff array
-  Real_type coeff[FIR_COEFFLEN];
+  // Wrap 4x4 array, "coeff" in a Kokkos::View;
+  // "coeff" is used in the FIR_BODY
+  // Real_type coeff[FIR_COEFFLEN];
+  // Macro for 4x4 input array
+   FIR_COEFF;
+   // "coeff" is assined the memory location containing the value of the 0th element of coeff_array;
+   Real_ptr coeff = &coeff_array[0];
 
-
-  //  std::copy(iterator source_first, iterator source_end, iterator target_start);
-  // Copy the "coeff_array" (in FIR.hpp) into the "coeff" array; both are
-  // "Real_type" 
-  std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));
+  auto coeff_view = getViewFromPointer(coeff, FIR_COEFFLEN);
 
   auto in_view =  getViewFromPointer(in, iend +  m_coefflen);
   auto out_view = getViewFromPointer(out, iend + m_coefflen);
@@ -81,23 +78,6 @@ void FIR::runKokkosVariant(VariantID vid)
 
       break;
     }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), fir_lam);
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-
-    */
-
 
     case Kokkos_Lambda : {
       
@@ -113,7 +93,7 @@ void FIR::runKokkosVariant(VariantID vid)
                                   Real_type sum = 0.0;
 
                                   for (Index_type j = 0; j < coefflen; ++j ) {
-                                    sum += coeff[j]*in_view[i+j];
+                                    sum += coeff_view[j]*in_view[i+j];
                                   } 
                                   out_view[i] = sum;
                                   });
