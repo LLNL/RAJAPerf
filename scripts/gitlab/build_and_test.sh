@@ -19,6 +19,7 @@ build_root=${BUILD_ROOT:-""}
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
+raja_version=${UPDATE_RAJA:-""}
 
 sys_type=${SYS_TYPE:-""}
 py_env_path=${PYTHON_ENVIRONMENT_PATH:-""}
@@ -110,6 +111,21 @@ then
 
     # Map CPU core allocations
     declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32)
+
+    # If using Multi-project, set up the submodule
+    if [[ -n ${raja_version} ]]
+    then
+      cd tpl/RAJA  
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating RAJA Submodule to develop ~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      git pull origin develop
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating Submodules within RAJA ~~~~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      git submodule init && git submodule update --recursive
+      cd -
+    fi
 
     # If building, then delete everything first
     # NOTE: 'cmake --build . -j core_counts' attempts to reduce individual build resources.
