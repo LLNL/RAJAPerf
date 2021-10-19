@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -85,8 +85,6 @@ public:
     { return has_variant_defined[vid]; }
 
 
-  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
-
   //
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
@@ -168,6 +166,7 @@ protected:
   const RunParams& run_params;
 
   Checksum_type checksum[NumVariants];
+  Checksum_type checksum_scale_factor;
 
 private:
   KernelBase() = delete;

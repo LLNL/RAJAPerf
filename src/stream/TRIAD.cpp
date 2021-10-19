@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -31,6 +31,10 @@ TRIAD::TRIAD(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
                   getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature( Forall );
 
@@ -71,7 +75,7 @@ void TRIAD::setUp(VariantID vid)
 
 void TRIAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
 void TRIAD::tearDown(VariantID vid)

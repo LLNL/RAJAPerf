@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -18,6 +18,7 @@
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#include "basic/MAT_MAT_SHARED.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
@@ -71,6 +72,7 @@
 //
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -213,6 +215,7 @@ namespace rajaperf {
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  std::string("Basic_MAT_MAT_SHARED"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
@@ -264,6 +267,7 @@ namespace rajaperf {
 //
 //  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -490,6 +494,7 @@ const std::string& getFeatureName(FeatureID fid)
  *
  *******************************************************************************
  */
+//<<<<<<< HEAD
 //KernelBase* getKernelObject(KernelID kid,
 //                            const RunParams& run_params)
 //{
@@ -747,5 +752,267 @@ const std::string& getFeatureName(FeatureID fid)
 //
 //        return kernel;
 //    }
+//=======
+/*
+KernelBase* getKernelObject(KernelID kid,
+                            const RunParams& run_params)
+{
+  KernelBase* kernel = 0;
 
+  switch ( kid ) {
+
+    //
+    // Basic kernels...
+    //
+    case Basic_DAXPY : {
+       kernel = new basic::DAXPY(run_params);
+       break;
+    }
+    case Basic_IF_QUAD : {
+       kernel = new basic::IF_QUAD(run_params);
+       break;
+    }
+    case Basic_INIT3 : {
+       kernel = new basic::INIT3(run_params);
+       break;
+    }
+    case Basic_INIT_VIEW1D : {
+       kernel = new basic::INIT_VIEW1D(run_params);
+       break;
+    }
+    case Basic_INIT_VIEW1D_OFFSET : {
+       kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
+    case Basic_MAT_MAT_SHARED : {
+       kernel = new basic::MAT_MAT_SHARED(run_params);
+       break;
+    }
+    case Basic_MULADDSUB : {
+       kernel = new basic::MULADDSUB(run_params);
+       break;
+    }
+    case Basic_NESTED_INIT : {
+       kernel = new basic::NESTED_INIT(run_params);
+       break;
+    }
+    case Basic_PI_ATOMIC : {
+       kernel = new basic::PI_ATOMIC(run_params);
+       break;
+    }
+    case Basic_PI_REDUCE : {
+       kernel = new basic::PI_REDUCE(run_params);
+       break;
+    }
+    case Basic_REDUCE3_INT : {
+       kernel = new basic::REDUCE3_INT(run_params);
+       break;
+    }
+    case Basic_TRAP_INT : {
+       kernel = new basic::TRAP_INT(run_params);
+       break;
+    }
+
+//
+// Lcals kernels...
+//
+    case Lcals_DIFF_PREDICT : {
+       kernel = new lcals::DIFF_PREDICT(run_params);
+       break;
+    }
+    case Lcals_EOS : {
+       kernel = new lcals::EOS(run_params);
+       break;
+    }
+    case Lcals_FIRST_DIFF : {
+       kernel = new lcals::FIRST_DIFF(run_params);
+       break;
+    }
+    case Lcals_FIRST_MIN : {
+       kernel = new lcals::FIRST_MIN(run_params);
+       break;
+    }
+    case Lcals_FIRST_SUM : {
+       kernel = new lcals::FIRST_SUM(run_params);
+       break;
+    }
+    case Lcals_GEN_LIN_RECUR : {
+       kernel = new lcals::GEN_LIN_RECUR(run_params);
+       break;
+    }
+    case Lcals_HYDRO_1D : {
+       kernel = new lcals::HYDRO_1D(run_params);
+       break;
+    }
+    case Lcals_HYDRO_2D : {
+       kernel = new lcals::HYDRO_2D(run_params);
+       break;
+    }
+    case Lcals_INT_PREDICT : {
+       kernel = new lcals::INT_PREDICT(run_params);
+       break;
+    }
+    case Lcals_PLANCKIAN : {
+       kernel = new lcals::PLANCKIAN(run_params);
+       break;
+    }
+    case Lcals_TRIDIAG_ELIM : {
+       kernel = new lcals::TRIDIAG_ELIM(run_params);
+       break;
+    }
+
+//
+// Polybench kernels...
+//
+    case Polybench_2MM : {
+       kernel = new polybench::POLYBENCH_2MM(run_params);
+       break;
+    }
+    case Polybench_3MM : {
+       kernel = new polybench::POLYBENCH_3MM(run_params);
+       break;
+    }
+    case Polybench_ADI  : {
+       kernel = new polybench::POLYBENCH_ADI(run_params);
+       break;
+    }
+    case Polybench_ATAX  : {
+       kernel = new polybench::POLYBENCH_ATAX(run_params);
+       break;
+    }
+    case Polybench_FDTD_2D : {
+       kernel = new polybench::POLYBENCH_FDTD_2D(run_params);
+       break;
+    }
+    case Polybench_FLOYD_WARSHALL : {
+       kernel = new polybench::POLYBENCH_FLOYD_WARSHALL(run_params);
+       break;
+    }
+    case Polybench_GEMM : {
+       kernel = new polybench::POLYBENCH_GEMM(run_params);
+       break;
+    }
+    case Polybench_GEMVER : {
+       kernel = new polybench::POLYBENCH_GEMVER(run_params);
+       break;
+    }
+    case Polybench_GESUMMV : {
+       kernel = new polybench::POLYBENCH_GESUMMV(run_params);
+       break;
+    }
+    case Polybench_HEAT_3D : {
+       kernel = new polybench::POLYBENCH_HEAT_3D(run_params);
+       break;
+    }
+    case Polybench_JACOBI_1D : {
+       kernel = new polybench::POLYBENCH_JACOBI_1D(run_params);
+       break;
+    }
+    case Polybench_JACOBI_2D : {
+       kernel = new polybench::POLYBENCH_JACOBI_2D(run_params);
+       break;
+    }
+    case Polybench_MVT : {
+       kernel = new polybench::POLYBENCH_MVT(run_params);
+       break;
+    }
+
+//
+// Stream kernels...
+//
+    case Stream_ADD : {
+       kernel = new stream::ADD(run_params);
+       break;
+    }
+    case Stream_COPY : {
+       kernel = new stream::COPY(run_params);
+       break;
+    }
+    case Stream_DOT : {
+       kernel = new stream::DOT(run_params);
+       break;
+    }
+    case Stream_MUL : {
+       kernel = new stream::MUL(run_params);
+       break;
+    }
+    case Stream_TRIAD : {
+       kernel = new stream::TRIAD(run_params);
+       break;
+    }
+
+//
+// Apps kernels...
+//
+    case Apps_COUPLE : {
+       kernel = new apps::COUPLE(run_params);
+       break;
+    }
+    case Apps_DEL_DOT_VEC_2D : {
+       kernel = new apps::DEL_DOT_VEC_2D(run_params);
+       break;
+    }
+    case Apps_DIFFUSION3DPA : {
+       kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
+    case Apps_ENERGY : {
+       kernel = new apps::ENERGY(run_params);
+       break;
+    }
+    case Apps_FIR : {
+       kernel = new apps::FIR(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE : {
+       kernel = new apps::HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_HALOEXCHANGE_FUSED : {
+       kernel = new apps::HALOEXCHANGE_FUSED(run_params);
+       break;
+    }
+    case Apps_LTIMES : {
+       kernel = new apps::LTIMES(run_params);
+       break;
+    }
+    case Apps_LTIMES_NOVIEW : {
+       kernel = new apps::LTIMES_NOVIEW(run_params);
+       break;
+    }
+    case Apps_MASS3DPA : {
+       kernel = new apps::MASS3DPA(run_params);
+       break;
+    }
+    case Apps_PRESSURE : {
+       kernel = new apps::PRESSURE(run_params);
+       break;
+    }
+    case Apps_VOL3D : {
+       kernel = new apps::VOL3D(run_params);
+       break;
+    }
+
+//
+// Algorithm kernels...
+//
+    case Algorithm_SORT: {
+       kernel = new algorithm::SORT(run_params);
+       break;
+    }
+    case Algorithm_SORTPAIRS: {
+       kernel = new algorithm::SORTPAIRS(run_params);
+       break;
+    }
+
+    default: {
+      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+    }
+
+  } // end switch on kernel id
+
+  return kernel;
+}
+>>>>>>> upstream/develop
+*/
 }  // closing brace for rajaperf namespace

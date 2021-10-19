@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -34,6 +34,10 @@ EOS::EOS(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * getActualProblemSize() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * m_array_length );
   setFLOPsPerRep(16 * getActualProblemSize());
+
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -75,7 +79,7 @@ void EOS::setUp(VariantID vid)
 
 void EOS::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
 void EOS::tearDown(VariantID vid)

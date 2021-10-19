@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -139,9 +139,9 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >,
-            RAJA::statement::Lambda<0, RAJA::Params<0>>,
-            RAJA::statement::For<1, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >, // i
+            RAJA::statement::Lambda<0, RAJA::Params<0>>,  
+            RAJA::statement::For<1, RAJA::loop_exec,                   // j
               RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
             >,
             RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
@@ -189,6 +189,8 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
 
   }
 
+#else 
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

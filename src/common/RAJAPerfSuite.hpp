@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -241,37 +241,6 @@ void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
 class KernelBase;
 class RunParams;
 
-/*!
- *******************************************************************************
- *
- * \brief Enumeration defining size specification for the polybench kernels
- *
- * Polybench comes with a spec file to setup the iteration space for 
- * various sizes: Mini, Small, Medium, Large, Extralarge
- *
- * We adapt those entries within this perfsuite.
- *
- * The default size is Medium, which can be overridden at run-time.
- *
- * An example partial entry from that file showing the MINI and SMALL spec 
- * for the kernel 3mm is:
- *
- * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
- * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
- * *
- *******************************************************************************
- */
-enum SizeSpec {
-  
-  Mini = 0,
-  Small,
-  Medium,
-  Large,
-  Extralarge,
-  Specundefined
-
-};
-
 
 /*!
  *******************************************************************************
@@ -322,6 +291,7 @@ enum KernelID {
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MAT_MAT_SHARED,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
   Basic_PI_ATOMIC,
@@ -374,6 +344,7 @@ enum KernelID {
 // Apps kernels...
   //Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
+  Apps_DIFFUSION3DPA,
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,6 +21,21 @@ namespace rajaperf
 namespace polybench
 {
 
+//
+// Define thread block size for Hip execution
+//
+constexpr size_t i_block_sz = 8;
+constexpr size_t j_block_sz = 32;
+
+#define POLY_GEMM_THREADS_PER_BLOCK_HIP \
+  dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
+
+#define POLY_GEMM_NBLOCKS_HIP \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)), \
+               static_cast<size_t>(1));
+
+
 #define POLYBENCH_GEMM_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(A, m_A, ni*nk); \
   allocAndInitHipDeviceData(B, m_B, nk*nj); \
@@ -36,17 +51,31 @@ namespace polybench
 
 __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
                           Real_type alpha, Real_type beta,
-                          Index_type nj, Index_type nk)
+                          Index_type ni, Index_type nj, Index_type nk)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-   POLYBENCH_GEMM_BODY1;
-   POLYBENCH_GEMM_BODY2;
-   for (Index_type k = 0; k < nk; ++k ) {
-     POLYBENCH_GEMM_BODY3;
-   }
-   POLYBENCH_GEMM_BODY4;
+  if ( i < ni && j < nj ) {
+    POLYBENCH_GEMM_BODY1;
+    POLYBENCH_GEMM_BODY2;
+    for (Index_type k = 0; k < nk; ++k ) {
+      POLYBENCH_GEMM_BODY3;
+    }
+    POLYBENCH_GEMM_BODY4;
+  }
+}
+
+template< typename Lambda >
+__global__ void poly_gemm_lam(Index_type ni, Index_type nj,
+                              Lambda body)
+{
+  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
+  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if ( i < ni && j < nj ) {
+    body(i, j);
+  }
 }
 
 
@@ -63,12 +92,13 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nblocks(1, ni, 1);
-      dim3 nthreads_per_block(nj, 1, 1);
+      POLY_GEMM_THREADS_PER_BLOCK_HIP;
+      POLY_GEMM_NBLOCKS_HIP; 
 
-      hipLaunchKernelGGL((poly_gemm), dim3(nblocks), dim3(nthreads_per_block), 0,0,C, A, B,
-                                                 alpha, beta,
-                                                 nj, nk);
+      hipLaunchKernelGGL((poly_gemm), 
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         C, A, B, alpha, beta,
+                         ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
     }
@@ -83,8 +113,10 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
+      POLY_GEMM_THREADS_PER_BLOCK_HIP;
+      POLY_GEMM_NBLOCKS_HIP; 
 
+      auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_GEMM_BODY1;
         POLYBENCH_GEMM_BODY2;
         for (Index_type k = 0; k < nk; ++k ) {
@@ -93,13 +125,9 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
         POLYBENCH_GEMM_BODY4;
       };
 
-      dim3 nblocks(1, ni, 1);
-      dim3 nthreads_per_block(nj, 1, 1);
-
-      auto kernel = lambda_hip_kernel<RAJA::hip_block_y_direct, RAJA::hip_thread_x_direct, decltype(poly_gemm_lambda)>;
-      hipLaunchKernelGGL(kernel,
-        nblocks, nthreads_per_block, 0, 0,
-        0, ni, 0, nj, poly_gemm_lambda);
+      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>), 
+        dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+        ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
 
     }
@@ -115,15 +143,21 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::HipKernelAsync<
-          RAJA::statement::For<0, RAJA::hip_block_y_direct,
-            RAJA::statement::For<1, RAJA::hip_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
-              RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+        RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
+          RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
+                                   RAJA::hip_block_y_direct,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
+                                     RAJA::hip_block_x_direct,
+              RAJA::statement::For<0, RAJA::hip_thread_y_direct,   // i
+                RAJA::statement::For<1, RAJA::hip_thread_x_direct, // j
+                  RAJA::statement::Lambda<0, RAJA::Params<0>>,
+                  RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
+                  RAJA::statement::For<2, RAJA::seq_exec,           // k
+                    RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+                  >,
+                  RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>
+                >
+              >
             >
           >
         >

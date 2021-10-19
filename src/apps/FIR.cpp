@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -36,6 +36,10 @@ FIR::FIR(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep((2 * m_coefflen) * (getActualProblemSize() - m_coefflen));
+ 
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -71,7 +75,7 @@ void FIR::setUp(VariantID vid)
 
 void FIR::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_out, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor );
 }
 
 void FIR::tearDown(VariantID vid)

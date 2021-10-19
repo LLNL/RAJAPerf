@@ -1,13 +1,13 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Action of 3D Mass matrix via partial assembly
+/// Action of 3D mass matrix via partial assembly
 ///
 /// Based on MFEM's/CEED algorithms.
 /// Reference implementation
@@ -15,8 +15,8 @@
 ///
 /// for (int e = 0; e < NE; ++e) {
 ///
-///   constexpr int MQ1 = Q1D;
-///   constexpr int MD1 = D1D;
+///   constexpr int MQ1 = MPA_Q1D;
+///   constexpr int MD1 = MPA_D1D;
 ///   constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1;
 ///   double sDQ[MQ1 * MD1];
 ///   double(*Bsmem)[MD1] = (double(*)[MD1])sDQ;
@@ -30,120 +30,120 @@
 ///   double(*QQD)[MQ1][MD1] = (double(*)[MQ1][MD1])sm0;
 ///   double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
 ///
-///   for(int dy=0; dy<D1D; ++dy) {
-///     for(int dx=0; dx<D1D; ++dx) {
-///       for (int dz = 0; dz< D1D; ++dz) {
+///   for(int dy=0; dy<MPA_D1D; ++dy) {
+///     for(int dx=0; dx<MPA_D1D; ++dx) {
+///       for (int dz = 0; dz< MPA_D1D; ++dz) {
 ///         Xsmem[dz][dy][dx] = X_(dx, dy, dz, e);
 ///       }
 ///     }
-///     for(int dx=0; dx<Q1D; ++dx) {
+///     for(int dx=0; dx<MPA_Q1D; ++dx) {
 ///      Bsmem[dx][dy] = B_(dx, dy);
 ///     }
 ///   }
 ///
-///   for(int dy=0; dy<D1D; ++dy) {
-///     for(int dx=0; dx<Q1D; ++dx) {
-///       double u[D1D];
-///       for (int dz = 0; dz < D1D; dz++) {
+///   for(int dy=0; dy<MPA_D1D; ++dy) {
+///     for(int dx=0; dx<MPA_Q1D; ++dx) {
+///       double u[MPA_D1D];
+///       for (int dz = 0; dz < MPA_D1D; dz++) {
 ///           u[dz] = 0;
 ///       }
-///       for (int dx = 0; dx < D1D; ++dx) {
-///         for (int dz = 0; dz < D1D; ++dz) {
+///       for (int dx = 0; dx < MPA_D1D; ++dx) {
+///         for (int dz = 0; dz < MPA_D1D; ++dz) {
 ///           u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx];
 ///          }
 ///       }
-///       for (int dz = 0; dz < D1D; ++dz) {
+///       for (int dz = 0; dz < MPA_D1D; ++dz) {
 ///         DDQ[dz][dy][qx] = u[dz];
 ///       }
 ///     }
 ///   }
 ///
-///   for(int qy=0; qy<Q1D; ++qy) {
-///     for(int qx=0; qx<Q1D; ++qx) {
-///       double u[D1D];
-///       for (int dz = 0; dz < D1D; dz++) {
+///   for(int qy=0; qy<MPA_Q1D; ++qy) {
+///     for(int qx=0; qx<MPA_Q1D; ++qx) {
+///       double u[MPA_D1D];
+///       for (int dz = 0; dz < MPA_D1D; dz++) {
 ///         u[dz] = 0;
 ///       }
-///       for (int dy = 0; dy < D1D; ++dy) {
-///         for (int dz = 0; dz < D1D; dz++) {
+///       for (int dy = 0; dy < MPA_D1D; ++dy) {
+///         for (int dz = 0; dz < MPA_D1D; dz++) {
 ///           u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy];
 ///         }
 ///       }
-///       for (int dz = 0; dz < D1D; dz++) {
+///       for (int dz = 0; dz < MPA_D1D; dz++) {
 ///         DQQ[dz][qy][qx] = u[dz];
 ///       }
 ///     }
 ///   }
 ///
-///   for(int qy=0; qy<Q1D; ++qy) {
-///     for(int qx=0; qx<Q1D; ++qx) {
-///       double u[Q1D];
-///       for (int qz = 0; qz < Q1D; qz++) {
+///   for(int qy=0; qy<MPA_Q1D; ++qy) {
+///     for(int qx=0; qx<MPA_Q1D; ++qx) {
+///       double u[MPA_Q1D];
+///       for (int qz = 0; qz < MPA_Q1D; qz++) {
 ///         u[qz] = 0;
 ///       }
-///       for (int dz = 0; dz < D1D; ++dz) {
-///         for (int qz = 0; qz < Q1D; qz++) {
+///       for (int dz = 0; dz < MPA_D1D; ++dz) {
+///         for (int qz = 0; qz < MPA_Q1D; qz++) {
 ///            u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz];
 ///          }
 ///       }
-///       for (int qz = 0; qz < Q1D; qz++) {
+///       for (int qz = 0; qz < MPA_Q1D; qz++) {
 ///         QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e);
 ///       }
 ///     }
 ///   }
 ///
-///   for(int d=0; d<D1D; ++d) {
-///     for(int q=0; q<Q1D; ++q) {
+///   for(int d=0; d<MPA_D1D; ++d) {
+///     for(int q=0; q<MPA_Q1D; ++q) {
 ///       Btsmem[d][q] = Bt_(q, d);
 ///     }
 ///   }
 ///
-///   for(int qy=0; qy<Q1D; ++qy) {
-///     for(int dx=0; dx<D1D; ++dx) {
-///       double u[Q1D];
-///       for (int qz = 0; qz < Q1D; ++qz) {
+///   for(int qy=0; qy<MPA_Q1D; ++qy) {
+///     for(int dx=0; dx<MPA_D1D; ++dx) {
+///       double u[MPA_Q1D];
+///       for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///         u[qz] = 0;
 ///       }
-///       for (int qx = 0; qx < Q1D; ++qx) {
-///         for (int qz = 0; qz < Q1D; ++qz) {
+///       for (int qx = 0; qx < MPA_Q1D; ++qx) {
+///         for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///           u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx];
 ///         }
 ///       }
-///       for (int qz = 0; qz < Q1D; ++qz) {
+///       for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///          QQD[qz][qy][dx] = u[qz];
 ///       }
 ///     }
 ///   }
 ///
-///   for(int dy=0; dy<D1D; ++dy) {
-///     for(int dx=0; dx<D1D; ++dx) {
-///       double u[Q1D];
-///       for (int qz = 0; qz < Q1D; ++qz) {
+///   for(int dy=0; dy<MPA_D1D; ++dy) {
+///     for(int dx=0; dx<MPA_D1D; ++dx) {
+///       double u[MPA_Q1D];
+///       for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///          u[qz] = 0;
 ///       }
-///       for (int qy = 0; qy < Q1D; ++qy) {
-///         for (int qz = 0; qz < Q1D; ++qz) {
+///       for (int qy = 0; qy < MPA_Q1D; ++qy) {
+///         for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///           u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy];
 ///          }
 ///       }
-///       for (int qz = 0; qz < Q1D; ++qz) {
+///       for (int qz = 0; qz < MPA_Q1D; ++qz) {
 ///         QDD[qz][dy][dx] = u[qz];
 ///       }
 ///     }
 ///   }
 ///
-///   for(int dy=0; dy<D1D; ++dy) {
-///     for(int dx=0; dx<D1D; ++dx) {
-///       double u[D1D];
-///       for (int dz = 0; dz < D1D; ++dz) {
+///   for(int dy=0; dy<MPA_D1D; ++dy) {
+///     for(int dx=0; dx<MPA_D1D; ++dx) {
+///       double u[MPA_D1D];
+///       for (int dz = 0; dz < MPA_D1D; ++dz) {
 ///        u[dz] = 0;
 ///       }
-///       for (int qz = 0; qz < Q1D; ++qz) {
-///         for (int dz = 0; dz < D1D; ++dz) {
+///       for (int qz = 0; qz < MPA_Q1D; ++qz) {
+///         for (int dz = 0; dz < MPA_D1D; ++dz) {
 ///            u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz];
 ///          }
 ///       }
-///       for (int dz = 0; dz < D1D; ++dz) {
+///       for (int dz = 0; dz < MPA_D1D; ++dz) {
 ///         Y_(dx, dy, dz, e) += u[dz];
 ///       }
 ///     }
@@ -164,24 +164,25 @@ Real_ptr Y = m_Y; \
 Index_type NE = m_NE;
 
 #include "common/KernelBase.hpp"
+#include "FEM_MACROS.hpp"
 
 #include "RAJA/RAJA.hpp"
 
 //Number of Dofs/Qpts in 1D
-#define D1D 4
-#define Q1D 5
-#define B_(x, y) B[x + Q1D * y]
-#define Bt_(x, y) Bt[x + D1D * y]
+#define MPA_D1D 4
+#define MPA_Q1D 5
+#define B_(x, y) B[x + MPA_Q1D * y]
+#define Bt_(x, y) Bt[x + MPA_D1D * y]
 #define X_(dx, dy, dz, e)                                                      \
-  X[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+  X[dx + MPA_D1D * dy + MPA_D1D * MPA_D1D * dz + MPA_D1D * MPA_D1D * MPA_D1D * e]
 #define Y_(dx, dy, dz, e)                                                      \
-  Y[dx + D1D * dy + D1D * D1D * dz + D1D * D1D * D1D * e]
+  Y[dx + MPA_D1D * dy + MPA_D1D * MPA_D1D * dz + MPA_D1D * MPA_D1D * MPA_D1D * e]
 #define D_(qx, qy, qz, e)                                                      \
-  D[qx + Q1D * qy + Q1D * Q1D * qz + Q1D * Q1D * Q1D * e]
+  D[qx + MPA_Q1D * qy + MPA_Q1D * MPA_Q1D * qz + MPA_Q1D * MPA_Q1D * MPA_Q1D * e]
 
 #define MASS3DPA_0_CPU           \
-        constexpr int MQ1 = Q1D; \
-        constexpr int MD1 = D1D; \
+        constexpr int MQ1 = MPA_Q1D; \
+        constexpr int MD1 = MPA_D1D; \
         constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
         double sDQ[MQ1 * MD1]; \
         double(*Bsmem)[MD1] = (double(*)[MD1])sDQ; \
@@ -196,8 +197,8 @@ Index_type NE = m_NE;
         double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
 
 #define MASS3DPA_0_GPU \
-        constexpr int MQ1 = Q1D; \
-        constexpr int MD1 = D1D; \
+        constexpr int MQ1 = MPA_Q1D; \
+        constexpr int MD1 = MPA_D1D; \
         constexpr int MDQ = (MQ1 > MD1) ? MQ1 : MD1; \
         RAJA_TEAM_SHARED  double sDQ[MQ1 * MD1];     \
         double(*Bsmem)[MD1] = (double(*)[MD1])sDQ; \
@@ -213,143 +214,143 @@ Index_type NE = m_NE;
 
 #define MASS3DPA_1 \
   RAJA_UNROLL(MD1) \
-for (int dz = 0; dz< D1D; ++dz) { \
+for (int dz = 0; dz< MPA_D1D; ++dz) { \
 Xsmem[dz][dy][dx] = X_(dx, dy, dz, e); \
 }
 
 #define MASS3DPA_2 \
   Bsmem[dx][dy] = B_(dx, dy);
 
-// 2 * D1D * D1D * D1D * Q1D
+// 2 * MPA_D1D * MPA_D1D * MPA_D1D * MPA_Q1D
 #define MASS3DPA_3 \
-  double u[D1D]; \
+  double u[MPA_D1D]; \
 RAJA_UNROLL(MD1) \
-for (int dz = 0; dz < D1D; dz++) { \
+for (int dz = 0; dz < MPA_D1D; dz++) { \
 u[dz] = 0; \
 } \
 RAJA_UNROLL(MD1) \
-for (int dx = 0; dx < D1D; ++dx) { \
+for (int dx = 0; dx < MPA_D1D; ++dx) { \
 RAJA_UNROLL(MD1) \
-for (int dz = 0; dz < D1D; ++dz) { \
+for (int dz = 0; dz < MPA_D1D; ++dz) { \
 u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx]; \
 } \
 } \
 RAJA_UNROLL(MD1) \
-for (int dz = 0; dz < D1D; ++dz) { \
+for (int dz = 0; dz < MPA_D1D; ++dz) { \
 DDQ[dz][dy][qx] = u[dz]; \
 }
 
-//2 * D1D * D1D * Q1D * Q1D
+//2 * MPA_D1D * MPA_D1D * MPA_Q1D * MPA_Q1D
 #define MASS3DPA_4 \
-            double u[D1D]; \
+            double u[MPA_D1D]; \
             RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < D1D; dz++) { \
+            for (int dz = 0; dz < MPA_D1D; dz++) { \
               u[dz] = 0; \
             } \
             RAJA_UNROLL(MD1) \
-            for (int dy = 0; dy < D1D; ++dy) { \
+            for (int dy = 0; dy < MPA_D1D; ++dy) { \
               RAJA_UNROLL(MD1) \
-              for (int dz = 0; dz < D1D; dz++) { \
+              for (int dz = 0; dz < MPA_D1D; dz++) { \
                 u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy]; \
               } \
             } \
             RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < D1D; dz++) { \
+            for (int dz = 0; dz < MPA_D1D; dz++) { \
               DQQ[dz][qy][qx] = u[dz]; \
             }
 
-//2 * D1D * Q1D * Q1D * Q1D + Q1D * Q1D * Q1D
+//2 * MPA_D1D * MPA_Q1D * MPA_Q1D * MPA_Q1D + MPA_Q1D * MPA_Q1D * MPA_Q1D
 #define MASS3DPA_5 \
-            double u[Q1D]; \
+            double u[MPA_Q1D]; \
             RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < Q1D; qz++) { \
+            for (int qz = 0; qz < MPA_Q1D; qz++) { \
               u[qz] = 0; \
             } \
             RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < D1D; ++dz) { \
+            for (int dz = 0; dz < MPA_D1D; ++dz) { \
               RAJA_UNROLL(MQ1) \
-              for (int qz = 0; qz < Q1D; qz++) { \
+              for (int qz = 0; qz < MPA_Q1D; qz++) { \
                 u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz]; \
               } \
             } \
             RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < Q1D; qz++) { \
+            for (int qz = 0; qz < MPA_Q1D; qz++) { \
               QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e); \
             }
 
 #define MASS3DPA_6 \
   Btsmem[d][q] = Bt_(q, d);
 
-//2 * Q1D * Q1D * Q1D * D1D
+//2 * MPA_Q1D * MPA_Q1D * MPA_Q1D * MPA_D1D
 #define MASS3DPA_7 \
-  double u[Q1D]; \
+  double u[MPA_Q1D]; \
 RAJA_UNROLL(MQ1) \
-for (int qz = 0; qz < Q1D; ++qz) { \
+for (int qz = 0; qz < MPA_Q1D; ++qz) { \
   u[qz] = 0; \
  } \
 RAJA_UNROLL(MQ1) \
-for (int qx = 0; qx < Q1D; ++qx) { \
+for (int qx = 0; qx < MPA_Q1D; ++qx) { \
   RAJA_UNROLL(MQ1) \
-    for (int qz = 0; qz < Q1D; ++qz) { \
+    for (int qz = 0; qz < MPA_Q1D; ++qz) { \
       u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx]; \
     } \
  } \
 RAJA_UNROLL(MQ1) \
-for (int qz = 0; qz < Q1D; ++qz) { \
+for (int qz = 0; qz < MPA_Q1D; ++qz) { \
   QQD[qz][qy][dx] = u[qz]; \
  }
 
-// 2 * Q1D * Q1D * D1D * D1D
+// 2 * MPA_Q1D * MPA_Q1D * MPA_D1D * MPA_D1D
 #define MASS3DPA_8 \
-            double u[Q1D]; \
+            double u[MPA_Q1D]; \
             RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < Q1D; ++qz) { \
+            for (int qz = 0; qz < MPA_Q1D; ++qz) { \
               u[qz] = 0; \
             } \
             RAJA_UNROLL(MQ1) \
-            for (int qy = 0; qy < Q1D; ++qy) { \
+            for (int qy = 0; qy < MPA_Q1D; ++qy) { \
               RAJA_UNROLL(MQ1) \
-              for (int qz = 0; qz < Q1D; ++qz) { \
+              for (int qz = 0; qz < MPA_Q1D; ++qz) { \
                 u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy]; \
               } \
             } \
             RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < Q1D; ++qz) { \
+            for (int qz = 0; qz < MPA_Q1D; ++qz) { \
               QDD[qz][dy][dx] = u[qz]; \
             }
 
-//2 * Q1D * D1D * D1D * D1D + D1D * D1D * D1D
+//2 * MPA_Q1D * MPA_D1D * MPA_D1D * MPA_D1D + MPA_D1D * MPA_D1D * MPA_D1D
 #define MASS3DPA_9 \
-            double u[D1D]; \
+            double u[MPA_D1D]; \
             RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < D1D; ++dz) { \
+            for (int dz = 0; dz < MPA_D1D; ++dz) { \
               u[dz] = 0; \
             } \
             RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < Q1D; ++qz) { \
+            for (int qz = 0; qz < MPA_Q1D; ++qz) { \
               RAJA_UNROLL(MD1) \
-              for (int dz = 0; dz < D1D; ++dz) { \
+              for (int dz = 0; dz < MPA_D1D; ++dz) { \
                 u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz]; \
               } \
             } \
             RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < D1D; ++dz) { \
+            for (int dz = 0; dz < MPA_D1D; ++dz) { \
               Y_(dx, dy, dz, e) += u[dz]; \
             }
 
 
 #if defined(RAJA_ENABLE_CUDA)
-  using device_launch = RAJA::expt::cuda_launch_t<true>;
-  using gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
+  using m3d_device_launch = RAJA::expt::cuda_launch_t<true>;
+  using m3d_gpu_block_x_policy = RAJA::cuda_block_x_direct;
+  using m3d_gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
+  using m3d_gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  using device_launch = RAJA::expt::hip_launch_t<true>;
-  using gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using gpu_thread_y_policy = RAJA::hip_thread_y_loop;
+  using m3d_device_launch = RAJA::expt::hip_launch_t<true>;
+  using m3d_gpu_block_x_policy = RAJA::hip_block_x_direct;
+  using m3d_gpu_thread_x_policy = RAJA::hip_thread_x_loop;
+  using m3d_gpu_thread_y_policy = RAJA::hip_thread_y_loop;
 #endif
 
 namespace rajaperf

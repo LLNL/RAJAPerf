@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -30,6 +30,10 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep(11 * getActualProblemSize()); // 1 sqrt
+
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -72,8 +76,8 @@ void IF_QUAD::setUp(VariantID vid)
 
 void IF_QUAD::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_x1, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_x2, getActualProblemSize());
+  checksum[vid] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
 }
 
 void IF_QUAD::tearDown(VariantID vid)

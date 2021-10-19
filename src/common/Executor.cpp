@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,8 +12,10 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-// Warmup kernel to run first to remove startup overheads in timings
+// Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
+#include "basic/REDUCE3_INT.hpp"
+#include "algorithm/SORT.hpp"
 
 #include <list>
 #include <vector>
@@ -62,6 +64,133 @@ void Executor::setupSuite()
   using VIDset = set<VariantID>;
 
   //
+  // Determine which kernels to exclude from input.
+  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  //
+  const Svector& exclude_kernel_input = run_params.getExcludeKernelInput();
+  const Svector& exclude_feature_input = run_params.getExcludeFeatureInput();
+
+  KIDset exclude_kern;
+
+  if ( !exclude_kernel_input.empty() ) {
+
+    // Make list copy of exclude kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist exclude_kern_names(exclude_kernel_input.begin(), exclude_kernel_input.end());
+
+    //
+    // Search exclude_kern_names for matching group names.
+    // groups2exclude will contain names of groups to exclude.
+    //
+    Svector groups2exclude;
+    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          groups2exclude.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in exclude_kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from exclude_kern_names list.
+    //
+    for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
+      const string& gname(groups2exclude[ig]);
+
+      for (size_t ik = 0; ik < NumKernels; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getFullKernelName(kid).find(gname) != string::npos ) {
+          exclude_kern.insert(kid);
+        }
+      }
+
+      exclude_kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining exclude_kern_names.
+    //
+    // Assemble invalid input for warning message.
+    //
+    Svector invalid;
+
+    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
+          exclude_kern.insert(kid);
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back(*it);
+    }
+
+    run_params.setInvalidExcludeKernelInput(invalid);
+
+  }
+
+  if ( !exclude_feature_input.empty() ) {
+
+    // First, check for invalid exclude_feature input.
+    // Assemble invalid input for warning message.
+    //
+    Svector invalid;
+
+    for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+      bool found_it = false;
+
+      for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if ( getFeatureName(tfid) == exclude_feature_input[i] ) {
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back( exclude_feature_input[i] );
+    }
+    run_params.setInvalidExcludeFeatureInput(invalid);
+
+    //
+    // If feature input is valid, determine which kernels use
+    // input-specified features and add to set of kernels to run.
+    //
+    if ( run_params.getInvalidExcludeFeatureInput().empty() ) {
+
+      for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+
+        const string& feature = exclude_feature_input[i];
+
+        bool found_it = false;
+        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+          FeatureID tfid = static_cast<FeatureID>(fid);
+          if ( getFeatureName(tfid) == feature ) {
+            found_it = true;
+
+            for (int kid = 0; kid < NumKernels; ++kid) {
+              KernelID tkid = static_cast<KernelID>(kid);
+              KernelBase* kern = getKernelObject(tkid, run_params);
+              if ( kern->usesFeature(tfid) ) {
+                 exclude_kern.insert( tkid );
+              }
+              delete kern;
+            }  // loop over kernels
+
+          }  // if input feature name matches feature id
+        }  // loop over feature ids until name match is found
+
+      }  // loop over feature name input
+
+    }  // if feature name input is valid
+  }
+
+  //
   // Determine which kernels to execute from input.
   // run_kern will be non-duplicated ordered set of IDs of kernel to run.
   //
@@ -72,9 +201,7 @@ void Executor::setupSuite()
 
   if ( kernel_input.empty() && feature_input.empty() ) {
 
-    //
-    // No kernels or fatures specified in input, run them all...
-    //
+    // No kernels or features specified in input, run them all...
     for (auto iter_input: allKernels) {
         kernels.push_back(iter_input.second);
     }
@@ -129,7 +256,8 @@ void Executor::setupSuite()
               for (int kid = 0; kid < NumKernels; ++kid) {
                 KernelID tkid = static_cast<KernelID>(kid);
                 KernelBase* kern = getKernelObject(tkid, run_params);
-                if ( kern->usesFeature(tfid) ) {
+                if ( kern->usesFeature(tfid) &&
+                     exclude_kern.find(tkid) == exclude_kern.end() ) {
                    run_kern.insert( tkid );
                 }
                 delete kern;
@@ -171,10 +299,11 @@ void Executor::setupSuite()
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
       const string& gname(groups2run[ig]);
 
-      for (size_t ik = 0; ik < NumKernels; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(gname) != string::npos ) {
-          run_kern.insert(kid);
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != string::npos &&
+             exclude_kern.find(tkid) == exclude_kern.end()) {
+          run_kern.insert(tkid);
         }
       }
 
@@ -192,10 +321,12 @@ void Executor::setupSuite()
     {
       bool found_it = false;
 
-      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
-          run_kern.insert(kid);
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          if (exclude_kern.find(tkid) == exclude_kern.end()) {
+            run_kern.insert(tkid);
+          }
           found_it = true;
         }
       }
@@ -237,6 +368,44 @@ void Executor::setupSuite()
     }
   }
 
+
+  //
+  // Determine variants to execute from input.
+  // run_var will be non-duplicated ordered set of IDs of variants to run.
+  //
+  const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
+
+  VIDset exclude_var;
+
+  if ( !exclude_variant_names.empty() ) {
+
+    //
+    // Parse input to determine which variants to exclude.
+    //
+    // Assemble invalid input for warning message.
+    //
+
+    Svector invalid;
+
+    for (size_t it = 0; it < exclude_variant_names.size(); ++it) {
+      bool found_it = false;
+
+      for (VIDset::iterator vid_it = available_var.begin();
+         vid_it != available_var.end(); ++vid_it) {
+        VariantID vid = *vid_it;
+        if ( getVariantName(vid) == exclude_variant_names[it] ) {
+          exclude_var.insert(vid);
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back(exclude_variant_names[it]);
+    }
+
+    run_params.setInvalidExcludeVariantInput(invalid);
+
+  }
+
   //
   // Determine variants to execute from input.
   // run_var will be non-duplicated ordered set of IDs of variants to run.
@@ -254,9 +423,11 @@ void Executor::setupSuite()
     for (VIDset::iterator vid_it = available_var.begin();
          vid_it != available_var.end(); ++vid_it) {
       VariantID vid = *vid_it;
-      run_var.insert( vid );
-      if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-        reference_vid = vid;
+      if (exclude_var.find(vid) == exclude_var.end()) {
+        run_var.insert( vid );
+        if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+          reference_vid = vid;
+        }
       }
     }
 
@@ -288,9 +459,11 @@ void Executor::setupSuite()
          vid_it != available_var.end(); ++vid_it) {
         VariantID vid = *vid_it;
         if ( getVariantName(vid) == variant_names[it] ) {
-          run_var.insert(vid);
-          if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-            reference_vid = vid;
+          if (exclude_var.find(vid) == exclude_var.end()) {
+            run_var.insert(vid);
+            if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+              reference_vid = vid;
+            }
           }
           found_it = true;
         }
@@ -317,11 +490,13 @@ void Executor::setupSuite()
   // A message will be emitted later so user can sort it out...
   //
 
-  if ( !(run_params.getInvalidKernelInput().empty()) ) {
+  if ( !(run_params.getInvalidKernelInput().empty()) ||
+       !(run_params.getInvalidExcludeKernelInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput);
 
-  } else if ( !(run_params.getInvalidFeatureInput().empty()) ) {
+  } else if ( !(run_params.getInvalidFeatureInput().empty()) ||
+              !(run_params.getInvalidExcludeFeatureInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput);
 
@@ -336,7 +511,8 @@ void Executor::setupSuite()
       //}
     }
 
-    if ( !(run_params.getInvalidVariantInput().empty()) ) {
+    if ( !(run_params.getInvalidVariantInput().empty()) ||
+         !(run_params.getInvalidExcludeVariantInput().empty()) ) {
 
        run_params.setInputState(RunParams::BadInput);
 
@@ -411,7 +587,7 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << run_params.getNumPasses() << endl;
     if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-      str << "\t Kernel size factor = " << run_params.getSize() << endl;
+      str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
     } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
       str << "\t Kernel size = " << run_params.getSize() << endl;
     }
@@ -486,7 +662,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   dash_width += itsrep_width + static_cast<Index_type>(sepchr.size());
 
   string kernsrep_head("Kernels/rep");
-  Index_type kernsrep_width = 
+  Index_type kernsrep_width =
     max( static_cast<Index_type>(kernsrep_head.size()),
          static_cast<Index_type>(4) );
   dash_width += kernsrep_width + static_cast<Index_type>(sepchr.size());
@@ -503,7 +679,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
                          static_cast<Index_type>(frsize) ) + 3;
   dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
 
-  str <<left<< setw(kercol_width) << kern_head 
+  str <<left<< setw(kercol_width) << kern_head
       << sepchr <<right<< setw(psize_width) << psize_head
       << sepchr <<right<< setw(reps_width) << rsize_head
       << sepchr <<right<< setw(itsrep_width) << itsrep_head
@@ -526,7 +702,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
         << sepchr <<right<< setw(itsrep_width) << kern->getItsPerRep()
         << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()
         << sepchr <<right<< setw(bytesrep_width) << kern->getBytesPerRep()
-        << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep() 
+        << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep()
         << endl;
   }
 
@@ -542,26 +718,33 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRun warmup kernel...\n";
+  cout << "\n\nRun warmup kernels...\n";
 
-  KernelBase* warmup_kernel = new basic::DAXPY(run_params);
+  vector<KernelBase*> warmup_kernels;
 
-  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-    VariantID vid = variant_ids[iv];
-    if ( run_params.showProgress() ) {
-      if ( warmup_kernel->hasVariantDefined(vid) ) {
-        cout << "   Running ";
-      } else {
-        cout << "   No ";
+  warmup_kernels.push_back(new basic::DAXPY(run_params));
+  warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
+  warmup_kernels.push_back(new algorithm::SORT(run_params));
+
+  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+    KernelBase* warmup_kernel = warmup_kernels[ik];
+    cout << "Kernel : " << warmup_kernel->getName() << endl;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      VariantID vid = variant_ids[iv];
+      if ( run_params.showProgress() ) {
+        if ( warmup_kernel->hasVariantDefined(vid) ) {
+          cout << "   Running ";
+        } else {
+          cout << "   No ";
+        }
+        cout << getVariantName(vid) << " variant" << endl;
       }
-      cout << getVariantName(vid) << " variant" << endl;
+      if ( warmup_kernel->hasVariantDefined(vid) ) {
+        warmup_kernel->execute(vid);
+      }
     }
-    if ( warmup_kernel->hasVariantDefined(vid) ) {
-      warmup_kernel->execute(vid);
-    }
+    delete warmup_kernels[ik];
   }
-
-  delete warmup_kernel;
 
 
   cout << "\n\nRunning specified kernels and variants...\n";

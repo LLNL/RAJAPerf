@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -23,36 +23,6 @@ namespace polybench
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  switch(lsizespec) {
-    case Mini:
-      m_ni=16; m_nj=18; m_nk=20; m_nl=22; m_nm=24;
-      m_run_reps = 100000;
-      break;
-    case Small:
-      m_ni=40; m_nj=50; m_nk=60; m_nl=70; m_nm=80;
-      m_run_reps = 5000;
-      break;
-    case Medium:
-      m_ni=180; m_nj=190; m_nk=200; m_nl=210; m_nm=220;
-      m_run_reps = 100;
-      break;
-    case Large:
-      m_ni=800; m_nj=900; m_nk=1000; m_nl=1100; m_nm=1200;
-      m_run_reps = 1;
-      break;
-    case Extralarge:
-      m_ni=1600; m_nj=1800; m_nk=2000; m_nl=2200; m_nm=2400;
-      m_run_reps = 1;
-      break;
-    default:
-      m_ni=180; m_nj=190; m_nk=200; m_nl=210; m_nm=220;
-      m_run_reps = 100;
-      break;
-  }
-
-#if 0 // we want this...
-
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1010;
@@ -63,7 +33,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
                                              nj_default*nl_default ), 
                                   ni_default*nl_default ) );
   setDefaultProblemSize( ni_default * nj_default );
-  setDefaultReps(4);
+  setDefaultReps(2);
 
   m_ni = std::sqrt( getTargetProblemSize() ) + 1;
   m_nj = m_ni;
@@ -71,13 +41,6 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   m_nl = m_ni;
   m_nm = nm_default;
 
-#else  // this is what we have now...
-
-  setDefaultProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl), m_ni*m_nl ) );
-
-  setDefaultReps(m_run_reps);
-
-#endif
 
   setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ), 
                                   m_ni*m_nl ) );
@@ -98,6 +61,10 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setFLOPsPerRep(2 * m_ni*m_nj*m_nk +
                  2 * m_nj*m_nl*m_nm +
                  2 * m_ni*m_nj*m_nl );
+
+  checksum_scale_factor = 0.000000001 * 
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -139,7 +106,7 @@ void POLYBENCH_3MM::setUp(VariantID vid)
 
 void POLYBENCH_3MM::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_G, m_ni * m_nl);
+  checksum[vid] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
 }
 
 void POLYBENCH_3MM::tearDown(VariantID vid)

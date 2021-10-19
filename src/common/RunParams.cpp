@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -35,15 +35,19 @@ RunParams::RunParams(int argc, char** argv)
    size_factor(0.0),
    pf_tol(0.1),
    checkrun_reps(1),
-   size_spec(Specundefined),
-   size_spec_string("SPECUNDEFINED"),
    reference_variant(),
    kernel_input(),
    invalid_kernel_input(),
+   exclude_kernel_input(),
+   invalid_exclude_kernel_input(),
    variant_input(),
    invalid_variant_input(),
+   exclude_variant_input(),
+   invalid_exclude_variant_input(),
    feature_input(),
    invalid_feature_input(),
+   exclude_feature_input(),
+   invalid_exclude_feature_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
 {
@@ -74,20 +78,19 @@ RunParams::~RunParams()
  */
 void RunParams::print(std::ostream& str) const
 {
-  str << "\n show_progress = " << show_progress; 
-  str << "\n npasses = " << npasses; 
+  str << "\n show_progress = " << show_progress;
+  str << "\n npasses = " << npasses;
   str << "\n rep_fact = " << rep_fact;
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
-  str << "\n pf_tol = " << pf_tol; 
-  str << "\n checkrun_reps = " << checkrun_reps; 
-  str << "\n size_spec_string = " << size_spec_string;  
-  str << "\n reference_variant = " << reference_variant; 
-  str << "\n outdir = " << outdir; 
-  str << "\n outfile_prefix = " << outfile_prefix; 
+  str << "\n pf_tol = " << pf_tol;
+  str << "\n checkrun_reps = " << checkrun_reps;
+  str << "\n reference_variant = " << reference_variant;
+  str << "\n outdir = " << outdir;
+  str << "\n outfile_prefix = " << outfile_prefix;
 
-  str << "\n kernel_input = "; 
+  str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
   }
@@ -96,13 +99,31 @@ void RunParams::print(std::ostream& str) const
     str << "\n\t" << invalid_kernel_input[j];
   }
 
-  str << "\n variant_input = "; 
+  str << "\n exclude_kernel_input = ";
+  for (size_t j = 0; j < exclude_kernel_input.size(); ++j) {
+    str << "\n\t" << exclude_kernel_input[j];
+  }
+  str << "\n invalid_exclude_kernel_input = ";
+  for (size_t j = 0; j < invalid_exclude_kernel_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_kernel_input[j];
+  }
+
+  str << "\n variant_input = ";
   for (size_t j = 0; j < variant_input.size(); ++j) {
     str << "\n\t" << variant_input[j];
   }
-  str << "\n invalid_variant_input = "; 
+  str << "\n invalid_variant_input = ";
   for (size_t j = 0; j < invalid_variant_input.size(); ++j) {
     str << "\n\t" << invalid_variant_input[j];
+  }
+
+  str << "\n exclude_variant_input = ";
+  for (size_t j = 0; j < exclude_variant_input.size(); ++j) {
+    str << "\n\t" << exclude_variant_input[j];
+  }
+  str << "\n invalid_exclude_variant_input = ";
+  for (size_t j = 0; j < invalid_exclude_variant_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_variant_input[j];
   }
 
   str << "\n feature_input = ";
@@ -112,6 +133,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_feature_input = ";
   for (size_t j = 0; j < invalid_feature_input.size(); ++j) {
     str << "\n\t" << invalid_feature_input[j];
+  }
+
+  str << "\n exclude_feature_input = ";
+  for (size_t j = 0; j < exclude_feature_input.size(); ++j) {
+    str << "\n\t" << exclude_feature_input[j];
+  }
+  str << "\n invalid_exclude_feature_input = ";
+  for (size_t j = 0; j < invalid_exclude_feature_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_feature_input[j];
   }
 
   str << std::endl;
@@ -147,14 +177,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( opt == std::string("--print-kernels") ||
                 opt == std::string("-pk") ) {
-     
-      printFullKernelNames(std::cout);     
+
+      printFullKernelNames(std::cout);
       input_state = InfoRequest;
- 
+
     } else if ( opt == std::string("--print-variants") ||
                 opt == std::string("-pv") ) {
 
-      printVariantNames(std::cout);     
+      printVariantNames(std::cout);
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -174,28 +204,28 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       printKernelFeatures(std::cout);
       input_state = InfoRequest;
- 
+
     } else if ( opt == std::string("--npasses") ) {
 
       i++;
-      if ( i < argc ) { 
+      if ( i < argc ) {
         npasses = ::atoi( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --npasses a value for number of passes (int)" 
-                  << std::endl; 
+                  << " must give --npasses a value for number of passes (int)"
+                  << std::endl;
         input_state = BadInput;
       }
 
     } else if ( opt == std::string("--repfact") ) {
 
       i++;
-      if ( i < argc ) { 
+      if ( i < argc ) {
         rep_fact = ::atof( argv[i] );
       } else {
         std::cout << "\nBad input:"
-                  << " must give --rep_fact a value (double)" 
-                  << std::endl;       
+                  << " must give --rep_fact a value (double)"
+                  << std::endl;
         input_state = BadInput;
       }
 
@@ -253,16 +283,6 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if (opt == std::string("--sizespec") ) {
-      i++;
-      if ( i < argc ) {
-        setSizeSpec(argv[i]);
-      } else {
-        std::cout << "\nBad input:"
-                  << " must give --sizespec a value for size specification: one of  MINI,SMALL,MEDIUM,LARGE,EXTRALARGE (string : any case)"
-                  << std::endl;
-        input_state = BadInput;
-      }
     } else if ( opt == std::string("--pass-fail-tol") ||
                 opt == std::string("-pftol") ) {
 
@@ -292,6 +312,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( opt == std::string("--exclude-kernels") ||
+                opt == std::string("-ek") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_kernel_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--variants") ||
                 std::string(argv[i]) == std::string("-v") ) {
 
@@ -308,6 +344,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( std::string(argv[i]) == std::string("--exclude-variants") ||
+                std::string(argv[i]) == std::string("-ev") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_variant_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--features") ||
                 std::string(argv[i]) == std::string("-f") ) {
 
@@ -320,6 +372,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           done = true;
         } else {
           feature_input.push_back(opt);
+          ++i;
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--exclude-features") ||
+                std::string(argv[i]) == std::string("-ef") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_feature_input.push_back(opt);
           ++i;
         }
       }
@@ -368,10 +436,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
        if (input_state != BadInput) {
          input_state = DryRun;
        }
-   
+
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
-      input_state = CheckRun; 
+      input_state = CheckRun;
 
       i++;
       if ( i < argc ) {
@@ -385,10 +453,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       }
 
     } else {
-     
+
       input_state = BadInput;
 
-      std::string huh(argv[i]);   
+      std::string huh(argv[i]);
       std::cout << "\nUnknown option: " << huh << std::endl;
       std::cout.flush();
 
@@ -407,17 +475,17 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 void RunParams::printHelpMessage(std::ostream& str) const
 {
   str << "\nUsage: ./raja-perf.exe [options]\n";
-  str << "Valid options are:\n"; 
+  str << "Valid options are:\n";
 
   str << "\t --help, -h (print options with descriptions)\n\n";
 
-  str << "\t --show-progress, -sp (print progress during run)\n\n";
+  str << "\t --show-progress, -sp (print execution progress during run)\n\n";
 
-  str << "\t --print-kernels, -pk (print all valid kernel names)\n\n";
+  str << "\t --print-kernels, -pk (print names of available kernels to run)\n\n";
 
-  str << "\t --print-variants, -pv (print all valid variant names)\n\n";
+  str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
 
-  str << "\t --print-features, -pf (print all valid feature names)\n\n";
+  str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
   str << "\t --print-feature-kernels, -pfk \n"
       << "\t      (print names of kernels that use each feature)\n\n";
@@ -426,17 +494,17 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (print names of features used by each kernel)\n\n";
 
   str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through suite)\n"; 
+      << "\t      (num passes through Suite)\n";
   str << "\t\t Example...\n"
-      << "\t\t --npasses 2 (runs complete suite twice\n\n";
+      << "\t\t --npasses 2 (runs complete Suite twice\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (fraction of default # reps to run each kernel)\n";
+      << "\t      (multiplier on default # reps to run each kernel)\n";
   str << "\t\t Example...\n"
       << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel size to run)\n"
+      << "\t      (fraction of default kernel sizes to run)\n"
       << "\t      (may not be set if --size is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --sizefact 2.0 (kernels will run with size twice the default)\n\n";
@@ -447,13 +515,48 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
 
-  str << "\t --sizespec <string> [one of : mini,small,medium,large,extralarge (anycase) -- default is medium]\n"
-      << "\t      (used to set specific sizes for polybench kernels)\n\n"; 
-
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
   str << "\t\t Example...\n"
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
+
+  str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to run)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
+      << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -k INIT3 Apps (run INIT3 kernel and all kernels in Apps group)\n\n";
+
+  str << "\t --exclude-kernels, -ek <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of individual kernels and/or groups of kernels to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-kernels Polybench (exclude all kernels in Polybench group)\n"
+      << "\t\t -ek INIT3 MULADDSUB (exclude INIT3 and MULADDSUB kernels)\n"
+      << "\t\t -ek INIT3 Apps (exclude INIT3 kernel and all kernels in Apps group)\n\n";
+
+  str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
+      << "\t      (names of variants to run)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --variants RAJA_CUDA (run all RAJA_CUDA kernel variants)\n"
+      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --exclude-variants, -ev <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of variants to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
+      << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
+      << "\t      (names of features to run)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
+      << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
+
+  str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of features to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
+      << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
@@ -467,36 +570,17 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
       << "\t\t -of dat (output data will be in files 'dat*')\n\n";
 
-  str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
-      << "\t      (names of individual kernels and/or groups of kernels to run)\n"; 
-  str << "\t\t Examples...\n"
-      << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
-      << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels\n"
-      << "\t\t -k INIT3 Apps (run INIT3 kernsl and all kernels in Apps group)\n\n";
-
-  str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
-      << "\t      (names of variants)\n"; 
-  str << "\t\t Examples...\n"
-      << "\t\t --variants RAJA_CUDA (run RAJA_CUDA variants)\n"
-      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq, RAJA_CUDA variants)\n\n";
-
   str << "\t --refvar, -rv <string> [Default is none]\n"
       << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
       << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
-  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
-      << "\t      (names of features)\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --features Forall (run kernels that use RAJA forall)\n"
-      << "\t\t -f Forall Reduction (run kernels that use RAJA forall or RAJA reductions)\n\n";
+  str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (run each kernel given number of times; usually to check things are working)\n"; 
+<< "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
-
-  str << "\t --dryrun (print summary of how suite will run without running)\n\n";
 
   str << std::endl;
   str.flush();
@@ -592,65 +676,22 @@ void RunParams::printKernelFeatures(std::ostream& str) const
 {
   str << "\nAvailable kernels and features each uses:";
   str << "\n-----------------------------------------\n";
-// TODO DZP: reimplement
-//  for (int kid = 0; kid < NumKernels; ++kid) {
-//    KernelID tkid = static_cast<KernelID>(kid); 
-///// RDH DISABLE COUPLE KERNEL
-//    if (tkid != Apps_COUPLE) {
-//      str << getFullKernelName(tkid) << std::endl;
-//      KernelBase* kern = getKernelObject(tkid, *this);
-//      for (int fid = 0; fid < NumFeatures; ++fid) {
-//        FeatureID tfid = static_cast<FeatureID>(fid);
-//        if ( kern->usesFeature(tfid) ) {
-//           str << "\t" << getFeatureName(tfid) << std::endl;
-//        }
-//      }  // loop over features
-//      delete kern;
-//    }  
-//  }  // loop over kernels
+  for (int kid = 0; kid < NumKernels; ++kid) {
+    KernelID tkid = static_cast<KernelID>(kid);
+/// RDH DISABLE COUPLE KERNEL
+    if (tkid != Apps_COUPLE) {
+      str << getFullKernelName(tkid) << std::endl;
+      KernelBase* kern = getKernelObject(tkid, *this);
+      for (int fid = 0; fid < NumFeatures; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if ( kern->usesFeature(tfid) ) {
+           str << "\t" << getFeatureName(tfid) << std::endl;
+        }
+      }  // loop over features
+      delete kern;
+    }
+  }  // loop over kernels
   str.flush();
-}
-
-const std::string& RunParams::getSizeSpecString()
-{
-  switch(size_spec) {
-    case Mini:
-      size_spec_string = "MINI";
-      break;
-    case Small:
-      size_spec_string = "SMALL";
-      break;
-    case Medium:
-      size_spec_string = "MEDIUM";
-      break;
-    case Large:
-      size_spec_string = "LARGE";
-      break;
-    case Extralarge:
-      size_spec_string = "EXTRALARGE";
-      break;
-    default:
-      size_spec_string = "SPECUNDEFINED";
-  }
-  return size_spec_string;
-}
-
-void RunParams::setSizeSpec(std::string inputString)
-{
-  for (auto & c: inputString) c = std::toupper(c);
-  if (inputString == "MINI")
-    size_spec = Mini;
-  else if (inputString == "SMALL")
-    size_spec = Small;
-  else if (inputString == "MEDIUM")
-    size_spec = Medium;
-  else if (inputString == "LARGE")
-    size_spec = Large;
-  else if (inputString == "EXTRALARGE")
-    size_spec = Extralarge;
-  else
-    size_spec = Specundefined;
-  std::cout << "Size Specification : " << getSizeSpecString() << std::endl;
 }
 
 }  // closing brace for rajaperf namespace

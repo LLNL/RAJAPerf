@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -41,6 +41,10 @@ VOL3D::VOL3D(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
   setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Forall);
 
@@ -87,7 +91,7 @@ void VOL3D::setUp(VariantID vid)
 
 void VOL3D::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_vol, m_array_length);
+  checksum[vid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
 void VOL3D::tearDown(VariantID vid)

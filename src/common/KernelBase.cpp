@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -39,6 +39,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   FLOPs_per_rep = -1;
 
   running_variant = NumVariants;
+
+  checksum_scale_factor = 1.0;
 
   for (size_t vid = 0; vid < NumVariants; ++vid) {
     checksum[vid] = 0.0;
