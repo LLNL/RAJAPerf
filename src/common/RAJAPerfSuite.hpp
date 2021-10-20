@@ -31,8 +31,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -58,8 +58,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -157,7 +157,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
+ *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -207,7 +207,7 @@ enum FeatureID {
 
   Sort,
   Scan,
-  Workgroup, 
+  Workgroup,
 
   Reduction,
   Atomic,
@@ -257,17 +257,27 @@ const std::string& getFullKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string& getVariantName(VariantID vid); 
+const std::string& getVariantName(VariantID vid);
 
 /*!
  *******************************************************************************
  *
- * \brief Return true if variant associated with VariantID enum value is 
+ * \brief Return true if variant associated with VariantID enum value is
  *        available * to run; else false.
  *
  *******************************************************************************
  */
 bool isVariantAvailable(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return true if variant associated with VariantID enum value runs
+ *        on the gpu.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid);
 
 /*!
  *******************************************************************************

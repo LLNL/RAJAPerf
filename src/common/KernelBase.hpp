@@ -52,6 +52,8 @@ public:
 
   void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
   void setActualProblemSize(Index_type size) { actual_prob_size = size; }
+  void setDefaultGPUBlockSize(size_t size) { default_gpu_block_size = size; }
+  void setActualGPUBlockSize(size_t size) { actual_gpu_block_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
@@ -68,6 +70,8 @@ public:
 
   Index_type getDefaultProblemSize() const { return default_prob_size; }
   Index_type getActualProblemSize() const { return actual_prob_size; }
+  size_t     getDefaultGPUBlockSize() const { return default_gpu_block_size; }
+  size_t     getActualGPUBlockSize() const { return actual_gpu_block_size; }
   Index_type getDefaultReps() const { return default_reps; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
@@ -82,6 +86,19 @@ public:
   bool hasVariantDefined(VariantID vid) const
     { return has_variant_defined[vid]; }
 
+  std::string getVariantName(VariantID vid) const
+  {
+    if (isVariantGPU(vid) && actual_gpu_block_size > 0) {
+      return rajaperf::getVariantName(vid) + std::string("_") + std::to_string(actual_gpu_block_size);
+    } else {
+      return rajaperf::getVariantName(vid);
+    }
+  }
+
+  virtual bool isGPUBlockSizeSupported() const
+  {
+    return default_gpu_block_size == actual_gpu_block_size;
+  }
 
   //
   // Methods to get information about kernel execution for reports
@@ -175,8 +192,10 @@ private:
 
   Index_type default_prob_size;
   Index_type default_reps;
+  size_t     default_gpu_block_size;
 
   Index_type actual_prob_size;
+  size_t     actual_gpu_block_size;
 
   bool uses_feature[NumFeatures];
 

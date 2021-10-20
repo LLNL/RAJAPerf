@@ -33,6 +33,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   gpu_block_size(0),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -82,6 +83,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n gpu_block_size = " << gpu_block_size;
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
   str << "\n reference_variant = " << reference_variant;
@@ -277,6 +279,24 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         std::cout << "\nBad input:"
                   << " must give --size a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--gpu_block_size") ) {
+
+      i++;
+      if ( i < argc ) {
+        gpu_block_size = ::atoi( argv[i] );
+        if ( gpu_block_size <= 0 ) {
+          std::cout << "\nBad input:"
+                << " must give --gpu_block_size a POSITIVE value (int)"
+                << std::endl;
+          input_state = BadInput;
+        }
+      } else {
+        std::cout << "\nBad input:"
+                  << " must give --gpu_block_size a value (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -512,6 +532,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+
+  str << "\t --gpu_block_size <int> [no default]\n"
+      << "\t      (block size to run for all GPU kernels)\n"
+      << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
+      << "\t      (Support is determined by kernel implementation and cmake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --gpu_block_size 256 (runs kernels with gpu_block_size 256)\n\n";
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";

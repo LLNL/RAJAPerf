@@ -58,6 +58,8 @@ private:
     std::vector<VariantID> variants;
   };
 
+  void runKernel(KernelBase* kern);
+
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;

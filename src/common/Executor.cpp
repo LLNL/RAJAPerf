@@ -577,6 +577,11 @@ void Executor::reportRunSummary(ostream& str) const
     } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
       str << "\t Kernel size = " << run_params.getSize() << endl;
     }
+    if (run_params.getGPUBlockSize() > 0) {
+      str << "\t Kernel GPU block_size = " << run_params.getGPUBlockSize() << endl;
+    } else {
+      str << "\t Kernel GPU block_size = " << "default" << endl;
+    }
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
@@ -613,6 +618,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   Index_type itsrep_width = 0;
   Index_type bytesrep_width = 0;
   Index_type flopsrep_width = 0;
+  Index_type bsize_width = 0;
   Index_type dash_width = 0;
 
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -622,6 +628,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
     itsrep_width = max(reps_width, kernels[ik]->getItsPerRep());
     bytesrep_width = max(bytesrep_width, kernels[ik]->getBytesPerRep());
     flopsrep_width = max(bytesrep_width, kernels[ik]->getFLOPsPerRep());
+    bsize_width = max(bsize_width, static_cast<Index_type>(kernels[ik]->getActualGPUBlockSize()));
   }
 
   const string sepchr(" , ");
@@ -665,13 +672,20 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
                          static_cast<Index_type>(frsize) ) + 3;
   dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
 
+  double bsize = log10( static_cast<double>(bsize_width) );
+  string bsize_head("GPU block size");
+  bsize_width = max( static_cast<Index_type>(bsize_head.size()),
+                     static_cast<Index_type>(bsize) ) + 3;
+  dash_width += bsize_width + static_cast<Index_type>(sepchr.size());
+
   str <<left<< setw(kercol_width) << kern_head
       << sepchr <<right<< setw(psize_width) << psize_head
       << sepchr <<right<< setw(reps_width) << rsize_head
       << sepchr <<right<< setw(itsrep_width) << itsrep_head
       << sepchr <<right<< setw(kernsrep_width) << kernsrep_head
       << sepchr <<right<< setw(bytesrep_width) << bytesrep_head
-      << sepchr <<right<< setw(flopsrep_width) << flopsrep_head << endl;
+      << sepchr <<right<< setw(flopsrep_width) << flopsrep_head
+      << sepchr <<right<< setw(bsize_width) << bsize_head << endl;
 
   if ( !to_file ) {
     for (Index_type i = 0; i < dash_width; ++i) {
@@ -689,6 +703,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
         << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()
         << sepchr <<right<< setw(bytesrep_width) << kern->getBytesPerRep()
         << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep()
+        << sepchr <<right<< setw(bsize_width) << kern->getActualGPUBlockSize()
         << endl;
   }
 
@@ -715,21 +730,9 @@ void Executor::runSuite()
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
     cout << "Kernel : " << warmup_kernel->getName() << endl;
-    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      VariantID vid = variant_ids[iv];
-      if ( run_params.showProgress() ) {
-        if ( warmup_kernel->hasVariantDefined(vid) ) {
-          cout << "   Running ";
-        } else {
-          cout << "   No ";
-        }
-        cout << getVariantName(vid) << " variant" << endl;
-      }
-      if ( warmup_kernel->hasVariantDefined(vid) ) {
-        warmup_kernel->execute(vid);
-      }
-    }
-    delete warmup_kernels[ik];
+    runKernel(warmup_kernel);
+    delete warmup_kernel;
+    warmup_kernels[ik] = nullptr;
   }
 
 
@@ -746,27 +749,30 @@ void Executor::runSuite()
       if ( run_params.showProgress() ) {
         std::cout << "\nRun kernel -- " << kernel->getName() << "\n";
       }
-
-      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-         VariantID vid = variant_ids[iv];
-         KernelBase* kern = kernels[ik];
-         if ( run_params.showProgress() ) {
-           if ( kern->hasVariantDefined(vid) ) {
-             cout << "   Running ";
-           } else {
-             cout << "   No ";
-           }
-           cout << getVariantName(vid) << " variant" << endl;
-         }
-         if ( kern->hasVariantDefined(vid) ) {
-           kernels[ik]->execute(vid);
-         }
-      } // loop over variants
-
+      runKernel(kernel);
     } // loop over kernels
 
   } // loop over passes through suite
 
+}
+
+void Executor::runKernel(KernelBase* kern)
+{
+  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+    VariantID vid = variant_ids[iv];
+
+    if ( run_params.showProgress() ) {
+      if ( kern->hasVariantDefined(vid) ) {
+        cout << "   Running ";
+      } else {
+        cout << "   No ";
+      }
+      cout << kern->getVariantName(vid) << " variant" << endl;
+    }
+    if ( kern->hasVariantDefined(vid) ) {
+      kern->execute(vid);
+    }
+  } // loop over variants
 }
 
 void Executor::outputRunData()
