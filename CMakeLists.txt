@@ -42,10 +42,18 @@ set(ENABLE_TBB Off CACHE BOOL "")
 
 set(RAJA_USE_CHRONO On CACHE BOOL "")
 
+set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
+
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
 
+string(LENGTH "${RAJA_PERFSUITE_GPU_BLOCKSIZES}" BLOCKSIZES_LENGTH)
+if (BLOCKSIZES_LENGTH GREATER 0)
+  message(STATUS "Using gpu block size(s): ${RAJA_PERFSUITE_GPU_BLOCKSIZES}")
+else()
+  message(STATUS "Using default gpu block size(s)")
+endif()
 
 # exclude RAJA make targets from top-level build...
 add_subdirectory(tpl/RAJA)
@@ -109,7 +117,9 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate (we need to do some house cleaning to 
+include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/bin>)
+
+# Make sure RAJA flag propagate (we need to do some house cleaning to
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
