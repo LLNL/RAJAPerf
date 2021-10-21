@@ -23,12 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define VOL3D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
   allocAndInitCudaDeviceData(y, m_y, m_array_length); \
@@ -66,7 +60,8 @@ __global__ void vol3d(Real_ptr vol,
 }
 
 
-void VOL3D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void VOL3D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = m_domain->fpz;
@@ -123,6 +118,15 @@ void VOL3D::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  VOL3D : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void VOL3D::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<VOL3D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  VOL3D : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

@@ -23,6 +23,10 @@ namespace apps
 LTIMES::LTIMES(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   m_num_d_default = 64;
   m_num_z_default = 488;
   m_num_g_default = 32;
@@ -31,7 +35,7 @@ LTIMES::LTIMES(const RunParams& params)
   setDefaultProblemSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = std::max( getTargetProblemSize() / 
+  m_num_z = std::max( getTargetProblemSize() /
                       (m_num_d_default * m_num_g_default),
                       Index_type(1) );
   m_num_g = m_num_g_default;
@@ -54,7 +58,7 @@ LTIMES::LTIMES(const RunParams& params)
 
   checksum_scale_factor = 0.001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
-                                           getActualProblemSize() ); 
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
   setUsesFeature(View);
@@ -102,6 +106,12 @@ void LTIMES::tearDown(VariantID vid)
   deallocData(m_phidat);
   deallocData(m_elldat);
   deallocData(m_psidat);
+}
+
+bool LTIMES::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace apps

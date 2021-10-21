@@ -204,7 +204,16 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  bool isGPUBlockSizeSupported() const;
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
+
 private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+
   Real_ptr m_e_new;
   Real_ptr m_e_old;
   Real_ptr m_delvc;

@@ -22,11 +22,17 @@ namespace apps
 {
 
 //
-// Define thread block size for Hip execution
+// Define thread block shape for Hip execution
 //
-constexpr size_t z_block_sz = 2;
-constexpr size_t g_block_sz = 4;
-constexpr size_t m_block_sz = 32;
+#define m_block_sz (32)
+// Note that z_block_sz = 2 is done for expedience, but
+// ideally we would find g_block_sz, z_block_sz
+// whole number factors of block_size / m_block_sz where
+// g_block_sz * z_block_sz == block_size / m_block_sz,
+// g_block_sz >= z_block_sz, and
+// g_block_sz - z_block_sz is minimized
+#define z_block_sz (2)
+#define g_block_sz (block_size / m_block_sz / z_block_sz)
 
 #define LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP \
   dim3 nthreads_per_block(m_block_sz, g_block_sz, z_block_sz);
@@ -77,7 +83,8 @@ __global__ void ltimes_noview_lam(Index_type num_m, Index_type num_g, Index_type
 }
 
 
-void LTIMES_NOVIEW::runHipVariant(VariantID vid)
+template < size_t block_size >
+void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -93,10 +100,10 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((ltimes_noview), 
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+      hipLaunchKernelGGL((ltimes_noview),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          phidat, elldat, psidat,
-                         num_d, 
+                         num_d,
                          num_m, num_g, num_z);
       hipErrchk( hipGetLastError() );
 
@@ -115,15 +122,15 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
 
-      auto ltimes_noview_lambda = 
+      auto ltimes_noview_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;
           }
       };
 
-      hipLaunchKernelGGL((ltimes_noview_lam<decltype(ltimes_noview_lambda)>), 
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+      hipLaunchKernelGGL((ltimes_noview_lam<decltype(ltimes_noview_lambda)>),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          num_m, num_g, num_z,
                          ltimes_noview_lambda);
       hipErrchk( hipGetLastError() );
@@ -179,6 +186,15 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n LTIMES_NOVIEW : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void LTIMES_NOVIEW::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<LTIMES_NOVIEW>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  LTIMES_NOVIEW : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

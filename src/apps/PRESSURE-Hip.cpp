@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define PRESSURE_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(compression, m_compression, iend); \
   allocAndInitHipDeviceData(bvc, m_bvc, iend); \
@@ -65,7 +59,8 @@ __global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
 }
 
 
-void PRESSURE::runHipVariant(VariantID vid)
+template < size_t block_size >
+void PRESSURE::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -127,6 +122,15 @@ void PRESSURE::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void PRESSURE::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<PRESSURE>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  PRESSURE : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

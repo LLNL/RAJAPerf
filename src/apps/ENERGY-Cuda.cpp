@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define ENERGY_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(e_new, m_e_new, iend); \
   allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
@@ -137,7 +131,8 @@ __global__ void energycalc6(Real_ptr delvc,
 }
 
 
-void ENERGY::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void ENERGY::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -258,6 +253,15 @@ void ENERGY::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  ENERGY : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void ENERGY::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<ENERGY>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  ENERGY : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

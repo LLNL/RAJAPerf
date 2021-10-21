@@ -22,11 +22,17 @@ namespace apps
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-constexpr size_t z_block_sz = 2;
-constexpr size_t g_block_sz = 4;
-constexpr size_t m_block_sz = 32;
+#define m_block_sz (32)
+// Note that z_block_sz = 2 is done for expedience, but
+// ideally we would find g_block_sz, z_block_sz
+// whole number factors of block_size / m_block_sz where
+// g_block_sz * z_block_sz == block_size / m_block_sz,
+// g_block_sz >= z_block_sz, and
+// g_block_sz - z_block_sz is minimized
+#define z_block_sz (2)
+#define g_block_sz (block_size / m_block_sz / z_block_sz)
 
 #define LTIMES_NOVIEW_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(m_block_sz, g_block_sz, z_block_sz);
@@ -78,7 +84,8 @@ __global__ void ltimes_noview_lam(Index_type num_m, Index_type num_g, Index_type
 }
 
 
-void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -174,6 +181,15 @@ void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n LTIMES_NOVIEW : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void LTIMES_NOVIEW::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<LTIMES_NOVIEW>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  LTIMES_NOVIEW : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

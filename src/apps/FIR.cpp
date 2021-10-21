@@ -21,6 +21,10 @@ namespace apps
 FIR::FIR(const RunParams& params)
   : KernelBase(rajaperf::Apps_FIR, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(160);
 
@@ -33,7 +37,7 @@ FIR::FIR(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep((2 * m_coefflen) * (getActualProblemSize() - m_coefflen));
- 
+
   checksum_scale_factor = 0.0001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
@@ -79,6 +83,12 @@ void FIR::tearDown(VariantID vid)
 
   deallocData(m_in);
   deallocData(m_out);
+}
+
+bool FIR::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace apps

@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define ENERGY_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(e_new, m_e_new, iend); \
   allocAndInitHipDeviceData(e_old, m_e_old, iend); \
@@ -137,7 +131,8 @@ __global__ void energycalc6(Real_ptr delvc,
 }
 
 
-void ENERGY::runHipVariant(VariantID vid)
+template < size_t block_size >
+void ENERGY::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -252,6 +247,15 @@ void ENERGY::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void ENERGY::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<ENERGY>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  ENERGY : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

@@ -25,12 +25,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
   allocAndInitCudaDeviceData(y, m_y, m_array_length); \
@@ -69,7 +63,8 @@ __global__ void deldotvec2d(Real_ptr div,
 }
 
 
-void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
@@ -162,6 +157,15 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<DEL_DOT_VEC_2D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  DEL_DOT_VEC_2D : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 1024;
-
-
 #define HALOEXCHANGE_FUSED_DATA_SETUP_HIP \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
     allocAndInitHipDeviceData(vars[v], m_vars[v], m_var_size); \
@@ -111,7 +105,8 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
 }
 
 
-void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid)
+template < size_t block_size >
+void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -271,6 +266,15 @@ void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<HALOEXCHANGE_FUSED>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  HALOEXCHANGE_FUSED : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

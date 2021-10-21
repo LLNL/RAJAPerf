@@ -44,6 +44,10 @@ void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
 HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   : KernelBase(rajaperf::Apps_HALOEXCHANGE, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   m_grid_dims_default[0] = 100;
   m_grid_dims_default[1] = 100;
   m_grid_dims_default[2] = 100;
@@ -158,6 +162,12 @@ void HALOEXCHANGE::tearDown(VariantID vid)
     deallocData(m_vars[v]);
   }
   m_vars.clear();
+}
+
+bool HALOEXCHANGE::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 namespace {

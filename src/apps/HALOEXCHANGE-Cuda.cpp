@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define HALOEXCHANGE_DATA_SETUP_CUDA \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
     allocAndInitCudaDeviceData(vars[v], m_vars[v], m_var_size); \
@@ -69,7 +63,8 @@ __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
 }
 
 
-void HALOEXCHANGE::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -167,6 +162,15 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n HALOEXCHANGE : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void HALOEXCHANGE::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<HALOEXCHANGE>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  HALOEXCHANGE : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 
