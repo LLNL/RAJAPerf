@@ -57,16 +57,20 @@ namespace apps
   deallocHipDeviceData(qq_old); \
   deallocHipDeviceData(vnewc);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc1(Real_ptr e_new, Real_ptr e_old, Real_ptr delvc,
                             Real_ptr p_old, Real_ptr q_old, Real_ptr work,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY1;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc2(Real_ptr delvc, Real_ptr q_new,
                             Real_ptr compHalfStep, Real_ptr pHalfStep,
                             Real_ptr e_new, Real_ptr bvc, Real_ptr pbvc,
@@ -74,33 +78,39 @@ __global__ void energycalc2(Real_ptr delvc, Real_ptr q_new,
                             Real_type rho0,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY2;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc3(Real_ptr e_new, Real_ptr delvc,
                             Real_ptr p_old, Real_ptr q_old,
                             Real_ptr pHalfStep, Real_ptr q_new,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY3;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc4(Real_ptr e_new, Real_ptr work,
                             Real_type e_cut, Real_type emin,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY4;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc5(Real_ptr delvc,
                             Real_ptr pbvc, Real_ptr e_new, Real_ptr vnewc,
                             Real_ptr bvc, Real_ptr p_new,
@@ -110,12 +120,14 @@ __global__ void energycalc5(Real_ptr delvc,
                             Real_type rho0, Real_type e_cut, Real_type emin,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY5;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void energycalc6(Real_ptr delvc,
                             Real_ptr pbvc, Real_ptr e_new, Real_ptr vnewc,
                             Real_ptr bvc, Real_ptr p_new,
@@ -124,7 +136,7 @@ __global__ void energycalc6(Real_ptr delvc,
                             Real_type rho0, Real_type q_cut,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      ENERGY_BODY6;
    }
@@ -149,12 +161,12 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-       hipLaunchKernelGGL((energycalc1), dim3(grid_size), dim3(block_size), 0, 0,  e_new, e_old, delvc,
+       hipLaunchKernelGGL((energycalc1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc2), dim3(grid_size), dim3(block_size), 0, 0,  delvc, q_new,
+       hipLaunchKernelGGL((energycalc2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc, q_new,
                                                compHalfStep, pHalfStep,
                                                e_new, bvc, pbvc,
                                                ql_old, qq_old,
@@ -162,18 +174,18 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc3), dim3(grid_size), dim3(block_size), 0, 0,  e_new, delvc,
+       hipLaunchKernelGGL((energycalc3<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc4), dim3(grid_size), dim3(block_size), 0, 0,  e_new, work,
+       hipLaunchKernelGGL((energycalc4<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, work,
                                                e_cut, emin,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc5), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
+       hipLaunchKernelGGL((energycalc5<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                ql_old, qq_old,
@@ -183,7 +195,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc6), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
+       hipLaunchKernelGGL((energycalc6<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                q_new,

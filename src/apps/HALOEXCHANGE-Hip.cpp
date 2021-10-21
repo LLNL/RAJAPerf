@@ -42,20 +42,24 @@ namespace apps
     deallocHipDeviceData(vars[v]); \
   }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                   Index_type len)
 {
-   Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+   Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
      HALOEXCHANGE_PACK_BODY;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                     Index_type len)
 {
-   Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+   Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
      HALOEXCHANGE_UNPACK_BODY;
@@ -85,7 +89,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          hipLaunchKernelGGL((haloexchange_pack), nblocks, nthreads_per_block, 0, 0,
+          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
           buffer += len;
@@ -101,7 +105,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          hipLaunchKernelGGL((haloexchange_unpack), nblocks, nthreads_per_block, 0, 0,
+          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
           buffer += len;

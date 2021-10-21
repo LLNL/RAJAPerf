@@ -42,6 +42,8 @@ namespace apps
   deallocHipDeviceData(div); \
   deallocHipDeviceData(real_zones);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void deldotvec2d(Real_ptr div,
                             const Real_ptr x1, const Real_ptr x2,
                             const Real_ptr x3, const Real_ptr x4,
@@ -55,7 +57,7 @@ __global__ void deldotvec2d(Real_ptr div,
                             const Real_type half, const Real_type ptiny,
                             Index_type iend)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type ii = blockIdx.x * block_size + threadIdx.x;
    if (ii < iend) {
      DEL_DOT_VEC_2D_BODY_INDEX;
      DEL_DOT_VEC_2D_BODY;
@@ -85,7 +87,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL((deldotvec2d), dim3(grid_size), dim3(block_size), 0, 0, div,
+      hipLaunchKernelGGL((deldotvec2d<block_size>), dim3(grid_size), dim3(block_size), 0, 0, div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -120,7 +122,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(deldotvec2d_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(deldotvec2d_lambda)>),
         grid_size, block_size, 0, 0,
         0, iend, deldotvec2d_lambda);
       hipErrchk( hipGetLastError() );

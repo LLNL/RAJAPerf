@@ -34,8 +34,11 @@ namespace apps
 #define z_block_sz (2)
 #define g_block_sz (block_size / m_block_sz / z_block_sz)
 
+#define LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
+  m_block_sz, g_block_sz, z_block_sz
+
 #define LTIMES_THREADS_PER_BLOCK_CUDA \
-  dim3 nthreads_per_block(m_block_sz, g_block_sz, z_block_sz); \
+  dim3 nthreads_per_block(LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA); \
   static_assert(m_block_sz*g_block_sz*z_block_sz == block_size, "Invalid block_size");
 
 #define LTIMES_NBLOCKS_CUDA \
@@ -55,13 +58,15 @@ namespace apps
   deallocCudaDeviceData(elldat); \
   deallocCudaDeviceData(psidat);
 
+template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
+__launch_bounds__(m_block_size*g_block_size*z_block_size)
 __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
                        Index_type num_d,
                        Index_type num_m, Index_type num_g, Index_type num_z)
 {
-   Index_type m = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type g = blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type z = blockIdx.z * blockDim.z + threadIdx.z;
+   Index_type m = blockIdx.x * m_block_size + threadIdx.x;
+   Index_type g = blockIdx.y * g_block_size + threadIdx.y;
+   Index_type z = blockIdx.z * z_block_size + threadIdx.z;
 
    if (m < num_m && g < num_g && z < num_z) {
      for (Index_type d = 0; d < num_d; ++d ) {
@@ -70,13 +75,14 @@ __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
    }
 }
 
-template< typename Lambda >
+template < size_t m_block_size, size_t g_block_size, size_t z_block_size, typename Lambda >
+__launch_bounds__(m_block_size*g_block_size*z_block_size)
 __global__ void ltimes_lam(Index_type num_m, Index_type num_g, Index_type num_z,
                            Lambda body)
 {
-   Index_type m = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type g = blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type z = blockIdx.z * blockDim.z + threadIdx.z;
+   Index_type m = blockIdx.x * m_block_size + threadIdx.x;
+   Index_type g = blockIdx.y * g_block_size + threadIdx.y;
+   Index_type z = blockIdx.z * z_block_size + threadIdx.z;
 
    if (m < num_m && g < num_g && z < num_z) {
      body(z, g, m);
@@ -101,7 +107,8 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       LTIMES_THREADS_PER_BLOCK_CUDA;
       LTIMES_NBLOCKS_CUDA;
 
-      ltimes<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
+      ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+            <<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
                                               num_d,
                                               num_m, num_g, num_z);
       cudaErrchk( cudaGetLastError() );
@@ -121,7 +128,8 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       LTIMES_THREADS_PER_BLOCK_CUDA;
       LTIMES_NBLOCKS_CUDA;
 
-      ltimes_lam<<<nblocks, nthreads_per_block>>>(num_m, num_g, num_z,
+      ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+                <<<nblocks, nthreads_per_block>>>(num_m, num_g, num_z,
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_BODY;
