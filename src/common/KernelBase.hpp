@@ -13,6 +13,7 @@
 #include "common/RPTypes.hpp"
 #include "common/DataUtils.hpp"
 #include "common/RunParams.hpp"
+#include "common/GPUUtils.hpp"
 
 #include "RAJA/util/Timer.hpp"
 #if defined(RAJA_ENABLE_CUDA)
