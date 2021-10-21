@@ -28,8 +28,11 @@ namespace polybench
 #define j_block_sz (block_size / k_block_sz)
 #define i_block_sz (1)
 
+#define HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
+  k_block_sz, j_block_sz, i_block_sz
+
 #define HEAT_3D_THREADS_PER_BLOCK_CUDA \
-  dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
+  dim3 nthreads_per_block(HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA);
 
 #define HEAT_3D_NBLOCKS_CUDA \
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, k_block_sz)), \
@@ -50,34 +53,39 @@ namespace polybench
   deallocCudaDeviceData(B);
 
 
+template < size_t k_block_size, size_t j_block_size, size_t i_block_size >
+__launch_bounds__(k_block_size*j_block_size*i_block_size)
 __global__ void poly_heat_3D_1(Real_ptr A, Real_ptr B, Index_type N)
 {
    Index_type i = 1 + blockIdx.z;
-   Index_type j = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type k = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type j = 1 + blockIdx.y * j_block_size + threadIdx.y;
+   Index_type k = 1 + blockIdx.x * k_block_size + threadIdx.x;
 
    if (i < N-1 && j < N-1 && k < N-1) {
      POLYBENCH_HEAT_3D_BODY1;
    }
 }
 
+template < size_t k_block_size, size_t j_block_size, size_t i_block_size >
+__launch_bounds__(k_block_size*j_block_size*i_block_size)
 __global__ void poly_heat_3D_2(Real_ptr A, Real_ptr B, Index_type N)
 {
    Index_type i = 1 + blockIdx.z;
-   Index_type j = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type k = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type j = 1 + blockIdx.y * j_block_size + threadIdx.y;
+   Index_type k = 1 + blockIdx.x * k_block_size + threadIdx.x;
 
    if (i < N-1 && j < N-1 && k < N-1) {
      POLYBENCH_HEAT_3D_BODY2;
    }
 }
 
-template< typename Lambda >
+template< size_t k_block_size, size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(k_block_size*j_block_size*i_block_size)
 __global__ void poly_heat_3D_lam(Index_type N, Lambda body)
 {
    Index_type i = 1 + blockIdx.z;
-   Index_type j = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type k = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type j = 1 + blockIdx.y * j_block_size + threadIdx.y;
+   Index_type k = 1 + blockIdx.x * k_block_size + threadIdx.x;
 
    if (i < N-1 && j < N-1 && k < N-1) {
      body(i, j, k);
@@ -104,10 +112,12 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
 
-        poly_heat_3D_1<<<nblocks, nthreads_per_block>>>(A, B, N);
+        poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+            <<<nblocks, nthreads_per_block>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
-        poly_heat_3D_2<<<nblocks, nthreads_per_block>>>(A, B, N);
+        poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+            <<<nblocks, nthreads_per_block>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
       }
@@ -129,14 +139,16 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
 
-        poly_heat_3D_lam<<<nblocks, nthreads_per_block>>>(N,
+        poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+            <<<nblocks, nthreads_per_block>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1;
           }
         );
         cudaErrchk( cudaGetLastError() );
 
-        poly_heat_3D_lam<<<nblocks, nthreads_per_block>>>(N,
+        poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+            <<<nblocks, nthreads_per_block>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2;
           }

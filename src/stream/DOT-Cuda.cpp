@@ -30,21 +30,23 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend)
 {
   extern __shared__ Real_type pdot[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   pdot[ threadIdx.x ] = dprod_init;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     pdot[ threadIdx.x ] += a[ i ] * b[i];
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
     }
@@ -86,10 +88,8 @@ void DOT::runCudaVariantImpl(VariantID vid)
       initCudaDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<<<grid_size, block_size,
-            sizeof(Real_type)*block_size>>>( a, b,
-                                             dprod, m_dot_init,
-                                             iend );
+      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
+          a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;

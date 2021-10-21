@@ -30,21 +30,23 @@ namespace stream
   deallocHipDeviceData(a); \
   deallocHipDeviceData(b);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend)
 {
   HIP_DYNAMIC_SHARED( Real_type, pdot)
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   pdot[ threadIdx.x ] = dprod_init;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     pdot[ threadIdx.x ] += a[ i ] * b[i];
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
     }
@@ -87,9 +89,9 @@ void DOT::runHipVariantImpl(VariantID vid)
       initHipDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((dot), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,  a, b,
-                                             dprod, m_dot_init,
-                                             iend );
+      hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
+                                            sizeof(Real_type)*block_size, 0,
+                         a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;
