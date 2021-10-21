@@ -671,9 +671,11 @@ void RunParams::printFeatureKernels(std::ostream& str) const
   }  // loop over features
   str.flush();
 }
-
+// AJP, DZP:  Commenting function body, because we have not yet integrated
+// with Kokkos testing infrastructure 
 void RunParams::printKernelFeatures(std::ostream& str) const
 {
+/*
   str << "\nAvailable kernels and features each uses:";
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
@@ -692,6 +694,8 @@ void RunParams::printKernelFeatures(std::ostream& str) const
     }
   }  // loop over kernels
   str.flush();
+
+*/
 }
 
 }  // closing brace for rajaperf namespace

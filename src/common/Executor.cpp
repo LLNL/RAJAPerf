@@ -166,7 +166,7 @@ void Executor::setupSuite()
       for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
 
         const string& feature = exclude_feature_input[i];
-
+/*
         bool found_it = false;
         for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
           FeatureID tfid = static_cast<FeatureID>(fid);
@@ -175,7 +175,7 @@ void Executor::setupSuite()
 
             for (int kid = 0; kid < NumKernels; ++kid) {
               KernelID tkid = static_cast<KernelID>(kid);
-              KernelBase* kern = getKernelObject(tkid, run_params);
+              //KernelBase* kern = getKernelObject(tkid, run_params);
               if ( kern->usesFeature(tfid) ) {
                  exclude_kern.insert( tkid );
               }
@@ -184,7 +184,7 @@ void Executor::setupSuite()
 
           }  // if input feature name matches feature id
         }  // loop over feature ids until name match is found
-
+*/
       }  // loop over feature name input
 
     }  // if feature name input is valid
