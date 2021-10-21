@@ -22,11 +22,11 @@ namespace polybench
 {
 
   //
-  // Define thread block size for CUDA execution
+  // Define thread block shape for CUDA execution
   //
-  constexpr size_t i_block_sz = 1;
-  constexpr size_t j_block_sz = 8;
-  constexpr size_t k_block_sz = 32;
+#define k_block_sz (32)
+#define j_block_sz (block_size / k_block_sz)
+#define i_block_sz (1)
 
 #define HEAT_3D_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(k_block_sz, j_block_sz, i_block_sz);
@@ -39,7 +39,8 @@ namespace polybench
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(A, m_Ainit, m_N*m_N*m_N); \
-  allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N*m_N);
+  allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N*m_N); \
+  static_assert(k_block_sz*j_block_sz*i_block_sz == block_size, "Invalid block_size");
 
 
 #define POLYBENCH_HEAT_3D_TEARDOWN_CUDA \
@@ -84,7 +85,8 @@ __global__ void poly_heat_3D_lam(Index_type N, Lambda body)
 }
 
 
-void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -205,7 +207,15 @@ void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_HEAT_3D : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_HEAT_3D::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_HEAT_3D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_HEAT_3D : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

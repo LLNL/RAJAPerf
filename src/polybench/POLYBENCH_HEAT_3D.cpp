@@ -22,6 +22,10 @@ namespace polybench
 POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_HEAT_3D, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type N_default = 100;
 
   setDefaultProblemSize( (N_default-2)*(N_default-2)*(N_default-2) );
@@ -36,7 +40,7 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep( m_tsteps * 2 );
   setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
-                               (m_N-2) * (m_N-2) * (m_N-2) + 
+                               (m_N-2) * (m_N-2) * (m_N-2) +
                                (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
                                (m_N * m_N * m_N - 12*(m_N-2) - 8) +
                                (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
@@ -98,6 +102,12 @@ void POLYBENCH_HEAT_3D::tearDown(VariantID vid)
   deallocData(m_B);
   deallocData(m_Ainit);
   deallocData(m_Binit);
+}
+
+bool POLYBENCH_HEAT_3D::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench
