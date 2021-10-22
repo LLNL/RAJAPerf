@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define DAXPY_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, iend); \
   allocAndInitHipDeviceData(y, m_y, iend);
@@ -47,7 +41,9 @@ __global__ void daxpy(Real_ptr y, Real_ptr x,
 }
 
 
-void DAXPY::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void DAXPY::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -112,6 +108,15 @@ void DAXPY::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void DAXPY::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<DAXPY>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  DAXPY : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

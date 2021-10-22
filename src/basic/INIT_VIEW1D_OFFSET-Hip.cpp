@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(a, m_a, getActualProblemSize());
 
@@ -46,7 +40,9 @@ __global__ void initview1d_offset(Real_ptr a,
 }
 
 
-void INIT_VIEW1D_OFFSET::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
@@ -113,6 +109,15 @@ void INIT_VIEW1D_OFFSET::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void INIT_VIEW1D_OFFSET::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<INIT_VIEW1D_OFFSET>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  INIT_VIEW1D_OFFSET : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

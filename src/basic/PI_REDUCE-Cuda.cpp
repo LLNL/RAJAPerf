@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 __global__ void pi_reduce(Real_type dx,
                           Real_ptr dpi, Real_type pi_init,
                           Index_type iend)
@@ -38,7 +32,7 @@ __global__ void pi_reduce(Real_type dx,
   ppi[ threadIdx.x ] = pi_init;
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
     double x = (double(i) + 0.5) * dx;
-    ppi[ threadIdx.x ] += dx / (1.0 + x * x); 
+    ppi[ threadIdx.x ] += dx / (1.0 + x * x);
   }
   __syncthreads();
 
@@ -57,11 +51,13 @@ __global__ void pi_reduce(Real_type dx,
   if ( threadIdx.x == 0 ) {
     *dpi += ppi[ 0 ];
   }
-#endif  
+#endif
 }
 
 
-void PI_REDUCE::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void PI_REDUCE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -81,8 +77,8 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       pi_reduce<<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( dx, 
-                                                   dpi, m_pi_init, 
+                  sizeof(Real_type)*block_size>>>( dx,
+                                                   dpi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -116,6 +112,15 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void PI_REDUCE::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<PI_REDUCE>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  PI_REDUCE : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

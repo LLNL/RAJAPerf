@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
@@ -45,7 +39,9 @@ __global__ void initview1d(Real_ptr a,
 }
 
 
-void INIT_VIEW1D::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -109,6 +105,15 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void INIT_VIEW1D::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<INIT_VIEW1D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  INIT_VIEW1D : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

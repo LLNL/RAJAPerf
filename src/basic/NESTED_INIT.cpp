@@ -24,6 +24,10 @@ namespace basic
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   m_n_init = 100;
 
   setDefaultProblemSize(m_n_init * m_n_init * m_n_init);
@@ -83,6 +87,12 @@ void NESTED_INIT::tearDown(VariantID vid)
   (void) vid;
   RAJA::free_aligned(m_array);
   m_array = 0;
+}
+
+bool NESTED_INIT::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic

@@ -21,6 +21,10 @@ namespace basic
 MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(350);
 
@@ -81,6 +85,12 @@ void MULADDSUB::tearDown(VariantID vid)
   deallocData(m_out3);
   deallocData(m_in1);
   deallocData(m_in2);
+}
+
+bool MULADDSUB::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic

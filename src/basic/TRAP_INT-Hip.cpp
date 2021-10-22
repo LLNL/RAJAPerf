@@ -37,12 +37,6 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define TRAP_INT_DATA_SETUP_HIP // nothing to do here...
 
 #define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
@@ -86,7 +80,9 @@ __global__ void trapint(Real_type x0, Real_type xp,
 }
 
 
-void TRAP_INT::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void TRAP_INT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -149,6 +145,15 @@ void TRAP_INT::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void TRAP_INT::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<TRAP_INT>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  TRAP_INT : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

@@ -21,6 +21,10 @@ namespace basic
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
@@ -82,6 +86,12 @@ void TRAP_INT::updateChecksum(VariantID vid)
 void TRAP_INT::tearDown(VariantID vid)
 {
   (void) vid;
+}
+
+bool TRAP_INT::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic

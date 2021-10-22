@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define REDUCE3_INT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(vec, m_vec, iend);
 
@@ -82,7 +76,9 @@ __global__ void reduce3int(Int_ptr vec,
 }
 
 
-void REDUCE3_INT::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -160,6 +156,15 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void REDUCE3_INT::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<REDUCE3_INT>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  REDUCE3_INT : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

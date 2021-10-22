@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define DAXPY_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend); \
   allocAndInitCudaDeviceData(y, m_y, iend);
@@ -46,7 +40,9 @@ __global__ void daxpy(Real_ptr y, Real_ptr x,
    }
 }
 
-void DAXPY::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void DAXPY::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -109,6 +105,15 @@ void DAXPY::runCudaVariant(VariantID vid)
 
   } else {
      std::cout << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void DAXPY::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<DAXPY>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  DAXPY : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

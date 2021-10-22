@@ -21,12 +21,16 @@ namespace basic
 IF_QUAD::IF_QUAD(const RunParams& params)
   : KernelBase(rajaperf::Basic_IF_QUAD, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(180);
 
   setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getActualProblemSize() ); 
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (2*sizeof(Real_type) + 3*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep(11 * getActualProblemSize()); // 1 sqrt
@@ -84,6 +88,12 @@ void IF_QUAD::tearDown(VariantID vid)
   deallocData(m_c);
   deallocData(m_x1);
   deallocData(m_x2);
+}
+
+bool IF_QUAD::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic

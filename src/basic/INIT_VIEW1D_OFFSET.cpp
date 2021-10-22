@@ -21,6 +21,10 @@ namespace basic
 INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D_OFFSET, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(2500);
 
@@ -73,6 +77,12 @@ void INIT_VIEW1D_OFFSET::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_a);
+}
+
+bool INIT_VIEW1D_OFFSET::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic
