@@ -38,11 +38,13 @@ namespace basic
   deallocHipDeviceData(in1); \
   deallocHipDeviceData(in2);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3,
                       Real_ptr in1, Real_ptr in2,
                       Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     INIT3_BODY;
   }
@@ -67,7 +69,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((init3), dim3(grid_size), dim3(block_size), 0, 0,  out1, out2, out3, in1, in2,
+      hipLaunchKernelGGL((init3<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out1, out2, out3, in1, in2,
                                         iend );
       hipErrchk( hipGetLastError() );
 
@@ -88,7 +90,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(init3_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(init3_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, init3_lambda);
       hipErrchk( hipGetLastError() );
 

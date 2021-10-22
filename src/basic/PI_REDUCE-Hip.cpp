@@ -21,22 +21,24 @@ namespace rajaperf
 namespace basic
 {
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void pi_reduce(Real_type dx,
                           Real_ptr dpi, Real_type pi_init,
                           Index_type iend)
 {
   HIP_DYNAMIC_SHARED(Real_type, ppi);
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   ppi[ threadIdx.x ] = pi_init;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     double x = (double(i) + 0.5) * dx;
     ppi[ threadIdx.x ] += dx / (1.0 + x * x);
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ];
     }
@@ -76,7 +78,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
       initHipDeviceData(dpi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL( (pi_reduce), dim3(grid_size), dim3(block_size),
+      hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
                           sizeof(Real_type)*block_size, 0,
                           dx, dpi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );

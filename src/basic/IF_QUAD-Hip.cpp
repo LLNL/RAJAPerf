@@ -37,11 +37,13 @@ namespace basic
   deallocHipDeviceData(x1); \
   deallocHipDeviceData(x2);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void ifquad(Real_ptr x1, Real_ptr x2,
                        Real_ptr a, Real_ptr b, Real_ptr c,
                        Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     IF_QUAD_BODY;
   }
@@ -66,7 +68,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((ifquad), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
+      hipLaunchKernelGGL((ifquad<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
                                           iend );
       hipErrchk( hipGetLastError() );
 
@@ -87,7 +89,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(ifquad_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(ifquad_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, ifquad_lambda);
       hipErrchk( hipGetLastError() );
 

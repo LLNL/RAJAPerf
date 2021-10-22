@@ -30,11 +30,13 @@ namespace basic
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void daxpy(Real_ptr y, Real_ptr x,
                       Real_type a,
                       Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      DAXPY_BODY;
    }
@@ -59,7 +61,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((daxpy),dim3(grid_size), dim3(block_size), 0, 0, y, x, a,
+      hipLaunchKernelGGL((daxpy<block_size>),dim3(grid_size), dim3(block_size), 0, 0, y, x, a,
                                         iend );
       hipErrchk( hipGetLastError() );
 
@@ -80,7 +82,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(daxpy_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(daxpy_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, daxpy_lambda);
       hipErrchk( hipGetLastError() );
 

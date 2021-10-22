@@ -28,12 +28,14 @@ namespace basic
   getHipDeviceData(m_a, a, getActualProblemSize()); \
   deallocHipDeviceData(a);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void initview1d_offset(Real_ptr a,
                                   Real_type v,
                                   const Index_type ibegin,
                                   const Index_type iend)
 {
-  Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     INIT_VIEW1D_OFFSET_BODY;
   }
@@ -58,7 +60,7 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
-      hipLaunchKernelGGL((initview1d_offset), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((initview1d_offset<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
           a, v, ibegin, iend );
       hipErrchk( hipGetLastError() );
 
@@ -79,7 +81,7 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(initview1d_offset_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(initview1d_offset_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, initview1d_offset_lambda);
       hipErrchk( hipGetLastError() );
 

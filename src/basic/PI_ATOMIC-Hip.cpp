@@ -27,11 +27,13 @@ namespace basic
 #define PI_ATOMIC_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(pi);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void atomic_pi(Real_ptr pi,
                           Real_type dx,
                           Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      double x = (double(i) + 0.5) * dx;
      RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
@@ -59,7 +61,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       initHipDeviceData(pi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(atomic_pi,grid_size, block_size, 0, 0, pi, dx, iend );
+      hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, 0, 0, pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
       getHipDeviceData(m_pi, pi, 1);
@@ -85,7 +87,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(atomic_pi_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(atomic_pi_lambda)>),
           grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
