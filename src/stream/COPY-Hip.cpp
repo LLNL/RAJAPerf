@@ -30,10 +30,12 @@ namespace stream
   deallocHipDeviceData(a); \
   deallocHipDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     COPY_BODY;
   }
@@ -57,7 +59,7 @@ void COPY::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((copy), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((copy<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
           c, a, iend );
       hipErrchk( hipGetLastError() );
 
@@ -78,7 +80,7 @@ void COPY::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(copy_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(copy_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, copy_lambda);
       hipErrchk( hipGetLastError() );
 

@@ -32,10 +32,12 @@ namespace stream
   deallocHipDeviceData(b); \
   deallocHipDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     ADD_BODY;
   }
@@ -59,7 +61,7 @@ void ADD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((add), dim3(grid_size), dim3(block_size), 0, 0,  c, a, b,
+      hipLaunchKernelGGL((add<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  c, a, b,
                                       iend );
       hipErrchk( hipGetLastError() );
 
@@ -80,7 +82,7 @@ void ADD::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(add_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(add_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, add_lambda);
       hipErrchk( hipGetLastError() );
 

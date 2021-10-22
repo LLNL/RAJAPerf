@@ -30,10 +30,12 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     COPY_BODY;
   }
@@ -57,7 +59,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      copy<<<grid_size, block_size>>>( c, a,
+      copy<block_size><<<grid_size, block_size>>>( c, a,
                                        iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -74,7 +76,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         COPY_BODY;
       });

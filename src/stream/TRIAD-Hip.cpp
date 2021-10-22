@@ -32,10 +32,12 @@ namespace stream
   deallocHipDeviceData(b); \
   deallocHipDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
                       Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     TRIAD_BODY;
   }
@@ -59,7 +61,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((triad), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
+      hipLaunchKernelGGL((triad<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
                                         iend );
       hipErrchk( hipGetLastError() );
 
@@ -80,7 +82,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(triad_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(triad_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, triad_lambda);
       hipErrchk( hipGetLastError() );
 
