@@ -16,6 +16,7 @@
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "algorithm/SORT.hpp"
+#include "apps/HALOEXCHANGE_FUSED.hpp"
 
 #include <list>
 #include <vector>
@@ -726,6 +727,7 @@ void Executor::runSuite()
   warmup_kernels.push_back(new basic::DAXPY(run_params));
   warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
   warmup_kernels.push_back(new algorithm::SORT(run_params));
+  warmup_kernels.push_back(new apps::HALOEXCHANGE_FUSED(run_params));
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
