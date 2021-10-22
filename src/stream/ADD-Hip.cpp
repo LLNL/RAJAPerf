@@ -21,12 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define ADD_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(a, m_a, iend); \
   allocAndInitHipDeviceData(b, m_b, iend); \
@@ -48,7 +42,8 @@ __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
 }
 
 
-void ADD::runHipVariant(VariantID vid)
+template < size_t block_size >
+void ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -113,6 +108,15 @@ void ADD::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  ADD : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void ADD::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<ADD>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  ADD : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 
