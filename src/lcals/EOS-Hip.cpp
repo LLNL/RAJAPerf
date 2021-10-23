@@ -34,11 +34,13 @@ namespace lcals
   deallocHipDeviceData(z); \
   deallocHipDeviceData(u);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
                     Real_type q, Real_type r, Real_type t,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      EOS_BODY;
    }
@@ -62,7 +64,7 @@ void EOS::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((eos), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z, u,
+       hipLaunchKernelGGL((eos<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z, u,
                                        q, r, t,
                                        iend );
        hipErrchk( hipGetLastError() );

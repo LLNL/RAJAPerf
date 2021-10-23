@@ -27,23 +27,25 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(x);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   minloc[ threadIdx.x ] = *dminloc;
 
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
     FIRST_MIN_BODY;
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       if ( minloc[ threadIdx.x + i].val < minloc[ threadIdx.x ].val ) {
         minloc[ threadIdx.x ] = minloc[ threadIdx.x + i];
@@ -84,7 +86,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                                hipMemcpyHostToDevice ) );
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL(first_min, grid_size, block_size,
+       hipLaunchKernelGGL((first_min<block_size>), grid_size, block_size,
                    sizeof(MyMinLoc)*block_size, 0, x,
                                                    dminloc,
                                                    iend );

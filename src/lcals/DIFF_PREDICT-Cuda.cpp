@@ -30,11 +30,13 @@ namespace lcals
   deallocCudaDeviceData(px); \
   deallocCudaDeviceData(cx);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void diff_predict(Real_ptr px, Real_ptr cx,
                              const Index_type offset,
                              Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      DIFF_PREDICT_BODY;
    }
@@ -58,7 +60,7 @@ void DIFF_PREDICT::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       diff_predict<<<grid_size, block_size>>>( px, cx,
+       diff_predict<block_size><<<grid_size, block_size>>>( px, cx,
                                                 offset,
                                                 iend );
        cudaErrchk( cudaGetLastError() );

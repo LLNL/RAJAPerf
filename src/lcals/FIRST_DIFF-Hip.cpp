@@ -30,10 +30,12 @@ namespace lcals
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void first_diff(Real_ptr x, Real_ptr y,
                            Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIRST_DIFF_BODY;
    }
@@ -57,7 +59,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((first_diff), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
+       hipLaunchKernelGGL((first_diff<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
                                               iend );
        hipErrchk( hipGetLastError() );
 

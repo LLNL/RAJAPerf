@@ -34,10 +34,12 @@ namespace lcals
   deallocHipDeviceData(y); \
   deallocHipDeviceData(z);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
                     Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i > 0 && i < N) {
      TRIDIAG_ELIM_BODY;
    }
@@ -61,7 +63,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL(eos, grid_size, block_size, 0, 0, xout, xin, y, z,
+       hipLaunchKernelGGL((eos<block_size>), grid_size, block_size, 0, 0, xout, xin, y, z,
                                        iend );
        hipErrchk( hipGetLastError() );
 

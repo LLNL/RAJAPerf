@@ -37,11 +37,13 @@ namespace lcals
   deallocCudaDeviceData(v); \
   deallocCudaDeviceData(w);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
                           Real_ptr u, Real_ptr v, Real_ptr w,
                           Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      PLANCKIAN_BODY;
    }
@@ -65,7 +67,7 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       planckian<<<grid_size, block_size>>>( x, y,
+       planckian<block_size><<<grid_size, block_size>>>( x, y,
                                              u, v, w,
                                              iend );
        cudaErrchk( cudaGetLastError() );

@@ -34,23 +34,27 @@ namespace lcals
   deallocHipDeviceData(sa); \
   deallocHipDeviceData(sb);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
                              Index_type N)
 {
-   Index_type k = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type k = blockIdx.x * block_size + threadIdx.x;
    if (k < N) {
      GEN_LIN_RECUR_BODY1;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void genlinrecur2(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
                              Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i > 0 && i < N+1) {
      GEN_LIN_RECUR_BODY2;
    }
@@ -72,14 +76,14 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       hipLaunchKernelGGL(genlinrecur1, grid_size1, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur1<block_size>), grid_size1, block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        hipErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       hipLaunchKernelGGL(genlinrecur2, grid_size2, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur2<block_size>), grid_size2, block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
