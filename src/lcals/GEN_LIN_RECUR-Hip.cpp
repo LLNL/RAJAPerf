@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define GEN_LIN_RECUR_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(b5, m_b5, m_N); \
   allocAndInitHipDeviceData(stb5, m_stb5, m_N); \
@@ -63,7 +57,8 @@ __global__ void genlinrecur2(Real_ptr b5, Real_ptr stb5,
 }
 
 
-void GEN_LIN_RECUR::runHipVariant(VariantID vid)
+template < size_t block_size >
+void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -119,6 +114,15 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void GEN_LIN_RECUR::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<GEN_LIN_RECUR>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  GEN_LIN_RECUR : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

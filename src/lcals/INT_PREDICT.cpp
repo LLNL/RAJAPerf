@@ -21,6 +21,10 @@ namespace lcals
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(400);
 
@@ -86,6 +90,12 @@ void INT_PREDICT::tearDown(VariantID vid)
 {
   (void) vid;
   deallocData(m_px);
+}
+
+bool INT_PREDICT::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace lcals

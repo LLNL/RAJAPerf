@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define TRIDIAG_ELIM_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(xout, m_xout, m_N); \
   allocAndInitHipDeviceData(xin, m_xin, m_N); \
@@ -50,7 +44,8 @@ __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
 }
 
 
-void TRIDIAG_ELIM::runHipVariant(VariantID vid)
+template < size_t block_size >
+void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
@@ -94,6 +89,15 @@ void TRIDIAG_ELIM::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  TRIDIAG_ELIM : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void TRIDIAG_ELIM::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<TRIDIAG_ELIM>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  TRIDIAG_ELIM : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

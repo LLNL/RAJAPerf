@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define DIFF_PREDICT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(px, m_px, m_array_length); \
   allocAndInitHipDeviceData(cx, m_cx, m_array_length);
@@ -47,7 +41,8 @@ __global__ void diff_predict(Real_ptr px, Real_ptr cx,
 }
 
 
-void DIFF_PREDICT::runHipVariant(VariantID vid)
+template < size_t block_size >
+void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -92,6 +87,15 @@ void DIFF_PREDICT::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  DIFF_PREDICT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void DIFF_PREDICT::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<DIFF_PREDICT>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  DIFF_PREDICT : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

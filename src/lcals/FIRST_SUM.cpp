@@ -21,6 +21,10 @@ namespace lcals
 FIRST_SUM::FIRST_SUM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_SUM, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
@@ -74,6 +78,12 @@ void FIRST_SUM::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_x);
   deallocData(m_y);
+}
+
+bool FIRST_SUM::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace lcals

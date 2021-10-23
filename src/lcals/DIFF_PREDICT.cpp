@@ -20,6 +20,10 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(200);
 
@@ -74,6 +78,12 @@ void DIFF_PREDICT::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_px);
   deallocData(m_cx);
+}
+
+bool DIFF_PREDICT::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace lcals

@@ -21,6 +21,10 @@ namespace lcals
 TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
   : KernelBase(rajaperf::Lcals_TRIDIAG_ELIM, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
@@ -77,6 +81,12 @@ void TRIDIAG_ELIM::tearDown(VariantID vid)
   deallocData(m_xin);
   deallocData(m_y);
   deallocData(m_z);
+}
+
+bool TRIDIAG_ELIM::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace lcals

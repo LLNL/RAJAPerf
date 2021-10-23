@@ -22,10 +22,10 @@ namespace lcals
 {
 
   //
-  // Define thread block size for Hip execution
+  // Define thread block shape for Hip execution
   //
-  constexpr size_t j_block_sz = 32;
-  constexpr size_t k_block_sz = 8;
+#define j_block_sz (32)
+#define k_block_sz (block_size / j_block_sz)
 
 #define HYDRO_2D_THREADS_PER_BLOCK_HIP \
   dim3 nthreads_per_block(j_block_sz, k_block_sz, 1);
@@ -107,7 +107,8 @@ __global__ void hydro_2d3(Real_ptr zroutdat, Real_ptr zzoutdat,
 }
 
 
-void HYDRO_2D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void HYDRO_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type kbeg = 1;
@@ -209,6 +210,15 @@ void HYDRO_2D::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void HYDRO_2D::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<HYDRO_2D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  HYDRO_2D : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

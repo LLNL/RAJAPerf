@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define EOS_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_array_length); \
   allocAndInitHipDeviceData(y, m_y, m_array_length); \
@@ -51,7 +45,8 @@ __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
 }
 
 
-void EOS::runHipVariant(VariantID vid)
+template < size_t block_size >
+void EOS::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -96,6 +91,15 @@ void EOS::runHipVariant(VariantID vid)
 
   } else {
      std::cout << "\n  EOS : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void EOS::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<EOS>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  EOS : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

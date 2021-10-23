@@ -24,6 +24,10 @@ namespace lcals
 HYDRO_2D::HYDRO_2D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_2D, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   m_jn = 1000;
   m_kn = 1000;
 
@@ -112,6 +116,12 @@ void HYDRO_2D::tearDown(VariantID vid)
   deallocData(m_zu);
   deallocData(m_zv);
   deallocData(m_zz);
+}
+
+bool HYDRO_2D::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace lcals
