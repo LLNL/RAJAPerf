@@ -21,6 +21,10 @@ namespace polybench
 POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_2D, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -97,6 +101,12 @@ void POLYBENCH_JACOBI_2D::tearDown(VariantID vid)
   deallocData(m_B);
   deallocData(m_Ainit);
   deallocData(m_Binit);
+}
+
+bool POLYBENCH_JACOBI_2D::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

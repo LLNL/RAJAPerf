@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
 #define POLYBENCH_GESUMMV_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, N); \
   allocAndInitHipDeviceData(y, m_y, N); \
@@ -58,7 +53,8 @@ __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
 }
 
 
-void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -73,7 +69,7 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_gesummv), 
+      hipLaunchKernelGGL((poly_gesummv),
                          dim3(grid_size), dim3(block_size),0,0,
                          x, y,
                          A, B,
@@ -139,7 +135,15 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_GESUMMV>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_GESUMMV : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

@@ -22,10 +22,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-constexpr size_t i_block_sz = 8;
-constexpr size_t j_block_sz = 32;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define POLY_GEMM_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
@@ -79,7 +79,8 @@ __global__ void poly_gemm_lam(Index_type ni, Index_type nj,
 }
 
 
-void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -93,7 +94,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_CUDA;
-      POLY_GEMM_NBLOCKS_CUDA; 
+      POLY_GEMM_NBLOCKS_CUDA;
 
       poly_gemm<<<nblocks, nthreads_per_block>>>(C, A, B,
                                                  alpha, beta,
@@ -194,7 +195,15 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_GEMM>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_GEMM : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

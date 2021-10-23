@@ -15,8 +15,8 @@
 ///   }
 /// }
 ///
-/// Note: this part of the kernel is modified to avoid 
-///       excessively large checksums   
+/// Note: this part of the kernel is modified to avoid
+///       excessively large checksums
 /// for (Index_type i = 0; i < N; i++) {
 ///   Real_type dot = 0.0;
 ///   for (Index_type j = 0; j < N; j++) {
@@ -153,7 +153,16 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  bool isGPUBlockSizeSupported() const;
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
+
 private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+
   Index_type m_n;
   Real_type m_alpha;
   Real_type m_beta;

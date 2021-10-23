@@ -21,10 +21,14 @@ namespace polybench
 POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GESUMMV, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
-  setDefaultReps(120); 
+  setDefaultReps(120);
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
 
@@ -86,6 +90,12 @@ void POLYBENCH_GESUMMV::tearDown(VariantID vid)
   deallocData(m_y);
   deallocData(m_A);
   deallocData(m_B);
+}
+
+bool POLYBENCH_GESUMMV::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

@@ -22,10 +22,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for Hip execution
+// Define thread block shape for Hip execution
 //
-constexpr size_t out_block_sz = 8;
-constexpr size_t in_block_sz = 32;
+#define in_block_sz (32)
+#define out_block_sz (block_size / in_block_sz)
 
 #define POLY_2MM_THREADS_PER_BLOCK_HIP \
   dim3 nthreads_per_block(in_block_sz, out_block_sz, 1);
@@ -114,7 +114,8 @@ __global__ void poly_2mm_2_lam(Index_type ni,  Index_type nl,
 }
 
 
-void POLYBENCH_2MM::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -130,14 +131,14 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       POLY_2MM_THREADS_PER_BLOCK_HIP;
 
       POLY_2MM_1_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_2mm_1), 
+      hipLaunchKernelGGL((poly_2mm_1),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          tmp, A, B, alpha,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_2MM_2_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_2mm_2), 
+      hipLaunchKernelGGL((poly_2mm_2),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          tmp, C, D, beta,
                          ni, nl, nj);
@@ -165,12 +166,12 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
         POLYBENCH_2MM_BODY3;
       };
 
-      POLY_2MM_1_NBLOCKS_HIP;      
+      POLY_2MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_1_lam<decltype(poly_2mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          ni, nj, poly_2mm_1_lambda);
       hipErrchk( hipGetLastError() );
- 
+
       auto poly_2mm_2_lambda = [=] __device__ (Index_type i, Index_type l) {
         POLYBENCH_2MM_BODY4;
         for (Index_type j=0; j < nj; ++j) {
@@ -266,7 +267,15 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_2MM : Unknown Hip variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_2MM::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_2MM>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_2MM : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

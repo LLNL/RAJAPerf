@@ -21,6 +21,10 @@ namespace polybench
 POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMM, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1200;
@@ -31,7 +35,7 @@ POLYBENCH_GEMM::POLYBENCH_GEMM(const RunParams& params)
   m_ni = std::sqrt( getTargetProblemSize() ) + 1;
   m_nj = m_ni;
   m_nk = nk_default;
-  
+
   m_alpha = 0.62;
   m_beta = 1.002;
 
@@ -95,6 +99,12 @@ void POLYBENCH_GEMM::tearDown(VariantID vid)
   deallocData(m_A);
   deallocData(m_B);
   deallocData(m_C);
+}
+
+bool POLYBENCH_GEMM::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

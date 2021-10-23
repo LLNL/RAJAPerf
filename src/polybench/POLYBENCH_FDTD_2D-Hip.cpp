@@ -22,12 +22,10 @@ namespace polybench
 {
 
   //
-  // Define thread block size for Hip execution
+  // Define thread block shape for Hip execution
   //
-  const size_t block_size = 256;
-
-  constexpr size_t j_block_sz = 32;
-  constexpr size_t i_block_sz = 8;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define FDTD_2D_THREADS_PER_BLOCK_HIP \
   dim3 nthreads_per_block234(j_block_sz, i_block_sz, 1);
@@ -141,7 +139,8 @@ __global__ void poly_fdtd2d_4_lam(Index_type nx, Index_type ny,
 }
 
 
-void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -157,25 +156,25 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
       for (t = 0; t < tsteps; ++t) {
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
-        hipLaunchKernelGGL((poly_fdtd2d_1), 
-                           dim3(grid_size1), dim3(block_size), 0, 0, 
+        hipLaunchKernelGGL((poly_fdtd2d_1),
+                           dim3(grid_size1), dim3(block_size), 0, 0,
                            ey, fict, ny, t);
         hipErrchk( hipGetLastError() );
 
         FDTD_2D_THREADS_PER_BLOCK_HIP;
         FDTD_2D_NBLOCKS_HIP;
 
-        hipLaunchKernelGGL((poly_fdtd2d_2), 
+        hipLaunchKernelGGL((poly_fdtd2d_2),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            ey, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_fdtd2d_3), 
+        hipLaunchKernelGGL((poly_fdtd2d_3),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            ex, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_fdtd2d_4), 
+        hipLaunchKernelGGL((poly_fdtd2d_4),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            hz, ex, ey, nx, ny);
         hipErrchk( hipGetLastError() );
@@ -210,7 +209,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         FDTD_2D_THREADS_PER_BLOCK_HIP;
         FDTD_2D_NBLOCKS_HIP;
 
-        auto poly_fdtd2d_2_lambda = 
+        auto poly_fdtd2d_2_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY2;
           };
@@ -220,7 +219,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
                            nx, ny, poly_fdtd2d_2_lambda);
         hipErrchk( hipGetLastError() );
 
-        auto poly_fdtd2d_3_lambda = 
+        auto poly_fdtd2d_3_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY3;
           };
@@ -229,8 +228,8 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            nx, ny, poly_fdtd2d_3_lambda);
         hipErrchk( hipGetLastError() );
-  
-        auto poly_fdtd2d_4_lambda = 
+
+        auto poly_fdtd2d_4_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY4;
           };
@@ -316,7 +315,15 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_FDTD_2D : Unknown Hip variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_FDTD_2D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_FDTD_2D : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

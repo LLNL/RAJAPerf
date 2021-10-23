@@ -21,6 +21,10 @@ namespace polybench
 POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
   : KernelBase(rajaperf::Polybench_MVT, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -92,6 +96,12 @@ void POLYBENCH_MVT::tearDown(VariantID vid)
   deallocData(m_y1);
   deallocData(m_y2);
   deallocData(m_A);
+}
+
+bool POLYBENCH_MVT::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

@@ -22,10 +22,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for Hip execution
+// Define thread block shape for Hip execution
 //
-constexpr size_t i_block_sz = 8;
-constexpr size_t j_block_sz = 32;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define POLY_GEMM_THREADS_PER_BLOCK_HIP \
   dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
@@ -79,7 +79,8 @@ __global__ void poly_gemm_lam(Index_type ni, Index_type nj,
 }
 
 
-void POLYBENCH_GEMM::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -93,9 +94,9 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
-      POLY_GEMM_NBLOCKS_HIP; 
+      POLY_GEMM_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((poly_gemm), 
+      hipLaunchKernelGGL((poly_gemm),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          C, A, B, alpha, beta,
                          ni, nj, nk);
@@ -114,7 +115,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
-      POLY_GEMM_NBLOCKS_HIP; 
+      POLY_GEMM_NBLOCKS_HIP;
 
       auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_GEMM_BODY1;
@@ -125,7 +126,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
         POLYBENCH_GEMM_BODY4;
       };
 
-      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>), 
+      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>),
         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
         ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
@@ -197,7 +198,15 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_GEMM::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_GEMM>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_GEMM : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

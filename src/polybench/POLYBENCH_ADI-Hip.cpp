@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for Hip execution
-//
-const size_t block_size = 256;
-
 #define POLYBENCH_ADI_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(U, m_U, m_n * m_n); \
   allocAndInitHipDeviceData(V, m_V, m_n * m_n); \
@@ -88,7 +83,8 @@ __global__ void adi_lam(const Index_type n,
 }
 
 
-void POLYBENCH_ADI::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -105,14 +101,14 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
 
-        hipLaunchKernelGGL((adi1), 
+        hipLaunchKernelGGL((adi1),
                            dim3(grid_size), dim3(block_size), 0, 0,
                            n,
                            a, b, c, d, f,
                            P, Q, U, V);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((adi2), 
+        hipLaunchKernelGGL((adi2),
                            dim3(grid_size), dim3(block_size), 0, 0,
                            n,
                            a, c, d, e, f,
@@ -253,6 +249,15 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
 
   } else {
       std::cout << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void POLYBENCH_ADI::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_ADI>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_ADI : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

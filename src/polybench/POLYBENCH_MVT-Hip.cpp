@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define thread block size for Hip execution
-  //
-  const size_t block_size = 256;
-
 #define POLYBENCH_MVT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x1, m_x1, N); \
   allocAndInitHipDeviceData(x2, m_x2, N); \
@@ -73,7 +68,8 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
 }
 
 
-void POLYBENCH_MVT::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -174,7 +170,15 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_MVT::runHipVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunHipBlockSize<POLYBENCH_MVT>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_MVT : Unsupported Hip block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

@@ -23,14 +23,18 @@ namespace polybench
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1010;
   Index_type nl_default = 1000;
   Index_type nm_default = 1200;
 
-  setDefaultProblemSize( std::max( std::max( ni_default*nj_default, 
-                                             nj_default*nl_default ), 
+  setDefaultProblemSize( std::max( std::max( ni_default*nj_default,
+                                             nj_default*nl_default ),
                                   ni_default*nl_default ) );
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(2);
@@ -42,7 +46,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   m_nm = nm_default;
 
 
-  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ), 
+  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ),
                                   m_ni*m_nl ) );
 
   setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
@@ -62,7 +66,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
                  2 * m_nj*m_nl*m_nm +
                  2 * m_ni*m_nj*m_nl );
 
-  checksum_scale_factor = 0.000000001 * 
+  checksum_scale_factor = 0.000000001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -119,6 +123,12 @@ void POLYBENCH_3MM::tearDown(VariantID vid)
   deallocData(m_E);
   deallocData(m_F);
   deallocData(m_G);
+}
+
+bool POLYBENCH_3MM::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic

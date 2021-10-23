@@ -22,10 +22,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-constexpr size_t out_block_sz = 8;
-constexpr size_t in_block_sz = 32;
+#define in_block_sz (32)
+#define out_block_sz (block_size / in_block_sz)
 
 #define POLY_3MM_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(in_block_sz, out_block_sz, 1);
@@ -149,7 +149,8 @@ __global__ void poly_3mm_3_lam(Index_type ni, Index_type nl,
 
 
 
-void POLYBENCH_3MM::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -332,7 +333,15 @@ void POLYBENCH_3MM::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_3MM : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_3MM::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_3MM>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_3MM : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

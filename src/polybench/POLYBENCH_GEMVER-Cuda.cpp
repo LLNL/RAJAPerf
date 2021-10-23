@@ -22,12 +22,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-const size_t block_size = 256;
-
-constexpr size_t i_block_sz = 8;
-constexpr size_t j_block_sz = 32;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define GEMVER_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block1(j_block_sz, i_block_sz, 1);
@@ -135,7 +133,8 @@ __global__ void poly_gemmver_234_lam(Index_type n, Lambda body)
 }
 
 
-void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -250,7 +249,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
             >
           >
         >
-      >;       
+      >;
 
     using EXEC_POL24 =
       RAJA::KernelPolicy<
@@ -326,7 +325,15 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_GEMVER : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_GEMVER>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_GEMVER : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

@@ -22,10 +22,10 @@ namespace polybench
 {
 
   //
-  // Define thread block size for CUDA execution
+  // Define thread block shape for CUDA execution
   //
-  constexpr size_t i_block_sz = 8;
-  constexpr size_t j_block_sz = 32;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define JACOBI_2D_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
@@ -80,7 +80,8 @@ __global__ void poly_jacobi_2D_lam(Index_type N, Lambda body)
 }
 
 
-void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -165,7 +166,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
             >
           >
         >
-      >;        
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -196,7 +197,15 @@ void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_JACOBI_2D::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_JACOBI_2D>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_JACOBI_2D : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

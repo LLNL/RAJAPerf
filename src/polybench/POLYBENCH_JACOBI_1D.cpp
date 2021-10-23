@@ -21,12 +21,16 @@ namespace polybench
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type N_default = 1000000;
 
   setDefaultProblemSize( N_default-2 );
   setDefaultReps(100);
- 
-  m_N = getTargetProblemSize(); 
+
+  m_N = getTargetProblemSize();
   m_tsteps = 16;
 
 
@@ -34,13 +38,13 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep(m_tsteps * 2);
-  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * 
-                               (m_N-2) + 
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * 
-                               m_N +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * 
+  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
                                (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * 
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               m_N +
+                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
                                m_N ) );
   setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
                                3 * (m_N-2) ) );
@@ -95,6 +99,12 @@ void POLYBENCH_JACOBI_1D::tearDown(VariantID vid)
   deallocData(m_B);
   deallocData(m_Ainit);
   deallocData(m_Binit);
+}
+
+bool POLYBENCH_JACOBI_1D::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

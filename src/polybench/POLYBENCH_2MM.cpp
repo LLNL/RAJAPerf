@@ -22,12 +22,16 @@ namespace polybench
 POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_2MM, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1120;
   Index_type nl_default = 1000;
 
-  setDefaultProblemSize( std::max( ni_default*nj_default, 
+  setDefaultProblemSize( std::max( ni_default*nj_default,
                                    ni_default*nl_default ) );
   setDefaultReps(2);
 
@@ -54,10 +58,10 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 
-  checksum_scale_factor = 0.000001 * 
+  checksum_scale_factor = 0.000001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
-                                       
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -107,6 +111,12 @@ void POLYBENCH_2MM::tearDown(VariantID vid)
   deallocData(m_B);
   deallocData(m_C);
   deallocData(m_D);
+}
+
+bool POLYBENCH_2MM::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench

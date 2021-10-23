@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-//
-// Define thread block size for CUDA execution
-//
-const size_t block_size = 256;
-
 #define POLYBENCH_ADI_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
   allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
@@ -87,7 +82,8 @@ __global__ void adi_lam(const Index_type n,
 }
 
 
-void POLYBENCH_ADI::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -244,6 +240,15 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
 
   } else {
       std::cout << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+
+void POLYBENCH_ADI::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_ADI>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_ADI : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
   }
 }
 

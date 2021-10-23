@@ -20,10 +20,10 @@ namespace polybench
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-constexpr size_t i_block_sz = 8;
-constexpr size_t j_block_sz = 32;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
 #define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA \
   dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
@@ -52,13 +52,13 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
   Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if ( i < N && j < N ) { 
+  if ( i < N && j < N ) {
     POLYBENCH_FLOYD_WARSHALL_BODY;
   }
 }
 
 template< typename Lambda >
-__global__ void poly_floyd_warshall_lam(Index_type N, 
+__global__ void poly_floyd_warshall_lam(Index_type N,
                                         Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -70,7 +70,8 @@ __global__ void poly_floyd_warshall_lam(Index_type N,
 }
 
 
-void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -87,7 +88,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA;
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
-   
+
         poly_floyd_warshall<<<nblocks, nthreads_per_block>>>(pout, pin,
                                                              k, N);
         cudaErrchk( cudaGetLastError() );
@@ -168,7 +169,15 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
   } else {
       std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;
   }
+}
 
+void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
+{
+  if ( !gpu_block_size::invoke_or(
+           gpu_block_size::RunCudaBlockSize<POLYBENCH_FLOYD_WARSHALL>(*this, vid), gpu_block_sizes_type()) ) {
+    std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unsupported Cuda block_size " << getActualGPUBlockSize()
+              <<" for variant id = " << vid << std::endl;
+  }
 }
 
 } // end namespace polybench

@@ -24,10 +24,14 @@ namespace polybench
 POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FDTD_2D, params)
 {
+  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   Index_type nx_default = 1000;
   Index_type ny_default = 1000;
 
-  setDefaultProblemSize( std::max( (nx_default-1) * ny_default, 
+  setDefaultProblemSize( std::max( (nx_default-1) * ny_default,
                                     nx_default * (ny_default-1) ) );
   setDefaultReps(8);
 
@@ -36,7 +40,7 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   m_tsteps = 40;
 
 
-  setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) ); 
+  setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
 
   setItsPerRep( m_tsteps * ( m_ny +
                              (m_nx-1)*m_ny +
@@ -110,6 +114,12 @@ void POLYBENCH_FDTD_2D::tearDown(VariantID vid)
   deallocData(m_ex);
   deallocData(m_ey);
   deallocData(m_hz);
+}
+
+bool POLYBENCH_FDTD_2D::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace polybench
