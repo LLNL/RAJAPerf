@@ -36,10 +36,12 @@ namespace polybench
   deallocCudaDeviceData(A);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
                             Index_type N)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   if (i < N) {
     POLYBENCH_ATAX_BODY1;
@@ -50,10 +52,12 @@ __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
   }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
                             Index_type N)
 {
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type j = blockIdx.x * block_size + threadIdx.x;
 
   if (j < N) {
     POLYBENCH_ATAX_BODY4;
@@ -64,11 +68,12 @@ __global__ void poly_atax_2(Real_ptr A, Real_ptr tmp, Real_ptr y,
   }
 }
 
-template< typename Lambda >
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
 __global__ void poly_atax_lam(Index_type N,
                               Lambda body)
 {
-  Index_type ti = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type ti = blockIdx.x * block_size + threadIdx.x;
 
   if (ti < N) {
     body(ti);
@@ -92,10 +97,10 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_atax_1<<<grid_size, block_size>>>(A, x, y, tmp, N);
+      poly_atax_1<block_size><<<grid_size, block_size>>>(A, x, y, tmp, N);
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_2<<<grid_size, block_size>>>(A, tmp, y, N);
+      poly_atax_2<block_size><<<grid_size, block_size>>>(A, tmp, y, N);
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -112,7 +117,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_atax_lam<<<grid_size, block_size>>>(N,
+      poly_atax_lam<block_size><<<grid_size, block_size>>>(N,
         [=] __device__ (Index_type i) {
           POLYBENCH_ATAX_BODY1;
           for (Index_type j = 0; j < N; ++j ) {
@@ -123,7 +128,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_lam<<<grid_size, block_size>>>(N,
+      poly_atax_lam<block_size><<<grid_size, block_size>>>(N,
         [=] __device__ (Index_type j) {
           POLYBENCH_ATAX_BODY4;
           for (Index_type i = 0; i < N; ++i ) {

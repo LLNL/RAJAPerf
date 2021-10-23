@@ -36,12 +36,14 @@ namespace polybench
   deallocCudaDeviceData(B);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
                              Real_ptr A, Real_ptr B,
                              Real_type alpha, Real_type beta,
                              Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_GESUMMV_BODY1;
@@ -69,7 +71,7 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_gesummv<<<grid_size, block_size>>>(x, y,
+      poly_gesummv<block_size><<<grid_size, block_size>>>(x, y,
                                               A, B,
                                               alpha, beta,
                                               N);

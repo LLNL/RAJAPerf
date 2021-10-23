@@ -25,8 +25,11 @@ namespace polybench
 #define j_block_sz (32)
 #define i_block_sz (block_size / j_block_sz)
 
+#define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  j_block_sz, i_block_sz
+
 #define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP \
-  dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
+  dim3 nthreads_per_block(POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1);
 
 #define POLY_FLOYD_WARSHALL_NBLOCKS_HIP \
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, j_block_sz)), \
@@ -44,24 +47,27 @@ namespace polybench
   deallocHipDeviceData(pin); \
   deallocHipDeviceData(pout);
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
                                     Index_type k,
                                     Index_type N)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if ( i < N && j < N ) {
     POLYBENCH_FLOYD_WARSHALL_BODY;
   }
 }
 
-template< typename Lambda >
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_floyd_warshall_lam(Index_type N,
                                         Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if ( i < N && j < N ) {
     body(i, j);
@@ -88,7 +94,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
 
-        hipLaunchKernelGGL((poly_floyd_warshall),
+        hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            pout, pin,
                            k, N);
@@ -119,7 +125,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
 
         hipLaunchKernelGGL(
-          (poly_floyd_warshall_lam<decltype(poly_floyd_warshall_lambda)>),
+          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
           N, poly_floyd_warshall_lambda);
         hipErrchk( hipGetLastError() );

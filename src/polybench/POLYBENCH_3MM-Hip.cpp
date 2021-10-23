@@ -27,8 +27,11 @@ namespace polybench
 #define in_block_sz (32)
 #define out_block_sz (block_size / in_block_sz)
 
+#define POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  in_block_sz, out_block_sz
+
 #define POLY_3MM_THREADS_PER_BLOCK_HIP \
-  dim3 nthreads_per_block(in_block_sz, out_block_sz, 1);
+  dim3 nthreads_per_block(POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1);
 
 #define POLY_3MM_1_NBLOCKS_HIP \
   dim3 nblocks1(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, in_block_sz)), \
@@ -66,11 +69,13 @@ namespace polybench
   deallocHipDeviceData(F); \
   deallocHipDeviceData(G);
 
+template < size_t in_block_size, size_t out_block_size >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
                            Index_type ni, Index_type nj, Index_type nk)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && j < nj ) {
     POLYBENCH_3MM_BODY1;
@@ -81,23 +86,26 @@ __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
   }
 }
 
-template< typename Lambda >
+template < size_t in_block_size, size_t out_block_size, typename Lambda >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_1_lam(Index_type ni, Index_type nj,
                                Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && j < nj ) {
     body(i, j);
   }
 }
 
+template < size_t in_block_size, size_t out_block_size >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
                            Index_type nj, Index_type nl, Index_type nm)
 {
-  Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type j = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( j < nj && l < nl ) {
     POLYBENCH_3MM_BODY4;
@@ -108,23 +116,26 @@ __global__ void poly_3mm_2(Real_ptr F, Real_ptr C, Real_ptr D,
   }
 }
 
-template< typename Lambda >
+template < size_t in_block_size, size_t out_block_size, typename Lambda >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_2_lam(Index_type nj, Index_type nl,
                                Lambda body)
 {
-  Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type j = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( j < nj && l < nl ) {
     body(j, l);
   }
 }
 
+template < size_t in_block_size, size_t out_block_size >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
                            Index_type ni, Index_type nl, Index_type nj)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && l < nl ) {
     POLYBENCH_3MM_BODY7;
@@ -135,12 +146,13 @@ __global__ void poly_3mm_3(Real_ptr G, Real_ptr E, Real_ptr F,
   }
 }
 
-template< typename Lambda >
+template < size_t in_block_size, size_t out_block_size, typename Lambda >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_3_lam(Index_type ni, Index_type nl,
                                Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && l < nl ) {
     body(i, l);
@@ -165,21 +177,21 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
       POLY_3MM_THREADS_PER_BLOCK_HIP;
 
       POLY_3MM_1_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_1),
+      hipLaunchKernelGGL((poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                          dim3(nblocks1) , dim3(nthreads_per_block), 0, 0,
                          E, A, B,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_2),
+      hipLaunchKernelGGL((poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          F, C, D,
                          nj, nl, nm);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_3),
+      hipLaunchKernelGGL((poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                          dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
                          G, E, F,
                          ni, nl, nj);
@@ -208,7 +220,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
       };
 
       POLY_3MM_1_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_1_lam<decltype(poly_3mm_1_lambda)>),
+      hipLaunchKernelGGL((poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          ni, nj, poly_3mm_1_lambda);
       hipErrchk( hipGetLastError() );
@@ -222,7 +234,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
       };
 
       POLY_3MM_2_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_2_lam<decltype(poly_3mm_2_lambda)>),
+      hipLaunchKernelGGL((poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_2_lambda)>),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          nj, nl, poly_3mm_2_lambda);
       hipErrchk( hipGetLastError() );
@@ -236,7 +248,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
       };
 
       POLY_3MM_3_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_3_lam<decltype(poly_3mm_3_lambda)>),
+      hipLaunchKernelGGL((poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_3_lambda)>),
                          dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
                          ni, nl, poly_3mm_3_lambda);
       hipErrchk( hipGetLastError() );

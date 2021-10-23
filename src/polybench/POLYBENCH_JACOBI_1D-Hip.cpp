@@ -33,18 +33,22 @@ namespace polybench
   deallocHipDeviceData(B);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_jacobi_1D_1(Real_ptr A, Real_ptr B, Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i > 0 && i < N-1) {
      POLYBENCH_JACOBI_1D_BODY1;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_jacobi_1D_2(Real_ptr A, Real_ptr B, Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i > 0 && i < N-1) {
      POLYBENCH_JACOBI_1D_BODY2;
@@ -70,11 +74,11 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-        hipLaunchKernelGGL((poly_jacobi_1D_1), dim3(grid_size), dim3(block_size), 0, 0,
+        hipLaunchKernelGGL((poly_jacobi_1D_1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
                                             A, B, N);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_jacobi_1D_2), dim3(grid_size), dim3(block_size), 0, 0,
+        hipLaunchKernelGGL((poly_jacobi_1D_2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
                                             A, B, N);
         hipErrchk( hipGetLastError() );
 

@@ -27,8 +27,11 @@ namespace polybench
 #define j_block_sz (32)
 #define i_block_sz (block_size / j_block_sz)
 
+#define JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  j_block_sz, i_block_sz
+
 #define JACOBI_2D_THREADS_PER_BLOCK_HIP \
-  dim3 nthreads_per_block(j_block_sz, i_block_sz, 1);
+  dim3 nthreads_per_block(JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1);
 
 #define JACOBI_2D_NBLOCKS_HIP \
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)), \
@@ -48,31 +51,36 @@ namespace polybench
   deallocHipDeviceData(B);
 
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_jacobi_2D_1(Real_ptr A, Real_ptr B, Index_type N)
 {
-  Index_type i = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = 1 + blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
   if ( i < N-1 && j < N-1 ) {
     POLYBENCH_JACOBI_2D_BODY1;
   }
 }
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_jacobi_2D_2(Real_ptr A, Real_ptr B, Index_type N)
 {
-  Index_type i = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = 1 + blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
   if ( i < N-1 && j < N-1 ) {
     POLYBENCH_JACOBI_2D_BODY2;
   }
 }
 
-template< typename Lambda >
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_jacobi_2D_lam(Index_type N, Lambda body)
 {
-  Index_type i = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = 1 + blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
   if ( i < N-1 && j < N-1 ) {
     body(i, j);
@@ -99,12 +107,12 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
         JACOBI_2D_THREADS_PER_BLOCK_HIP;
         JACOBI_2D_NBLOCKS_HIP;
 
-        hipLaunchKernelGGL((poly_jacobi_2D_1),
+        hipLaunchKernelGGL((poly_jacobi_2D_1<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_jacobi_2D_2),
+        hipLaunchKernelGGL((poly_jacobi_2D_2<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            A, B, N);
         hipErrchk( hipGetLastError() );
@@ -133,7 +141,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
             POLYBENCH_JACOBI_2D_BODY1;
           };
 
-        hipLaunchKernelGGL((poly_jacobi_2D_lam<decltype(poly_jacobi_2D_1_lambda)>),
+        hipLaunchKernelGGL((poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_jacobi_2D_1_lambda)>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            N, poly_jacobi_2D_1_lambda);
         hipErrchk( hipGetLastError() );
@@ -143,7 +151,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
             POLYBENCH_JACOBI_2D_BODY2;
           };
 
-        hipLaunchKernelGGL((poly_jacobi_2D_lam<decltype(poly_jacobi_2D_2_lambda)>),
+        hipLaunchKernelGGL((poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_jacobi_2D_2_lambda)>),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            N, poly_jacobi_2D_2_lambda);
         hipErrchk( hipGetLastError() );

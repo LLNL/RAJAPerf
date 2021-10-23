@@ -39,10 +39,12 @@ namespace polybench
   deallocCudaDeviceData(A);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
                            Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_MVT_BODY1;
@@ -53,10 +55,12 @@ __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
                            Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_MVT_BODY4;
@@ -84,10 +88,10 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_mvt_1<<<grid_size, block_size>>>(A, x1, y1, N);
+      poly_mvt_1<block_size><<<grid_size, block_size>>>(A, x1, y1, N);
       cudaErrchk( cudaGetLastError() );
 
-      poly_mvt_2<<<grid_size, block_size>>>(A, x2, y2, N);
+      poly_mvt_2<block_size><<<grid_size, block_size>>>(A, x2, y2, N);
       cudaErrchk( cudaGetLastError() );
 
     }
