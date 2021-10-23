@@ -83,7 +83,7 @@ void GEN_LIN_RECUR::runCudaVariant(VariantID vid)
        cudaErrchk( cudaGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       genlinrecur1<<<grid_size2, block_size>>>( b5, stb5, sa, sb,
+       genlinrecur2<<<grid_size2, block_size>>>( b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        cudaErrchk( cudaGetLastError() );
