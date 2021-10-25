@@ -125,7 +125,8 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size,
+                                                         gpu_block_size::MultipleOf<32*2>>;
 
   Real_ptr m_phidat;
   Real_ptr m_elldat;
