@@ -26,6 +26,17 @@ namespace gpu_block_size
 namespace detail
 {
 
+// implementation of sqrt via binary search
+// copied from https://stackoverflow.com/questions/8622256/in-c11-is-sqrt-defined-as-constexpr
+constexpr size_t sqrt_helper(size_t n, size_t lo, size_t hi)
+{
+  return (lo == hi)
+           ? lo
+           : ((n / ((lo + hi + 1) / 2) < ((lo + hi + 1) / 2))
+                ? sqrt_helper(n, lo, ((lo + hi + 1) / 2)-1)
+                : sqrt_helper(n, ((lo + hi + 1) / 2), hi));
+}
+
 // helpers to invoke f with each integer in the param pack
 template < typename F >
 bool invoke_or_helper(F)
@@ -49,7 +60,51 @@ struct SizeOfIntSeq<camp::int_seq<size_t, Is...>>
    static const size_t size = sizeof...(Is);
 };
 
+// class to help prepend integers to a list
+// this is used for the false case where I is not prepended to IntSeq
+template < bool B, size_t I, typename IntSeq >
+struct conditional_prepend
+{
+  using type = IntSeq;
+};
+/// this is used for the true case where I is prepended to IntSeq
+template < size_t I, size_t... Is >
+struct conditional_prepend<true, I, camp::int_seq<size_t, Is...>>
+{
+  using type = camp::int_seq<size_t, I, Is...>;
+};
+
+// class to help create a sequence that is only the valid values in IntSeq
+template < typename validity_checker, typename IntSeq >
+struct remove_invalid;
+
+// base case where the list is empty, use the empty list
+template < typename validity_checker >
+struct remove_invalid<validity_checker, camp::int_seq<size_t>>
+{
+  using type = camp::int_seq<size_t>;
+};
+
+// check validity of I and conditionally prepend I to a recursively generated
+// list of valid values
+template < typename validity_checker, size_t I, size_t... Is >
+struct remove_invalid<validity_checker, camp::int_seq<size_t, I, Is...>>
+{
+  using type = typename conditional_prepend<
+      validity_checker::template valid<I>(),
+      I,
+      typename remove_invalid<validity_checker, camp::int_seq<size_t, Is...>>::type
+    >::type;
+};
+
+
 } // namespace detail
+
+// constexpr implementation of integer sqrt
+constexpr size_t sqrt(size_t n)
+{
+  return detail::sqrt_helper(n, 0, n/2 + 1);
+}
 
 // call f's call operator with each integer as the template param in turn
 // stopping at the first integer that returns true.
@@ -125,23 +180,53 @@ private:
 
 // return default_I if it is in sizes or the first integer in sizes otherwise
 template < size_t I, size_t... Is >
-size_t get_default_or_first(size_t default_I, camp::int_seq<size_t, I, Is...> sizes)
+inline size_t get_default_or_first(size_t default_I, camp::int_seq<size_t, I, Is...> sizes)
 {
   if (invoke_or(Equals(default_I), sizes)) {
     return default_I;
   }
   return I;
 }
+/// base case when sizes is empty
+inline size_t get_default_or_first(size_t, camp::int_seq<size_t>)
+{
+  return 0;
+}
+
+// always true
+struct AllowAny
+{
+  template < size_t I >
+  static constexpr bool valid() { return true; }
+};
+
+// true if of I is a multiple of N, false otherwise
+template < size_t N >
+struct MultipleOf
+{
+  template < size_t I >
+  static constexpr bool valid() { return (I/N)*N == I; }
+};
+
+// true if the sqrt of I is representable as a size_t, false otherwise
+struct ExactSqrt
+{
+  template < size_t I >
+  static constexpr bool valid() { return sqrt(I)*sqrt(I) == I; }
+};
 
 // A camp::int_seq of size_t's that is rajaperf::configuration::gpu_block_sizes
 // if rajaperf::configuration::gpu_block_sizes is not empty
 // and a camp::int_seq of default_block_size otherwise
-template < size_t default_block_size >
+// with invalid entries removed according to validity_checker
+template < size_t default_block_size, typename validity_checker = AllowAny >
 using list_type =
-      typename std::conditional< (detail::SizeOfIntSeq<rajaperf::configuration::gpu_block_sizes>::size > 0),
-                                 rajaperf::configuration::gpu_block_sizes,
-                                 camp::int_seq<size_t, default_block_size>
-                               >::type;
+      typename detail::remove_invalid<validity_checker,
+          typename std::conditional< (detail::SizeOfIntSeq<rajaperf::configuration::gpu_block_sizes>::size > 0),
+              rajaperf::configuration::gpu_block_sizes,
+              camp::int_seq<size_t, default_block_size>
+            >::type
+        >::type;
 
 } // closing brace for gpu_block_size namespace
 

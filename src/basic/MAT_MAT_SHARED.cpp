@@ -20,7 +20,7 @@ namespace basic {
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params)
 {
-  setDefaultGPUBlockSize( default_gpu_block_size );
+  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
   setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
                                                         : getDefaultGPUBlockSize() );
 
@@ -85,6 +85,12 @@ void MAT_MAT_SHARED::tearDown(VariantID vid) {
   deallocData(m_A);
   deallocData(m_B);
   deallocData(m_C);
+}
+
+bool MAT_MAT_SHARED::isGPUBlockSizeSupported() const
+{
+  return gpu_block_size::invoke_or(
+      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic
