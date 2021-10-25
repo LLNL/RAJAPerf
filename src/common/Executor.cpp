@@ -724,10 +724,10 @@ void Executor::runSuite()
 
   vector<KernelBase*> warmup_kernels;
 
-  warmup_kernels.push_back(new basic::DAXPY(run_params));
-  warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
-  warmup_kernels.push_back(new algorithm::SORT(run_params));
-  warmup_kernels.push_back(new apps::HALOEXCHANGE_FUSED(run_params));
+  warmup_kernels.push_back(makeKernel<basic::DAXPY>());
+  warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
+  warmup_kernels.push_back(makeKernel<algorithm::SORT>());
+  warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
@@ -756,6 +756,23 @@ void Executor::runSuite()
 
   } // loop over passes through suite
 
+}
+
+template < typename Kernel >
+KernelBase* Executor::makeKernel()
+{
+  Kernel* kernel = new Kernel(run_params);
+  // check gpu block size in run_params is supported by kernel
+  if (!kernel->isGPUBlockSizeSupported() &&
+      run_params.getGPUBlockSize() != 0) {
+    // make Kernel with default gpu block size
+    delete kernel; kernel = nullptr;
+    size_t block_size = run_params.getGPUBlockSize();
+    run_params.setGPUBlockSize(0);
+    kernel = new Kernel(run_params);
+    run_params.setGPUBlockSize(block_size);
+  }
+  return kernel;
 }
 
 void Executor::runKernel(KernelBase* kern)

@@ -98,6 +98,7 @@ public:
   double getSizeFactor() const { return size_factor; }
 
   size_t getGPUBlockSize() const { return gpu_block_size; }
+  void setGPUBlockSize(size_t block_size) { gpu_block_size = block_size; }
 
   double getPFTolerance() const { return pf_tol; }
 

@@ -58,6 +58,9 @@ private:
     std::vector<VariantID> variants;
   };
 
+  template < typename Kernel >
+  KernelBase* makeKernel();
+
   void runKernel(KernelBase* kern);
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
