@@ -56,6 +56,8 @@ public:
   }
 
 private:
+  static const size_t default_gpu_block_size = 0;
+
   Real_ptr m_x;
 };
 

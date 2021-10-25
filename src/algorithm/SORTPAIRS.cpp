@@ -21,6 +21,10 @@ namespace algorithm
 SORTPAIRS::SORTPAIRS(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORTPAIRS, params)
 {
+  setDefaultGPUBlockSize( default_gpu_block_size );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
