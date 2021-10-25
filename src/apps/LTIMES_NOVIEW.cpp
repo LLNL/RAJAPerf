@@ -23,7 +23,7 @@ namespace apps
 LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES_NOVIEW, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
   setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
                                                         : getDefaultGPUBlockSize() );
 

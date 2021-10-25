@@ -123,10 +123,13 @@ private:
   VariantID m_vid;
 };
 
-// return the first integer in the int_seq
+// return default_I if it is in sizes or the first integer in sizes otherwise
 template < size_t I, size_t... Is >
-size_t get_first(camp::int_seq<size_t, I, Is...>)
+size_t get_default_or_first(size_t default_I, camp::int_seq<size_t, I, Is...> sizes)
 {
+  if (invoke_or(Equals(default_I), sizes)) {
+    return default_I;
+  }
   return I;
 }
 

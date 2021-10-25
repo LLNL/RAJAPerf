@@ -21,7 +21,7 @@ namespace polybench
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_first(gpu_block_sizes_type()) );
+  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
   setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
                                                         : getDefaultGPUBlockSize() );
 
