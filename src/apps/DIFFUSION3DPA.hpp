@@ -632,6 +632,7 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = DPA_Q1D * DPA_Q1D;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

@@ -18,8 +18,11 @@ namespace rajaperf {
 namespace basic {
 
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
-    : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params) 
+    : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params)
 {
+  setDefaultGPUBlockSize( default_gpu_block_size );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
 
   m_N_default = 1000;
   setDefaultProblemSize(m_N_default*m_N_default);

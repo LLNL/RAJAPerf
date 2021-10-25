@@ -156,6 +156,8 @@ public:
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = TL_SZ * TL_SZ;
+
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_C;

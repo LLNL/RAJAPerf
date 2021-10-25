@@ -23,6 +23,10 @@ namespace apps
 MASS3DPA::MASS3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_MASS3DPA, params)
 {
+  setDefaultGPUBlockSize( default_gpu_block_size );
+  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
+                                                        : getDefaultGPUBlockSize() );
+
   m_NE_default = 8000;
 
   setDefaultProblemSize(m_NE_default*MPA_Q1D*MPA_Q1D*MPA_Q1D);
