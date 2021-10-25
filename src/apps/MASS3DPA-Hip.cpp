@@ -37,6 +37,8 @@ namespace apps {
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
@@ -117,7 +119,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DPA), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((Mass3DPA<MPA_Q1D*MPA_Q1D>), dim3(grid_size), dim3(block_size), 0, 0,
                          NE, B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
@@ -135,7 +137,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
     MASS3DPA_DATA_SETUP_HIP;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
+                                                   ,RAJA::expt::hip_launch_t<true, MPA_Q1D*MPA_Q1D>
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
@@ -169,7 +171,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
                     [&](int dx) {
                       MASS3DPA_1
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
 
                   RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int dx) {

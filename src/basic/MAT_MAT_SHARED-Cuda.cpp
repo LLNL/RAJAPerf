@@ -33,6 +33,8 @@ namespace basic {
   deallocCudaDeviceData(B);                                                    \
   deallocCudaDeviceData(C);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
                                Real_ptr B) {
 
@@ -80,7 +82,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<<<grid_size, block_size>>>(N, C, A, B);
+      mat_mat_shared<TL_SZ*TL_SZ><<<grid_size, block_size>>>(N, C, A, B);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -95,7 +97,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      lambda_cuda<<<grid_size, block_size>>>([=] __device__() {
+      lambda_cuda<TL_SZ*TL_SZ><<<grid_size, block_size>>>([=] __device__() {
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0
@@ -195,7 +197,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
     MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::cuda_launch_t<true>
+                                                   ,RAJA::expt::cuda_launch_t<true, TL_SZ*TL_SZ>
                                                    >;
 
     using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
@@ -224,29 +226,29 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
                          RAJA::expt::Threads(TL_SZ, TL_SZ)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny), 
+          RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny),
             [&](Index_type by) {
-              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx), 
+              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx),
                 [&](Index_type bx) {
 
                   MAT_MAT_SHARED_BODY_0
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
                     [&](Index_type ty) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_1
                         }
                       );  // RAJA::expt::loop<threads_x>
-                    } 
+                    }
                   );  // RAJA::expt::loop<threads_y>
 
                   for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; k++) {
- 
+
                     RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
                       [&](Index_type ty) {
-                        RAJA::expt::loop<threads_x>(ctx, 
-                                                    RAJA::RangeSegment(0, TL_SZ), 
+                        RAJA::expt::loop<threads_x>(ctx,
+                                                    RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_2
                           }
@@ -258,7 +260,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
 
                     RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
                       [&](Index_type ty) {
-                        RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                        RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
                           }
@@ -270,7 +272,7 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
 
                   }  // for (k)
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
                     [&](Index_type ty) {
                       RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](Index_type tx) {

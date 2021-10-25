@@ -37,6 +37,8 @@ namespace apps {
   deallocCudaDeviceData(X);                                         \
   deallocCudaDeviceData(Y);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_ptr dBasis,
                               const Real_ptr D, const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -114,7 +116,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
       dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, 1);
 
-      Diffusion3DPA<<<NE, nthreads_per_block>>>(NE, Basis, dBasis, D, X, Y, symmetric);
+      Diffusion3DPA<DPA_Q1D*DPA_Q1D><<<NE, nthreads_per_block>>>(NE, Basis, dBasis, D, X, Y, symmetric);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -130,7 +132,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
     DIFFUSION3DPA_DATA_SETUP_CUDA;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::cuda_launch_t<true>
+                                                   ,RAJA::expt::cuda_launch_t<true, DPA_Q1D*DPA_Q1D>
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec

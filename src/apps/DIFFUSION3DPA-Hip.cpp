@@ -37,6 +37,8 @@ namespace apps {
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis, const Real_ptr dBasis,
                               const Real_ptr D, const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -115,7 +117,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Diffusion3DPA), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((Diffusion3DPA<DPA_Q1D*DPA_Q1D>), dim3(grid_size), dim3(block_size), 0, 0,
                          NE, Basis, dBasis, D, X, Y, symmetric);
 
       hipErrchk( hipGetLastError() );
@@ -133,7 +135,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
     DIFFUSION3DPA_DATA_SETUP_HIP;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
+                                                   ,RAJA::expt::hip_launch_t<true, DPA_Q1D*DPA_Q1D>
                                                    >;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec

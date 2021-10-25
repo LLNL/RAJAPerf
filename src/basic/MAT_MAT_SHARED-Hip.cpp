@@ -33,6 +33,8 @@ namespace basic {
   deallocHipDeviceData(B);                                                     \
   deallocHipDeviceData(C);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
                                Real_ptr B) {
 
@@ -80,7 +82,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((mat_mat_shared), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((mat_mat_shared<TL_SZ*TL_SZ>), dim3(grid_size), dim3(block_size), 0, 0,
                          N, C, A, B);
 
       hipErrchk( hipGetLastError() );
@@ -186,7 +188,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
         }
       };
 
-      hipLaunchKernelGGL(lambda_hip<decltype(mat_mat_shared_lam)>,
+      hipLaunchKernelGGL(lambda_hip<TL_SZ*TL_SZ, decltype(mat_mat_shared_lam)>,
         grid_size, block_size, 0, 0, mat_mat_shared_lam);
 
       hipErrchk( hipGetLastError() );
@@ -200,7 +202,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
+                                                   ,RAJA::expt::hip_launch_t<true, TL_SZ*TL_SZ>
                                                    >;
 
     using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
@@ -264,13 +266,13 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
                         RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
-                          } 
+                          }
                         );  // RAJA::expt::loop<threads_x>
                       }
                     );  // RAJA::expt::loop<threads_y>
 
                     ctx.teamSync();
-                
+
                   }  // for (k)
 
                   RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
