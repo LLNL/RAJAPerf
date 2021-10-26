@@ -72,7 +72,7 @@ void PI_ATOMIC::setUp(VariantID vid)
 
 void PI_ATOMIC::updateChecksum(VariantID vid)
 {
-  std::cout << "Value is "<<*m_pi<<std::endl;
+  //std::cout << "Value is "<<*m_pi<<std::endl;
   checksum[vid] += Checksum_type(*m_pi);
 }
 

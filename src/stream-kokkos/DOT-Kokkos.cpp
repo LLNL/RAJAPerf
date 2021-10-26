@@ -148,7 +148,6 @@ void DOT::runKokkosVariant(VariantID vid) {
 
 #endif // RUN_KOKKOS
               
-         std::cout << " FIX ME STREAM DOT -- GET DATA FROM VIEWS " << std::endl;
         moveDataToHostFromKokkosView(a, a_view, iend);
         moveDataToHostFromKokkosView(b, b_view, iend);
 

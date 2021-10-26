@@ -25,13 +25,14 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STANDARD 14)
+if(ENABLE_KOKKOS)
+  set(CMAKE_CXX_STANDARD 14)
+  set(BLT_CXX_STANDARD 14)
+endif()
 include(blt/SetupBLT.cmake)
 
 #
 # Define RAJA settings...
-#
 
 set(ENABLE_TESTS Off CACHE BOOL "")
 set(ENABLE_EXAMPLES Off CACHE BOOL "")
@@ -79,8 +80,9 @@ endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
-# HIP is used with AMD / VEGA GPU
-# Neatly separate RAJAPerf Suite and Kokkos handling of HIP
+# Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
+# platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler 
+# Separate RAJAPerf Suite and Kokkos handling of HIP compilers
 if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
 #if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
@@ -90,9 +92,10 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 14)
+  if (ENABLE_CUDA AND ENABLE_KOKKOS)
+  	set(CMAKE_CUDA_STANDARD 14)
+  endif()
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
-
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
@@ -114,8 +117,10 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
-# HACKS TO FIX COMPILATION ISSUES
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
+# The statement below is required for Kokkos compilation.
+if(ENABLE_KOKKOS)
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
+endif()
 
 
 
@@ -123,7 +128,8 @@ include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
   if(ENABLE_HIP)
-    set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds with AMD HIP require a ... build...AJP FINISH")	
+    set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds for AMD HIP set the
+Kokkos_ENABLE_HIP variable to ON")	
     #set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
     #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE /ascldap/users/ajpowel/RAJAPerf/amd_build/compiler_unscrewer)
   endif()
