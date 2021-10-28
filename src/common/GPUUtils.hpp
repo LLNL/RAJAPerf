@@ -31,10 +31,18 @@ namespace detail
 constexpr size_t sqrt_helper(size_t n, size_t lo, size_t hi)
 {
   return (lo == hi)
-           ? lo
+           ? lo // search complete
            : ((n / ((lo + hi + 1) / 2) < ((lo + hi + 1) / 2))
-                ? sqrt_helper(n, lo, ((lo + hi + 1) / 2)-1)
-                : sqrt_helper(n, ((lo + hi + 1) / 2), hi));
+                ? sqrt_helper(n, lo, ((lo + hi + 1) / 2)-1) // search lower half
+                : sqrt_helper(n, ((lo + hi + 1) / 2), hi)); // search upper half
+}
+
+// implementation of lesser_of_squarest_factor_pair via linear search
+constexpr size_t lesser_of_squarest_factor_pair_helper(size_t n, size_t guess)
+{
+  return ((n / guess) * guess == n)
+           ? guess // search complete, guess is a factor
+           : lesser_of_squarest_factor_pair_helper(n, guess - 1); // continue searching
 }
 
 // helpers to invoke f with each integer in the param pack
@@ -100,10 +108,27 @@ struct remove_invalid<validity_checker, camp::int_seq<size_t, I, Is...>>
 
 } // namespace detail
 
-// constexpr implementation of integer sqrt
+// constexpr integer sqrt
 constexpr size_t sqrt(size_t n)
 {
   return detail::sqrt_helper(n, 0, n/2 + 1);
+}
+
+// constexpr return the lesser of the most square pair of factors of n
+// ex. 12 has pairs of factors (1, 12) (2, 6) *(3, 4)* and returns 3
+constexpr size_t lesser_of_squarest_factor_pair(size_t n)
+{
+  return (n == 0)
+      ? 0 // return 0 in the 0 case
+      : detail::lesser_of_squarest_factor_pair_helper(n, sqrt(n));
+}
+// constexpr return the greater of the most square pair of factors of n
+// ex. 12 has pairs of factors (1, 12) (2, 6) *(3, 4)* and returns 4
+constexpr size_t greater_of_squarest_factor_pair(size_t n)
+{
+  return (n == 0)
+      ? 0 // return 0 in the 0 case
+      : n / detail::lesser_of_squarest_factor_pair_helper(n, sqrt(n));
 }
 
 // call f's call operator with each integer as the template param in turn
