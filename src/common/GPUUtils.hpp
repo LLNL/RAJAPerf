@@ -47,7 +47,7 @@ bool invoke_or_helper(F)
 template < typename F, size_t I, size_t... Is>
 bool invoke_or_helper(F f)
 {
-  return f.template operator()<I>() || invoke_or_helper<F, Is...>(f);
+  return f(camp::int_seq<size_t, I>()) || invoke_or_helper<F, Is...>(f);
 }
 
 // class to get the size of a camp::int_seq
@@ -124,7 +124,8 @@ struct Equals
   {}
 
   template < size_t block_size >
-  bool operator()() { return m_actual_gpu_block_size == block_size; }
+  bool operator()(camp::int_seq<size_t, block_size>) const
+  { return m_actual_gpu_block_size == block_size; }
 
 private:
   size_t m_actual_gpu_block_size;
@@ -141,7 +142,8 @@ struct RunCudaBlockSize
   {}
 
   template < size_t block_size >
-  bool operator()() {
+  bool operator()(camp::int_seq<size_t, block_size>) const
+  {
     if (block_size == m_kernel.getActualGPUBlockSize()) {
       m_kernel.template runCudaVariantImpl<block_size>(m_vid);
       return true;
@@ -165,7 +167,8 @@ struct RunHipBlockSize
   {}
 
   template < size_t block_size >
-  bool operator()() {
+  bool operator()(camp::int_seq<size_t, block_size>) const
+  {
     if (block_size == m_kernel.getActualGPUBlockSize()) {
       m_kernel.template runHipVariantImpl<block_size>(m_vid);
       return true;
