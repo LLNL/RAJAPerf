@@ -189,7 +189,6 @@ void DEL_DOT_VEC_2D::runKokkosVariant(VariantID vid) {
                                                    m_domain->n_real_zones,
                                                    working_res);
     */
-    auto deldotvec2d_lam = [=](Index_type i) { DEL_DOT_VEC_2D_BODY; };
 
     auto index_list =
         getViewFromPointer(m_domain->real_zones, m_domain->n_real_zones);

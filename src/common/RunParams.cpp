@@ -52,7 +52,6 @@ RunParams::RunParams(int argc, char** argv)
    outfile_prefix("RAJAPerf")
 {
   parseCommandLineOptions(argc, argv);
-  auto foo =0;
 
 }
 
