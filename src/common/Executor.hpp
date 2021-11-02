@@ -64,7 +64,7 @@ private:
 
   void writeCSVReport(const std::string& filename, CSVRepMode mode,
                       RunParams::CombinerOpt combiner, size_t prec);
-  std::string getReportTitle(CSVRepMode mode);
+  std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
   long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
                                  KernelBase* kern, VariantID vid);
 

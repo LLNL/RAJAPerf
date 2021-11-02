@@ -883,8 +883,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
     //
     // Print title line.
     //
-    file << getReportTitle(mode);
-    file << RunParams::CombinerOptToStr(combiner);
+    file << getReportTitle(mode, combiner);
 
     //
     // Wrtie CSV file contents for report.
@@ -1267,19 +1266,34 @@ void Executor::writeChecksumReport(const string& filename)
 }
 
 
-string Executor::getReportTitle(CSVRepMode mode)
+string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner)
 {
   string title;
+  switch ( combiner ) {
+    case RunParams::CombinerOpt::Average : {
+      title = string("Mean ");
+    }
+    break;
+    case RunParams::CombinerOpt::Minimum : {
+      title = string("Min ");
+    }
+    break;
+    case RunParams::CombinerOpt::Maximum : {
+      title = string("Max ");
+    }
+    break;
+    default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+  }
   switch ( mode ) {
     case CSVRepMode::Timing : {
-      title = string("Mean Runtime Report (sec.) ");
+      title += string("Runtime Report (sec.) ");
       break;
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        title = string("Speedup Report (T_ref/T_var)") +
-                string(": ref var = ") + getVariantName(reference_vid) +
-                string(" ");
+        title += string("Speedup Report (T_ref/T_var)") +
+                 string(": ref var = ") + getVariantName(reference_vid) +
+                 string(" ");
       }
       break;
     }
