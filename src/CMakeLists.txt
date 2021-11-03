@@ -8,7 +8,10 @@
 
 include_directories(.)
 
+# Added as part of the merge with build only infrastructure:
 add_subdirectory(common)
+
+if(NOT INFRASTRUCTURE_ONLY)
 add_subdirectory(apps)
 add_subdirectory(apps-kokkos)
 add_subdirectory(basic)
@@ -21,13 +24,15 @@ add_subdirectory(stream)
 add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 add_subdirectory(algorithm-kokkos)
-
-set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
-    common
-	apps
-	apps-kokkos
+endif()
+# Ask David about necessary changes here (wrt to file in Kokkos Kernels)
+set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS common)
+if(NOT INFRASTRUCTURE_ONLY)
+list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     basic-kokkos
+    apps
+    apps-kokkos
     #kokkos-mechanics
     lcals
     lcals-kokkos
@@ -37,6 +42,9 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     algorithm
     algorithm-kokkos
     )
+endif()
+
+# This line must be kept
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
 
 if(ENABLE_TARGET_OPENMP)
@@ -268,9 +276,11 @@ blt_add_executable(
 )
 
 else()
+	if(NOT INFRASTRUCTURE_ONLY)
 blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
+	endif()
 endif()

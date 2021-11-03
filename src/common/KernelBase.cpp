@@ -109,8 +109,9 @@ void KernelBase::execute(VariantID vid)
   running_variant = vid;
 
   resetTimer();
-
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
   resetDataInitCount();
+#endif
   this->setUp(vid);
 #ifdef RUN_KOKKOS 
   Kokkos::Tools::pushRegion(this->getName() + ":"+getVariantName(vid));
@@ -199,7 +200,7 @@ void KernelBase::runKernel(VariantID vid)
       break;
     }
 
-#if defined(RUN_KOKKOS)
+#if defined(RUN_KOKKOS) or defined (RAJAPERF_INFRASTRUCTURE_ONLY)
     case Kokkos_Lambda :
     case Kokkos_Functor :
     {

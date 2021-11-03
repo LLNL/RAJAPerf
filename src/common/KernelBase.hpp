@@ -10,11 +10,16 @@
 #define RAJAPerf_KernelBase_HPP
 
 #include "common/RAJAPerfSuite.hpp"
-#include "common/RPTypes.hpp"
-#include "common/DataUtils.hpp"
+//#include "common/RPTypes.hpp"
 #include "common/RunParams.hpp"
 
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/util/Timer.hpp"
+#include "common/DataUtils.hpp"
+#else
+#include "common/BuiltinTimer.hpp"
+#endif
+
 #if defined(RAJA_ENABLE_CUDA)
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 #endif
@@ -40,6 +45,12 @@ class KernelBase
 public:
   KernelBase(KernelID kid, const RunParams& params);
   KernelBase(std::string name, const RunParams& params);
+
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
+   using TimerType = RAJA::Timer;
+#else
+   using TimerType = rajaperf::ChronoTimer;
+#endif
 
   virtual ~KernelBase();
 
@@ -158,12 +169,12 @@ public:
   virtual void runOpenMPTargetVariant(VariantID vid) = 0;
 #endif
 
-#if defined(RUN_KOKKOS)
+#if defined(RUN_KOKKOS) or defined(RAJAPERF_INFRASTRUCTURE_ONLY)
   virtual void runKokkosVariant(VariantID vid) = 0;
 #endif // RUN_KOKKOS
 
 protected:
-  const RunParams& run_params;
+  const RunParams run_params;
 
   Checksum_type checksum[NumVariants];
   Checksum_type checksum_scale_factor;

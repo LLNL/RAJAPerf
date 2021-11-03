@@ -78,7 +78,8 @@ namespace rajaperf {
         void runOpenMPTargetVariant(VariantID vid) override {}
 #endif
 
-#if defined(RUN_KOKKOS)
+#if defined(RUN_KOKKOS) or defined(RAJAPERF_INFRASTRUCTURE_ONLY)
+
 
         template<size_t... Is>
         void rkv_helper(std::index_sequence<Is...>) {

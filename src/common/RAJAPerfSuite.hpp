@@ -13,10 +13,17 @@
 #ifndef RAJAPerfSuite_HPP
 #define RAJAPerfSuite_HPP
 
+//#include "common/RPTypes.hpp"
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/config.hpp"
+//#include "common/PerfsuiteKernelDefinitions.hpp"
+
+
+
 
 #if defined(RUN_KOKKOS)
 #include "Kokkos_Core.hpp"
+#endif
 #endif
 
 #include <string>

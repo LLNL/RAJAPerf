@@ -13,9 +13,12 @@
 #include "common/OutputUtils.hpp"
 
 // Warmup kernels to run first to help reduce startup overheads in timings
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "algorithm/SORT.hpp"
+#endif
+
 
 #include <list>
 #include <vector>
@@ -718,6 +721,8 @@ void Executor::runSuite()
     return;
   }
 
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
+
   cout << "\n\nRun warmup kernels...\n";
 
   vector<KernelBase*> warmup_kernels;
@@ -746,6 +751,7 @@ void Executor::runSuite()
     delete warmup_kernels[ik];
   }
 
+#endif
 
   cout << "\n\nRunning specified kernels and variants...\n";
 
