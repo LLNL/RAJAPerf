@@ -19,9 +19,7 @@ int main( int argc, char** argv )
 {
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
   MPI_Init(&argc, &argv);
-#endif
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
   rajaperf::getCout() << "\n\nRunning with " << num_ranks << " MPI ranks..." << std::endl;
