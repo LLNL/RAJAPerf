@@ -97,7 +97,8 @@ if (ENABLE_CALIPER)
    add_definitions(-DRAJAPERF_USE_CALIPER)
    message(STATUS "Using Caliper")
    find_package(adiak REQUIRED)
-   list(APPEND RAJA_PERFSUITE_DEPENDS adiak)
+   # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
+   list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
    message(STATUS "Using Adiak")
    if (ENABLE_CUDA)
       # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program

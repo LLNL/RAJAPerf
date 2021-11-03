@@ -28,6 +28,9 @@
 #include <limits>
 
 #ifdef RAJAPERF_USE_CALIPER
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
 
 #define CALI_START \
     if(doCaliperTiming) { \

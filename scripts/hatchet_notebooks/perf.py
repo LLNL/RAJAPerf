@@ -15,6 +15,7 @@ from collections import defaultdict
 import platform
 import ipykernel
 import matplotlib.pyplot as plt
+import matplotlib._color_data as mcd
 from matplotlib.backends.backend_pdf import PdfPages
 
 import pandas as pd
@@ -187,18 +188,27 @@ def PlotSweep(CALI_FILES,kernel,variants):
                 val = df.loc[df['name']==kernel].iloc[0][metric]
             except: pass
             vdata[cluster+'_'+variant].append((psize,val))
-    legend = []    
+    legend = []
+    colors=[mcd.CSS4_COLORS['cornflowerblue'],mcd.CSS4_COLORS['red'],mcd.CSS4_COLORS['lightgreen'],mcd.CSS4_COLORS['darkgreen'],mcd.CSS4_COLORS['darkblue'],mcd.CSS4_COLORS['darkred']]  
+    #colors=[mcd.CSS4_COLORS['red'],mcd.CSS4_COLORS['cornflowerblue'],mcd.CSS4_COLORS['lightgreen'],mcd.CSS4_COLORS['darkblue'],mcd.CSS4_COLORS['darkgreen'],mcd.CSS4_COLORS['darkred']]  
+    colorindex=0  
     for k,v in vdata.items():
         legend.append(k)
         ll = sorted(v,key = lambda x: x[0])
         x = [num[0] for num in ll]
         y = [num[1] for num in ll]
-        plt.plot(x,y)
+        plt.plot(x,y,label=k,color=colors[colorindex])
+        colorindex += 1
     plt.xlabel('problem size')
     plt.ylabel('time')
     plt.xscale('log',base=2)
     plt.yscale('log',base=2)
-    plt.legend(legend)
+    print(legend)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    order= [1,2,0,5,3,4]
+    # the following to change the order on case by case basis
+    plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+    #plt.legend(legend)
 
 
         
@@ -209,7 +219,7 @@ def PlotSweep(CALI_FILES,kernel,variants):
 #cali_query_path = "/usr/gapps/spot/live/caliper/" + machine + "/bin"
 cali_query_path = "/home/skip/workspace/spack/opt/spack/linux-ubuntu20.04-haswell/gcc-10.2.0/caliper-2.5.0-y64d5flp5ph55dj74dpvaigjn62txxmc/bin"
 os.environ["PATH"] += os.pathsep + cali_query_path
-data_path="/home/skip/cali_sweep/RAJAPerf_0"
+data_path="/home/skip/cali_sweep_xx/"
 
 CALI_FILES = ReadCali(data_path)
 #print(CALI_FILES)
@@ -227,8 +237,8 @@ CALI_FILES = ReadCali(data_path)
 #]
 
 # In[]:
-pp = PdfPages('RAJAPERF_Sweep.pdf')
-variants = ['Lambda_OpenMP','Base_OpenMP','RAJA_OpenMP']
+pp = PdfPages('RAJAPERF_Sweep_lc2.pdf')
+variants = ['Base_HIP','Lambda_HIP','RAJA_HIP','Base_CUDA','Lambda_CUDA','RAJA_CUDA']
 klist = sorted(ExtractKernelList(CALI_FILES,variants))
 fignum = 0
 for i in range(len(klist)):

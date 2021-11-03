@@ -10,12 +10,6 @@
 
 #include <iostream>
 
-#ifdef RAJAPERF_USE_CALIPER
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-#include <adiak.hpp>
-#endif
-
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
