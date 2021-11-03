@@ -10,9 +10,17 @@
 
 #include <iostream>
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Init(&argc, &argv);
+#endif
+
   // STEP 1: Create suite executor object
   rajaperf::Executor executor(argc, argv);
 
@@ -30,6 +38,10 @@ int main( int argc, char** argv )
   executor.outputRunData();
 
   std::cout << "\n\nDONE!!!...." << std::endl; 
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Finalize();
+#endif
 
   return 0;
 }

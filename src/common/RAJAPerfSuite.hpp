@@ -14,6 +14,7 @@
 #define RAJAPerfSuite_HPP
 
 #include "RAJA/config.hpp"
+#include "rajaperf_config.hpp"
 
 #include <string>
 
