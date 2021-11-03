@@ -605,6 +605,15 @@ void Executor::reportRunSummary(ostream& str) const
 
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
+  if ( to_file ) {
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+    str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
+#else
+    str << "Kernels run without MPI" << endl;
+#endif
+  }
 
 //
 // Set up column headers and column widths for kernel summary output.
