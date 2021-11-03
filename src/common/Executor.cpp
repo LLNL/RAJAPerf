@@ -12,6 +12,10 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
@@ -789,41 +793,52 @@ void Executor::outputRunData()
   }
   out_fprefix = "./" + run_params.getOutputFilePrefix();
 
-  string filename = out_fprefix + "-timing.csv";
-  writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
+  unique_ptr<ostream> file = openOutputFile(out_fprefix + "-timing.csv");
+  writeCSVReport(*file, CSVRepMode::Timing, 6 /* prec */);
 
   if ( haveReferenceVariant() ) {
-    filename = out_fprefix + "-speedup.csv";
-    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
+    file = openOutputFile(out_fprefix + "-speedup.csv");
+    writeCSVReport(*file, CSVRepMode::Speedup, 3 /* prec */);
   }
 
-  filename = out_fprefix + "-checksum.txt";
-  writeChecksumReport(filename);
+  file = openOutputFile(out_fprefix + "-checksum.txt");
+  writeChecksumReport(*file);
 
-  filename = out_fprefix + "-fom.csv";
-  writeFOMReport(filename);
-
-  filename = out_fprefix + "-kernels.csv";
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
+  {
+    vector<FOMGroup> fom_groups;
+    getFOMGroups(fom_groups);
+    if (!fom_groups.empty() ) {
+      file = openOutputFile(out_fprefix + "-fom.csv");
+      writeFOMReport(*file, fom_groups);
+    }
   }
 
-  if ( file ) {
+  file = openOutputFile(out_fprefix + "-kernels.csv");
+  if ( *file ) {
     bool to_file = true;
-    writeKernelInfoSummary(file, to_file);
+    writeKernelInfoSummary(*file, to_file);
   }
 }
 
+unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    unique_ptr<ostream> file(new ofstream(filename.c_str(), ios::out | ios::trunc));
+    if ( !*file ) {
+      getCout() << " ERROR: Can't open output file " << filename << endl;
+    }
+    return file;
+  }
+  return unique_ptr<ostream>(makeNullStream());
+}
 
-void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
                               size_t prec)
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
@@ -897,19 +912,8 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
 }
 
 
-void Executor::writeFOMReport(const string& filename)
+void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
 {
-  vector<FOMGroup> fom_groups;
-  getFOMGroups(fom_groups);
-  if (fom_groups.empty() ) {
-    return;
-  }
-
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
@@ -1129,13 +1133,8 @@ void Executor::writeFOMReport(const string& filename)
 }
 
 
-void Executor::writeChecksumReport(const string& filename)
+void Executor::writeChecksumReport(ostream& file)
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
