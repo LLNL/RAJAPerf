@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -73,9 +73,9 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-   
+
         *pi = m_pi_init;
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
+        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             double x = (double(i) + 0.5) * dx;
             RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
@@ -90,7 +90,7 @@ void PI_ATOMIC::runSeqVariant(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }
 
   }

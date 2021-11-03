@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -95,12 +95,12 @@ void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

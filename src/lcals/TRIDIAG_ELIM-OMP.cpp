@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -81,12 +81,12 @@ void TRIDIAG_ELIM::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  TRIDIAG_ELIM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  TRIDIAG_ELIM : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

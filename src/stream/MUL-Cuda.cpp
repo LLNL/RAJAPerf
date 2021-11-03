@@ -107,7 +107,7 @@ void MUL::runCudaVariant(VariantID vid)
     MUL_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  MUL : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  MUL : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -27,7 +27,7 @@ void DIFFUSION3DPA::runOpenMPTargetVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n DIFFUSION3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
+    getCout() << "\n DIFFUSION3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
     break;
   }
   }

@@ -57,7 +57,7 @@ void SORT::runSeqVariant(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  SORT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORT : Unknown variant id = " << vid << std::endl;
     }
 
   }

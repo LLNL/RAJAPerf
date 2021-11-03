@@ -161,7 +161,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
     DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

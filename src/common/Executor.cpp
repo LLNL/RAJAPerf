@@ -56,7 +56,7 @@ void Executor::setupSuite()
     return;
   }
 
-  cout << "\nSetting up suite based on input..." << endl;
+  getCout() << "\nSetting up suite based on input..." << endl;
 
   using Slist = list<string>;
   using Svector = vector<string>;
@@ -704,7 +704,7 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRun warmup kernels...\n";
+  getCout() << "\n\nRun warmup kernels...\n";
 
   vector<KernelBase*> warmup_kernels;
 
@@ -714,16 +714,16 @@ void Executor::runSuite()
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
-    cout << "Kernel : " << warmup_kernel->getName() << endl;
+    getCout() << "Kernel : " << warmup_kernel->getName() << endl;
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
       VariantID vid = variant_ids[iv];
       if ( run_params.showProgress() ) {
         if ( warmup_kernel->hasVariantDefined(vid) ) {
-          cout << "   Running ";
+          getCout() << "   Running ";
         } else {
-          cout << "   No ";
+          getCout() << "   No ";
         }
-        cout << getVariantName(vid) << " variant" << endl;
+        getCout() << getVariantName(vid) << " variant" << endl;
       }
       if ( warmup_kernel->hasVariantDefined(vid) ) {
         warmup_kernel->execute(vid);
@@ -733,18 +733,18 @@ void Executor::runSuite()
   }
 
 
-  cout << "\n\nRunning specified kernels and variants...\n";
+  getCout() << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
     if ( run_params.showProgress() ) {
-      std::cout << "\nPass through suite # " << ip << "\n";
+      getCout() << "\nPass through suite # " << ip << "\n";
     }
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       if ( run_params.showProgress() ) {
-        std::cout << "\nRun kernel -- " << kernel->getName() << "\n";
+        getCout() << "\nRun kernel -- " << kernel->getName() << "\n";
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
@@ -752,11 +752,11 @@ void Executor::runSuite()
          KernelBase* kern = kernels[ik];
          if ( run_params.showProgress() ) {
            if ( kern->hasVariantDefined(vid) ) {
-             cout << "   Running ";
+             getCout() << "   Running ";
            } else {
-             cout << "   No ";
+             getCout() << "   No ";
            }
-           cout << getVariantName(vid) << " variant" << endl;
+           getCout() << getVariantName(vid) << " variant" << endl;
          }
          if ( kern->hasVariantDefined(vid) ) {
            kernels[ik]->execute(vid);
@@ -777,7 +777,7 @@ void Executor::outputRunData()
     return;
   }
 
-  cout << "\n\nGenerate run report files...\n";
+  getCout() << "\n\nGenerate run report files...\n";
 
   //
   // Generate output file prefix (including directory path).
@@ -1245,7 +1245,7 @@ string Executor::getReportTitle(CSVRepMode mode)
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return title;
 }
@@ -1269,8 +1269,8 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
           retval = 0.0;
         }
 #if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
-        cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
-        cout << "\tref_time, tot_time, retval = "
+        getCout() << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
+        getCout() << "\tref_time, tot_time, retval = "
              << kern->getTotTime(reference_vid) << " , "
              << kern->getTotTime(vid) << " , "
              << retval << endl;
@@ -1278,7 +1278,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return retval;
 }
@@ -1315,12 +1315,12 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   }  // iterate over variant ids to run
 
 #if 0 //  RDH DEBUG   (leave this here, it's useful for debugging!)
-  cout << "\nFOMGroups..." << endl;
+  getCout() << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];
-    cout << "\tBase : " << getVariantName(group.base) << endl;
+    getCout() << "\tBase : " << getVariantName(group.base) << endl;
     for (size_t iv = 0; iv < group.variants.size(); ++iv) {
-      cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
+      getCout() << "\t\t " << getVariantName(group.variants[iv]) << endl;
     }
   }
 #endif

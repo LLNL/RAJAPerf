@@ -123,7 +123,7 @@ void PI_ATOMIC::runCudaVariant(VariantID vid)
     PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

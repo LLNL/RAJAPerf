@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -59,7 +59,7 @@ void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(xout, xin, y, z) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRIDIAG_ELIM_BODY;
       }
@@ -79,15 +79,15 @@ void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid)
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         TRIDIAG_ELIM_BODY;
-      });  
+      });
 
     }
     stopTimer();
 
     TRIDIAG_ELIM_DATA_TEARDOWN_OMP_TARGET
 
-  } else { 
-     std::cout << "\n  TRIDIAG_ELIM : Unknown OMP Tagretvariant id = " << vid << std::endl;
+  } else {
+     getCout() << "\n  TRIDIAG_ELIM : Unknown OMP Tagretvariant id = " << vid << std::endl;
   }
 }
 

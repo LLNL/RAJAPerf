@@ -17,6 +17,7 @@
 #include "rajaperf_config.hpp"
 
 #include <string>
+#include <ostream>
 
 namespace rajaperf
 {
@@ -32,8 +33,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -59,8 +60,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -158,7 +159,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
+ *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -208,7 +209,7 @@ enum FeatureID {
 
   Sort,
   Scan,
-  Workgroup, 
+  Workgroup,
 
   Reduction,
   Atomic,
@@ -258,12 +259,12 @@ const std::string& getFullKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string& getVariantName(VariantID vid); 
+const std::string& getVariantName(VariantID vid);
 
 /*!
  *******************************************************************************
  *
- * \brief Return true if variant associated with VariantID enum value is 
+ * \brief Return true if variant associated with VariantID enum value is
  *        available * to run; else false.
  *
  *******************************************************************************
@@ -289,6 +290,35 @@ const std::string& getFeatureName(FeatureID vid);
  *******************************************************************************
  */
 KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return ostream used as cout.
+ *
+ *        IMPORTANT: May return a non-printing stream when MPI is enabled.
+ *
+ *******************************************************************************
+ */
+std::ostream& getCout();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream* makeNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return reference to global non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream& getNullStream();
 
 }  // closing brace for rajaperf namespace
 

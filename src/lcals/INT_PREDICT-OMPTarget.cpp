@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -48,12 +48,12 @@ void INT_PREDICT::runOpenMPTargetVariant(VariantID vid)
   if ( vid == Base_OpenMPTarget ) {
 
     INT_PREDICT_DATA_SETUP_OMP_TARGET;
-                              
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(px) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         INT_PREDICT_BODY;
       }
@@ -62,13 +62,13 @@ void INT_PREDICT::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     INT_PREDICT_DATA_TEARDOWN_OMP_TARGET;
-                              
+
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     INT_PREDICT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) { 
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
@@ -81,7 +81,7 @@ void INT_PREDICT::runOpenMPTargetVariant(VariantID vid)
     INT_PREDICT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  INT_PREDICT : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  INT_PREDICT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

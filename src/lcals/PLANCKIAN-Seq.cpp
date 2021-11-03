@@ -13,7 +13,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -80,7 +80,7 @@ void PLANCKIAN::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
     }
 
   }

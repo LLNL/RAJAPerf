@@ -73,7 +73,7 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_gesummv), 
+      hipLaunchKernelGGL((poly_gesummv),
                          dim3(grid_size), dim3(block_size),0,0,
                          x, y,
                          A, B,
@@ -137,7 +137,7 @@ void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
     POLYBENCH_GESUMMV_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

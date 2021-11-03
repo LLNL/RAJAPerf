@@ -60,19 +60,19 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
-      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, 
+      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY2;
                                  };
-      auto poly_atax_base_lam3 = [=] (Index_type i, 
+      auto poly_atax_base_lam3 = [=] (Index_type i,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY3;
                                   };
-      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , 
+      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j ,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY5;
                                   };
-      auto poly_atax_base_lam6 = [=] (Index_type j, 
+      auto poly_atax_base_lam6 = [=] (Index_type j,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY6;
                                   };
@@ -148,10 +148,10 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           >
         >;
 
-      
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-       
+
         RAJA::kernel_param<EXEC_POL1>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
@@ -172,21 +172,21 @@ void POLYBENCH_ATAX::runOpenMPVariant(VariantID vid)
           poly_atax_lam5,
           poly_atax_lam6
 
-        ); 
+        );
 
       }
       stopTimer();
-      
+
       break;
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

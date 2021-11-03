@@ -61,7 +61,7 @@ void SORTPAIRS::runHipVariant(VariantID vid)
     SORTPAIRS_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  SORTPAIRS : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  SORTPAIRS : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

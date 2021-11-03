@@ -84,7 +84,7 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid)
     TRIAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

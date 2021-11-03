@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -93,7 +93,7 @@ void DOT::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  DOT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DOT : Unknown variant id = " << vid << std::endl;
     }
 
   }

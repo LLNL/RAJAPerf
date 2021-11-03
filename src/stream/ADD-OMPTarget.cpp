@@ -84,7 +84,7 @@ void ADD::runOpenMPTargetVariant(VariantID vid)
     ADD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  ADD : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  ADD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

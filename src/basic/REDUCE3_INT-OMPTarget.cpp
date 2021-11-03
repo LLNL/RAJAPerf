@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -100,7 +100,7 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid)
     REDUCE3_INT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  REDUCE3_INT : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE3_INT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

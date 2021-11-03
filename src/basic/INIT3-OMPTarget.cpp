@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -89,9 +89,9 @@ void INIT3::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     INIT3_DATA_TEARDOWN_OMP_TARGET;
-  
+
   } else {
-     std::cout << "\n  INIT3 : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  INIT3 : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

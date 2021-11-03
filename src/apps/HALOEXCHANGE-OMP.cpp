@@ -158,12 +158,12 @@ void HALOEXCHANGE::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

@@ -196,7 +196,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
       RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Grid(),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), 
+          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny),
             [&](Index_type by) {
               RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx),
                 [&](Index_type bx) {
@@ -253,25 +253,25 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 
                 }  // lambda (bx)
               );  // RAJA::expt::loop<outer_x>
-            }  // lambda (by) 
+            }  // lambda (by)
           );  // RAJA::expt::loop<outer_y>
 
         }  // outer lambda (ctx)
-      );  // RAJA::expt::launch 
+      );  // RAJA::expt::launch
 
-    }  // loop over kernel reps 
+    }  // loop over kernel reps
     stopTimer();
 
     break;
   }
 
   default: {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
               << std::endl;
   }
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

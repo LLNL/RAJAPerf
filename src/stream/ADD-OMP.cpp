@@ -12,15 +12,15 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
 
- 
+
 void ADD::runOpenMPVariant(VariantID vid)
 {
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)                        
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -81,12 +81,12 @@ void ADD::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  ADD : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

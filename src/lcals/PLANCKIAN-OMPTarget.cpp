@@ -17,7 +17,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -57,12 +57,12 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
   if ( vid == Base_OpenMPTarget ) {
 
     PLANCKIAN_DATA_SETUP_OMP_TARGET;
-                              
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y, u, v, w) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PLANCKIAN_BODY;
       }
@@ -70,12 +70,12 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET; 
+    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    PLANCKIAN_DATA_SETUP_OMP_TARGET; 
-                              
+    PLANCKIAN_DATA_SETUP_OMP_TARGET;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -87,10 +87,10 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET; 
+    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  PLANCKIAN : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  PLANCKIAN : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

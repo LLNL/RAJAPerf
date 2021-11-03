@@ -108,7 +108,7 @@ void DAXPY::runCudaVariant(VariantID vid)
     DAXPY_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

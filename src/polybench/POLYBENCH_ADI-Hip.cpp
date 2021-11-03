@@ -105,14 +105,14 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
 
-        hipLaunchKernelGGL((adi1), 
+        hipLaunchKernelGGL((adi1),
                            dim3(grid_size), dim3(block_size), 0, 0,
                            n,
                            a, b, c, d, f,
                            P, Q, U, V);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((adi2), 
+        hipLaunchKernelGGL((adi2),
                            dim3(grid_size), dim3(block_size), 0, 0,
                            n,
                            a, c, d, e, f,
@@ -252,7 +252,7 @@ void POLYBENCH_ADI::runHipVariant(VariantID vid)
     POLYBENCH_ADI_TEARDOWN_HIP
 
   } else {
-      std::cout << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

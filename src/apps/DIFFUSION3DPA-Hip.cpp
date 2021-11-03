@@ -276,7 +276,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n DIFFUSION3DPA : Unknown Hip variant id = " << vid << std::endl;
+    getCout() << "\n DIFFUSION3DPA : Unknown Hip variant id = " << vid << std::endl;
     break;
   }
   }

@@ -98,7 +98,7 @@ void PLANCKIAN::runCudaVariant(VariantID vid)
     PLANCKIAN_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

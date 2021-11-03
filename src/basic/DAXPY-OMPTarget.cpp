@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -81,9 +81,9 @@ void DAXPY::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     DAXPY_DATA_TEARDOWN_OMP_TARGET;
-  
+
   } else {
-     std::cout << "\n  DAXPY : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  DAXPY : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
