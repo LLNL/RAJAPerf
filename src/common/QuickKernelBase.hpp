@@ -51,8 +51,8 @@ setVariantDefined(Kokkos_Lambda);
 
 setVariantDefined(Kokkos_Lambda);
   setDefaultProblemSize(100000);                                                                                      
-  setActualProblemSize(100);                                                                                      
-  setDefaultReps(5);
+  setActualProblemSize(100000);                                                                                      
+  setDefaultReps(5000);
 
 }
 		~QuickKernelBase(){
