@@ -10,7 +10,7 @@
 #define RAJAPerf_KernelBase_HPP
 
 #include "common/RAJAPerfSuite.hpp"
-//#include "common/RPTypes.hpp"
+#include "common/RPTypes.hpp"
 #include "common/RunParams.hpp"
 
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
@@ -211,11 +211,15 @@ private:
 
   int num_exec[NumVariants];
 
-  RAJA::Timer timer;
 
-  RAJA::Timer::ElapsedType min_time[NumVariants];
-  RAJA::Timer::ElapsedType max_time[NumVariants];
-  RAJA::Timer::ElapsedType tot_time[NumVariants];
+  TimerType timer;
+
+  TimerType::ElapsedType min_time[NumVariants];
+  TimerType::ElapsedType max_time[NumVariants];
+  TimerType::ElapsedType tot_time[NumVariants];
+
+
+
 };
 
 }  // closing brace for rajaperf namespace

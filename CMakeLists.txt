@@ -110,7 +110,7 @@ else()
   list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
 # Make sure RAJA flag propagate (we need to do some house cleaning to 

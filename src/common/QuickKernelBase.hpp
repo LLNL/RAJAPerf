@@ -22,7 +22,7 @@ namespace rajaperf {
         using runData_helper = decltype(m_setup(0, 0));
         using runData = typename std::conditional<std::is_same<runData_helper, void>::value, empty, runData_helper>::type;
         using is_empty = std::is_same<runData, empty>;
-        runData rd;
+        runData *rd;
     public:
         QuickKernelBase(std::string &name, const RunParams &params, SetUp se, Execute ex, Checksum ch) : KernelBase(
                 name,
@@ -30,22 +30,41 @@ namespace rajaperf {
                                                                                                          m_setup(se),
                                                                                                          m_execute(ex),
                                                                                                          m_checksum(
-                                                                                                                 ch) {}
+                                                                                                                 ch) {
+
+
+
+setVariantDefined(Kokkos_Lambda);
+  setDefaultProblemSize(100000);                                                                                      
+  setActualProblemSize(100000);                                                                                      
+  setDefaultReps(5000);
+
+}
 
         QuickKernelBase(std::string &name, const RunParams &params, SetUp se, Execute ex) : KernelBase(name,
                                                                                                        params),
                                                                                             m_setup(se),
                                                                                             m_execute(ex),
                                                                                             m_checksum(
-                                                                                                    SureBuddyOkay()) {}
+                                                                                                    SureBuddyOkay()
+) {
 
+setVariantDefined(Kokkos_Lambda);
+  setDefaultProblemSize(100000);                                                                                      
+  setActualProblemSize(100);                                                                                      
+  setDefaultReps(5);
+
+}
+		~QuickKernelBase(){
+		free(rd);
+}
         Real_type m_y;
 
         void setUpHelper(std::true_type) {
         }
 
         void setUpHelper(std::false_type) {
-            rd = m_setup(0, 0);
+            rd = new runData(m_setup(getItsPerRep(), getActualProblemSize()));
         }
 
         void setUp(VariantID vid) override {
@@ -85,7 +104,7 @@ namespace rajaperf {
         void rkv_helper(std::index_sequence<Is...>) {
             auto size = getActualProblemSize();
             for (int x = 0; x < getRunReps(); ++x) {
-                m_execute(x, size, std::get<Is>(rd)...);
+                m_execute(x, size, std::get<Is>(*rd)...);
             }
         }
 
@@ -108,7 +127,12 @@ namespace rajaperf {
         }
 
         void runKokkosVariant(VariantID vid) override {
+			Kokkos::fence();
+			startTimer();
             rkv_switch_on_empty(is_empty());
+			Kokkos::fence();
+			stopTimer();
+
         }
 
 #endif // RUN_KOKKOS
