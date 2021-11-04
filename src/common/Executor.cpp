@@ -1146,6 +1146,11 @@ void Executor::writeChecksumReport(ostream& file)
 {
   if ( file ) {
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+#endif
+
     //
     // Set basic table formatting parameters.
     //
@@ -1172,7 +1177,11 @@ void Executor::writeChecksumReport(ostream& file)
     // Print title.
     //
     file << equal_line << endl;
-    file << "Checksum Report " << endl;
+    file << "Checksum Report ";
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    file << "for " << num_ranks << " MPI ranks ";
+#endif
+    file << endl;
     file << equal_line << endl;
 
     //
@@ -1181,10 +1190,22 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << "Average Checksum  "
+         <<left<< setw(checksum_width) << "Max Checksum Diff  "
+         <<left<< setw(checksum_width) << "Checksum Diff StdDev"
+#else
          <<left<< setw(checksum_width) << "Checksum  "
-         <<left<< setw(checksum_width)
-         << "Checksum Diff (vs. first variant listed)";
-    file << endl;
+         <<left<< setw(checksum_width) << "Checksum Diff  "
+#endif
+         << endl;
+    file <<left<< setw(namecol_width) << "  "
+         <<left<< setw(checksum_width) << "  "
+         <<left<< setw(checksum_width) << "(vs. first variant listed)  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << ""
+#endif
+         << endl;
     file << dash_line << endl;
 
     //
@@ -1208,21 +1229,94 @@ void Executor::writeChecksumReport(ostream& file)
         ++ivck;
       }
 
+      // get vector of checksums and diffs
+      std::vector<Checksum_type> checksums(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_diff(variant_ids.size(), 0.0);
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
 
         if ( kern->wasVariantRun(vid) ) {
-          Checksum_type vcheck_sum = kern->getChecksum(vid);
-          Checksum_type diff = cksum_ref - kern->getChecksum(vid);
+          checksums[iv] = kern->getChecksum(vid);
+          checksums_diff[iv] = cksum_ref - kern->getChecksum(vid);
+        }
+      }
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      if (Checksum_MPI_type == MPI_DATATYPE_NULL) {
+        getCout() << "Checksum_MPI_type is invalid" << endl;
+      }
+
+      // get stats for checksums
+      std::vector<Checksum_type> checksums_sum(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums.data(), checksums_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_avg[iv] = checksums_sum[iv] / num_ranks;
+      }
+
+      // get stats for checksums_abs_diff
+      std::vector<Checksum_type> checksums_abs_diff(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff[iv] = std::abs(checksums_diff[iv]);
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_min(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_max(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_sum(variant_ids.size(), 0.0);
+
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_min.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_max.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MAX, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_abs_diff_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_avg[iv] = checksums_abs_diff_sum[iv] / num_ranks;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_diff2avg2(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_diff2avg2[iv] = (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) *
+                                           (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) ;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_stddev(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums_abs_diff_diff2avg2.data(), checksums_abs_diff_stddev.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_stddev[iv] = std::sqrt(checksums_abs_diff_stddev[iv] / num_ranks) ;
+      }
+
+#endif
+
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+
+        if ( kern->wasVariantRun(vid) ) {
           file <<left<< setw(namecol_width) << getVariantName(vid)
                << showpoint << setprecision(prec)
-               <<left<< setw(checksum_width) << vcheck_sum
-               <<left<< setw(checksum_width) << diff << endl;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << checksums_avg[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_max[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv] << endl;
+#else
+               <<left<< setw(checksum_width) << checksums[iv]
+               <<left<< setw(checksum_width) << checksums_diff[iv] << endl;
+#endif
         } else {
           file <<left<< setw(namecol_width) << getVariantName(vid)
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run" << endl;
+#else
+               <<left<< setw(checksum_width) << "Not Run"
+               <<left<< setw(checksum_width) << "Not Run" << endl;
+#endif
         }
 
       }
