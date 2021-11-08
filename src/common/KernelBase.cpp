@@ -113,13 +113,7 @@ void KernelBase::execute(VariantID vid)
   resetDataInitCount();
 #endif
   this->setUp(vid);
-#ifdef RUN_KOKKOS 
-  Kokkos::Tools::pushRegion(this->getName() + ":"+getVariantName(vid));
-#endif
   this->runKernel(vid); 
-#ifdef RUN_KOKKOS 
-  Kokkos::Tools::popRegion();
-#endif
 
   this->updateChecksum(vid); 
 
