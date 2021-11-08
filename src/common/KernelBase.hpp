@@ -122,12 +122,18 @@ public:
   void startTimer()
   {
     synchronize();
+  #ifdef RUN_KOKKOS 
+    Kokkos::Tools::pushRegion(this->getName());
+  #endif
     timer.start();
   }
 
   void stopTimer()
   {
     synchronize();
+  #ifdef RUN_KOKKOS 
+    Kokkos::Tools::popRegion(this->getName());
+  #endif
     timer.stop(); recordExecTime();
   }
 
