@@ -141,7 +141,7 @@ public:
   {
     synchronize();
   #ifdef RUN_KOKKOS 
-    Kokkos::Tools::popRegion(this->getName());
+    Kokkos::Tools::popRegion();
   #endif
     timer.stop(); recordExecTime();
   }
