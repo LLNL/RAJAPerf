@@ -17,6 +17,13 @@ namespace rajaperf
 namespace basic
 {
 
+struct DaxpyFunctor {
+  Real_ptr y;
+  Real_ptr x;
+  Real_type a;
+  DaxpyFunctor(Real_ptr m_x, Real_ptr m_y, Real_type m_a) { DAXPY_DATA_SETUP; }
+  void operator()(Index_type i) const { DAXPY_BODY; }
+};
 
 void DAXPY::runSeqVariant(VariantID vid)
 {

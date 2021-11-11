@@ -7,11 +7,11 @@
 ###############################################################################
 
 project(RAJAPerfSuite CXX)
-
 cmake_minimum_required(VERSION 3.9)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
+option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
 # Initialize the BLT build system
@@ -25,14 +25,14 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 11)
-set(BLT_CXX_STANDARD 11)
-
+if(ENABLE_KOKKOS)
+  set(CMAKE_CXX_STANDARD 14)
+  set(BLT_CXX_STANDARD 14)
+endif()
 include(blt/SetupBLT.cmake)
 
 #
 # Define RAJA settings...
-#
 
 set(ENABLE_TESTS Off CACHE BOOL "")
 set(ENABLE_EXAMPLES Off CACHE BOOL "")
@@ -52,7 +52,6 @@ add_subdirectory(tpl/RAJA)
 
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
-
 
 #
 # Setup variables to pass to Perf suite
@@ -80,8 +79,12 @@ if (ENABLE_OPENMP)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
-endif() 
-if (ENABLE_HIP)
+endif()
+# Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
+# platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler 
+# Separate RAJAPerf Suite and Kokkos handling of HIP compilers
+if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
+#if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
@@ -89,9 +92,10 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 11)
+  if (ENABLE_CUDA AND ENABLE_KOKKOS)
+  	set(CMAKE_CUDA_STANDARD 14)
+  endif()
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
-
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
@@ -106,14 +110,85 @@ else()
   list(APPEND RAJAPERF_COMPILER_OPTIONS ${CMAKE_CXX_FLAGS})
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
 # Make sure RAJA flag propagate (we need to do some house cleaning to 
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
+# The statement below is required for Kokkos compilation.
+if(ENABLE_KOKKOS)
+  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
+endif()
+
+
+
+# ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
+if(ENABLE_KOKKOS)
+  add_definitions(-DRUN_KOKKOS)
+  if(ENABLE_HIP)
+    set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds for AMD HIP set the
+Kokkos_ENABLE_HIP variable to ON")	
+    #set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
+    #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE /ascldap/users/ajpowel/RAJAPerf/amd_build/compiler_unscrewer)
+  endif()
+  if(ENABLE_TARGET_OPENMP)
+    set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")	
+    set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
+    set(CMAKE_CXX_STANDARD 17)
+    set(BLT_CXX_STANDARD 17)
+    set(RAJA_ENABLE_TARGET_OPENMP ON CACHE BOOL "Docstring")
+    if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+      if(NOT EXPERIMENTAL_BUILD)
+	      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
+      endif()
+    endif()
+
+
+
+
+
+
+
+    #add_definitions(-DRAJA_ENABLE_TARGET_OPENMP)
+  endif()
+
+# ENABLE_CUDA IS A RAJA PERFSUITE OPTION
+  if(ENABLE_CUDA)
+	  set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Docstring")
+	  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Docstring")
+	  set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
+    enable_language(CUDA)
+  endif()
+  if(ENABLE_OPENMP)
+    #set(Kokkos_ENABLE_OPENMP CACHE BOOL ON)
+    set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Docstring")
+  endif()
+
+  add_subdirectory(tpl/kokkos)
+  if(ENABLE_CUDA)
+	  #get_target_property(kokkos_core_files kokkoscore SOURCES)
+	  #get_target_property(kokkos_container_files kokkoscontainers SOURCES)
+	  ##message(STATUS "KOKKOS FILES: ${kokkos_core_files}")
+	  #foreach(kokkos_core_file IN LISTS kokkos_core_files)
+	  #        set_source_files_properties(${kokkos_core_file} PROPERTIES COMPILE_LANGUAGE CUDA)
+	  #        get_source_file_property(local ${kokkos_core_file} LANGUAGE) 
+	  #        set(remote "")
+	  #        #get_source_file_property(remote ${kokkos_core_file} DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tpl/kokkos/core/src LANGUAGE) 
+	  #        message(STATUS "Kokkos file: ${kokkos_core_file} ${local} ${remote}")
+	  #        
+	  #endforeach()
+    #set_target_properties(kokkoscore kokkoscontainers PROPERTIES LANGUAGE CUDA)
+  endif()
+  get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${KOKKOS_INCLUDE_DIRS})
+  
+  list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
+endif()
+
+
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.
-#
+# DZP, AJP, DB, DA fixes
 add_subdirectory(src)

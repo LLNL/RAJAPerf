@@ -67,7 +67,10 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
-
+    void runKokkosVariant(VariantID vid);
+    
+    
+    
 private:
   Real_type m_x0;
   Real_type m_xp;

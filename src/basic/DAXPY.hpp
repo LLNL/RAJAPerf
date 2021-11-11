@@ -22,6 +22,11 @@
   Real_ptr y = m_y; \
   Real_type a = m_a;
 
+#define DAXPY_FUNCTOR_CONSTRUCT \
+  x(m_x),\
+  y(m_y), \
+  a(m_a)
+
 #define DAXPY_BODY  \
   y[i] += a * x[i] ;
 
@@ -53,6 +58,10 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
+  
+  
+  
 private:
   Real_ptr m_x;
   Real_ptr m_y;

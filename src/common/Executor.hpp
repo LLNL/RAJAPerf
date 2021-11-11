@@ -12,6 +12,7 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
+#include <map>
 #include <iosfwd>
 #include <utility>
 #include <set>
@@ -43,6 +44,34 @@ public:
 
   void outputRunData();
 
+  // Interface for adding new Kokkos groups and kernels 
+
+  using groupID = int;
+  using kernelSet = std::set<KernelBase*>;
+  using kernelMap = std::map<std::string, KernelBase*>;
+  using groupMap =  std::map<std::string, kernelSet>;
+  using kernelID = int;
+
+  ///////////////////////////////////////////////////
+  //
+  // Logic:
+  // Need the full set of kernels
+  // Associate group names (e.g., lcals, basic) with kernel sets
+  // Interface to add new kernels (e.g., DAXPY) and groups (basic) 
+  // for Kokkos Performance Testing 
+
+  groupID registerGroup(std::string groupName);
+
+  kernelID registerKernel(std::string, KernelBase*);
+
+  std::vector<KernelBase*> lookUpKernelByName(std::string kernelOrGroupName);
+
+  const RunParams& getRunParams();
+
+
+
+
+
 private:
   Executor() = delete;
 
@@ -72,13 +101,49 @@ private:
 
   void writeFOMReport(const std::string& filename);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
+  
+ // Kokkos add group and kernel ID inline functions
+ // Provisional Design for Kokkos
+ 
+  inline groupID getNewGroupID() {
+          // The newGroupID will be shared amongst invocations of this
+          // function.
+        static groupID newGroupID;
+
+        return newGroupID++;
+
+  }
+
+  inline kernelID getNewKernelID() {
+        
+        static kernelID newKernelID;
+        return newKernelID++;
+
+  }
+
+
+
+  // Data members
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
 
   VariantID reference_vid;
+
+  // "allKernels" is an instance of kernelMap, which is a "map" of all kernels (as strings, e.g., DAXPY, to their
+  // kernelBase* instances; the string name will be the key (first), and the kernelBase* instance will be the value (second)
+  kernelMap allKernels;
+  // "kernelsPerGroup" is an instance of "groupMap;" "kernelsPerGroup" maps kernels to their
+  // categories / parent class (e.g., basic, polybench, etc.)
+  groupMap kernelsPerGroup;
+
+
 };
+
+void free_register_group(Executor*, std::string);
+void free_register_kernel(Executor*, std::string, KernelBase*);
+const RunParams& getRunParams(Executor* exec);
 
 }  // closing brace for rajaperf namespace
 

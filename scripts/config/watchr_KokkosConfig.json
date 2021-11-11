@@ -1,0 +1,132 @@
+{
+	"plots" : {
+		"files" : {
+			"fileName": "RAJAPerf*",
+ 			"type" : "xml",
+			"ignoreOldFiles" : true,
+ 			"recurseDirectories" : true
+		},
+		"categories": [
+			"kokkos_lambda",
+            "lambda_cuda",
+            "base_cuda",
+            "base_seq",
+            "lambda_seq",
+            "raja_cuda",
+            "raja_seq"
+		],		
+		"plot" : [
+			{
+				"autoname" : {
+					"useProperty" : "y/path",
+                     "formatByRemovingPrefix" : "\\/RAJAPerf\\d{4}\\-\\d{2}\\-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.xml\\/"
+				},
+				"category" : "kokkos_lambda",
+				"template" : "kokkos_template",
+				"dataLines" : [
+					{
+						"name" : "Data Line",
+                        "template" : "Line_Template",
+						"x" : {
+							"getPath": "*",
+							"getElement" : "performance-report",
+							"getKey" : "date",
+							"unit" : "timestamp"
+						},
+						"y" : {
+							"getElement" : "performance-report|timing",
+							"getPath": "*/kokkos_perf_suite/*",
+  							"getPathAttribute": "name",
+							"getKey" : "kokkos_lambda",
+							"unit" : "seconds",
+							"strategy" : {
+								"getFirstMatchOnly" : "false",
+								"recurseChildGraphs" : "true"
+							}
+						},
+						"color" : "202,77,77"
+					}
+				]
+			},{
+				"inherit" : "kokkos_template",
+				"category" : "base_cuda",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "base_cuda"
+						}
+					}
+				]
+			}, {
+				"inherit" : "kokkos_template",
+				"category" : "base_seq",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "base_seq"
+						}
+					}
+				]
+			}, {
+
+				"inherit" : "kokkos_template",
+				"category" : "lambda_seq",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "lambda_seq"
+						}
+					}
+				]
+
+			},{ 
+				"inherit" : "kokkos_template",
+				"category" : "lambda_cuda",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "lambda_cuda"
+						}
+					}
+				]
+            },{
+				"inherit" : "kokkos_template",
+				"category" : "raja_cuda",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "raja_cuda"
+						}
+					}
+				]
+			}, {
+				"inherit" : "kokkos_template",
+				"category" : "raja_seq",
+				"dataLines" : [
+					{
+                      "inherit" : "Line_Template",
+						"y" : {
+							"getKey" : "raja_seq"
+						}
+					}
+				]
+			}
+		]
+	},
+    "graphDisplay": {
+		"dbLocation" : "root",
+		"page" : 1,
+		"displayCategory" : "kokkos_lambda",
+		"displayRange" : 30,
+		"graphWidth" : 450,
+		"graphHeight" : 450,
+		"graphsPerRow" : 3,
+		"graphsPerPage" : 15,
+		"displayedDecimalPlaces" : 3
+	}
+}

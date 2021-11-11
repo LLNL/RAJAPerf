@@ -78,11 +78,11 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid)
 
       initOpenMPDeviceData(pi, &m_pi_init, 1, did, hid);
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          double x = (double(i) + 0.5) * dx;
-          RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
-      });
+      //RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+      //  RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+      //    double x = (double(i) + 0.5) * dx;
+      //    RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
+      //});
 
       getOpenMPDeviceData(m_pi, pi, 1, hid, did); 
       *m_pi *= 4.0;

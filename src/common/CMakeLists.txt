@@ -5,14 +5,25 @@
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
+set(RAJAPERF_COMMON_SRC
+        Executor.cpp
+        KernelBase.cpp
+        OutputUtils.cpp
+        RunParams.cpp
+        RAJAPerfSuite.cpp
+        )
 
+if(NOT INFRASTRUCTURE_ONLY)
+  #MESSAGE(FATAL_ERROR "TODO ERROR ${INFRASTRUCTURE_ONLY}")
+  LIST(APPEND RAJAPERF_COMMON_SRC
+          DataUtils.cpp
+          PerfsuiteKernelDefinitions.cpp
+          )
+  endif()
 blt_add_library(
   NAME common
-  SOURCES DataUtils.cpp 
-          Executor.cpp 
-          KernelBase.cpp 
-          OutputUtils.cpp 
-          RAJAPerfSuite.cpp 
-          RunParams.cpp
+  SOURCES ${RAJAPERF_COMMON_SRC}
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
   )
+
+

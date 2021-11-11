@@ -11,10 +11,15 @@
 
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RPTypes.hpp"
-#include "common/DataUtils.hpp"
 #include "common/RunParams.hpp"
 
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/util/Timer.hpp"
+#include "common/DataUtils.hpp"
+#else
+#include "common/BuiltinTimer.hpp"
+#endif
+
 #if defined(RAJA_ENABLE_CUDA)
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 #endif
@@ -39,11 +44,19 @@ class KernelBase
 {
 public:
   KernelBase(KernelID kid, const RunParams& params);
+  KernelBase(std::string name, const RunParams& params);
+
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
+   using TimerType = RAJA::Timer;
+#else
+   using TimerType = rajaperf::ChronoTimer;
+#endif
 
   virtual ~KernelBase();
 
   KernelID     getKernelID() const { return kernel_id; }
   const std::string& getName() const { return name; }
+  void setName(const std::string& new_name) { name = new_name; }
 
   //
   // Methods called in kernel subclass constructors to set kernel
@@ -118,12 +131,18 @@ public:
   void startTimer()
   {
     synchronize();
+  #ifdef RUN_KOKKOS 
+    Kokkos::Tools::pushRegion(this->getName());
+  #endif
     timer.start();
   }
 
   void stopTimer()
   {
     synchronize();
+  #ifdef RUN_KOKKOS 
+    Kokkos::Tools::popRegion();
+  #endif
     timer.stop(); recordExecTime();
   }
 
@@ -156,8 +175,12 @@ public:
   virtual void runOpenMPTargetVariant(VariantID vid) = 0;
 #endif
 
+#if defined(RUN_KOKKOS) or defined(RAJAPERF_INFRASTRUCTURE_ONLY)
+  virtual void runKokkosVariant(VariantID vid) = 0;
+#endif // RUN_KOKKOS
+
 protected:
-  const RunParams& run_params;
+  const RunParams run_params;
 
   Checksum_type checksum[NumVariants];
   Checksum_type checksum_scale_factor;
@@ -194,11 +217,15 @@ private:
 
   int num_exec[NumVariants];
 
-  RAJA::Timer timer;
 
-  RAJA::Timer::ElapsedType min_time[NumVariants];
-  RAJA::Timer::ElapsedType max_time[NumVariants];
-  RAJA::Timer::ElapsedType tot_time[NumVariants];
+  TimerType timer;
+
+  TimerType::ElapsedType min_time[NumVariants];
+  TimerType::ElapsedType max_time[NumVariants];
+  TimerType::ElapsedType tot_time[NumVariants];
+
+
+
 };
 
 }  // closing brace for rajaperf namespace

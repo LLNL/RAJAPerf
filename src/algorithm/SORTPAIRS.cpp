@@ -41,6 +41,7 @@ SORTPAIRS::SORTPAIRS(const RunParams& params)
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( RAJA_HIP );
+  setVariantDefined( Kokkos_Lambda );
 }
 
 SORTPAIRS::~SORTPAIRS()

@@ -51,7 +51,9 @@ FIRST_SUM::FIRST_SUM(const RunParams& params)
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
-  setVariantDefined( RAJA_HIP );
+  setVariantDefined( RAJA_HIP ); 
+
+  setVariantDefined( Kokkos_Lambda ); 
 }
 
 FIRST_SUM::~FIRST_SUM()

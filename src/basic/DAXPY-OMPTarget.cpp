@@ -72,10 +72,10 @@ void DAXPY::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        DAXPY_BODY;
-      });
+      //RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
+      //  RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+      //  DAXPY_BODY;
+      //});
 
     }
     stopTimer();

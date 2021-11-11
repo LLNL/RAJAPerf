@@ -36,10 +36,12 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
+  setVariantDefined( Kokkos_Lambda );
 
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
+
 
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
@@ -47,6 +49,7 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Base_CUDA );
   setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
+
 
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );

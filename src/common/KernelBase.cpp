@@ -51,6 +51,24 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   }
 }
 
+    KernelBase::KernelBase(std::string name, const RunParams& params)
+            : run_params(params),
+              kernel_id(Basic_DAXPY), // TODO DZP: better
+              name(name),
+              default_prob_size(0),
+              default_reps(0),
+              running_variant(NumVariants)
+    {
+        for (size_t ivar = 0; ivar < NumVariants; ++ivar) {
+            checksum[ivar] = 0.0;
+            num_exec[ivar] = 0;
+            min_time[ivar] = std::numeric_limits<double>::max();
+            max_time[ivar] = -std::numeric_limits<double>::max();
+            tot_time[ivar] = 0.0;
+            has_variant_defined[ivar] = false;
+        }
+    }
+
  
 KernelBase::~KernelBase()
 {
@@ -91,10 +109,10 @@ void KernelBase::execute(VariantID vid)
   running_variant = vid;
 
   resetTimer();
-
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
   resetDataInitCount();
+#endif
   this->setUp(vid);
-  
   this->runKernel(vid); 
 
   this->updateChecksum(vid); 
@@ -108,7 +126,7 @@ void KernelBase::recordExecTime()
 {
   num_exec[running_variant]++;
 
-  RAJA::Timer::ElapsedType exec_time = timer.elapsed();
+  TimerType::ElapsedType exec_time = timer.elapsed();
   min_time[running_variant] = std::min(min_time[running_variant], exec_time);
   max_time[running_variant] = std::max(max_time[running_variant], exec_time);
   tot_time[running_variant] += exec_time;
@@ -176,6 +194,14 @@ void KernelBase::runKernel(VariantID vid)
       break;
     }
 
+#if defined(RUN_KOKKOS) or defined (RAJAPERF_INFRASTRUCTURE_ONLY)
+    case Kokkos_Lambda :
+    case Kokkos_Functor :
+    {
+      runKokkosVariant(vid);
+      break;
+    }
+#endif // RUN_KOKKOS
     default : {
 #if 0
       std::cout << "\n  " << getName() 

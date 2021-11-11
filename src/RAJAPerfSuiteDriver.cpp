@@ -7,14 +7,38 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "common/Executor.hpp"
-
+#include "common/QuickKernelBase.hpp"
 #include <iostream>
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
   // STEP 1: Create suite executor object
+  //rajaperf::Executor executor(argc, argv);
+
+#if defined(RUN_KOKKOS)
+            Kokkos::initialize(argc, argv);
+#endif // RUN_KOKKOS
+
   rajaperf::Executor executor(argc, argv);
+  rajaperf::make_perfsuite_executor(&executor, argc, argv);
+  //executor.registerKernel
+  //rajaperf::RunParams params(argc, argv);
+  //executor.registerGroup("Sparse");
+
+  //executor.registerKernel("Sparse", rajaperf::make_kernel_base(
+  //        "Sparse_SPMV", params, [&](const int repfact, const int size){
+  //        },
+  //        [&] (const int repfact, const int size) {}
+  //        ));
+  //  executor.registerKernel("Sparse", rajaperf::make_kernel_base(
+  //          "Sparse_SPMM", params, [&](const int repfact, const int size){
+  //             return std::make_tuple(1);
+  //          },
+  //          [&] (const int repfact, const int size, auto matrix) {
+  //              // do the math using Kokkos Kernels operators
+  //          }
+  //  ));
 
   // STEP 2: Assemble kernels and variants to run
   executor.setupSuite();
@@ -28,6 +52,13 @@ int main( int argc, char** argv )
 
   // STEP 5: Generate suite execution reports
   executor.outputRunData();
+
+  //   Pre-processor directives
+
+#if defined(RUN_KOKKOS)
+        Kokkos::finalize(); // TODO DZP: should this be here?  Good question.  AJP
+#endif
+
 
   std::cout << "\n\nDONE!!!...." << std::endl; 
 

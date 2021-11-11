@@ -70,7 +70,10 @@ public:
   void runCudaVariant(VariantID vid);
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
-
+    void runKokkosVariant(VariantID vid);
+    
+    
+    
 private:
   Int_ptr m_vec;
   Int_type m_vsum;

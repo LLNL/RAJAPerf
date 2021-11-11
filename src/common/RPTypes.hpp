@@ -12,9 +12,9 @@
 
 #ifndef RAJAPerf_RPTypes_HPP
 #define RAJAPerf_RPTypes_HPP
-
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/util/types.hpp"
-
+#endif
 //
 // Only one of the following (double or float) should be defined.
 // 
@@ -56,10 +56,12 @@ using RepIndex_type = volatile int;
  *
  ******************************************************************************
  */
+#ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 using Index_type = RAJA::Index_type;
-///
+#else
+using Index_type = int64_t;
+#endif
 using Index_ptr = Index_type*;
-
 
 /*!
  ******************************************************************************

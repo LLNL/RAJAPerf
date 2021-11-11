@@ -117,6 +117,8 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
+
 private:
   Real_ptr m_phidat;
   Real_ptr m_elldat;

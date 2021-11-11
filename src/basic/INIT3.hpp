@@ -56,6 +56,11 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
+  
+  
+  
+
 private:
   Real_ptr m_out1;
   Real_ptr m_out2;

@@ -35,6 +35,10 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setUsesFeature(Forall);
   setUsesFeature(Atomic);
 
+  setVariantDefined( Kokkos_Lambda );
+
+
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
@@ -68,6 +72,7 @@ void PI_ATOMIC::setUp(VariantID vid)
 
 void PI_ATOMIC::updateChecksum(VariantID vid)
 {
+  //std::cout << "Value is "<<*m_pi<<std::endl;
   checksum[vid] += Checksum_type(*m_pi);
 }
 

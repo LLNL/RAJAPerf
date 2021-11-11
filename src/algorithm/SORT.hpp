@@ -46,6 +46,7 @@ public:
   void updateChecksum(VariantID vid);
   void tearDown(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
   void runSeqVariant(VariantID vid);
   void runOpenMPVariant(VariantID vid);
   void runCudaVariant(VariantID vid);
@@ -55,6 +56,8 @@ public:
     std::cout << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
+
+  
 private:
   Real_ptr m_x;
 };

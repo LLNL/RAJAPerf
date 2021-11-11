@@ -52,6 +52,11 @@ INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
+
+
 }
 
 INIT_VIEW1D::~INIT_VIEW1D()

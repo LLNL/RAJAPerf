@@ -4,6 +4,9 @@
 [submodule "tpl/RAJA"]
 	path = tpl/RAJA
 	url = https://github.com/LLNL/RAJA.git
+[submodule "tpl/kokkos"]
+	path = tpl/kokkos
+	url = https://github.com/kokkos/kokkos
 [submodule "scripts/radiuss-spack-configs"]
 	path = scripts/radiuss-spack-configs
 	url = https://github.com/LLNL/radiuss-spack-configs.git
