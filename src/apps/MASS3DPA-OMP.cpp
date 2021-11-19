@@ -197,7 +197,7 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
                       MASS3DPA_6
                     }
                   );  // RAJA::expt::loop<inner_x>
-                }  
+                }
               );  // RAJA::expt::loop<inner_y>
 
               ctx.teamSync();
@@ -236,8 +236,8 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
                 }
               );  // RAJA::expt::loop<inner_y>
 
-            }  // lambda (e) 
-          );  // RAJA::expt::loop<outer_x> 
+            }  // lambda (e)
+          );  // RAJA::expt::loop<outer_x>
 
         }  // outer lambda (ctx)
       );  // // RAJA::expt::launch
@@ -249,11 +249,11 @@ void MASS3DPA::runOpenMPVariant(VariantID vid) {
   }
 
   default:
-    std::cout << "\n MASS3DPA : Unknown OpenMP variant id = " << vid
+    getCout() << "\n MASS3DPA : Unknown OpenMP variant id = " << vid
               << std::endl;
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

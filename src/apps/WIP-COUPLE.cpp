@@ -173,7 +173,7 @@ void COUPLE::runKernel(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
     }
 
   }

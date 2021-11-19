@@ -117,7 +117,7 @@ void INIT3::runCudaVariant(VariantID vid)
     INIT3_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

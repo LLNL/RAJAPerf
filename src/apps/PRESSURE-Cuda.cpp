@@ -133,7 +133,7 @@ void PRESSURE::runCudaVariant(VariantID vid)
     PRESSURE_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  PRESSURE : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PRESSURE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -49,14 +49,14 @@ constexpr size_t m_block_sz = 32;
   deallocCudaDeviceData(psidat);
 
 __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
-                       Index_type num_d, 
+                       Index_type num_d,
                        Index_type num_m, Index_type num_g, Index_type num_z)
 {
    Index_type m = blockIdx.x * blockDim.x + threadIdx.x;
    Index_type g = blockIdx.y * blockDim.y + threadIdx.y;
    Index_type z = blockIdx.z * blockDim.z + threadIdx.z;
 
-   if (m < num_m && g < num_g && z < num_z) {  
+   if (m < num_m && g < num_g && z < num_z) {
      for (Index_type d = 0; d < num_d; ++d ) {
        LTIMES_BODY;
      }
@@ -94,7 +94,7 @@ void LTIMES::runCudaVariant(VariantID vid)
       LTIMES_NBLOCKS_CUDA;
 
       ltimes<<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
-                                              num_d, 
+                                              num_d,
                                               num_m, num_g, num_z);
       cudaErrchk( cudaGetLastError() );
 
@@ -139,9 +139,9 @@ void LTIMES::runCudaVariant(VariantID vid)
           RAJA::statement::Tile<1, RAJA::tile_fixed<z_block_sz>,
                                    RAJA::cuda_block_z_direct,
             RAJA::statement::Tile<2, RAJA::tile_fixed<g_block_sz>,
-                                     RAJA::cuda_block_y_direct, 
+                                     RAJA::cuda_block_y_direct,
               RAJA::statement::Tile<3, RAJA::tile_fixed<m_block_sz>,
-                                       RAJA::cuda_block_x_direct, 
+                                       RAJA::cuda_block_x_direct,
                 RAJA::statement::For<1, RAJA::cuda_thread_z_direct,     //z
                   RAJA::statement::For<2, RAJA::cuda_thread_y_direct,   //g
                     RAJA::statement::For<3, RAJA::cuda_thread_x_direct, //m
@@ -174,7 +174,7 @@ void LTIMES::runCudaVariant(VariantID vid)
       LTIMES_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -66,8 +66,8 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
       Real_type sumx = m_sumx_init;
 
       #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
-                         thread_limit(threads_per_team) schedule(static, 1) 
-        
+                         thread_limit(threads_per_team) schedule(static, 1)
+
       for (Index_type i = ibegin; i < iend; ++i ) {
         TRAP_INT_BODY;
       }
@@ -77,7 +77,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    #pragma omp target exit data map(delete: x0,xp,y,yp,h) 
+    #pragma omp target exit data map(delete: x0,xp,y,yp,h)
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
@@ -101,7 +101,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
     TRAP_INT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  TRAP_INT : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  TRAP_INT : Unknown OMP Targetvariant id = " << vid << std::endl;
   }
 }
 

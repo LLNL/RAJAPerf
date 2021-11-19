@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -91,7 +91,7 @@ void MULADDSUB::runOpenMPTargetVariant(VariantID vid)
     MULADDSUB_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  MULADDSUB : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  MULADDSUB : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

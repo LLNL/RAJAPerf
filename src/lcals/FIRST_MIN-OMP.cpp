@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -43,7 +43,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_MIN_BODY; 
+          FIRST_MIN_BODY;
         }
 
         m_minloc = RAJA_MAX(m_minloc, mymin.loc);
@@ -97,7 +97,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
           FIRST_MIN_BODY_RAJA;
         });
 
-        m_minloc = RAJA_MAX(m_minloc, loc.getLoc()); 
+        m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
 
       }
       stopTimer();
@@ -106,12 +106,12 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

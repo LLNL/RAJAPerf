@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -79,7 +79,7 @@ void MULADDSUB::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
     }
 
   }

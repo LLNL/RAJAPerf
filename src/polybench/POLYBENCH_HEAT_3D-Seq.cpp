@@ -13,7 +13,7 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -32,19 +32,19 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type t = 0; t < tsteps; ++t) { 
+        for (Index_type t = 0; t < tsteps; ++t) {
 
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
-              for (Index_type k = 1; k < N-1; ++k ) { 
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
                 POLYBENCH_HEAT_3D_BODY1;
               }
             }
           }
 
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
-              for (Index_type k = 1; k < N-1; ++k ) { 
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
+              for (Index_type k = 1; k < N-1; ++k ) {
                 POLYBENCH_HEAT_3D_BODY2;
               }
             }
@@ -63,11 +63,11 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j, 
+      auto poly_heat3d_base_lam1 = [=](Index_type i, Index_type j,
                                        Index_type k) {
                                      POLYBENCH_HEAT_3D_BODY1;
                                    };
-      auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j, 
+      auto poly_heat3d_base_lam2 = [=](Index_type i, Index_type j,
                                        Index_type k) {
                                      POLYBENCH_HEAT_3D_BODY2;
                                    };
@@ -155,7 +155,7 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
     }
 
   }

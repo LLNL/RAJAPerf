@@ -35,6 +35,14 @@ the "Stream" group contains kernels from the Babel Stream benchmark, the "Apps"
 group contains kernels extracted from real scientific computing applications,
 and so forth.
 
+The suite can be run as a single process or with multiple processes when
+configured with MPI support. Running with MPI in the same configuration used
+by an hpc app allows the suite to gather performance data that is more relevant
+for that hpc app than performance data gathered running single process. For
+example running sequentially with one MPI rank per core vs running sequentially
+with a single process yields different performance results on most multi-core
+CPUs.
+
 * * *
 
 Table of Contents
@@ -122,6 +130,28 @@ on the command line if you run CMake directly or edit the script you are
 running to do this. Then, when the build completes, you can type `make test`
 to run the RAJA tests.
 
+## Building with MPI
+
+Some of the provided configurations will build the Performance Suite with
+MPI support enabled. For example,
+
+```
+> ./scripts/blueos_spectrum_nvcc_clang.sh rolling-release 10.2.89 sm_70 10.0.1
+> cd build_lc_blueos-spectrumrolling-release-nvcc10.2.89-sm_70-clang10.0.1
+> make -j
+```
+
+In general MPI support can be enabled by passing the `-DENABLE_MPI=On` option
+to CMake and providing a mpi compiler wrapper via the
+`-DMPI_CXX_COMPILER=/path/to/mpic++` option to CMake in addition to other CMake
+options. For example,
+
+```
+> mkdir my-mpi-build
+> cd my-mpi-build
+> cmake -DENABLE_MPI=On -DMPI_CXX_COMPILER=/path/to/mpic++ <cmake args> ../
+> make -j
+```
 
 * * *
 
@@ -169,6 +199,22 @@ input that the code does not know how to parse. Ill-formed input will be noted
 in the summary output. Hopefully, this will make it easy for users to correct 
 erroneous usage, such as mis-spelled option names.
 
+## Running with MPI
+
+Running the Suite with MPI is as simple as running any other MPI application.
+For example,
+
+```
+> srun -n 2 ./bin/raja-perf.exe
+```
+the entire Suite (all kernels and variants) will execute in their default 
+configurations on each of the 2 ranks. The kernel information output shows how
+each kernel is run on each rank. The total problem size across all MPI ranks
+can be calculated by multiplying the number of MPI ranks by the problem
+size in the kernel information. Timing is reported on rank 0 and is gathered
+by doing an MPI barrier, starting the timer, running the kernel repetitions,
+doing an MPI barrier, and then stopping the timer.
+
 ## Important note
 
  * The OpenMP target offload variants of the kernels in the Suite are a 
@@ -206,7 +252,7 @@ All output files are text files. Other than the checksum file, all are in
 
 ## Kernel information definitions
 
-Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'' file, which includes the following:
+Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'' file. This information is for each process individually, so when running with MPI the total problem size aggregated across all ranks is the number of ranks times the problem size shown in the kernel information. Kernel information includes the following:
 
 1. Kernel name -- Format is group name followed by kernel name, separated by an underscore. 
 2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel.
@@ -219,6 +265,9 @@ Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'
 
 ### Notes about 'problem size'
 
+ * Problem size is always ouput per process/MPI rank. To get the total problem
+   size across all ranks when running with MPI multiply the problem size by
+   the number of MPI ranks.
  * The Suite uses three notions of problem size for each kernel: 'default', 
    'target', and 'actual'. Default is the 'default' problem size defined for a 
    kernel and the size that will be run if no runtime options are 
@@ -605,7 +654,7 @@ void Foo::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
     }
 
   }

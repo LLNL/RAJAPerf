@@ -13,6 +13,8 @@
 #include "common/RunParams.hpp"
 
 #include <iosfwd>
+#include <streambuf>
+#include <memory>
 #include <utility>
 #include <set>
 
@@ -58,19 +60,21 @@ private:
     std::vector<VariantID> variants;
   };
 
+  std::unique_ptr<std::ostream> openOutputFile(const std::string& filename) const;
+
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
 
-  void writeCSVReport(const std::string& filename, CSVRepMode mode,
+  void writeCSVReport(std::ostream& file, CSVRepMode mode,
                       size_t prec);
   std::string getReportTitle(CSVRepMode mode);
   long double getReportDataEntry(CSVRepMode mode,
                                  KernelBase* kern, VariantID vid);
 
-  void writeChecksumReport(const std::string& filename);
+  void writeChecksumReport(std::ostream& file);
 
-  void writeFOMReport(const std::string& filename);
+  void writeFOMReport(std::ostream& file, std::vector<FOMGroup>& fom_groups);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
 
   RunParams run_params;

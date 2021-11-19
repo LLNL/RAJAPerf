@@ -151,24 +151,24 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
       GEMVER_THREADS_PER_BLOCK_HIP;
       GEMVER_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((poly_gemmver_1), 
+      hipLaunchKernelGGL((poly_gemmver_1),
                          dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
                          A, u1, v1, u2, v2, n);
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(m_n, block_size);
 
-      hipLaunchKernelGGL((poly_gemmver_2), 
+      hipLaunchKernelGGL((poly_gemmver_2),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, x, y, beta, n);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_3), 
+      hipLaunchKernelGGL((poly_gemmver_3),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          x, z, n);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_gemmver_4), 
+      hipLaunchKernelGGL((poly_gemmver_4),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, x, w, alpha, n);
       hipErrchk( hipGetLastError() );
@@ -194,7 +194,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
 
       hipLaunchKernelGGL(poly_gemmver_1_lam<decltype(poly_gemmver_1_lambda)>,
                          dim3(nblocks1), dim3(nthreads_per_block1), 0, 0,
-                         n, poly_gemmver_1_lambda); 
+                         n, poly_gemmver_1_lambda);
       hipErrchk( hipGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
@@ -260,7 +260,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
             >
           >
         >
-      >;      
+      >;
 
     using EXEC_POL24 =
       RAJA::KernelPolicy<
@@ -334,7 +334,7 @@ void POLYBENCH_GEMVER::runHipVariant(VariantID vid)
     POLYBENCH_GEMVER_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

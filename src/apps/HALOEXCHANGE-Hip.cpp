@@ -168,7 +168,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
     HALOEXCHANGE_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n HALOEXCHANGE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

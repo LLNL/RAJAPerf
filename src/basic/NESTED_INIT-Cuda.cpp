@@ -59,11 +59,11 @@ __global__ void nested_init(Real_ptr array,
 template< typename Lambda >
 __global__ void nested_init_lam(Index_type ni, Index_type nj, Index_type nk,
                                 Lambda body)
-{ 
+{
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
   Index_type j = blockIdx.y * blockDim.y + threadIdx.y;
   Index_type k = blockIdx.z;
-    
+
   if ( i < ni && j < nj && k < nk ) {
     body(i, j, k);
   }
@@ -85,7 +85,7 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_CUDA;
       NESTED_INIT_NBLOCKS_CUDA;
- 
+
       nested_init<<<nblocks, nthreads_per_block>>>(array,
                                                    ni, nj, nk);
       cudaErrchk( cudaGetLastError() );
@@ -124,13 +124,13 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<i_block_sz * j_block_sz,
-          RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>, 
+          RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
                                    RAJA::cuda_block_y_direct,
-            RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>, 
+            RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
                                      RAJA::cuda_block_x_direct,
               RAJA::statement::For<2, RAJA::cuda_block_z_direct,      // k
                 RAJA::statement::For<1, RAJA::cuda_thread_y_direct,   // j
-                  RAJA::statement::For<0, RAJA::cuda_thread_x_direct, // i 
+                  RAJA::statement::For<0, RAJA::cuda_thread_x_direct, // i
                     RAJA::statement::Lambda<0>
                   >
                 >
@@ -157,7 +157,7 @@ void NESTED_INIT::runCudaVariant(VariantID vid)
     NESTED_INIT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

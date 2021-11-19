@@ -13,7 +13,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -82,12 +82,12 @@ void PLANCKIAN::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

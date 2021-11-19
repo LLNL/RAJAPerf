@@ -112,7 +112,7 @@ void ADD::runHipVariant(VariantID vid)
     ADD_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  ADD : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  ADD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
