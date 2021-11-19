@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -83,7 +83,7 @@ void INIT_VIEW1D_OFFSET::runOpenMPTargetVariant(VariantID vid)
      INIT_VIEW1D_OFFSET_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown OMP Targetvariant id = " << vid << std::endl;
   }
 }
 

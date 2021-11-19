@@ -93,10 +93,10 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((ltimes_noview), 
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+      hipLaunchKernelGGL((ltimes_noview),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          phidat, elldat, psidat,
-                         num_d, 
+                         num_d,
                          num_m, num_g, num_z);
       hipErrchk( hipGetLastError() );
 
@@ -115,15 +115,15 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
 
-      auto ltimes_noview_lambda = 
+      auto ltimes_noview_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;
           }
       };
 
-      hipLaunchKernelGGL((ltimes_noview_lam<decltype(ltimes_noview_lambda)>), 
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+      hipLaunchKernelGGL((ltimes_noview_lam<decltype(ltimes_noview_lambda)>),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          num_m, num_g, num_z,
                          ltimes_noview_lambda);
       hipErrchk( hipGetLastError() );
@@ -178,7 +178,7 @@ void LTIMES_NOVIEW::runHipVariant(VariantID vid)
     LTIMES_NOVIEW_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n LTIMES_NOVIEW : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES_NOVIEW : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

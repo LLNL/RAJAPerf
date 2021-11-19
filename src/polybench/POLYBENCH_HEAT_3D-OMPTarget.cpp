@@ -4,7 +4,7 @@
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_HEAT_3D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -121,7 +121,7 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_HEAT_3D_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }

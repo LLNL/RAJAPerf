@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -79,7 +79,7 @@ void TRIAD::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

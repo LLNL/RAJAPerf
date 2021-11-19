@@ -77,7 +77,7 @@ void SORTPAIRS::runSeqVariant(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
     }
 
   }

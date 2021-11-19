@@ -52,7 +52,7 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid)
   {
-    std::cout << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
+    getCout() << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 private:

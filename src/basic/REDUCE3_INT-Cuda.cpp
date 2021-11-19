@@ -159,7 +159,7 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
     REDUCE3_INT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

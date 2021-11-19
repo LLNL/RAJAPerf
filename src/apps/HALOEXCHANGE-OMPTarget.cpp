@@ -146,7 +146,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
     HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

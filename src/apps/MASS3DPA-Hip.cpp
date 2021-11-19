@@ -169,7 +169,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
                     [&](int dx) {
                       MASS3DPA_1
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
 
                   RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int dx) {
@@ -279,7 +279,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown Hip variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Hip variant id = " << vid << std::endl;
     break;
   }
   }

@@ -148,7 +148,7 @@ void TRAP_INT::runHipVariant(VariantID vid)
     TRAP_INT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

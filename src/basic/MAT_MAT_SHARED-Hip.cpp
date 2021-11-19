@@ -264,13 +264,13 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
                         RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
-                          } 
+                          }
                         );  // RAJA::expt::loop<threads_x>
                       }
                     );  // RAJA::expt::loop<threads_y>
 
                     ctx.teamSync();
-                
+
                   }  // for (k)
 
                   RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
@@ -297,7 +297,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
               << std::endl;
   }
 }

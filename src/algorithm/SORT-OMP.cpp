@@ -44,12 +44,12 @@ void SORT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  SORT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

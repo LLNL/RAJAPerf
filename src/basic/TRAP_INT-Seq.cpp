@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -108,7 +108,7 @@ void TRAP_INT::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }

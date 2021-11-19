@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -79,7 +79,7 @@ void FIRST_DIFF::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  FIRST_DIFF : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_DIFF : Unknown variant id = " << vid << std::endl;
     }
 
   }

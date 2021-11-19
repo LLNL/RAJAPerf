@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -34,7 +34,7 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
   auto pressure_lam2 = [=](Index_type i) {
                          PRESSURE_BODY2;
                        };
-  
+
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -111,12 +111,12 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

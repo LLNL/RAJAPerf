@@ -93,7 +93,7 @@ void HYDRO_1D::runCudaVariant(VariantID vid)
     HYDRO_1D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

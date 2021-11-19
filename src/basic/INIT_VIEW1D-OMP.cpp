@@ -87,12 +87,12 @@ void INIT_VIEW1D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

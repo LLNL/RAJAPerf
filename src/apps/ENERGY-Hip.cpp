@@ -251,7 +251,7 @@ void ENERGY::runHipVariant(VariantID vid)
     ENERGY_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

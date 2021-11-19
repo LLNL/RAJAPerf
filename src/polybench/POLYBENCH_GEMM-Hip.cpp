@@ -93,9 +93,9 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
-      POLY_GEMM_NBLOCKS_HIP; 
+      POLY_GEMM_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((poly_gemm), 
+      hipLaunchKernelGGL((poly_gemm),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          C, A, B, alpha, beta,
                          ni, nj, nk);
@@ -114,7 +114,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
-      POLY_GEMM_NBLOCKS_HIP; 
+      POLY_GEMM_NBLOCKS_HIP;
 
       auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_GEMM_BODY1;
@@ -125,7 +125,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
         POLYBENCH_GEMM_BODY4;
       };
 
-      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>), 
+      hipLaunchKernelGGL((poly_gemm_lam<decltype(poly_gemm_lambda)>),
         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
         ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
@@ -195,7 +195,7 @@ void POLYBENCH_GEMM::runHipVariant(VariantID vid)
     POLYBENCH_GEMM_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

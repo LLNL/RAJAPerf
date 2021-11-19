@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -71,7 +71,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
-      using EXEC_POL = 
+      using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::loop_exec,    // k
             RAJA::statement::For<1, RAJA::loop_exec,  // j
@@ -99,7 +99,7 @@ void NESTED_INIT::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
     }
 
   }
