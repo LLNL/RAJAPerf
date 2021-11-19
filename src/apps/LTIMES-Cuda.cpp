@@ -184,7 +184,7 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       LTIMES_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

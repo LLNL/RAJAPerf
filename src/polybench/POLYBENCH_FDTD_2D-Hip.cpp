@@ -328,7 +328,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
     POLYBENCH_FDTD_2D_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_FDTD_2D : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

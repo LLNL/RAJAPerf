@@ -13,12 +13,12 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 void POLYBENCH_JACOBI_1D::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -114,12 +114,12 @@ void POLYBENCH_JACOBI_1D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_JACOBI_1D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_1D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

@@ -10,6 +10,10 @@
 
 #include "RunParams.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //
 // Basic kernels...
 //
@@ -727,12 +731,47 @@ KernelBase* getKernelObject(KernelID kid,
     }
 
     default: {
-      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+      getCout() << "\n Unknown Kernel ID = " << kid << std::endl;
     }
 
   } // end switch on kernel id
 
   return kernel;
+}
+
+// subclass of streambuf that ignores overflow
+// never printing anything to the underlying stream
+struct NullStream : std::streambuf, std::ostream
+{
+  using Base = std::streambuf;
+  using int_type = typename Base::int_type;
+
+  NullStream() : std::ostream(this) {}
+public:
+  int_type overflow(int_type c) override { return c; }
+};
+
+std::ostream* makeNullStream()
+{
+  return new NullStream();
+}
+
+std::ostream& getNullStream()
+{
+  static NullStream null_stream;
+  return null_stream;
+}
+
+std::ostream& getCout()
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    return std::cout;
+  }
+  return getNullStream();
 }
 
 }  // closing brace for rajaperf namespace

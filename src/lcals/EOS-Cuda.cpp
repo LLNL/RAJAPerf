@@ -92,7 +92,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
     EOS_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  EOS : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  EOS : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

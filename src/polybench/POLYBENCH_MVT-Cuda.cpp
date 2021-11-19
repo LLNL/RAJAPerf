@@ -174,7 +174,7 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
     POLYBENCH_MVT_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_MVT : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_MVT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

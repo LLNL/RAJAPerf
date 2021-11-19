@@ -117,7 +117,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

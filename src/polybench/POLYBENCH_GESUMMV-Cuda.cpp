@@ -133,7 +133,7 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
     POLYBENCH_GESUMMV_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

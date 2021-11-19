@@ -119,7 +119,7 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     VOL3D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  VOL3D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  VOL3D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

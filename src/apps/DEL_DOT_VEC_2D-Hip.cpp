@@ -160,7 +160,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DEL_DOT_VEC_2D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DEL_DOT_VEC_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

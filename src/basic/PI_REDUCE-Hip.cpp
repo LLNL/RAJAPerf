@@ -112,7 +112,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     std::cout << "\n  PI_REDUCE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PI_REDUCE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

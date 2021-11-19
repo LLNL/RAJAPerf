@@ -92,7 +92,7 @@ void EOS::runHipVariantImpl(VariantID vid)
     EOS_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  EOS : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  EOS : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

@@ -109,7 +109,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     TRIAD_DATA_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  TRIAD : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  TRIAD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

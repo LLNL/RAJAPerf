@@ -115,7 +115,7 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
     GEN_LIN_RECUR_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  GEN_LIN_RECUR : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  GEN_LIN_RECUR : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

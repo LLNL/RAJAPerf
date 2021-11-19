@@ -217,7 +217,7 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     HYDRO_2D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

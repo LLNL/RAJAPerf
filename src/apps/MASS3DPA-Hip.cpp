@@ -281,7 +281,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown Hip variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Hip variant id = " << vid << std::endl;
     break;
   }
   }

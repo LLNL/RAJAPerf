@@ -147,7 +147,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     TRAP_INT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

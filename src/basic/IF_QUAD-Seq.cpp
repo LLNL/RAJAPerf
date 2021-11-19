@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -47,7 +47,7 @@ void IF_QUAD::runSeqVariant(VariantID vid)
       break;
     }
 
-#if defined(RUN_RAJA_SEQ)     
+#if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
       startTimer();
@@ -79,7 +79,7 @@ void IF_QUAD::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

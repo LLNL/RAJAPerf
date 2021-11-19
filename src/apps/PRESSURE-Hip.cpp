@@ -125,7 +125,7 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
     PRESSURE_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

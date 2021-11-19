@@ -253,7 +253,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
     POLYBENCH_ADI_TEARDOWN_HIP
 
   } else {
-      std::cout << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

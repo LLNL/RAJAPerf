@@ -170,7 +170,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     NESTED_INIT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

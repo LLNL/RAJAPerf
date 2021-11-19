@@ -135,7 +135,7 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
     POLYBENCH_GESUMMV_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

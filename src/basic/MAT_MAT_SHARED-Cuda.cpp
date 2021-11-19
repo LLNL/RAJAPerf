@@ -300,7 +300,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
 
   } else {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown Cuda variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown Cuda variant id = " << vid
               << std::endl;
   }
 }

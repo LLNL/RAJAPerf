@@ -226,7 +226,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     POLYBENCH_ATAX_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

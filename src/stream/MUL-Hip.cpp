@@ -107,7 +107,7 @@ void MUL::runHipVariantImpl(VariantID vid)
     MUL_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  MUL : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  MUL : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

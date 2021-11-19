@@ -175,7 +175,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

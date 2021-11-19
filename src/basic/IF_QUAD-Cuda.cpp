@@ -113,7 +113,7 @@ void IF_QUAD::runCudaVariantImpl(VariantID vid)
     IF_QUAD_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  IF_QUAD : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  IF_QUAD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

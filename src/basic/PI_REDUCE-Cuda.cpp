@@ -113,7 +113,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
     stopTimer();
 
   } else {
-     std::cout << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

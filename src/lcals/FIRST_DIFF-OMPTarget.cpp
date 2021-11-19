@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -46,17 +46,17 @@ void FIRST_DIFF::runOpenMPTargetVariant(VariantID vid)
   const Index_type iend = getActualProblemSize();
 
   FIRST_DIFF_DATA_SETUP;
- 
+
   if ( vid == Base_OpenMPTarget ) {
 
     FIRST_DIFF_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
-        
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
+
       for (Index_type i = ibegin; i < iend; ++i ) {
         FIRST_DIFF_BODY;
       }
@@ -65,11 +65,11 @@ void FIRST_DIFF::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_DIFF_DATA_TEARDOWN_OMP_TARGET;
-                       
+
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     FIRST_DIFF_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -82,9 +82,9 @@ void FIRST_DIFF::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_DIFF_DATA_TEARDOWN_OMP_TARGET;
-                       
-  } else {                          
-     std::cout << "\n  FIRST_DIFF : Unknown OMP Target variant id = " << vid << std::endl;
+
+  } else {
+     getCout() << "\n  FIRST_DIFF : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

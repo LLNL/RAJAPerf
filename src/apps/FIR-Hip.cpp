@@ -143,7 +143,7 @@ void FIR::runHipVariantImpl(VariantID vid)
     FIR_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

@@ -233,7 +233,7 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
     POLYBENCH_ATAX_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

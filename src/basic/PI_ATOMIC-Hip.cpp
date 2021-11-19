@@ -123,7 +123,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

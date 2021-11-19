@@ -90,7 +90,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
     TRIDIAG_ELIM_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  TRIDIAG_ELIM : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  TRIDIAG_ELIM : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -25,8 +25,8 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
 
   LTIMES_NOVIEW_DATA_SETUP;
- 
-  auto ltimesnoview_lam = [=](Index_type d, Index_type z, 
+
+  auto ltimesnoview_lam = [=](Index_type d, Index_type z,
                               Index_type g, Index_type m) {
                                 LTIMES_NOVIEW_BODY;
                           };
@@ -47,7 +47,7 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid)
               }
             }
           }
-        }  
+        }
 
       }
       stopTimer();
@@ -109,12 +109,12 @@ void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

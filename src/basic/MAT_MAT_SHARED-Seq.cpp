@@ -265,7 +265,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 #endif // RUN_RAJA_SEQ
 
   default: {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
               << std::endl;
   }
   }

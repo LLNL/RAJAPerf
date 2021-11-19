@@ -109,7 +109,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     DAXPY_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

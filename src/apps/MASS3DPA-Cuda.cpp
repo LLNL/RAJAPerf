@@ -279,7 +279,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
     break;
   }
   }

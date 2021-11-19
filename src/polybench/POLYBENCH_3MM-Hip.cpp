@@ -354,7 +354,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     POLYBENCH_3MM_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_3MM : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_3MM : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

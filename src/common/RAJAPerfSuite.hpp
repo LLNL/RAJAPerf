@@ -14,8 +14,10 @@
 #define RAJAPerfSuite_HPP
 
 #include "RAJA/config.hpp"
+#include "rajaperf_config.hpp"
 
 #include <string>
+#include <ostream>
 
 namespace rajaperf
 {
@@ -298,6 +300,35 @@ const std::string& getFeatureName(FeatureID vid);
  *******************************************************************************
  */
 KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return ostream used as cout.
+ *
+ *        IMPORTANT: May return a non-printing stream when MPI is enabled.
+ *
+ *******************************************************************************
+ */
+std::ostream& getCout();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream* makeNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return reference to global non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream& getNullStream();
 
 }  // closing brace for rajaperf namespace
 

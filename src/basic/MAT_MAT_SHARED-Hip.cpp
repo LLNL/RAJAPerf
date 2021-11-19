@@ -303,7 +303,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
               << std::endl;
   }
 }

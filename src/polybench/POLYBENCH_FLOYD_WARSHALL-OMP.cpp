@@ -18,12 +18,12 @@
 //#define USE_RAJA_OMP_COLLAPSE
 #undef USE_RAJA_OMP_COLLAPSE
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -45,7 +45,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 #else
           #pragma omp parallel for
 #endif
-          for (Index_type i = 0; i < N; ++i) {  
+          for (Index_type i = 0; i < N; ++i) {
             for (Index_type j = 0; j < N; ++j) {
               POLYBENCH_FLOYD_WARSHALL_BODY;
             }
@@ -60,7 +60,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 
     case Lambda_OpenMP : {
 
-      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
+      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i,
                                              Index_type j) {
                                            POLYBENCH_FLOYD_WARSHALL_BODY;
                                          };
@@ -89,9 +89,9 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
 
     case RAJA_OpenMP : {
 
-      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
+      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
-      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, 
+      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i,
                                         Index_type j) {
                                       POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
                                      };
@@ -125,7 +125,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N}),
-          poly_floydwarshall_lam 
+          poly_floydwarshall_lam
         );
 
       }
@@ -135,12 +135,12 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

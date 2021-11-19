@@ -219,7 +219,7 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
     HYDRO_2D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

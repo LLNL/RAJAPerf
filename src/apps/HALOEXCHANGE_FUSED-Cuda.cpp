@@ -266,7 +266,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
     HALOEXCHANGE_FUSED_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

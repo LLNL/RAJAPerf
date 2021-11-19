@@ -179,7 +179,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

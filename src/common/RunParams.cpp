@@ -158,7 +158,7 @@ void RunParams::print(std::ostream& str) const
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
-  std::cout << "\n\nReading command line input..." << std::endl;
+  getCout() << "\n\nReading command line input..." << std::endl;
 
   for (int i = 1; i < argc; ++i) {
 
@@ -167,7 +167,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     if ( opt == std::string("--help") ||
          opt == std::string("-h") ) {
 
-      printHelpMessage(std::cout);
+      printHelpMessage(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--show-progress") ||
@@ -178,31 +178,31 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     } else if ( opt == std::string("--print-kernels") ||
                 opt == std::string("-pk") ) {
 
-      printFullKernelNames(std::cout);
+      printFullKernelNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-variants") ||
                 opt == std::string("-pv") ) {
 
-      printVariantNames(std::cout);
+      printVariantNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
                 opt == std::string("-pf") ) {
 
-      printFeatureNames(std::cout);
+      printFeatureNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-feature-kernels") ||
                 opt == std::string("-pfk") ) {
 
-      printFeatureKernels(std::cout);
+      printFeatureKernels(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-kernel-features") ||
                 opt == std::string("-pkf") ) {
 
-      printKernelFeatures(std::cout);
+      printKernelFeatures(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--npasses") ) {
@@ -211,7 +211,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         npasses = ::atoi( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --npasses a value for number of passes (int)"
                   << std::endl;
         input_state = BadInput;
@@ -223,7 +223,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         rep_fact = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --rep_fact a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -234,7 +234,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       i++;
       if ( i < argc ) {
         if (size_meaning == SizeMeaning::Direct) {
-          std::cout << "\nBad input:"
+          getCout() << "\nBad input:"
                     << " may only set one of --size and --sizefact"
                     << std::endl;
           input_state = BadInput;
@@ -243,14 +243,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           if ( size_factor >= 0.0 ) {
             size_meaning = SizeMeaning::Factor;
           } else {
-            std::cout << "\nBad input:"
+            getCout() << "\nBad input:"
                   << " must give --sizefact a POSITIVE value (double)"
                   << std::endl;
             input_state = BadInput;
           }
         }
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --sizefact a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -261,7 +261,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       i++;
       if ( i < argc ) {
         if (size_meaning == SizeMeaning::Factor) {
-          std::cout << "\nBad input:"
+          getCout() << "\nBad input:"
                     << " may only set one of --size and --sizefact"
                     << std::endl;
           input_state = BadInput;
@@ -270,14 +270,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           if ( size >= 0.0 ) {
             size_meaning = SizeMeaning::Direct;
           } else {
-            std::cout << "\nBad input:"
+            getCout() << "\nBad input:"
                   << " must give --size a POSITIVE value (double)"
                   << std::endl;
             input_state = BadInput;
           }
         }
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --size a value (int)"
                   << std::endl;
         input_state = BadInput;
@@ -308,7 +308,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         pf_tol = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --pass-fail-tol (or -pftol) a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -475,8 +475,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       input_state = BadInput;
 
       std::string huh(argv[i]);
-      std::cout << "\nUnknown option: " << huh << std::endl;
-      std::cout.flush();
+      getCout() << "\nUnknown option: " << huh << std::endl;
+      getCout().flush();
 
     }
 

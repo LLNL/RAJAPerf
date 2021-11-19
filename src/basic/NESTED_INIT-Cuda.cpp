@@ -168,7 +168,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     NESTED_INIT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

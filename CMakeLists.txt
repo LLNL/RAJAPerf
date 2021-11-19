@@ -1,6 +1,6 @@
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA Performance Suite project contributors. 
+# and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -29,6 +29,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(BLT_CXX_STANDARD 11)
 
 include(blt/SetupBLT.cmake)
+
+#
+# Define RAJA PERFSUITE settings...
+#
+
+cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
 
 #
 # Define RAJA settings...
@@ -83,12 +89,15 @@ set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 
+if (RAJA_PERFSUITE_ENABLE_MPI)
+  list(APPEND RAJA_PERFSUITE_DEPENDS mpi)
+endif()
 if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
 endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
-endif() 
+endif()
 if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()

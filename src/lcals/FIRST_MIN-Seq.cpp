@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -97,7 +97,7 @@ void FIRST_MIN::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
     }
 
   }

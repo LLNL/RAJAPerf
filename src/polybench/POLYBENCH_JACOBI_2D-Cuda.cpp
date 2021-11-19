@@ -207,7 +207,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
     POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

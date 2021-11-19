@@ -181,7 +181,7 @@ void KernelBase::runKernel(VariantID vid)
 
     default : {
 #if 0
-      std::cout << "\n  " << getName()
+      getCout() << "\n  " << getName()
                 << " : Unknown variant id = " << vid << std::endl;
 #endif
     }

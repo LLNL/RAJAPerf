@@ -109,7 +109,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
     INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

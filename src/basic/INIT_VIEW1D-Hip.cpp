@@ -109,7 +109,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     INIT_VIEW1D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

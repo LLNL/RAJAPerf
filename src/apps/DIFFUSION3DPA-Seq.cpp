@@ -250,7 +250,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 #endif // RUN_RAJA_SEQ
 
   default:
-    std::cout << "\n DIFFUSION3DPA : Unknown Seq variant id = " << vid
+    getCout() << "\n DIFFUSION3DPA : Unknown Seq variant id = " << vid
               << std::endl;
   }
 }

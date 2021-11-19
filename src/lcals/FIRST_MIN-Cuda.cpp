@@ -126,7 +126,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
     FIRST_MIN_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

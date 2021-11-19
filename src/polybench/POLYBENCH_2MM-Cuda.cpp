@@ -271,7 +271,7 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
     POLYBENCH_2MM_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -213,7 +213,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

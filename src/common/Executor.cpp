@@ -12,6 +12,10 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
@@ -57,7 +61,7 @@ void Executor::setupSuite()
     return;
   }
 
-  cout << "\nSetting up suite based on input..." << endl;
+  getCout() << "\nSetting up suite based on input..." << endl;
 
   using Slist = list<string>;
   using Svector = vector<string>;
@@ -607,6 +611,15 @@ void Executor::reportRunSummary(ostream& str) const
 
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
+  if ( to_file ) {
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+    str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
+#else
+    str << "Kernels run without MPI" << endl;
+#endif
+  }
 
 //
 // Set up column headers and column widths for kernel summary output.
@@ -720,7 +733,7 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRun warmup kernels...\n";
+  getCout() << "\n\nRun warmup kernels...\n";
 
   vector<KernelBase*> warmup_kernels;
 
@@ -731,25 +744,25 @@ void Executor::runSuite()
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
-    cout << "Kernel : " << warmup_kernel->getName() << endl;
+    getCout() << "Kernel : " << warmup_kernel->getName() << endl;
     runKernel(warmup_kernel);
     delete warmup_kernel;
     warmup_kernels[ik] = nullptr;
   }
 
 
-  cout << "\n\nRunning specified kernels and variants...\n";
+  getCout() << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
     if ( run_params.showProgress() ) {
-      std::cout << "\nPass through suite # " << ip << "\n";
+      getCout() << "\nPass through suite # " << ip << "\n";
     }
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       if ( run_params.showProgress() ) {
-        std::cout << "\nRun kernel -- " << kernel->getName() << "\n";
+        getCout() << "\nRun kernel -- " << kernel->getName() << "\n";
       }
       runKernel(kernel);
     } // loop over kernels
@@ -782,11 +795,11 @@ void Executor::runKernel(KernelBase* kern)
 
     if ( run_params.showProgress() ) {
       if ( kern->hasVariantDefined(vid) ) {
-        cout << "   Running ";
+        getCout() << "   Running ";
       } else {
-        cout << "   No ";
+        getCout() << "   No ";
       }
-      cout << kern->getVariantName(vid) << " variant" << endl;
+      getCout() << kern->getVariantName(vid) << " variant" << endl;
     }
     if ( kern->hasVariantDefined(vid) ) {
       kern->execute(vid);
@@ -802,7 +815,7 @@ void Executor::outputRunData()
     return;
   }
 
-  cout << "\n\nGenerate run report files...\n";
+  getCout() << "\n\nGenerate run report files...\n";
 
   //
   // Generate output file prefix (including directory path).
@@ -814,41 +827,52 @@ void Executor::outputRunData()
   }
   out_fprefix = "./" + run_params.getOutputFilePrefix();
 
-  string filename = out_fprefix + "-timing.csv";
-  writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
+  unique_ptr<ostream> file = openOutputFile(out_fprefix + "-timing.csv");
+  writeCSVReport(*file, CSVRepMode::Timing, 6 /* prec */);
 
   if ( haveReferenceVariant() ) {
-    filename = out_fprefix + "-speedup.csv";
-    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
+    file = openOutputFile(out_fprefix + "-speedup.csv");
+    writeCSVReport(*file, CSVRepMode::Speedup, 3 /* prec */);
   }
 
-  filename = out_fprefix + "-checksum.txt";
-  writeChecksumReport(filename);
+  file = openOutputFile(out_fprefix + "-checksum.txt");
+  writeChecksumReport(*file);
 
-  filename = out_fprefix + "-fom.csv";
-  writeFOMReport(filename);
-
-  filename = out_fprefix + "-kernels.csv";
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
+  {
+    vector<FOMGroup> fom_groups;
+    getFOMGroups(fom_groups);
+    if (!fom_groups.empty() ) {
+      file = openOutputFile(out_fprefix + "-fom.csv");
+      writeFOMReport(*file, fom_groups);
+    }
   }
 
-  if ( file ) {
+  file = openOutputFile(out_fprefix + "-kernels.csv");
+  if ( *file ) {
     bool to_file = true;
-    writeKernelInfoSummary(file, to_file);
+    writeKernelInfoSummary(*file, to_file);
   }
 }
 
+unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    unique_ptr<ostream> file(new ofstream(filename.c_str(), ios::out | ios::trunc));
+    if ( !*file ) {
+      getCout() << " ERROR: Can't open output file " << filename << endl;
+    }
+    return file;
+  }
+  return unique_ptr<ostream>(makeNullStream());
+}
 
-void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
+void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
                               size_t prec)
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
@@ -922,19 +946,8 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
 }
 
 
-void Executor::writeFOMReport(const string& filename)
+void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
 {
-  vector<FOMGroup> fom_groups;
-  getFOMGroups(fom_groups);
-  if (fom_groups.empty() ) {
-    return;
-  }
-
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
@@ -1154,14 +1167,14 @@ void Executor::writeFOMReport(const string& filename)
 }
 
 
-void Executor::writeChecksumReport(const string& filename)
+void Executor::writeChecksumReport(ostream& file)
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+#endif
 
     //
     // Set basic table formatting parameters.
@@ -1189,7 +1202,11 @@ void Executor::writeChecksumReport(const string& filename)
     // Print title.
     //
     file << equal_line << endl;
-    file << "Checksum Report " << endl;
+    file << "Checksum Report ";
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    file << "for " << num_ranks << " MPI ranks ";
+#endif
+    file << endl;
     file << equal_line << endl;
 
     //
@@ -1198,10 +1215,22 @@ void Executor::writeChecksumReport(const string& filename)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << "Average Checksum  "
+         <<left<< setw(checksum_width) << "Max Checksum Diff  "
+         <<left<< setw(checksum_width) << "Checksum Diff StdDev"
+#else
          <<left<< setw(checksum_width) << "Checksum  "
-         <<left<< setw(checksum_width)
-         << "Checksum Diff (vs. first variant listed)";
-    file << endl;
+         <<left<< setw(checksum_width) << "Checksum Diff  "
+#endif
+         << endl;
+    file <<left<< setw(namecol_width) << "  "
+         <<left<< setw(checksum_width) << "  "
+         <<left<< setw(checksum_width) << "(vs. first variant listed)  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << ""
+#endif
+         << endl;
     file << dash_line << endl;
 
     //
@@ -1225,21 +1254,94 @@ void Executor::writeChecksumReport(const string& filename)
         ++ivck;
       }
 
+      // get vector of checksums and diffs
+      std::vector<Checksum_type> checksums(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_diff(variant_ids.size(), 0.0);
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
 
         if ( kern->wasVariantRun(vid) ) {
-          Checksum_type vcheck_sum = kern->getChecksum(vid);
-          Checksum_type diff = cksum_ref - kern->getChecksum(vid);
+          checksums[iv] = kern->getChecksum(vid);
+          checksums_diff[iv] = cksum_ref - kern->getChecksum(vid);
+        }
+      }
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      if (Checksum_MPI_type == MPI_DATATYPE_NULL) {
+        getCout() << "Checksum_MPI_type is invalid" << endl;
+      }
+
+      // get stats for checksums
+      std::vector<Checksum_type> checksums_sum(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums.data(), checksums_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_avg[iv] = checksums_sum[iv] / num_ranks;
+      }
+
+      // get stats for checksums_abs_diff
+      std::vector<Checksum_type> checksums_abs_diff(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff[iv] = std::abs(checksums_diff[iv]);
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_min(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_max(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_sum(variant_ids.size(), 0.0);
+
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_min.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_max.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MAX, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_abs_diff_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_avg[iv] = checksums_abs_diff_sum[iv] / num_ranks;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_diff2avg2(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_diff2avg2[iv] = (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) *
+                                           (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) ;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_stddev(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums_abs_diff_diff2avg2.data(), checksums_abs_diff_stddev.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_stddev[iv] = std::sqrt(checksums_abs_diff_stddev[iv] / num_ranks) ;
+      }
+
+#endif
+
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+
+        if ( kern->wasVariantRun(vid) ) {
           file <<left<< setw(namecol_width) << getVariantName(vid)
                << showpoint << setprecision(prec)
-               <<left<< setw(checksum_width) << vcheck_sum
-               <<left<< setw(checksum_width) << diff << endl;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << checksums_avg[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_max[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv] << endl;
+#else
+               <<left<< setw(checksum_width) << checksums[iv]
+               <<left<< setw(checksum_width) << checksums_diff[iv] << endl;
+#endif
         } else {
           file <<left<< setw(namecol_width) << getVariantName(vid)
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run" << endl;
+#else
+               <<left<< setw(checksum_width) << "Not Run"
+               <<left<< setw(checksum_width) << "Not Run" << endl;
+#endif
         }
 
       }
@@ -1270,7 +1372,7 @@ string Executor::getReportTitle(CSVRepMode mode)
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return title;
 }
@@ -1294,8 +1396,8 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
           retval = 0.0;
         }
 #if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
-        cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
-        cout << "\tref_time, tot_time, retval = "
+        getCout() << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
+        getCout() << "\tref_time, tot_time, retval = "
              << kern->getTotTime(reference_vid) << " , "
              << kern->getTotTime(vid) << " , "
              << retval << endl;
@@ -1303,7 +1405,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return retval;
 }
@@ -1340,12 +1442,12 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   }  // iterate over variant ids to run
 
 #if 0 //  RDH DEBUG   (leave this here, it's useful for debugging!)
-  cout << "\nFOMGroups..." << endl;
+  getCout() << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];
-    cout << "\tBase : " << getVariantName(group.base) << endl;
+    getCout() << "\tBase : " << getVariantName(group.base) << endl;
     for (size_t iv = 0; iv < group.variants.size(); ++iv) {
-      cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
+      getCout() << "\t\t " << getVariantName(group.variants[iv]) << endl;
     }
   }
 #endif

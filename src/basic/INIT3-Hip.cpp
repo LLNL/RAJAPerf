@@ -117,7 +117,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     INIT3_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  INIT3 : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  INIT3 : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

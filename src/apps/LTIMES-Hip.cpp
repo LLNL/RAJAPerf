@@ -186,7 +186,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     LTIMES_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

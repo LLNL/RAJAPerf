@@ -107,7 +107,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
     ADD_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -223,7 +223,7 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
     POLYBENCH_HEAT_3D_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

@@ -128,7 +128,7 @@ void DOT::runHipVariantImpl(VariantID vid)
     DOT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

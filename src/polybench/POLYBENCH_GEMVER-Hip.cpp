@@ -346,7 +346,7 @@ void POLYBENCH_GEMVER::runHipVariantImpl(VariantID vid)
     POLYBENCH_GEMVER_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

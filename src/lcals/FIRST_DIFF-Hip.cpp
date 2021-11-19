@@ -86,7 +86,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     FIRST_DIFF_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIRST_DIFF : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_DIFF : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

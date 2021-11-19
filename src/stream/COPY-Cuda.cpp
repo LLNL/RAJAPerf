@@ -105,7 +105,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
     COPY_DATA_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

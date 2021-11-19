@@ -201,7 +201,7 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
     POLYBENCH_GEMM_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
