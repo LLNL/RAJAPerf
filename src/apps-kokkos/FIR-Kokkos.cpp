@@ -49,36 +49,6 @@ void FIR::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIR_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-           fir_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
     case Kokkos_Lambda : {
       
       Kokkos::fence();

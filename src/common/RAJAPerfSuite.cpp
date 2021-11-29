@@ -90,7 +90,7 @@ namespace rajaperf {
   std::string("Lcals_TRIDIAG_ELIM"),
 //
 //// Polybench kernels...
-////
+//// Uncomment once Kokkos variants have been created
 //  std::string("Polybench_2MM"),
 //  std::string("Polybench_3MM"),
 //  std::string("Polybench_ADI"),

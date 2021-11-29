@@ -17,7 +17,6 @@ namespace rajaperf
 namespace lcals
 {
 
-// Kokkos-ification starts here:
 
 void FIRST_DIFF::runKokkosVariant(VariantID vid)
 {
@@ -34,7 +33,7 @@ void FIRST_DIFF::runKokkosVariant(VariantID vid)
   Real_ptr y = m_y;
 
 */
-// lcals = livermore compiler analysis loops suite
+  // lcals = livermore compiler analysis loops suite
   // Instiating KokkosViews using getViewFromPointer;
   // Wrapping pointers in KokkosViews
 
@@ -50,54 +49,6 @@ void FIRST_DIFF::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_DIFF_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          firstdiff_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), firstdiff_lam);
-
-      }
-
-      stopTimer();
-
-      break;
-    }
-*/
-
-    // Kokkos-ifying here:
     case Kokkos_Lambda : {
 
       Kokkos::fence();
@@ -132,7 +83,6 @@ void FIRST_DIFF::runKokkosVariant(VariantID vid)
   // ATTN:  View dimensions must match array dimensions!
   moveDataToHostFromKokkosView(x, x_view, iend + 1);
   moveDataToHostFromKokkosView(y, y_view, iend + 1);
-
 
 }
 

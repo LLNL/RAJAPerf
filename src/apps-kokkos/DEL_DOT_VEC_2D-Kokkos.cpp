@@ -22,7 +22,7 @@ namespace apps {
 struct arrayOffSetStruct {
   using ViewType = Kokkos::View<Real_ptr>; // Real_ptr is equivalent to float*
 
-  // v's are offsets;
+  // v's represent different offsets in different Kokkos views;
   ViewType v, v4, v1, v2, v3;
 
   // constructor
@@ -54,11 +54,7 @@ void DEL_DOT_VEC_2D::runKokkosVariant(VariantID vid) {
   NDSET2D(m_domain->jp, xdot, fx1, fx2, fx3, fx4);
   NDSET2D(m_domain->jp, ydot, fy1, fy2, fy3, fy4);
 
-  // Instantiating Kokkos Views with getViewFromPointer
-  //auto x_view = getViewFromPointer(x, m_domain->nnalls);
-  //auto y_view = getViewFromPointer(y, iend);
-  //auto xdot_view = getViewFromPointer(xdot, iend);
-  //auto ydot_view = getViewFromPointer(ydot, iend);
+  // Instantiating Kokkos view
   auto div_view = getViewFromPointer(div, m_domain->nnalls);
 
   arrayOffSetStruct x_offsets("x_offsets", m_domain->nnalls, m_domain->jp, x );
@@ -93,93 +89,13 @@ void DEL_DOT_VEC_2D::runKokkosVariant(VariantID vid) {
  auto& fy3_view = ydot_offsets.v3;
  auto& fy4_view = ydot_offsets.v4;
 
-  // Use Kokkos::Subviews
-  /*
-  auto x1_view = getViewFromPointer(x1, iend);
-  auto x2_view = getViewFromPointer(x2, iend);
-  auto x3_view = getViewFromPointer(x3, iend);
-  auto x4_view = getViewFromPointer(x4, iend);
-
-  auto y1_view = getViewFromPointer(y1, iend);
-  auto y2_view = getViewFromPointer(y2, iend);
-  auto y3_view = getViewFromPointer(y3, iend);
-  auto y4_view = getViewFromPointer(y4, iend);
-
-  auto fx1_view = getViewFromPointer(fx1, iend);
-  auto fx2_view = getViewFromPointer(fx2, iend);
-  auto fx3_view = getViewFromPointer(fx3, iend);
-  auto fx4_view = getViewFromPointer(fx4, iend);
-
-  auto fy1_view = getViewFromPointer(fy1, iend);
-  auto fy2_view = getViewFromPointer(fy2, iend);
-  auto fy3_view = getViewFromPointer(fy3, iend);
-  auto fy4_view = getViewFromPointer(fy4, iend);
-
-*/
 
 #if defined(RUN_KOKKOS)
   switch (vid) {
 
-  case Base_Seq: {
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      for (Index_type ii = ibegin; ii < iend; ++ii) {
-        DEL_DOT_VEC_2D_BODY_INDEX;
-        DEL_DOT_VEC_2D_BODY;
-      }
-    }
-    stopTimer();
-
-    break;
-  }
-
-    // #if defined(RUN_RAJA_SEQ)
-  case Lambda_Seq: {
-
-    auto deldotvec2d_base_lam = [=](Index_type ii) {
-      DEL_DOT_VEC_2D_BODY_INDEX;
-      DEL_DOT_VEC_2D_BODY;
-    };
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      for (Index_type ii = ibegin; ii < iend; ++ii) {
-        deldotvec2d_base_lam(ii);
-      }
-    }
-    stopTimer();
-
-    break;
-  }
-    /*
-        case RAJA_Seq : {
-
-          camp::resources::Resource working_res{camp::resources::Host()};
-          RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                                   m_domain->n_real_zones,
-                                                   working_res);
-
-          auto deldotvec2d_lam = [=](Index_type i) {
-                                   DEL_DOT_VEC_2D_BODY;
-                                 };
-
-          startTimer();
-          for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-            RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
-
-          }
-          stopTimer();
-
-          break;
-        }
-        */
-
   case Kokkos_Lambda: {
 
+    // Translation from RAJAPerf Suite to Kokkos notes:
     // Host resource will be used for loop execution
     // camp::resources::Resource working_res{camp::resources::Host()};
 
@@ -262,7 +178,6 @@ void DEL_DOT_VEC_2D::runKokkosVariant(VariantID vid) {
 
     break;
   }
-    //#endif // RUN_RAJA_SEQ
 
   default: {
     std::cout << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid
@@ -273,35 +188,12 @@ void DEL_DOT_VEC_2D::runKokkosVariant(VariantID vid) {
 
 #endif // RUN_KOKKOS
 
-  // moveDataToHostFromKokkosView(a, a_view, iend);
 
   moveDataToHostFromKokkosView(x, x_view, m_domain->nnalls);
   moveDataToHostFromKokkosView(y, y_view, m_domain->nnalls);
   moveDataToHostFromKokkosView(xdot, xdot_view, m_domain->nnalls);
   moveDataToHostFromKokkosView(ydot, ydot_view, m_domain->nnalls);
   moveDataToHostFromKokkosView(div, div_view, m_domain->nnalls);
-/*
-  moveDataToHostFromKokkosView(x1, x1_view, iend);
-  moveDataToHostFromKokkosView(x2, x2_view, iend);
-  moveDataToHostFromKokkosView(x3, x3_view, iend);
-  moveDataToHostFromKokkosView(x4, x4_view, iend);
-
-  moveDataToHostFromKokkosView(y1, y1_view, iend);
-  moveDataToHostFromKokkosView(y2, y2_view, iend);
-  moveDataToHostFromKokkosView(y3, y3_view, iend);
-  moveDataToHostFromKokkosView(y4, y4_view, iend);
-
-  moveDataToHostFromKokkosView(fx1, fx1_view, iend);
-  moveDataToHostFromKokkosView(fx2, fx2_view, iend);
-  moveDataToHostFromKokkosView(fx3, fx3_view, iend);
-  moveDataToHostFromKokkosView(fx4, fx4_view, iend);
-
-  moveDataToHostFromKokkosView(fy1, fy1_view, iend);
-  moveDataToHostFromKokkosView(fy2, fy2_view, iend);
-  moveDataToHostFromKokkosView(fy3, fy3_view, iend);
-  moveDataToHostFromKokkosView(fy4, fy4_view, iend);
-*/
-
 
 }
 

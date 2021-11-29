@@ -17,8 +17,6 @@ namespace rajaperf
 namespace stream
 {
 
-// Start Kokkos-ifying here:
-// Nota bene: the original RAJAPerf Suite code left for reference
 
   void ADD::runKokkosVariant(VariantID vid)
   {
@@ -45,60 +43,8 @@ namespace stream
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ADD_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          add_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), add_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
-//////////////////////////////////////////////////////////////////////////////
-// Kokkos -fying here:
-//
-
     case Kokkos_Lambda : {
 
-      // open Kokkos fence
       Kokkos::fence();
       startTimer();
 
@@ -112,7 +58,7 @@ namespace stream
                              });
 
       }
-      // close Kokkos fence
+
       Kokkos::fence();
       stopTimer();
 
@@ -132,8 +78,6 @@ namespace stream
   moveDataToHostFromKokkosView(a, a_view, iend);
   moveDataToHostFromKokkosView(b, b_view, iend);
   moveDataToHostFromKokkosView(c, c_view, iend);
-
-
 
 }
 

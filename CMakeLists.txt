@@ -56,8 +56,6 @@ include_directories(${RAJA_INCLUDE_DIRS})
 #
 # Setup variables to pass to Perf suite
 #
-
-#
 # These (hopefully temporary) macro constants are needed to work-around
 # performance issues in the xl compiler.
 #
@@ -80,9 +78,11 @@ endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
+
 # Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
 # platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler 
 # Separate RAJAPerf Suite and Kokkos handling of HIP compilers
+
 if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
 #if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
@@ -113,7 +113,7 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate (we need to do some house cleaning to 
+# Make sure RAJA flag propagate (we need to do some tidying to 
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
@@ -121,7 +121,6 @@ set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 if(ENABLE_KOKKOS)
   include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
 endif()
-
 
 
 # ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
@@ -145,12 +144,6 @@ Kokkos_ENABLE_HIP variable to ON")
       endif()
     endif()
 
-
-
-
-
-
-
     #add_definitions(-DRAJA_ENABLE_TARGET_OPENMP)
   endif()
 
@@ -168,18 +161,6 @@ Kokkos_ENABLE_HIP variable to ON")
 
   add_subdirectory(tpl/kokkos)
   if(ENABLE_CUDA)
-	  #get_target_property(kokkos_core_files kokkoscore SOURCES)
-	  #get_target_property(kokkos_container_files kokkoscontainers SOURCES)
-	  ##message(STATUS "KOKKOS FILES: ${kokkos_core_files}")
-	  #foreach(kokkos_core_file IN LISTS kokkos_core_files)
-	  #        set_source_files_properties(${kokkos_core_file} PROPERTIES COMPILE_LANGUAGE CUDA)
-	  #        get_source_file_property(local ${kokkos_core_file} LANGUAGE) 
-	  #        set(remote "")
-	  #        #get_source_file_property(remote ${kokkos_core_file} DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tpl/kokkos/core/src LANGUAGE) 
-	  #        message(STATUS "Kokkos file: ${kokkos_core_file} ${local} ${remote}")
-	  #        
-	  #endforeach()
-    #set_target_properties(kokkoscore kokkoscontainers PROPERTIES LANGUAGE CUDA)
   endif()
   get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
   include_directories(${KOKKOS_INCLUDE_DIRS})
@@ -187,8 +168,6 @@ Kokkos_ENABLE_HIP variable to ON")
   list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
 endif()
 
-
-#
 # Each directory in the perf suite has its own CMakeLists.txt file.
 # DZP, AJP, DB, DA fixes
 add_subdirectory(src)

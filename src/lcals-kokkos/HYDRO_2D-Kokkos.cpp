@@ -47,7 +47,7 @@ void HYDRO_2D::runKokkosVariant(VariantID vid)
 \
 
 */
-// ATTN:  THESE ARE 2D Views:
+// ATTN:  THESE INPUTS ARE 2D Views:
 //
     auto zadat_view = getViewFromPointer(zadat, kn, jn );
     auto zbdat_view = getViewFromPointer(zbdat, kn, jn );
@@ -64,128 +64,9 @@ void HYDRO_2D::runKokkosVariant(VariantID vid)
     auto zroutdat_view = getViewFromPointer(zroutdat, kn, jn );
     auto zzoutdat_view = getViewFromPointer(zzoutdat, kn, jn );
 
-// Pre-processor directives
-//
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
-
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY1;
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY2;
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            HYDRO_2D_BODY3;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      auto hydro2d_base_lam1 = [=] (Index_type k, Index_type j) {
-                                 HYDRO_2D_BODY1;
-                               };
-      auto hydro2d_base_lam2 = [=] (Index_type k, Index_type j) {
-                                 HYDRO_2D_BODY2;
-                               };
-      auto hydro2d_base_lam3 = [=] (Index_type k, Index_type j) {
-                                 HYDRO_2D_BODY3;
-                               };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam1(k, j);
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam2(k, j);
-          }
-        }
-
-        for (Index_type k = kbeg; k < kend; ++k ) {
-          for (Index_type j = jbeg; j < jend; ++j ) {
-            hydro2d_base_lam3(k, j);
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      HYDRO_2D_VIEWS_RAJA;
-
-      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY1_RAJA;
-                          };
-      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY2_RAJA;
-                          };
-      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY3_RAJA;
-                          };
-
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::Lambda<0>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam1); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam2); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam3); 
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
 
     case Kokkos_Lambda : {
 
@@ -292,11 +173,9 @@ void HYDRO_2D::runKokkosVariant(VariantID vid)
   Real_ptr zzoutdat = m_zzout; \
 \
 
-
 */
 
-
-  // There are 9 inputs: 
+  // There are 9 input views: 
   moveDataToHostFromKokkosView(zadat, zadat_view, kn, jn);
   moveDataToHostFromKokkosView(zbdat, zbdat_view, kn, jn);
   moveDataToHostFromKokkosView(zmdat, zmdat_view, kn, jn);
@@ -307,7 +186,7 @@ void HYDRO_2D::runKokkosVariant(VariantID vid)
   moveDataToHostFromKokkosView(zvdat, zvdat_view, kn, jn);
   moveDataToHostFromKokkosView(zzdat, zzdat_view, kn, jn);
   
-  // There are 2 output views
+  // There are 2 output views:
   moveDataToHostFromKokkosView(zroutdat, zroutdat_view, kn, jn);
   moveDataToHostFromKokkosView(zzoutdat, zzoutdat_view, kn, jn);
 

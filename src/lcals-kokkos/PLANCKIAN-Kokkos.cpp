@@ -50,52 +50,6 @@ void PLANCKIAN::runKokkosVariant(VariantID vid)
 # if defined (RUN_KOKKOS)
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PLANCKIAN_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          planckian_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), planckian_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();

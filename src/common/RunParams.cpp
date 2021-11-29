@@ -590,13 +590,7 @@ void RunParams::printKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
-// TODO DZP reimplement
-//  for (int kid = 0; kid < NumKernels; ++kid) {
-///// RDH DISABLE COUPLE KERNEL
-//    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-//      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
-//    }
-//  }
+
   str.flush();
 }
 
@@ -605,13 +599,7 @@ void RunParams::printFullKernelNames(std::ostream& str) const
 {
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
-// TODO DZP: reimplement
-//  for (int kid = 0; kid < NumKernels; ++kid) {
-///// RDH DISABLE COUPLE KERNEL
-//    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-//      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
-//    }
-//  }
+
   str.flush();
 }
 
@@ -654,24 +642,13 @@ void RunParams::printFeatureKernels(std::ostream& str) const
   for (int fid = 0; fid < NumFeatures; ++fid) {
     FeatureID tfid = static_cast<FeatureID>(fid);
     str << getFeatureName(tfid) << std::endl;
-// TODO DZP: reimplement
-//    for (int kid = 0; kid < NumKernels; ++kid) {
-//      KernelID tkid = static_cast<KernelID>(kid);
-/////   RDH DISABLE COUPLE KERNEL
-//      if (tkid != Apps_COUPLE) {
-//         KernelBase* kern = getKernelObject(tkid, *this);
-//         if ( kern->usesFeature(tfid) ) {
-//           str << "\t" << getFullKernelName(tkid) << std::endl;
-//         }
-//         delete kern;
-//      }
-//    }  // loop over kernels
+
     str << std::endl;
   }  // loop over features
   str.flush();
 }
-// AJP, DZP:  Commenting function body, because we have not yet integrated
-// with Kokkos testing infrastructure 
+// TODO for Kokkos Team:  Commenting function body, because this infrastructure 
+// has not yet been integrated with Kokkos testing infrastructure 
 void RunParams::printKernelFeatures(std::ostream& str) const
 {
 /*

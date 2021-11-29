@@ -41,7 +41,7 @@ void INT_PREDICT::runKokkosVariant(VariantID vid)
 
 */
 
-  // Wrap pointer in Kokkos View
+  // Wrap pointer in Kokkos View, and adjust indices
   auto px_view = getViewFromPointer(px, iend*13);
 
 
@@ -52,51 +52,6 @@ void INT_PREDICT::runKokkosVariant(VariantID vid)
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
-
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INT_PREDICT_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          intpredict_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), intpredict_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
 
     case Kokkos_Lambda : {
 

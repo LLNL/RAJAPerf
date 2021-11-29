@@ -79,36 +79,17 @@ void DAXPY::runKokkosVariant(VariantID vid)
       
       break;
     }
-/*    case Kokkos_Functor: {
-      DaxpyFunctor daxpy_functor_instance(y,x,a);                                
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        Kokkos::parallel_for("DAXPY-Kokkos Kokkos_Functor", Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                             daxpy_functor_instance);
-      }
-
-      stopTimer();
-     
-
-   
-      break;
-    }
-*/
     default : {
       std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-  // Moving all data (i.e., pointer, KokkosView-wrapped ponter) back to the host from the device
+  // Move data (i.e., pointer, KokkosView-wrapped ponter) back to the host from the device
 
   moveDataToHostFromKokkosView(x, x_view, iend);
   
   moveDataToHostFromKokkosView(y, y_view, iend);
-
-
-
-
 
 #endif // RUN_KOKKOS
 }

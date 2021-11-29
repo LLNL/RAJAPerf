@@ -29,66 +29,16 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid)
   // Declare a Kokkos View that will be used to wrap a pointer 
   auto a_view = getViewFromPointer(a, iend);
 
-
-
-
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          INIT_VIEW1D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      auto initview1d_base_lam = [=](Index_type i) {
-                                   INIT_VIEW1D_BODY;
-                                 };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          initview1d_base_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    // AJP began modificaiton here
     case Kokkos_Lambda : {
 
-      //INIT_VIEW1D_VIEW_RAJA;
-
-     /* auto initview1d_lam = [=](Index_type i) {
-                              INIT_VIEW1D_BODY_RAJA;
-       
-                         };
-*/
-      // fence needed to ensure upstream operations are complete before timer
-      // start
       Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-//        RAJA::forall<RAJA::simd_exec>(
-//          RAJA::RangeSegment(ibegin, iend), initview1d_lam);
-         //Kokkos translation
          Kokkos::parallel_for("INIT_VIEW1D_Kokkos Kokkos_Lambda",
                               Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin,iend),
                               KOKKOS_LAMBDA (Index_type i) {
@@ -117,7 +67,6 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid)
 #endif // RUN_KOKKOS
 
   moveDataToHostFromKokkosView(a, a_view, iend);
-
 
 }
 

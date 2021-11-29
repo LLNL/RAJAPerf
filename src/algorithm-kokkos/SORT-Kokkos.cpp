@@ -29,40 +29,13 @@ void SORT::runKokkosVariant(VariantID vid)
 
   SORT_DATA_SETUP;
 
-  // Instantiate Kokkos Views
+  // Wrap pointers in Kokkos view
 
    auto x_view = getViewFromPointer(x, iend*run_reps);
 
 #if defined (RUN_KOKKOS)
 
   switch ( vid ) {
-
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        std::sort(STD_SORT_ARGS);
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::sort<RAJA::loop_exec>(RAJA_SORT_ARGS);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
 
     case Kokkos_Lambda : {
 

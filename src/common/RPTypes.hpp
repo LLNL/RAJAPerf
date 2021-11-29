@@ -6,16 +6,17 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-///
-/// Basic data types used in the Suite.
+/// Basic data types used in RAJAPerf Suite.
 ///
 
 #ifndef RAJAPerf_RPTypes_HPP
 #define RAJAPerf_RPTypes_HPP
+// This macro, RAJAPERF_INFRASTRUCTURE_ONLY, is for Kokkos and Kokkos Kernels
+// -based performance testing
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/util/types.hpp"
 #endif
-//
+
 // Only one of the following (double or float) should be defined.
 // 
 #define RP_USE_DOUBLE
@@ -113,8 +114,6 @@ using Complex_type = std::complex<Real_type>;
 
 using Complex_ptr = Complex_type*;
 #endif
-
-
 
 
 }  // closing brace for rajaperf namespace

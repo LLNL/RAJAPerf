@@ -27,8 +27,7 @@ void ENERGY::runKokkosVariant(VariantID vid)
 
   ENERGY_DATA_SETUP;
 
-  // Instantiate Kokkos::Views
-    //auto a_view = getViewFromPointer(a, iend);
+  // Wrap pointers in Kokkos views 
 
 	auto e_new_view = getViewFromPointer(e_new, iend);
 	auto e_old_view = getViewFromPointer(e_old, iend);
@@ -69,76 +68,6 @@ void ENERGY::runKokkosVariant(VariantID vid)
 #if defined(RUN_KOKKOS)
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY1;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY2;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY3;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY4;
-        }
-  
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY5;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          ENERGY_BODY6;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam1(i);
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam2(i);
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam3(i);
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam4(i);
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam5(i);
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          energy_lam6(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
     case Kokkos_Lambda : {
 
       startTimer();
@@ -147,7 +76,7 @@ void ENERGY::runKokkosVariant(VariantID vid)
               Kokkos::parallel_for("ENERGY - lambda 1",
                               Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                               KOKKOS_LAMBDA(const int64_t i){
-                              // Lamda Body 1
+                              //#define ENERGY_BODY1
                                 e_new_view[i] = e_old_view[i] - 0.5 * delvc_view[i] * \
                                 (p_old_view[i] + ql_old_view[i]) + 0.5 * work_view[i];
 
@@ -185,7 +114,6 @@ void ENERGY::runKokkosVariant(VariantID vid)
 
 
                           });
-
 
 
               Kokkos::parallel_for("ENERGY - lambda 4",
@@ -269,7 +197,7 @@ void ENERGY::runKokkosVariant(VariantID vid)
 
 #endif // RUN_KOKKOS
 
-   //moveDataToHostFromKokkosView(a, a_view, iend);
+   // Move data from Kokkos view on device back to the host
    moveDataToHostFromKokkosView(e_new, e_new_view, iend);
    moveDataToHostFromKokkosView(e_old, e_old_view, iend);
    moveDataToHostFromKokkosView(delvc, delvc_view, iend);

@@ -50,80 +50,19 @@ void PRESSURE::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY1;
-        }
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          PRESSURE_BODY2;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-       for (Index_type i = ibegin; i < iend; ++i ) {
-         pressure_lam1(i);
-       }
-
-       for (Index_type i = ibegin; i < iend; ++i ) {
-         pressure_lam2(i);
-       }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::region<RAJA::seq_region>( [=]() {
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
-
-        }); // end sequential region (for single-source code)
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-    */
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
         
-        //  CRT :  Look at Kokkos graphs as an implementation for kernel
+        //  Christian Trott :  Look at Kokkos graphs as an implementation for kernel
         // seq_region - create a sequential region
         // Intent:  two loop bodies will be executed consecutively
         // https://raja.readthedocs.io/en/v0.9.0/feature/policies.html?highlight=seq_region#parallel-region-policies
         // The sequential region specialization is essentially a pass through operation. 
         // It is provided so that if you want to turn off OpenMP in your code, 
-        // you can simply replace the region policy type and you do not have to change your algorithm source code.
-
+        // you can simply replace the region policy type, and you do not have to change your algorithm source code.
 
           Kokkos::parallel_for("PRESSURE_BODY1 - Kokkos_Lambda",
                           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin,iend),

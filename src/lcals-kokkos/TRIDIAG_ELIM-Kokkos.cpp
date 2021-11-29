@@ -49,51 +49,6 @@ void TRIDIAG_ELIM::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIDIAG_ELIM_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          tridiag_elim_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), tridiag_elim_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();   

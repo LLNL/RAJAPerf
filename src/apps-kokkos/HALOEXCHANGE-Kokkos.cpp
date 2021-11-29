@@ -20,10 +20,9 @@ namespace apps
 
 void HALOEXCHANGE::runKokkosVariant(VariantID vid)
 {
-        //FIXME
-        //return;
 
   const Index_type run_reps = getRunReps();
+
   // Nota bene: ibegin, iend not defined for this kernel
   // Instead:
   // Index_type num_neighbors = s_num_neighbors;
@@ -32,14 +31,11 @@ void HALOEXCHANGE::runKokkosVariant(VariantID vid)
   // apps/HALOEXCHANGE.cpp:  m_num_vars_default     = 3;
   // apps/HALOEXCHANGE.hpp:  static const int s_num_neighbors = 26;
 
-  //HALOEXCHANGE_DATA_SETUP;
+  // HALOEXCHANGE_DATA_SETUP;
 
 // Declare and define Kokkos Views
 // Preserving the names of the pointer variables to avoid typo errors in the
 // Kokkos_Lambda expressions
-//
-//auto vars_view = getViewFromPointer(vars, num_neighbors);
-//auto buffers_view = getViewFromPointer(buffers, num_neighbors);
 
 std::vector<Kokkos::View<Real_ptr>> vars; 
 std::vector<Kokkos::View<Real_ptr>> buffers; 
@@ -72,53 +68,7 @@ auto num_vars = m_num_vars;
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
-/*
-    case RAJA_Seq : {
 
-      using EXEC_POL = RAJA::loop_exec;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
-          Int_ptr list = pack_index_lists[l];
-          Index_type  len  = pack_index_list_lengths[l];
-          for (Index_type v = 0; v < num_vars; ++v) {
-            Real_ptr var = vars[v];
-            auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
-                };
-            RAJA::forall<EXEC_POL>(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_pack_base_lam );
-            buffer += len;
-          }
-        }
-
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
-          Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
-          for (Index_type v = 0; v < num_vars; ++v) {
-            Real_ptr var = vars[v];
-            auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
-                };
-            RAJA::forall<EXEC_POL>(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_unpack_base_lam );
-            buffer += len;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-*/
     case Kokkos_Lambda : {
 
 	  Kokkos::fence();
@@ -189,13 +139,9 @@ Kokkos::parallel_for("HALOEXCHANGE - Pack Body - Kokkos Lambda",
   }
 
 #endif // RUN_KOKKOS
-  //Usage:  moveDataToHostFromKokkosView(pointer, pointer_wrapped_view, iend);
-  // moveDataToHostFromKokkosView(vars, vars_view, num_neighbors);
-  // moveDataToHostFromKokkosView(buffers, buffers_view, num_neighbors);
-
 
 for ( int x = 0; x < m_vars.size(); ++x ) {
-	//vars.push_back(getViewFromPointer(var, m_var_size));
+	//RAJAPerf Suite operation: vars.push_back(getViewFromPointer(var, m_var_size));
     moveDataToHostFromKokkosView(m_vars[x], vars[x], m_var_size);
 }
 
@@ -207,7 +153,7 @@ for ( int x = 0; x < m_buffers.size(); ++x ) {
 
 for ( int x = 0; x < m_pack_index_lists.size(); ++x ) {
 
-	//pack_index_lists.push_back(getViewFromPointer(m_pack_index_lists[x], m_pack_index_list_lengths[x]));
+	//RAJAPerf Suite operation:  pack_index_lists.push_back(getViewFromPointer(m_pack_index_lists[x], m_pack_index_list_lengths[x]));
     moveDataToHostFromKokkosView(m_pack_index_lists[x], pack_index_lists[x], m_pack_index_list_lengths[x]);
 }
 

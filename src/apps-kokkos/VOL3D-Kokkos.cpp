@@ -23,10 +23,10 @@ namespace apps
 struct arrayOffSetStruct3D {
   using ViewType = Kokkos::View<Real_ptr>;
 
-  // v's are offsets of indices
+  // The different v's are offsets of indices in different Kokkos views
   ViewType v, v0, v1, v2, v3, v4, v5, v6, v7;
 
-  // constructor
+  // Constructor
     arrayOffSetStruct3D(const std::string& name,
                       Index_type num_elements,
                       Index_type jp,
@@ -61,7 +61,7 @@ void VOL3D::runKokkosVariant(VariantID vid)
   NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
   NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
-  // not sure about the 'ibegin, iend' here:
+  // The 'ibegin, iend' are unclear here:
   auto vol_view = getViewFromPointer(vol, m_domain->nnalls);
 
   arrayOffSetStruct3D x_offsets("x_offsets", m_domain->nnalls, m_domain->jp, m_domain->kp, x); 
@@ -106,50 +106,6 @@ void VOL3D::runKokkosVariant(VariantID vid)
 #if defined(RUN_KOKKOS)
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin ; i < iend ; ++i ) {
-          VOL3D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin ; i < iend ; ++i ) {
-          vol3d_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), vol3d_lam);
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-*/
     case Kokkos_Lambda : {
 
       startTimer();

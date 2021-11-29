@@ -47,54 +47,6 @@ void HYDRO_1D::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          HYDRO_1D_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          hydro1d_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), hydro1d_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    */
-
-
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();
@@ -127,7 +79,7 @@ void HYDRO_1D::runKokkosVariant(VariantID vid)
 
 #endif // RUN_KOKKOS
 
-    // ATTN:  Adjust arr dimensions to be congruent with the setup 
+    // ATTN:  Adjust array dimensions to be congruent with the setup 
     // in the .cpp file:
     // m_array_length = getActualProblemSize() + 12;
 

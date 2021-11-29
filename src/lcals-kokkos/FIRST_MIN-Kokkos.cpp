@@ -30,84 +30,15 @@ void FIRST_MIN::runKokkosVariant(VariantID vid)
 //  #define FIRST_MIN_DATA_SETUP \
 //  Real_ptr x = m_x;
 
-
   auto x_view = getViewFromPointer(x, iend);
 
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        FIRST_MIN_MINLOC_INIT;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_MIN_BODY;
-        }
-
-        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      auto firstmin_base_lam = [=](Index_type i) -> Real_type {
-                                 return x[i];
-                               };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        FIRST_MIN_MINLOC_INIT;
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          if ( firstmin_base_lam(i) < mymin.val ) { \
-            mymin.val = x[i]; \
-            mymin.loc = i; \
-          }
-        }
-
-        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceMinLoc<RAJA::seq_reduce, Real_type, Index_type> loc(
-                                                        m_xmin_init, m_initloc);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          FIRST_MIN_BODY_RAJA;
-        });
-
-        m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
     case Kokkos_Lambda : {
 
 // https://github.com/kokkos/kokkos/wiki/Kokkos::MinLoc
-// A templated class:
 // MinLoc<T,I,S>::value_type result;
 // parallel_reduce(N,Functor,MinLoc<T,I,S>(result));
 
@@ -125,8 +56,8 @@ void FIRST_MIN::runKokkosVariant(VariantID vid)
               reducer_type::value_type min_result_obj;
 
    Kokkos::parallel_reduce("FIRST_MIN_Kokkos Kokkos_Lambda",
-                                   Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                                   KOKKOS_LAMBDA(Index_type i, reducer_type::value_type& mymin) {
+                            Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                            KOKKOS_LAMBDA(Index_type i, reducer_type::value_type& mymin) {
 
                                    // #define FIRST_MIN_BODY
                                    // if ( x[i] < mymin.val ) {
@@ -139,11 +70,11 @@ void FIRST_MIN::runKokkosVariant(VariantID vid)
                                         mymin.loc = i;
                                    }
                                      
-                                   // Kokkos knows how to handle a MinLoc type
+                                   // Kokkos can handle a MinLoc type
                                    }, reducer_type(min_result_obj));
 
 
-        // Kokkos translation of line below is needed
+        // Kokkos translation of line below 
         // m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
         m_minloc = min_result_obj.loc;
 

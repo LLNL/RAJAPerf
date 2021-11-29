@@ -39,55 +39,6 @@ void FIRST_SUM::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_SUM_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          firstsum_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), firstsum_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    */
-
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();
@@ -121,7 +72,6 @@ void FIRST_SUM::runKokkosVariant(VariantID vid)
 
   moveDataToHostFromKokkosView(x, x_view, iend);
   moveDataToHostFromKokkosView(y, y_view, iend);
-
 
 }
 

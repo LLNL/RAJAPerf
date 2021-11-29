@@ -126,6 +126,8 @@ void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
     free_register_kernel(exec, "Lcals", new lcals::PLANCKIAN(run_params));
     free_register_kernel(exec, "Lcals", new lcals::TRIDIAG_ELIM(run_params));
 /*
+    // Uncomment these lines once Kokkos translations for the polybench kernel
+    // group have been made
     // Polybench
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_2MM(run_params));
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_3MM(run_params));

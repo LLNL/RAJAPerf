@@ -26,13 +26,6 @@ blt_add_library(
 
 # Diagnostics
 message (STATUS "${RAJA_PERFSUITE_DEPENDS}")
-#blt_print_target_properties(TARGET basic-kokkos)
-#blt_print_target_properties(TARGET kokkos)
-
-#kokkoscore;kokkoscontainers;kokkosalgorithms
-#blt_print_target_properties(TARGET kokkoscore)
-#blt_print_target_properties(TARGET kokkoscontainers)
-#blt_print_target_properties(TARGET kokkosalgorithms)
 
 blt_print_target_properties(TARGET RAJA)
 

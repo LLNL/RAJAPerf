@@ -20,7 +20,9 @@ namespace apps
 
 void LTIMES_NOVIEW::runKokkosVariant(VariantID vid)
 {
-        // FIXME
+        // Nota bene: we put a return statement for build and running purposes;
+        // A kernel without a Kokkos view is not informative for Kokkos
+        // performance
         return;
   const Index_type run_reps = getRunReps();
 
@@ -31,52 +33,13 @@ void LTIMES_NOVIEW::runKokkosVariant(VariantID vid)
                                 LTIMES_NOVIEW_BODY;
                           };
 
+#if defined (RUN_KOKKOS)
+
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type z = 0; z < num_z; ++z ) {
-          for (Index_type g = 0; g < num_g; ++g ) {
-            for (Index_type m = 0; m < num_m; ++m ) {
-              for (Index_type d = 0; d < num_d; ++d ) {
-                LTIMES_NOVIEW_BODY;
-              }
-            }
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    } 
-
-#if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type z = 0; z < num_z; ++z ) {
-          for (Index_type g = 0; g < num_g; ++g ) {
-            for (Index_type m = 0; m < num_m; ++m ) {
-              for (Index_type d = 0; d < num_d; ++d ) {
-                ltimesnoview_lam(d, z, g, m);
-              }
-            }
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case RAJA_Seq : {
+/*
+    Future Kokkos Translation here:
+    case Kokkos_Lambda : {
 
       using EXEC_POL =
         RAJA::KernelPolicy<
@@ -105,14 +68,20 @@ void LTIMES_NOVIEW::runKokkosVariant(VariantID vid)
       stopTimer(); 
 
       break;
-    }
-#endif // RUN_RAJA_SEQ
 
+    }
+
+*/
     default : {
       std::cout << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
     }
 
   }
+
+#endif // RUN_KOKKOS 
+
+// Move data from Kokkos View on device back to the host
+
 
 }
 

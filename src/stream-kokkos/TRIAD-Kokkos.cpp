@@ -17,14 +17,6 @@ namespace rajaperf
 namespace stream
 {
 
-/*
-void TRIAD::runSeqVariant(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-*/
-
 void TRIAD::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -54,75 +46,27 @@ void TRIAD::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIAD_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-// #if defined(RUN_RAJA_SEQ)
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          triad_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), triad_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-    */
-
   case Kokkos_Lambda : {
-                               Kokkos::fence();
-                               startTimer();
+						Kokkos::fence();
+                        startTimer();
 
-                               for (RepIndex_type irep =0; irep < run_reps; ++irep) {
-                                
+                        for (RepIndex_type irep =0; irep < run_reps; ++irep) {
                                 Kokkos::parallel_for("TRIAD_Kokkos, Kokkos_Lambda",
-                                       Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                                       KOKKOS_LAMBDA(Index_type i) {
-                                       // TRIAD_BODY definition in TRIAD.hpp
-                                       //   a[i] = b[i] + alpha * c[i] ;
-                                       a_view[i] = b_view[i] + alpha * c_view[i];
-                                       });
+                                Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+                                KOKKOS_LAMBDA(Index_type i) {
+                                // TRIAD_BODY definition in TRIAD.hpp
+                                //   a[i] = b[i] + alpha * c[i] ;
+                                a_view[i] = b_view[i] + alpha * c_view[i];
+                                });
                                }
 
-                               Kokkos::fence();
-                               stopTimer();
+                       Kokkos::fence();
+                       stopTimer();
 
                                break;
 
                        }
 
-//#endif // RUN_RAJA_SEQ
 
     default : {
       std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;

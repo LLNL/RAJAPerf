@@ -48,54 +48,19 @@ void INIT3::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-       
-      startTimer();
-      for(RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for(Index_type i = ibegin; i < iend; ++i) {
-	  INIT3_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-}
-
-
-    case Lambda_Seq : {
-      
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        
-        for (Index_type i = ibegin; i < iend; ++i) {
-	  init3_lam(i);
-        }
-
-
-    }
-    stopTimer();  
-   
-    break;
-}
-
 // Nota bene -- Conversion of Raja code begins here
     case Kokkos_Lambda : {
 
       Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-//        RAJA::forall<RAJA::simd_exec>(
-//          RAJA::RangeSegment(ibegin, iend), init3_lam);
           
-         // Kokkos translation making INIT3_BODY explicit
+         // Kokkos translation of INIT3_BODY
         Kokkos::parallel_for("INIT3-Kokkos Kokkos_Lambda", 
                               Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
 		                      KOKKOS_LAMBDA(Index_type i) {
                               //INIT3_BODY definition:
-                              // out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
+                             // out1[i] = out2[i] = out3[i] = - in1[i] - in2[i] ;
                                 out1_view[i] = out2_view[i] = out3_view[i] = - in1_view[i] - in2_view[i];
                                 });
       }
@@ -118,7 +83,6 @@ void INIT3::runKokkosVariant(VariantID vid)
    moveDataToHostFromKokkosView(out3, out3_view, iend);
    moveDataToHostFromKokkosView(in1, in1_view, iend);
    moveDataToHostFromKokkosView(in2, in2_view, iend);
-
 
 }
 

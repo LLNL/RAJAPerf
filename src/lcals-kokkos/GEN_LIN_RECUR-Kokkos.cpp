@@ -33,7 +33,7 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid)
   auto sb_view = getViewFromPointer(sb, iend);
   auto stb5_view = getViewFromPointer(stb5, iend);
 
-// RPS Lambdas
+// RAJAPerf Suite Lambdas
 
   auto genlinrecur_lam1 = [=](Index_type k) {
                             GEN_LIN_RECUR_BODY1;
@@ -46,65 +46,6 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = 0; k < N; ++k ) {
-          GEN_LIN_RECUR_BODY1;
-        }
-
-        for (Index_type i = 1; i < N+1; ++i ) {
-          GEN_LIN_RECUR_BODY2;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type k = 0; k < N; ++k ) {
-          genlinrecur_lam1(k);
-        }
-
-        for (Index_type i = 1; i < N+1; ++i ) {
-          genlinrecur_lam2(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(0, N), genlinrecur_lam1);
-
-        
-
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
     case Kokkos_Lambda : {
 
       Kokkos::fence();
@@ -116,9 +57,8 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid)
         //   Index_type kb5i = m_kb5i;
         //   Index_type N = m_N;
 
-
         Kokkos::parallel_for("GEN_LIN_RECUR_Kokkos Kokkos Lambda -- BODY1",
-                             // RPS indices are (0, N) for BODY1
+                             // Here, RAJAPerf Suite (RPS) indices are (0, N) for BODY1
                              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(0, N),
                              KOKKOS_LAMBDA(Index_type k) {
                              /*
@@ -134,7 +74,7 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid)
 
         Kokkos::parallel_for("GEN_LIN_RECUR_Kokkos Kokkos Lambda -- BODY2",
                              // ATTN:  you must adjust indices to align with
-                             // RPS design intent here
+                             // RPS design intent here;
                              // RPS indices are (1, N+1) for BODY2
                              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(1, N+1),
                              KOKKOS_LAMBDA(Index_type i) {
@@ -171,7 +111,6 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid)
   moveDataToHostFromKokkosView(sa, sa_view, iend);
   moveDataToHostFromKokkosView(sb, sb_view, iend);
   moveDataToHostFromKokkosView(stb5, stb5_view, iend);
-
 
 }
 

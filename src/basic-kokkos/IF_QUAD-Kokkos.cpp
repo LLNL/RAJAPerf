@@ -17,10 +17,6 @@ namespace rajaperf
 namespace basic
 {
 
-
-
-// Kokkos-ify here
-
 void IF_QUAD::runKokkosVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -44,12 +40,9 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
 
 
 
-
 #if defined(RUN_KOKKOS)
 
   switch ( vid ) {
-
-
 
 
     case Kokkos_Lambda : {
@@ -59,10 +52,6 @@ void IF_QUAD::runKokkosVariant(VariantID vid)
 
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-/*        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), ifquad_lam);
-*/
-	// Translation 
 	Kokkos::parallel_for("IF_QUAD_Kokkos Kokkos_Lambda",
                           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                           KOKKOS_LAMBDA (Index_type i) {

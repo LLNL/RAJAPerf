@@ -34,9 +34,6 @@ void MULADDSUB::runKokkosVariant(VariantID vid)
   auto in1_view  = getViewFromPointer(in1, iend);
   auto in2_view  = getViewFromPointer(in2, iend);
 
-
-
-
   auto mas_lam = [=](Index_type i) {
                    MULADDSUB_BODY;
                  };
@@ -46,48 +43,14 @@ void MULADDSUB::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          MULADDSUB_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          mas_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
 
     case Kokkos_Lambda : {
 
-      // Set fence to ensure upstream calculations have completed
       Kokkos::fence();
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-//        RAJA::forall<RAJA::simd_exec>(
-//          RAJA::RangeSegment(ibegin, iend), mas_lam);
-//
-//		Kokkos translation
-//		If SIMD really matters , consider using Kokkos SIMD
+		// If SIMD really matters , consider using Kokkos SIMD
 		Kokkos::parallel_for("MULTISUB-KokkosSeq Kokkos_Lambda",
                              Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
                              KOKKOS_LAMBDA(Index_type i) {
@@ -120,8 +83,6 @@ void MULADDSUB::runKokkosVariant(VariantID vid)
   moveDataToHostFromKokkosView(out3, out3_view, iend);
   moveDataToHostFromKokkosView(in1, in1_view, iend);
   moveDataToHostFromKokkosView(in2, in2_view, iend);
-
-
 
 }
 

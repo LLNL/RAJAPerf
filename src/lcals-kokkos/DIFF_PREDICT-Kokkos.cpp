@@ -17,7 +17,6 @@ namespace rajaperf
 namespace lcals
 {
 
-
 template<class px_type, class cx_type>
 void diff_predict_helper(Index_type run_reps,
                          Index_type ibegin,
@@ -60,8 +59,6 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid)
   auto px_view = getViewFromPointer(px, iend*14);
   auto cx_view = getViewFromPointer(cx, iend*14);
   
-  // NOTA BENE:  in DIFF_PREDICT.hpp, this constant:
-  // const Index_type offset = m_offset;
 
   auto diffpredict_lam = [=](Index_type i) {
                            DIFF_PREDICT_BODY;
@@ -71,60 +68,11 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid)
 
   switch ( vid ) {
 
-    case Base_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          DIFF_PREDICT_BODY;
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
-    case Lambda_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          diffpredict_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-/*
-    case RAJA_Seq : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), diffpredict_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-*/
-
-
-
-// Kokkos-ifying here:
-//
     case Kokkos_Lambda : {
       Kokkos::fence();
       startTimer();
 
-	  diff_predict_helper( run_reps,
+	  diff_predict_helper(run_reps,
                           ibegin,
                           iend,
                           offset,
