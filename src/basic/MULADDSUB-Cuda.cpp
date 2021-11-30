@@ -117,7 +117,7 @@ void MULADDSUB::runCudaVariant(VariantID vid)
     MULADDSUB_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

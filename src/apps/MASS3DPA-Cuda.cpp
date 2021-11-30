@@ -197,7 +197,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
                     [&](int qx) {
                       MASS3DPA_4
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
                 }
               );  // RAJA::expt::loop<inner_y>
 
@@ -233,7 +233,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
                     [&](int dx) {
                       MASS3DPA_7
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
                 }
               );  // RAJA::expt::loop<inner_y>
 
@@ -277,7 +277,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
     break;
   }
   }

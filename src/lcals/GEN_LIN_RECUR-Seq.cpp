@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -91,7 +91,7 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
     }
 
   }

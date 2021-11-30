@@ -110,7 +110,7 @@ void TRIAD::runCudaVariant(VariantID vid)
     TRIAD_DATA_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  TRIAD : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  TRIAD : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }

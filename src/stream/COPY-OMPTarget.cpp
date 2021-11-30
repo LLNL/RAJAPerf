@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -83,7 +83,7 @@ void COPY::runOpenMPTargetVariant(VariantID vid)
     COPY_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  COPY : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  COPY : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

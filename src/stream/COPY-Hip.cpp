@@ -110,7 +110,7 @@ void COPY::runHipVariant(VariantID vid)
     COPY_DATA_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  COPY : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  COPY : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

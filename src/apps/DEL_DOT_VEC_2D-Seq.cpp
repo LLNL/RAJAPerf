@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -51,7 +51,7 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -77,8 +77,8 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
     case RAJA_Seq : {
 
       camp::resources::Resource working_res{camp::resources::Host()};
-      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones, 
-                                               m_domain->n_real_zones, 
+      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
+                                               m_domain->n_real_zones,
                                                working_res);
 
       auto deldotvec2d_lam = [=](Index_type i) {
@@ -91,14 +91,14 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
         RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }

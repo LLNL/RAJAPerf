@@ -131,7 +131,7 @@ void DOT::runCudaVariant(VariantID vid)
     DOT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

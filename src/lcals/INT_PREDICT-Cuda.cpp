@@ -94,7 +94,7 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
     INT_PREDICT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INT_PREDICT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INT_PREDICT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

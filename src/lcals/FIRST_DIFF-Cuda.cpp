@@ -89,7 +89,7 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
     FIRST_DIFF_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

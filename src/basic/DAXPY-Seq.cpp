@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -79,7 +79,7 @@ void DAXPY::runSeqVariant(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }
 
   }

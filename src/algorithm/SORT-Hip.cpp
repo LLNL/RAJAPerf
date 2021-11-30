@@ -58,7 +58,7 @@ void SORT::runHipVariant(VariantID vid)
     SORT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  SORT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  SORT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

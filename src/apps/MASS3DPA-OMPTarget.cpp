@@ -27,7 +27,7 @@ void MASS3DPA::runOpenMPTargetVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
     break;
   }
   }

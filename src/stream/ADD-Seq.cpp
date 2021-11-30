@@ -12,12 +12,12 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
 
- 
+
 void ADD::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -61,7 +61,7 @@ void ADD::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
     case RAJA_Seq : {
 
@@ -79,7 +79,7 @@ void ADD::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  ADD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  ADD : Unknown variant id = " << vid << std::endl;
     }
 
   }

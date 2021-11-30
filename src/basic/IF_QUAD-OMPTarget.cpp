@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -61,7 +61,7 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(a, b, c, x1, x2) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         IF_QUAD_BODY;
       }
@@ -89,7 +89,7 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid)
     IF_QUAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  IF_QUAD : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  IF_QUAD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

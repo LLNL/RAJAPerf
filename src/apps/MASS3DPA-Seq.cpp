@@ -128,7 +128,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
         RAJA::expt::HOST, RAJA::expt::Grid(),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE), 
+          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
               MASS3DPA_0_CPU
@@ -247,7 +247,7 @@ void MASS3DPA::runSeqVariant(VariantID vid) {
 #endif // RUN_RAJA_SEQ
 
   default:
-    std::cout << "\n MASS3DPA : Unknown Seq variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Seq variant id = " << vid << std::endl;
   }
 }
 

@@ -127,14 +127,14 @@ void HYDRO_2D::runHipVariant(VariantID vid)
       HYDRO_2D_THREADS_PER_BLOCK_HIP;
       HYDRO_2D_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((hydro_2d1), 
+      hipLaunchKernelGGL((hydro_2d1),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          zadat, zbdat,
                          zpdat, zqdat, zrdat, zmdat,
                          jn, kn);
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d2), 
+       hipLaunchKernelGGL((hydro_2d2),
                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                           zudat, zvdat,
                           zadat, zbdat, zzdat, zrdat,
@@ -142,7 +142,7 @@ void HYDRO_2D::runHipVariant(VariantID vid)
                           jn, kn);
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d3), 
+       hipLaunchKernelGGL((hydro_2d3),
                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                           zroutdat, zzoutdat,
                           zrdat, zudat, zzdat, zvdat,
@@ -208,7 +208,7 @@ void HYDRO_2D::runHipVariant(VariantID vid)
     HYDRO_2D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

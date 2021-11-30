@@ -61,7 +61,7 @@ void SORTPAIRS::runCudaVariant(VariantID vid)
     SORTPAIRS_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  SORTPAIRS : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  SORTPAIRS : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

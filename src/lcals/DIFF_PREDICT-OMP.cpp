@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -81,12 +81,12 @@ void DIFF_PREDICT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  DIFF_PREDICT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DIFF_PREDICT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

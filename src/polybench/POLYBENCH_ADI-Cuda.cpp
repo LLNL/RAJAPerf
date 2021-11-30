@@ -243,7 +243,7 @@ void POLYBENCH_ADI::runCudaVariant(VariantID vid)
     POLYBENCH_ADI_TEARDOWN_CUDA
 
   } else {
-      std::cout << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -98,7 +98,7 @@ void PLANCKIAN::runHipVariant(VariantID vid)
     PLANCKIAN_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  PLANCKIAN : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PLANCKIAN : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

@@ -273,7 +273,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n DIFFUSION3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    getCout() << "\n DIFFUSION3DPA : Unknown Cuda variant id = " << vid << std::endl;
     break;
   }
   }

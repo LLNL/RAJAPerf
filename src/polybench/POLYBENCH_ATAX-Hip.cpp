@@ -96,12 +96,12 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_atax_1), 
+      hipLaunchKernelGGL((poly_atax_1),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, x, y, tmp, N);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_atax_2), 
+      hipLaunchKernelGGL((poly_atax_2),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, tmp, y, N);
       hipErrchk( hipGetLastError() );
@@ -232,7 +232,7 @@ void POLYBENCH_ATAX::runHipVariant(VariantID vid)
     POLYBENCH_ATAX_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

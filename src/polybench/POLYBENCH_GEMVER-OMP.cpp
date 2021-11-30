@@ -14,7 +14,7 @@
 #include <cstring>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -49,14 +49,14 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
             POLYBENCH_GEMVER_BODY3;
           }
           POLYBENCH_GEMVER_BODY4;
-        } 
+        }
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY5;
         }
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; j++) {
@@ -215,7 +215,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           poly_gemver_lam7,
           poly_gemver_lam8
 
-        ); 
+        );
 
       }
       stopTimer();
@@ -224,12 +224,12 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

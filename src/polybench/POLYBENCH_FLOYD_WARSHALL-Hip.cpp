@@ -109,13 +109,13 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        auto poly_floyd_warshall_lambda = 
+        auto poly_floyd_warshall_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FLOYD_WARSHALL_BODY;
           };
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
-        POLY_FLOYD_WARSHALL_NBLOCKS_HIP; 
+        POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
 
         hipLaunchKernelGGL(
           (poly_floyd_warshall_lam<decltype(poly_floyd_warshall_lambda)>),
@@ -172,7 +172,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -23,7 +23,7 @@ void INIT3::runSeqVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
-  
+
   INIT3_DATA_SETUP;
 
   auto init3_lam = [=](Index_type i) {
@@ -79,7 +79,7 @@ void INIT3::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
     }
 
   }

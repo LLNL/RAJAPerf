@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -81,12 +81,12 @@ void INIT3::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }
