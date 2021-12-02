@@ -17,6 +17,12 @@
 #include <utility>
 #include <set>
 
+  ///////////////////////////////////////////////////
+  // Logic:
+  // Need the full set of kernels
+  // Associate group names (e.g., lcals, basic) with kernel sets
+  // Interface to add new kernels (e.g., DAXPY) and groups (basic) 
+  // for Kokkos Performance Testing 
 namespace rajaperf {
 
 class KernelBase;
@@ -45,20 +51,12 @@ public:
   void outputRunData();
 
   // Interface for adding new Kokkos groups and kernels 
-
   using groupID = int;
   using kernelSet = std::set<KernelBase*>;
   using kernelMap = std::map<std::string, KernelBase*>;
   using groupMap =  std::map<std::string, kernelSet>;
   using kernelID = int;
 
-  ///////////////////////////////////////////////////
-  //
-  // Logic:
-  // Need the full set of kernels
-  // Associate group names (e.g., lcals, basic) with kernel sets
-  // Interface to add new kernels (e.g., DAXPY) and groups (basic) 
-  // for Kokkos Performance Testing 
 
   groupID registerGroup(std::string groupName);
 
@@ -99,12 +97,12 @@ private:
   void writeFOMReport(const std::string& filename);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
   
+ // Kokkos Design:
  // Kokkos add group and kernel ID inline functions
- // Provisional Design for Kokkos
+ // The newGroupID and newKerneID, both type int, will be shared amongst invocations of these inline functions.
  
   inline groupID getNewGroupID() {
-          // The newGroupID will be shared amongst invocations of this
-          // function.
+
         static groupID newGroupID;
 
         return newGroupID++;
@@ -118,9 +116,9 @@ private:
 
   }
 
-
-
-  // Data members
+  // Required data members:
+  // running parameters, specific kernels (e.g., DAXPY), variants (e.g.,
+  // Kokkos, CUDA, Sequential, etc.)
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;
@@ -128,18 +126,21 @@ private:
 
   VariantID reference_vid;
 
-  // "allKernels" is an instance of kernelMap, which is a "map" of all kernels (as strings, e.g., DAXPY, to their
-  // kernelBase* instances; the string name will be the key (first), and the kernelBase* instance will be the value (second)
+  // "allKernels" is an instance of kernelMap, a std::map that takes a std::string name (key) and pointer to the associated KernelBase object (value).
   kernelMap allKernels;
-  // "kernelsPerGroup" is an instance of "groupMap;" "kernelsPerGroup" maps kernels to their
-  // categories / parent class (e.g., basic, polybench, etc.)
+  // "kernelsPerGroup" is an instance of the groupMap type, a std::map that takes a std::string name (key) and a kernelSet object,
+  // containing the set of unique kernels (in a kernel group, such as basic,
+  // lcals, etc.) to be run.  
   groupMap kernelsPerGroup;
 
 
 };
-
+// Kokkos design:
+// Register a new kernel group (see: PerfsuiteKernelDefinitions.*):
 void free_register_group(Executor*, std::string);
+// Register a new kernel (that belongs to a particular kernel group):
 void free_register_kernel(Executor*, std::string, KernelBase*);
+// Take in run parameters by reference
 const RunParams& getRunParams(Executor* exec);
 
 }  // closing brace for rajaperf namespace

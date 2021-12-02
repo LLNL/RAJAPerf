@@ -12,7 +12,9 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-// Warmup kernels to run first to help reduce startup overheads in timings
+// Warmup kernels will be run if not in a RAJAPerf Suite infrastructure build
+// Warm up runs reduce startup overheads 
+// This overhead should not be reflected in perf testing timing
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
@@ -29,7 +31,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
-
+// Defines miscellaneous symbolic constants and types, and declares miscellaneous functions. 
 #include <unistd.h>
 
 
@@ -37,13 +39,15 @@ namespace rajaperf {
 
 using namespace std;
 
+// Kokkos Design:
+// Executor constructor
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants)
 {
 }
 
-
+// Executor destructor
 Executor::~Executor()
 {
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
@@ -61,15 +65,18 @@ void Executor::setupSuite()
 
   cout << "\nSetting up suite based on input..." << endl;
 
+  //
+  // Kokkoks Design:
+  //
   using Slist = list<string>;
   using Svector = vector<string>;
   using KIDset = set<KernelID>;
   using VIDset = set<VariantID>;
 
-  //
-  // Determine which kernels to exclude from input.
-  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
-  //
+
+  // Determine which kernels and features to exclude from input
+  // Store excluded inputs vector  of strings.
+ 
   const Svector& exclude_kernel_input = run_params.getExcludeKernelInput();
   const Svector& exclude_feature_input = run_params.getExcludeFeatureInput();
 
@@ -77,15 +84,14 @@ void Executor::setupSuite()
 
   if ( !exclude_kernel_input.empty() ) {
 
-    // Make list copy of exclude kernel name input to manipulate for
-    // processing potential group names and/or kernel names, next
+    // Create list of excluded kernel names.
+    // In subsequent steps, this list will be used to form the group and/or kernel names to be run 
     Slist exclude_kern_names(exclude_kernel_input.begin(), exclude_kernel_input.end());
 
-    //
-    // Search exclude_kern_names for matching group names.
-    // groups2exclude will contain names of groups to exclude.
-    //
+   
+    // groups2exclude, a vector of strings, will contain names of groups to exclude.
     Svector groups2exclude;
+    // Search exclude_kern_names list for matching group names.
     for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
     {
       for (size_t ig = 0; ig < NumGroups; ++ig) {
@@ -96,10 +102,10 @@ void Executor::setupSuite()
       }
     }
 
-    //
-    // If group name(s) found in exclude_kern_names, assemble kernels in group(s)
-    // to run and remove those group name(s) from exclude_kern_names list.
-    //
+    
+    // If group name(s) found in the list of exclude_kern_names, assemble kernels in group(s)
+    // to run and remove the identified group name(s) from exclude_kern_names list.
+   
     for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
       const string& gname(groups2exclude[ig]);
 
@@ -109,17 +115,16 @@ void Executor::setupSuite()
           exclude_kern.insert(kid);
         }
       }
-
+      // List of kernel names to be excluded;
+      // Here, removing errant / erroneous group names from this list
       exclude_kern_names.remove(gname);
     }
 
     //
-    // Look for matching names of individual kernels in remaining exclude_kern_names.
-    //
-    // Assemble invalid input for warning message.
-    //
+    // Vector of strings containing invalid input
+    // A warning message is associated with invalid input
     Svector invalid;
-
+    // Search for matching names of kernels in remaining exclude_kern_names
     for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
     {
       bool found_it = false;
@@ -131,7 +136,7 @@ void Executor::setupSuite()
           found_it = true;
         }
       }
-
+      // If kernel not found, add to the vector "invalid"
       if ( !found_it )  invalid.push_back(*it);
     }
 
@@ -141,7 +146,7 @@ void Executor::setupSuite()
 
   if ( !exclude_feature_input.empty() ) {
 
-    // First, check for invalid exclude_feature input.
+    // Check for invalid exclude_feature input.
     // Assemble invalid input for warning message.
     //
     Svector invalid;
@@ -161,14 +166,16 @@ void Executor::setupSuite()
     run_params.setInvalidExcludeFeatureInput(invalid);
 
     //
-    // If feature input is valid, determine which kernels use
-    // input-specified features and add to set of kernels to run.
+    // If feature input is valid, determine which kernels to use
+    // Input-specified features and add to set of kernels to run.
     //
     if ( run_params.getInvalidExcludeFeatureInput().empty() ) {
 
       for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
 
         const string& feature = exclude_feature_input[i];
+
+// COMMENTED OUT BY KOKKOS; FEATURES DO NOT YET WORK IN OUR DESIGN
 /*
         bool found_it = false;
         for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
@@ -194,12 +201,12 @@ void Executor::setupSuite()
   }
 
   //
-  // Determine which kernels to execute from input.
-  // run_kern will be non-duplicated ordered set of IDs of kernel to run.
+  // Determine which kernels to execute from input
+  // run_kern is an ordered set of KernelID to run
   //
   const Svector& kernel_input = run_params.getKernelInput();
   const Svector& feature_input = run_params.getFeatureInput();
-
+  // Set of KernelID objects
   KIDset run_kern;
 
   if ( kernel_input.empty() && feature_input.empty() ) {
@@ -211,19 +218,15 @@ void Executor::setupSuite()
 
   } else {
 
-    //
-    // Need to parse input to determine which kernels to run
-    //
-
-    //
     // Look for kernels using features if such input provided
-    //
     if ( !feature_input.empty() ) {
 
-      // First, check for invalid feature input.
-      // Assemble invalid input for warning message.
-      //
-/** TODO: reimplement
+
+// Kokkos Design:
+// AJP left some of the extensive commented code, because RAJA & Kokkos developers may
+// want to use / fix these blocs for integrated use with Kokkos
+// FEATURE DOES NOT YET WORK WITH KOKKOS
+/** TODO: Kokkos, reimplement!
       Svector invalid;
 
       for (size_t i = 0; i < feature_input.size(); ++i) {
@@ -339,11 +342,11 @@ void Executor::setupSuite()
 
     run_params.setInvalidKernelInput(invalid);
     */
+
     Svector invalid;
             for (auto kernelName: kernel_input) {
                 std::vector<KernelBase *> matchingKernelsVec = lookUpKernelByName(kernelName);
-                // if everything that matched is in the vector, and nothing matched, i.e., an empty vector,
-                // i.e., the kernel name was invalid
+                // Check -- everything that matched is added kernels vector
 
                 if (matchingKernelsVec.empty()) {
                     invalid.push_back(kernelName);
@@ -359,10 +362,8 @@ void Executor::setupSuite()
   }
 
 
-  //
+ 
   // Assemble set of available variants to run
-  // (based on compile-time configuration).
-  //
   VIDset available_var;
   for (size_t iv = 0; iv < NumVariants; ++iv) {
     VariantID vid = static_cast<VariantID>(iv);
@@ -372,22 +373,16 @@ void Executor::setupSuite()
   }
 
 
-  //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
-  //
+  // Declare and set exclude_variant_names (from run parameter inputs), a
+  // vector of strings
   const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
 
   VIDset exclude_var;
 
   if ( !exclude_variant_names.empty() ) {
 
-    //
-    // Parse input to determine which variants to exclude.
-    //
+    
     // Assemble invalid input for warning message.
-    //
-
     Svector invalid;
 
     for (size_t it = 0; it < exclude_variant_names.size(); ++it) {
@@ -410,8 +405,8 @@ void Executor::setupSuite()
   }
 
   //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
+  // Determine variants to run based on user input (stored in run_params).
+  // run_var will be an ordered set of unique variant IDs to run.
   //
   const Svector& variant_names = run_params.getVariantInput();
 
@@ -420,7 +415,7 @@ void Executor::setupSuite()
   if ( variant_names.empty() ) {
 
     //
-    // No variants specified in input options, run all available.
+    // If no variants specified in input options, run all available.
     // Also, set reference variant if specified.
     //
     for (VIDset::iterator vid_it = available_var.begin();
@@ -443,15 +438,6 @@ void Executor::setupSuite()
 
   } else {
 
-    //
-    // Parse input to determine which variants to run:
-    //   - variants to run will be the intersection of available variants
-    //     and those specified in input
-    //   - reference variant will be set to specified input if available
-    //     and variant will be run; else first variant that will be run.
-    //
-    // Assemble invalid input for warning message.
-    //
 
     Svector invalid;
 
@@ -486,12 +472,8 @@ void Executor::setupSuite()
 
   }
 
-  //
-  // Create kernel objects and variants to execute. If invalid input is not
-  // empty for either case, then there were unmatched input items.
-  //
-  // A message will be emitted later so user can sort it out...
-  //
+  // Kokkos Design:
+  // Create kernel objects and variants to execute.
 
   if ( !(run_params.getInvalidKernelInput().empty()) ||
        !(run_params.getInvalidExcludeKernelInput().empty()) ) {
@@ -526,8 +508,7 @@ void Executor::setupSuite()
         variant_ids.push_back( *vid );
       }
 
-      //
-      // If we've gotten to this point, we have good input to run.
+      // If the bloc of code below executes, we have good input to run.
       //
       if ( run_params.getInputState() != RunParams::DryRun &&
            run_params.getInputState() != RunParams::CheckRun ) {
@@ -720,13 +701,15 @@ void Executor::runSuite()
        in_state != RunParams::CheckRun ) {
     return;
   }
-
+// Kokkos Design:
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 
   cout << "\n\nRun warmup kernels...\n";
 
   vector<KernelBase*> warmup_kernels;
 
+  // The warm-up kernels that will be run if RAJAPERF_INFRASTUCTURE_ONLY NOT
+  // enabled
   warmup_kernels.push_back(new basic::DAXPY(run_params));
   warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
   warmup_kernels.push_back(new algorithm::SORT(run_params));
@@ -1346,47 +1329,14 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
 #endif
 }
 
-
-// New functions for Kokkos to register new group and kernel IDs
-// The return type is Executor::groupID
-
+    // Kokkos Desgin:
+	// Function to register new Kokkos and /or RAJA group and kernel ID
+	// The return type is Executor::groupID
 
     Executor::groupID Executor::registerGroup(std::string groupName) {
-        // find() method searches the string for the first occurrence of the sequence specified by its arguments.
-        // Recall, "kernelsPerGroup" is a mapping of kernel groups (e.g., basic) and their constituent kernels (e.g., DAXPY)
         auto checkIfGroupExists = kernelsPerGroup.find(groupName);
 
 
-        /* Recall, these items are defined in Executor.hpp:
-        using groupID = int;
-        using kernelID = int;
-        using kernelSet = std::set<KernelBase*>;                // data type: set of KernelBase* instances
-        using kernelMap = std::map<std::string, KernelBase*>;   // data type:  map of string kernel names to instances of KernelBase*
-        using groupMap =  std::map<std::string, kernelSet>;     // data type: map of groupNames to sets of kernels
-         ...
-         // "allKernels" is an instance of kernelMap, which is a "map" of all kernels and their ID's
-         kernelMap allKernels;
-
-         // "kernelsPerGroup" is an instance of "groupMap;" "kernelsPerGroup" maps kernels to their categories (e.g., basic, polybench, etc.)
-         groupMap kernelsPerGroup;
-
-        */
-
-        /*  end()
-     * Return iterator to end
-     * Returns an iterator referring to the past-the-end element in the vector container.
-     * The past-the-end element is the theoretical element that would follow the last element in the vector.
-     * It does not point to any element, and thus shall not be de-referenced.
-     * Because the ranges used by functions of the standard library do not include
-     * the element pointed by their closing iterator,
-     * this function is often used in combination with vector::begin to specify a range including all the elements in the container.
-     * If the container is empty, this function returns the same as vector::begin.
-     *
-     */
-
-
-        // HERE, WE ARE CHECKING THE CASE THAT THE groupNAME **IS NOT** IN THE MAP OBJECT
-        // Using the .end() idiom to check if I've fallen off the edge of the container without finding a match
         if (checkIfGroupExists == kernelsPerGroup.end()) {
             // If groupName not found, set that groupName in kernelsPerGroup to an empty kernelSet obj
             kernelsPerGroup[groupName] = kernelSet();
@@ -1396,7 +1346,7 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
 
             std::cout << "The Group Name " << groupName << " already exists.  Program is exiting." << std::endl;
 
-            // In kernelsPerGroup, the Group Name is the first position / key value, and the second position / value type in the set
+            // In kernelsPerGroup, groupName is the second position / value in the set
             auto fullKernelSet = checkIfGroupExists->second;
 
             // fullKernelSet is of type std::set<kernelBase*>
@@ -1416,38 +1366,40 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
 
     }
 
-// New function with return type Executor::kernelID, returning getNewKernelID(); registerKernel is a new function in the Executor class
-//
+	// Kokkos Design:
+	// Function to register new kernels
+	// The return type -- Executor::kernelID, returning getNewKernelID()
 
     Executor::kernelID Executor::registerKernel(std::string groupName, KernelBase *kernel) {
-        // declaring and setting kernelName to de-referenced kernel pointer obj, an instance of KernelBase*
+        // Declaring and setting kernelName to de-referenced kernel pointer obj (passed in as as argument), an instance of KernelBase*
         auto kernelName = kernel->getName();
-        // Recall, "allKernels" maps named kernels to their IDs
+        // Check if kernel exists; "allKernels" maps named kernels to their IDs;
         auto checkIfKernelExists = allKernels.find(kernelName);
         // Check if checkKernelExists value IS NOT in  the map of all kernels
+        // to determine if a new kernel should be created
         if (checkIfKernelExists == allKernels.end()) {
-            // if the kernel name IS NOT in the allKernels map, set kernelName to kernel, the KernelBase* instance
+            // If the kernel name IS NOT in the allKernels map, set kernelName to kernel, a KernelBase* instance
             allKernels[kernelName] = kernel;
         } else {
             // ERROR CONDITION:  if the kernel is found / exists, make the program exit
+            // kernelName is the key, or first element of allKernels
 
             std::cout << "Kernel " << checkIfKernelExists->first << " already exists.  Program is exiting."
                       << std::endl;
 
             exit(1);
         }
-        //////////////////////////////////////////////////////////////////////////////
-        // This error condition : adding a groupName before checking if the group associated with the kernel exists
-        // Declare and set checkIfGroupExists to the value of the string-type groupName in the kernelsPerGroup map
+        // Kokkos Desgin:
+        // ERROR CONDITION : adding a groupName (to kernelsPerGroup) before checking if the (kernel) group exists.
+        //
         auto checkIfGroupExists = kernelsPerGroup.find(groupName);
-        // LOGIC:  Check if checkIfGroupExists value is the same as the past-the-end element in the vector container, which
-        // does not have a value
-        // i.e., check for the case that the groupName DOES NOT exist with the ".end()" idiom;
+        
+       
         if (checkIfGroupExists == kernelsPerGroup.end()) {
 
         } else {
-            // If the groupName DOES EXIST, then insert the kernel (instance of KernelBase*) at the second position of the
-            // allKernels map to associate the kernel and its groupNAme
+            // If the groupName DOES EXIST in kernelsPerGroup, then insert the associated kernel (instance of KernelBase*) 
+            // at the second (value) position of the allKernels map to associate correctly the kernel and its groupName
 
             checkIfGroupExists->second.insert(kernel);
 
@@ -1456,81 +1408,60 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
         // getNewKernelID is an obj of type Executor::kernelID
         return getNewKernelID();
     }
-// AJP & DZP new function
-// AJP GOAL:  return a vector of all kernelBase* objects to be run by <WHICH METHODS??>
+
+	// Kokkos Design:
+	// Function of the Executor class that returns a vector of all kernelBase* objects.
 
     std::vector<KernelBase *> Executor::lookUpKernelByName(std::string kernelOrGroupName) {
 
-        // The vector / list return type, std::vector<KernelBase*>  will contain
-        // either all of the kernels with  a given  kernel name or group name
-        // We have two maps (defined in Executor.hpp): kernelMap allKernels, groupMap kernelsPerGroup,
-        // STEPS:
-        // 1) declare new vector that will contain the string data:
-        // 2) LOGIC:
-        // 	i) check to see if the kernel / group requested on the
-        // 	"./rajaperf.exe -k" line (you can pass either a specific kernel or a
-        // 	kernel groupName, e.g., "Basic"
-
-        // Declaring the vector kernelsByNameVect of type std::vector<KernelBase*>;
         // This variable will contain the set of kernels to run
         std::vector<KernelBase *> kernelsByNameVect;
-
-        // CONDITIONS TO INCLUDE:
-        // 1)  If kernelName is groupName , then add that set of kernels in the
-        // group to the vector
-
-        // 2) else if kernelName is kernel, then add the kernel to the vector
-        // 3) else if kernelName is horse stuff, then say so
-
-        // HINT:  Declare iterator against which you can test equivalence
-
+        // kernelsPerGroup: first (key) is kernel, second (value), is group
         auto checkLookUpGroupNameIterator = kernelsPerGroup.find(kernelOrGroupName);
         auto checkLookUpKernelNameIterator = allKernels.find(kernelOrGroupName);
 
-        // Check to see if groupName NOT in kernelsPerGroup;
-        // end() iterates to the end 
         if (checkLookUpGroupNameIterator != kernelsPerGroup.end()) {
-            //cout << " STEP 1" << endl;
-
-            // when using the arrow, you get a key, value pair.
-            // You can access either member by "first" or "second"
-  //
-
-            // we have std::set of KernelBase*
+            // Gather the kernel groups that will be perf tested
             auto groupSetForTests = checkLookUpGroupNameIterator->second;
-
+            // Capture the group name, and store in kernelsByNameVect
             for (auto item: groupSetForTests) {
                 kernelsByNameVect.push_back(item);
             }
+        // Check -- if kernel name not an empty element, i.e., it exists,
+        // capture the name of the kernel, and store in kernelsByNameVect
         } else if (checkLookUpKernelNameIterator != allKernels.end()) {
 
             auto kernel = checkLookUpKernelNameIterator->second;
 
             kernelsByNameVect.push_back(kernel);
 
-
         }
-
 
         // kernelsByNameVect is an object of type std::vector<KernelBase*> that will be used by <void Executor::setupSuite()>
         return kernelsByNameVect;
 
-
     }
 
+    // Kokkos Desgin:
+    // Take user-entered run parameters in by reference, and return
     const RunParams &Executor::getRunParams() {
 
 
         return run_params;
     }
 
+    // Function to register a new kernel group for an instance of an Executor
+    // object
     void free_register_group(Executor *exec, std::string groupName) {
         exec->registerGroup(groupName);
     }
-
+    // Function to register a new kernel for an instance of an Executor
+    // object
     void free_register_kernel(Executor *exec, std::string groupName, KernelBase *kernel) {
         exec->registerKernel(groupName, kernel);
     }
+    // Function to populate an instance of an Executor object with run parameters
+
     const RunParams& getRunParams(Executor* exec){
         return exec->getRunParams();
 
