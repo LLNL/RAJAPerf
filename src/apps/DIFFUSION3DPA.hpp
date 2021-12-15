@@ -322,24 +322,9 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
         double (*QDD2)[MD1][MD1] = (double (*)[MD1][MD1]) (sm0+2);
 
 #define DIFFUSION3DPA_1 \
-        RAJA_UNROLL(MD1) \
-        for (int dz = 0; dz < DPA_D1D; ++dz) \
-        { \
-          s_X[dz][dy][dx] = dpaX_(dx,dy,dz,e); \
-        }
-
-#define NEW_DIFFUSION3DPA_1 \
         s_X[dz][dy][dx] = dpaX_(dx,dy,dz,e);
 
 #define DIFFUSION3DPA_2 \
-            const int i = qi(qx,dy,DPA_Q1D); \
-            const int j = dj(qx,dy,DPA_D1D); \
-            const int k = qk(qx,dy,DPA_Q1D); \
-            const int l = dl(qx,dy,DPA_D1D); \
-            B[i][j] = b(qx,dy); \
-            G[k][l] = g(qx,dy) * sign(qx,dy);
-
-#define NEW_DIFFUSION3DPA_2 \
         const int i = qi(qx,dy,DPA_Q1D); \
         const int j = dj(qx,dy,DPA_D1D); \
         const int k = qk(qx,dy,DPA_Q1D); \
@@ -348,33 +333,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
         G[k][l] = g(qx,dy) * sign(qx,dy); \
 
 #define DIFFUSION3DPA_3 \
-            double u[DPA_D1D], v[DPA_D1D]; \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; dz++) { u[dz] = v[dz] = 0.0; } \
-            RAJA_UNROLL(MD1) \
-            for (int dx = 0; dx < DPA_D1D; ++dx) \
-            { \
-              const int i = qi(qx,dx,DPA_Q1D); \
-              const int j = dj(qx,dx,DPA_D1D); \
-              const int k = qk(qx,dx,DPA_Q1D); \
-              const int l = dl(qx,dx,DPA_D1D); \
-              const double s = sign(qx,dx); \
-              RAJA_UNROLL(MD1) \
-                for (int dz = 0; dz < DPA_D1D; ++dz) \
-                  { \
-                    const double coords = s_X[dz][dy][dx]; \
-                    u[dz] += coords * B[i][j]; \
-                    v[dz] += coords * G[k][l] * s; \
-                  } \
-            } \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; ++dz) \
-            { \
-              DDQ0[dz][dy][qx] = u[dz]; \
-              DDQ1[dz][dy][qx] = v[dz]; \
-            }
-
-#define NEW_DIFFUSION3DPA_3 \
            double u = 0.0, v = 0.0; \
             RAJA_UNROLL(MD1) \
             for (int dx = 0; dx < DPA_D1D; ++dx) \
@@ -391,36 +349,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
              DDQ0[dz][dy][qx] = u; \
              DDQ1[dz][dy][qx] = v;
 
-
 #define DIFFUSION3DPA_4 \
-            double u[DPA_D1D], v[DPA_D1D], w[DPA_D1D]; \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; dz++) { u[dz] = v[dz] = w[dz] = 0.0; } \
-            RAJA_UNROLL(MD1) \
-              for (int dy = 0; dy < DPA_D1D; ++dy) \
-                { \
-                  const int i = qi(qy,dy,DPA_Q1D); \
-                  const int j = dj(qy,dy,DPA_D1D); \
-                  const int k = qk(qy,dy,DPA_Q1D); \
-                  const int l = dl(qy,dy,DPA_D1D); \
-                  const double s = sign(qy,dy); \
-                  RAJA_UNROLL(MD1) \
-                    for (int dz = 0; dz < DPA_D1D; dz++) \
-                      { \
-                        u[dz] += DDQ1[dz][dy][qx] * B[i][j]; \
-                        v[dz] += DDQ0[dz][dy][qx] * G[k][l] * s; \
-                        w[dz] += DDQ0[dz][dy][qx] * B[i][j]; \
-                      } \
-                } \
-            RAJA_UNROLL(MD1) \
-              for (int dz = 0; dz < DPA_D1D; dz++) \
-                {  \
-                  DQQ0[dz][qy][qx] = u[dz]; \
-                  DQQ1[dz][qy][qx] = v[dz]; \
-                  DQQ2[dz][qy][qx] = w[dz]; \
-                }
-
-#define NEW_DIFFUSION3DPA_4 \
    double u = 0.0, v = 0.0, w = 0.0; \
    RAJA_UNROLL(MD1)  \
    for (int dy = 0; dy < DPA_D1D; ++dy) \
@@ -439,46 +368,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
    DQQ2[dz][qy][qx] = w;
 
 #define DIFFUSION3DPA_5 \
-            double u[DPA_Q1D], v[DPA_Q1D], w[DPA_Q1D]; \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; qz++) { u[qz] = v[qz] = w[qz] = 0.0; } \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; ++dz) \
-            { \
-              RAJA_UNROLL(MQ1) \
-                for (int qz = 0; qz < DPA_Q1D; qz++) \
-                { \
-                  const int i = qi(qz,dz,DPA_Q1D); \
-                  const int j = dj(qz,dz,DPA_D1D); \
-                  const int k = qk(qz,dz,DPA_Q1D); \
-                  const int l = dl(qz,dz,DPA_D1D); \
-                  const double s = sign(qz,dz); \
-                  u[qz] += DQQ0[dz][qy][qx] * B[i][j]; \
-                  v[qz] += DQQ1[dz][qy][qx] * B[i][j]; \
-                  w[qz] += DQQ2[dz][qy][qx] * G[k][l] * s; \
-                } \
-            } \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; qz++) \
-            { \
-              const double O11 = d(qx,qy,qz,0,e); \
-              const double O12 = d(qx,qy,qz,1,e); \
-              const double O13 = d(qx,qy,qz,2,e); \
-              const double O21 = symmetric ? O12 : d(qx,qy,qz,3,e); \
-              const double O22 = symmetric ? d(qx,qy,qz,3,e) : d(qx,qy,qz,4,e); \
-              const double O23 = symmetric ? d(qx,qy,qz,4,e) : d(qx,qy,qz,5,e); \
-              const double O31 = symmetric ? O13 : d(qx,qy,qz,6,e); \
-              const double O32 = symmetric ? O23 : d(qx,qy,qz,7,e); \
-              const double O33 = symmetric ? d(qx,qy,qz,5,e) : d(qx,qy,qz,8,e); \
-              const double gX = u[qz]; \
-              const double gY = v[qz]; \
-              const double gZ = w[qz]; \
-              QQQ0[qz][qy][qx] = (O11*gX) + (O12*gY) + (O13*gZ); \
-              QQQ1[qz][qy][qx] = (O21*gX) + (O22*gY) + (O23*gZ); \
-              QQQ2[qz][qy][qx] = (O31*gX) + (O32*gY) + (O33*gZ); \
-            }
-
-#define NEW_DIFFUSION3DPA_5 \
                double u = 0.0, v = 0.0, w = 0.0; \
                RAJA_UNROLL(MD1) \
                for (int dz = 0; dz < DPA_D1D; ++dz) \
@@ -508,17 +397,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
                QQQ1[qz][qy][qx] = (O21*gX) + (O22*gY) + (O23*gZ); \
                QQQ2[qz][qy][qx] = (O31*gX) + (O32*gY) + (O33*gZ);
 
-
 #define DIFFUSION3DPA_6 \
-              const int i = qi(q,d,DPA_Q1D); \
-              const int j = dj(q,d,DPA_D1D); \
-              const int k = qk(q,d,DPA_Q1D); \
-              const int l = dl(q,d,DPA_D1D); \
-              Bt[j][i] = b(q,d); \
-              Gt[l][k] = g(q,d) * sign(q,d);
-
-
-#define NEW_DIFFUSION3DPA_6 \
                const int i = qi(q,d,DPA_Q1D); \
                const int j = dj(q,d,DPA_D1D); \
                const int k = qk(q,d,DPA_Q1D); \
@@ -527,34 +406,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
                Gt[l][k] = g(q,d) * sign(q,d);
 
 #define DIFFUSION3DPA_7 \
-            double u[DPA_Q1D], v[DPA_Q1D], w[DPA_Q1D]; \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; ++qz) { u[qz] = v[qz] = w[qz] = 0.0; } \
-            RAJA_UNROLL(MQ1) \
-            for (int qx = 0; qx < DPA_Q1D; ++qx) \
-            { \
-              const int i = qi(qx,dx,DPA_Q1D); \
-              const int j = dj(qx,dx,DPA_D1D); \
-              const int k = qk(qx,dx,DPA_Q1D); \
-              const int l = dl(qx,dx,DPA_D1D); \
-              const double s = sign(qx,dx); \
-              RAJA_UNROLL(MQ1) \
-              for (int qz = 0; qz < DPA_Q1D; ++qz) \
-              { \
-                u[qz] += QQQ0[qz][qy][qx] * Gt[l][k] * s; \
-                v[qz] += QQQ1[qz][qy][qx] * Bt[j][i]; \
-                w[qz] += QQQ2[qz][qy][qx] * Bt[j][i]; \
-              } \
-            } \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; ++qz) \
-            { \
-              QQD0[qz][qy][dx] = u[qz]; \
-              QQD1[qz][qy][dx] = v[qz]; \
-              QQD2[qz][qy][dx] = w[qz]; \
-            }
-
-#define NEW_DIFFUSION3DPA_7 \
             double u = 0.0, v = 0.0, w = 0.0; \
             RAJA_UNROLL(MQ1) \
             for (int qx = 0; qx < DPA_Q1D; ++qx) \
@@ -573,34 +424,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
             QQD2[qz][qy][dx] = w;
 
 #define DIFFUSION3DPA_8 \
-            double u[DPA_Q1D], v[DPA_Q1D], w[DPA_Q1D]; \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; ++qz) { u[qz] = v[qz] = w[qz] = 0.0; } \
-            RAJA_UNROLL(MQ1) \
-            for (int qy = 0; qy < DPA_Q1D; ++qy) \
-            { \
-              const int i = qi(qy,dy,DPA_Q1D); \
-              const int j = dj(qy,dy,DPA_D1D); \
-              const int k = qk(qy,dy,DPA_Q1D); \
-              const int l = dl(qy,dy,DPA_D1D); \
-              const double s = sign(qy,dy); \
-              RAJA_UNROLL(MQ1) \
-              for (int qz = 0; qz < DPA_Q1D; ++qz) \
-              { \
-                u[qz] += QQD0[qz][qy][dx] * Bt[j][i]; \
-                v[qz] += QQD1[qz][qy][dx] * Gt[l][k] * s; \
-                w[qz] += QQD2[qz][qy][dx] * Bt[j][i]; \
-              } \
-            } \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; ++qz) \
-            { \
-              QDD0[qz][dy][dx] = u[qz]; \
-              QDD1[qz][dy][dx] = v[qz]; \
-              QDD2[qz][dy][dx] = w[qz]; \
-            }
-
-#define NEW_DIFFUSION3DPA_8 \
         double u = 0.0, v = 0.0, w = 0.0; \
         RAJA_UNROLL(DPA_Q1D)  \
         for (int qy = 0; qy < DPA_Q1D; ++qy) \
@@ -619,32 +442,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
         QDD2[qz][dy][dx] = w;
 
 #define DIFFUSION3DPA_9 \
-            double u[DPA_D1D], v[DPA_D1D], w[DPA_D1D]; \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; ++dz) { u[dz] = v[dz] = w[dz] = 0.0; } \
-            RAJA_UNROLL(MQ1) \
-            for (int qz = 0; qz < DPA_Q1D; ++qz) \
-            { \
-              RAJA_UNROLL(MD1) \
-              for (int dz = 0; dz < DPA_D1D; ++dz) \
-              { \
-                const int i = qi(qz,dz,DPA_Q1D); \
-                const int j = dj(qz,dz,DPA_D1D); \
-                const int k = qk(qz,dz,DPA_Q1D); \
-                const int l = dl(qz,dz,DPA_D1D); \
-                const double s = sign(qz,dz); \
-                u[dz] += QDD0[qz][dy][dx] * Bt[j][i]; \
-                v[dz] += QDD1[qz][dy][dx] * Bt[j][i]; \
-                w[dz] += QDD2[qz][dy][dx] * Gt[l][k] * s;\
-              } \
-            } \
-            RAJA_UNROLL(MD1) \
-            for (int dz = 0; dz < DPA_D1D; ++dz) \
-            { \
-              dpaY_(dx,dy,dz,e) += (u[dz] + v[dz] + w[dz]); \
-            }
-
-#define NEW_DIFFUSION3DPA_9 \
         double u = 0.0, v = 0.0, w = 0.0; \
         RAJA_UNROLL(MQ1) \
         for (int qz = 0; qz < DPA_Q1D; ++qz)  \
