@@ -211,7 +211,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 0),
+              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
                 [&](int dz) {
                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
@@ -283,7 +283,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 0),
+             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
                [&](int dz) {
                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int d) {
