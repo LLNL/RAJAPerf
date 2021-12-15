@@ -18,8 +18,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define MFEM_SYNC_THREAD
-
 void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -36,103 +34,73 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
 
         DIFFUSION3DPA_0_CPU;
 
-        CPU_FOREACH(dz,z,DPA_D1D)
-        {
-          CPU_FOREACH(dy,y,DPA_D1D)
-          {
-            CPU_FOREACH(dx,x,DPA_D1D)
-            {
-               NEW_DIFFUSION3DPA_1;
+        CPU_FOREACH(dz, z, DPA_D1D) {
+          CPU_FOREACH(dy, y, DPA_D1D) {
+            CPU_FOREACH(dx, x, DPA_D1D) {
+              DIFFUSION3DPA_1;
             }
           }
         }
-        //if (MFEM_THREAD_ID(z) == 0)
-        //{
-         CPU_FOREACH(dy,y,DPA_D1D)
-         {
-            CPU_FOREACH(qx,x,DPA_Q1D)
-            {
-              NEW_DIFFUSION3DPA_2;
+
+        CPU_FOREACH(dy, y, DPA_D1D) {
+          CPU_FOREACH(qx, x, DPA_Q1D) {
+            DIFFUSION3DPA_2;
+          }
+        }
+
+        CPU_FOREACH(dz, z, DPA_D1D) {
+          CPU_FOREACH(dy, y, DPA_D1D) {
+            CPU_FOREACH(qx, x, DPA_Q1D) {
+              DIFFUSION3DPA_3;
             }
-         }
-         //}
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(dz,z,DPA_D1D)
-      {
-         CPU_FOREACH(dy,y,DPA_D1D)
-         {
-            CPU_FOREACH(qx,x,DPA_Q1D)
-            {
-              NEW_DIFFUSION3DPA_3;
+          }
+        }
+
+        CPU_FOREACH(dz, z, DPA_D1D) {
+          CPU_FOREACH(qy, y, DPA_Q1D) {
+            CPU_FOREACH(qx, x, DPA_Q1D) {
+              DIFFUSION3DPA_4;
             }
-         }
-      }
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(dz,z,DPA_D1D)
-      {
-         CPU_FOREACH(qy,y,DPA_Q1D)
-         {
-            CPU_FOREACH(qx,x,DPA_Q1D)
-            {
-              NEW_DIFFUSION3DPA_4;
+          }
+        }
+
+        CPU_FOREACH(qz, z, DPA_Q1D) {
+          CPU_FOREACH(qy, y, DPA_Q1D) {
+            CPU_FOREACH(qx, x, DPA_Q1D) {
+              DIFFUSION3DPA_5;
             }
-         }
-      }
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(qz,z,DPA_Q1D)
-      {
-         CPU_FOREACH(qy,y,DPA_Q1D)
-         {
-            CPU_FOREACH(qx,x,DPA_Q1D)
-            {
-              NEW_DIFFUSION3DPA_5;
+          }
+        }
+
+        CPU_FOREACH(d, y, DPA_D1D) {
+          CPU_FOREACH(q, x, DPA_Q1D) {
+            DIFFUSION3DPA_6;
+          }
+        }
+
+        CPU_FOREACH(qz, z, DPA_Q1D) {
+          CPU_FOREACH(qy, y, DPA_Q1D) {
+            CPU_FOREACH(dx, x, DPA_D1D) {
+              DIFFUSION3DPA_7;
             }
-         }
-      }
-      MFEM_SYNC_THREAD;
-      //if (MFEM_THREAD_ID(z) == 0)
-      //{
-         CPU_FOREACH(d,y,DPA_D1D)
-         {
-            CPU_FOREACH(q,x,DPA_Q1D)
-            {
-              NEW_DIFFUSION3DPA_6;
+          }
+        }
+
+        CPU_FOREACH(qz, z, DPA_Q1D) {
+          CPU_FOREACH(dy, y, DPA_D1D) {
+            CPU_FOREACH(dx, x, DPA_D1D) {
+              DIFFUSION3DPA_8;
             }
-         }
-         //}
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(qz,z,DPA_Q1D)
-      {
-         CPU_FOREACH(qy,y,DPA_Q1D)
-         {
-            CPU_FOREACH(dx,x,DPA_D1D)
-            {
-              NEW_DIFFUSION3DPA_7;
+          }
+        }
+
+        CPU_FOREACH(dz, z, DPA_D1D) {
+          CPU_FOREACH(dy, y, DPA_D1D) {
+            CPU_FOREACH(dx, x, DPA_D1D) {
+              DIFFUSION3DPA_9;
             }
-         }
-      }
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(qz,z,DPA_Q1D)
-      {
-         CPU_FOREACH(dy,y,DPA_D1D)
-         {
-            CPU_FOREACH(dx,x,DPA_D1D)
-            {
-              NEW_DIFFUSION3DPA_8;
-            }
-         }
-      }
-      MFEM_SYNC_THREAD;
-      CPU_FOREACH(dz,z,DPA_D1D)
-      {
-         CPU_FOREACH(dy,y,DPA_D1D)
-         {
-            CPU_FOREACH(dx,x,DPA_D1D)
-            {
-              NEW_DIFFUSION3DPA_9;
-            }
-         }
-      }
+          }
+        }
 
       } // element loop
     }
@@ -183,10 +151,10 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      //Grid is empty as the host does not need a compute grid to be specified
+      // Grid is empty as the host does not need a compute grid to be specified
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::HOST, RAJA::expt::Grid(),
-        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+          RAJA::expt::HOST, RAJA::expt::Grid(),
+          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
           RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
@@ -200,7 +168,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                         [&](int dx) {
 
-                          NEW_DIFFUSION3DPA_1;
+                          DIFFUSION3DPA_1;
 
                         } // lambda (dx)
                       ); // RAJA::expt::loop<inner_x>
@@ -218,7 +186,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
-                          NEW_DIFFUSION3DPA_2;
+                          DIFFUSION3DPA_2;
 
                         } // lambda (qx)
                       ); // RAJA::expt::loop<inner_x>
@@ -236,7 +204,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
-                          NEW_DIFFUSION3DPA_3;
+                          DIFFUSION3DPA_3;
 
                         } // lambda (qx)
                       ); // RAJA::expt::loop<inner_x>
@@ -254,7 +222,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
-                          NEW_DIFFUSION3DPA_4;
+                          DIFFUSION3DPA_4;
 
                         } // lambda (qx)
                       ); // RAJA::expt::loop<inner_x>
@@ -272,7 +240,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                        [&](int qx) {
 
-                         NEW_DIFFUSION3DPA_5;
+                         DIFFUSION3DPA_5;
 
                        } // lambda (qx)
                      ); // RAJA::expt::loop<inner_x>
@@ -290,7 +258,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                        [&](int q) {
 
-                         NEW_DIFFUSION3DPA_6;
+                         DIFFUSION3DPA_6;
 
                        } // lambda (q)
                      ); // RAJA::expt::loop<inner_x>
@@ -298,7 +266,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                  );  //RAJA::expt::loop<inner_y>
                } // lambda (dz)
              );  //RAJA::expt::loop<inner_z>
- 
+
              ctx.teamSync();
 
              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
@@ -308,7 +276,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
-                         NEW_DIFFUSION3DPA_7;
+                         DIFFUSION3DPA_7;
 
                        } // lambda (dx)
                      ); // RAJA::expt::loop<inner_x>
@@ -326,7 +294,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
-                         NEW_DIFFUSION3DPA_8;
+                         DIFFUSION3DPA_8;
 
                        } // lambda (dx)
                      ); // RAJA::expt::loop<inner_x>
@@ -344,7 +312,7 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
-                         NEW_DIFFUSION3DPA_9;
+                         DIFFUSION3DPA_9;
 
                        } // lambda (dx)
                      ); // RAJA::expt::loop<inner_x>
@@ -356,9 +324,9 @@ void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
             } // lambda (e)
           ); // RAJA::expt::loop<outer_x>
 
-        } // outer lambda (ctx)
-      ); // RAJA::expt::launch
-    } // loop over kernel reps
+        }  // outer lambda (ctx)
+      );  // RAJA::expt::launch
+    }  // loop over kernel reps
     stopTimer();
 
     return;
