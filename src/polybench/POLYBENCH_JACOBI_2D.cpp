@@ -69,6 +69,9 @@ POLYBENCH_JACOBI_2D::POLYBENCH_JACOBI_2D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 POLYBENCH_JACOBI_2D::~POLYBENCH_JACOBI_2D()

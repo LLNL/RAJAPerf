@@ -12,7 +12,6 @@
 #ifndef RAJAPerf_RPTypes_HPP
 #define RAJAPerf_RPTypes_HPP
 // This macro, RAJAPERF_INFRASTRUCTURE_ONLY, is for Kokkos and Kokkos Kernels
-// -based performance testing
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "RAJA/util/types.hpp"
 #endif

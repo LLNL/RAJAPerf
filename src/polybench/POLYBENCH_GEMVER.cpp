@@ -79,6 +79,9 @@ POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 POLYBENCH_GEMVER::~POLYBENCH_GEMVER()

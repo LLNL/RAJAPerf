@@ -78,6 +78,9 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined(Kokkos_Lambda);
+
 }
 
 POLYBENCH_2MM::~POLYBENCH_2MM()

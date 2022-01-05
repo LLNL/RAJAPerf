@@ -84,6 +84,9 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()

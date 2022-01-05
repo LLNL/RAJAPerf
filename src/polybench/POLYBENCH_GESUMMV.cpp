@@ -59,6 +59,9 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()

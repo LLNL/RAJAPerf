@@ -68,7 +68,7 @@
 //
 // Apps kernels...
 //
-#include "apps/WIP-COUPLE.hpp"
+//#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
@@ -93,6 +93,7 @@ namespace rajaperf {
 
 void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
     RunParams run_params(argc, argv);
+
     free_register_group(exec, std::string("Basic"));
     free_register_group(exec, std::string("Lcals"));
     free_register_group(exec, std::string("Polybench"));
@@ -125,10 +126,11 @@ void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
     free_register_kernel(exec, "Lcals", new lcals::INT_PREDICT(run_params));
     free_register_kernel(exec, "Lcals", new lcals::PLANCKIAN(run_params));
     free_register_kernel(exec, "Lcals", new lcals::TRIDIAG_ELIM(run_params));
-/*
-    // Uncomment these lines once Kokkos translations for the polybench kernel
-    // group have been made
+    
+    // Nota bene: No Kokkos translations of polybench yet,
+    // only stub implementations
     // Polybench
+    
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_2MM(run_params));
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_3MM(run_params));
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_ADI(run_params));
@@ -142,7 +144,7 @@ void make_perfsuite_executor(rajaperf::Executor *exec, int argc, char *argv[]) {
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_1D(run_params));
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_JACOBI_2D(run_params));
     free_register_kernel(exec, "Polybench", new polybench::POLYBENCH_MVT(run_params));
-*/
+
     // Stream
     free_register_kernel(exec, "Stream", new stream::ADD(run_params));
     free_register_kernel(exec, "Stream", new stream::COPY(run_params));

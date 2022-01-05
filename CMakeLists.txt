@@ -84,7 +84,6 @@ endif()
 # Separate RAJAPerf Suite and Kokkos handling of HIP compilers
 
 if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
-#if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS hip)
 endif()
 
@@ -113,7 +112,7 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-# Make sure RAJA flag propagate (we need to do some tidying to 
+# Make sure RAJA flags propagate (we need to do some tidying to 
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
@@ -123,14 +122,13 @@ if(ENABLE_KOKKOS)
 endif()
 
 
-# ENABLE KOKKOS IS A RAJA PERFSUITE OPTION
+# ENABLE_KOKKOS is A RAJAPerf Suite Option
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
   if(ENABLE_HIP)
     set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds for AMD HIP set the
 Kokkos_ENABLE_HIP variable to ON")	
     #set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
-    #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE /ascldap/users/ajpowel/RAJAPerf/amd_build/compiler_unscrewer)
   endif()
   if(ENABLE_TARGET_OPENMP)
     set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")	
@@ -155,19 +153,14 @@ Kokkos_ENABLE_HIP variable to ON")
     enable_language(CUDA)
   endif()
   if(ENABLE_OPENMP)
-    #set(Kokkos_ENABLE_OPENMP CACHE BOOL ON)
     set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Docstring")
   endif()
 
   add_subdirectory(tpl/kokkos)
-  if(ENABLE_CUDA)
-  endif()
   get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
   include_directories(${KOKKOS_INCLUDE_DIRS})
   
   list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
 endif()
 
-# Each directory in the perf suite has its own CMakeLists.txt file.
-# DZP, AJP, DB, DA fixes
 add_subdirectory(src)

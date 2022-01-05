@@ -100,6 +100,8 @@ public:
   void runHipVariant(VariantID vid);
   void runOpenMPTargetVariant(VariantID vid);
 
+  void runKokkosVariant(VariantID vid);
+
 private:
   Index_type m_ni;
   Index_type m_nj;

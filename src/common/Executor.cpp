@@ -12,15 +12,14 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-// Warmup kernels will be run if not in a RAJAPerf Suite infrastructure build
-// Warm up runs reduce startup overheads 
+// Warmup kernels will be run if NOT in a RAJAPerf Suite infrastructure build
+// The purpose of warm up runs reduce startup overheads 
 // This overhead should not be reflected in perf testing timing
 #ifndef RAJAPERF_INFRASTRUCTURE_ONLY
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "algorithm/SORT.hpp"
 #endif
-
 
 #include <list>
 #include <vector>
@@ -104,7 +103,7 @@ void Executor::setupSuite()
 
     
     // If group name(s) found in the list of exclude_kern_names, assemble kernels in group(s)
-    // to run and remove the identified group name(s) from exclude_kern_names list.
+    // to run, and remove the identified group name(s) from exclude_kern_names list.
    
     for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
       const string& gname(groups2exclude[ig]);
@@ -166,8 +165,9 @@ void Executor::setupSuite()
     run_params.setInvalidExcludeFeatureInput(invalid);
 
     //
+	// Kokkos TODO: Ask David Beckingsale & Rich Hornung (LLNL) if this is correct:
     // If feature input is valid, determine which kernels to use
-    // Input-specified features and add to set of kernels to run.
+    // input-specified features, and add to set of kernels to run.
     //
     if ( run_params.getInvalidExcludeFeatureInput().empty() ) {
 
@@ -221,10 +221,8 @@ void Executor::setupSuite()
     // Look for kernels using features if such input provided
     if ( !feature_input.empty() ) {
 
-
+// Ask David Beckingsale & Rich H. what to do here
 // Kokkos Design:
-// AJP left some of the extensive commented code, because RAJA & Kokkos developers may
-// want to use / fix these blocs for integrated use with Kokkos
 // FEATURE DOES NOT YET WORK WITH KOKKOS
 /** TODO: Kokkos, reimplement!
       Svector invalid;
@@ -373,8 +371,8 @@ void Executor::setupSuite()
   }
 
 
-  // Declare and set exclude_variant_names (from run parameter inputs), a
-  // vector of strings
+  // Declare and set exclude_variant_names (from run parameter inputs)
+  //
   const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
 
   VIDset exclude_var;

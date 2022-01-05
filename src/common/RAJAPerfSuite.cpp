@@ -90,20 +90,20 @@ namespace rajaperf {
   std::string("Lcals_TRIDIAG_ELIM"),
 //
 //// Polybench kernels...
-//// Uncomment once Kokkos variants have been created
-//  std::string("Polybench_2MM"),
-//  std::string("Polybench_3MM"),
-//  std::string("Polybench_ADI"),
-//  std::string("Polybench_ATAX"),
-//  std::string("Polybench_FDTD_2D"),
-//  std::string("Polybench_FLOYD_WARSHALL"),
-//  std::string("Polybench_GEMM"),
-//  std::string("Polybench_GEMVER"),
-//  std::string("Polybench_GESUMMV"),
-//  std::string("Polybench_HEAT_3D"),
-//  std::string("Polybench_JACOBI_1D"),
-//  std::string("Polybench_JACOBI_2D"),
-//  std::string("Polybench_MVT"),
+//// Nota bene:  Kokkos variants have not yet been created
+  std::string("Polybench_2MM"),
+  std::string("Polybench_3MM"),
+  std::string("Polybench_ADI"),
+  std::string("Polybench_ATAX"),
+  std::string("Polybench_FDTD_2D"),
+  std::string("Polybench_FLOYD_WARSHALL"),
+  std::string("Polybench_GEMM"),
+  std::string("Polybench_GEMVER"),
+  std::string("Polybench_GESUMMV"),
+  std::string("Polybench_HEAT_3D"),
+  std::string("Polybench_JACOBI_1D"),
+  std::string("Polybench_JACOBI_2D"),
+  std::string("Polybench_MVT"),
 //
 ////
 //// Stream kernels...
@@ -116,7 +116,7 @@ namespace rajaperf {
 //
 // Apps kernels...
 //
-//  std::string("Apps_COUPLE"),
+  //std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),

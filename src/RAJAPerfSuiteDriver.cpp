@@ -13,8 +13,8 @@
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-  // STEP 1: Create suite executor object
-  //rajaperf::Executor executor(argc, argv);
+  // Create suite executor object with the arguments that were passed in
+  // rajaperf::Executor executor(argc, argv);
 
 #if defined(RUN_KOKKOS)
             Kokkos::initialize(argc, argv);
@@ -22,43 +22,23 @@ int main( int argc, char** argv )
 
   rajaperf::Executor executor(argc, argv);
   rajaperf::make_perfsuite_executor(&executor, argc, argv);
-  //executor.registerKernel
-  //rajaperf::RunParams params(argc, argv);
-  //executor.registerGroup("Sparse");
-
-  //executor.registerKernel("Sparse", rajaperf::make_kernel_base(
-  //        "Sparse_SPMV", params, [&](const int repfact, const int size){
-  //        },
-  //        [&] (const int repfact, const int size) {}
-  //        ));
-  //  executor.registerKernel("Sparse", rajaperf::make_kernel_base(
-  //          "Sparse_SPMM", params, [&](const int repfact, const int size){
-  //             return std::make_tuple(1);
-  //          },
-  //          [&] (const int repfact, const int size, auto matrix) {
-  //              // do the math using Kokkos Kernels operators
-  //          }
-  //  ));
-
-  // STEP 2: Assemble kernels and variants to run
+  
+  // Assemble kernels and variants to run
   executor.setupSuite();
 
-  // STEP 3: Report suite run summary 
+  // Report suite run summary 
   //         (enable users to catch errors before entire suite is run)
   executor.reportRunSummary(std::cout); 
 
-  // STEP 4: Execute suite
+  // Execute suite of selected tests
   executor.runSuite();
 
-  // STEP 5: Generate suite execution reports
+  // Generate suite execution reports
   executor.outputRunData();
-
-  //   Pre-processor directives
 
 #if defined(RUN_KOKKOS)
         Kokkos::finalize(); // TODO DZP: should this be here?  Good question.  AJP
 #endif
-
 
   std::cout << "\n\nDONE!!!...." << std::endl; 
 

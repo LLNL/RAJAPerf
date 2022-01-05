@@ -46,7 +46,9 @@ struct PointerOfNdimensions {
       typename PointerOfNdimensions<PointedAt, NumBoundaries - 1>::type *;
 };
 
-// This templated function is used to wrap pointers (declared and defined in RAJAPerf Suite kernels) in Kokkos Views
+// This templated function is used to wrap pointers 
+// (declared and defined in RAJAPerf Suite kernels) in Kokkos Views
+//
 template <class PointedAt, class... Boundaries>
 auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
     -> typename Kokkos::View<
@@ -63,44 +65,22 @@ auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
       typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
       typename Kokkos::DefaultExecutionSpace::memory_space>;
 
-  // Nota bene: When copying data, we can either change the Layout or the memory_space
-  // (host or device), but we cannot change both!
-  // Here, we are mirroring data on the (CPU) host TO the (GPU) device, i.e., Layout is
-  // as if on the device, but the data actually reside on the host.  The host
-  // mirror will be Layout Left (optimal for the device, but not the host).
 
   using mirror_view_type = typename device_view_type::HostMirror;
 
-  // Assignment statement: we are constructing a host_view_type called
-  // pointer_holder.  The value of kokkos_ptr is the Kokkos View-wrapped pointer
-  // on the Host (CPU), and the Boundaries parameter pack values, boundaries (i.e., array boundaries) will also
-  // be part of this this host_view_type object.
 
   host_view_type pointer_holder(kokkos_ptr, boundaries...);
 
   // The boundaries parameter pack contains the array dimenions; 
-  // an allocation is implicitly made here
+  // An allocation is implicitly made here
   device_view_type device_data_copy("StringName", boundaries...);
 
   mirror_view_type cpu_to_gpu_mirror =
       Kokkos::create_mirror_view(device_data_copy);
 
-  // deep_copy our existing data, the contents of
-  // pointer_holder, into the mirror_view;
-  // Copying from Host to Device has two steps:
-  // 	1) Change the layout to enable sending data from CPU to GPU
-  // 	2) Change the memory_space (host or device) to send the optimal data
-  // 	layout to the GPU.  
   
-  // This step changes the array layout to be optimal for the gpu, i.e.,
-  // LayoutLeft.
   Kokkos::deep_copy(cpu_to_gpu_mirror, pointer_holder);
 
-  // The mirror view data layout on the HOST is like the layout for the GPU.
-  // GPU-optimized layouts are LayoutLeft, i.e., column-major This deep_copy
-  // copy GPU-layout data on the HOST to the Device
-
-  // Actual copying of the data from the host to the gpu
   Kokkos::deep_copy(device_data_copy, cpu_to_gpu_mirror);
 
   // Kokkos::View return type
@@ -109,7 +89,7 @@ auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
 }
 
 // This function will move data in a Kokkos::View back to host from device,
-// and will store in the existing pointer(s)
+// and will be stored in the existing pointer(s)
 template <class PointedAt, class ExistingView, class... Boundaries>
 void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
                                   Boundaries... boundaries)
@@ -125,10 +105,6 @@ void moveDataToHostFromKokkosView(PointedAt *kokkos_ptr, ExistingView my_view,
 
   using mirror_view_type = typename device_view_type::HostMirror;
 
-  // Constructing a host_view_type with the name
-  // pointer_holder.  The contents/value of kokkos_ptr is the pointer we're wrapping on
-  // the Host, and the Boundaries parameter pack values, boundaries, will also
-  // be part of this this host_view_type object.
 
   host_view_type pointer_holder(kokkos_ptr, boundaries...);
 
@@ -223,21 +199,20 @@ enum KernelID {
 
 //
 // Polybench kernels...
-// These will be uncommented once Kokkos translations for these kernels exist
 //
-//  Polybench_2MM,
-//  Polybench_3MM,
-//  Polybench_ADI,
-//  Polybench_ATAX,
-//  Polybench_FDTD_2D,
-//  Polybench_FLOYD_WARSHALL,
-//  Polybench_GEMM,
-//  Polybench_GEMVER,
-//  Polybench_GESUMMV,
-//  Polybench_HEAT_3D,
-//  Polybench_JACOBI_1D,
-//  Polybench_JACOBI_2D,
-//  Polybench_MVT,
+  Polybench_2MM,
+  Polybench_3MM,
+  Polybench_ADI,
+  Polybench_ATAX,
+  Polybench_FDTD_2D,
+  Polybench_FLOYD_WARSHALL,
+  Polybench_GEMM,
+  Polybench_GEMVER,
+  Polybench_GESUMMV,
+  Polybench_HEAT_3D,
+  Polybench_JACOBI_1D,
+  Polybench_JACOBI_2D,
+  Polybench_MVT,
 
 
 // Stream kernels...

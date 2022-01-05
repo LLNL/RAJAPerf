@@ -75,6 +75,6 @@ blt_add_library(
           VOL3D-Cuda.cpp 
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
-          WIP-COUPLE.cpp
+          #WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

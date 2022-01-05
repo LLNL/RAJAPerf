@@ -86,6 +86,9 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
+
 }
 
 POLYBENCH_3MM::~POLYBENCH_3MM()
