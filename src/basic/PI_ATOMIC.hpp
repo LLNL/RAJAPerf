@@ -27,7 +27,6 @@
   Real_type dx = m_dx; \
   Real_ptr pi = m_pi;
 
-
 #include "common/KernelBase.hpp"
 
 namespace rajaperf
@@ -54,6 +53,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
@@ -61,6 +61,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+
+
 
 private:
   static const size_t default_gpu_block_size = 256;

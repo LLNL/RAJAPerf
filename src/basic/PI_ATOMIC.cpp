@@ -35,6 +35,10 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setUsesFeature(Forall);
   setUsesFeature(Atomic);
 
+  setVariantDefined( Kokkos_Lambda );
+
+
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

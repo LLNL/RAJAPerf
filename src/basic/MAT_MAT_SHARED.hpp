@@ -139,6 +139,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
@@ -146,6 +147,12 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+
+ // {
+//     getCout() << "\n MAT_MAT_SHARED : Unknown Kokkos variant id = " << vid << std::endl;
+     //getCout() << "\n MAT_MAT_SHARED : Unknown Kokkos variant id and/or tune_idx = " << tune_idx << std::endl;
+     //getCout() << "\n MAT_MAT_SHARED : No Kokkos version yet " << std::endl;
+//  }
 
 private:
   static const size_t default_gpu_block_size = TL_SZ * TL_SZ;

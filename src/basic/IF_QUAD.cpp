@@ -37,6 +37,10 @@ IF_QUAD::IF_QUAD(const RunParams& params)
 
   setUsesFeature(Forall);
 
+
+  setVariantDefined( Kokkos_Lambda );
+
+
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );

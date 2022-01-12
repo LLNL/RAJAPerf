@@ -25,7 +25,9 @@
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#ifndef RUN_KOKKOS
 #include "basic/MAT_MAT_SHARED.hpp"
+#endif
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
@@ -159,7 +161,9 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  #ifndef RUN_KOKKOS
   std::string("Basic_MAT_MAT_SHARED"),
+  #endif
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
@@ -273,6 +277,8 @@ static const std::string VariantNames [] =
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
+
+  std::string("Kokkos_Lambda"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -414,6 +420,12 @@ bool isVariantAvailable(VariantID vid)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RUN_KOKKOS)
+  if (vid == Kokkos_Lambda) {
     ret_val = true;
   }
 #endif
@@ -570,6 +582,7 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 
+#ifndef RUN_KOKKOS
 //
 // Lcals kernels...
 //
@@ -777,6 +790,8 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::REDUCE_SUM(run_params);
        break;
     }
+
+#endif
 
     default: {
       getCout() << "\n Unknown Kernel ID = " << kid << std::endl;

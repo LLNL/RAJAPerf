@@ -238,6 +238,12 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 #endif
       break;
     }
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+      runKokkosVariant(vid);
+#endif
+    }
 
     default : {
 #if 0
