@@ -52,6 +52,7 @@ cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan var
 
 #
 # Define RAJA settings...
+#
 
 set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
 set(RAJA_ENABLE_EXAMPLES Off CACHE BOOL "")
@@ -96,6 +97,9 @@ set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 
+if (RAJA_PERFSUITE_ENABLE_MPI)
+  list(APPEND RAJA_PERFSUITE_DEPENDS mpi)
+endif()
 if (ENABLE_OPENMP)
   list(APPEND RAJA_PERFSUITE_DEPENDS openmp)
 endif()
@@ -104,7 +108,7 @@ if (ENABLE_CUDA)
 endif()
 
 # Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
-# platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler 
+# platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler. 
 # Separate RAJAPerf Suite and Kokkos handling of HIP compilers
 
 if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
@@ -122,10 +126,12 @@ set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 if (ENABLE_CUDA)
   if (ENABLE_KOKKOS)
     set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
   else()
     set(CMAKE_CUDA_STANDARD 14)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
   endif()
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
+
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
   set(RAJAPERF_COMPILER_OPTIONS "${CUDA_NVCC_FLAGS}")
@@ -145,44 +151,41 @@ configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
 
 include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
 
-# Make sure RAJA flags propagate (we need to do some tidying to 
+# Make sure RAJA flags propagate (we need to do some tidying to
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
+
+#
+# Each directory in the perf suite has its own CMakeLists.txt file.
+#
 
 # The statement below is required for Kokkos compilation.
 if(ENABLE_KOKKOS)
   include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
 endif()
 
-
 # ENABLE_KOKKOS is A RAJAPerf Suite Option
 if(ENABLE_KOKKOS)
   add_definitions(-DRUN_KOKKOS)
   if(ENABLE_HIP)
     set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds for AMD HIP set the
-Kokkos_ENABLE_HIP variable to ON")	
-    #set(Kokkos_ARCH_VEGA900 ON CACHE BOOL "Docstring") #TODO: better
+Kokkos_ENABLE_HIP variable to ON")
   endif()
+
   if(ENABLE_TARGET_OPENMP)
-    set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")	
-    set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
-    set(CMAKE_CXX_STANDARD 17)
-    set(BLT_CXX_STANDARD 17)
+    set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")
     set(RAJA_ENABLE_TARGET_OPENMP ON CACHE BOOL "Docstring")
     if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
       if(NOT EXPERIMENTAL_BUILD)
-	      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
+      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
       endif()
     endif()
-
-    #add_definitions(-DRAJA_ENABLE_TARGET_OPENMP)
   endif()
 
 # ENABLE_CUDA IS A RAJA PERFSUITE OPTION
   if(ENABLE_CUDA)
-	  set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Docstring")
-	  set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Docstring")
-	  set(Kokkos_ARCH_VOLTA70 ON CACHE BOOL "Docstring") #TODO: better
+    set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Docstring")
+    set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Docstring")
     enable_language(CUDA)
   endif()
   if(ENABLE_OPENMP)
@@ -192,7 +195,6 @@ Kokkos_ENABLE_HIP variable to ON")
   add_subdirectory(tpl/kokkos)
   get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
   include_directories(${KOKKOS_INCLUDE_DIRS})
-  
   list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
 endif()
 

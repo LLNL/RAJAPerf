@@ -65,9 +65,9 @@ public:
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
-//  {
-//     getCout() << "\n PI_REDUCE : Unknown Kokkos variant id = " << vid << std::endl;
-//  }
+  {
+     getCout() << "\n PI_REDUCE : Unknown Kokkos variant id = " << vid << std::endl;
+  }
 
 private:
   static const size_t default_gpu_block_size = 256;

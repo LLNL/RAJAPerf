@@ -53,10 +53,6 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );
-
-
-
-
 }
 
 MULADDSUB::~MULADDSUB()
