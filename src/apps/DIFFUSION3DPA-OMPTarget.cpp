@@ -19,7 +19,6 @@
 namespace rajaperf {
 namespace apps {
 
-
 void DIFFUSION3DPA::runOpenMPTargetVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
@@ -27,7 +26,8 @@ void DIFFUSION3DPA::runOpenMPTargetVariant(VariantID vid) {
 
   default: {
 
-    getCout() << "\n DIFFUSION3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
+    getCout() << "\n DIFFUSION3DPA : Unknown OpenMPTarget variant id = " << vid
+              << std::endl;
     break;
   }
   }

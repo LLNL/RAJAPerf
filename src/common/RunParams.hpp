@@ -46,6 +46,29 @@ public:
   };
 
   /*!
+   * \brief Enumeration indicating state of combiner options requested
+   */
+  enum CombinerOpt {
+    Average,      /*!< option requesting average */
+    Minimum,      /*!< option requesting minimum */
+    Maximum       /*!< option requesting maximum */
+  };
+
+  static std::string CombinerOptToStr(CombinerOpt co)
+  {
+    switch (co) {
+      case CombinerOpt::Average:
+        return "Average";
+      case CombinerOpt::Minimum:
+        return "Minimum";
+      case CombinerOpt::Maximum:
+        return "Maximum";
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
    * \brief Enumeration indicating how to interpret size input
    */
   enum SizeMeaning {
@@ -89,6 +112,11 @@ public:
   int getNumPasses() const { return npasses; }
 
   double getRepFactor() const { return rep_fact; }
+
+  const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
+  { return npasses_combiners; }
+  void setNpassesCombinerOpts( std::vector<CombinerOpt>& cvec )
+  { npasses_combiners = cvec; }
 
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
@@ -148,6 +176,13 @@ public:
   const std::vector<std::string>& getInvalidExcludeFeatureInput() const
                                   { return invalid_exclude_feature_input; }
 
+  const std::vector<std::string>& getNpassesCombinerOptInput() const
+                                  { return npasses_combiner_input; }
+  const std::vector<std::string>& getInvalidNpassesCombinerOptInput() const
+                                  { return invalid_npasses_combiner_input; }
+  void setInvalidNpassesCombinerOptInput( std::vector<std::string>& svec )
+                              { invalid_npasses_combiner_input = svec; }
+
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
@@ -181,6 +216,9 @@ private:
 
   int npasses;           /*!< Number of passes through suite  */
 
+  std::vector<CombinerOpt> npasses_combiners;  /*!< Combiners to use when
+                              outputting timer data */
+
   double rep_fact;       /*!< pct of default kernel reps to run */
 
   SizeMeaning size_meaning; /*!< meaning of size value */
@@ -213,6 +251,9 @@ private:
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
   std::vector<std::string> invalid_exclude_feature_input;
+
+  std::vector<std::string> npasses_combiner_input;
+  std::vector<std::string> invalid_npasses_combiner_input;
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */

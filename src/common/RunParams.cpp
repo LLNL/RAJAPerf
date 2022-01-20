@@ -29,6 +29,7 @@ RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
    show_progress(false),
    npasses(1),
+   npasses_combiners(),
    rep_fact(1.0),
    size_meaning(SizeMeaning::Unset),
    size(0.0),
@@ -49,6 +50,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_feature_input(),
    exclude_feature_input(),
    invalid_exclude_feature_input(),
+   npasses_combiner_input(),
+   invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
 {
@@ -79,6 +82,18 @@ void RunParams::print(std::ostream& str) const
 {
   str << "\n show_progress = " << show_progress;
   str << "\n npasses = " << npasses;
+  str << "\n npasses combiners = ";
+  for (size_t j = 0; j < npasses_combiners.size(); ++j) {
+    str << "\n\t" << CombinerOptToStr(npasses_combiners[j]);
+  }
+  str << "\n npasses_combiners_input = ";
+  for (size_t j = 0; j < npasses_combiner_input.size(); ++j) {
+    str << "\n\t" << npasses_combiner_input[j];
+  }
+  str << "\n invalid_npasses_combiners_input = ";
+  for (size_t j = 0; j < invalid_npasses_combiner_input.size(); ++j) {
+    str << "\n\t" << invalid_npasses_combiner_input[j];
+  }
   str << "\n rep_fact = " << rep_fact;
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
@@ -215,6 +230,21 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << " must give --npasses a value for number of passes (int)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--npasses-combiners") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          npasses_combiner_input.push_back(opt);
+          ++i;
+        }
       }
 
     } else if ( opt == std::string("--repfact") ) {
@@ -487,6 +517,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_meaning = SizeMeaning::Factor;
     size_factor = 1.0;
   }
+
+  // Default npasses_combiners if no input
+  if (npasses_combiner_input.empty()) {
+    npasses_combiners.emplace_back(CombinerOpt::Average);
+  }
 }
 
 
@@ -514,7 +549,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through Suite)\n";
   str << "\t\t Example...\n"
-      << "\t\t --npasses 2 (runs complete Suite twice\n\n";
+      << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
+
+  str << "\t --npasses-combiners <space-separated strings> [Default is average]\n"
+      << "\t      (Ways of combining npasses timing data into timing files)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
+      << "\t\t   max timing .csv files)\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
       << "\t      (multiplier on default # reps to run each kernel)\n";

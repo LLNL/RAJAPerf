@@ -65,8 +65,37 @@ void Executor::setupSuite()
 
   using Slist = list<string>;
   using Svector = vector<string>;
+  using COvector = vector<RunParams::CombinerOpt>;
   using KIDset = set<KernelID>;
   using VIDset = set<VariantID>;
+
+  //
+  // Determine which kernels to exclude from input.
+  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  //
+  const Svector& npasses_combiner_input = run_params.getNpassesCombinerOptInput();
+  if ( !npasses_combiner_input.empty() ) {
+
+    COvector combiners;
+    Svector invalid;
+    for (const std::string& combiner_name : npasses_combiner_input) {
+
+      if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Average)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Average);
+      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Minimum)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Minimum);
+      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Maximum)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Maximum);
+      } else {
+        invalid.emplace_back(combiner_name);
+      }
+
+    }
+
+    run_params.setNpassesCombinerOpts(combiners);
+    run_params.setInvalidNpassesCombinerOptInput(invalid);
+
+  }
 
   //
   // Determine which kernels to exclude from input.
@@ -481,8 +510,12 @@ void Executor::setupSuite()
   // A message will be emitted later so user can sort it out...
   //
 
-  if ( !(run_params.getInvalidKernelInput().empty()) ||
-       !(run_params.getInvalidExcludeKernelInput().empty()) ) {
+  if ( !(run_params.getInvalidNpassesCombinerOptInput().empty()) ) {
+
+    run_params.setInputState(RunParams::BadInput);
+
+  } else if ( !(run_params.getInvalidKernelInput().empty()) ||
+              !(run_params.getInvalidExcludeKernelInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput);
 
@@ -827,12 +860,17 @@ void Executor::outputRunData()
   }
   out_fprefix = "./" + run_params.getOutputFilePrefix();
 
-  unique_ptr<ostream> file = openOutputFile(out_fprefix + "-timing.csv");
-  writeCSVReport(*file, CSVRepMode::Timing, 6 /* prec */);
+  unique_ptr<ostream> file;
 
-  if ( haveReferenceVariant() ) {
-    file = openOutputFile(out_fprefix + "-speedup.csv");
-    writeCSVReport(*file, CSVRepMode::Speedup, 3 /* prec */);
+
+  for (RunParams::CombinerOpt combiner : run_params.getNpassesCombinerOpts()) {
+    file = openOutputFile(out_fprefix + "-timing-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+    writeCSVReport(*file, CSVRepMode::Timing, combiner, 6 /* prec */);
+
+    if ( haveReferenceVariant() ) {
+      file = openOutputFile(out_fprefix + "-speedup-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+      writeCSVReport(*file, CSVRepMode::Speedup, combiner, 3 /* prec */);
+    }
   }
 
   file = openOutputFile(out_fprefix + "-checksum.txt");
@@ -871,7 +909,7 @@ unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 }
 
 void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
-                              size_t prec)
+                              RunParams::CombinerOpt combiner, size_t prec)
 {
   if ( file ) {
 
@@ -895,7 +933,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
     //
     // Print title line.
     //
-    file << getReportTitle(mode);
+    file << getReportTitle(mode, combiner);
 
     //
     // Wrtie CSV file contents for report.
@@ -934,7 +972,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
           file << "Not run";
         } else {
           file << setprecision(prec) << std::fixed
-               << getReportDataEntry(mode, kern, vid);
+               << getReportDataEntry(mode, combiner, kern, vid);
         }
       }
       file << endl;
@@ -1356,19 +1394,34 @@ void Executor::writeChecksumReport(ostream& file)
 }
 
 
-string Executor::getReportTitle(CSVRepMode mode)
+string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner)
 {
   string title;
+  switch ( combiner ) {
+    case RunParams::CombinerOpt::Average : {
+      title = string("Mean ");
+    }
+    break;
+    case RunParams::CombinerOpt::Minimum : {
+      title = string("Min ");
+    }
+    break;
+    case RunParams::CombinerOpt::Maximum : {
+      title = string("Max ");
+    }
+    break;
+    default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+  }
   switch ( mode ) {
     case CSVRepMode::Timing : {
-      title = string("Mean Runtime Report (sec.) ");
+      title += string("Runtime Report (sec.) ");
       break;
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        title = string("Speedup Report (T_ref/T_var)") +
-                string(": ref var = ") + getVariantName(reference_vid) +
-                string(" ");
+        title += string("Speedup Report (T_ref/T_var)") +
+                 string(": ref var = ") + getVariantName(reference_vid) +
+                 string(" ");
       }
       break;
     }
@@ -1378,20 +1431,49 @@ string Executor::getReportTitle(CSVRepMode mode)
 }
 
 long double Executor::getReportDataEntry(CSVRepMode mode,
+                                         RunParams::CombinerOpt combiner,
                                          KernelBase* kern,
                                          VariantID vid)
 {
   long double retval = 0.0;
   switch ( mode ) {
     case CSVRepMode::Timing : {
-      retval = kern->getTotTime(vid) / run_params.getNumPasses();
+      switch ( combiner ) {
+        case RunParams::CombinerOpt::Average : {
+          retval = kern->getTotTime(vid) / run_params.getNumPasses();
+        }
+        break;
+        case RunParams::CombinerOpt::Minimum : {
+          retval = kern->getMinTime(vid);
+        }
+        break;
+        case RunParams::CombinerOpt::Maximum : {
+          retval = kern->getMaxTime(vid);
+        }
+        break;
+        default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+      }
       break;
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
         if ( kern->hasVariantDefined(reference_vid) &&
              kern->hasVariantDefined(vid) ) {
-          retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+          switch ( combiner ) {
+            case RunParams::CombinerOpt::Average : {
+              retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+            }
+            break;
+            case RunParams::CombinerOpt::Minimum : {
+              retval = kern->getMinTime(reference_vid) / kern->getMinTime(vid);
+            }
+            break;
+            case RunParams::CombinerOpt::Maximum : {
+              retval = kern->getMaxTime(reference_vid) / kern->getMaxTime(vid);
+            }
+            break;
+            default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+          }
         } else {
           retval = 0.0;
         }

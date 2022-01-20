@@ -72,9 +72,9 @@ private:
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
 
   void writeCSVReport(std::ostream& file, CSVRepMode mode,
-                      size_t prec);
-  std::string getReportTitle(CSVRepMode mode);
-  long double getReportDataEntry(CSVRepMode mode,
+                      RunParams::CombinerOpt combiner, size_t prec);
+  std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
+  long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
                                  KernelBase* kern, VariantID vid);
 
   void writeChecksumReport(std::ostream& file);
