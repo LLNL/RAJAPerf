@@ -1,0 +1,54 @@
+#############################################################################
+## Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
+## and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+##
+## SPDX-License-Identifier: (BSD-3-Clause)
+##############################################################################
+
+###
+# This is the share configuration of jobs for nevada
+
+####
+# In pre-build phase, allocate a node for builds
+.on_nevada:
+  tags:
+    - shell
+    - nevada
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /_cnone/ || $ON_NEVADA == "OFF"' #run except if ...
+      when: never
+    - if: '$CI_JOB_NAME =~ /release_resources/'
+      when: always
+    - when: on_success
+###
+## In pre-build phase, allocate a node for builds
+## NOTE: Not specifying 'salloc -c 56' should allocate the max number of CPU cores
+allocate_resources (on nevada):
+  variables:
+    GIT_STRATEGY: none
+  extends: .on_nevada
+  stage: n_allocate_resources
+  script:
+    - salloc -N 1 -t 45 --no-shell --job-name=${ALLOC_NAME}
+
+###
+# In post-build phase, deallocate resources
+# Note : make sure this is run even on build phase failure
+release_resources (on nevada):
+  variables:
+    GIT_STRATEGY: none
+  extends: .on_nevada
+  stage: n_release_resources
+  script:
+    - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
+    - ([[ -n "${JOBID}" ]] && scancel ${JOBID})
+
+# Generic nevada build job, extending build script
+.build_and_test_on_nevada:
+  stage: n_build_and_test
+  extends: [.build_toss_4_x86_64_ib_nevada_script, .on_nevada]
+  needs: []
+
+.build_and_test_on_nevada_advanced:
+  extends: [.build_and_test_on_nevada, .advanced_pipeline]
+  stage: n_build_and_test
