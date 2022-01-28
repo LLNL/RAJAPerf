@@ -24,7 +24,7 @@ namespace polybench
 //
 // Define thread block shape for Hip execution
 //
-#define in_block_sz (32)
+#define in_block_sz (64)
 #define out_block_sz (block_size / in_block_sz)
 
 #define POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \

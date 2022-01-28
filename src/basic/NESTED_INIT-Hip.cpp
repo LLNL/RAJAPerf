@@ -24,7 +24,7 @@ namespace basic
   //
   // Define thread block shape for Hip execution
   //
-#define i_block_sz (32)
+#define i_block_sz (64)
 #define j_block_sz (block_size / i_block_sz)
 #define k_block_sz (1)
 

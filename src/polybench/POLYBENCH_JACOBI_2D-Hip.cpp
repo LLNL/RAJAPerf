@@ -24,7 +24,7 @@ namespace polybench
   //
   // Define thread block shape for Hip execution
   //
-#define j_block_sz (32)
+#define j_block_sz (64)
 #define i_block_sz (block_size / j_block_sz)
 
 #define JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \

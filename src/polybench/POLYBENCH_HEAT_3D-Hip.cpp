@@ -24,7 +24,7 @@ namespace polybench
   //
   // Define thread block shape for Hip execution
   //
-#define k_block_sz (32)
+#define k_block_sz (64)
 #define j_block_sz (block_size / k_block_sz)
 #define i_block_sz (1)
 
