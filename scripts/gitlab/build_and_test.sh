@@ -110,7 +110,7 @@ then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     # Map CPU core allocations
-    declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32)
+    declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32 ["nevada"]=24)
 
     # If using Multi-project, set up the submodule
     if [[ -n ${raja_version} ]]
