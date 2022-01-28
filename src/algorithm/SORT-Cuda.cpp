@@ -58,7 +58,7 @@ void SORT::runCudaVariant(VariantID vid)
     SORT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  SORT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  SORT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

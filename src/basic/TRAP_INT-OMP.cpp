@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -110,12 +110,12 @@ void TRAP_INT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

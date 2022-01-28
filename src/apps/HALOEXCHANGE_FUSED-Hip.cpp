@@ -270,7 +270,7 @@ void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid)
     HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

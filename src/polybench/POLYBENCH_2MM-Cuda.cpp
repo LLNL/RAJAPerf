@@ -82,7 +82,7 @@ __global__ void poly_2mm_1_lam(Index_type ni, Index_type nj,
   Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
   if ( i < ni && j < nj ) {
-    body(i, j); 
+    body(i, j);
   }
 }
 
@@ -257,7 +257,7 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
     POLYBENCH_2MM_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }

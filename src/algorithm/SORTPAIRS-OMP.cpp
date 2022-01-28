@@ -44,12 +44,12 @@ void SORTPAIRS::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

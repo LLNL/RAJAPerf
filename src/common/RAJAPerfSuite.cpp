@@ -10,6 +10,10 @@
 
 #include "RunParams.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //
 // Basic kernels...
 //
@@ -72,6 +76,7 @@
 //
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -198,6 +203,7 @@ static const std::string KernelNames [] =
 //
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -348,7 +354,7 @@ const std::string& getVariantName(VariantID vid)
 /*!
  *******************************************************************************
  *
- * Return true if variant associated with VariantID enum value is available 
+ * Return true if variant associated with VariantID enum value is available
  * to run; else false.
  *
  *******************************************************************************
@@ -361,22 +367,22 @@ bool isVariantAvailable(VariantID vid)
     ret_val = true;
   }
 #if defined(RUN_RAJA_SEQ)
-  if ( vid == Lambda_Seq || 
+  if ( vid == Lambda_Seq ||
        vid == RAJA_Seq ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP || 
-       vid == Lambda_OpenMP || 
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  if ( vid == Base_OpenMPTarget || 
+  if ( vid == Base_OpenMPTarget ||
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
   }
@@ -618,6 +624,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
+    case Apps_DIFFUSION3DPA : {
+       kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
     case Apps_ENERGY : {
        kernel = new apps::ENERGY(run_params);
        break;
@@ -672,12 +682,47 @@ KernelBase* getKernelObject(KernelID kid,
     }
 
     default: {
-      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+      getCout() << "\n Unknown Kernel ID = " << kid << std::endl;
     }
 
   } // end switch on kernel id
 
   return kernel;
+}
+
+// subclass of streambuf that ignores overflow
+// never printing anything to the underlying stream
+struct NullStream : std::streambuf, std::ostream
+{
+  using Base = std::streambuf;
+  using int_type = typename Base::int_type;
+
+  NullStream() : std::ostream(this) {}
+public:
+  int_type overflow(int_type c) override { return c; }
+};
+
+std::ostream* makeNullStream()
+{
+  return new NullStream();
+}
+
+std::ostream& getNullStream()
+{
+  static NullStream null_stream;
+  return null_stream;
+}
+
+std::ostream& getCout()
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    return std::cout;
+  }
+  return getNullStream();
 }
 
 }  // closing brace for rajaperf namespace

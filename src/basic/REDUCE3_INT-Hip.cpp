@@ -159,7 +159,7 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
     REDUCE3_INT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  REDUCE3_INT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE3_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

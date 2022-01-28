@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -32,7 +32,7 @@ void PRESSURE::runSeqVariant(VariantID vid)
   auto pressure_lam2 = [=](Index_type i) {
                          PRESSURE_BODY2;
                        };
-  
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -52,7 +52,7 @@ void PRESSURE::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -90,14 +90,14 @@ void PRESSURE::runSeqVariant(VariantID vid)
         }); // end sequential region (for single-source code)
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
     }
 
   }

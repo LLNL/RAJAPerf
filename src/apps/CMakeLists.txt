@@ -15,6 +15,12 @@ blt_add_library(
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
+          DIFFUSION3DPA.cpp
+          DIFFUSION3DPA-Cuda.cpp
+          DIFFUSION3DPA-Hip.cpp
+          DIFFUSION3DPA-Seq.cpp
+          DIFFUSION3DPA-OMP.cpp
+          DIFFUSION3DPA-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 

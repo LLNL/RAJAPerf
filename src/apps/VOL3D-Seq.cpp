@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -51,7 +51,7 @@ void VOL3D::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -78,14 +78,14 @@ void VOL3D::runSeqVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), vol3d_lam);
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
     }
 
   }

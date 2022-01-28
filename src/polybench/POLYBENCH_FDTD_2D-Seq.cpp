@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -31,7 +31,7 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (t = 0; t < tsteps; ++t) { 
+        for (t = 0; t < tsteps; ++t) {
 
           for (Index_type j = 0; j < ny; j++) {
             POLYBENCH_FDTD_2D_BODY1;
@@ -137,7 +137,7 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
 
       using EXEC_POL1 = RAJA::loop_exec;
 
-      using EXEC_POL234 =  
+      using EXEC_POL234 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::loop_exec,
             RAJA::statement::For<1, RAJA::loop_exec,
@@ -149,9 +149,9 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (t = 0; t < tsteps; ++t) { 
+        for (t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny), 
+          RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
             poly_fdtd2d_lam1
           );
 
@@ -184,7 +184,7 @@ void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\nPOLYBENCH_FDTD_2D  Unknown variant id = " << vid << std::endl;
+      getCout() << "\nPOLYBENCH_FDTD_2D  Unknown variant id = " << vid << std::endl;
     }
 
   }

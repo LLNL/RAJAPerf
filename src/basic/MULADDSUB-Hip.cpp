@@ -119,7 +119,7 @@ void MULADDSUB::runHipVariant(VariantID vid)
     MULADDSUB_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  MULADDSUB : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  MULADDSUB : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

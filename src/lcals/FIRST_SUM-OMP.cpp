@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -81,12 +81,12 @@ void FIRST_SUM::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  FIRST_SUM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_SUM : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

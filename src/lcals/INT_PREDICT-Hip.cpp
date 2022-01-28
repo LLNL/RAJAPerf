@@ -94,7 +94,7 @@ void INT_PREDICT::runHipVariant(VariantID vid)
     INT_PREDICT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

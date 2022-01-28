@@ -257,7 +257,7 @@ void ENERGY::runCudaVariant(VariantID vid)
     ENERGY_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  ENERGY : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  ENERGY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

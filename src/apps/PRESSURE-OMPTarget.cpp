@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -50,9 +50,9 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
-  
+
   PRESSURE_DATA_SETUP;
-  
+
   if ( vid == Base_OpenMPTarget ) {
 
     PRESSURE_DATA_SETUP_OMP_TARGET;
@@ -61,13 +61,13 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(compression, bvc) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PRESSURE_BODY1;
       }
 
       #pragma omp target is_device_ptr(bvc, p_new, e_old, vnewc) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PRESSURE_BODY2;
       }
@@ -104,7 +104,7 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid)
     PRESSURE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-    std::cout << "\n  PRESSURE : Unknown OMP Target variant id = " << vid << std::endl;
+    getCout() << "\n  PRESSURE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

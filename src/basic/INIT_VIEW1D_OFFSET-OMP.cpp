@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -87,12 +87,12 @@ void INIT_VIEW1D_OFFSET::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

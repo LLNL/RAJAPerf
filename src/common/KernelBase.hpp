@@ -15,6 +15,9 @@
 #include "common/RunParams.hpp"
 
 #include "RAJA/util/Timer.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include <mpi.h>
+#endif
 #if defined(RAJA_ENABLE_CUDA)
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 #endif
@@ -118,12 +121,18 @@ public:
   void startTimer()
   {
     synchronize();
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     timer.start();
   }
 
   void stopTimer()
   {
     synchronize();
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     timer.stop(); recordExecTime();
   }
 

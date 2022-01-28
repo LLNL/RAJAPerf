@@ -38,7 +38,7 @@ namespace polybench
   allocAndInitOpenMPDeviceData(w, m_w, m_n, did, hid); \
   allocAndInitOpenMPDeviceData(x, m_x, m_n, did, hid); \
   allocAndInitOpenMPDeviceData(y, m_y, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(z, m_z, m_n, did, hid); 
+  allocAndInitOpenMPDeviceData(z, m_z, m_n, did, hid);
 
 #define POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_w, w, m_n, hid, did); \
@@ -50,9 +50,9 @@ namespace polybench
   deallocOpenMPDeviceData(w, did); \
   deallocOpenMPDeviceData(x, did); \
   deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(z, did); 
+  deallocOpenMPDeviceData(z, did);
 
-  
+
 
 void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 {
@@ -77,7 +77,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(A,x,y) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
-      for (Index_type i = 0; i < n; i++) { 
+      for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMVER_BODY2;
         for (Index_type j = 0; j < n; j++) {
           POLYBENCH_GEMVER_BODY3;
@@ -86,7 +86,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       }
 
       #pragma omp target is_device_ptr(x,z) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = 0; i < n; i++) {
         POLYBENCH_GEMVER_BODY5;
       }
@@ -102,7 +102,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
       }
 
     } // end run_reps
-    stopTimer(); 
+    stopTimer();
 
     POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
@@ -187,7 +187,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  POLYBENCH_GEMVER : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  POLYBENCH_GEMVER : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

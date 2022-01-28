@@ -129,7 +129,7 @@ void FIRST_MIN::runHipVariant(VariantID vid)
     FIRST_MIN_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

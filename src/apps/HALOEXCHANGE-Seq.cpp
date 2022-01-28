@@ -154,7 +154,7 @@ void HALOEXCHANGE::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
     }
 
   }

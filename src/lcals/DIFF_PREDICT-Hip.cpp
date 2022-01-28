@@ -91,7 +91,7 @@ void DIFF_PREDICT::runHipVariant(VariantID vid)
     DIFF_PREDICT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DIFF_PREDICT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DIFF_PREDICT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

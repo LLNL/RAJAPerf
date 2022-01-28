@@ -102,13 +102,13 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         HEAT_3D_THREADS_PER_BLOCK_HIP;
         HEAT_3D_NBLOCKS_HIP;
 
-        hipLaunchKernelGGL((poly_heat_3D_1), 
+        hipLaunchKernelGGL((poly_heat_3D_1),
                            dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_heat_3D_2),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
@@ -168,11 +168,11 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
         RAJA::statement::HipKernelFixedAsync<j_block_sz * k_block_sz,
           RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
                                    RAJA::hip_block_y_direct,
-            RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>,
+            RAJA::statement::Tile<2, RAJA::tile_fixed<k_block_sz>,
                                      RAJA::hip_block_x_direct,
-              RAJA::statement::For<2, RAJA::hip_block_z_direct,      // i
+              RAJA::statement::For<0, RAJA::hip_block_z_direct,      // i
                 RAJA::statement::For<1, RAJA::hip_thread_y_direct,   // j
-                  RAJA::statement::For<0, RAJA::hip_thread_x_direct, // k
+                  RAJA::statement::For<2, RAJA::hip_thread_x_direct, // k
                     RAJA::statement::Lambda<0>
                   >
                 >
@@ -211,7 +211,7 @@ void POLYBENCH_HEAT_3D::runHipVariant(VariantID vid)
     POLYBENCH_HEAT_3D_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

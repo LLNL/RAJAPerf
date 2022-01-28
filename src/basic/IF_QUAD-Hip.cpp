@@ -118,7 +118,7 @@ void IF_QUAD::runHipVariant(VariantID vid)
     IF_QUAD_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

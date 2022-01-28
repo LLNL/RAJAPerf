@@ -93,7 +93,7 @@ void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
     TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

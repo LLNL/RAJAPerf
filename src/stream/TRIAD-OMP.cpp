@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -81,12 +81,12 @@ void TRIAD::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  TRIAD : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

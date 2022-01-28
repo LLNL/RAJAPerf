@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -82,12 +82,12 @@ void HYDRO_1D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

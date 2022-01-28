@@ -93,7 +93,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_GEMM_THREADS_PER_BLOCK_CUDA;
-      POLY_GEMM_NBLOCKS_CUDA; 
+      POLY_GEMM_NBLOCKS_CUDA;
 
       poly_gemm<<<nblocks, nthreads_per_block>>>(C, A, B,
                                                  alpha, beta,
@@ -192,7 +192,7 @@ void POLYBENCH_GEMM::runCudaVariant(VariantID vid)
     POLYBENCH_GEMM_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }
