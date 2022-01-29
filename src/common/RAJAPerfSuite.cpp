@@ -18,6 +18,7 @@
 // Basic kernels...
 //
 #include "basic/DAXPY.hpp"
+#include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
@@ -145,6 +146,7 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_DAXPY"),
+  std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
@@ -438,6 +440,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
+       break;
+    }
+    case Basic_DAXPY_ATOMIC : {
+       kernel = new basic::DAXPY_ATOMIC(run_params);
        break;
     }
     case Basic_IF_QUAD : {
