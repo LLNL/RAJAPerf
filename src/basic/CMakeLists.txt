@@ -14,6 +14,12 @@ blt_add_library(
           DAXPY-Cuda.cpp
           DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
+          DAXPY_ATOMIC.cpp
+          DAXPY_ATOMIC-Seq.cpp
+          DAXPY_ATOMIC-Hip.cpp
+          DAXPY_ATOMIC-Cuda.cpp
+          DAXPY_ATOMIC-OMP.cpp
+          DAXPY_ATOMIC-OMPTarget.cpp
           IF_QUAD.cpp
           IF_QUAD-Seq.cpp
           IF_QUAD-Hip.cpp

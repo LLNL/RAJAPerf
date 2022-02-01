@@ -18,6 +18,7 @@
 // Basic kernels...
 //
 #include "basic/DAXPY.hpp"
+#include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
@@ -84,6 +85,7 @@
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/MASS3DPA.hpp"
+#include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
@@ -144,6 +146,7 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_DAXPY"),
+  std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
@@ -210,6 +213,7 @@ static const std::string KernelNames [] =
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_MASS3DPA"),
+  std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
@@ -438,6 +442,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::DAXPY(run_params);
        break;
     }
+    case Basic_DAXPY_ATOMIC : {
+       kernel = new basic::DAXPY_ATOMIC(run_params);
+       break;
+    }
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
@@ -652,6 +660,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
+       break;
+    }
+    case Apps_NODAL_ACCUMULATION_3D : {
+       kernel = new apps::NODAL_ACCUMULATION_3D(run_params);
        break;
     }
     case Apps_PRESSURE : {
