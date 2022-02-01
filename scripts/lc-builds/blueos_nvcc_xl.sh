@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJAPerf/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -28,7 +28,9 @@ BUILD_SUFFIX=lc_blueos-nvcc${COMP_NVCC_VER}-${COMP_ARCH}-xl${COMP_XL_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/nvcc_xl_X.cmake
 
 echo
-echo "Creating build directory ${BUILD_SUFFIX} and generating configuration in it"
+echo "Creating build directory build_${BUILD_SUFFIX} and generating configuration in it"
+echo "Configuration extra arguments:"
+echo "   $@"
 echo
 
 rm -rf build_${BUILD_SUFFIX} >/dev/null
@@ -53,11 +55,11 @@ cmake \
 echo
 echo "***********************************************************************"
 echo
-echo "cd into directory ${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo
 echo "  Please note that you have to disable CUDA GPU hooks when you run"
 echo "  the RAJA Perf Suite; for example,"
-echo 
+echo
 echo "    lrun -1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe"
 echo
 echo "***********************************************************************"

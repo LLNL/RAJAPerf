@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GESUMMV.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -80,9 +80,9 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,
+        RAJA::statement::For<0, RAJA::omp_target_parallel_for_exec<threads_per_team>,   // i
           RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-          RAJA::statement::For<1, RAJA::seq_exec,
+          RAJA::statement::For<1, RAJA::seq_exec,     // j
             RAJA::statement::Lambda<1,  RAJA::Segs<0,1>, RAJA::Params<0,1>>
           >,
           RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
@@ -118,7 +118,7 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_GESUMMV_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -127,4 +127,4 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

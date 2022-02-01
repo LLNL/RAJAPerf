@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -341,7 +341,7 @@ long double calcChecksum(const Int_ptr ptr, int len,
     tchk += (j+1)*ptr[j]*scale_factor;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
-      std::cout << "j : tchk = " << j << " : " << tchk << std::endl;
+      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
@@ -356,7 +356,7 @@ long double calcChecksum(const Real_ptr ptr, int len,
     tchk += (j+1)*ptr[j]*scale_factor;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
-      std::cout << "j : tchk = " << j << " : " << tchk << std::endl;
+      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
@@ -371,7 +371,7 @@ long double calcChecksum(const Complex_ptr ptr, int len,
     tchk += (j+1)*(real(ptr[j])+imag(ptr[j]))*scale_factor;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
-      std::cout << "j : tchk = " << j << " : " << tchk << std::endl;
+      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }

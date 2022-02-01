@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,16 +21,16 @@ namespace basic
 PI_REDUCE::PI_REDUCE(const RunParams& params)
   : KernelBase(rajaperf::Basic_PI_REDUCE, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(6 * getRunSize() + 1);
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(6 * getActualProblemSize() + 1);
 
   setUsesFeature(Forall);
   setUsesFeature(Reduction);
@@ -60,7 +60,7 @@ PI_REDUCE::~PI_REDUCE()
 void PI_REDUCE::setUp(VariantID vid)
 {
   (void) vid;
-  m_dx = 1.0 / double(getRunSize());
+  m_dx = 1.0 / double(getActualProblemSize());
   m_pi_init = 0.0;
   m_pi = 0.0;
 }

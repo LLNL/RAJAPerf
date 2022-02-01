@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -28,10 +28,10 @@ namespace basic
 
 
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getRunSize());
+  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getRunSize()); \
+  getCudaDeviceData(m_a, a, getActualProblemSize()); \
   deallocCudaDeviceData(a);
 
 __global__ void initview1d(Real_ptr a,
@@ -49,7 +49,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 
@@ -108,7 +108,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
     INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

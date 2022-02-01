@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,8 +12,14 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-// Warmup kernel to run first to remove startup overheads in timings
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
+// Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
+#include "basic/REDUCE3_INT.hpp"
+#include "algorithm/SORT.hpp"
 
 #include <list>
 #include <vector>
@@ -54,12 +60,168 @@ void Executor::setupSuite()
     return;
   }
 
-  cout << "\nSetting up suite based on input..." << endl;
+  getCout() << "\nSetting up suite based on input..." << endl;
 
   using Slist = list<string>;
   using Svector = vector<string>;
+  using COvector = vector<RunParams::CombinerOpt>;
   using KIDset = set<KernelID>;
   using VIDset = set<VariantID>;
+
+  //
+  // Determine which kernels to exclude from input.
+  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  //
+  const Svector& npasses_combiner_input = run_params.getNpassesCombinerOptInput();
+  if ( !npasses_combiner_input.empty() ) {
+
+    COvector combiners;
+    Svector invalid;
+    for (const std::string& combiner_name : npasses_combiner_input) {
+
+      if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Average)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Average);
+      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Minimum)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Minimum);
+      } else if (combiner_name == RunParams::CombinerOptToStr(RunParams::CombinerOpt::Maximum)) {
+        combiners.emplace_back(RunParams::CombinerOpt::Maximum);
+      } else {
+        invalid.emplace_back(combiner_name);
+      }
+
+    }
+
+    run_params.setNpassesCombinerOpts(combiners);
+    run_params.setInvalidNpassesCombinerOptInput(invalid);
+
+  }
+
+  //
+  // Determine which kernels to exclude from input.
+  // exclude_kern will be non-duplicated ordered set of IDs of kernel to exclude.
+  //
+  const Svector& exclude_kernel_input = run_params.getExcludeKernelInput();
+  const Svector& exclude_feature_input = run_params.getExcludeFeatureInput();
+
+  KIDset exclude_kern;
+
+  if ( !exclude_kernel_input.empty() ) {
+
+    // Make list copy of exclude kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist exclude_kern_names(exclude_kernel_input.begin(), exclude_kernel_input.end());
+
+    //
+    // Search exclude_kern_names for matching group names.
+    // groups2exclude will contain names of groups to exclude.
+    //
+    Svector groups2exclude;
+    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          groups2exclude.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in exclude_kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from exclude_kern_names list.
+    //
+    for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
+      const string& gname(groups2exclude[ig]);
+
+      for (size_t ik = 0; ik < NumKernels; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getFullKernelName(kid).find(gname) != string::npos ) {
+          exclude_kern.insert(kid);
+        }
+      }
+
+      exclude_kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining exclude_kern_names.
+    //
+    // Assemble invalid input for warning message.
+    //
+    Svector invalid;
+
+    for (Slist::iterator it = exclude_kern_names.begin(); it != exclude_kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
+          exclude_kern.insert(kid);
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back(*it);
+    }
+
+    run_params.setInvalidExcludeKernelInput(invalid);
+
+  }
+
+  if ( !exclude_feature_input.empty() ) {
+
+    // First, check for invalid exclude_feature input.
+    // Assemble invalid input for warning message.
+    //
+    Svector invalid;
+
+    for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+      bool found_it = false;
+
+      for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if ( getFeatureName(tfid) == exclude_feature_input[i] ) {
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back( exclude_feature_input[i] );
+    }
+    run_params.setInvalidExcludeFeatureInput(invalid);
+
+    //
+    // If feature input is valid, determine which kernels use
+    // input-specified features and add to set of kernels to run.
+    //
+    if ( run_params.getInvalidExcludeFeatureInput().empty() ) {
+
+      for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+
+        const string& feature = exclude_feature_input[i];
+
+        bool found_it = false;
+        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+          FeatureID tfid = static_cast<FeatureID>(fid);
+          if ( getFeatureName(tfid) == feature ) {
+            found_it = true;
+
+            for (int kid = 0; kid < NumKernels; ++kid) {
+              KernelID tkid = static_cast<KernelID>(kid);
+              KernelBase* kern = getKernelObject(tkid, run_params);
+              if ( kern->usesFeature(tfid) ) {
+                 exclude_kern.insert( tkid );
+              }
+              delete kern;
+            }  // loop over kernels
+
+          }  // if input feature name matches feature id
+        }  // loop over feature ids until name match is found
+
+      }  // loop over feature name input
+
+    }  // if feature name input is valid
+  }
 
   //
   // Determine which kernels to execute from input.
@@ -73,10 +235,13 @@ void Executor::setupSuite()
   if ( kernel_input.empty() && feature_input.empty() ) {
 
     //
-    // No kernels or fatures specified in input, run them all...
+    // No kernels or features specified in input, run them all...
     //
-    for (size_t ik = 0; ik < NumKernels; ++ik) {
-      run_kern.insert( static_cast<KernelID>(ik) );
+    for (size_t kid = 0; kid < NumKernels; ++kid) {
+      KernelID tkid = static_cast<KernelID>(kid);
+      if (exclude_kern.find(tkid) == exclude_kern.end()) {
+        run_kern.insert( tkid );
+      }
     }
 
   } else {
@@ -128,7 +293,8 @@ void Executor::setupSuite()
               for (int kid = 0; kid < NumKernels; ++kid) {
                 KernelID tkid = static_cast<KernelID>(kid);
                 KernelBase* kern = getKernelObject(tkid, run_params);
-                if ( kern->usesFeature(tfid) ) {
+                if ( kern->usesFeature(tfid) &&
+                     exclude_kern.find(tkid) == exclude_kern.end() ) {
                    run_kern.insert( tkid );
                 }
                 delete kern;
@@ -169,10 +335,11 @@ void Executor::setupSuite()
     for (size_t ig = 0; ig < groups2run.size(); ++ig) {
       const string& gname(groups2run[ig]);
 
-      for (size_t ik = 0; ik < NumKernels; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getFullKernelName(kid).find(gname) != string::npos ) {
-          run_kern.insert(kid);
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != string::npos &&
+             exclude_kern.find(tkid) == exclude_kern.end()) {
+          run_kern.insert(tkid);
         }
       }
 
@@ -190,10 +357,12 @@ void Executor::setupSuite()
     {
       bool found_it = false;
 
-      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
-        KernelID kid = static_cast<KernelID>(ik);
-        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
-          run_kern.insert(kid);
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          if (exclude_kern.find(tkid) == exclude_kern.end()) {
+            run_kern.insert(tkid);
+          }
           found_it = true;
         }
       }
@@ -218,6 +387,44 @@ void Executor::setupSuite()
     }
   }
 
+
+  //
+  // Determine variants to execute from input.
+  // run_var will be non-duplicated ordered set of IDs of variants to run.
+  //
+  const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
+
+  VIDset exclude_var;
+
+  if ( !exclude_variant_names.empty() ) {
+
+    //
+    // Parse input to determine which variants to exclude.
+    //
+    // Assemble invalid input for warning message.
+    //
+
+    Svector invalid;
+
+    for (size_t it = 0; it < exclude_variant_names.size(); ++it) {
+      bool found_it = false;
+
+      for (VIDset::iterator vid_it = available_var.begin();
+         vid_it != available_var.end(); ++vid_it) {
+        VariantID vid = *vid_it;
+        if ( getVariantName(vid) == exclude_variant_names[it] ) {
+          exclude_var.insert(vid);
+          found_it = true;
+        }
+      }
+
+      if ( !found_it )  invalid.push_back(exclude_variant_names[it]);
+    }
+
+    run_params.setInvalidExcludeVariantInput(invalid);
+
+  }
+
   //
   // Determine variants to execute from input.
   // run_var will be non-duplicated ordered set of IDs of variants to run.
@@ -235,9 +442,11 @@ void Executor::setupSuite()
     for (VIDset::iterator vid_it = available_var.begin();
          vid_it != available_var.end(); ++vid_it) {
       VariantID vid = *vid_it;
-      run_var.insert( vid );
-      if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-        reference_vid = vid;
+      if (exclude_var.find(vid) == exclude_var.end()) {
+        run_var.insert( vid );
+        if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+          reference_vid = vid;
+        }
       }
     }
 
@@ -269,9 +478,11 @@ void Executor::setupSuite()
          vid_it != available_var.end(); ++vid_it) {
         VariantID vid = *vid_it;
         if ( getVariantName(vid) == variant_names[it] ) {
-          run_var.insert(vid);
-          if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-            reference_vid = vid;
+          if (exclude_var.find(vid) == exclude_var.end()) {
+            run_var.insert(vid);
+            if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
+              reference_vid = vid;
+            }
           }
           found_it = true;
         }
@@ -298,11 +509,17 @@ void Executor::setupSuite()
   // A message will be emitted later so user can sort it out...
   //
 
-  if ( !(run_params.getInvalidKernelInput().empty()) ) {
+  if ( !(run_params.getInvalidNpassesCombinerOptInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput);
 
-  } else if ( !(run_params.getInvalidFeatureInput().empty()) ) {
+  } else if ( !(run_params.getInvalidKernelInput().empty()) ||
+              !(run_params.getInvalidExcludeKernelInput().empty()) ) {
+
+    run_params.setInputState(RunParams::BadInput);
+
+  } else if ( !(run_params.getInvalidFeatureInput().empty()) ||
+              !(run_params.getInvalidExcludeFeatureInput().empty()) ) {
 
     run_params.setInputState(RunParams::BadInput);
 
@@ -317,7 +534,8 @@ void Executor::setupSuite()
       }
     }
 
-    if ( !(run_params.getInvalidVariantInput().empty()) ) {
+    if ( !(run_params.getInvalidVariantInput().empty()) ||
+         !(run_params.getInvalidExcludeVariantInput().empty()) ) {
 
        run_params.setInputState(RunParams::BadInput);
 
@@ -392,7 +610,7 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\nHow suite will be run:" << endl;
     str << "\t # passes = " << run_params.getNumPasses() << endl;
     if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-      str << "\t Kernel size factor = " << run_params.getSize() << endl;
+      str << "\t Kernel size factor = " << run_params.getSizeFactor() << endl;
     } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
       str << "\t Kernel size = " << run_params.getSize() << endl;
     }
@@ -420,6 +638,15 @@ void Executor::reportRunSummary(ostream& str) const
 
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
+  if ( to_file ) {
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+    str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
+#else
+    str << "Kernels run without MPI" << endl;
+#endif
+  }
 
 //
 // Set up column headers and column widths for kernel summary output.
@@ -436,7 +663,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     kercol_width = max(kercol_width, kernels[ik]->getName().size());
-    psize_width = max(psize_width, kernels[ik]->getProblemSize());
+    psize_width = max(psize_width, kernels[ik]->getActualProblemSize());
     reps_width = max(reps_width, kernels[ik]->getRunReps());
     itsrep_width = max(reps_width, kernels[ik]->getItsPerRep());
     bytesrep_width = max(bytesrep_width, kernels[ik]->getBytesPerRep());
@@ -467,7 +694,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   dash_width += itsrep_width + static_cast<Index_type>(sepchr.size());
 
   string kernsrep_head("Kernels/rep");
-  Index_type kernsrep_width = 
+  Index_type kernsrep_width =
     max( static_cast<Index_type>(kernsrep_head.size()),
          static_cast<Index_type>(4) );
   dash_width += kernsrep_width + static_cast<Index_type>(sepchr.size());
@@ -484,7 +711,7 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
                          static_cast<Index_type>(frsize) ) + 3;
   dash_width += flopsrep_width + static_cast<Index_type>(sepchr.size());
 
-  str <<left<< setw(kercol_width) << kern_head 
+  str <<left<< setw(kercol_width) << kern_head
       << sepchr <<right<< setw(psize_width) << psize_head
       << sepchr <<right<< setw(reps_width) << rsize_head
       << sepchr <<right<< setw(itsrep_width) << itsrep_head
@@ -502,12 +729,12 @@ void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     KernelBase* kern = kernels[ik];
     str <<left<< setw(kercol_width) <<  kern->getName()
-        << sepchr <<right<< setw(psize_width) << kern->getProblemSize()
+        << sepchr <<right<< setw(psize_width) << kern->getActualProblemSize()
         << sepchr <<right<< setw(reps_width) << kern->getRunReps()
         << sepchr <<right<< setw(itsrep_width) << kern->getItsPerRep()
         << sepchr <<right<< setw(kernsrep_width) << kern->getKernelsPerRep()
         << sepchr <<right<< setw(bytesrep_width) << kern->getBytesPerRep()
-        << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep() 
+        << sepchr <<right<< setw(flopsrep_width) << kern->getFLOPsPerRep()
         << endl;
   }
 
@@ -523,40 +750,47 @@ void Executor::runSuite()
     return;
   }
 
-  cout << "\n\nRun warmup kernel...\n";
+  getCout() << "\n\nRun warmup kernels...\n";
 
-  KernelBase* warmup_kernel = new basic::DAXPY(run_params);
+  vector<KernelBase*> warmup_kernels;
 
-  for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-    VariantID vid = variant_ids[iv];
-    if ( run_params.showProgress() ) {
-      if ( warmup_kernel->hasVariantDefined(vid) ) {
-        cout << "   Running ";
-      } else {
-        cout << "   No ";
+  warmup_kernels.push_back(new basic::DAXPY(run_params));
+  warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
+  warmup_kernels.push_back(new algorithm::SORT(run_params));
+
+  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+    KernelBase* warmup_kernel = warmup_kernels[ik];
+    getCout() << "Kernel : " << warmup_kernel->getName() << endl;
+    for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+      VariantID vid = variant_ids[iv];
+      if ( run_params.showProgress() ) {
+        if ( warmup_kernel->hasVariantDefined(vid) ) {
+          getCout() << "   Running ";
+        } else {
+          getCout() << "   No ";
+        }
+        getCout() << getVariantName(vid) << " variant" << endl;
       }
-      cout << getVariantName(vid) << " variant" << endl;
+      if ( warmup_kernel->hasVariantDefined(vid) ) {
+        warmup_kernel->execute(vid);
+      }
     }
-    if ( warmup_kernel->hasVariantDefined(vid) ) {
-      warmup_kernel->execute(vid);
-    }
+    delete warmup_kernels[ik];
   }
 
-  delete warmup_kernel;
 
-
-  cout << "\n\nRunning specified kernels and variants...\n";
+  getCout() << "\n\nRunning specified kernels and variants...\n";
 
   const int npasses = run_params.getNumPasses();
   for (int ip = 0; ip < npasses; ++ip) {
     if ( run_params.showProgress() ) {
-      std::cout << "\nPass through suite # " << ip << "\n";
+      getCout() << "\nPass through suite # " << ip << "\n";
     }
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       if ( run_params.showProgress() ) {
-        std::cout << "\nRun kernel -- " << kernel->getName() << "\n";
+        getCout() << "\nRun kernel -- " << kernel->getName() << "\n";
       }
 
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
@@ -564,11 +798,11 @@ void Executor::runSuite()
          KernelBase* kern = kernels[ik];
          if ( run_params.showProgress() ) {
            if ( kern->hasVariantDefined(vid) ) {
-             cout << "   Running ";
+             getCout() << "   Running ";
            } else {
-             cout << "   No ";
+             getCout() << "   No ";
            }
-           cout << getVariantName(vid) << " variant" << endl;
+           getCout() << getVariantName(vid) << " variant" << endl;
          }
          if ( kern->hasVariantDefined(vid) ) {
            kernels[ik]->execute(vid);
@@ -589,7 +823,7 @@ void Executor::outputRunData()
     return;
   }
 
-  cout << "\n\nGenerate run report files...\n";
+  getCout() << "\n\nGenerate run report files...\n";
 
   //
   // Generate output file prefix (including directory path).
@@ -601,41 +835,57 @@ void Executor::outputRunData()
   }
   out_fprefix = "./" + run_params.getOutputFilePrefix();
 
-  string filename = out_fprefix + "-timing.csv";
-  writeCSVReport(filename, CSVRepMode::Timing, 6 /* prec */);
+  unique_ptr<ostream> file;
 
-  if ( haveReferenceVariant() ) {
-    filename = out_fprefix + "-speedup.csv";
-    writeCSVReport(filename, CSVRepMode::Speedup, 3 /* prec */);
+
+  for (RunParams::CombinerOpt combiner : run_params.getNpassesCombinerOpts()) {
+    file = openOutputFile(out_fprefix + "-timing-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+    writeCSVReport(*file, CSVRepMode::Timing, combiner, 6 /* prec */);
+
+    if ( haveReferenceVariant() ) {
+      file = openOutputFile(out_fprefix + "-speedup-" + RunParams::CombinerOptToStr(combiner) + ".csv");
+      writeCSVReport(*file, CSVRepMode::Speedup, combiner, 3 /* prec */);
+    }
   }
 
-  filename = out_fprefix + "-checksum.txt";
-  writeChecksumReport(filename);
+  file = openOutputFile(out_fprefix + "-checksum.txt");
+  writeChecksumReport(*file);
 
-  filename = out_fprefix + "-fom.csv";
-  writeFOMReport(filename);
-
-  filename = out_fprefix + "-kernels.csv";
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
+  {
+    vector<FOMGroup> fom_groups;
+    getFOMGroups(fom_groups);
+    if (!fom_groups.empty() ) {
+      file = openOutputFile(out_fprefix + "-fom.csv");
+      writeFOMReport(*file, fom_groups);
+    }
   }
 
-  if ( file ) {
+  file = openOutputFile(out_fprefix + "-kernels.csv");
+  if ( *file ) {
     bool to_file = true;
-    writeKernelInfoSummary(file, to_file);
+    writeKernelInfoSummary(*file, to_file);
   }
 }
 
-
-void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
-                              size_t prec)
+unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    unique_ptr<ostream> file(new ofstream(filename.c_str(), ios::out | ios::trunc));
+    if ( !*file ) {
+      getCout() << " ERROR: Can't open output file " << filename << endl;
+    }
+    return file;
   }
+  return unique_ptr<ostream>(makeNullStream());
+}
 
+void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
+                              RunParams::CombinerOpt combiner, size_t prec)
+{
   if ( file ) {
 
     //
@@ -658,7 +908,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
     //
     // Print title line.
     //
-    file << getReportTitle(mode);
+    file << getReportTitle(mode, combiner);
 
     //
     // Wrtie CSV file contents for report.
@@ -697,7 +947,7 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
           file << "Not run";
         } else {
           file << setprecision(prec) << std::fixed
-               << getReportDataEntry(mode, kern, vid);
+               << getReportDataEntry(mode, combiner, kern, vid);
         }
       }
       file << endl;
@@ -709,19 +959,8 @@ void Executor::writeCSVReport(const string& filename, CSVRepMode mode,
 }
 
 
-void Executor::writeFOMReport(const string& filename)
+void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
 {
-  vector<FOMGroup> fom_groups;
-  getFOMGroups(fom_groups);
-  if (fom_groups.empty() ) {
-    return;
-  }
-
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
 
     //
@@ -941,14 +1180,14 @@ void Executor::writeFOMReport(const string& filename)
 }
 
 
-void Executor::writeChecksumReport(const string& filename)
+void Executor::writeChecksumReport(ostream& file)
 {
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-  if ( !file ) {
-    cout << " ERROR: Can't open output file " << filename << endl;
-  }
-
   if ( file ) {
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    int num_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+#endif
 
     //
     // Set basic table formatting parameters.
@@ -976,7 +1215,11 @@ void Executor::writeChecksumReport(const string& filename)
     // Print title.
     //
     file << equal_line << endl;
-    file << "Checksum Report " << endl;
+    file << "Checksum Report ";
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    file << "for " << num_ranks << " MPI ranks ";
+#endif
+    file << endl;
     file << equal_line << endl;
 
     //
@@ -985,10 +1228,22 @@ void Executor::writeChecksumReport(const string& filename)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << "Average Checksum  "
+         <<left<< setw(checksum_width) << "Max Checksum Diff  "
+         <<left<< setw(checksum_width) << "Checksum Diff StdDev"
+#else
          <<left<< setw(checksum_width) << "Checksum  "
-         <<left<< setw(checksum_width)
-         << "Checksum Diff (vs. first variant listed)";
-    file << endl;
+         <<left<< setw(checksum_width) << "Checksum Diff  "
+#endif
+         << endl;
+    file <<left<< setw(namecol_width) << "  "
+         <<left<< setw(checksum_width) << "  "
+         <<left<< setw(checksum_width) << "(vs. first variant listed)  "
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+         <<left<< setw(checksum_width) << ""
+#endif
+         << endl;
     file << dash_line << endl;
 
     //
@@ -1012,21 +1267,94 @@ void Executor::writeChecksumReport(const string& filename)
         ++ivck;
       }
 
+      // get vector of checksums and diffs
+      std::vector<Checksum_type> checksums(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_diff(variant_ids.size(), 0.0);
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
 
         if ( kern->wasVariantRun(vid) ) {
-          Checksum_type vcheck_sum = kern->getChecksum(vid);
-          Checksum_type diff = cksum_ref - kern->getChecksum(vid);
+          checksums[iv] = kern->getChecksum(vid);
+          checksums_diff[iv] = cksum_ref - kern->getChecksum(vid);
+        }
+      }
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+      if (Checksum_MPI_type == MPI_DATATYPE_NULL) {
+        getCout() << "Checksum_MPI_type is invalid" << endl;
+      }
+
+      // get stats for checksums
+      std::vector<Checksum_type> checksums_sum(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums.data(), checksums_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_avg[iv] = checksums_sum[iv] / num_ranks;
+      }
+
+      // get stats for checksums_abs_diff
+      std::vector<Checksum_type> checksums_abs_diff(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff[iv] = std::abs(checksums_diff[iv]);
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_min(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_max(variant_ids.size(), 0.0);
+      std::vector<Checksum_type> checksums_abs_diff_sum(variant_ids.size(), 0.0);
+
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_min.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MIN, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_max.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_MAX, MPI_COMM_WORLD);
+      MPI_Allreduce(checksums_abs_diff.data(), checksums_abs_diff_sum.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+
+      std::vector<Checksum_type> checksums_abs_diff_avg(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_avg[iv] = checksums_abs_diff_sum[iv] / num_ranks;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_diff2avg2(variant_ids.size(), 0.0);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_diff2avg2[iv] = (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) *
+                                           (checksums_abs_diff[iv] - checksums_abs_diff_avg[iv]) ;
+      }
+
+      std::vector<Checksum_type> checksums_abs_diff_stddev(variant_ids.size(), 0.0);
+      MPI_Allreduce(checksums_abs_diff_diff2avg2.data(), checksums_abs_diff_stddev.data(), variant_ids.size(),
+                 Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        checksums_abs_diff_stddev[iv] = std::sqrt(checksums_abs_diff_stddev[iv] / num_ranks) ;
+      }
+
+#endif
+
+      for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
+        VariantID vid = variant_ids[iv];
+
+        if ( kern->wasVariantRun(vid) ) {
           file <<left<< setw(namecol_width) << getVariantName(vid)
                << showpoint << setprecision(prec)
-               <<left<< setw(checksum_width) << vcheck_sum
-               <<left<< setw(checksum_width) << diff << endl;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << checksums_avg[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_max[iv]
+               <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv] << endl;
+#else
+               <<left<< setw(checksum_width) << checksums[iv]
+               <<left<< setw(checksum_width) << checksums_diff[iv] << endl;
+#endif
         } else {
           file <<left<< setw(namecol_width) << getVariantName(vid)
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+               <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run"
                <<left<< setw(checksum_width) << "Not Run" << endl;
+#else
+               <<left<< setw(checksum_width) << "Not Run"
+               <<left<< setw(checksum_width) << "Not Run" << endl;
+#endif
         }
 
       }
@@ -1041,48 +1369,92 @@ void Executor::writeChecksumReport(const string& filename)
 }
 
 
-string Executor::getReportTitle(CSVRepMode mode)
+string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner)
 {
   string title;
+  switch ( combiner ) {
+    case RunParams::CombinerOpt::Average : {
+      title = string("Mean ");
+    }
+    break;
+    case RunParams::CombinerOpt::Minimum : {
+      title = string("Min ");
+    }
+    break;
+    case RunParams::CombinerOpt::Maximum : {
+      title = string("Max ");
+    }
+    break;
+    default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+  }
   switch ( mode ) {
     case CSVRepMode::Timing : {
-      title = string("Mean Runtime Report (sec.) ");
+      title += string("Runtime Report (sec.) ");
       break;
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        title = string("Speedup Report (T_ref/T_var)") +
-                string(": ref var = ") + getVariantName(reference_vid) +
-                string(" ");
+        title += string("Speedup Report (T_ref/T_var)") +
+                 string(": ref var = ") + getVariantName(reference_vid) +
+                 string(" ");
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return title;
 }
 
 long double Executor::getReportDataEntry(CSVRepMode mode,
+                                         RunParams::CombinerOpt combiner,
                                          KernelBase* kern,
                                          VariantID vid)
 {
   long double retval = 0.0;
   switch ( mode ) {
     case CSVRepMode::Timing : {
-      retval = kern->getTotTime(vid) / run_params.getNumPasses();
+      switch ( combiner ) {
+        case RunParams::CombinerOpt::Average : {
+          retval = kern->getTotTime(vid) / run_params.getNumPasses();
+        }
+        break;
+        case RunParams::CombinerOpt::Minimum : {
+          retval = kern->getMinTime(vid);
+        }
+        break;
+        case RunParams::CombinerOpt::Maximum : {
+          retval = kern->getMaxTime(vid);
+        }
+        break;
+        default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+      }
       break;
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
         if ( kern->hasVariantDefined(reference_vid) &&
              kern->hasVariantDefined(vid) ) {
-          retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+          switch ( combiner ) {
+            case RunParams::CombinerOpt::Average : {
+              retval = kern->getTotTime(reference_vid) / kern->getTotTime(vid);
+            }
+            break;
+            case RunParams::CombinerOpt::Minimum : {
+              retval = kern->getMinTime(reference_vid) / kern->getMinTime(vid);
+            }
+            break;
+            case RunParams::CombinerOpt::Maximum : {
+              retval = kern->getMaxTime(reference_vid) / kern->getMaxTime(vid);
+            }
+            break;
+            default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+          }
         } else {
           retval = 0.0;
         }
 #if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
-        cout << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
-        cout << "\tref_time, tot_time, retval = "
+        getCout() << "Kernel(iv): " << kern->getName() << "(" << vid << ")" << endl;
+        getCout() << "\tref_time, tot_time, retval = "
              << kern->getTotTime(reference_vid) << " , "
              << kern->getTotTime(vid) << " , "
              << retval << endl;
@@ -1090,7 +1462,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
       }
       break;
     }
-    default : { cout << "\n Unknown CSV report mode = " << mode << endl; }
+    default : { getCout() << "\n Unknown CSV report mode = " << mode << endl; }
   };
   return retval;
 }
@@ -1127,12 +1499,12 @@ void Executor::getFOMGroups(vector<FOMGroup>& fom_groups)
   }  // iterate over variant ids to run
 
 #if 0 //  RDH DEBUG   (leave this here, it's useful for debugging!)
-  cout << "\nFOMGroups..." << endl;
+  getCout() << "\nFOMGroups..." << endl;
   for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
     const FOMGroup& group = fom_groups[ifg];
-    cout << "\tBase : " << getVariantName(group.base) << endl;
+    getCout() << "\tBase : " << getVariantName(group.base) << endl;
     for (size_t iv = 0; iv < group.variants.size(); ++iv) {
-      cout << "\t\t " << getVariantName(group.variants[iv]) << endl;
+      getCout() << "\t\t " << getVariantName(group.variants[iv]) << endl;
     }
   }
 #endif

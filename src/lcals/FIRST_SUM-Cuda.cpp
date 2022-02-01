@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -50,7 +50,7 @@ void FIRST_SUM::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_SUM_DATA_SETUP;
 
@@ -89,7 +89,7 @@ void FIRST_SUM::runCudaVariant(VariantID vid)
     FIRST_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIRST_SUM : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_SUM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

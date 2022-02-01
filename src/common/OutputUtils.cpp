@@ -1,11 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+#include "RAJAPerfSuite.hpp"
 #include "OutputUtils.hpp"
 
 #include<cstdlib>
@@ -72,7 +73,7 @@ std::string recursiveMkdir(const std::string& in_path)
    */
   if (pos >= 0) {
     if (!S_ISDIR(status.st_mode)) {
-      std::cout << "Cannot create directories in path = " << path
+      getCout() << "Cannot create directories in path = " << path
                 << "\n    because some intermediate item in path exists and"
                 << "is NOT a directory" << std::endl;
        outpath = std::string();
@@ -88,7 +89,7 @@ std::string recursiveMkdir(const std::string& in_path)
    */
   if ( !outpath.empty() && pos < 0) {
     if (mkdir(path_buf, mode) != 0) {
-      std::cout << "   Cannot create directory  = "
+      getCout() << "   Cannot create directory  = "
                 << path_buf << std::endl;
       outpath = std::string();
     }
@@ -113,7 +114,7 @@ std::string recursiveMkdir(const std::string& in_path)
       /* make directory if not at end of path */
       if (pos < length) {
         if (mkdir(path_buf, mode) != 0) {
-          std::cout << "   Cannot create directory  = "
+          getCout() << "   Cannot create directory  = "
                     << path_buf << std::endl;
           outpath = std::string();
         }

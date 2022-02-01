@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -25,7 +25,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_MIN_DATA_SETUP;
 
@@ -43,7 +43,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
 
         #pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
-          FIRST_MIN_BODY; 
+          FIRST_MIN_BODY;
         }
 
         m_minloc = RAJA_MAX(m_minloc, mymin.loc);
@@ -97,7 +97,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
           FIRST_MIN_BODY_RAJA;
         });
 
-        m_minloc = RAJA_MAX(m_minloc, loc.getLoc()); 
+        m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
 
       }
       stopTimer();
@@ -106,11 +106,13 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,12 +12,12 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps= getRunReps();
@@ -31,9 +31,9 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type k = 0; k < N; ++k) { 
-          for (Index_type i = 0; i < N; ++i) { 
-            for (Index_type j = 0; j < N; ++j) { 
+        for (Index_type k = 0; k < N; ++k) {
+          for (Index_type i = 0; i < N; ++i) {
+            for (Index_type j = 0; j < N; ++j) {
               POLYBENCH_FLOYD_WARSHALL_BODY;
             }
           }
@@ -49,7 +49,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
+      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i,
                                              Index_type j) {
                                            POLYBENCH_FLOYD_WARSHALL_BODY;
                                          };
@@ -73,9 +73,9 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
-      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
+      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
-      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, 
+      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i,
                                         Index_type j) {
                                       POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
                                     };
@@ -97,7 +97,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N},
                                                  RAJA::RangeSegment{0, N}),
-          poly_floydwarshall_lam 
+          poly_floydwarshall_lam
         );
 
       }
@@ -108,7 +108,7 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown variant id = " << vid << std::endl;
     }
 
   }

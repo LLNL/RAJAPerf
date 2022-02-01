@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -20,47 +20,28 @@ namespace polybench
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps;
-  switch(lsizespec) {
-    case Mini:
-      m_n=20; m_tsteps=1;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_n=60; m_tsteps=40;
-      run_reps = 500;
-      break;
-    case Medium:
-      m_n=200; m_tsteps=100;
-      run_reps = 20;
-      break;
-    case Large:
-      m_n=1000; m_tsteps=500;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_n=2000; m_tsteps=1000;
-      run_reps = 1;
-      break;
-    default:
-      m_n=200; m_tsteps=100;
-      run_reps = 20;
-      break;
-  }
+  Index_type n_default = 1000;
+  
+  setDefaultProblemSize( (n_default-2) * (n_default-2) );
+  setDefaultReps(4);
 
-  setDefaultSize( (m_n-2)*(m_n-2) );
-  setDefaultReps(run_reps);
+  m_n = std::sqrt( getTargetProblemSize() ) + 1;
+  m_tsteps = 4;
 
-  setProblemSize( (m_n-2)*(m_n-2) );
+  setItsPerRep( m_tsteps * ( (m_n-2) + (m_n-2) ) );
 
-  setItsPerRep( m_tsteps * ( (m_n-2)*(m_n-2 + m_n-2) +
-                             (m_n-2)*(m_n-2 + m_n-2) ) );
+
+  setActualProblemSize( (m_n-2) * (m_n-2) );
+
   setKernelsPerRep( m_tsteps * 2 );
   setBytesPerRep( m_tsteps * ( (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) +
                                (3*sizeof(Real_type ) + 3*sizeof(Real_type )) * m_n * (m_n-2) ) );
   setFLOPsPerRep( m_tsteps * ( (15 + 2) * (m_n-2)*(m_n-2) +
                                (15 + 2) * (m_n-2)*(m_n-2) ) );
+
+  checksum_scale_factor = 0.0000001 * 
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
 
@@ -98,7 +79,7 @@ void POLYBENCH_ADI::setUp(VariantID vid)
 
 void POLYBENCH_ADI::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_U, m_n * m_n);
+  checksum[vid] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
 }
 
 void POLYBENCH_ADI::tearDown(VariantID vid)

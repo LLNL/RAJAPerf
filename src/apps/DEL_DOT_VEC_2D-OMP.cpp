@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -44,7 +44,7 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           DEL_DOT_VEC_2D_BODY_INDEX;
           DEL_DOT_VEC_2D_BODY;
@@ -100,11 +100,13 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

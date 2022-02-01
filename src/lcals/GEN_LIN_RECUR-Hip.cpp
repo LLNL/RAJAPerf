@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -118,7 +118,7 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
     GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

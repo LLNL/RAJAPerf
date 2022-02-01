@@ -11,7 +11,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -24,10 +24,12 @@
 
 #include <string>
 
+#cmakedefine RAJA_PERFSUITE_ENABLE_MPI
+
 namespace rajaperf {
 
 struct configuration {
-
+#if 0
 // Version of RAJA Perf Suite (ex: 0.1.0)
 static const std::string perfsuite_version =
 "@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
@@ -35,7 +37,7 @@ static const std::string perfsuite_version =
 "@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
 
 // Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version = 
+static const std::string raja_version =
 std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
@@ -43,13 +45,14 @@ std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
 // Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
 static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
 static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
-		
+
 // Compiler used to build (ex: gcc-4.9.3)
 static const std::string compiler = "@RAJAPERF_COMPILER@";
 
 // Command options used to build (ex: -Ofast -mavx)
 static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
-		
+#endif
+
 // Name of user who ran code
 std::string user_run;
 
@@ -59,7 +62,7 @@ std::string date_run;
 // Systype and machine code ran on (ex: chaos_5_x64_64)
 std::string systype_run;
 std::string machine_run;
-		
+
 };
 
 } // closing brace for rajaperf namespace

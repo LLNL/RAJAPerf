@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -57,7 +57,7 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(b5, stb5, sa, sb) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type k = 0; k < N; ++k ) {
         GEN_LIN_RECUR_BODY1;
       }
@@ -95,8 +95,8 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid)
 
     GEN_LIN_RECUR_DATA_TEARDOWN_OMP_TARGET
 
-  } else { 
-     std::cout << "\n  GEN_LIN_RECUR : Unknown OMP Tagretvariant id = " << vid << std::endl;
+  } else {
+     getCout() << "\n  GEN_LIN_RECUR : Unknown OMP Tagretvariant id = " << vid << std::endl;
   }
 }
 

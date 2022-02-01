@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -213,6 +213,8 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid)
       }
       stopTimer();
 
+      HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_TEARDOWN;
+
       break;
     }
 
@@ -295,11 +297,13 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n HALOEXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOEXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

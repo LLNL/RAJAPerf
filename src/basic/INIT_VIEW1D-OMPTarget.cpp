@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -30,10 +30,10 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, getRunSize(), did, hid);
+  allocAndInitOpenMPDeviceData(a, m_a, getActualProblemSize(), did, hid);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_a, a, getRunSize(), hid, did); \
+  getOpenMPDeviceData(m_a, a, getActualProblemSize(), hid, did); \
   deallocOpenMPDeviceData(a, did);
 
 
@@ -41,19 +41,19 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
-    INIT_VIEW1D_DATA_SETUP_OMP_TARGET;                 
+    INIT_VIEW1D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(a) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         INIT_VIEW1D_BODY;
       }
@@ -83,7 +83,7 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
      INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown OMP Targetvariant id = " << vid << std::endl;
   }
 }
 

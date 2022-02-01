@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -51,7 +51,7 @@ void INIT3::runOpenMPTargetVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT3_DATA_SETUP;
 
@@ -89,9 +89,9 @@ void INIT3::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     INIT3_DATA_TEARDOWN_OMP_TARGET;
-  
+
   } else {
-     std::cout << "\n  INIT3 : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  INIT3 : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

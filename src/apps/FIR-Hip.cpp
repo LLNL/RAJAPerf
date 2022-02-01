@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -36,13 +36,13 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(in, m_in, getRunSize()); \
-  allocAndInitHipDeviceData(out, m_out, getRunSize()); \
+  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
+  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
   hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getRunSize()); \
+  getHipDeviceData(m_out, out, getActualProblemSize()); \
   deallocHipDeviceData(in); \
   deallocHipDeviceData(out);
 
@@ -61,14 +61,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 #define FIR_DATA_SETUP_HIP \
   Real_ptr coeff; \
 \
-  allocAndInitHipDeviceData(in, m_in, getRunSize()); \
-  allocAndInitHipDeviceData(out, m_out, getRunSize()); \
+  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
+  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitHipDeviceData(coeff, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getRunSize()); \
+  getHipDeviceData(m_out, out, getActualProblemSize()); \
   deallocHipDeviceData(in); \
   deallocHipDeviceData(out); \
   deallocHipDeviceData(coeff);
@@ -91,7 +91,7 @@ void FIR::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 
@@ -144,7 +144,7 @@ void FIR::runHipVariant(VariantID vid)
     FIR_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

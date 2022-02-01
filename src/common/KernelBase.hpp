@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -15,6 +15,9 @@
 #include "common/RunParams.hpp"
 
 #include "RAJA/util/Timer.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include <mpi.h>
+#endif
 #if defined(RAJA_ENABLE_CUDA)
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 #endif
@@ -50,9 +53,9 @@ public:
   // properties used to describe kernel and define how it will run
   //
 
-  void setDefaultSize(Index_type size) { default_size = size; }
+  void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
+  void setActualProblemSize(Index_type size) { actual_prob_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
-  void setProblemSize(Index_type prob_size) { problem_size = prob_size; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
   void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
@@ -66,15 +69,15 @@ public:
   // and kernel details report ouput.
   //
 
-  Index_type getDefaultSize() const { return default_size; }
+  Index_type getDefaultProblemSize() const { return default_prob_size; }
+  Index_type getActualProblemSize() const { return actual_prob_size; }
   Index_type getDefaultReps() const { return default_reps; }
-  Index_type getProblemSize() const { return problem_size; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
 
-  Index_type getRunSize() const;
+  Index_type getTargetProblemSize() const;
   Index_type getRunReps() const;
 
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
@@ -82,8 +85,6 @@ public:
   bool hasVariantDefined(VariantID vid) const
     { return has_variant_defined[vid]; }
 
-
-  SizeSpec getSizeSpec() {return run_params.getSizeSpec();}
 
   //
   // Methods to get information about kernel execution for reports
@@ -120,12 +121,18 @@ public:
   void startTimer()
   {
     synchronize();
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     timer.start();
   }
 
   void stopTimer()
   {
     synchronize();
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     timer.stop(); recordExecTime();
   }
 
@@ -162,6 +169,7 @@ protected:
   const RunParams& run_params;
 
   Checksum_type checksum[NumVariants];
+  Checksum_type checksum_scale_factor;
 
 private:
   KernelBase() = delete;
@@ -174,8 +182,10 @@ private:
   KernelID    kernel_id;
   std::string name;
 
-  Index_type default_size;
+  Index_type default_prob_size;
   Index_type default_reps;
+
+  Index_type actual_prob_size;
 
   bool uses_feature[NumFeatures];
 
@@ -184,7 +194,6 @@ private:
   //
   // Properties of kernel dependent on how kernel is run
   //
-  Index_type problem_size;
   Index_type its_per_rep;
   Index_type kernels_per_rep;
   Index_type bytes_per_rep;

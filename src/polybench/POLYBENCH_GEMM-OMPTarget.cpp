@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_GEMM.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -103,11 +103,11 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
           [=] (Index_type i, Index_type j) {
             POLYBENCH_GEMM_BODY2_RAJA;
           },
-          [=] (Index_type i, Index_type j, Index_type k, 
+          [=] (Index_type i, Index_type j, Index_type k,
                Real_type& dot) {
             POLYBENCH_GEMM_BODY3_RAJA;
           },
-          [=] (Index_type i, Index_type j, 
+          [=] (Index_type i, Index_type j,
                Real_type& dot) {
             POLYBENCH_GEMM_BODY4_RAJA;
           }
@@ -119,7 +119,7 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_GEMM_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -128,4 +128,4 @@ void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

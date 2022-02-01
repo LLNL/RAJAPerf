@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -22,7 +22,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PI_REDUCE_DATA_SETUP;
 
@@ -76,10 +76,10 @@ void PI_REDUCE::runSeqVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init); 
 
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init);
+
+        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             PI_REDUCE_BODY;
         });
@@ -94,7 +94,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid)
 #endif
 
     default : {
-      std::cout << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
     }
 
   }

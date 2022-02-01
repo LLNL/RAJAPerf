@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -26,21 +26,21 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
 {
   m_n_init = 100;
 
-  setDefaultSize(m_n_init * m_n_init * m_n_init);
+  setDefaultProblemSize(m_n_init * m_n_init * m_n_init);
   setDefaultReps(1000);
 
-  auto n_final = std::cbrt(getRunSize());
+  auto n_final = std::cbrt( getTargetProblemSize() );
   m_ni = n_final;
   m_nj = n_final;
   m_nk = n_final;
   m_array_length = m_ni * m_nj * m_nk;
 
-  setProblemSize( m_array_length );
+  setActualProblemSize( m_array_length );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * m_array_length );
-  setFLOPsPerRep(3 * m_array_length);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(3 * getActualProblemSize());
 
   setUsesFeature(Kernel);
 

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -38,7 +38,7 @@ __global__ void pi_reduce(Real_type dx,
   ppi[ threadIdx.x ] = pi_init;
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
     double x = (double(i) + 0.5) * dx;
-    ppi[ threadIdx.x ] += dx / (1.0 + x * x); 
+    ppi[ threadIdx.x ] += dx / (1.0 + x * x);
   }
   __syncthreads();
 
@@ -57,7 +57,7 @@ __global__ void pi_reduce(Real_type dx,
   if ( threadIdx.x == 0 ) {
     *dpi += ppi[ 0 ];
   }
-#endif  
+#endif
 }
 
 
@@ -65,7 +65,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PI_REDUCE_DATA_SETUP;
 
@@ -81,8 +81,8 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       pi_reduce<<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( dx, 
-                                                   dpi, m_pi_init, 
+                  sizeof(Real_type)*block_size>>>( dx,
+                                                   dpi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -115,7 +115,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
     stopTimer();
 
   } else {
-     std::cout << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

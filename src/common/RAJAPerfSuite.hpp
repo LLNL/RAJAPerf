@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -14,45 +14,16 @@
 #define RAJAPerfSuite_HPP
 
 #include "RAJA/config.hpp"
+#include "rajaperf_config.hpp"
 
 #include <string>
+#include <ostream>
 
 namespace rajaperf
 {
 
 class KernelBase;
 class RunParams;
-
-/*!
- *******************************************************************************
- *
- * \brief Enumeration defining size specification for the polybench kernels
- *
- * Polybench comes with a spec file to setup the iteration space for 
- * various sizes: Mini, Small, Medium, Large, Extralarge
- *
- * We adapt those entries within this perfsuite.
- *
- * The default size is Medium, which can be overridden at run-time.
- *
- * An example partial entry from that file showing the MINI and SMALL spec 
- * for the kernel 3mm is:
- *
- * kernel	category	datatype	params	MINI	SMALL	MEDIUM	LARGE	EXTRALARGE
- * 3mm	linear-algebra/kernels	double	NI NJ NK NL NM	16 18 20 22 24	40 50 60 70 80 .... 
- * *
- *******************************************************************************
- */
-enum SizeSpec {
-  
-  Mini = 0,
-  Small,
-  Medium,
-  Large,
-  Extralarge,
-  Specundefined
-
-};
 
 
 /*!
@@ -62,8 +33,8 @@ enum SizeSpec {
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -89,8 +60,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -100,12 +71,14 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_DAXPY = 0,
+  Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
   Basic_INDEXLIST_3LOOP,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MAT_MAT_SHARED,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
   Basic_PI_ATOMIC,
@@ -159,12 +132,15 @@ enum KernelID {
 //
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
+  Apps_DIFFUSION3DPA,
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
   Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DPA,
+  Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
 
@@ -188,7 +164,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
+ *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -234,11 +210,11 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Launch,
+  Teams,
 
   Sort,
   Scan,
-  Workgroup, 
+  Workgroup,
 
   Reduction,
   Atomic,
@@ -288,12 +264,12 @@ const std::string& getFullKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string& getVariantName(VariantID vid); 
+const std::string& getVariantName(VariantID vid);
 
 /*!
  *******************************************************************************
  *
- * \brief Return true if variant associated with VariantID enum value is 
+ * \brief Return true if variant associated with VariantID enum value is
  *        available * to run; else false.
  *
  *******************************************************************************
@@ -319,6 +295,35 @@ const std::string& getFeatureName(FeatureID vid);
  *******************************************************************************
  */
 KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return ostream used as cout.
+ *
+ *        IMPORTANT: May return a non-printing stream when MPI is enabled.
+ *
+ *******************************************************************************
+ */
+std::ostream& getCout();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream* makeNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return reference to global non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream& getNullStream();
 
 /*!
  *******************************************************************************

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -22,7 +22,7 @@ namespace polybench
 {
 
   //
-  // Define thread block size for HIP execution
+  // Define thread block size for Hip execution
   //
   const size_t block_size = 256;
 
@@ -88,10 +88,14 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_mvt_1),dim3(grid_size), dim3(block_size),0,0,A, x1, y1, N);
+      hipLaunchKernelGGL((poly_mvt_1),
+                         dim3(grid_size), dim3(block_size), 0, 0,
+                         A, x1, y1, N);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_mvt_2),dim3(grid_size), dim3(block_size),0,0,A, x2, y2, N);
+      hipLaunchKernelGGL((poly_mvt_2),
+                         dim3(grid_size), dim3(block_size), 0, 0,
+                         A, x2, y2, N);
       hipErrchk( hipGetLastError() );
 
     }
@@ -107,12 +111,12 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
 
     using EXEC_POL =
       RAJA::KernelPolicy<
-        RAJA::statement::HipKernelAsync<
+        RAJA::statement::HipKernelFixedAsync<block_size,
           RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
                                    RAJA::hip_block_x_direct,
-            RAJA::statement::For<0, RAJA::hip_thread_x_direct,
+            RAJA::statement::For<0, RAJA::hip_thread_x_direct,  // i
               RAJA::statement::Lambda<0, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::For<1, RAJA::seq_exec,           // j
                 RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
               >,
               RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
@@ -168,7 +172,7 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
     POLYBENCH_MVT_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

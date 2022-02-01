@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,7 +13,7 @@
 #include <limits>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -25,7 +25,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   REDUCE3_INT_DATA_SETUP;
 
@@ -82,7 +82,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
         m_vsum += vsum;
         m_vmin = RAJA_MIN(m_vmin, vmin);
         m_vmax = RAJA_MAX(m_vmax, vmax);
-  
+
       }
       stopTimer();
 
@@ -93,7 +93,7 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
+
         RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(m_vsum_init);
         RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
@@ -114,11 +114,13 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

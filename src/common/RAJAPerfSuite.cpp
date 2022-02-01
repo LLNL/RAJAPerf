@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -10,16 +10,22 @@
 
 #include "RunParams.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //
 // Basic kernels...
 //
 #include "basic/DAXPY.hpp"
+#include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
 #include "basic/INDEXLIST.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#include "basic/MAT_MAT_SHARED.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
@@ -73,12 +79,15 @@
 //
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DPA.hpp"
+#include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
@@ -140,12 +149,14 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_DAXPY"),
+  std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
   std::string("Basic_INDEXLIST"),
   std::string("Basic_INDEXLIST_3LOOP"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  std::string("Basic_MAT_MAT_SHARED"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
@@ -199,12 +210,15 @@ static const std::string KernelNames [] =
 //
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
   std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DPA"),
+  std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
@@ -276,7 +290,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Launch"),
+  std::string("Teams"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -348,7 +362,7 @@ const std::string& getVariantName(VariantID vid)
 /*!
  *******************************************************************************
  *
- * Return true if variant associated with VariantID enum value is available 
+ * Return true if variant associated with VariantID enum value is available
  * to run; else false.
  *
  *******************************************************************************
@@ -361,22 +375,22 @@ bool isVariantAvailable(VariantID vid)
     ret_val = true;
   }
 #if defined(RUN_RAJA_SEQ)
-  if ( vid == Lambda_Seq || 
+  if ( vid == Lambda_Seq ||
        vid == RAJA_Seq ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP || 
-       vid == Lambda_OpenMP || 
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  if ( vid == Base_OpenMPTarget || 
+  if ( vid == Base_OpenMPTarget ||
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
   }
@@ -434,6 +448,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::DAXPY(run_params);
        break;
     }
+    case Basic_DAXPY_ATOMIC : {
+       kernel = new basic::DAXPY_ATOMIC(run_params);
+       break;
+    }
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
        break;
@@ -456,6 +474,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_INIT_VIEW1D_OFFSET : {
        kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
+    case Basic_MAT_MAT_SHARED : {
+       kernel = new basic::MAT_MAT_SHARED(run_params);
        break;
     }
     case Basic_MULADDSUB : {
@@ -622,6 +644,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
+    case Apps_DIFFUSION3DPA : {
+       kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
     case Apps_ENERGY : {
        kernel = new apps::ENERGY(run_params);
        break;
@@ -644,6 +670,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_LTIMES_NOVIEW : {
        kernel = new apps::LTIMES_NOVIEW(run_params);
+       break;
+    }
+    case Apps_MASS3DPA : {
+       kernel = new apps::MASS3DPA(run_params);
+       break;
+    }
+    case Apps_NODAL_ACCUMULATION_3D : {
+       kernel = new apps::NODAL_ACCUMULATION_3D(run_params);
        break;
     }
     case Apps_PRESSURE : {
@@ -672,12 +706,47 @@ KernelBase* getKernelObject(KernelID kid,
     }
 
     default: {
-      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+      getCout() << "\n Unknown Kernel ID = " << kid << std::endl;
     }
 
   } // end switch on kernel id
 
   return kernel;
+}
+
+// subclass of streambuf that ignores overflow
+// never printing anything to the underlying stream
+struct NullStream : std::streambuf, std::ostream
+{
+  using Base = std::streambuf;
+  using int_type = typename Base::int_type;
+
+  NullStream() : std::ostream(this) {}
+public:
+  int_type overflow(int_type c) override { return c; }
+};
+
+std::ostream* makeNullStream()
+{
+  return new NullStream();
+}
+
+std::ostream& getNullStream()
+{
+  static NullStream null_stream;
+  return null_stream;
+}
+
+std::ostream& getCout()
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    return std::cout;
+  }
+  return getNullStream();
 }
 
 }  // closing brace for rajaperf namespace

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -15,14 +15,16 @@
 namespace rajaperf {
 
 KernelBase::KernelBase(KernelID kid, const RunParams& params) :
-  run_params(params) 
+  run_params(params)
 {
   kernel_id = kid;
   name = getFullKernelName(kernel_id);
 
-  default_size = -1;
+  default_prob_size = -1;
   default_reps = -1;
- 
+
+  actual_prob_size = -1;
+
   for (size_t fid = 0; fid < NumFeatures; ++fid) {
     uses_feature[fid] = false;
   }
@@ -31,12 +33,14 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
     has_variant_defined[vid] = false;
   }
 
-  problem_size = -1;
   its_per_rep = -1;
   kernels_per_rep = -1;
+  bytes_per_rep = -1;
   FLOPs_per_rep = -1;
 
   running_variant = NumVariants;
+
+  checksum_scale_factor = 1.0;
 
   for (size_t vid = 0; vid < NumVariants; ++vid) {
     checksum[vid] = 0.0;
@@ -47,41 +51,42 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   }
 }
 
- 
+
 KernelBase::~KernelBase()
 {
 }
 
 
-Index_type KernelBase::getRunSize() const
-{ 
-  Index_type run_size = static_cast<Index_type>(0);
+Index_type KernelBase::getTargetProblemSize() const
+{
+  Index_type target_size = static_cast<Index_type>(0);
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    run_size = static_cast<Index_type>(default_size*run_params.getSizeFactor());
+    target_size =
+      static_cast<Index_type>(default_prob_size*run_params.getSizeFactor());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
-    run_size = static_cast<Index_type>(run_params.getSize());
+    target_size = static_cast<Index_type>(run_params.getSize());
   }
-  return run_size;
+  return target_size;
 }
 
 Index_type KernelBase::getRunReps() const
-{ 
+{
   Index_type run_reps = static_cast<Index_type>(0);
   if (run_params.getInputState() == RunParams::CheckRun) {
     run_reps = static_cast<Index_type>(run_params.getCheckRunReps());
   } else {
-    run_reps = static_cast<Index_type>(default_reps*run_params.getRepFactor()); 
+    run_reps = static_cast<Index_type>(default_reps*run_params.getRepFactor());
   }
   return run_reps;
 }
 
-void KernelBase::setVariantDefined(VariantID vid) 
+void KernelBase::setVariantDefined(VariantID vid)
 {
-  has_variant_defined[vid] = isVariantAvailable(vid); 
+  has_variant_defined[vid] = isVariantAvailable(vid);
 }
 
 
-void KernelBase::execute(VariantID vid) 
+void KernelBase::execute(VariantID vid)
 {
   running_variant = vid;
 
@@ -89,14 +94,14 @@ void KernelBase::execute(VariantID vid)
 
   resetDataInitCount();
   this->setUp(vid);
-  
-  this->runKernel(vid); 
 
-  this->updateChecksum(vid); 
+  this->runKernel(vid);
+
+  this->updateChecksum(vid);
 
   this->tearDown(vid);
 
-  running_variant = NumVariants; 
+  running_variant = NumVariants;
 }
 
 void KernelBase::recordExecTime()
@@ -173,7 +178,7 @@ void KernelBase::runKernel(VariantID vid)
 
     default : {
 #if 0
-      std::cout << "\n  " << getName() 
+      getCout() << "\n  " << getName()
                 << " : Unknown variant id = " << vid << std::endl;
 #endif
     }
@@ -185,27 +190,47 @@ void KernelBase::print(std::ostream& os) const
 {
   os << "\nKernelBase::print..." << std::endl;
   os << "\t\t name(id) = " << name << "(" << kernel_id << ")" << std::endl;
-  os << "\t\t\t default_size = " << default_size << std::endl;
+  os << "\t\t\t default_prob_size = " << default_prob_size << std::endl;
   os << "\t\t\t default_reps = " << default_reps << std::endl;
+  os << "\t\t\t actual_prob_size = " << actual_prob_size << std::endl;
+  os << "\t\t\t uses_feature: " << std::endl;
+  for (unsigned j = 0; j < NumFeatures; ++j) {
+    os << "\t\t\t\t" << getFeatureName(static_cast<FeatureID>(j))
+                     << " : " << uses_feature[j] << std::endl;
+  }
+  os << "\t\t\t has_variant_defined: " << std::endl;
+  for (unsigned j = 0; j < NumVariants; ++j) {
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << has_variant_defined[j] << std::endl;
+  }
+  os << "\t\t\t its_per_rep = " << its_per_rep << std::endl;
+  os << "\t\t\t kernels_per_rep = " << kernels_per_rep << std::endl;
+  os << "\t\t\t bytes_per_rep = " << bytes_per_rep << std::endl;
+  os << "\t\t\t FLOPs_per_rep = " << FLOPs_per_rep << std::endl;
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << num_exec[j] << std::endl; 
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << num_exec[j] << std::endl;
   }
   os << "\t\t\t min_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << min_time[j] << std::endl; 
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << min_time[j] << std::endl;
   }
   os << "\t\t\t max_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << max_time[j] << std::endl; 
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << max_time[j] << std::endl;
   }
   os << "\t\t\t tot_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << tot_time[j] << std::endl; 
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << tot_time[j] << std::endl;
   }
   os << "\t\t\t checksum: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
-    os << "\t\t\t\t" << checksum[j] << std::endl; 
+    os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
+                     << " : " << checksum[j] << std::endl;
   }
   os << std::endl;
 }

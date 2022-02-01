@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -59,7 +59,7 @@ void MULADDSUB::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   MULADDSUB_DATA_SETUP;
 
@@ -117,7 +117,7 @@ void MULADDSUB::runCudaVariant(VariantID vid)
     MULADDSUB_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

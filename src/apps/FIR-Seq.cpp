@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,7 +23,7 @@ void FIR::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_COEFF;
 
@@ -35,7 +35,7 @@ void FIR::runSeqVariant(VariantID vid)
   auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
-  
+
   switch ( vid ) {
 
     case Base_Seq : {
@@ -51,7 +51,7 @@ void FIR::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -78,14 +78,14 @@ void FIR::runSeqVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), fir_lam);
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  FIR : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIR : Unknown variant id = " << vid << std::endl;
     }
 
   }

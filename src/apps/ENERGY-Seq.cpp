@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -22,10 +22,10 @@ void ENERGY::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   ENERGY_DATA_SETUP;
-  
+
   auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
@@ -67,7 +67,7 @@ void ENERGY::runSeqVariant(VariantID vid)
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY4;
         }
-  
+
         for (Index_type i = ibegin; i < iend; ++i ) {
           ENERGY_BODY5;
         }
@@ -80,7 +80,7 @@ void ENERGY::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -146,14 +146,14 @@ void ENERGY::runSeqVariant(VariantID vid)
         }); // end sequential region (for single-source code)
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  ENERGY : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  ENERGY : Unknown variant id = " << vid << std::endl;
     }
 
   }
