@@ -7,67 +7,51 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT_VIEW1D_OFFSET.hpp"
-
-#include "RAJA/RAJA.hpp"
+#include "common/KokkosViewUtils.hpp"
 
 #include <iostream>
 
-namespace rajaperf 
-{
-namespace basic
-{
+namespace rajaperf {
+namespace basic {
 
-
-void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid)
-{
+void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getActualProblemSize()+1;
+  const Index_type iend = getActualProblemSize() + 1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   auto a_view = getViewFromPointer(a, iend);
 
+  switch (vid) {
 
-#if defined(RUN_KOKKOS)
+  case Kokkos_Lambda: {
 
-  switch ( vid ) {
+    Kokkos::fence();
+    startTimer();
 
-    case Kokkos_Lambda : {
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Kokkos::fence();
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-          Kokkos::parallel_for("INIT_VIEW1D_OFFSET_Kokkos Kokkos_Lambda", 
-                               Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend), 
-                               KOKKOS_LAMBDA (Index_type i) {
-                               //INIT_VIEW1D_OFFSET_BODY_RAJA
-                               //Instead, use the INIT_VIEW1D_OFFSET_BODY
-                               //definition:
-                               //a[i-ibegin] = i * v;
-                               a_view[i-ibegin] = i * v;
-                               });
-
-
-      }
-      Kokkos::fence();
-      stopTimer();
-
-      break;
+      Kokkos::parallel_for(
+          "INIT_VIEW1D_OFFSET_Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i) { a_view[i - ibegin] = i * v; });
     }
 
-    default : {
-      std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;
-    }
+    Kokkos::fence();
+    stopTimer();
 
+    break;
   }
 
-#endif // RUN_KOKKOS
+  default: {
+    std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid
+              << std::endl;
+  }
+  }
 
   // Move data from Kokkos View (on Device) back to Host
   moveDataToHostFromKokkosView(a, a_view, iend);
-
 }
 
 } // end namespace basic

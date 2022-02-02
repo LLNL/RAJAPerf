@@ -157,12 +157,6 @@ set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.
-#
-
-# The statement below is required for Kokkos compilation.
-if(ENABLE_KOKKOS)
-  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/tpl/RAJA/include/)
-endif()
 
 # ENABLE_KOKKOS is A RAJAPerf Suite Option
 if(ENABLE_KOKKOS)

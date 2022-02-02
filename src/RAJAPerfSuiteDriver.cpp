@@ -19,14 +19,14 @@
 #endif
 
 //------------------------------------------------------------------------------
-int main( int argc, char** argv )
-{
+int main(int argc, char **argv) {
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
   MPI_Init(&argc, &argv);
 
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
-  rajaperf::getCout() << "\n\nRunning with " << num_ranks << " MPI ranks..." << std::endl;
+  rajaperf::getCout() << "\n\nRunning with " << num_ranks << " MPI ranks..."
+                      << std::endl;
 #endif
 #ifdef RUN_KOKKOS
   Kokkos::initialize(argc, argv);

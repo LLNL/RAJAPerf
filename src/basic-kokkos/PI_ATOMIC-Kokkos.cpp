@@ -7,9 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "PI_ATOMIC.hpp"
-
-#include "RAJA/RAJA.hpp"
-
+#include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
 namespace rajaperf {
@@ -24,8 +22,6 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
 
   // Declare Kokkos View that will wrap the pointer defined in PI_ATOMIC.hpp
   auto pi_view = getViewFromPointer(pi, 1);
-
-#if defined(RUN_KOKKOS)
 
   switch (vid) {
 
@@ -47,10 +43,6 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
             double x = (double(i) + 0.5) * dx;
             // Make a reference to the 0th element of a 1D view with one
             // element
-            // Atomic operation is an uninterruptable, single operation; e.g.,
-            // addition, multiplication, division, etc. All of these atomic
-            // operations are architecture dependent. Atomics are advantageous
-            // from a correctness point of view
             Kokkos::atomic_add(&pi_view(0), dx / (1.0 + x * x));
           });
       // Moving the data on the device (held in the KokkosView) BACK to the
@@ -69,8 +61,6 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid) {
     std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
   }
   }
-#endif // RUN_KOKKOS
-
 }
 
 } // end namespace basic
