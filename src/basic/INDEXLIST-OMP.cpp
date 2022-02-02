@@ -29,7 +29,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid)
 
   switch ( vid ) {
 
-#if _OPENMP >= 201811
+#if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP_SCAN)
     case Base_OpenMP : {
 
       startTimer();
