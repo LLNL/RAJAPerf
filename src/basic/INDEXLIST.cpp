@@ -21,16 +21,16 @@ namespace basic
 INDEXLIST::INDEXLIST(const RunParams& params)
   : KernelBase(rajaperf::Basic_INDEXLIST, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(100);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() / 2 + // about 50% output
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
+                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() / 2 + // about 50% output
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
@@ -54,14 +54,14 @@ INDEXLIST::~INDEXLIST()
 
 void INDEXLIST::setUp(VariantID vid)
 {
-  allocAndInitDataRandSign(m_x, getRunSize(), vid);
-  allocAndInitData(m_list, getRunSize(), vid);
+  allocAndInitDataRandSign(m_x, getActualProblemSize(), vid);
+  allocAndInitData(m_list, getActualProblemSize(), vid);
   m_len = -1;
 }
 
 void INDEXLIST::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_list, getRunSize());
+  checksum[vid] += calcChecksum(m_list, getActualProblemSize());
   checksum[vid] += Checksum_type(m_len);
 }
 

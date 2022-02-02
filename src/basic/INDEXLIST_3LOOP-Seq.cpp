@@ -18,7 +18,7 @@ namespace basic
 {
 
 #define INDEXLIST_3LOOP_DATA_SETUP_Seq \
-  Index_type* counts = new Index_type[getRunSize()+1];
+  Index_type* counts = new Index_type[getActualProblemSize()+1];
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_Seq \
   delete[] counts; counts = nullptr;
@@ -29,7 +29,7 @@ void INDEXLIST_3LOOP::runSeqVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INDEXLIST_3LOOP_DATA_SETUP;
 

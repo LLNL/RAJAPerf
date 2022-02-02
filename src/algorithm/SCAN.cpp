@@ -21,15 +21,15 @@ namespace algorithm
 SCAN::SCAN(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SCAN, params)
 {
-   setDefaultSize(1000000);
-   setDefaultReps(100);
+  setDefaultProblemSize(1000000);
+  setDefaultReps(100);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( getProblemSize() );
+  setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() );
-  setFLOPsPerRep(1 * getRunSize());
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(1 * getActualProblemSize());
 
   setUsesFeature(Scan);
 
@@ -56,13 +56,13 @@ SCAN::~SCAN()
 
 void SCAN::setUp(VariantID vid)
 {
-  allocAndInitDataRandValue(m_x, getRunSize(), vid);
-  allocAndInitDataConst(m_y, getRunSize(), 0.0, vid);
+  allocAndInitDataRandValue(m_x, getActualProblemSize(), vid);
+  allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
 }
 
 void SCAN::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_y, getRunSize());
+  checksum[vid] += calcChecksum(m_y, getActualProblemSize());
 }
 
 void SCAN::tearDown(VariantID vid)

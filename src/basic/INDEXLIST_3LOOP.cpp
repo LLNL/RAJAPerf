@@ -21,21 +21,21 @@ namespace basic
 INDEXLIST_3LOOP::INDEXLIST_3LOOP(const RunParams& params)
   : KernelBase(rajaperf::Basic_INDEXLIST_3LOOP, params)
 {
-  setDefaultSize(1000000);
+  setDefaultProblemSize(1000000);
   setDefaultReps(100);
 
-  setProblemSize( getRunSize() );
+  setActualProblemSize( getTargetProblemSize() );
 
-  setItsPerRep( 3 * getProblemSize() + 1 );
+  setItsPerRep( 3 * getActualProblemSize() + 1 );
   setKernelsPerRep(3);
-  setBytesPerRep( (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() +
-                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getRunSize() +
+  setBytesPerRep( (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() +
+                  (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() +
 
                   (1*sizeof(Index_type) + 1*sizeof(Index_type)) +
-                  (1*sizeof(Int_type) + 1*sizeof(Int_type)) * (getRunSize()+1) +
+                  (1*sizeof(Int_type) + 1*sizeof(Int_type)) * (getActualProblemSize()+1) +
 
-                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * (getRunSize()+1) +
-                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getRunSize() / 2 ); // about 50% output
+                  (0*sizeof(Int_type) + 1*sizeof(Int_type)) * (getActualProblemSize()+1) +
+                  (1*sizeof(Int_type) + 0*sizeof(Int_type)) * getActualProblemSize() / 2 ); // about 50% output
   setFLOPsPerRep(0);
 
   setUsesFeature(Forall);
@@ -64,14 +64,14 @@ INDEXLIST_3LOOP::~INDEXLIST_3LOOP()
 
 void INDEXLIST_3LOOP::setUp(VariantID vid)
 {
-  allocAndInitDataRandSign(m_x, getRunSize(), vid);
-  allocAndInitData(m_list, getRunSize(), vid);
+  allocAndInitDataRandSign(m_x, getActualProblemSize(), vid);
+  allocAndInitData(m_list, getActualProblemSize(), vid);
   m_len = -1;
 }
 
 void INDEXLIST_3LOOP::updateChecksum(VariantID vid)
 {
-  checksum[vid] += calcChecksum(m_list, getRunSize());
+  checksum[vid] += calcChecksum(m_list, getActualProblemSize());
   checksum[vid] += Checksum_type(m_len);
 }
 

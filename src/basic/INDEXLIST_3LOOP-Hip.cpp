@@ -29,7 +29,7 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
   Index_type* counts; \
-  allocHipDeviceData(counts, getRunSize()+1); \
+  allocHipDeviceData(counts, getActualProblemSize()+1); \
   allocAndInitHipDeviceData(x, m_x, iend); \
   allocAndInitHipDeviceData(list, m_list, iend);
 
@@ -70,7 +70,7 @@ void INDEXLIST_3LOOP::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INDEXLIST_3LOOP_DATA_SETUP;
 
