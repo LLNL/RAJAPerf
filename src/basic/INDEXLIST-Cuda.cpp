@@ -25,6 +25,7 @@ namespace basic
   // Define thread block size for CUDA execution
   //
   const size_t block_size = 256;
+  const size_t warp_size = 32;
 
 
 #define INDEXLIST_DATA_SETUP_CUDA \
@@ -41,6 +42,29 @@ struct pair
   Index_type first, second;
 };
 
+
+// perform a warp scan on inc and return the inclusive result at each thread
+__device__ Index_type warp_scan_inclusive(const Index_type inc)
+{
+  const int warp_index = (threadIdx.x % warp_size);
+
+  Index_type val = inc;
+
+  // NOTE: only works for powers of 2
+  for ( int i = 1; i < warp_size; i *= 2 ) {
+    const bool participate = warp_index & i;
+    const int prior_id = (warp_index & ~(i-1)) - 1;
+    const Index_type prior_val = __shfl_sync(0xffffffffu, val, prior_id);
+    if ( participate ) {
+      val = prior_val + val;
+    }
+  }
+
+  return val;
+}
+
+// perform a block scan on inc and return the result at each thread
+// pair.first is the exclusive result and pair.second is the inclusive result
 __device__ pair block_scan(const Index_type inc)
 {
   extern __shared__ volatile Index_type s_thread_counts[ ];
@@ -49,9 +73,10 @@ __device__ pair block_scan(const Index_type inc)
   s_thread_counts[ threadIdx.x ] = val;
   __syncthreads();
 
+  // NOTE: only works for powers of 2
   for ( int i = 1; i < blockDim.x; i *= 2 ) {
     const bool participate = threadIdx.x & i;
-    const int prior_id = threadIdx.x & ~(i-1) - 1;
+    const int prior_id = (threadIdx.x & ~(i-1)) - 1;
     if ( participate ) {
       val = s_thread_counts[ prior_id ] + s_thread_counts[ threadIdx.x ];
       s_thread_counts[ threadIdx.x ] = val;
@@ -65,6 +90,8 @@ __device__ pair block_scan(const Index_type inc)
   return pair { prior_val, val };
 }
 
+// perform a grid scan on inc and return the result at each thread
+// pair.first is the exclusive result and pair.second is the inclusive result
 __device__ pair grid_scan(const int block_id,
                           const Index_type inc,
                           Index_type* block_counts,
@@ -72,62 +99,109 @@ __device__ pair grid_scan(const int block_id,
                           unsigned* block_readys)
 {
   const bool first_block = (block_id == 0);
-  const bool last_block = (block_id+1 == gridDim.x);
-  const bool first_thread = (threadIdx.x == 0);
-  const bool last_thread = (threadIdx.x+1 == blockDim.x);
+  const bool last_block = (block_id == gridDim.x-1);
+  const bool last_thread = (threadIdx.x == blockDim.x-1);
+  const bool last_warp = (threadIdx.x >= blockDim.x - warp_size);
+  const int warp_index = (threadIdx.x % warp_size);
+  const int warp_index_mask = (1u << warp_index);
+  const int warp_index_mask_right = warp_index_mask | (warp_index_mask - 1);
 
   pair count = block_scan(inc);
 
-  if (last_thread) {
-    if (first_block) {
+  if (first_block) {
+
+    if (!last_block && last_thread) {
       block_counts[block_id] = count.second;  // write inclusive scan result for block
       grid_counts[block_id] = count.second;   // write inclusive scan result for grid through block
       __threadfence();                          // ensure block_counts, grid_counts ready (release)
       atomicExch(&block_readys[block_id], 2u); // write block_counts, grid_counts are ready
-    } else {
+    }
+
+  } else {
+
+    if (!last_block && last_thread) {
       block_counts[block_id] = count.second;  // write inclusive scan result for block
       __threadfence();                          // ensure block_counts ready (release)
       atomicExch(&block_readys[block_id], 1u); // write block_counts is ready
     }
-  }
 
-  if (!first_block) {
-    // extern __shared__ volatile int s_block_readys[ ];    // reusing shared memory
+    __shared__ volatile Index_type s_prev_grid_count;
 
-    // const int num_participating_threads = (block_id <= blockDim.x) ? block_id : blockDim.x;
+    // get prev_grid_count using last warp in block
+    // if (last_warp) {
 
-    // int prior_block_ready = 0;
-    // if (threadIdx.x < num_participating_threads) {
-    //   prior_block_ready = block_readys[block_id-1 - threadIdx.x];
+    //   Index_type prev_block_count = 0;
+
+    //   const int prev_block_id = block_id-warp_size+warp_index;
+
+    //   unsigned prev_block_ready = (prev_block_id >= 0) ? 0u : 1u;
+    //   unsigned prev_blocks_ready_ballot = 0u;
+    //   unsigned prev_grids_ready_ballot = 0u;
+
+    //   // ensure previous block_counts are ready and at least one grid_count is ready
+    //   do {
+    //     if (prev_block_id >= 0 && prev_block_ready != 2u) {
+    //       prev_block_ready = atomicCAS(&block_readys[prev_block_id], 11u, 11u);
+    //     }
+
+    //     prev_blocks_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready >= 1u);
+    //     prev_grids_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready == 2u);
+
+    //   } while (prev_blocks_ready_ballot != 0xffffffffu || prev_grids_ready_ballot == 0u);
+    //   __threadfence(); // ensure block_counts or grid_counts ready (acquire)
+
+    //   // read one grid_count from a block with id grid_count_ready_id
+    //   // and read the block_counts from blocks with higher ids.
+    //   if (warp_index_mask > prev_grids_ready_ballot) {
+    //     // get block_counts for prev_block_ids in (grid_count_ready_id, block_id)
+    //     prev_block_count = block_counts[prev_block_id];
+    //     // if (last_block) printf("block %i, block_counts[%i], %li, %llu\n", block_id, prev_block_id, (long)prev_block_count, device_timer());
+    //   } else if (prev_grids_ready_ballot == (prev_grids_ready_ballot & warp_index_mask_right)) {
+    //     // get grid_count for grid_count_ready_id
+    //     prev_block_count = grid_counts[prev_block_id];
+    //     // if (last_block) printf("block %i, %u, grid_counts[%i], %li, %llu\n", block_id, warp_index_mask_right, prev_block_id, (long)prev_block_count, device_timer());
+    //   }
+
+    //   Index_type prev_grid_count = warp_scan_inclusive(prev_block_count);
+
+    //   if (last_thread) {
+
+    //     if (!last_block) {
+    //       grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
+    //       __threadfence();                        // ensure grid_counts ready (release)
+    //       atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
+    //     }
+
+    //     s_prev_grid_count = prev_grid_count;
+    //     // printf("block %i, %li, %u, %llu\n", block_id, (long)prev_grid_count, prev_grids_ready_ballot, device_timer());
+    //   }
     // }
-    // s_block_readys[threadIdx.x] = prior_block_ready;
-    // __syncthreads();
 
-    __shared__ volatile Index_type s_prev_block_count;
-
-    if (first_thread) {
+    // get prev_grid_count using last thread in block
+    if (last_thread) {
       while (atomicCAS(&block_readys[block_id-1], 11u, 11u) != 2u); // check if block_counts is ready
       __threadfence();                                              // ensure block_counts ready (acquire)
-      s_prev_block_count = grid_counts[block_id-1];
+      Index_type prev_grid_count = grid_counts[block_id-1];
+
+      if (!last_block) {
+        grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
+        __threadfence();                        // ensure grid_counts ready (release)
+        atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
+      }
+
+      s_prev_grid_count = prev_grid_count;
     }
+
     __syncthreads();
+    Index_type prev_grid_count = s_prev_grid_count;
 
-    Index_type prev_block_count = s_prev_block_count;
+    count.first  = prev_grid_count + count.first;
+    count.second = prev_grid_count + count.second;
 
-    count.first  = prev_block_count + count.first;
-    count.second = prev_block_count + count.second;
-
-    if (last_thread) {
-      grid_counts[block_id] = count.second;   // write inclusive scan result for grid through block
-      __threadfence();                        // ensure block_counts ready (release)
-      atomicExch(&block_readys[block_id], 2u); // write block_counts is ready
-    }
-    __syncthreads();
-  }
-
-  if (last_block) {
-    for (int i = threadIdx.x; i < gridDim.x; ++i) {
-      block_readys[i] = 0u; // last block resets readys to 0 (for next kernel to reuse)
+    if (last_block) {
+      for (int i = threadIdx.x; i < gridDim.x-1; i += blockDim.x) {
+        while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
+      }
     }
   }
 
