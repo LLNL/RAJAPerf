@@ -14,6 +14,8 @@
 
 #include "common/CudaDataUtils.hpp"
 
+#include <cub/warp/warp_scan.cuh>
+
 #include <iostream>
 
 namespace rajaperf
@@ -42,26 +44,6 @@ struct pair
   Index_type first, second;
 };
 
-
-// perform a warp scan on inc and return the inclusive result at each thread
-__device__ Index_type warp_scan_inclusive(const Index_type inc)
-{
-  const int warp_index = (threadIdx.x % warp_size);
-
-  Index_type val = inc;
-
-  // NOTE: only works for powers of 2
-  for ( int i = 1; i < warp_size; i *= 2 ) {
-    const bool participate = warp_index & i;
-    const int prior_id = (warp_index & ~(i-1)) - 1;
-    const Index_type prior_val = __shfl_sync(0xffffffffu, val, prior_id);
-    if ( participate ) {
-      val = prior_val + val;
-    }
-  }
-
-  return val;
-}
 
 // perform a block scan on inc and return the result at each thread
 // pair.first is the exclusive result and pair.second is the inclusive result
@@ -160,7 +142,11 @@ __device__ pair grid_scan(const int block_id,
         prev_block_count = grid_counts[prev_block_id];
       }
 
-      Index_type prev_grid_count = warp_scan_inclusive(prev_block_count);
+      using WarpReduce = cub::WarpReduce<Index_type, warp_size>;
+      __shared__ typename WarpReduce::TempStorage s_temp_warp_storage;
+
+      Index_type prev_grid_count = WarpReduce(s_temp_warp_storage).Sum(prev_block_count);
+      prev_grid_count = __shfl_sync(0xffffffffu, prev_grid_count, 0, warp_size); // broadcast output to all threads in warp
 
       if (last_thread) {
 
