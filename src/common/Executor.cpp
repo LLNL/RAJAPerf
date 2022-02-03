@@ -19,6 +19,7 @@
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
+#include "basic/INDEXLIST_3LOOP.hpp"
 #include "algorithm/SORT.hpp"
 
 #include <list>
@@ -756,6 +757,7 @@ void Executor::runSuite()
 
   warmup_kernels.push_back(new basic::DAXPY(run_params));
   warmup_kernels.push_back(new basic::REDUCE3_INT(run_params));
+  warmup_kernels.push_back(new basic::INDEXLIST_3LOOP(run_params));
   warmup_kernels.push_back(new algorithm::SORT(run_params));
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
