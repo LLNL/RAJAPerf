@@ -128,68 +128,50 @@ __device__ pair grid_scan(const int block_id,
     __shared__ volatile Index_type s_prev_grid_count;
 
     // get prev_grid_count using last warp in block
-    // if (last_warp) {
+    if (last_warp) {
 
-    //   Index_type prev_block_count = 0;
+      Index_type prev_block_count = 0;
 
-    //   const int prev_block_id = block_id-warp_size+warp_index;
+      const int prev_block_id = block_id-warp_size+warp_index;
 
-    //   unsigned prev_block_ready = (prev_block_id >= 0) ? 0u : 1u;
-    //   unsigned prev_blocks_ready_ballot = 0u;
-    //   unsigned prev_grids_ready_ballot = 0u;
+      unsigned prev_block_ready = (prev_block_id >= 0) ? 0u : 1u;
+      unsigned prev_blocks_ready_ballot = 0u;
+      unsigned prev_grids_ready_ballot = 0u;
 
-    //   // ensure previous block_counts are ready and at least one grid_count is ready
-    //   do {
-    //     if (prev_block_id >= 0 && prev_block_ready != 2u) {
-    //       prev_block_ready = atomicCAS(&block_readys[prev_block_id], 11u, 11u);
-    //     }
+      // ensure previous block_counts are ready and at least one grid_count is ready
+      do {
+        if (prev_block_id >= 0 && prev_block_ready != 2u) {
+          prev_block_ready = atomicCAS(&block_readys[prev_block_id], 11u, 11u);
+        }
 
-    //     prev_blocks_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready >= 1u);
-    //     prev_grids_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready == 2u);
+        prev_blocks_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready >= 1u);
+        prev_grids_ready_ballot = __ballot_sync(0xffffffffu, prev_block_ready == 2u);
 
-    //   } while (prev_blocks_ready_ballot != 0xffffffffu || prev_grids_ready_ballot == 0u);
-    //   __threadfence(); // ensure block_counts or grid_counts ready (acquire)
+      } while (prev_blocks_ready_ballot != 0xffffffffu || prev_grids_ready_ballot == 0u);
+      __threadfence(); // ensure block_counts or grid_counts ready (acquire)
 
-    //   // read one grid_count from a block with id grid_count_ready_id
-    //   // and read the block_counts from blocks with higher ids.
-    //   if (warp_index_mask > prev_grids_ready_ballot) {
-    //     // get block_counts for prev_block_ids in (grid_count_ready_id, block_id)
-    //     prev_block_count = block_counts[prev_block_id];
-    //     // if (last_block) printf("block %i, block_counts[%i], %li, %llu\n", block_id, prev_block_id, (long)prev_block_count, device_timer());
-    //   } else if (prev_grids_ready_ballot == (prev_grids_ready_ballot & warp_index_mask_right)) {
-    //     // get grid_count for grid_count_ready_id
-    //     prev_block_count = grid_counts[prev_block_id];
-    //     // if (last_block) printf("block %i, %u, grid_counts[%i], %li, %llu\n", block_id, warp_index_mask_right, prev_block_id, (long)prev_block_count, device_timer());
-    //   }
-
-    //   Index_type prev_grid_count = warp_scan_inclusive(prev_block_count);
-
-    //   if (last_thread) {
-
-    //     if (!last_block) {
-    //       grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
-    //       __threadfence();                        // ensure grid_counts ready (release)
-    //       atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
-    //     }
-
-    //     s_prev_grid_count = prev_grid_count;
-    //     // printf("block %i, %li, %u, %llu\n", block_id, (long)prev_grid_count, prev_grids_ready_ballot, device_timer());
-    //   }
-    // }
-
-    // get prev_grid_count using last thread in block
-    if (last_thread) {
-      while (atomicCAS(&block_readys[block_id-1], 11u, 11u) != 2u); // check if block_counts is ready
-      __threadfence();                                              // ensure block_counts ready (acquire)
-      Index_type prev_grid_count = grid_counts[block_id-1];
-
-      if (!last_block) {
-        grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
-        __threadfence();                        // ensure grid_counts ready (release)
-        atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
+      // read one grid_count from a block with id grid_count_ready_id
+      // and read the block_counts from blocks with higher ids.
+      if (warp_index_mask > prev_grids_ready_ballot) {
+        // get block_counts for prev_block_ids in (grid_count_ready_id, block_id)
+        prev_block_count = block_counts[prev_block_id];
+      } else if (prev_grids_ready_ballot == (prev_grids_ready_ballot & warp_index_mask_right)) {
+        // get grid_count for grid_count_ready_id
+        prev_block_count = grid_counts[prev_block_id];
       }
 
-      s_prev_grid_count = prev_grid_count;
+      Index_type prev_grid_count = warp_scan_inclusive(prev_block_count);
+
+      if (last_thread) {
+
+        if (!last_block) {
+          grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
+          __threadfence();                        // ensure grid_counts ready (release)
+          atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
+        }
+
+        s_prev_grid_count = prev_grid_count;
+      }
     }
 
     __syncthreads();
