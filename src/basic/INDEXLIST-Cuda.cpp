@@ -14,6 +14,7 @@
 
 #include "common/CudaDataUtils.hpp"
 
+#include <cub/block/block_scan.cuh>
 #include <cub/warp/warp_scan.cuh>
 
 #include <iostream>
@@ -44,34 +45,6 @@ struct pair
   Index_type first, second;
 };
 
-
-// perform a block scan on inc and return the result at each thread
-// pair.first is the exclusive result and pair.second is the inclusive result
-__device__ pair block_scan(const Index_type inc)
-{
-  extern __shared__ volatile Index_type s_thread_counts[ ];
-
-  Index_type val = inc;
-  s_thread_counts[ threadIdx.x ] = val;
-  __syncthreads();
-
-  // NOTE: only works for powers of 2
-  for ( int i = 1; i < blockDim.x; i *= 2 ) {
-    const bool participate = threadIdx.x & i;
-    const int prior_id = (threadIdx.x & ~(i-1)) - 1;
-    if ( participate ) {
-      val = s_thread_counts[ prior_id ] + s_thread_counts[ threadIdx.x ];
-      s_thread_counts[ threadIdx.x ] = val;
-    }
-    __syncthreads();
-  }
-
-  Index_type prior_val = (threadIdx.x > 0) ? s_thread_counts[threadIdx.x-1] : 0;
-  __syncthreads();
-
-  return pair { prior_val, val };
-}
-
 // perform a grid scan on inc and return the result at each thread
 // pair.first is the exclusive result and pair.second is the inclusive result
 __device__ pair grid_scan(const int block_id,
@@ -88,7 +61,18 @@ __device__ pair grid_scan(const int block_id,
   const int warp_index_mask = (1u << warp_index);
   const int warp_index_mask_right = warp_index_mask | (warp_index_mask - 1);
 
-  pair count = block_scan(inc);
+  using BlockScan = cub::BlockScan<Index_type, block_size, cub::BLOCK_SCAN_WARP_SCANS>;
+  using WarpReduce = cub::WarpReduce<Index_type, warp_size>;
+
+  union SharedStorage {
+    typename BlockScan::TempStorage block_scan_storage;
+    typename WarpReduce::TempStorage warp_reduce_storage;
+  };
+  __shared__ SharedStorage s_temp_storage;
+
+  pair count;
+  BlockScan(s_temp_storage.block_scan_storage).ExclusiveSum(inc, count.first);
+  count.second = count.first + inc;
 
   if (first_block) {
 
@@ -142,10 +126,8 @@ __device__ pair grid_scan(const int block_id,
         prev_block_count = grid_counts[prev_block_id];
       }
 
-      using WarpReduce = cub::WarpReduce<Index_type, warp_size>;
-      __shared__ typename WarpReduce::TempStorage s_temp_warp_storage;
 
-      Index_type prev_grid_count = WarpReduce(s_temp_warp_storage).Sum(prev_block_count);
+      Index_type prev_grid_count = WarpReduce(s_temp_storage.warp_reduce_storage).Sum(prev_block_count);
       prev_grid_count = __shfl_sync(0xffffffffu, prev_grid_count, 0, warp_size); // broadcast output to all threads in warp
 
       if (last_thread) {
