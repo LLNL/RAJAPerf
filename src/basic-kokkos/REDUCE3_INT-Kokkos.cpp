@@ -33,16 +33,11 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid) {
     Kokkos::fence();
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      // The values below are initilized elsewhere by RPS
-      // These variables were declared to Kokkos-ify the parallel_reduce
-      // construct:
 
-// If the RAJA OPENMP TARGET OPTION IS NOT DEFINED
-//#ifndef RAJA_ENABLE_TARGET_OPENMP
       Int_type max_value = m_vmax_init;
       Int_type min_value = m_vmin_init;
       Int_type sum = m_vsum_init;
-
+      // ADL: argument-dependent look up here
       parallel_reduce(
           "REDUCE3-Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
@@ -58,10 +53,10 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid) {
           Kokkos::Max<Int_type>(max_value), Kokkos::Min<Int_type>(min_value),
           sum);
       m_vsum += static_cast<Int_type>(sum);
-      m_vmin = Kokkos::Experimental::min(m_vmin, static_cast<Int_type>(min_value));
-      m_vmax = Kokkos::Experimental::max(m_vmax, static_cast<Int_type>(max_value));
-
-//#endif
+      m_vmin =
+          Kokkos::Experimental::min(m_vmin, static_cast<Int_type>(min_value));
+      m_vmax =
+          Kokkos::Experimental::max(m_vmax, static_cast<Int_type>(max_value));
     }
     Kokkos::fence();
     stopTimer();

@@ -168,7 +168,6 @@ Kokkos_ENABLE_HIP variable to ON")
 
   if(ENABLE_TARGET_OPENMP)
     set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")
-    set(RAJA_ENABLE_TARGET_OPENMP ON CACHE BOOL "Docstring")
     if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
       if(NOT EXPERIMENTAL_BUILD)
       message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")

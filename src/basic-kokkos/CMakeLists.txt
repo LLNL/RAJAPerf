@@ -21,5 +21,6 @@ blt_add_library(
           NESTED_INIT-Kokkos.cpp
           REDUCE3_INT-Kokkos.cpp
           TRAP_INT-Kokkos.cpp
+          DAXPY_ATOMIC-Kokkos.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
