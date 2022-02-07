@@ -24,7 +24,9 @@ namespace lcals
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 128;
+  const size_t raja_hip_block_size = 1024;
+
 
 
 #define GEN_LIN_RECUR_DATA_SETUP_HIP \
@@ -76,15 +78,15 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       hipLaunchKernelGGL(genlinrecur1, grid_size1, block_size, 0, 0,
+       const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, base_hip_block_size);
+       hipLaunchKernelGGL(genlinrecur1, grid_size1, base_hip_block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        hipErrchk( hipGetLastError() );
 
-       const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       hipLaunchKernelGGL(genlinrecur1, grid_size2, block_size, 0, 0,
+       const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, base_hip_block_size);
+       hipLaunchKernelGGL(genlinrecur1, grid_size2, base_hip_block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
@@ -102,12 +104,12 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(0, N), [=] __device__ (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(1, N+1), [=] __device__ (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });

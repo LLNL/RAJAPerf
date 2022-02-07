@@ -28,7 +28,8 @@ namespace apps
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 256;
+  const size_t raja_hip_block_size = 1024;
 
 
 #define DEL_DOT_VEC_2D_DATA_SETUP_HIP \
@@ -88,9 +89,9 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
 
-      hipLaunchKernelGGL((deldotvec2d), dim3(grid_size), dim3(block_size), 0, 0, div,
+      hipLaunchKernelGGL((deldotvec2d), dim3(grid_size), dim3(base_hip_block_size), 0, 0, div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -123,10 +124,10 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
         DEL_DOT_VEC_2D_BODY;
       };
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
 
       hipLaunchKernelGGL(lambda_hip_forall<decltype(deldotvec2d_lambda)>,
-        grid_size, block_size, 0, 0,
+        grid_size, base_hip_block_size, 0, 0,
         0, iend, deldotvec2d_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -152,7 +153,7 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          zones, [=] __device__ (Index_type i) {
          DEL_DOT_VEC_2D_BODY;
        });

@@ -24,7 +24,8 @@ namespace apps
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 256;
+  const size_t raja_hip_block_size = 1024;
 
 
 #define HALOEXCHANGE_DATA_SETUP_HIP \
@@ -88,8 +89,8 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
         Index_type  len  = pack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          dim3 nthreads_per_block(block_size);
-          dim3 nblocks((len + block_size-1) / block_size);
+          dim3 nthreads_per_block(base_hip_block_size);
+          dim3 nblocks((len + base_hip_block_size-1) / base_hip_block_size);
           hipLaunchKernelGGL((haloexchange_pack), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
@@ -104,8 +105,8 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
         Index_type  len  = unpack_index_list_lengths[l];
         for (Index_type v = 0; v < num_vars; ++v) {
           Real_ptr var = vars[v];
-          dim3 nthreads_per_block(block_size);
-          dim3 nblocks((len + block_size-1) / block_size);
+          dim3 nthreads_per_block(base_hip_block_size);
+          dim3 nblocks((len + base_hip_block_size-1) / base_hip_block_size);
           hipLaunchKernelGGL((haloexchange_unpack), nblocks, nthreads_per_block, 0, 0,
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
@@ -123,7 +124,7 @@ void HALOEXCHANGE::runHipVariant(VariantID vid)
 
     HALOEXCHANGE_DATA_SETUP_HIP;
 
-    using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
+    using EXEC_POL = RAJA::hip_exec<raja_hip_block_size, true /*async*/>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

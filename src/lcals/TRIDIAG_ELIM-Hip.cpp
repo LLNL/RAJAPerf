@@ -24,7 +24,8 @@ namespace lcals
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 128;
+  const size_t raja_hip_block_size = 1024;
 
 
 #define TRIDIAG_ELIM_DATA_SETUP_HIP \
@@ -65,8 +66,8 @@ void TRIDIAG_ELIM::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL(eos, grid_size, block_size, 0, 0, xout, xin, y, z,
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
+       hipLaunchKernelGGL(eos, grid_size, base_hip_block_size, 0, 0, xout, xin, y, z,
                                        iend );
        hipErrchk( hipGetLastError() );
 
@@ -82,7 +83,7 @@ void TRIDIAG_ELIM::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          TRIDIAG_ELIM_BODY;
        });

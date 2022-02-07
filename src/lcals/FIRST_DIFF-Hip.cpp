@@ -24,8 +24,8 @@ namespace lcals
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
-
+  const size_t base_hip_block_size = 128;
+  const size_t raja_hip_block_size = 1024;
 
 #define FIRST_DIFF_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_N); \
@@ -61,8 +61,8 @@ void FIRST_DIFF::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((first_diff), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
+       hipLaunchKernelGGL((first_diff), dim3(grid_size), dim3(base_hip_block_size), 0, 0,  x, y,
                                               iend );
        hipErrchk( hipGetLastError() );
 
@@ -78,7 +78,7 @@ void FIRST_DIFF::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_DIFF_BODY;
        });

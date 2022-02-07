@@ -26,7 +26,8 @@ namespace apps
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 256;
+  const size_t raja_hip_block_size = 1024;
 
 
 #define VOL3D_DATA_SETUP_HIP \
@@ -85,9 +86,9 @@ void VOL3D::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
 
-      hipLaunchKernelGGL((vol3d), dim3(grid_size), dim3(block_size), 0, 0, vol,
+      hipLaunchKernelGGL((vol3d), dim3(grid_size), dim3(base_hip_block_size), 0, 0, vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        y0, y1, y2, y3, y4, y5, y6, y7,
                                        z0, z1, z2, z3, z4, z5, z6, z7,
@@ -111,7 +112,7 @@ void VOL3D::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<base_hip_block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         VOL3D_BODY;
       });

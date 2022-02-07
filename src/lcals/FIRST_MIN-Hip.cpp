@@ -24,7 +24,10 @@ namespace lcals
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 128;
+  const size_t raja_hip_block_size = 1024;
+
+
 
 
 #define FIRST_MIN_DATA_SETUP_HIP \
@@ -88,9 +91,9 @@ void FIRST_MIN::runHipVariant(VariantID vid)
        hipErrchk( hipMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
                                hipMemcpyHostToDevice ) );
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL(first_min, grid_size, block_size,
-                   sizeof(MyMinLoc)*block_size, 0, x,
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
+       hipLaunchKernelGGL(first_min, grid_size, base_hip_block_size,
+                   sizeof(MyMinLoc)*base_hip_block_size, 0, x,
                                                    dminloc,
                                                    iend );
        hipErrchk( hipGetLastError() );
@@ -116,7 +119,7 @@ void FIRST_MIN::runHipVariant(VariantID vid)
        RAJA::ReduceMinLoc<RAJA::hip_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_MIN_BODY_RAJA;
        });

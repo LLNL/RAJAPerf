@@ -28,7 +28,8 @@ namespace apps
   //
   // Define thread block size for HIP execution
   //
-  const size_t block_size = 256;
+  const size_t base_hip_block_size = 128;
+  const size_t raja_hip_block_size = 1024;
 
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
@@ -104,15 +105,15 @@ void FIR::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, base_hip_block_size);
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
-       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(base_hip_block_size), 0, 0,  out, in,
                                        coefflen,
                                        iend );
        hipErrchk( hipGetLastError() );
 #else
-       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(base_hip_block_size), 0, 0,  out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -133,7 +134,7 @@ void FIR::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<raja_hip_block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIR_BODY;
        });
