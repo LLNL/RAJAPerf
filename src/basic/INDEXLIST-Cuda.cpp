@@ -16,6 +16,7 @@
 
 #include <cub/block/block_scan.cuh>
 #include <cub/warp/warp_scan.cuh>
+#include <cub/block/block_exchange.cuh>
 
 #include <iostream>
 
@@ -29,6 +30,7 @@ namespace basic
   //
   const size_t block_size = 256;
   const size_t warp_size = 32;
+  const size_t items_per_thread = 15;
 
 
 #define INDEXLIST_DATA_SETUP_CUDA \
@@ -40,54 +42,67 @@ namespace basic
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(list);
 
-struct pair
-{
-  Index_type first, second;
-};
 
-// perform a grid scan on inc and return the result at each thread
-// pair.first is the exclusive result and pair.second is the inclusive result
-__device__ pair grid_scan(const int block_id,
-                          const Index_type inc,
+// perform a grid scan on val and returns the result at each thread
+// in exclusive and inclusive, note that val is used as scratch space
+template < size_t block_size, size_t items_per_thread >
+__device__ void grid_scan(const int block_id,
+                          Index_type (&val)[items_per_thread],
+                          Index_type (&exclusive)[items_per_thread],
+                          Index_type (&inclusive)[items_per_thread],
                           Index_type* block_counts,
                           Index_type* grid_counts,
                           unsigned* block_readys)
 {
   const bool first_block = (block_id == 0);
   const bool last_block = (block_id == gridDim.x-1);
-  const bool last_thread = (threadIdx.x == blockDim.x-1);
-  const bool last_warp = (threadIdx.x >= blockDim.x - warp_size);
+  const bool last_thread = (threadIdx.x == block_size-1);
+  const bool last_warp = (threadIdx.x >= block_size - warp_size);
   const int warp_index = (threadIdx.x % warp_size);
   const int warp_index_mask = (1u << warp_index);
   const int warp_index_mask_right = warp_index_mask | (warp_index_mask - 1);
 
-  using BlockScan = cub::BlockScan<Index_type, block_size, cub::BLOCK_SCAN_WARP_SCANS>;
+  using BlockScan = cub::BlockScan<Index_type, block_size>; //, cub::BLOCK_SCAN_WARP_SCANS>;
+  using BlockExchange = cub::BlockExchange<Index_type, block_size, items_per_thread>;
   using WarpReduce = cub::WarpReduce<Index_type, warp_size>;
 
   union SharedStorage {
     typename BlockScan::TempStorage block_scan_storage;
+    typename BlockExchange::TempStorage block_exchange_storage;
     typename WarpReduce::TempStorage warp_reduce_storage;
   };
   __shared__ SharedStorage s_temp_storage;
 
-  pair count;
-  BlockScan(s_temp_storage.block_scan_storage).ExclusiveSum(inc, count.first);
-  count.second = count.first + inc;
 
+  BlockExchange(s_temp_storage.block_exchange_storage).StripedToBlocked(val);
+  __syncthreads();
+
+
+  BlockScan(s_temp_storage.block_scan_storage).ExclusiveSum(val, exclusive);
+  __syncthreads();
+
+  for (int ti = 0; ti < items_per_thread; ++ti) {
+    inclusive[ti] = exclusive[ti] + val[ti];
+  }
+
+  BlockExchange(s_temp_storage.block_exchange_storage).BlockedToStriped(exclusive);
+  __syncthreads();
+  BlockExchange(s_temp_storage.block_exchange_storage).BlockedToStriped(inclusive);
+  __syncthreads();
   if (first_block) {
 
     if (!last_block && last_thread) {
-      block_counts[block_id] = count.second;  // write inclusive scan result for block
-      grid_counts[block_id] = count.second;   // write inclusive scan result for grid through block
-      __threadfence();                          // ensure block_counts, grid_counts ready (release)
+      block_counts[block_id] = inclusive[items_per_thread-1]; // write inclusive scan result for block
+      grid_counts[block_id] = inclusive[items_per_thread-1];  // write inclusive scan result for grid through block
+      __threadfence();                         // ensure block_counts, grid_counts ready (release)
       atomicExch(&block_readys[block_id], 2u); // write block_counts, grid_counts are ready
     }
 
   } else {
 
     if (!last_block && last_thread) {
-      block_counts[block_id] = count.second;  // write inclusive scan result for block
-      __threadfence();                          // ensure block_counts ready (release)
+      block_counts[block_id] = inclusive[items_per_thread-1]; // write inclusive scan result for block
+      __threadfence();                         // ensure block_counts ready (release)
       atomicExch(&block_readys[block_id], 1u); // write block_counts is ready
     }
 
@@ -133,7 +148,7 @@ __device__ pair grid_scan(const int block_id,
       if (last_thread) {
 
         if (!last_block) {
-          grid_counts[block_id] = prev_grid_count + count.second;   // write inclusive scan result for grid through block
+          grid_counts[block_id] = prev_grid_count + inclusive[items_per_thread-1];   // write inclusive scan result for grid through block
           __threadfence();                        // ensure grid_counts ready (release)
           atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
         }
@@ -145,19 +160,20 @@ __device__ pair grid_scan(const int block_id,
     __syncthreads();
     Index_type prev_grid_count = s_prev_grid_count;
 
-    count.first  = prev_grid_count + count.first;
-    count.second = prev_grid_count + count.second;
+    for (int ti = 0; ti < items_per_thread; ++ti) {
+      exclusive[ti] = prev_grid_count + exclusive[ti];
+      inclusive[ti] = prev_grid_count + inclusive[ti];
+    }
 
     if (last_block) {
-      for (int i = threadIdx.x; i < gridDim.x-1; i += blockDim.x) {
+      for (int i = threadIdx.x; i < gridDim.x-1; i += block_size) {
         while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
       }
     }
   }
-
-  return count;
 }
 
+template < size_t block_size, size_t items_per_thread >
 __global__ void indexlist(Real_ptr x,
                           Int_ptr list,
                           Index_type* block_counts,
@@ -169,22 +185,29 @@ __global__ void indexlist(Real_ptr x,
   // blocks do run in order in cuda an hip (this can be replaced with an atomic)
   const int block_id = blockIdx.x;
 
-  Index_type i = block_id * blockDim.x + threadIdx.x;
-  Index_type inc = 0;
-  if (i < iend) {
+  Index_type val[items_per_thread] = { 0 };
+
+  for (Index_type ti = 0, i = block_id * block_size * items_per_thread + threadIdx.x;
+       ti < items_per_thread && i < iend;
+       ++ti, i += block_size) {
     if (INDEXLIST_CONDITIONAL) {
-      inc = 1;
+      val[ti] = 1;
     }
   }
 
-  pair count = grid_scan(block_id, inc, block_counts, grid_counts, block_readys);
+  Index_type exclusive[items_per_thread];
+  Index_type inclusive[items_per_thread];
+  grid_scan<block_size, items_per_thread>(
+      block_id, val, exclusive, inclusive, block_counts, grid_counts, block_readys);
 
-  if (i < iend) {
-    if (count.first != count.second) {
-      list[count.first] = i;
+  for (Index_type ti = 0, i = block_id * block_size * items_per_thread + threadIdx.x;
+       ti < items_per_thread && i < iend;
+       ++ti, i += block_size) {
+    if (exclusive[ti] != inclusive[ti]) {
+      list[exclusive[ti]] = i;
     }
     if (i == iend-1) {
-      *len = count.second;
+      *len = inclusive[ti];
     }
   }
 }
@@ -201,7 +224,8 @@ void INDEXLIST::runCudaVariant(VariantID vid)
 
     INDEXLIST_DATA_SETUP_CUDA;
 
-    const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size);
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
+    const size_t shmem_size = 0;
 
     Index_type* len;
     allocCudaPinnedData(len, 1);
@@ -216,7 +240,8 @@ void INDEXLIST::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      indexlist<<<grid_size, block_size, sizeof(Index_type)*block_size>>>(
+      indexlist<block_size, items_per_thread>
+          <<<grid_size, block_size, shmem_size>>>(
           x+ibegin, list+ibegin,
           block_counts, grid_counts, block_readys,
           len, iend-ibegin );
