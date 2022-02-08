@@ -158,28 +158,16 @@ __device__ pair grid_scan(const int block_id,
   return count;
 }
 
-__device__ int get_block_id(unsigned* block_id_inc)
-{
-  __shared__ volatile unsigned s_block_id;
-  if (threadIdx.x == 0) {
-    s_block_id = atomicInc(block_id_inc, gridDim.x-1);
-  }
-  __syncthreads();
-  unsigned block_id = s_block_id;
-  __syncthreads();
-  return static_cast<int>(block_id);
-}
-
 __global__ void indexlist(Real_ptr x,
                           Int_ptr list,
                           Index_type* block_counts,
                           Index_type* grid_counts,
                           unsigned* block_readys,
-                          unsigned* block_id_inc,
                           Index_type* len,
                           Index_type iend)
 {
-  const int block_id = get_block_id(block_id_inc);
+  // blocks do run in order in cuda an hip (this can be replaced with an atomic)
+  const int block_id = blockIdx.x;
 
   Index_type i = block_id * blockDim.x + threadIdx.x;
   Index_type inc = 0;
@@ -224,16 +212,13 @@ void INDEXLIST::runCudaVariant(VariantID vid)
     unsigned* block_readys;
     allocCudaDeviceData(block_readys, grid_size);
     cudaErrchk( cudaMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
-    unsigned* block_id_inc;
-    allocCudaDeviceData(block_id_inc, grid_size);
-    cudaErrchk( cudaMemset(block_id_inc, 0, sizeof(unsigned)) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       indexlist<<<grid_size, block_size, sizeof(Index_type)*block_size>>>(
           x+ibegin, list+ibegin,
-          block_counts, grid_counts, block_readys, block_id_inc,
+          block_counts, grid_counts, block_readys,
           len, iend-ibegin );
       cudaErrchk( cudaGetLastError() );
 
@@ -247,7 +232,6 @@ void INDEXLIST::runCudaVariant(VariantID vid)
     deallocCudaDeviceData(block_counts);
     deallocCudaDeviceData(grid_counts);
     deallocCudaDeviceData(block_readys);
-    deallocCudaDeviceData(block_id_inc);
 
     INDEXLIST_DATA_TEARDOWN_CUDA;
 
