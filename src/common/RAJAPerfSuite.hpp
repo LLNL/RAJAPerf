@@ -16,7 +16,6 @@
 #include "RAJA/config.hpp"
 #include "rajaperf_config.hpp"
 
-
 #if defined(RUN_KOKKOS)
 #include "Kokkos_Core.hpp"
 #endif // RUN_KOKKOS
