@@ -23,7 +23,8 @@
 #include <ostream>
 #include <string>
 
-namespace rajaperf {
+namespace rajaperf
+{
 
 class KernelBase;
 class RunParams;
@@ -53,6 +54,7 @@ enum GroupID {
 
 };
 
+
 //
 /*!
  *******************************************************************************
@@ -68,9 +70,9 @@ enum GroupID {
  */
 enum KernelID {
 
-  //
-  // Basic kernels...
-  //
+//
+// Basic kernels...
+//
   Basic_DAXPY = 0,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
@@ -90,9 +92,10 @@ enum KernelID {
 #ifdef RUN_KOKKOS // move this up to the point implemented with Kokkos
   NumKernels,
 #endif
-  //
-  // Lcals kernels...
-  //
+
+//
+// Lcals kernels...
+//
   Lcals_DIFF_PREDICT,
   Lcals_EOS,
   Lcals_FIRST_DIFF,
@@ -105,9 +108,9 @@ enum KernelID {
   Lcals_PLANCKIAN,
   Lcals_TRIDIAG_ELIM,
 
-  //
-  // Polybench kernels...
-  //
+//
+// Polybench kernels...
+//
   Polybench_2MM,
   Polybench_3MM,
   Polybench_ADI,
@@ -122,9 +125,9 @@ enum KernelID {
   Polybench_JACOBI_2D,
   Polybench_MVT,
 
-  //
-  // Stream kernels...
-  //
+//
+// Stream kernels...
+//
   Stream_ADD,
   Stream_COPY,
   Stream_DOT,
@@ -134,7 +137,10 @@ enum KernelID {
 //
 // Apps kernels...
 //
+<<<<<<< HEAD
   Apps_CONVECTION3DPA,
+=======
+>>>>>>> 78348cb9 (reverting formatting changes)
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
@@ -152,7 +158,10 @@ enum KernelID {
 //
 // Algorithm kernels...
 //
+<<<<<<< HEAD
   Algorithm_SCAN,
+=======
+>>>>>>> 78348cb9 (reverting formatting changes)
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
@@ -164,6 +173,7 @@ enum KernelID {
 #endif
 
 };
+
 
 /*!
  *******************************************************************************
@@ -204,6 +214,7 @@ enum VariantID {
 
 };
 
+
 /*!
  *******************************************************************************
  *
@@ -235,6 +246,7 @@ enum FeatureID {
 
 };
 
+
 /*!
  *******************************************************************************
  *
@@ -242,7 +254,7 @@ enum FeatureID {
  *
  *******************************************************************************
  */
-const std::string &getGroupName(GroupID gid);
+const std::string& getGroupName(GroupID gid);
 
 /*!
  *******************************************************************************
@@ -264,7 +276,7 @@ std::string getKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string &getFullKernelName(KernelID kid);
+const std::string& getFullKernelName(KernelID kid);
 
 /*!
  *******************************************************************************
@@ -273,7 +285,7 @@ const std::string &getFullKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string &getVariantName(VariantID vid);
+const std::string& getVariantName(VariantID vid);
 
 /*!
  *******************************************************************************
@@ -302,7 +314,7 @@ bool isVariantGPU(VariantID vid);
  *
  *******************************************************************************
  */
-const std::string &getFeatureName(FeatureID vid);
+const std::string& getFeatureName(FeatureID vid);
 
 /*!
  *******************************************************************************
@@ -313,7 +325,7 @@ const std::string &getFeatureName(FeatureID vid);
  *
  *******************************************************************************
  */
-KernelBase *getKernelObject(KernelID kid, const RunParams &run_params);
+KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
 
 /*!
  *******************************************************************************
@@ -324,7 +336,7 @@ KernelBase *getKernelObject(KernelID kid, const RunParams &run_params);
  *
  *******************************************************************************
  */
-std::ostream &getCout();
+std::ostream& getCout();
 
 /*!
  *******************************************************************************
@@ -333,7 +345,7 @@ std::ostream &getCout();
  *
  *******************************************************************************
  */
-std::ostream *makeNullStream();
+std::ostream* makeNullStream();
 
 /*!
  *******************************************************************************
@@ -398,6 +410,6 @@ auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
   // An allocation is implicitly made here
   device_view_type device_data_copy("StringName", boundaries...);
 
-} // namespace rajaperf
+}  // closing brace for rajaperf namespace
 
-#endif // closing endif for header file include guard
+#endif  // closing endif for header file include guard
