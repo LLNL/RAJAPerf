@@ -224,29 +224,35 @@ __global__ void indexlist(Real_ptr x,
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
 
-  Index_type val[items_per_thread] = { 0 };
+  Index_type vals[items_per_thread];
 
-  for (Index_type ti = 0, i = block_id * block_size * items_per_thread + threadIdx.x;
-       ti < items_per_thread && i < iend;
-       ++ti, i += block_size) {
-    if (INDEXLIST_CONDITIONAL) {
-      val[ti] = 1;
+  for (Index_type ti = 0; ti < items_per_thread; ++ti) {
+    Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
+    Index_type val = 0;
+    if (i < iend) {
+      if (INDEXLIST_CONDITIONAL) {
+        val = 1;
+      }
     }
+    vals[ti] = val;
   }
 
-  Index_type exclusive[items_per_thread];
-  Index_type inclusive[items_per_thread];
+  Index_type exclusives[items_per_thread];
+  Index_type inclusives[items_per_thread];
   grid_scan<block_size, items_per_thread>(
-      block_id, val, exclusive, inclusive, block_counts, grid_counts, block_readys);
+      block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
 
-  for (Index_type ti = 0, i = block_id * block_size * items_per_thread + threadIdx.x;
-       ti < items_per_thread && i < iend;
-       ++ti, i += block_size) {
-    if (exclusive[ti] != inclusive[ti]) {
-      list[exclusive[ti]] = i;
-    }
-    if (i == iend-1) {
-      *len = inclusive[ti];
+  for (Index_type ti = 0; ti < items_per_thread; ++ti) {
+    Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
+    Index_type exclusive = exclusives[ti];
+    Index_type inclusive = inclusives[ti];
+    if (i < iend) {
+      if (exclusive != inclusive) {
+        list[exclusive] = i;
+      }
+      if (i == iend-1) {
+        *len = inclusive;
+      }
     }
   }
 }
