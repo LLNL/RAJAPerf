@@ -17,25 +17,32 @@
 #ifndef RAJAPerf_Basic_DAXPY_ATOMIC_HPP
 #define RAJAPerf_Basic_DAXPY_ATOMIC_HPP
 
-#define DAXPY_ATOMIC_DATA_SETUP                                                \
-  Real_ptr x = m_x;                                                            \
-  Real_ptr y = m_y;                                                            \
+#define DAXPY_ATOMIC_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
   Real_type a = m_a;
 
-#define DAXPY_ATOMIC_BODY y[i] += a * x[i];
+#define DAXPY_ATOMIC_BODY  \
+  y[i] += a * x[i] ;
 
-#define DAXPY_ATOMIC_RAJA_BODY(policy) RAJA::atomicAdd<policy>(&y[i], a * x[i]);
+#define DAXPY_ATOMIC_RAJA_BODY(policy)  \
+  RAJA::atomicAdd<policy>(&y[i], a * x[i]);
+
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf {
+namespace rajaperf
+{
 class RunParams;
 
-namespace basic {
+namespace basic
+{
 
-class DAXPY_ATOMIC : public KernelBase {
+class DAXPY_ATOMIC : public KernelBase
+{
 public:
-  DAXPY_ATOMIC(const RunParams &params);
+
+  DAXPY_ATOMIC(const RunParams& params);
 
   ~DAXPY_ATOMIC();
 
