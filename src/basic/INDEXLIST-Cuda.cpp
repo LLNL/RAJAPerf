@@ -211,6 +211,7 @@ __device__ void grid_scan(const int block_id,
 }
 
 template < size_t block_size, size_t items_per_thread >
+__launch_bounds__(block_size)
 __global__ void indexlist(Real_ptr x,
                           Int_ptr list,
                           Index_type* block_counts,
