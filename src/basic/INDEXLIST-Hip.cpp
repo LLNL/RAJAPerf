@@ -71,6 +71,7 @@ __device__ void grid_scan(const int block_id,
     typename BlockScan::storage_type block_scan_storage;
     typename BlockExchange::storage_type block_exchange_storage;
     typename WarpReduce::storage_type warp_reduce_storage;
+    volatile Index_type prev_grid_count;
   };
   __shared__ SharedStorage s_temp_storage;
 
@@ -106,8 +107,6 @@ __device__ void grid_scan(const int block_id,
       __threadfence();                         // ensure block_counts ready (release)
       atomicExch(&block_readys[block_id], 1u); // write block_counts is ready
     }
-
-    __shared__ volatile Index_type s_prev_grid_count;
 
     // get prev_grid_count using last warp in block
     if (last_warp) {
@@ -190,12 +189,12 @@ __device__ void grid_scan(const int block_id,
           atomicExch(&block_readys[block_id], 2u); // write grid_counts is ready
         }
 
-        s_prev_grid_count = prev_grid_count;
+        s_temp_storage.prev_grid_count = prev_grid_count;
       }
     }
 
     __syncthreads();
-    Index_type prev_grid_count = s_prev_grid_count;
+    Index_type prev_grid_count = s_temp_storage.prev_grid_count;
 
     for (int ti = 0; ti < items_per_thread; ++ti) {
       exclusive[ti] = prev_grid_count + exclusive[ti];
