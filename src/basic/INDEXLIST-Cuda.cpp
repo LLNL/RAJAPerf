@@ -60,8 +60,8 @@ __device__ void grid_scan(const int block_id,
   const bool last_thread = (threadIdx.x == block_size-1);
   const bool last_warp = (threadIdx.x >= block_size - warp_size);
   const int warp_index = (threadIdx.x % warp_size);
-  const int warp_index_mask = (1u << warp_index);
-  const int warp_index_mask_right = warp_index_mask | (warp_index_mask - 1);
+  const unsigned warp_index_mask = (1u << warp_index);
+  const unsigned warp_index_mask_right = warp_index_mask | (warp_index_mask - 1u);
 
   using BlockScan = cub::BlockScan<Index_type, block_size>; //, cub::BLOCK_SCAN_WARP_SCANS>;
   using BlockExchange = cub::BlockExchange<Index_type, block_size, items_per_thread>;
@@ -220,7 +220,7 @@ __global__ void indexlist(Real_ptr x,
                           Index_type* len,
                           Index_type iend)
 {
-  // blocks do start running in order in cuda an hip, so a block with a higher
+  // blocks do start running in order in cuda and hip, so a block with a higher
   // index can wait on a block with a lower index without deadlocking
   // (replace with an atomicInc if this changes)
   const int block_id = blockIdx.x;
