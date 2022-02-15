@@ -243,6 +243,23 @@ struct ExactSqrt
   static constexpr bool valid() { return sqrt(I)*sqrt(I) == I; }
 };
 
+// helper function to get the Nth value from a camp int pack:
+template <size_t N, size_t... I>
+static constexpr size_t GetN(camp::int_seq<size_t, I...> sizes){
+return std::integral_constant<size_t,
+    std::get<N>(std::array<size_t,sizeof...(I)> { I... }) >();
+}
+//compile time loop over an integer sequence
+//this allows for creating a loop over a compile time
+template <typename Func, typename T, T... ts>
+static void seq_for(camp::int_seq<T, ts...>, Func func) {
+    (static_cast<void>(f(std::integral_constant<T, ts>{})), ...);
+}
+template<size_t N, typename Func>
+static void seq_for(Func func) {
+    for_seq(camp::int_seq<size_t, N>{}, func);
+}
+
 // A camp::int_seq of size_t's that is rajaperf::configuration::gpu_block_sizes
 // if rajaperf::configuration::gpu_block_sizes is not empty
 // and a camp::int_seq of default_block_size otherwise
