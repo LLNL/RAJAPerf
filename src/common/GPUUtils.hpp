@@ -257,7 +257,7 @@ static void seq_for(camp::int_seq<T, ts...>, Func func) {
 }
 template<size_t N, typename Func>
 static void seq_for(Func func) {
-    for_seq(camp::int_seq<size_t, N>{}, func);
+    seq_for(camp::int_seq<size_t, N>{}, func);
 }
 
 // A camp::int_seq of size_t's that is rajaperf::configuration::gpu_block_sizes
