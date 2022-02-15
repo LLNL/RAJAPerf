@@ -250,10 +250,10 @@ return camp::integral_constant<size_t,
     std::get<N>(std::array<size_t,sizeof...(I)> { I... }) >();
 }
 //compile time loop over an integer sequence
-//this allows for creating a loop over a compile time
+//this allows for creating a loop over a compile time constant variable
 template <typename Func, typename T, T... ts>
 static void seq_for(camp::int_seq<T, ts...>, Func func) {
-    (static_cast<void>(f(camp::integral_constant<T, ts>{})), ...);
+	static_cast<void>(camp::sink((f(camp::integral_constant<T,ts>{}), 0)...));
 }
 template<size_t N, typename Func>
 static void seq_for(Func func) {
