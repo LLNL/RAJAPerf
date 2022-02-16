@@ -25,7 +25,7 @@
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
-#cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP_SCAN
+#cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
 namespace rajaperf {
 
