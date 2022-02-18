@@ -45,5 +45,12 @@ cmake \
 
 echo
 echo "***********************************************************************"
+echo
 echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
+echo
+echo "  Please note that you have to run with mpi when you run"
+echo "  the RAJA Perf Suite; for example,"
+echo
+echo "    srun -n2 ./bin/raja-perf.exe"
+echo
 echo "***********************************************************************"

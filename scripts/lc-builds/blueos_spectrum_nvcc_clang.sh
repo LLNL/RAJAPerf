@@ -61,8 +61,8 @@ echo "***********************************************************************"
 echo
 echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo
-echo "  Please note that you have to disable CUDA GPU hooks when you run"
-echo "  the RAJA Perf Suite; for example,"
+echo "  Please note that you have to run with mpi and disable CUDA GPU hooks"
+echo "  when you run the RAJA Perf Suite; for example,"
 echo
 echo "    lrun -n4 ./bin/raja-perf.exe"
 echo
