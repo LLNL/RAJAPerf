@@ -43,7 +43,7 @@ using namespace std;
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants),
-    reference_tid(std::numeric_limits<size_t>::max())
+    reference_tid(KernelBase::getUnknownTuningIdx())
 {
 }
 

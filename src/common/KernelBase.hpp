@@ -43,6 +43,8 @@ namespace rajaperf {
 class KernelBase
 {
 public:
+  static constexpr size_t getUnknownTuningIdx()
+    { return std::numeric_limits<size_t>::max(); }
   KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
@@ -129,7 +131,7 @@ public:
       for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
         if (tuning_name == a_tuning_name) { return t; }
       }
-      return std::numeric_limits<size_t>::max();
+      return getUnknownTuningIdx();
     }
   size_t getNumVariantTunings(VariantID vid) const
     { return variant_tuning_names[vid].size(); }
@@ -144,7 +146,7 @@ public:
   //
   bool wasVariantTuningRun(VariantID vid, size_t tid) const
     {
-      if (tid != std::numeric_limits<size_t>::max()) {
+      if (tid != getUnknownTuningIdx()) {
         return num_exec[vid].at(tid) > 0;
       }
       return false;

@@ -36,7 +36,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   FLOPs_per_rep = -1;
 
   running_variant = NumVariants;
-  running_tuning = std::numeric_limits<size_t>::max();
+  running_tuning = getUnknownTuningIdx();
 
   checksum_scale_factor = 1.0;
 }
@@ -162,7 +162,7 @@ void KernelBase::execute(VariantID vid, size_t tid)
   this->tearDown(vid, tid);
 
   running_variant = NumVariants;
-  running_tuning = std::numeric_limits<size_t>::max();
+  running_tuning = getUnknownTuningIdx();
 }
 
 void KernelBase::recordExecTime()
