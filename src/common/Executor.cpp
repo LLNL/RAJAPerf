@@ -449,6 +449,7 @@ void Executor::setupSuite()
         run_var.insert( vid );
         if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
           reference_vid = vid;
+          reference_tid = 0;
         }
       }
     }
@@ -458,6 +459,7 @@ void Executor::setupSuite()
     //
     if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
       reference_vid = *run_var.begin();
+      reference_tid = 0;
     }
 
   } else {
@@ -485,6 +487,7 @@ void Executor::setupSuite()
             run_var.insert(vid);
             if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
               reference_vid = vid;
+              reference_tid = 0;
             }
           }
           found_it = true;
@@ -499,6 +502,7 @@ void Executor::setupSuite()
     //
     if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
       reference_vid = *run_var.begin();
+      reference_tid = 0;
     }
 
     run_params.setInvalidVariantInput(invalid);
