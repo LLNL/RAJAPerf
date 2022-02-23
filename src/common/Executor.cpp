@@ -992,7 +992,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
           std::string const& tuning_name = tuning_names[variant_ids[iv]][it];
           file << sepchr <<right<< setw(vartuncol_width[iv][it]);
           if ( (mode == CSVRepMode::Speedup) &&
-               (!kern->hasVariantTuningDefined(reference_vid, tuning_name) ||
+               (!kern->hasVariantTuningDefined(reference_vid, reference_tid) ||
                 !kern->hasVariantTuningDefined(vid, tuning_name)) ) {
             file << "Not run";
           } else if ( (mode == CSVRepMode::Timing) &&
