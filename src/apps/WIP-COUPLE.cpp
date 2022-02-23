@@ -80,8 +80,9 @@ void COUPLE::setUp(VariantID vid, size_t /*tid*/)
   m_ireal = Complex_type(0.0, 1.0);
 }
 
-void COUPLE::runKernel(VariantID vid)
+void COUPLE::runKernel(VariantID vid, size_t tid)
 {
+  RAJA_UNUSED_VAR(tid);
   const Index_type run_reps = getRunReps();
 
   COUPLE_DATA_SETUP;
@@ -158,7 +159,7 @@ void COUPLE::runKernel(VariantID vid)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :
     {
-      runOpenMPTargetVariant(vid);
+      runOpenMPTargetVariant(vid, tid);
       break;
     }
 #endif
@@ -167,7 +168,7 @@ void COUPLE::runKernel(VariantID vid)
     case Base_CUDA :
     case RAJA_CUDA :
     {
-      runCudaVariant(vid);
+      runCudaVariant(vid, tid);
       break;
     }
 #endif

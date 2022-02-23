@@ -162,7 +162,7 @@ public:
   ~COUPLE();
 
   void setUp(VariantID vid, size_t tid);
-  void runKernel(VariantID vid);
+  void runKernel(VariantID vid, size_t tid);
   void updateChecksum(VariantID vid, size_t tid);
   void tearDown(VariantID vid, size_t tid);
 
