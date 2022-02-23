@@ -129,16 +129,17 @@ public:
     }
   size_t getVariantTuningIndex(VariantID vid, std::string const& tuning_name) const
     {
-      size_t t = 0;
-      for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
+      std::vector<std::string> const& tuning_names = getVariantTuningNames(vid);
+      for (size_t t = 0; t < tuning_names.size(); ++t) {
+        std::string const& a_tuning_name = tuning_names[t];
         if (tuning_name == a_tuning_name) { return t; }
       }
       return getUnknownTuningIdx();
     }
   size_t getNumVariantTunings(VariantID vid) const
-    { return variant_tuning_names[vid].size(); }
+    { return getVariantTuningNames(vid).size(); }
   std::string const& getVariantTuningName(VariantID vid, size_t tid) const
-    { return variant_tuning_names[vid].at(tid); }
+    { return getVariantTuningNames(vid).at(tid); }
   std::vector<std::string> const& getVariantTuningNames(VariantID vid) const
     { return variant_tuning_names[vid]; }
 
