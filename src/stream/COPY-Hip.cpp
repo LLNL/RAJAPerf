@@ -113,11 +113,26 @@ void COPY::runHipVariantImpl(VariantID vid)
 
 void COPY::runHipVariant(VariantID vid, size_t tid)
 {
-  if ( !gpu_block_size::invoke_or(
-           gpu_block_size::RunHipBlockSize<COPY>(*this, vid), gpu_block_sizes_type()) ) {
-    std::cout << "\n  COPY : Unsupported Hip block_size " << getActualGPUBlockSize()
-              <<" for variant id = " << vid << std::endl;
-  }
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tid == t) {
+        runHipVariantImpl<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+}
+
+void COPY::setHipTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    }
+  });
 }
 
 } // end namespace stream
