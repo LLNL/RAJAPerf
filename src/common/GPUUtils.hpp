@@ -45,19 +45,6 @@ constexpr size_t lesser_of_squarest_factor_pair_helper(size_t n, size_t guess)
            : lesser_of_squarest_factor_pair_helper(n, guess - 1); // continue searching
 }
 
-// helpers to invoke f with each integer in the param pack
-template < typename F >
-bool invoke_or_helper(F)
-{
-  return false;
-}
-///
-template < typename F, size_t I, size_t... Is>
-bool invoke_or_helper(F f)
-{
-  return f(camp::int_seq<size_t, I>()) || invoke_or_helper<F, Is...>(f);
-}
-
 // class to get the size of a camp::int_seq
 template < typename IntSeq >
 struct SizeOfIntSeq;
@@ -105,7 +92,6 @@ struct remove_invalid<validity_checker, camp::int_seq<size_t, I, Is...>>
     >::type;
 };
 
-
 } // namespace detail
 
 // constexpr integer sqrt
@@ -129,96 +115,6 @@ constexpr size_t greater_of_squarest_factor_pair(size_t n)
   return (n == 0)
       ? 0 // return 0 in the 0 case
       : n / detail::lesser_of_squarest_factor_pair_helper(n, sqrt(n));
-}
-
-// call f's call operator with each integer as the template param in turn
-// stopping at the first integer that returns true.
-// return true if any f<I>() returns true, otherwise return false
-template < typename F, size_t... Is >
-bool invoke_or(F f, camp::int_seq<size_t, Is...>)
-{
-  return detail::invoke_or_helper<F, Is...>(f);
-}
-
-// if the given integer is the same as the template param block_size
-// returns true otherwise returns false
-struct Equals
-{
-  Equals(size_t actual_gpu_block_size)
-    : m_actual_gpu_block_size(actual_gpu_block_size)
-  {}
-
-  template < size_t block_size >
-  bool operator()(camp::int_seq<size_t, block_size>) const
-  { return m_actual_gpu_block_size == block_size; }
-
-private:
-  size_t m_actual_gpu_block_size;
-};
-
-// if the kernel's actual block size is the same as the template param
-// runs the cuda variant with the template param block_size and returns true
-// otherwise returns false
-template < typename Kernel >
-struct RunCudaBlockSize
-{
-  RunCudaBlockSize(Kernel& kernel, VariantID vid)
-    : m_kernel(kernel), m_vid(vid)
-  {}
-
-  template < size_t block_size >
-  bool operator()(camp::int_seq<size_t, block_size>) const
-  {
-    if (block_size == m_kernel.getActualGPUBlockSize()) {
-      m_kernel.template runCudaVariantImpl<block_size>(m_vid);
-      return true;
-    }
-    return false;
-  }
-
-private:
-  Kernel& m_kernel;
-  VariantID m_vid;
-};
-
-// if the kernel's actual block size is the same as the template param
-// runs the hip variant with the template param block_size and returns true
-// otherwise returns false
-template < typename Kernel >
-struct RunHipBlockSize
-{
-  RunHipBlockSize(Kernel& kernel, VariantID vid)
-    : m_kernel(kernel), m_vid(vid)
-  {}
-
-  template < size_t block_size >
-  bool operator()(camp::int_seq<size_t, block_size>) const
-  {
-    if (block_size == m_kernel.getActualGPUBlockSize()) {
-      m_kernel.template runHipVariantImpl<block_size>(m_vid);
-      return true;
-    }
-    return false;
-  }
-
-private:
-  Kernel& m_kernel;
-  VariantID m_vid;
-};
-
-// return default_I if it is in sizes or the first integer in sizes otherwise
-template < size_t I, size_t... Is >
-inline size_t get_default_or_first(size_t default_I, camp::int_seq<size_t, I, Is...> sizes)
-{
-  if (invoke_or(Equals(default_I), sizes)) {
-    return default_I;
-  }
-  return I;
-}
-/// base case when sizes is empty
-inline size_t get_default_or_first(size_t, camp::int_seq<size_t>)
-{
-  return 0;
 }
 
 // always true
