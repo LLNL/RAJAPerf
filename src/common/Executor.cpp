@@ -1400,6 +1400,7 @@ void Executor::writeChecksumReport(ostream& file)
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
 
         checksums[iv].resize(num_tunings, 0.0);
+        checksums_diff[iv].resize(num_tunings, 0.0);
         for (size_t tid = 0; tid < num_tunings; ++tid) {
           if ( kern->wasVariantTuningRun(vid, tid) ) {
             checksums[iv][tid] = kern->getChecksum(vid, tid);
