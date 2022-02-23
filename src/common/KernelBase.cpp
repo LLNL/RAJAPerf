@@ -11,6 +11,7 @@
 #include "RunParams.hpp"
 
 #include <cmath>
+#include <limits>
 
 namespace rajaperf {
 
@@ -22,17 +23,11 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
 
   default_prob_size = -1;
   default_reps = -1;
-  default_gpu_block_size = 0;
 
   actual_prob_size = -1;
-  actual_gpu_block_size = 0;
 
   for (size_t fid = 0; fid < NumFeatures; ++fid) {
     uses_feature[fid] = false;
-  }
-
-  for (size_t vid = 0; vid < NumVariants; ++vid) {
-    has_variant_defined[vid] = false;
   }
 
   its_per_rep = -1;
@@ -41,16 +36,9 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   FLOPs_per_rep = -1;
 
   running_variant = NumVariants;
+  running_tuning = std::numeric_limits<size_t>::max();
 
   checksum_scale_factor = 1.0;
-
-  for (size_t vid = 0; vid < NumVariants; ++vid) {
-    checksum[vid] = 0.0;
-    num_exec[vid] = 0;
-    min_time[vid] = std::numeric_limits<double>::max();
-    max_time[vid] = -std::numeric_limits<double>::max();
-    tot_time[vid] = 0.0;
-  }
 }
 
 
@@ -84,50 +72,13 @@ Index_type KernelBase::getRunReps() const
 
 void KernelBase::setVariantDefined(VariantID vid)
 {
-  has_variant_defined[vid] = isVariantAvailable(vid) &&
-                             ( isVariantGPU(vid) ? isGPUBlockSizeSupported()
-                                                 : true );
-}
-
-void KernelBase::execute(VariantID vid)
-{
-  running_variant = vid;
-
-  resetTimer();
-
-  resetDataInitCount();
-  this->setUp(vid);
-
-  this->runKernel(vid);
-
-  this->updateChecksum(vid);
-
-  this->tearDown(vid);
-
-  running_variant = NumVariants;
-}
-
-void KernelBase::recordExecTime()
-{
-  num_exec[running_variant]++;
-
-  RAJA::Timer::ElapsedType exec_time = timer.elapsed();
-  min_time[running_variant] = std::min(min_time[running_variant], exec_time);
-  max_time[running_variant] = std::max(max_time[running_variant], exec_time);
-  tot_time[running_variant] += exec_time;
-}
-
-void KernelBase::runKernel(VariantID vid)
-{
-  if ( !has_variant_defined[vid] ) {
-    return;
-  }
+  if (!isVariantAvailable(vid)) return;
 
   switch ( vid ) {
 
     case Base_Seq :
     {
-      runSeqVariant(vid);
+      setSeqTuningDefinitions(vid);
       break;
     }
 
@@ -135,7 +86,7 @@ void KernelBase::runKernel(VariantID vid)
     case RAJA_Seq :
     {
 #if defined(RUN_RAJA_SEQ)
-      runSeqVariant(vid);
+      setSeqTuningDefinitions(vid);
 #endif
       break;
     }
@@ -145,7 +96,7 @@ void KernelBase::runKernel(VariantID vid)
     case RAJA_OpenMP :
     {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-      runOpenMPVariant(vid);
+      setOpenMPTuningDefinitions(vid);
 #endif
       break;
     }
@@ -154,7 +105,7 @@ void KernelBase::runKernel(VariantID vid)
     case RAJA_OpenMPTarget :
     {
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-      runOpenMPTargetVariant(vid);
+      setOpenMPTargetTuningDefinitions(vid);
 #endif
       break;
     }
@@ -164,7 +115,7 @@ void KernelBase::runKernel(VariantID vid)
     case RAJA_CUDA :
     {
 #if defined(RAJA_ENABLE_CUDA)
-      runCudaVariant(vid);
+      setCudaTuningDefinitions(vid);
 #endif
       break;
     }
@@ -174,7 +125,116 @@ void KernelBase::runKernel(VariantID vid)
     case RAJA_HIP :
     {
 #if defined(RAJA_ENABLE_HIP)
-      runHipVariant(vid);
+      setHipTuningDefinitions(vid);
+#endif
+      break;
+    }
+
+    default : {
+#if 0
+      getCout() << "\n  " << getName()
+                << " : Unknown variant id = " << vid << std::endl;
+#endif
+    }
+  }
+
+  checksum[vid].resize(variant_tuning_names[vid].size(), 0.0);
+  num_exec[vid].resize(variant_tuning_names[vid].size(), 0);
+  min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
+  max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
+  tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+}
+
+void KernelBase::execute(VariantID vid, size_t tid)
+{
+  running_variant = vid;
+  running_tuning = tid;
+
+  resetTimer();
+
+  resetDataInitCount();
+  this->setUp(vid);
+
+  this->runKernel(vid, tid);
+
+  this->updateChecksum(vid, tid);
+
+  this->tearDown(vid);
+
+  running_variant = NumVariants;
+  running_tuning = std::numeric_limits<size_t>::max();
+}
+
+void KernelBase::recordExecTime()
+{
+  num_exec[running_variant].at(running_tuning)++;
+
+  RAJA::Timer::ElapsedType exec_time = timer.elapsed();
+  min_time[running_variant].at(running_tuning) =
+      std::min(min_time[running_variant].at(running_tuning), exec_time);
+  max_time[running_variant].at(running_tuning) =
+      std::max(max_time[running_variant].at(running_tuning), exec_time);
+  tot_time[running_variant].at(running_tuning) += exec_time;
+}
+
+void KernelBase::runKernel(VariantID vid, size_t tid)
+{
+  if ( !hasVariantDefined(vid) ) {
+    return;
+  }
+
+  switch ( vid ) {
+
+    case Base_Seq :
+    {
+      runSeqVariant(vid, tid);
+      break;
+    }
+
+    case Lambda_Seq :
+    case RAJA_Seq :
+    {
+#if defined(RUN_RAJA_SEQ)
+      runSeqVariant(vid, tid);
+#endif
+      break;
+    }
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+    {
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+      runOpenMPVariant(vid, tid);
+#endif
+      break;
+    }
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+    {
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+      runOpenMPTargetVariant(vid, tid);
+#endif
+      break;
+    }
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+    {
+#if defined(RAJA_ENABLE_CUDA)
+      runCudaVariant(vid, tid);
+#endif
+      break;
+    }
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+    {
+#if defined(RAJA_ENABLE_HIP)
+      runHipVariant(vid, tid);
 #endif
       break;
     }
@@ -201,10 +261,14 @@ void KernelBase::print(std::ostream& os) const
     os << "\t\t\t\t" << getFeatureName(static_cast<FeatureID>(j))
                      << " : " << uses_feature[j] << std::endl;
   }
-  os << "\t\t\t has_variant_defined: " << std::endl;
+  os << "\t\t\t variant_tuning_names: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << has_variant_defined[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < variant_tuning_names[j].size(); ++t) {
+      os << "\t\t\t\t\t" << getTuningName(static_cast<VariantID>(j), t)
+                         << std::endl;
+    }
   }
   os << "\t\t\t its_per_rep = " << its_per_rep << std::endl;
   os << "\t\t\t kernels_per_rep = " << kernels_per_rep << std::endl;
@@ -213,27 +277,42 @@ void KernelBase::print(std::ostream& os) const
   os << "\t\t\t num_exec: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << num_exec[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < num_exec[j].size(); ++t) {
+      os << "\t\t\t\t\t" << num_exec[j][t] << std::endl;
+    }
   }
   os << "\t\t\t min_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << min_time[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < min_time[j].size(); ++t) {
+      os << "\t\t\t\t\t" << min_time[j][t] << std::endl;
+    }
   }
   os << "\t\t\t max_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << max_time[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < max_time[j].size(); ++t) {
+      os << "\t\t\t\t\t" << max_time[j][t] << std::endl;
+    }
   }
   os << "\t\t\t tot_time: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << tot_time[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < tot_time[j].size(); ++t) {
+      os << "\t\t\t\t\t" << tot_time[j][t] << std::endl;
+    }
   }
   os << "\t\t\t checksum: " << std::endl;
   for (unsigned j = 0; j < NumVariants; ++j) {
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
-                     << " : " << checksum[j] << std::endl;
+                     << " :" << std::endl;
+    for (size_t t = 0; t < checksum[j].size(); ++t) {
+      os << "\t\t\t\t\t" << checksum[j][t] << std::endl;
+    }
   }
   os << std::endl;
 }

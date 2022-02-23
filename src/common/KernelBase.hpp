@@ -27,6 +27,7 @@
 #endif
 
 #include <string>
+#include <vector>
 #include <iostream>
 #include <limits>
 
@@ -56,8 +57,6 @@ public:
 
   void setDefaultProblemSize(Index_type size) { default_prob_size = size; }
   void setActualProblemSize(Index_type size) { actual_prob_size = size; }
-  void setDefaultGPUBlockSize(size_t size) { default_gpu_block_size = size; }
-  void setActualGPUBlockSize(size_t size) { actual_gpu_block_size = size; }
   void setDefaultReps(Index_type reps) { default_reps = reps; }
   void setItsPerRep(Index_type its) { its_per_rep = its; };
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
@@ -66,6 +65,27 @@ public:
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
   void setVariantDefined(VariantID vid);
+  void addVariantTuningName(VariantID vid, std::string name)
+  { variant_tuning_names[vid].emplace_back(std::move(name)); }
+
+  virtual void setSeqTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, "default"); }
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  virtual void setOpenMPTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, "default"); }
+#endif
+#if defined(RAJA_ENABLE_CUDA)
+  virtual void setCudaTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, "default"); }
+#endif
+#if defined(RAJA_ENABLE_HIP)
+  virtual void setHipTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, "default"); }
+#endif
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, "default"); }
+#endif
 
   //
   // Getter methods used to generate kernel execution summary
@@ -74,8 +94,6 @@ public:
 
   Index_type getDefaultProblemSize() const { return default_prob_size; }
   Index_type getActualProblemSize() const { return actual_prob_size; }
-  size_t     getDefaultGPUBlockSize() const { return default_gpu_block_size; }
-  size_t     getActualGPUBlockSize() const { return actual_gpu_block_size; }
   Index_type getDefaultReps() const { return default_reps; }
   Index_type getItsPerRep() const { return its_per_rep; };
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
@@ -88,35 +106,56 @@ public:
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
 
   bool hasVariantDefined(VariantID vid) const
-    { return has_variant_defined[vid]; }
-
-  std::string getVariantName(VariantID vid) const
-  {
-    if (isVariantGPU(vid) && actual_gpu_block_size > 0) {
-      return rajaperf::getVariantName(vid) + std::string("_") + std::to_string(actual_gpu_block_size);
-    } else {
-      return rajaperf::getVariantName(vid);
+    { return !variant_tuning_names[vid].empty(); }
+  bool hasVariantTuningDefined(VariantID vid, size_t tid) const
+    {
+      if (hasVariantDefined(vid) && tid < getNumVariantTunings(vid)) {
+        return true;
+      }
+      return false;
     }
-  }
-
-  virtual bool isGPUBlockSizeSupported() const
-  {
-    return default_gpu_block_size == actual_gpu_block_size;
-  }
+  bool hasVariantTuningDefined(VariantID vid, std::string const& tuning_name) const
+    {
+      if (hasVariantDefined(vid)) {
+        for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
+          if (tuning_name == a_tuning_name) { return true; }
+        }
+      }
+      return false;
+    }
+  size_t getVariantTuningIndex(VariantID vid, std::string const& tuning_name) const
+    {
+      size_t t = 0;
+      for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
+        if (tuning_name == a_tuning_name) { return t; }
+      }
+      return std::numeric_limits<size_t>::max();
+    }
+  size_t getNumVariantTunings(VariantID vid) const
+    { return variant_tuning_names[vid].size(); }
+  std::string const& getVariantTuningName(VariantID vid, size_t tid) const
+    { return variant_tuning_names[vid].at(tid); }
+  std::vector<std::string> const& getVariantTuningNames(VariantID vid) const
+    { return variant_tuning_names[vid]; }
 
   //
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
   //
-  bool wasVariantRun(VariantID vid) const
-    { return num_exec[vid] > 0; }
+  bool wasVariantTuningRun(VariantID vid, size_t tid) const
+    {
+      if (tid != std::numeric_limits<size_t>::max()) {
+        return num_exec[vid].at(tid) > 0;
+      }
+      return false;
+    }
 
-  double getMinTime(VariantID vid) const { return min_time[vid]; }
-  double getMaxTime(VariantID vid) const { return max_time[vid]; }
-  double getTotTime(VariantID vid) { return tot_time[vid]; }
-  Checksum_type getChecksum(VariantID vid) const { return checksum[vid]; }
+  double getMinTime(VariantID vid, size_t tid) const { return min_time[vid].at(tid); }
+  double getMaxTime(VariantID vid, size_t tid) const { return max_time[vid].at(tid); }
+  double getTotTime(VariantID vid, size_t tid) { return tot_time[vid].at(tid); }
+  Checksum_type getChecksum(VariantID vid, size_t tid) const { return checksum[vid].at(tid); }
 
-  void execute(VariantID vid);
+  void execute(VariantID vid, size_t tid);
 
   void synchronize()
   {
@@ -163,30 +202,30 @@ public:
 
   virtual void print(std::ostream& os) const;
 
-  virtual void runKernel(VariantID vid);
+  virtual void runKernel(VariantID vid, size_t tid);
 
   virtual void setUp(VariantID vid) = 0;
-  virtual void updateChecksum(VariantID vid) = 0;
+  virtual void updateChecksum(VariantID vid, size_t tid) = 0;
   virtual void tearDown(VariantID vid) = 0;
 
-  virtual void runSeqVariant(VariantID vid) = 0;
+  virtual void runSeqVariant(VariantID vid, size_t tid) = 0;
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  virtual void runOpenMPVariant(VariantID vid) = 0;
+  virtual void runOpenMPVariant(VariantID vid, size_t tid) = 0;
 #endif
 #if defined(RAJA_ENABLE_CUDA)
-  virtual void runCudaVariant(VariantID vid) = 0;
+  virtual void runCudaVariant(VariantID vid, size_t tid) = 0;
 #endif
 #if defined(RAJA_ENABLE_HIP)
-  virtual void runHipVariant(VariantID vid) = 0;
+  virtual void runHipVariant(VariantID vid, size_t tid) = 0;
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  virtual void runOpenMPTargetVariant(VariantID vid) = 0;
+  virtual void runOpenMPTargetVariant(VariantID vid, size_t tid) = 0;
 #endif
 
 protected:
   const RunParams& run_params;
 
-  Checksum_type checksum[NumVariants];
+  std::vector<Checksum_type> checksum[NumVariants];
   Checksum_type checksum_scale_factor;
 
 private:
@@ -202,14 +241,12 @@ private:
 
   Index_type default_prob_size;
   Index_type default_reps;
-  size_t     default_gpu_block_size;
 
   Index_type actual_prob_size;
-  size_t     actual_gpu_block_size;
 
   bool uses_feature[NumFeatures];
 
-  bool has_variant_defined[NumVariants];
+  std::vector<std::string> variant_tuning_names[NumVariants];
 
   //
   // Properties of kernel dependent on how kernel is run
@@ -220,14 +257,15 @@ private:
   Index_type FLOPs_per_rep;
 
   VariantID running_variant;
+  size_t running_tuning;
 
-  int num_exec[NumVariants];
+  std::vector<int> num_exec[NumVariants];
 
   RAJA::Timer timer;
 
-  RAJA::Timer::ElapsedType min_time[NumVariants];
-  RAJA::Timer::ElapsedType max_time[NumVariants];
-  RAJA::Timer::ElapsedType tot_time[NumVariants];
+  std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
+  std::vector<RAJA::Timer::ElapsedType> max_time[NumVariants];
+  std::vector<RAJA::Timer::ElapsedType> tot_time[NumVariants];
 };
 
 }  // closing brace for rajaperf namespace

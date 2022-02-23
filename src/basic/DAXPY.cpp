@@ -21,10 +21,6 @@ namespace basic
 DAXPY::DAXPY(const RunParams& params)
   : KernelBase(rajaperf::Basic_DAXPY, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
@@ -68,9 +64,9 @@ void DAXPY::setUp(VariantID vid)
   initData(m_a);
 }
 
-void DAXPY::updateChecksum(VariantID vid)
+void DAXPY::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_y, getActualProblemSize());
+  checksum[vid].at(tid) += calcChecksum(m_y, getActualProblemSize());
 }
 
 void DAXPY::tearDown(VariantID vid)
@@ -78,12 +74,6 @@ void DAXPY::tearDown(VariantID vid)
   (void) vid;
   deallocData(m_x);
   deallocData(m_y);
-}
-
-bool DAXPY::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
 }
 
 } // end namespace basic
