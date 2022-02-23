@@ -328,7 +328,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           done = true;
         } else {
           got_someting = true;
-          int gpu_block_size = ::atoi( opt );
+          int gpu_block_size = ::atoi( opt.c_str() );
           if ( gpu_block_size <= 0 ) {
             std::cout << "\nBad input:"
                       << " must give --gpu_block_size POSITIVE values (int)"
