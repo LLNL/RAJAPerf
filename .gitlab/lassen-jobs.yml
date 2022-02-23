@@ -1,22 +1,22 @@
 ##############################################################################
-## Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-## and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
-##
-## SPDX-License-Identifier: (BSD-3-Clause)
-###############################################################################
+# Copyright (c) 2016-22, Lawrence Livermore National Security, LLC
+# and RAJA project contributors. See the RAJA/LICENSE file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+##############################################################################
 
-###########
-## CPU ONLY
-###########
+##########
+# CPU ONLY
+##########
 
-clang_11_0_0:
+ibm_clang_9:
   variables:
-    SPEC: "%clang@11.0.0"
+    SPEC: "%clang@ibm.9.0.0"
   extends: .build_and_test_on_lassen
 
-clang_11_gcc_8:
+ibm_clang_9_gcc_8:
   variables:
-    SPEC: "%clang@11.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
+    SPEC: "%clang@ibm.9.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1:
@@ -37,23 +37,28 @@ xl_16_1_1_7_gcc_8_3_1:
   extends: .build_and_test_on_lassen
 
 ##########
-## CUDA
-###########
+# CUDA
+##########
 
-clang_11_cuda:
+ibm_clang_9_cuda:
   variables:
-    SPEC: "+cuda cuda_arch=70 %clang@11.0.0 ^cuda@10.1.168"
+    SPEC: "+cuda cuda_arch=70 %clang@ibm.9.0.0 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
-clang_11_gcc_8_cuda:
+ibm_clang_10_cuda:
   variables:
-    SPEC: "+cuda %clang@11.0.0 cuda_arch=70 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@10.1.168"
+    SPEC: "+cuda cuda_arch=70 %clang@ibm.10.0.1 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
   variables:
     SPEC: "+cuda %gcc@8.3.1 cuda_arch=70 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
+
+gcc_8_3_1_cuda_ats_disabled:
+  variables:
+    SPEC: "+cuda %gcc@8.3.1 cuda_arch=70 ^cuda@10.1.168"
+  extends: .build_and_test_on_lassen_ats_disabled
 
 xl_16_1_1_7_cuda:
   variables:
@@ -70,26 +75,21 @@ xl_16_1_1_7_gcc_8_3_1_cuda_11:
   extends: .build_and_test_on_lassen
 
 ##########
-## EXTRAS
+# EXTRAS
 ##########
 
-xl_16_1_1_7_omp_target (build and test on lassen):
+clang_9_0_0_libcpp (build and test on lassen):
   variables:
-    SPEC: "%xl@16.1.1.7+openmp+openmp_target ^cmake@3.14.5"
+    SPEC: "%clang@9.0.0+libcpp"
   extends: .build_and_test_on_lassen
 
-clang_11_0_0_omp_target (build and test on lassen):
+clang_9_0_0_memleak (build and test on lassen):
   variables:
-    SPEC: "%clang@11.0.0+openmp+openmp_target ^cmake@3.14.5"
-  extends: .build_and_test_on_lassen
-
-clang_11_0_0_libcpp (build and test on lassen):
-  variables:
-    SPEC: "%clang@11.0.0+libcpp"
-  extends: .build_and_test_on_lassen
-
-clang_11_0_0_memleak (build and test on lassen):
-  variables:
-    SPEC: "%clang@11.0.0 cxxflags=-fsanitize=address"
+    SPEC: "%clang@9.0.0 cxxflags=-fsanitize=address"
     ASAN_OPTIONS: "detect_leaks=1"
+  extends: .build_and_test_on_lassen
+
+gcc_8_3_1_cuda_desul_atomics:
+  variables:
+    SPEC: "+cuda +desul %gcc@8.3.1 cuda_arch=70 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
