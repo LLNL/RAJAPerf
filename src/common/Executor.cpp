@@ -643,14 +643,11 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
-    str << "\nVariants"
+    str << "\nVariants and Tunings"
         << "\n--------\n";
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      str << getVariantName(variant_ids[iv]) << endl;
-
-      str << "\n\tTunings\n";
       for (std::string const& tuning_name : tuning_names[variant_ids[iv]]) {
-        str << "\t" << tuning_name << endl;
+        str << getVariantName(variant_ids[iv]) << "-" << tuning_name<< endl;
       }
     }
 
