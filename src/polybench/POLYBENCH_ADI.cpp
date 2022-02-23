@@ -91,11 +91,5 @@ void POLYBENCH_ADI::tearDown(VariantID vid, size_t /*tid*/)
   deallocData(m_Q);
 }
 
-bool POLYBENCH_ADI::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 } // end namespace polybench
 } // end namespace rajaperf

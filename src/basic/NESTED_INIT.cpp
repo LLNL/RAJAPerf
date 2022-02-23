@@ -85,11 +85,5 @@ void NESTED_INIT::tearDown(VariantID vid, size_t /*tid*/)
   m_array = 0;
 }
 
-bool NESTED_INIT::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 } // end namespace basic
 } // end namespace rajaperf

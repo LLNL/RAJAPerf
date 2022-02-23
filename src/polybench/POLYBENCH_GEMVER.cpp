@@ -119,11 +119,5 @@ void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t /*tid*/)
   deallocData(m_z);
 }
 
-bool POLYBENCH_GEMVER::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 } // end namespace basic
 } // end namespace rajaperf

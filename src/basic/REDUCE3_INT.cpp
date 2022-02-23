@@ -87,11 +87,5 @@ void REDUCE3_INT::tearDown(VariantID vid, size_t /*tid*/)
   deallocData(m_vec);
 }
 
-bool REDUCE3_INT::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 } // end namespace basic
 } // end namespace rajaperf

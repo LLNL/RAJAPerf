@@ -160,12 +160,6 @@ void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t /*tid*/)
   m_vars.clear();
 }
 
-bool HALOEXCHANGE_FUSED::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 namespace {
 
 struct Extent

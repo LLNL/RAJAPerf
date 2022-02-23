@@ -97,11 +97,5 @@ void POLYBENCH_JACOBI_1D::tearDown(VariantID vid, size_t /*tid*/)
   deallocData(m_Binit);
 }
 
-bool POLYBENCH_JACOBI_1D::isGPUBlockSizeSupported() const
-{
-  return gpu_block_size::invoke_or(
-      gpu_block_size::Equals(getActualGPUBlockSize()), gpu_block_sizes_type());
-}
-
 } // end namespace polybench
 } // end namespace rajaperf
