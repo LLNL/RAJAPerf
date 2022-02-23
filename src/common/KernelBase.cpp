@@ -266,7 +266,7 @@ void KernelBase::print(std::ostream& os) const
     os << "\t\t\t\t" << getVariantName(static_cast<VariantID>(j))
                      << " :" << std::endl;
     for (size_t t = 0; t < variant_tuning_names[j].size(); ++t) {
-      os << "\t\t\t\t\t" << getTuningName(static_cast<VariantID>(j), t)
+      os << "\t\t\t\t\t" << getVariantTuningName(static_cast<VariantID>(j), t)
                          << std::endl;
     }
   }
