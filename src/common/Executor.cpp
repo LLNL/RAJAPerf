@@ -572,6 +572,14 @@ void Executor::setupSuite()
         for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
           tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
         }
+        // reorder to put "default" first
+        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+        if (default_order_iter != tuning_names_order_map.end()) {
+          size_t default_idx = default_order_iter->second;
+          std::string default_name = std::move(tuning_names[vid][default_idx]);
+          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
+          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+        }
       }
 
       //

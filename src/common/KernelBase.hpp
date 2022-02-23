@@ -45,6 +45,8 @@ class KernelBase
 public:
   static constexpr size_t getUnknownTuningIdx()
     { return std::numeric_limits<size_t>::max(); }
+  static std::string getDefaultTuningName() { return "default"; }
+
   KernelBase(KernelID kid, const RunParams& params);
 
   virtual ~KernelBase();
@@ -71,22 +73,22 @@ public:
   { variant_tuning_names[vid].emplace_back(std::move(name)); }
 
   virtual void setSeqTuningDefinitions(VariantID vid)
-  { addVariantTuningName(vid, "default"); }
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   virtual void setOpenMPTuningDefinitions(VariantID vid)
-  { addVariantTuningName(vid, "default"); }
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 #if defined(RAJA_ENABLE_CUDA)
   virtual void setCudaTuningDefinitions(VariantID vid)
-  { addVariantTuningName(vid, "default"); }
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 #if defined(RAJA_ENABLE_HIP)
   virtual void setHipTuningDefinitions(VariantID vid)
-  { addVariantTuningName(vid, "default"); }
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
-  { addVariantTuningName(vid, "default"); }
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 
   //
