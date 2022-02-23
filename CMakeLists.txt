@@ -25,8 +25,8 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 11)
-set(BLT_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(BLT_CXX_STANDARD 14)
 
 include(blt/SetupBLT.cmake)
 
@@ -106,7 +106,7 @@ set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
