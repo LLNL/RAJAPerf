@@ -76,9 +76,9 @@ void REDUCE3_INT::setUp(VariantID vid, size_t /*tid*/)
 
 void REDUCE3_INT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += m_vsum;
-  checksum[vid] += m_vmin;
-  checksum[vid] += m_vmax;
+  checksum[vid][tid] += m_vsum;
+  checksum[vid][tid] += m_vmin;
+  checksum[vid][tid] += m_vmax;
 }
 
 void REDUCE3_INT::tearDown(VariantID vid, size_t /*tid*/)

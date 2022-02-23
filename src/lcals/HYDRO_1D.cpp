@@ -75,7 +75,7 @@ void HYDRO_1D::setUp(VariantID vid, size_t /*tid*/)
 
 void HYDRO_1D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
 void HYDRO_1D::tearDown(VariantID vid, size_t /*tid*/)

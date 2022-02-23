@@ -89,7 +89,7 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t /*tid*/)
 
 void DEL_DOT_VEC_2D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_div, m_array_length);
+  checksum[vid][tid] += calcChecksum(m_div, m_array_length);
 }
 
 void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t /*tid*/)

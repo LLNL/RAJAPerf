@@ -79,7 +79,7 @@ void INT_PREDICT::updateChecksum(VariantID vid, size_t tid)
     m_px[i] -= m_px_initval;
   }
 
-  checksum[vid] += calcChecksum(m_px, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_px, getActualProblemSize());
 }
 
 void INT_PREDICT::tearDown(VariantID vid, size_t /*tid*/)

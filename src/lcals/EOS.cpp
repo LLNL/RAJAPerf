@@ -77,7 +77,7 @@ void EOS::setUp(VariantID vid, size_t /*tid*/)
 
 void EOS::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
 void EOS::tearDown(VariantID vid, size_t /*tid*/)

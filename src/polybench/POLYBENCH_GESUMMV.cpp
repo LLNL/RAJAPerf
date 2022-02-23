@@ -76,7 +76,7 @@ void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_GESUMMV::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_y, m_N);
+  checksum[vid][tid] += calcChecksum(m_y, m_N);
 }
 
 void POLYBENCH_GESUMMV::tearDown(VariantID vid, size_t /*tid*/)

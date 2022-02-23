@@ -100,7 +100,7 @@ void POLYBENCH_FDTD_2D::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
+  checksum[vid][tid] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
 }
 
 void POLYBENCH_FDTD_2D::tearDown(VariantID vid, size_t /*tid*/)

@@ -68,7 +68,7 @@ void PI_ATOMIC::setUp(VariantID vid, size_t /*tid*/)
 
 void PI_ATOMIC::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += Checksum_type(*m_pi);
+  checksum[vid][tid] += Checksum_type(*m_pi);
 }
 
 void PI_ATOMIC::tearDown(VariantID vid, size_t /*tid*/)

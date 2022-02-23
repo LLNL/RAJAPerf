@@ -80,8 +80,8 @@ void POLYBENCH_MVT::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_MVT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x1, m_N, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_x2, m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x1, m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x2, m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_MVT::tearDown(VariantID vid, size_t /*tid*/)

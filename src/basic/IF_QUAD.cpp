@@ -72,8 +72,8 @@ void IF_QUAD::setUp(VariantID vid, size_t /*tid*/)
 
 void IF_QUAD::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
 }
 
 void IF_QUAD::tearDown(VariantID vid, size_t /*tid*/)

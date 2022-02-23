@@ -91,7 +91,7 @@ void LTIMES_NOVIEW::setUp(VariantID vid, size_t /*tid*/)
 
 void LTIMES_NOVIEW::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
 }
 
 void LTIMES_NOVIEW::tearDown(VariantID vid, size_t /*tid*/)

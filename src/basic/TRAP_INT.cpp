@@ -76,7 +76,7 @@ void TRAP_INT::setUp(VariantID vid, size_t /*tid*/)
 
 void TRAP_INT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += m_sumx;
+  checksum[vid][tid] += m_sumx;
 }
 
 void TRAP_INT::tearDown(VariantID vid, size_t /*tid*/)

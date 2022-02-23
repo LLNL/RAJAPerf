@@ -67,7 +67,7 @@ void FIRST_DIFF::setUp(VariantID vid, size_t /*tid*/)
 
 void FIRST_DIFF::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize());
 }
 
 void FIRST_DIFF::tearDown(VariantID vid, size_t /*tid*/)

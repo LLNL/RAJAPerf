@@ -183,9 +183,9 @@ void COUPLE::updateChecksum(VariantID vid, size_t tid)
 {
   Index_type max_loop_index = m_domain->lrn;
 
-  checksum[vid] += calcChecksum(m_t0, max_loop_index);
-  checksum[vid] += calcChecksum(m_t1, max_loop_index);
-  checksum[vid] += calcChecksum(m_t2, max_loop_index);
+  checksum[vid][tid] += calcChecksum(m_t0, max_loop_index);
+  checksum[vid][tid] += calcChecksum(m_t1, max_loop_index);
+  checksum[vid][tid] += calcChecksum(m_t2, max_loop_index);
 }
 
 void COUPLE::tearDown(VariantID vid, size_t /*tid*/)

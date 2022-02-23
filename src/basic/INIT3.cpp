@@ -68,9 +68,9 @@ void INIT3::setUp(VariantID vid, size_t /*tid*/)
 
 void INIT3::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out1, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out2, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out3, getActualProblemSize());
 }
 
 void INIT3::tearDown(VariantID vid, size_t /*tid*/)

@@ -102,7 +102,7 @@ void POLYBENCH_GEMVER::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_GEMVER::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_w, m_n, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_w, m_n, checksum_scale_factor );
 }
 
 void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t /*tid*/)

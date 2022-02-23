@@ -94,8 +94,8 @@ void HYDRO_2D::setUp(VariantID vid, size_t /*tid*/)
 
 void HYDRO_2D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
 void HYDRO_2D::tearDown(VariantID vid, size_t /*tid*/)

@@ -70,7 +70,7 @@ void FIR::setUp(VariantID vid, size_t /*tid*/)
 
 void FIR::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor );
 }
 
 void FIR::tearDown(VariantID vid, size_t /*tid*/)

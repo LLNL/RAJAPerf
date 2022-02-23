@@ -75,7 +75,7 @@ void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid, size_t /*tid*/)

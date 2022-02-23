@@ -54,7 +54,7 @@ void SORT::setUp(VariantID vid, size_t /*tid*/)
 
 void SORT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
+  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
 }
 
 void SORT::tearDown(VariantID vid, size_t /*tid*/)

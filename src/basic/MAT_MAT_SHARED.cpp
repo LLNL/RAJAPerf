@@ -73,7 +73,7 @@ void MAT_MAT_SHARED::setUp(VariantID vid, size_t /*tid*/) {
 }
 
 void MAT_MAT_SHARED::updateChecksum(VariantID vid, size_t tid) {
-  checksum[vid] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
 }
 
 void MAT_MAT_SHARED::tearDown(VariantID vid, size_t /*tid*/) {

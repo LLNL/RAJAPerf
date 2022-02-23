@@ -86,8 +86,8 @@ void POLYBENCH_JACOBI_2D::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_JACOBI_2D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_A, m_N*m_N, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_B, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_A, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_B, m_N*m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_JACOBI_2D::tearDown(VariantID vid, size_t /*tid*/)

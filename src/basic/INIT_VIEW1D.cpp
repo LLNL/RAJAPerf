@@ -66,7 +66,7 @@ void INIT_VIEW1D::setUp(VariantID vid, size_t /*tid*/)
 
 void INIT_VIEW1D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void INIT_VIEW1D::tearDown(VariantID vid, size_t /*tid*/)

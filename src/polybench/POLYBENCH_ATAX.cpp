@@ -82,7 +82,7 @@ void POLYBENCH_ATAX::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_ATAX::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_y, m_N, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_y, m_N, checksum_scale_factor );
 }
 
 void POLYBENCH_ATAX::tearDown(VariantID vid, size_t /*tid*/)

@@ -135,7 +135,7 @@ void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t /*tid*/)
 void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tid)
 {
   for (Real_ptr var : m_vars) {
-    checksum[vid] += calcChecksum(var, m_var_size);
+    checksum[vid][tid] += calcChecksum(var, m_var_size);
   }
 }
 

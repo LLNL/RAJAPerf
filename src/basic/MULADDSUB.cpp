@@ -68,9 +68,9 @@ void MULADDSUB::setUp(VariantID vid, size_t /*tid*/)
 
 void MULADDSUB::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out1, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out2, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_out3, getActualProblemSize());
 }
 
 void MULADDSUB::tearDown(VariantID vid, size_t /*tid*/)

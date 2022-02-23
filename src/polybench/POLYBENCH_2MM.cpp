@@ -96,7 +96,7 @@ void POLYBENCH_2MM::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_2MM::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_D, m_ni * m_nl, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_D, m_ni * m_nl, checksum_scale_factor );
 }
 
 void POLYBENCH_2MM::tearDown(VariantID vid, size_t /*tid*/)

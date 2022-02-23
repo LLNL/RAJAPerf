@@ -83,7 +83,7 @@ void DIFFUSION3DPA::setUp(VariantID vid, size_t /*tid*/)
 
 void DIFFUSION3DPA::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
+  checksum[vid][tid] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
 }
 
 void DIFFUSION3DPA::tearDown(VariantID vid, size_t /*tid*/)

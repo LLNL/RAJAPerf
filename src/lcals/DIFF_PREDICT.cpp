@@ -66,7 +66,7 @@ void DIFF_PREDICT::setUp(VariantID vid, size_t /*tid*/)
 
 void DIFF_PREDICT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_px, m_array_length);
+  checksum[vid][tid] += calcChecksum(m_px, m_array_length);
 }
 
 void DIFF_PREDICT::tearDown(VariantID vid, size_t /*tid*/)

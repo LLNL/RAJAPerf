@@ -72,7 +72,7 @@ void TRIAD::setUp(VariantID vid, size_t /*tid*/)
 
 void TRIAD::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
 void TRIAD::tearDown(VariantID vid, size_t /*tid*/)

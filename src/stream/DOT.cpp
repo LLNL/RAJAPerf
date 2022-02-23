@@ -69,7 +69,7 @@ void DOT::setUp(VariantID vid, size_t /*tid*/)
 
 void DOT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += m_dot;
+  checksum[vid][tid] += m_dot;
 }
 
 void DOT::tearDown(VariantID vid, size_t /*tid*/)

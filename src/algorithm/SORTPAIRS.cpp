@@ -55,8 +55,8 @@ void SORTPAIRS::setUp(VariantID vid, size_t /*tid*/)
 
 void SORTPAIRS::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
-  checksum[vid] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
+  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
+  checksum[vid][tid] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
 }
 
 void SORTPAIRS::tearDown(VariantID vid, size_t /*tid*/)

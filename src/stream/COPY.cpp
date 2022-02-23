@@ -66,7 +66,7 @@ void COPY::setUp(VariantID vid, size_t /*tid*/)
 
 void COPY::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_c, getActualProblemSize());
 }
 
 void COPY::tearDown(VariantID vid, size_t /*tid*/)

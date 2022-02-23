@@ -75,7 +75,7 @@ void GEN_LIN_RECUR::setUp(VariantID vid, size_t /*tid*/)
 
 void GEN_LIN_RECUR::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_b5, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_b5, getActualProblemSize(), checksum_scale_factor );
 }
 
 void GEN_LIN_RECUR::tearDown(VariantID vid, size_t /*tid*/)

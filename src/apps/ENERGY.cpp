@@ -94,8 +94,8 @@ void ENERGY::setUp(VariantID vid, size_t /*tid*/)
 
 void ENERGY::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_e_new, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_q_new, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_e_new, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_q_new, getActualProblemSize());
 }
 
 void ENERGY::tearDown(VariantID vid, size_t /*tid*/)

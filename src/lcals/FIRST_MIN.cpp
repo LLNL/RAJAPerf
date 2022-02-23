@@ -74,7 +74,7 @@ void FIRST_MIN::setUp(VariantID vid, size_t /*tid*/)
 
 void FIRST_MIN::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += static_cast<long double>(m_minloc);
+  checksum[vid][tid] += static_cast<long double>(m_minloc);
 }
 
 void FIRST_MIN::tearDown(VariantID vid, size_t /*tid*/)

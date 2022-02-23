@@ -67,7 +67,7 @@ void ADD::setUp(VariantID vid, size_t /*tid*/)
 
 void ADD::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_c, getActualProblemSize());
 }
 
 void ADD::tearDown(VariantID vid, size_t /*tid*/)

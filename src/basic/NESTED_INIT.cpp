@@ -75,7 +75,7 @@ void NESTED_INIT::setUp(VariantID vid, size_t /*tid*/)
 
 void NESTED_INIT::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_array, m_array_length);
+  checksum[vid][tid] += calcChecksum(m_array, m_array_length);
 }
 
 void NESTED_INIT::tearDown(VariantID vid, size_t /*tid*/)

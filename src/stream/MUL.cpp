@@ -67,7 +67,7 @@ void MUL::setUp(VariantID vid, size_t /*tid*/)
 
 void MUL::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_b, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_b, getActualProblemSize());
 }
 
 void MUL::tearDown(VariantID vid, size_t /*tid*/)

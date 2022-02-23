@@ -89,7 +89,7 @@ void VOL3D::setUp(VariantID vid, size_t /*tid*/)
 
 void VOL3D::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
 void VOL3D::tearDown(VariantID vid, size_t /*tid*/)

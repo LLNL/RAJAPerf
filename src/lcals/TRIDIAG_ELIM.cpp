@@ -67,7 +67,7 @@ void TRIDIAG_ELIM::setUp(VariantID vid, size_t /*tid*/)
 
 void TRIDIAG_ELIM::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_xout, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_xout, getActualProblemSize());
 }
 
 void TRIDIAG_ELIM::tearDown(VariantID vid, size_t /*tid*/)

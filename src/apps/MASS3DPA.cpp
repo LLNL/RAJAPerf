@@ -79,7 +79,7 @@ void MASS3DPA::setUp(VariantID vid, size_t /*tid*/)
 
 void MASS3DPA::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
+  checksum[vid][tid] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
 }
 
 void MASS3DPA::tearDown(VariantID vid, size_t /*tid*/)

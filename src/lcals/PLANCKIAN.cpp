@@ -66,7 +66,7 @@ void PLANCKIAN::setUp(VariantID vid, size_t /*tid*/)
 
 void PLANCKIAN::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_w, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_w, getActualProblemSize());
 }
 
 void PLANCKIAN::tearDown(VariantID vid, size_t /*tid*/)

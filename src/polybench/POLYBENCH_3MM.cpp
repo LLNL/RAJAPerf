@@ -106,7 +106,7 @@ void POLYBENCH_3MM::setUp(VariantID vid, size_t /*tid*/)
 
 void POLYBENCH_3MM::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
+  checksum[vid][tid] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
 }
 
 void POLYBENCH_3MM::tearDown(VariantID vid, size_t /*tid*/)

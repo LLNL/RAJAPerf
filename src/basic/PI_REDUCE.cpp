@@ -67,7 +67,7 @@ void PI_REDUCE::setUp(VariantID vid, size_t /*tid*/)
 
 void PI_REDUCE::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += Checksum_type(m_pi);
+  checksum[vid][tid] += Checksum_type(m_pi);
 }
 
 void PI_REDUCE::tearDown(VariantID vid, size_t /*tid*/)

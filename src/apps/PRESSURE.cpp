@@ -74,7 +74,7 @@ void PRESSURE::setUp(VariantID vid, size_t /*tid*/)
 
 void PRESSURE::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_p_new, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
 void PRESSURE::tearDown(VariantID vid, size_t /*tid*/)

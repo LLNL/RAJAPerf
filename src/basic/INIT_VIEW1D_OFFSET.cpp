@@ -66,7 +66,7 @@ void INIT_VIEW1D_OFFSET::setUp(VariantID vid, size_t /*tid*/)
 
 void INIT_VIEW1D_OFFSET::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid][tid] += calcChecksum(m_a, getActualProblemSize());
 }
 
 void INIT_VIEW1D_OFFSET::tearDown(VariantID vid, size_t /*tid*/)
