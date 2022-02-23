@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void DIFF_PREDICT::runOpenMPVariant(VariantID vid)
+void DIFF_PREDICT::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

@@ -21,10 +21,6 @@ namespace lcals
 FIRST_MIN::FIRST_MIN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_MIN, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
 //setDefaultReps(1000);
 // Set reps to low value until we resolve RAJA omp-target
@@ -67,7 +63,7 @@ FIRST_MIN::~FIRST_MIN()
 {
 }
 
-void FIRST_MIN::setUp(VariantID vid)
+void FIRST_MIN::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   m_x[ m_N / 2 ] = -1.0e+10;
@@ -76,12 +72,12 @@ void FIRST_MIN::setUp(VariantID vid)
   m_minloc = -1;
 }
 
-void FIRST_MIN::updateChecksum(VariantID vid)
+void FIRST_MIN::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += static_cast<long double>(m_minloc);
 }
 
-void FIRST_MIN::tearDown(VariantID vid)
+void FIRST_MIN::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);

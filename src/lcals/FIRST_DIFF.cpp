@@ -21,10 +21,6 @@ namespace lcals
 FIRST_DIFF::FIRST_DIFF(const RunParams& params)
   : KernelBase(rajaperf::Lcals_FIRST_DIFF, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
@@ -63,18 +59,18 @@ FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid)
+void FIRST_DIFF::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }
 
-void FIRST_DIFF::updateChecksum(VariantID vid)
+void FIRST_DIFF::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_x, getActualProblemSize());
 }
 
-void FIRST_DIFF::tearDown(VariantID vid)
+void FIRST_DIFF::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);

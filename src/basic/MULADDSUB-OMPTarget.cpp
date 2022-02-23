@@ -47,7 +47,7 @@ namespace basic
   deallocOpenMPDeviceData(in2, did);
 
 
-void MULADDSUB::runOpenMPTargetVariant(VariantID vid)
+void MULADDSUB::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

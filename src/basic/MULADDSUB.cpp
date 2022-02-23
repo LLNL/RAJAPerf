@@ -21,10 +21,6 @@ namespace basic
 MULADDSUB::MULADDSUB(const RunParams& params)
   : KernelBase(rajaperf::Basic_MULADDSUB, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(350);
 
@@ -61,7 +57,7 @@ MULADDSUB::~MULADDSUB()
 {
 }
 
-void MULADDSUB::setUp(VariantID vid)
+void MULADDSUB::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
   allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
@@ -70,14 +66,14 @@ void MULADDSUB::setUp(VariantID vid)
   allocAndInitData(m_in2, getActualProblemSize(), vid);
 }
 
-void MULADDSUB::updateChecksum(VariantID vid)
+void MULADDSUB::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
   checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
   checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
 }
 
-void MULADDSUB::tearDown(VariantID vid)
+void MULADDSUB::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_out1);

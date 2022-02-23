@@ -223,7 +223,7 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
   }
 }
 
-void HYDRO_2D::runHipVariant(VariantID vid)
+void HYDRO_2D::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<HYDRO_2D>(*this, vid), gpu_block_sizes_type()) ) {

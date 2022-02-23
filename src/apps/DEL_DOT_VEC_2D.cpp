@@ -25,10 +25,6 @@ namespace apps
 DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   : KernelBase(rajaperf::Apps_DEL_DOT_VEC_2D, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000*1000);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
@@ -73,7 +69,7 @@ DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
   delete m_domain;
 }
 
-void DEL_DOT_VEC_2D::setUp(VariantID vid)
+void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -91,12 +87,12 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid)
   m_half = 0.5;
 }
 
-void DEL_DOT_VEC_2D::updateChecksum(VariantID vid)
+void DEL_DOT_VEC_2D::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_div, m_array_length);
 }
 
-void DEL_DOT_VEC_2D::tearDown(VariantID vid)
+void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

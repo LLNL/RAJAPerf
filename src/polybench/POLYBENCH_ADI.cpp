@@ -20,10 +20,6 @@ namespace polybench
 POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ADI, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   Index_type n_default = 1000;
 
   setDefaultProblemSize( (n_default-2) * (n_default-2) );
@@ -73,7 +69,7 @@ POLYBENCH_ADI::~POLYBENCH_ADI()
 {
 }
 
-void POLYBENCH_ADI::setUp(VariantID vid)
+void POLYBENCH_ADI::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_U, m_n * m_n, 0.0, vid);
   allocAndInitData(m_V, m_n * m_n, vid);
@@ -81,12 +77,12 @@ void POLYBENCH_ADI::setUp(VariantID vid)
   allocAndInitData(m_Q, m_n * m_n, vid);
 }
 
-void POLYBENCH_ADI::updateChecksum(VariantID vid)
+void POLYBENCH_ADI::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
 }
 
-void POLYBENCH_ADI::tearDown(VariantID vid)
+void POLYBENCH_ADI::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_U);

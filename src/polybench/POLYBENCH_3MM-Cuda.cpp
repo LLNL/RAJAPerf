@@ -353,7 +353,7 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_3MM::runCudaVariant(VariantID vid)
+void POLYBENCH_3MM::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<POLYBENCH_3MM>(*this, vid), gpu_block_sizes_type()) ) {

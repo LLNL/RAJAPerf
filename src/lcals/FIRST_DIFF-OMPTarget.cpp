@@ -39,7 +39,7 @@ namespace lcals
   deallocOpenMPDeviceData(y, did);
 
 
-void FIRST_DIFF::runOpenMPTargetVariant(VariantID vid)
+void FIRST_DIFF::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

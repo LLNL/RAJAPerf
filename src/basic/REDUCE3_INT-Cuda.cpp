@@ -161,7 +161,7 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void REDUCE3_INT::runCudaVariant(VariantID vid)
+void REDUCE3_INT::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<REDUCE3_INT>(*this, vid), gpu_block_sizes_type()) ) {

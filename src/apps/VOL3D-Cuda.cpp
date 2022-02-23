@@ -123,7 +123,7 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void VOL3D::runCudaVariant(VariantID vid)
+void VOL3D::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<VOL3D>(*this, vid), gpu_block_sizes_type()) ) {

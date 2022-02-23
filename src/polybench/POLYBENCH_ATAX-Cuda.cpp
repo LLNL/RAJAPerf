@@ -230,7 +230,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_ATAX::runCudaVariant(VariantID vid)
+void POLYBENCH_ATAX::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<POLYBENCH_ATAX>(*this, vid), gpu_block_sizes_type()) ) {

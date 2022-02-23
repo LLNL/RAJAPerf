@@ -20,10 +20,6 @@ namespace basic {
 MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_MAT_SHARED, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   m_N_default = 1000;
   setDefaultProblemSize(m_N_default*m_N_default);
   setDefaultReps(5);
@@ -68,7 +64,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
 
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}
 
-void MAT_MAT_SHARED::setUp(VariantID vid) {
+void MAT_MAT_SHARED::setUp(VariantID vid, size_t /*tid*/) {
   const Index_type NN = m_N * m_N;
 
   allocAndInitDataConst(m_A, NN, 1.0, vid);
@@ -76,11 +72,11 @@ void MAT_MAT_SHARED::setUp(VariantID vid) {
   allocAndInitDataConst(m_C, NN, 0.0, vid);
 }
 
-void MAT_MAT_SHARED::updateChecksum(VariantID vid) {
+void MAT_MAT_SHARED::updateChecksum(VariantID vid, size_t tid) {
   checksum[vid] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
 }
 
-void MAT_MAT_SHARED::tearDown(VariantID vid) {
+void MAT_MAT_SHARED::tearDown(VariantID vid, size_t /*tid*/) {
   (void)vid;
   deallocData(m_A);
   deallocData(m_B);

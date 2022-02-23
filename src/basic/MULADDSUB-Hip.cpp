@@ -121,7 +121,7 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
   }
 }
 
-void MULADDSUB::runHipVariant(VariantID vid)
+void MULADDSUB::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<MULADDSUB>(*this, vid), gpu_block_sizes_type()) ) {

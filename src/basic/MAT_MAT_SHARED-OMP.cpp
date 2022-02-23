@@ -15,7 +15,7 @@
 namespace rajaperf {
 namespace basic {
 
-void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
+void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid, size_t /*tid*/) {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();

@@ -139,7 +139,7 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_GESUMMV::runHipVariant(VariantID vid)
+void POLYBENCH_GESUMMV::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<POLYBENCH_GESUMMV>(*this, vid), gpu_block_sizes_type()) ) {

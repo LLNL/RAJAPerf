@@ -36,7 +36,7 @@ namespace polybench
   deallocOpenMPDeviceData(B, did);
 
 
-void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

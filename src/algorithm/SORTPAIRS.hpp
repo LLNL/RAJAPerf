@@ -41,15 +41,15 @@ public:
 
   ~SORTPAIRS();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tid);
+  void updateChecksum(VariantID vid, size_t tid);
+  void tearDown(VariantID vid, size_t tid);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid)
+  void runSeqVariant(VariantID vid, size_t tid);
+  void runOpenMPVariant(VariantID vid, size_t tid);
+  void runCudaVariant(VariantID vid, size_t tid);
+  void runHipVariant(VariantID vid, size_t tid);
+  void runOpenMPTargetVariant(VariantID vid, size_t tid)
   {
     getCout() << "\n  SORTPAIRS : Unknown OMP Target variant id = " << vid << std::endl;
   }

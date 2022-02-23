@@ -25,10 +25,6 @@ namespace apps
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(100);
 
@@ -75,7 +71,7 @@ VOL3D::~VOL3D()
   delete m_domain;
 }
 
-void VOL3D::setUp(VariantID vid)
+void VOL3D::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -91,12 +87,12 @@ void VOL3D::setUp(VariantID vid)
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */
 }
 
-void VOL3D::updateChecksum(VariantID vid)
+void VOL3D::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
-void VOL3D::tearDown(VariantID vid)
+void VOL3D::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

@@ -18,7 +18,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid)
+void POLYBENCH_FDTD_2D::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

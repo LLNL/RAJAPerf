@@ -169,7 +169,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void HALOEXCHANGE::runCudaVariant(VariantID vid)
+void HALOEXCHANGE::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<HALOEXCHANGE>(*this, vid), gpu_block_sizes_type()) ) {

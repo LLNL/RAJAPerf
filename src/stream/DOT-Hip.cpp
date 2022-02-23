@@ -132,7 +132,7 @@ void DOT::runHipVariantImpl(VariantID vid)
   }
 }
 
-void DOT::runHipVariant(VariantID vid)
+void DOT::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<DOT>(*this, vid), gpu_block_sizes_type()) ) {

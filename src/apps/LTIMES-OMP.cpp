@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void LTIMES::runOpenMPVariant(VariantID vid)
+void LTIMES::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

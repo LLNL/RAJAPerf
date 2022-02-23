@@ -23,10 +23,6 @@ namespace basic
 REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_REDUCE3_INT, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
 //setDefaultReps(5000);
 // Set reps to low value until we resolve RAJA omp-target
@@ -66,7 +62,7 @@ REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
-void REDUCE3_INT::setUp(VariantID vid)
+void REDUCE3_INT::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitData(m_vec, getActualProblemSize(), vid);
 
@@ -78,14 +74,14 @@ void REDUCE3_INT::setUp(VariantID vid)
   m_vmax_init = std::numeric_limits<Int_type>::min();
 }
 
-void REDUCE3_INT::updateChecksum(VariantID vid)
+void REDUCE3_INT::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += m_vsum;
   checksum[vid] += m_vmin;
   checksum[vid] += m_vmax;
 }
 
-void REDUCE3_INT::tearDown(VariantID vid)
+void REDUCE3_INT::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_vec);

@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void FIRST_SUM::runSeqVariant(VariantID vid)
+void FIRST_SUM::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;

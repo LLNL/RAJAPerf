@@ -21,10 +21,6 @@ namespace apps
 ENERGY::ENERGY(const RunParams& params)
   : KernelBase(rajaperf::Apps_ENERGY, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(130);
 
@@ -72,7 +68,7 @@ ENERGY::~ENERGY()
 {
 }
 
-void ENERGY::setUp(VariantID vid)
+void ENERGY::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_e_new, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_e_old, getActualProblemSize(), vid);
@@ -96,13 +92,13 @@ void ENERGY::setUp(VariantID vid)
   initData(m_q_cut);
 }
 
-void ENERGY::updateChecksum(VariantID vid)
+void ENERGY::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_e_new, getActualProblemSize());
   checksum[vid] += calcChecksum(m_q_new, getActualProblemSize());
 }
 
-void ENERGY::tearDown(VariantID vid)
+void ENERGY::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

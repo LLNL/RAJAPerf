@@ -99,7 +99,7 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
   }
 }
 
-void PLANCKIAN::runHipVariant(VariantID vid)
+void PLANCKIAN::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<PLANCKIAN>(*this, vid), gpu_block_sizes_type()) ) {

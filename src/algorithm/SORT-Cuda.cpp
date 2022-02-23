@@ -35,7 +35,7 @@ namespace algorithm
   deallocCudaDeviceData(x);
 
 
-void SORT::runCudaVariant(VariantID vid)
+void SORT::runCudaVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

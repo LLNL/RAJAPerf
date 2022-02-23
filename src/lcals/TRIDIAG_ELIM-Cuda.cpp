@@ -95,7 +95,7 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
+void TRIDIAG_ELIM::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<TRIDIAG_ELIM>(*this, vid), gpu_block_sizes_type()) ) {

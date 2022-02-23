@@ -136,7 +136,7 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void PRESSURE::runCudaVariant(VariantID vid)
+void PRESSURE::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<PRESSURE>(*this, vid), gpu_block_sizes_type()) ) {

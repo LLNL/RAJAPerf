@@ -176,7 +176,7 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_MVT::runHipVariant(VariantID vid)
+void POLYBENCH_MVT::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<POLYBENCH_MVT>(*this, vid), gpu_block_sizes_type()) ) {

@@ -221,7 +221,7 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void HYDRO_2D::runCudaVariant(VariantID vid)
+void HYDRO_2D::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<HYDRO_2D>(*this, vid), gpu_block_sizes_type()) ) {

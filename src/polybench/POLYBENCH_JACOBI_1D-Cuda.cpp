@@ -120,7 +120,7 @@ void POLYBENCH_JACOBI_1D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid)
+void POLYBENCH_JACOBI_1D::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<POLYBENCH_JACOBI_1D>(*this, vid), gpu_block_sizes_type()) ) {

@@ -96,7 +96,7 @@ void EOS::runHipVariantImpl(VariantID vid)
   }
 }
 
-void EOS::runHipVariant(VariantID vid)
+void EOS::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<EOS>(*this, vid), gpu_block_sizes_type()) ) {

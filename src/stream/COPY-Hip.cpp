@@ -111,7 +111,7 @@ void COPY::runHipVariantImpl(VariantID vid)
   }
 }
 
-void COPY::runHipVariant(VariantID vid)
+void COPY::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<COPY>(*this, vid), gpu_block_sizes_type()) ) {

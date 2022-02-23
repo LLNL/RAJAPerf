@@ -19,7 +19,7 @@
 namespace rajaperf {
 namespace apps {
 
-void DIFFUSION3DPA::runOpenMPTargetVariant(VariantID vid) {
+void DIFFUSION3DPA::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/) {
   const Index_type run_reps = getRunReps();
 
   switch (vid) {

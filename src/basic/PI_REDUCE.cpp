@@ -21,10 +21,6 @@ namespace basic
 PI_REDUCE::PI_REDUCE(const RunParams& params)
   : KernelBase(rajaperf::Basic_PI_REDUCE, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
@@ -61,7 +57,7 @@ PI_REDUCE::~PI_REDUCE()
 {
 }
 
-void PI_REDUCE::setUp(VariantID vid)
+void PI_REDUCE::setUp(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   m_dx = 1.0 / double(getActualProblemSize());
@@ -69,12 +65,12 @@ void PI_REDUCE::setUp(VariantID vid)
   m_pi = 0.0;
 }
 
-void PI_REDUCE::updateChecksum(VariantID vid)
+void PI_REDUCE::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += Checksum_type(m_pi);
 }
 
-void PI_REDUCE::tearDown(VariantID vid)
+void PI_REDUCE::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 }

@@ -21,10 +21,6 @@ namespace polybench
 POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
   : KernelBase(rajaperf::Polybench_FLOYD_WARSHALL, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -70,19 +66,19 @@ POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
 }
 
-void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   allocAndInitDataRandSign(m_pin, m_N*m_N, vid);
   allocAndInitDataConst(m_pout, m_N*m_N, 0.0, vid);
 }
 
-void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_pin);

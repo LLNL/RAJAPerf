@@ -130,7 +130,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
   }
 }
 
-void FIRST_MIN::runHipVariant(VariantID vid)
+void FIRST_MIN::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<FIRST_MIN>(*this, vid), gpu_block_sizes_type()) ) {

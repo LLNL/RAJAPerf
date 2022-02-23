@@ -94,7 +94,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
   }
 }
 
-void TRIDIAG_ELIM::runHipVariant(VariantID vid)
+void TRIDIAG_ELIM::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<TRIDIAG_ELIM>(*this, vid), gpu_block_sizes_type()) ) {

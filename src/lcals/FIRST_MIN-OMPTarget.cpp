@@ -37,7 +37,7 @@ namespace lcals
 
 FIRST_MIN_MINLOC_COMPARE;
 
-void FIRST_MIN::runOpenMPTargetVariant(VariantID vid)
+void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

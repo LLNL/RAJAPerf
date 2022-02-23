@@ -308,7 +308,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   }
 }
 
-void MAT_MAT_SHARED::runHipVariant(VariantID vid)
+void MAT_MAT_SHARED::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<MAT_MAT_SHARED>(*this, vid), gpu_block_sizes_type()) ) {

@@ -23,10 +23,6 @@ namespace polybench
 POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   : KernelBase(rajaperf::Polybench_3MM, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   Index_type ni_default = 1000;
   Index_type nj_default = 1000;
   Index_type nk_default = 1010;
@@ -96,7 +92,7 @@ POLYBENCH_3MM::~POLYBENCH_3MM()
 {
 }
 
-void POLYBENCH_3MM::setUp(VariantID vid)
+void POLYBENCH_3MM::setUp(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   allocAndInitData(m_A, m_ni * m_nk, vid);
@@ -108,12 +104,12 @@ void POLYBENCH_3MM::setUp(VariantID vid)
   allocAndInitDataConst(m_G, m_ni * m_nl, 0.0, vid);
 }
 
-void POLYBENCH_3MM::updateChecksum(VariantID vid)
+void POLYBENCH_3MM::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
 }
 
-void POLYBENCH_3MM::tearDown(VariantID vid)
+void POLYBENCH_3MM::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_A);

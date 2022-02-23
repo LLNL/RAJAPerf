@@ -47,7 +47,7 @@ namespace polybench
   deallocOpenMPDeviceData(A, did);
 
 
-void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_MVT::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

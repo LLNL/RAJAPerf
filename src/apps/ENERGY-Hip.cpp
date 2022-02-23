@@ -262,7 +262,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
   }
 }
 
-void ENERGY::runHipVariant(VariantID vid)
+void ENERGY::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<ENERGY>(*this, vid), gpu_block_sizes_type()) ) {

@@ -153,13 +153,13 @@ void KernelBase::execute(VariantID vid, size_t tid)
   resetTimer();
 
   resetDataInitCount();
-  this->setUp(vid);
+  this->setUp(vid, tid);
 
   this->runKernel(vid, tid);
 
   this->updateChecksum(vid, tid);
 
-  this->tearDown(vid);
+  this->tearDown(vid, tid);
 
   running_variant = NumVariants;
   running_tuning = std::numeric_limits<size_t>::max();

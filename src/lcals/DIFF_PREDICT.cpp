@@ -20,10 +20,6 @@ namespace lcals
 DIFF_PREDICT::DIFF_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_DIFF_PREDICT, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(200);
 
@@ -59,7 +55,7 @@ DIFF_PREDICT::~DIFF_PREDICT()
 {
 }
 
-void DIFF_PREDICT::setUp(VariantID vid)
+void DIFF_PREDICT::setUp(VariantID vid, size_t /*tid*/)
 {
   m_array_length = getActualProblemSize() * 14;
   m_offset = getActualProblemSize();
@@ -68,12 +64,12 @@ void DIFF_PREDICT::setUp(VariantID vid)
   allocAndInitData(m_cx, m_array_length, vid);
 }
 
-void DIFF_PREDICT::updateChecksum(VariantID vid)
+void DIFF_PREDICT::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_px, m_array_length);
 }
 
-void DIFF_PREDICT::tearDown(VariantID vid)
+void DIFF_PREDICT::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_px);

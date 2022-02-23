@@ -204,9 +204,9 @@ public:
 
   virtual void runKernel(VariantID vid, size_t tid);
 
-  virtual void setUp(VariantID vid) = 0;
+  virtual void setUp(VariantID vid, size_t tid) = 0;
   virtual void updateChecksum(VariantID vid, size_t tid) = 0;
-  virtual void tearDown(VariantID vid) = 0;
+  virtual void tearDown(VariantID vid, size_t tid) = 0;
 
   virtual void runSeqVariant(VariantID vid, size_t tid) = 0;
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)

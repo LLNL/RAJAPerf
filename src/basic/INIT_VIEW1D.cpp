@@ -21,10 +21,6 @@ namespace basic
 INIT_VIEW1D::INIT_VIEW1D(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT_VIEW1D, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(2500);
 
@@ -62,18 +58,18 @@ INIT_VIEW1D::~INIT_VIEW1D()
 {
 }
 
-void INIT_VIEW1D::setUp(VariantID vid)
+void INIT_VIEW1D::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   m_val = 0.00000123;
 }
 
-void INIT_VIEW1D::updateChecksum(VariantID vid)
+void INIT_VIEW1D::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_a, getActualProblemSize());
 }
 
-void INIT_VIEW1D::tearDown(VariantID vid)
+void INIT_VIEW1D::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_a);

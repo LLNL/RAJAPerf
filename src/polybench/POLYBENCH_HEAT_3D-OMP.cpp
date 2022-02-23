@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
+void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

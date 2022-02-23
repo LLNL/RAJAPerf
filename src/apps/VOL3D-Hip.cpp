@@ -123,7 +123,7 @@ void VOL3D::runHipVariantImpl(VariantID vid)
   }
 }
 
-void VOL3D::runHipVariant(VariantID vid)
+void VOL3D::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<VOL3D>(*this, vid), gpu_block_sizes_type()) ) {

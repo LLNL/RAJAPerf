@@ -32,7 +32,7 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-void TRAP_INT::runSeqVariant(VariantID vid)
+void TRAP_INT::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

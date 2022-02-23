@@ -21,10 +21,6 @@ namespace stream
 MUL::MUL(const RunParams& params)
   : KernelBase(rajaperf::Stream_MUL, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
@@ -62,19 +58,19 @@ MUL::~MUL()
 {
 }
 
-void MUL::setUp(VariantID vid)
+void MUL::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_b, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
-void MUL::updateChecksum(VariantID vid)
+void MUL::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_b, getActualProblemSize());
 }
 
-void MUL::tearDown(VariantID vid)
+void MUL::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_b);

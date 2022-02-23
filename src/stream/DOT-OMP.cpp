@@ -18,7 +18,7 @@ namespace stream
 {
 
 
-void DOT::runOpenMPVariant(VariantID vid)
+void DOT::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

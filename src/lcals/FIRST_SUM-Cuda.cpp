@@ -90,7 +90,7 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void FIRST_SUM::runCudaVariant(VariantID vid)
+void FIRST_SUM::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<FIRST_SUM>(*this, vid), gpu_block_sizes_type()) ) {

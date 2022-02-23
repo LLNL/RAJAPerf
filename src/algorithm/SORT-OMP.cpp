@@ -18,7 +18,7 @@ namespace algorithm
 {
 
 
-void SORT::runOpenMPVariant(VariantID vid)
+void SORT::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

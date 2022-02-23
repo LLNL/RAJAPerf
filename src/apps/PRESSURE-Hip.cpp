@@ -129,7 +129,7 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
   }
 }
 
-void PRESSURE::runHipVariant(VariantID vid)
+void PRESSURE::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<PRESSURE>(*this, vid), gpu_block_sizes_type()) ) {

@@ -189,7 +189,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
   }
 }
 
-void LTIMES_NOVIEW::runHipVariant(VariantID vid)
+void LTIMES_NOVIEW::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<LTIMES_NOVIEW>(*this, vid), gpu_block_sizes_type()) ) {

@@ -21,10 +21,6 @@ namespace algorithm
 SORT::SORT(const RunParams& params)
   : KernelBase(rajaperf::Algorithm_SORT, params)
 {
-  setDefaultGPUBlockSize( default_gpu_block_size );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(20);
 
@@ -51,17 +47,17 @@ SORT::~SORT()
 {
 }
 
-void SORT::setUp(VariantID vid)
+void SORT::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataRandValue(m_x, getActualProblemSize()*getRunReps(), vid);
 }
 
-void SORT::updateChecksum(VariantID vid)
+void SORT::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
 }
 
-void SORT::tearDown(VariantID vid)
+void SORT::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);

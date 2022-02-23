@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
+void POLYBENCH_ADI::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

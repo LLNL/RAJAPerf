@@ -43,9 +43,9 @@ public:
 
   ~DAXPY();
 
-  void setUp(VariantID vid);
+  void setUp(VariantID vid, size_t tid);
   void updateChecksum(VariantID vid, size_t tid);
-  void tearDown(VariantID vid);
+  void tearDown(VariantID vid, size_t tid);
 
   void runSeqVariant(VariantID vid, size_t tid);
   void runOpenMPVariant(VariantID vid, size_t tid);
@@ -54,6 +54,7 @@ public:
   void runOpenMPTargetVariant(VariantID vid, size_t tid);
 
   void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >

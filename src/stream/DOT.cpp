@@ -21,10 +21,6 @@ namespace stream
 DOT::DOT(const RunParams& params)
   : KernelBase(rajaperf::Stream_DOT, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(2000);
 
@@ -62,7 +58,7 @@ DOT::~DOT()
 {
 }
 
-void DOT::setUp(VariantID vid)
+void DOT::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -71,12 +67,12 @@ void DOT::setUp(VariantID vid)
   m_dot_init = 0.0;
 }
 
-void DOT::updateChecksum(VariantID vid)
+void DOT::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += m_dot;
 }
 
-void DOT::tearDown(VariantID vid)
+void DOT::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_a);

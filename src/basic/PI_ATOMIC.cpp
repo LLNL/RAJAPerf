@@ -21,10 +21,6 @@ namespace basic
 PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   : KernelBase(rajaperf::Basic_PI_ATOMIC, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
@@ -63,19 +59,19 @@ PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
-void PI_ATOMIC::setUp(VariantID vid)
+void PI_ATOMIC::setUp(VariantID vid, size_t /*tid*/)
 {
   m_dx = 1.0 / double(getActualProblemSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
 }
 
-void PI_ATOMIC::updateChecksum(VariantID vid)
+void PI_ATOMIC::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += Checksum_type(*m_pi);
 }
 
-void PI_ATOMIC::tearDown(VariantID vid)
+void PI_ATOMIC::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_pi);

@@ -119,7 +119,7 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void GEN_LIN_RECUR::runCudaVariant(VariantID vid)
+void GEN_LIN_RECUR::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<GEN_LIN_RECUR>(*this, vid), gpu_block_sizes_type()) ) {

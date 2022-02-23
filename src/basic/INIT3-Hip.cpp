@@ -121,7 +121,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
   }
 }
 
-void INIT3::runHipVariant(VariantID vid)
+void INIT3::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<INIT3>(*this, vid), gpu_block_sizes_type()) ) {

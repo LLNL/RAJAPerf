@@ -21,10 +21,6 @@ namespace lcals
 PLANCKIAN::PLANCKIAN(const RunParams& params)
   : KernelBase(rajaperf::Lcals_PLANCKIAN, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(50);
 
@@ -59,7 +55,7 @@ PLANCKIAN::~PLANCKIAN()
 {
 }
 
-void PLANCKIAN::setUp(VariantID vid)
+void PLANCKIAN::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitData(m_x, getActualProblemSize(), vid);
   allocAndInitData(m_y, getActualProblemSize(), vid);
@@ -68,12 +64,12 @@ void PLANCKIAN::setUp(VariantID vid)
   allocAndInitDataConst(m_w, getActualProblemSize(), 0.0, vid);
 }
 
-void PLANCKIAN::updateChecksum(VariantID vid)
+void PLANCKIAN::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_w, getActualProblemSize());
 }
 
-void PLANCKIAN::tearDown(VariantID vid)
+void PLANCKIAN::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);

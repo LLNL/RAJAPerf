@@ -32,7 +32,7 @@ namespace basic
   deallocOpenMPDeviceData(array, did);
 
 
-void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
+void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

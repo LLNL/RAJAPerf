@@ -51,7 +51,7 @@ namespace apps
   }
 
 
-void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
+void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

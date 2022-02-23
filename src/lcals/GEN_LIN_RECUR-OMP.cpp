@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid)
+void GEN_LIN_RECUR::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

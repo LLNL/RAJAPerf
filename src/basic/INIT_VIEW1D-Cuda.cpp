@@ -110,7 +110,7 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void INIT_VIEW1D::runCudaVariant(VariantID vid)
+void INIT_VIEW1D::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<INIT_VIEW1D>(*this, vid), gpu_block_sizes_type()) ) {

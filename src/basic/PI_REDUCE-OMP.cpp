@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void PI_REDUCE::runOpenMPVariant(VariantID vid)
+void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

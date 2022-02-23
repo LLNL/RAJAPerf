@@ -179,7 +179,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<POLYBENCH_FLOYD_WARSHALL>(*this, vid), gpu_block_sizes_type()) ) {

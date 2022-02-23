@@ -19,7 +19,7 @@ namespace lcals
 {
 
 
-void PLANCKIAN::runOpenMPVariant(VariantID vid)
+void PLANCKIAN::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

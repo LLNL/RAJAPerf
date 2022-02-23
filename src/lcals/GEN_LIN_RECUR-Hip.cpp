@@ -121,7 +121,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
   }
 }
 
-void GEN_LIN_RECUR::runHipVariant(VariantID vid)
+void GEN_LIN_RECUR::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<GEN_LIN_RECUR>(*this, vid), gpu_block_sizes_type()) ) {

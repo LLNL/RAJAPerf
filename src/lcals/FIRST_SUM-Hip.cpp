@@ -90,7 +90,7 @@ void FIRST_SUM::runHipVariantImpl(VariantID vid)
   }
 }
 
-void FIRST_SUM::runHipVariant(VariantID vid)
+void FIRST_SUM::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<FIRST_SUM>(*this, vid), gpu_block_sizes_type()) ) {

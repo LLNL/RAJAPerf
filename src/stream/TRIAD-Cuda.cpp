@@ -111,7 +111,7 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void TRIAD::runCudaVariant(VariantID vid)
+void TRIAD::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<TRIAD>(*this, vid), gpu_block_sizes_type()) ) {

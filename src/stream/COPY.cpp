@@ -21,10 +21,6 @@ namespace stream
 COPY::COPY(const RunParams& params)
   : KernelBase(rajaperf::Stream_COPY, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(1800);
 
@@ -62,18 +58,18 @@ COPY::~COPY()
 {
 }
 
-void COPY::setUp(VariantID vid)
+void COPY::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
-void COPY::updateChecksum(VariantID vid)
+void COPY::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_c, getActualProblemSize());
 }
 
-void COPY::tearDown(VariantID vid)
+void COPY::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_a);

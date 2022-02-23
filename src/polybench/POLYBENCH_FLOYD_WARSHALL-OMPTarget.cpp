@@ -35,7 +35,7 @@ namespace polybench
   deallocOpenMPDeviceData(pout, did);
 
 
-void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

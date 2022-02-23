@@ -22,7 +22,7 @@ namespace apps
 {
 
 
-void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
+void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void HYDRO_1D::runSeqVariant(VariantID vid)
+void HYDRO_1D::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

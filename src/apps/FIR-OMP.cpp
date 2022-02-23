@@ -19,7 +19,7 @@ namespace apps
 {
 
 
-void FIR::runOpenMPVariant(VariantID vid)
+void FIR::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

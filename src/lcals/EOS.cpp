@@ -21,10 +21,6 @@ namespace lcals
 EOS::EOS(const RunParams& params)
   : KernelBase(rajaperf::Lcals_EOS, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
@@ -67,7 +63,7 @@ EOS::~EOS()
 {
 }
 
-void EOS::setUp(VariantID vid)
+void EOS::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitData(m_y, m_array_length, vid);
@@ -79,12 +75,12 @@ void EOS::setUp(VariantID vid)
   initData(m_t, vid);
 }
 
-void EOS::updateChecksum(VariantID vid)
+void EOS::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
-void EOS::tearDown(VariantID vid)
+void EOS::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);

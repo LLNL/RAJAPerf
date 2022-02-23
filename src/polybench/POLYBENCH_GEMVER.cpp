@@ -21,10 +21,6 @@ namespace polybench
 POLYBENCH_GEMVER::POLYBENCH_GEMVER(const RunParams& params)
   : KernelBase(rajaperf::Polybench_GEMVER, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   Index_type n_default = 1000;
 
   setDefaultProblemSize( n_default * n_default );
@@ -89,7 +85,7 @@ POLYBENCH_GEMVER::~POLYBENCH_GEMVER()
 {
 }
 
-void POLYBENCH_GEMVER::setUp(VariantID vid)
+void POLYBENCH_GEMVER::setUp(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 
@@ -104,12 +100,12 @@ void POLYBENCH_GEMVER::setUp(VariantID vid)
   allocAndInitData(m_z, m_n, vid);
 }
 
-void POLYBENCH_GEMVER::updateChecksum(VariantID vid)
+void POLYBENCH_GEMVER::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_w, m_n, checksum_scale_factor );
 }
 
-void POLYBENCH_GEMVER::tearDown(VariantID vid)
+void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_A);

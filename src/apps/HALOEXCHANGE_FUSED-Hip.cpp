@@ -273,7 +273,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
   }
 }
 
-void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid)
+void HALOEXCHANGE_FUSED::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<HALOEXCHANGE_FUSED>(*this, vid), gpu_block_sizes_type()) ) {

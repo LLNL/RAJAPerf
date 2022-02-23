@@ -23,10 +23,6 @@ namespace apps
 DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_DIFFUSION3DPA, params)
 {
-  setDefaultGPUBlockSize( default_gpu_block_size );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   m_NE_default = 15625;
 
   setDefaultProblemSize(m_NE_default*DPA_Q1D*DPA_Q1D*DPA_Q1D);
@@ -75,7 +71,7 @@ DIFFUSION3DPA::~DIFFUSION3DPA()
 {
 }
 
-void DIFFUSION3DPA::setUp(VariantID vid)
+void DIFFUSION3DPA::setUp(VariantID vid, size_t /*tid*/)
 {
 
   allocAndInitDataConst(m_B, int(DPA_Q1D*DPA_D1D), Real_type(1.0), vid);
@@ -85,12 +81,12 @@ void DIFFUSION3DPA::setUp(VariantID vid)
   allocAndInitDataConst(m_Y, int(DPA_D1D*DPA_D1D*DPA_D1D*m_NE), Real_type(0.0), vid);
 }
 
-void DIFFUSION3DPA::updateChecksum(VariantID vid)
+void DIFFUSION3DPA::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
 }
 
-void DIFFUSION3DPA::tearDown(VariantID vid)
+void DIFFUSION3DPA::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

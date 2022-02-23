@@ -22,7 +22,7 @@ namespace apps
 {
 
 
-void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid)
+void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

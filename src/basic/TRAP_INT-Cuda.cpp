@@ -151,7 +151,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void TRAP_INT::runCudaVariant(VariantID vid)
+void TRAP_INT::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<TRAP_INT>(*this, vid), gpu_block_sizes_type()) ) {

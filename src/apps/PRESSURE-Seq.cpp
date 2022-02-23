@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void PRESSURE::runSeqVariant(VariantID vid)
+void PRESSURE::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

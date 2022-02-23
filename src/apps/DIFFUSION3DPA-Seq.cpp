@@ -18,7 +18,7 @@
 namespace rajaperf {
 namespace apps {
 
-void DIFFUSION3DPA::runSeqVariant(VariantID vid) {
+void DIFFUSION3DPA::runSeqVariant(VariantID vid, size_t /*tid*/) {
   const Index_type run_reps = getRunReps();
 
   DIFFUSION3DPA_DATA_SETUP;

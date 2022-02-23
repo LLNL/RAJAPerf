@@ -46,7 +46,7 @@ Real_type trap_int_func(Real_type x,
 #define TRAP_INT_DATA_TEARDOWN_OMP_TARGET // nothing to do here...
 
 
-void TRAP_INT::runOpenMPTargetVariant(VariantID vid)
+void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

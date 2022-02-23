@@ -21,10 +21,6 @@ namespace lcals
 INT_PREDICT::INT_PREDICT(const RunParams& params)
   : KernelBase(rajaperf::Lcals_INT_PREDICT, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(400);
 
@@ -59,7 +55,7 @@ INT_PREDICT::~INT_PREDICT()
 {
 }
 
-void INT_PREDICT::setUp(VariantID vid)
+void INT_PREDICT::setUp(VariantID vid, size_t /*tid*/)
 {
   m_array_length = getActualProblemSize() * 13;
   m_offset = getActualProblemSize();
@@ -77,7 +73,7 @@ void INT_PREDICT::setUp(VariantID vid)
   initData(m_c0);
 }
 
-void INT_PREDICT::updateChecksum(VariantID vid)
+void INT_PREDICT::updateChecksum(VariantID vid, size_t tid)
 {
   for (Index_type i = 0; i < getActualProblemSize(); ++i) {
     m_px[i] -= m_px_initval;
@@ -86,7 +82,7 @@ void INT_PREDICT::updateChecksum(VariantID vid)
   checksum[vid] += calcChecksum(m_px, getActualProblemSize());
 }
 
-void INT_PREDICT::tearDown(VariantID vid)
+void INT_PREDICT::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_px);

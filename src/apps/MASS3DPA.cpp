@@ -23,10 +23,6 @@ namespace apps
 MASS3DPA::MASS3DPA(const RunParams& params)
   : KernelBase(rajaperf::Apps_MASS3DPA, params)
 {
-  setDefaultGPUBlockSize( default_gpu_block_size );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   m_NE_default = 8000;
 
   setDefaultProblemSize(m_NE_default*MPA_Q1D*MPA_Q1D*MPA_Q1D);
@@ -71,7 +67,7 @@ MASS3DPA::~MASS3DPA()
 {
 }
 
-void MASS3DPA::setUp(VariantID vid)
+void MASS3DPA::setUp(VariantID vid, size_t /*tid*/)
 {
 
   allocAndInitDataConst(m_B, int(MPA_Q1D*MPA_D1D), Real_type(1.0), vid);
@@ -81,12 +77,12 @@ void MASS3DPA::setUp(VariantID vid)
   allocAndInitDataConst(m_Y, int(MPA_D1D*MPA_D1D*MPA_D1D*m_NE), Real_type(0.0), vid);
 }
 
-void MASS3DPA::updateChecksum(VariantID vid)
+void MASS3DPA::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
 }
 
-void MASS3DPA::tearDown(VariantID vid)
+void MASS3DPA::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

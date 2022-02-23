@@ -90,7 +90,7 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void FIRST_DIFF::runCudaVariant(VariantID vid)
+void FIRST_DIFF::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<FIRST_DIFF>(*this, vid), gpu_block_sizes_type()) ) {

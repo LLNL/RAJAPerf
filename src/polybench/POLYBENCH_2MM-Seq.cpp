@@ -18,7 +18,7 @@ namespace rajaperf
 namespace polybench
 {
 
-void POLYBENCH_2MM::runSeqVariant(VariantID vid)
+void POLYBENCH_2MM::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps= getRunReps();
 

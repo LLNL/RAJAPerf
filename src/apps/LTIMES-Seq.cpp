@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void LTIMES::runSeqVariant(VariantID vid)
+void LTIMES::runSeqVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

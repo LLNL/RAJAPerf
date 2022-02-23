@@ -23,10 +23,6 @@ namespace apps
 LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
   : KernelBase(rajaperf::Apps_LTIMES_NOVIEW, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   m_num_d_default = 64;
   m_num_z_default = 488;
   m_num_g_default = 32;
@@ -86,19 +82,19 @@ LTIMES_NOVIEW::~LTIMES_NOVIEW()
 {
 }
 
-void LTIMES_NOVIEW::setUp(VariantID vid)
+void LTIMES_NOVIEW::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_phidat, int(m_philen), Real_type(0.0), vid);
   allocAndInitData(m_elldat, int(m_elllen), vid);
   allocAndInitData(m_psidat, int(m_psilen), vid);
 }
 
-void LTIMES_NOVIEW::updateChecksum(VariantID vid)
+void LTIMES_NOVIEW::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
 }
 
-void LTIMES_NOVIEW::tearDown(VariantID vid)
+void LTIMES_NOVIEW::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

@@ -21,10 +21,6 @@ namespace apps
 PRESSURE::PRESSURE(const RunParams& params)
   : KernelBase(rajaperf::Apps_PRESSURE, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(700);
 
@@ -62,7 +58,7 @@ PRESSURE::~PRESSURE()
 {
 }
 
-void PRESSURE::setUp(VariantID vid)
+void PRESSURE::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitData(m_compression, getActualProblemSize(), vid);
   allocAndInitData(m_bvc, getActualProblemSize(), vid);
@@ -76,12 +72,12 @@ void PRESSURE::setUp(VariantID vid)
   initData(m_eosvmax);
 }
 
-void PRESSURE::updateChecksum(VariantID vid)
+void PRESSURE::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
-void PRESSURE::tearDown(VariantID vid)
+void PRESSURE::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
 

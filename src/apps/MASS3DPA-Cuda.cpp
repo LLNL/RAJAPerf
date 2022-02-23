@@ -102,7 +102,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runCudaVariant(VariantID vid) {
+void MASS3DPA::runCudaVariant(VariantID vid, size_t tid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;

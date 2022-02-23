@@ -172,7 +172,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void NESTED_INIT::runCudaVariant(VariantID vid)
+void NESTED_INIT::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<NESTED_INIT>(*this, vid), gpu_block_sizes_type()) ) {

@@ -21,10 +21,6 @@ namespace basic
 INIT3::INIT3(const RunParams& params)
   : KernelBase(rajaperf::Basic_INIT3, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
@@ -61,7 +57,7 @@ INIT3::~INIT3()
 {
 }
 
-void INIT3::setUp(VariantID vid)
+void INIT3::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
   allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
@@ -70,14 +66,14 @@ void INIT3::setUp(VariantID vid)
   allocAndInitData(m_in2, getActualProblemSize(), vid);
 }
 
-void INIT3::updateChecksum(VariantID vid)
+void INIT3::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
   checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
   checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
 }
 
-void INIT3::tearDown(VariantID vid)
+void INIT3::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_out1);

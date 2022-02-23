@@ -21,10 +21,6 @@ namespace stream
 TRIAD::TRIAD(const RunParams& params)
   : KernelBase(rajaperf::Stream_TRIAD, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(1000);
 
@@ -66,7 +62,7 @@ TRIAD::~TRIAD()
 {
 }
 
-void TRIAD::setUp(VariantID vid)
+void TRIAD::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -74,12 +70,12 @@ void TRIAD::setUp(VariantID vid)
   initData(m_alpha, vid);
 }
 
-void TRIAD::updateChecksum(VariantID vid)
+void TRIAD::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
-void TRIAD::tearDown(VariantID vid)
+void TRIAD::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_a);

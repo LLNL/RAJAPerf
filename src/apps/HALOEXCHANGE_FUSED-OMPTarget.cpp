@@ -87,7 +87,7 @@ namespace apps
   delete[] h_unpack_ptrs;
 
 
-void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid)
+void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
 {
   const Index_type run_reps = getRunReps();
 

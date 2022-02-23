@@ -188,7 +188,7 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void LTIMES::runCudaVariant(VariantID vid)
+void LTIMES::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<LTIMES>(*this, vid), gpu_block_sizes_type()) ) {

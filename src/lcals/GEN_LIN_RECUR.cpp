@@ -21,10 +21,6 @@ namespace lcals
 GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
   : KernelBase(rajaperf::Lcals_GEN_LIN_RECUR, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   setDefaultProblemSize(1000000);
   setDefaultReps(500);
 
@@ -67,7 +63,7 @@ GEN_LIN_RECUR::~GEN_LIN_RECUR()
 {
 }
 
-void GEN_LIN_RECUR::setUp(VariantID vid)
+void GEN_LIN_RECUR::setUp(VariantID vid, size_t /*tid*/)
 {
   m_kb5i = 0;
 
@@ -77,12 +73,12 @@ void GEN_LIN_RECUR::setUp(VariantID vid)
   allocAndInitData(m_sb, m_N, vid);
 }
 
-void GEN_LIN_RECUR::updateChecksum(VariantID vid)
+void GEN_LIN_RECUR::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_b5, getActualProblemSize(), checksum_scale_factor );
 }
 
-void GEN_LIN_RECUR::tearDown(VariantID vid)
+void GEN_LIN_RECUR::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_b5);

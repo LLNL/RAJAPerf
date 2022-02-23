@@ -109,7 +109,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void COPY::runCudaVariant(VariantID vid)
+void COPY::runCudaVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunCudaBlockSize<COPY>(*this, vid), gpu_block_sizes_type()) ) {

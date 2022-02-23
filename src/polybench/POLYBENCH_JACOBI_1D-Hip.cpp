@@ -122,7 +122,7 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_JACOBI_1D::runHipVariant(VariantID vid)
+void POLYBENCH_JACOBI_1D::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<POLYBENCH_JACOBI_1D>(*this, vid), gpu_block_sizes_type()) ) {

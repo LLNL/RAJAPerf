@@ -21,10 +21,6 @@ namespace polybench
 POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   : KernelBase(rajaperf::Polybench_ATAX, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
@@ -75,7 +71,7 @@ POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
 }
 
-void POLYBENCH_ATAX::setUp(VariantID vid)
+void POLYBENCH_ATAX::setUp(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   allocAndInitData(m_tmp, m_N, vid);
@@ -84,12 +80,12 @@ void POLYBENCH_ATAX::setUp(VariantID vid)
   allocAndInitDataConst(m_y, m_N, 0.0, vid);
 }
 
-void POLYBENCH_ATAX::updateChecksum(VariantID vid)
+void POLYBENCH_ATAX::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_y, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_ATAX::tearDown(VariantID vid)
+void POLYBENCH_ATAX::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_tmp);

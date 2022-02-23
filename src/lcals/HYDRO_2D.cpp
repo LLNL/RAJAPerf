@@ -24,10 +24,6 @@ namespace lcals
 HYDRO_2D::HYDRO_2D(const RunParams& params)
   : KernelBase(rajaperf::Lcals_HYDRO_2D, params)
 {
-  setDefaultGPUBlockSize( gpu_block_size::get_default_or_first(default_gpu_block_size, gpu_block_sizes_type()) );
-  setActualGPUBlockSize( (params.getGPUBlockSize() > 0) ? params.getGPUBlockSize()
-                                                        : getDefaultGPUBlockSize() );
-
   m_jn = 1000;
   m_kn = 1000;
 
@@ -81,7 +77,7 @@ HYDRO_2D::~HYDRO_2D()
 {
 }
 
-void HYDRO_2D::setUp(VariantID vid)
+void HYDRO_2D::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_zzout, m_array_length, 0.0, vid);
@@ -96,13 +92,13 @@ void HYDRO_2D::setUp(VariantID vid)
   allocAndInitData(m_zz, m_array_length, vid);
 }
 
-void HYDRO_2D::updateChecksum(VariantID vid)
+void HYDRO_2D::updateChecksum(VariantID vid, size_t tid)
 {
   checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
   checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
-void HYDRO_2D::tearDown(VariantID vid)
+void HYDRO_2D::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_zrout);

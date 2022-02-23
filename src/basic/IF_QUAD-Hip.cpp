@@ -120,7 +120,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
   }
 }
 
-void IF_QUAD::runHipVariant(VariantID vid)
+void IF_QUAD::runHipVariant(VariantID vid, size_t tid)
 {
   if ( !gpu_block_size::invoke_or(
            gpu_block_size::RunHipBlockSize<IF_QUAD>(*this, vid), gpu_block_sizes_type()) ) {
