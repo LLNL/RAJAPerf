@@ -14,7 +14,7 @@ option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
 
 #
-# Initialize the BLT build system
+# Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
 #
 
 if (PERFSUITE_ENABLE_WARNINGS)
@@ -25,8 +25,8 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 11)
-set(BLT_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(BLT_CXX_STANDARD 14)
 
 include(blt/SetupBLT.cmake)
 
@@ -60,14 +60,6 @@ get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
 
-#
-# Setup variables to pass to Perf suite
-#
-
-#
-# These (hopefully temporary) macro constants are needed to work-around
-# performance issues in the xl compiler.
-#
 if (ENABLE_RAJA_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
 endif ()
@@ -91,7 +83,12 @@ if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
 if (ENABLE_HIP)
-  list(APPEND RAJA_PERFSUITE_DEPENDS hip)
+  message(STATUS "HIP version: ${hip_VERSION}")
+  if("${hip_VERSION}" VERSION_LESS "3.5")
+    message(FATAL_ERROR "Trying to use HIP/ROCm version ${hip_VERSION}. RAJA Perf Suite requires HIP/ROCm version 3.5 or newer. ")
+  endif()
+  list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip)
+  list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip_runtime)
 endif()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})

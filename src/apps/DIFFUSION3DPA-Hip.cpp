@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 // Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJA_UNROLL
+//#define USE_RAJAPERF_UNROLL
 
 #include "DIFFUSION3DPA.hpp"
 
@@ -200,7 +200,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
               ctx.teamSync();
 
               RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
-                [&](int dz) {
+                [&](int RAJA_UNUSED_ARG(dz)) {
                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
@@ -272,7 +272,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
              ctx.teamSync();
 
              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
-               [&](int dz) {
+               [&](int RAJA_UNUSED_ARG(dz)) {
                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int d) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
