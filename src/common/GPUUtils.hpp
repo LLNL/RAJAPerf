@@ -159,7 +159,9 @@ using list_type =
 template <typename Func, typename T, T... ts>
 void seq_for(camp::int_seq<T, ts...>, Func&& func)
 {
-  camp::sink((func(camp::integral_constant<T,ts>{}), 0)...);
+  // braced init lists are evaluated in order
+  int seq_unused_array[] = {(func(camp::integral_constant<T,ts>{}), 0)...};
+  RAJA_UNUSED_VAR(seq_unused_array);
 }
 template<size_t N, typename Func>
 void seq_for(Func&& func)
