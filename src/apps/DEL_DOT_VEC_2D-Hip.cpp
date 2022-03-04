@@ -141,7 +141,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    camp::resources::Resource working_res{camp::resources::Hip()};
+    camp::resources::Resource working_res{camp::resources::Hip::get_default()};
     RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                              m_domain->n_real_zones,
                                              working_res);

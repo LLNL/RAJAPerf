@@ -79,7 +79,7 @@ void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t /*tid*/)
 
     case RAJA_OpenMP : {
 
-      camp::resources::Resource working_res{camp::resources::Host()};
+      camp::resources::Resource working_res{camp::resources::Host::get_default()};
       RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                                m_domain->n_real_zones,
                                                working_res);
