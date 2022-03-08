@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -56,7 +56,7 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    python scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
+    python3 scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
 
 fi
 date
@@ -104,6 +104,10 @@ then
     echo "~ Build Dir:   ${build_dir}"
     echo "~ Project Dir: ${project_dir}"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo ""
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~ ENV ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ Building RAJA PerfSuite"
@@ -123,7 +127,7 @@ then
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       echo "~~~~ Updating Submodules within RAJA ~~~~~~"
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-      git submodule init && git submodule update --recursive
+      git submodule update --init --recursive
       cd -
     fi
 
@@ -135,6 +139,12 @@ then
     mkdir -p ${build_dir} && cd ${build_dir}
 
     date
+
+    if [[ "${truehostname}" == "corona" ]]
+    then
+        module unload rocm
+    fi
+
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
