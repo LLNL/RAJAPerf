@@ -25,10 +25,59 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STANDARD 14)
+include(CheckCXXCompilerFlag)
+if(NOT DEFINED BLT_CXX_STD)
+  if("cxx_std_17" IN_LIST CMAKE_CXX_KNOWN_FEATURES)
+    set(BLT_CXX_STD c++17 CACHE STRING "Version of C++ standard")
+    message("Using C++ standard: ${BLT_CXX_STD}")
+  elseif("cxx_std_14" IN_LIST CMAKE_CXX_KNOWN_FEATURES)
+    set(BLT_CXX_STD c++14 CACHE STRING "Version of C++ standard")
+    message("Using C++ standard: ${BLT_CXX_STD}")
+  elseif("${CMAKE_CXX_COMPILER_ID}" IN_LIST COMPILERS_KNOWN_TO_CMAKE33)
+    set(BLT_CXX_STD c++14 CACHE STRING "Version of C++ standard")
+    message("Using C++ standard: ${BLT_CXX_STD}")
+  else() #cmake has no idea what to do, do it ourselves...
+    foreach(flag_var "c++17" "c++14" "c++11")
+      CHECK_CXX_COMPILER_FLAG("-std=${flag_var}" COMPILER_SUPPORTS_${flag_var})
+      if(COMPILER_SUPPORTS_${flag_var})
+        set(BLT_CXX_STD ${flag_var} CACHE STRING "Version of C++ standard")
+        message("Using C++ standard: ${BLT_CXX_STD}")
+        break()
+      endif()
+    endforeach(flag_var)
+  endif()
+else() #check BLT_CXX_STD is high enough by disallowing the only invalid option
+  if("${BLT_CXX_STD}" STREQUAL "c++98")
+    message(FATAL_ERROR "RAJA requires minimum C++ standard of c++11")
+  endif()
+endif(NOT DEFINED BLT_CXX_STD)
+if (RAJA_ENABLE_DESUL_ATOMICS)
+  if("${BLT_CXX_STD}" STREQUAL "c++11")
+    message(FATAL_ERROR "RAJA_ENABLE_DESUL_ATOMICS requires minimum C++ standard of c++14")
+  endif()
+endif()
 
-include(blt/SetupBLT.cmake)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if (NOT BLT_LOADED)
+  if (DEFINED BLT_SOURCE_DIR)
+    if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
+      message(FATAL_ERROR "Given BLT_SOURCE_DIR does not contain SetupBLT.cmake")
+    endif()
+  else ()
+    set (BLT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/blt CACHE PATH "")
+
+    if (NOT EXISTS ${BLT_SOURCE_DIR}/SetupBLT.cmake)
+      message(FATAL_ERROR "\
+      The BLT submodule is not present. \
+      If in git repository run the following two commands:\n \
+      git submodule init\n \
+      git submodule update")
+    endif ()
+  endif ()
+
+  include(${BLT_SOURCE_DIR}/SetupBLT.cmake)
+endif()
 
 #
 # Define RAJA PERFSUITE settings...
