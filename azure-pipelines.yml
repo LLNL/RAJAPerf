@@ -79,20 +79,6 @@ jobs:
       command: build
       dockerFile: 'Dockerfile'
       arguments: '--target $(docker_target)'
-  - script: |
-      CID=$(docker create llnl/raja:$(Build.BuildId))
-      echo ${CID}
-      docker cp ${CID}:/home/axom/workspace/build local-build
-      docker rm ${CID}
-  - script: |
-      cd build
-      make -j
-    displayName: 'Build Perf Suite'
-  - script: |
-      cd build
-      ./bin/raja-perf.exe --checkrun -sp
-    displayName: 'Run Perf Suite'
-    condition: ne( variables['docker_target'], 'nvcc')
 - job: Mac 
   pool:
     vmImage: 'macOS-latest'
