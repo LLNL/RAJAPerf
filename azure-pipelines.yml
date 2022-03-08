@@ -5,29 +5,29 @@ variables:
   COMPILER: 'g++'
 
 jobs:
-- job: Windows #temporarily commenting out until cmake/azure version issue resolved
-  strategy:
-    matrix:
-      shared:
-        SHARED_ARGS: '-DBUILD_SHARED_LIBS=On -DCMAKE_CXX_FLAGS="/DRAJASHAREDDLL_EXPORTS" '
-      static:
-        SHARED_ARGS: '-DBUILD_SHARED_LIBS=Off'
-  pool:
-    vmImage: 'windows-2019'
-  variables:
-    CMAKE_EXTRA_FLAGS: '-DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD="" -DCMAKE_CXX_STANDARD=17'
-  steps:
-  - checkout: self
-    clean: boolean
-    submodules: recursive
-  - task: CMake@1
-    inputs:
-      workingDir: 'build'
-      cmakeArgs: '$(CMAKE_EXTRA_FLAGS) $(SHARED_ARGS) ../'
-  - task: CMake@1
-    inputs:
-      workingDir: 'build'
-      cmakeArgs: '--build . --config Release --verbose -j 4'
+#- job: Windows #temporarily commenting out until cmake/azure version issue resolved
+#  strategy:
+#    matrix:
+#      shared:
+#        SHARED_ARGS: '-DBUILD_SHARED_LIBS=On -DCMAKE_CXX_FLAGS="/DRAJASHAREDDLL_EXPORTS" '
+#      static:
+#        SHARED_ARGS: '-DBUILD_SHARED_LIBS=Off'
+#  pool:
+#    vmImage: 'windows-2019'
+#  variables:
+#    CMAKE_EXTRA_FLAGS: '-DRAJA_ENABLE_WARNINGS_AS_ERRORS=Off -DBLT_CXX_STD="" -DCMAKE_CXX_STANDARD=17'
+#  steps:
+#  - checkout: self
+#    clean: boolean
+#    submodules: recursive
+#  - task: CMake@1
+#    inputs:
+#      workingDir: 'build'
+#      cmakeArgs: '$(CMAKE_EXTRA_FLAGS) $(SHARED_ARGS) ../'
+#  - task: CMake@1
+#    inputs:
+#      workingDir: 'build'
+#      cmakeArgs: '--build . --config Release --verbose -j 4'
 #   - task: CmdLine@2
 #     inputs:
 #       script: 'ctest.exe -T test -C Release'
@@ -63,8 +63,8 @@ jobs:
         docker_target: nvcc11-debug
       hip:
         docker_target: hip
-      sycl:
-        docker_target: sycl
+#     sycl:
+#       docker_target: sycl
   pool:
     vmImage: 'ubuntu-latest'
   variables:
@@ -84,16 +84,15 @@ jobs:
       echo ${CID}
       docker cp ${CID}:/home/axom/workspace/build local-build
       docker rm ${CID}
-    displayName: 'Copy test artifacts'
+    - script: |
+      cd build
+      make -j
+    displayName: 'Build Perf Suite'
+    - script: |
+      cd build
+      ./bin/raja-perf.exe --checkrun -sp
+    displayName: 'Run Perf Suite'
     condition: ne( variables['docker_target'], 'nvcc')
-  - script: |
-      bash <(curl -s https://raw.githubusercontent.com/codecov/codecov-bash/0b376529f626b50b7d4a9fb734e0e50d28b9b91e/codecov) >& /dev/null
-    displayName: 'Upload code coverage'
-    condition: eq( variables['docker_target'], 'gcc')
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'cTest'
-      testResultsFiles: '**/Test.xml'
 - job: Mac 
   pool:
     vmImage: 'macOS-latest'
@@ -112,12 +111,8 @@ jobs:
       make -j 4
     displayName: 'OSX Build'
     condition: eq( variables['Agent.OS'], 'Darwin')
-#  - script: |
-#      cd build
-#      ctest -T test --output-on-failure
-#    displayName: 'OSX Test'
-#    condition: eq( variables['Agent.OS'], 'Darwin')
-#  - task: PublishTestResults@2
-#    inputs:
-#      testResultsFormat: 'cTest'
-#      testResultsFiles: '**/Test.xml'
+  - script: |
+      cd build
+      ./bin/raja-perf.exe --checkrun -sp
+    displayName: 'Run Perf Suite'
+    condition: eq( variables['Agent.OS'], 'Darwin')
