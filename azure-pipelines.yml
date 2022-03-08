@@ -84,11 +84,11 @@ jobs:
       echo ${CID}
       docker cp ${CID}:/home/axom/workspace/build local-build
       docker rm ${CID}
-    - script: |
+  - script: |
       cd build
       make -j
     displayName: 'Build Perf Suite'
-    - script: |
+  - script: |
       cd build
       ./bin/raja-perf.exe --checkrun -sp
     displayName: 'Run Perf Suite'
