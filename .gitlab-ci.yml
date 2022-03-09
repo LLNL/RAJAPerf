@@ -96,21 +96,6 @@ stages:
 .build_blueos_3_ppc64le_ib_p9_script:
   extends: .build_blueos_3_ppc64le_ib_script
 
-# If testing develop branch, trigger CHAI pipeline with this version of RAJA.
-# TODO: Once spack allows to clone a specific commit on demand, then point to the exact commit.
-#       This will prevent from sticking to a branch (here develop).
-#       MP_BRANCH is short for "Multi-Project Branch" and will usually be develop.
-trigger-rajaperf:
-  stage: multi_project
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "${MP_BRANCH}" || $MULTI_PROJECT == "ON"' #run only if ...
-  variables:
-    UPDATE_RAJA: ${MP_BRANCH}
-  trigger:
-    project: radiuss/rajaperf
-    branch: develop
-    strategy: depend
-
 # This is where jobs are included.
 include:
   - local: .gitlab/ruby-templates.yml
