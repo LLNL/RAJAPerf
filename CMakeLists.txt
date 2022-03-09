@@ -26,7 +26,7 @@ set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
 set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STANDARD 14)
+set(BLT_CXX_STD 14)
 
 include(blt/SetupBLT.cmake)
 
