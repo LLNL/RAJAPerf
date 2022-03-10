@@ -26,7 +26,7 @@ set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
 set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STD 14)
+set(BLT_CXX_STD c++14)
 
 include(blt/SetupBLT.cmake)
 
@@ -40,8 +40,8 @@ cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI
 # Define RAJA settings...
 #
 
-set(ENABLE_TESTS Off CACHE BOOL "")
-set(ENABLE_EXAMPLES Off CACHE BOOL "")
+set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
+set(RAJA_ENABLE_EXAMPLES Off CACHE BOOL "")
 set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
 set(ENABLE_TBB Off CACHE BOOL "")
@@ -59,6 +59,7 @@ add_subdirectory(tpl/RAJA)
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
+set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
 
 if (ENABLE_RAJA_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
