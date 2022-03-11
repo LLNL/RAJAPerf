@@ -196,9 +196,9 @@ then
             echo "./bin/raja-perf.exe -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
-            ./bin/raja-perf.exe --checkrun -sp
+            ./bin/raja-perf.exe --checkrun 10 -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --checkrun -sp"
+            echo "./bin/raja-perf.exe --checkrun 10 -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     fi
