@@ -9,14 +9,14 @@
 # CPU ONLY
 ##########
 
-ibm_clang_10_0_1:
-  variables:
-    SPEC: "%clang@ibm.10.0.1"
-  extends: .build_and_test_on_lassen
+#ibm_clang_10_0_1:
+#  variables:
+#    SPEC: "%clang@ibm.10.0.1"
+#  extends: .build_and_test_on_lassen
 
-ibm_clang_11_0_0:
+clang_11_0_0:
   variables:
-    SPEC: "%clang@ibm.11.0.0"
+    SPEC: "%clang@11.0.0"
   extends: .build_and_test_on_lassen
 
 #ibm_clang_9_gcc_8:
@@ -50,9 +50,9 @@ xl_16_1_1_11_gcc_8_3_1:
 #    SPEC: "+cuda cuda_arch=70 %clang@ibm.9.0.0 ^cuda@10.1.168"
 #  extends: .build_and_test_on_lassen
 
-ibm_clang_11_cuda:
+clang_11_cuda:
   variables:
-    SPEC: "+cuda cuda_arch=70 %clang@ibm.11.0.0 ^cuda@10.1.243"
+    SPEC: "+cuda cuda_arch=70 %clang@11.0.0 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
