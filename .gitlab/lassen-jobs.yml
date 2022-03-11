@@ -16,7 +16,7 @@ ibm_clang_10_0_1:
 
 ibm_clang_11_0_0:
   variables:
-    SPEC: "%clang@ibm.11.1.1"
+    SPEC: "%clang@ibm.11.0.0"
   extends: .build_and_test_on_lassen
 
 #ibm_clang_9_gcc_8:
