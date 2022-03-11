@@ -116,7 +116,7 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
 
-#include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/bin>)
+include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/bin>)
 
 # Make sure RAJA flag propagate (we need to do some house cleaning to
 # remove project-specific CMake variables that are no longer needed)
