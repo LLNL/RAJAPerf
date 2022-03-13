@@ -99,6 +99,6 @@ jobs:
     condition: eq( variables['Agent.OS'], 'Darwin')
   - script: |
       cd build
-      ./bin/raja-perf.exe --checkrun -sp
+      ./bin/raja-perf.exe --checkrun 5 -sp
     displayName: 'Run Perf Suite'
     condition: eq( variables['Agent.OS'], 'Darwin')
