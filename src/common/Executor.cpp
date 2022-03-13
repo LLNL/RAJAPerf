@@ -802,10 +802,13 @@ void Executor::runSuite()
            } else {
              getCout() << "   No ";
            }
-           getCout() << getVariantName(vid) << " variant" << endl;
+           getCout() << getVariantName(vid) << " variant";
          }
          if ( kern->hasVariantDefined(vid) ) {
-           kernels[ik]->execute(vid);
+           kern->execute(vid);
+           getCout() << " -- " << kern->getTotTime(vid) << " sec." << endl; 
+         } else {
+            getCout() << endl;
          }
       } // loop over variants
 
