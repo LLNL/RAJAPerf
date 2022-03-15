@@ -57,19 +57,19 @@ DAXPY_ATOMIC::~DAXPY_ATOMIC()
 {
 }
 
-void DAXPY_ATOMIC::setUp(VariantID vid)
+void DAXPY_ATOMIC::setUp(VariantID vid, size_t /*tid*/)
 {
   allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_x, getActualProblemSize(), vid);
   initData(m_a);
 }
 
-void DAXPY_ATOMIC::updateChecksum(VariantID vid)
+void DAXPY_ATOMIC::updateChecksum(VariantID vid, size_t tid)
 {
-  checksum[vid] += calcChecksum(m_y, getActualProblemSize());
+  checksum[vid].at(tid) += calcChecksum(m_y, getActualProblemSize());
 }
 
-void DAXPY_ATOMIC::tearDown(VariantID vid)
+void DAXPY_ATOMIC::tearDown(VariantID vid, size_t /*tid*/)
 {
   (void) vid;
   deallocData(m_x);
