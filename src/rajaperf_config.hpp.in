@@ -74,4 +74,11 @@ std::string machine_run;
 
 } // closing brace for rajaperf namespace
 
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
+
 #endif  // closing endif for header file include guard
