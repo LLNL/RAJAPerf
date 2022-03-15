@@ -156,16 +156,11 @@ using list_type =
 //compile time loop over an integer sequence
 //this allows for creating a loop over a compile time constant variable
 template <typename Func, typename T, T... ts>
-void seq_for(camp::int_seq<T, ts...>, Func&& func)
+inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 {
   // braced init lists are evaluated in order
   int seq_unused_array[] = {(func(camp::integral_constant<T,ts>{}), 0)...};
   RAJAPERF_UNUSED_VAR(seq_unused_array);
-}
-template<size_t N, typename Func>
-void seq_for(Func&& func)
-{
-  seq_for(camp::make_int_seq_t<size_t, N>{}, std::forward<Func>(func));
 }
 
 } // closing brace for rajaperf namespace
