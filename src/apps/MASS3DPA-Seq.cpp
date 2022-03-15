@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 // Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJA_UNROLL
+//#define USE_RAJAPERF_UNROLL
 
 #include "MASS3DPA.hpp"
 

@@ -71,6 +71,7 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_DAXPY = 0,
+  Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
@@ -137,6 +138,7 @@ enum KernelID {
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DPA,
+  Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
 

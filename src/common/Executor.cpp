@@ -852,9 +852,12 @@ void Executor::runKernel(KernelBase* kern)
 
       if ( run_params.showProgress() ) {
         getCout() << "     Running "
-                  << kern->getVariantTuningName(vid, tid) << " tuning" << endl;
+                  << kern->getVariantTuningName(vid, tid) << " tuning";
       }
       kern->execute(vid, tid);
+      if ( run_params.showProgress() ) {
+        getCout() << " -- " << kern->getTotTime(vid) << " sec." << endl;
+      }
     }
   } // loop over variants
 }
