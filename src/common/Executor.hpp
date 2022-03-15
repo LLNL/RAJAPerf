@@ -63,7 +63,7 @@ private:
   template < typename Kernel >
   KernelBase* makeKernel();
 
-  void runKernel(KernelBase* kern);
+  void runKernel(KernelBase* kern, bool print_kernel_name);
 
   std::unique_ptr<std::ostream> openOutputFile(const std::string& filename) const;
 

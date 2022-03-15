@@ -800,8 +800,7 @@ void Executor::runSuite()
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
-    getCout() << "Kernel : " << warmup_kernel->getName() << endl;
-    runKernel(warmup_kernel);
+    runKernel(warmup_kernel, true);
     delete warmup_kernel;
     warmup_kernels[ik] = nullptr;
   }
@@ -817,10 +816,7 @@ void Executor::runSuite()
 
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
-      if ( run_params.showProgress() ) {
-        getCout() << "\nRun kernel -- " << kernel->getName() << "\n";
-      }
-      runKernel(kernel);
+      runKernel(kernel, false);
     } // loop over kernels
 
   } // loop over passes through suite
@@ -834,13 +830,16 @@ KernelBase* Executor::makeKernel()
   return kernel;
 }
 
-void Executor::runKernel(KernelBase* kern)
+void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 {
+  if ( run_params.showProgress() || print_kernel_name) {
+    getCout()  << endl << "Run kernel -- " << kernel->getName() << endl;
+  }
   for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
     VariantID vid = variant_ids[iv];
 
     if ( run_params.showProgress() ) {
-      if ( kern->hasVariantDefined(vid) ) {
+      if ( kernel->hasVariantDefined(vid) ) {
         getCout() << "   Running ";
       } else {
         getCout() << "   No ";
@@ -848,15 +847,15 @@ void Executor::runKernel(KernelBase* kern)
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
-    for (size_t tid = 0; tid < kern->getNumVariantTunings(vid); ++tid) {
+    for (size_t tid = 0; tid < kernel->getNumVariantTunings(vid); ++tid) {
 
       if ( run_params.showProgress() ) {
         getCout() << "     Running "
-                  << kern->getVariantTuningName(vid, tid) << " tuning";
+                  << kernel->getVariantTuningName(vid, tid) << " tuning";
       }
-      kern->execute(vid, tid);
+      kernel->execute(vid, tid);
       if ( run_params.showProgress() ) {
-        getCout() << " -- " << kern->getTotTime(vid) << " sec." << endl;
+        getCout() << " -- " << kernel->getTotTime(vid, tid) << " sec." << endl;
       }
     }
   } // loop over variants
