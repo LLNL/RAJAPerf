@@ -855,7 +855,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
       }
       kernel->execute(vid, tid);
       if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getTotTime(vid, tid) << " sec." << endl;
+        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
       }
     }
   } // loop over variants

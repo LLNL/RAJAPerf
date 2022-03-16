@@ -155,6 +155,10 @@ public:
       return false;
     }
 
+  // get runtime of executed variant/tuning
+  double getLastTime() const { return timer.elapsed(); }
+
+  // get timers accumulated over npasses
   double getMinTime(VariantID vid, size_t tid) const { return min_time[vid].at(tid); }
   double getMaxTime(VariantID vid, size_t tid) const { return max_time[vid].at(tid); }
   double getTotTime(VariantID vid, size_t tid) { return tot_time[vid].at(tid); }
