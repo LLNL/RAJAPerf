@@ -10,7 +10,7 @@
 
 #=============================================================================
 # Change the copyright date in all files that contain the text
-# "the RAJAPerf/COPYRIGHT file", which is part of the copyright statement
+# "the RAJAPerf/LICENSE file", which is part of the copyright statement
 # at the top of each RAJA file. We use this to distinguish RAJA files from
 # that we do not own (e.g., other repos included as submodules), which we do
 # not want to modify. Note that this file and *.git files are omitted
