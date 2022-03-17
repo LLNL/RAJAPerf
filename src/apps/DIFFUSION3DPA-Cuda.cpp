@@ -37,7 +37,7 @@ namespace apps {
   deallocCudaDeviceData(X);                                                    \
   deallocCudaDeviceData(Y);
 
-__global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis,
+__global__ void Diffusion3DPA(const Real_ptr Basis,
                               const Real_ptr dBasis, const Real_ptr D,
                               const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -134,7 +134,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
       dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
-      Diffusion3DPA<<<NE, nthreads_per_block>>>(NE, Basis, dBasis, D, X, Y,
+      Diffusion3DPA<<<NE, nthreads_per_block>>>(Basis, dBasis, D, X, Y,
                                                 symmetric);
 
       cudaErrchk(cudaGetLastError());
