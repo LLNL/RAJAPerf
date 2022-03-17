@@ -33,7 +33,7 @@ namespace basic {
   deallocHipDeviceData(B);                                                     \
   deallocHipDeviceData(C);
 
-template < size_t tile_size >
+template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
                                Real_ptr B) {
@@ -64,7 +64,7 @@ __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
 template < size_t block_size >
 void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 {
-  constexpr size_t tile_size = gpu_block_size::sqrt(block_size);
+  constexpr Index_type tile_size = gpu_block_size::sqrt(block_size);
   static_assert(tile_size*tile_size == block_size, "Invalid block_size");
 
   const Index_type run_reps = getRunReps();
