@@ -47,19 +47,19 @@ SORTPAIRS::~SORTPAIRS()
 {
 }
 
-void SORTPAIRS::setUp(VariantID vid, size_t /*tid*/)
+void SORTPAIRS::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataRandValue(m_x, getActualProblemSize()*getRunReps(), vid);
   allocAndInitDataRandValue(m_i, getActualProblemSize()*getRunReps(), vid);
 }
 
-void SORTPAIRS::updateChecksum(VariantID vid, size_t tid)
+void SORTPAIRS::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
-  checksum[vid][tid] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
+  checksum[vid][tune_idx] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
 }
 
-void SORTPAIRS::tearDown(VariantID vid, size_t /*tid*/)
+void SORTPAIRS::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_x);

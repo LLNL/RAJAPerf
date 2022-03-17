@@ -20,7 +20,7 @@ namespace rajaperf {
 namespace basic {
 
 
-  void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/) {
+  void MAT_MAT_SHARED::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/) {
     const Index_type run_reps = getRunReps();
 
     switch (vid) {

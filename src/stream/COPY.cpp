@@ -58,18 +58,18 @@ COPY::~COPY()
 {
 }
 
-void COPY::setUp(VariantID vid, size_t /*tid*/)
+void COPY::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
-void COPY::updateChecksum(VariantID vid, size_t tid)
+void COPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize());
 }
 
-void COPY::tearDown(VariantID vid, size_t /*tid*/)
+void COPY::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_a);

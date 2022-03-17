@@ -21,7 +21,7 @@ namespace basic
 #undef USE_OMP_COLLAPSE
 
 
-void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

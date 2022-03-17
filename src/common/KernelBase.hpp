@@ -111,9 +111,9 @@ public:
 
   bool hasVariantDefined(VariantID vid) const
     { return !variant_tuning_names[vid].empty(); }
-  bool hasVariantTuningDefined(VariantID vid, size_t tid) const
+  bool hasVariantTuningDefined(VariantID vid, size_t tune_idx) const
     {
-      if (hasVariantDefined(vid) && tid < getNumVariantTunings(vid)) {
+      if (hasVariantDefined(vid) && tune_idx < getNumVariantTunings(vid)) {
         return true;
       }
       return false;
@@ -138,8 +138,8 @@ public:
     }
   size_t getNumVariantTunings(VariantID vid) const
     { return getVariantTuningNames(vid).size(); }
-  std::string const& getVariantTuningName(VariantID vid, size_t tid) const
-    { return getVariantTuningNames(vid).at(tid); }
+  std::string const& getVariantTuningName(VariantID vid, size_t tune_idx) const
+    { return getVariantTuningNames(vid).at(tune_idx); }
   std::vector<std::string> const& getVariantTuningNames(VariantID vid) const
     { return variant_tuning_names[vid]; }
 
@@ -147,10 +147,10 @@ public:
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
   //
-  bool wasVariantTuningRun(VariantID vid, size_t tid) const
+  bool wasVariantTuningRun(VariantID vid, size_t tune_idx) const
     {
-      if (tid != getUnknownTuningIdx()) {
-        return num_exec[vid].at(tid) > 0;
+      if (tune_idx != getUnknownTuningIdx()) {
+        return num_exec[vid].at(tune_idx) > 0;
       }
       return false;
     }
@@ -159,12 +159,12 @@ public:
   double getLastTime() const { return timer.elapsed(); }
 
   // get timers accumulated over npasses
-  double getMinTime(VariantID vid, size_t tid) const { return min_time[vid].at(tid); }
-  double getMaxTime(VariantID vid, size_t tid) const { return max_time[vid].at(tid); }
-  double getTotTime(VariantID vid, size_t tid) { return tot_time[vid].at(tid); }
-  Checksum_type getChecksum(VariantID vid, size_t tid) const { return checksum[vid].at(tid); }
+  double getMinTime(VariantID vid, size_t tune_idx) const { return min_time[vid].at(tune_idx); }
+  double getMaxTime(VariantID vid, size_t tune_idx) const { return max_time[vid].at(tune_idx); }
+  double getTotTime(VariantID vid, size_t tune_idx) { return tot_time[vid].at(tune_idx); }
+  Checksum_type getChecksum(VariantID vid, size_t tune_idx) const { return checksum[vid].at(tune_idx); }
 
-  void execute(VariantID vid, size_t tid);
+  void execute(VariantID vid, size_t tune_idx);
 
   void synchronize()
   {
@@ -211,24 +211,24 @@ public:
 
   virtual void print(std::ostream& os) const;
 
-  virtual void runKernel(VariantID vid, size_t tid);
+  virtual void runKernel(VariantID vid, size_t tune_idx);
 
-  virtual void setUp(VariantID vid, size_t tid) = 0;
-  virtual void updateChecksum(VariantID vid, size_t tid) = 0;
-  virtual void tearDown(VariantID vid, size_t tid) = 0;
+  virtual void setUp(VariantID vid, size_t tune_idx) = 0;
+  virtual void updateChecksum(VariantID vid, size_t tune_idx) = 0;
+  virtual void tearDown(VariantID vid, size_t tune_idx) = 0;
 
-  virtual void runSeqVariant(VariantID vid, size_t tid) = 0;
+  virtual void runSeqVariant(VariantID vid, size_t tune_idx) = 0;
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  virtual void runOpenMPVariant(VariantID vid, size_t tid) = 0;
+  virtual void runOpenMPVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 #if defined(RAJA_ENABLE_CUDA)
-  virtual void runCudaVariant(VariantID vid, size_t tid) = 0;
+  virtual void runCudaVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 #if defined(RAJA_ENABLE_HIP)
-  virtual void runHipVariant(VariantID vid, size_t tid) = 0;
+  virtual void runHipVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  virtual void runOpenMPTargetVariant(VariantID vid, size_t tid) = 0;
+  virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 
 protected:

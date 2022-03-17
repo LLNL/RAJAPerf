@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t /*tid*/)
+void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;

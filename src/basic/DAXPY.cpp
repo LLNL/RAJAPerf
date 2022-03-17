@@ -57,19 +57,19 @@ DAXPY::~DAXPY()
 {
 }
 
-void DAXPY::setUp(VariantID vid, size_t /*tid*/)
+void DAXPY::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_x, getActualProblemSize(), vid);
   initData(m_a);
 }
 
-void DAXPY::updateChecksum(VariantID vid, size_t tid)
+void DAXPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid].at(tid) += calcChecksum(m_y, getActualProblemSize());
+  checksum[vid].at(tune_idx) += calcChecksum(m_y, getActualProblemSize());
 }
 
-void DAXPY::tearDown(VariantID vid, size_t /*tid*/)
+void DAXPY::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_x);

@@ -19,7 +19,7 @@ namespace lcals
 
 FIRST_MIN_MINLOC_COMPARE;
 
-void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

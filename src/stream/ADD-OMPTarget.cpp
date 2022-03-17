@@ -40,7 +40,7 @@ namespace stream
   deallocOpenMPDeviceData(b, did); \
   deallocOpenMPDeviceData(c, did);
 
-void ADD::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
+void ADD::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

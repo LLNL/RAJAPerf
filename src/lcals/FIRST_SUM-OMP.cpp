@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void FIRST_SUM::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void FIRST_SUM::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

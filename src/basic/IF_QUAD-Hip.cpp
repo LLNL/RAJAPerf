@@ -120,13 +120,13 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
   }
 }
 
-void IF_QUAD::runHipVariant(VariantID vid, size_t tid)
+void IF_QUAD::runHipVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
-      if (tid == t) {
+      if (tune_idx == t) {
         runHipVariantImpl<block_size>(vid);
       }
       t += 1;

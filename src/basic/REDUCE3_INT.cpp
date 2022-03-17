@@ -62,7 +62,7 @@ REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
-void REDUCE3_INT::setUp(VariantID vid, size_t /*tid*/)
+void REDUCE3_INT::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitData(m_vec, getActualProblemSize(), vid);
 
@@ -74,14 +74,14 @@ void REDUCE3_INT::setUp(VariantID vid, size_t /*tid*/)
   m_vmax_init = std::numeric_limits<Int_type>::min();
 }
 
-void REDUCE3_INT::updateChecksum(VariantID vid, size_t tid)
+void REDUCE3_INT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += m_vsum;
-  checksum[vid][tid] += m_vmin;
-  checksum[vid][tid] += m_vmax;
+  checksum[vid][tune_idx] += m_vsum;
+  checksum[vid][tune_idx] += m_vmin;
+  checksum[vid][tune_idx] += m_vmax;
 }
 
-void REDUCE3_INT::tearDown(VariantID vid, size_t /*tid*/)
+void REDUCE3_INT::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_vec);

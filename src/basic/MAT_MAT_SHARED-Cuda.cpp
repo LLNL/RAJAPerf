@@ -305,13 +305,13 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void MAT_MAT_SHARED::runCudaVariant(VariantID vid, size_t tid)
+void MAT_MAT_SHARED::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
-      if (tid == t) {
+      if (tune_idx == t) {
         runCudaVariantImpl<block_size>(vid);
       }
       t += 1;

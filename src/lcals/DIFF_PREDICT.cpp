@@ -55,7 +55,7 @@ DIFF_PREDICT::~DIFF_PREDICT()
 {
 }
 
-void DIFF_PREDICT::setUp(VariantID vid, size_t /*tid*/)
+void DIFF_PREDICT::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   m_array_length = getActualProblemSize() * 14;
   m_offset = getActualProblemSize();
@@ -64,12 +64,12 @@ void DIFF_PREDICT::setUp(VariantID vid, size_t /*tid*/)
   allocAndInitData(m_cx, m_array_length, vid);
 }
 
-void DIFF_PREDICT::updateChecksum(VariantID vid, size_t tid)
+void DIFF_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_px, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_px, m_array_length);
 }
 
-void DIFF_PREDICT::tearDown(VariantID vid, size_t /*tid*/)
+void DIFF_PREDICT::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_px);

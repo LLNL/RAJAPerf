@@ -61,7 +61,7 @@ IF_QUAD::~IF_QUAD()
 {
 }
 
-void IF_QUAD::setUp(VariantID vid, size_t /*tid*/)
+void IF_QUAD::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataRandSign(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -70,13 +70,13 @@ void IF_QUAD::setUp(VariantID vid, size_t /*tid*/)
   allocAndInitDataConst(m_x2, getActualProblemSize(), 0.0, vid);
 }
 
-void IF_QUAD::updateChecksum(VariantID vid, size_t tid)
+void IF_QUAD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
-  checksum[vid][tid] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
 }
 
-void IF_QUAD::tearDown(VariantID vid, size_t /*tid*/)
+void IF_QUAD::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_a);

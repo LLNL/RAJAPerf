@@ -75,7 +75,7 @@ private:
                       RunParams::CombinerOpt combiner, size_t prec);
   std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
   long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
-                                 KernelBase* kern, VariantID vid, size_t tid);
+                                 KernelBase* kern, VariantID vid, size_t tune_idx);
 
   void writeChecksumReport(std::ostream& file);
 
@@ -88,7 +88,7 @@ private:
   std::vector<std::string> tuning_names[NumVariants];
 
   VariantID reference_vid;
-  size_t    reference_tid;
+  size_t    reference_tune_idx;
 };
 
 }  // closing brace for rajaperf namespace

@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void LTIMES_NOVIEW::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

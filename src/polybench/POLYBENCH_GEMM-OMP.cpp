@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

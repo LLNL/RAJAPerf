@@ -19,7 +19,7 @@ namespace basic
 {
 
 
-void REDUCE3_INT::runSeqVariant(VariantID vid, size_t /*tid*/)
+void REDUCE3_INT::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

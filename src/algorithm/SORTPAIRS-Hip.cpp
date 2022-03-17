@@ -38,7 +38,7 @@ namespace algorithm
   deallocHipDeviceData(i);
 
 
-void SORTPAIRS::runHipVariant(VariantID vid, size_t /*tid*/)
+void SORTPAIRS::runHipVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

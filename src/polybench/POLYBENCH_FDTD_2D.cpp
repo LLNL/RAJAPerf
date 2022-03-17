@@ -90,7 +90,7 @@ POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
 }
 
-void POLYBENCH_FDTD_2D::setUp(VariantID vid, size_t /*tid*/)
+void POLYBENCH_FDTD_2D::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_hz, m_nx * m_ny, 0.0, vid);
   allocAndInitData(m_ex, m_nx * m_ny, vid);
@@ -98,12 +98,12 @@ void POLYBENCH_FDTD_2D::setUp(VariantID vid, size_t /*tid*/)
   allocAndInitData(m_fict, m_tsteps, vid);
 }
 
-void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid, size_t tid)
+void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
+  checksum[vid][tune_idx] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
 }
 
-void POLYBENCH_FDTD_2D::tearDown(VariantID vid, size_t /*tid*/)
+void POLYBENCH_FDTD_2D::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_fict);

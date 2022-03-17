@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void HALOEXCHANGE::runSeqVariant(VariantID vid, size_t /*tid*/)
+void HALOEXCHANGE::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

@@ -45,7 +45,7 @@ namespace basic
   deallocOpenMPDeviceData(x1, did); \
   deallocOpenMPDeviceData(x2, did);
 
-void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
+void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

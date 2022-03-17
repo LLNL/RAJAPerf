@@ -71,7 +71,7 @@ VOL3D::~VOL3D()
   delete m_domain;
 }
 
-void VOL3D::setUp(VariantID vid, size_t /*tid*/)
+void VOL3D::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -87,12 +87,12 @@ void VOL3D::setUp(VariantID vid, size_t /*tid*/)
   m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */
 }
 
-void VOL3D::updateChecksum(VariantID vid, size_t tid)
+void VOL3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
-void VOL3D::tearDown(VariantID vid, size_t /*tid*/)
+void VOL3D::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
 

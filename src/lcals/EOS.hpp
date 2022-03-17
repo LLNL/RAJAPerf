@@ -53,15 +53,15 @@ public:
 
   ~EOS();
 
-  void setUp(VariantID vid, size_t tid);
-  void updateChecksum(VariantID vid, size_t tid);
-  void tearDown(VariantID vid, size_t tid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid, size_t tid);
-  void runOpenMPVariant(VariantID vid, size_t tid);
-  void runCudaVariant(VariantID vid, size_t tid);
-  void runHipVariant(VariantID vid, size_t tid);
-  void runOpenMPTargetVariant(VariantID vid, size_t tid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);

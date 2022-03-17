@@ -69,7 +69,7 @@ POLYBENCH_ADI::~POLYBENCH_ADI()
 {
 }
 
-void POLYBENCH_ADI::setUp(VariantID vid, size_t /*tid*/)
+void POLYBENCH_ADI::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_U, m_n * m_n, 0.0, vid);
   allocAndInitData(m_V, m_n * m_n, vid);
@@ -77,12 +77,12 @@ void POLYBENCH_ADI::setUp(VariantID vid, size_t /*tid*/)
   allocAndInitData(m_Q, m_n * m_n, vid);
 }
 
-void POLYBENCH_ADI::updateChecksum(VariantID vid, size_t tid)
+void POLYBENCH_ADI::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
 }
 
-void POLYBENCH_ADI::tearDown(VariantID vid, size_t /*tid*/)
+void POLYBENCH_ADI::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_U);

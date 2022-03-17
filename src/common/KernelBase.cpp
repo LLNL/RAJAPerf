@@ -145,21 +145,21 @@ void KernelBase::setVariantDefined(VariantID vid)
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
 }
 
-void KernelBase::execute(VariantID vid, size_t tid)
+void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;
-  running_tuning = tid;
+  running_tuning = tune_idx;
 
   resetTimer();
 
   resetDataInitCount();
-  this->setUp(vid, tid);
+  this->setUp(vid, tune_idx);
 
-  this->runKernel(vid, tid);
+  this->runKernel(vid, tune_idx);
 
-  this->updateChecksum(vid, tid);
+  this->updateChecksum(vid, tune_idx);
 
-  this->tearDown(vid, tid);
+  this->tearDown(vid, tune_idx);
 
   running_variant = NumVariants;
   running_tuning = getUnknownTuningIdx();
@@ -177,7 +177,7 @@ void KernelBase::recordExecTime()
   tot_time[running_variant].at(running_tuning) += exec_time;
 }
 
-void KernelBase::runKernel(VariantID vid, size_t tid)
+void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 {
   if ( !hasVariantDefined(vid) ) {
     return;
@@ -187,7 +187,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
 
     case Base_Seq :
     {
-      runSeqVariant(vid, tid);
+      runSeqVariant(vid, tune_idx);
       break;
     }
 
@@ -195,7 +195,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
     case RAJA_Seq :
     {
 #if defined(RUN_RAJA_SEQ)
-      runSeqVariant(vid, tid);
+      runSeqVariant(vid, tune_idx);
 #endif
       break;
     }
@@ -205,7 +205,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
     case RAJA_OpenMP :
     {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-      runOpenMPVariant(vid, tid);
+      runOpenMPVariant(vid, tune_idx);
 #endif
       break;
     }
@@ -214,7 +214,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
     case RAJA_OpenMPTarget :
     {
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-      runOpenMPTargetVariant(vid, tid);
+      runOpenMPTargetVariant(vid, tune_idx);
 #endif
       break;
     }
@@ -224,7 +224,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
     case RAJA_CUDA :
     {
 #if defined(RAJA_ENABLE_CUDA)
-      runCudaVariant(vid, tid);
+      runCudaVariant(vid, tune_idx);
 #endif
       break;
     }
@@ -234,7 +234,7 @@ void KernelBase::runKernel(VariantID vid, size_t tid)
     case RAJA_HIP :
     {
 #if defined(RAJA_ENABLE_HIP)
-      runHipVariant(vid, tid);
+      runHipVariant(vid, tune_idx);
 #endif
       break;
     }

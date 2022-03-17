@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void EOS::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void EOS::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

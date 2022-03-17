@@ -43,7 +43,7 @@ using namespace std;
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
     reference_vid(NumVariants),
-    reference_tid(KernelBase::getUnknownTuningIdx())
+    reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
 }
 
@@ -449,7 +449,7 @@ void Executor::setupSuite()
         run_var.insert( vid );
         if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
           reference_vid = vid;
-          reference_tid = 0;
+          reference_tune_idx = 0;
         }
       }
     }
@@ -459,7 +459,7 @@ void Executor::setupSuite()
     //
     if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
       reference_vid = *run_var.begin();
-      reference_tid = 0;
+      reference_tune_idx = 0;
     }
 
   } else {
@@ -487,7 +487,7 @@ void Executor::setupSuite()
             run_var.insert(vid);
             if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
               reference_vid = vid;
-              reference_tid = 0;
+              reference_tune_idx = 0;
             }
           }
           found_it = true;
@@ -502,7 +502,7 @@ void Executor::setupSuite()
     //
     if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
       reference_vid = *run_var.begin();
-      reference_tid = 0;
+      reference_tune_idx = 0;
     }
 
     run_params.setInvalidVariantInput(invalid);
@@ -847,13 +847,13 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
-    for (size_t tid = 0; tid < kernel->getNumVariantTunings(vid); ++tid) {
+    for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
 
       if ( run_params.showProgress() ) {
         getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tid) << " tuning";
+                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
       }
-      kernel->execute(vid, tid);
+      kernel->execute(vid, tune_idx);
       if ( run_params.showProgress() ) {
         getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
       }
@@ -1006,7 +1006,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
           std::string const& tuning_name = tuning_names[variant_ids[iv]][it];
           file << sepchr <<right<< setw(vartuncol_width[iv][it]);
           if ( (mode == CSVRepMode::Speedup) &&
-               (!kern->hasVariantTuningDefined(reference_vid, reference_tid) ||
+               (!kern->hasVariantTuningDefined(reference_vid, reference_tune_idx) ||
                 !kern->hasVariantTuningDefined(vid, tuning_name)) ) {
             file << "Not run";
           } else if ( (mode == CSVRepMode::Timing) &&
@@ -1148,22 +1148,22 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
 
           for (const string& tuning_name : tuning_names[vid]) {
 
-            size_t tid = kern->getVariantTuningIndex(vid, tuning_name);
+            size_t tune_idx = kern->getVariantTuningIndex(vid, tuning_name);
 
             //
             // If kernel variant was run, generate data for it and
             // print (signed) percentage difference from baseline.
             //
-            if ( kern->wasVariantTuningRun(vid, tid) ) {
+            if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
               col_exec_count[ifg][col]++;
 
               bool is_base = (base_totTime == unknown_totTime);
               if (is_base) {
-                base_totTime = kern->getTotTime(vid, tid);
+                base_totTime = kern->getTotTime(vid, tune_idx);
               }
 
               pct_diff[ik][ifg][col] =
-                (kern->getTotTime(vid, tid) - base_totTime) / base_totTime;
+                (kern->getTotTime(vid, tune_idx) - base_totTime) / base_totTime;
 
               string pfstring(pass);
               if (pct_diff[ik][ifg][col] > run_params.getPFTolerance()) {
@@ -1230,9 +1230,9 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
 
           for (const string& tuning_name : tuning_names[vid]) {
 
-            size_t tid = kern->getVariantTuningIndex(vid, tuning_name);
+            size_t tune_idx = kern->getVariantTuningIndex(vid, tuning_name);
 
-            if ( kern->wasVariantTuningRun(vid, tid) ) {
+            if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
               col_stddev[ifg][col] += ( pct_diff[ik][ifg][col] - col_avg[ifg][col] ) *
                                       ( pct_diff[ik][ifg][col] - col_avg[ifg][col] );
             }
@@ -1393,9 +1393,9 @@ void Executor::writeChecksumReport(ostream& file)
       while ( ivck < variant_ids.size() && !found_ref ) {
         VariantID vid = variant_ids[ivck];
         size_t num_tunings = kern->getNumVariantTunings(vid);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          if ( kern->wasVariantTuningRun(vid, tid) ) {
-            cksum_ref = kern->getChecksum(vid, tid);
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
+            cksum_ref = kern->getChecksum(vid, tune_idx);
             found_ref = true;
             break;
           }
@@ -1412,10 +1412,10 @@ void Executor::writeChecksumReport(ostream& file)
 
         checksums[iv].resize(num_tunings, 0.0);
         checksums_diff[iv].resize(num_tunings, 0.0);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          if ( kern->wasVariantTuningRun(vid, tid) ) {
-            checksums[iv][tid] = kern->getChecksum(vid, tid);
-            checksums_diff[iv][tid] = cksum_ref - kern->getChecksum(vid, tid);
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
+            checksums[iv][tune_idx] = kern->getChecksum(vid, tune_idx);
+            checksums_diff[iv][tune_idx] = cksum_ref - kern->getChecksum(vid, tune_idx);
           }
         }
       }
@@ -1438,8 +1438,8 @@ void Executor::writeChecksumReport(ostream& file)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_avg[iv].resize(num_tunings, 0.0);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          checksums_avg[iv][tid] = checksums_sum[iv][tid] / num_ranks;
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          checksums_avg[iv][tune_idx] = checksums_sum[iv][tune_idx] / num_ranks;
         }
       }
 
@@ -1448,8 +1448,8 @@ void Executor::writeChecksumReport(ostream& file)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_abs_diff[iv].resize(num_tunings, 0.0);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          checksums_abs_diff[iv][tid] = std::abs(checksums_diff[iv][tid]);
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          checksums_abs_diff[iv][tune_idx] = std::abs(checksums_diff[iv][tune_idx]);
         }
       }
 
@@ -1474,8 +1474,8 @@ void Executor::writeChecksumReport(ostream& file)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_abs_diff_avg[iv].resize(num_tunings, 0.0);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          checksums_abs_diff_avg[iv][tid] = checksums_abs_diff_sum[iv][tid] / num_ranks;
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          checksums_abs_diff_avg[iv][tune_idx] = checksums_abs_diff_sum[iv][tune_idx] / num_ranks;
         }
       }
 
@@ -1483,9 +1483,9 @@ void Executor::writeChecksumReport(ostream& file)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_abs_diff_diff2avg2[iv].resize(num_tunings, 0.0);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          checksums_abs_diff_diff2avg2[iv][tid] = (checksums_abs_diff[iv][tid] - checksums_abs_diff_avg[iv][tid]) *
-                                                  (checksums_abs_diff[iv][tid] - checksums_abs_diff_avg[iv][tid]) ;
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          checksums_abs_diff_diff2avg2[iv][tune_idx] = (checksums_abs_diff[iv][tune_idx] - checksums_abs_diff_avg[iv][tune_idx]) *
+                                                  (checksums_abs_diff[iv][tune_idx] - checksums_abs_diff_avg[iv][tune_idx]) ;
         }
       }
 
@@ -1495,8 +1495,8 @@ void Executor::writeChecksumReport(ostream& file)
         checksums_abs_diff_stddev[iv].resize(num_tunings, 0.0);
         MPI_Allreduce(checksums_abs_diff_diff2avg2.data(), checksums_abs_diff_stddev.data(), num_tunings,
                    Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          checksums_abs_diff_stddev[iv][tid] = std::sqrt(checksums_abs_diff_stddev[iv][tid] / num_ranks);
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          checksums_abs_diff_stddev[iv][tune_idx] = std::sqrt(checksums_abs_diff_stddev[iv][tune_idx] / num_ranks);
         }
       }
 
@@ -1507,19 +1507,19 @@ void Executor::writeChecksumReport(ostream& file)
         const string& variant_name = getVariantName(vid);
 
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
-        for (size_t tid = 0; tid < num_tunings; ++tid) {
-          const string& tuning_name = kern->getVariantTuningName(vid, tid);
+        for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
+          const string& tuning_name = kern->getVariantTuningName(vid, tune_idx);
 
-          if ( kern->wasVariantTuningRun(vid, tid) ) {
+          if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
                  << showpoint << setprecision(prec)
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
-                 <<left<< setw(checksum_width) << checksums_avg[iv][tid]
-                 <<left<< setw(checksum_width) << checksums_abs_diff_max[iv][tid]
-                 <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv][tid] << endl;
+                 <<left<< setw(checksum_width) << checksums_avg[iv][tune_idx]
+                 <<left<< setw(checksum_width) << checksums_abs_diff_max[iv][tune_idx]
+                 <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv][tune_idx] << endl;
 #else
-                 <<left<< setw(checksum_width) << checksums[iv][tid]
-                 <<left<< setw(checksum_width) << checksums_diff[iv][tid] << endl;
+                 <<left<< setw(checksum_width) << checksums[iv][tune_idx]
+                 <<left<< setw(checksum_width) << checksums_diff[iv][tune_idx] << endl;
 #endif
           } else {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
@@ -1586,22 +1586,22 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
                                          RunParams::CombinerOpt combiner,
                                          KernelBase* kern,
                                          VariantID vid,
-                                         size_t tid)
+                                         size_t tune_idx)
 {
   long double retval = 0.0;
   switch ( mode ) {
     case CSVRepMode::Timing : {
       switch ( combiner ) {
         case RunParams::CombinerOpt::Average : {
-          retval = kern->getTotTime(vid, tid) / run_params.getNumPasses();
+          retval = kern->getTotTime(vid, tune_idx) / run_params.getNumPasses();
         }
         break;
         case RunParams::CombinerOpt::Minimum : {
-          retval = kern->getMinTime(vid, tid);
+          retval = kern->getMinTime(vid, tune_idx);
         }
         break;
         case RunParams::CombinerOpt::Maximum : {
-          retval = kern->getMaxTime(vid, tid);
+          retval = kern->getMaxTime(vid, tune_idx);
         }
         break;
         default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
@@ -1610,22 +1610,22 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
     }
     case CSVRepMode::Speedup : {
       if ( haveReferenceVariant() ) {
-        if ( kern->hasVariantTuningDefined(reference_vid, reference_tid) &&
-             kern->hasVariantTuningDefined(vid, tid) ) {
+        if ( kern->hasVariantTuningDefined(reference_vid, reference_tune_idx) &&
+             kern->hasVariantTuningDefined(vid, tune_idx) ) {
           switch ( combiner ) {
             case RunParams::CombinerOpt::Average : {
-              retval = kern->getTotTime(reference_vid, reference_tid) /
-                       kern->getTotTime(vid, tid);
+              retval = kern->getTotTime(reference_vid, reference_tune_idx) /
+                       kern->getTotTime(vid, tune_idx);
             }
             break;
             case RunParams::CombinerOpt::Minimum : {
-              retval = kern->getMinTime(reference_vid, reference_tid) /
-                       kern->getMinTime(vid, tid);
+              retval = kern->getMinTime(reference_vid, reference_tune_idx) /
+                       kern->getMinTime(vid, tune_idx);
             }
             break;
             case RunParams::CombinerOpt::Maximum : {
-              retval = kern->getMaxTime(reference_vid, reference_tid) /
-                       kern->getMaxTime(vid, tid);
+              retval = kern->getMaxTime(reference_vid, reference_tune_idx) /
+                       kern->getMaxTime(vid, tune_idx);
             }
             break;
             default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
@@ -1635,10 +1635,10 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
         }
 #if 0 // RDH DEBUG  (leave this here, it's useful for debugging!)
         getCout() << "Kernel(iv): " << kern->getName() << "(" << vid << ")"
-                                                       << "(" << tid << ")"endl;
+                                                       << "(" << tune_idx << ")"endl;
         getCout() << "\tref_time, tot_time, retval = "
-             << kern->getTotTime(reference_vid, reference_tid) << " , "
-             << kern->getTotTime(vid, tid) << " , "
+             << kern->getTotTime(reference_vid, reference_tune_idx) << " , "
+             << kern->getTotTime(vid, tune_idx) << " , "
              << retval << endl;
 #endif
       }

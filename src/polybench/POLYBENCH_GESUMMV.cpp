@@ -65,7 +65,7 @@ POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()
 {
 }
 
-void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t /*tid*/)
+void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   allocAndInitData(m_x, m_N, vid);
@@ -74,12 +74,12 @@ void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t /*tid*/)
   allocAndInitData(m_B, m_N * m_N, vid);
 }
 
-void POLYBENCH_GESUMMV::updateChecksum(VariantID vid, size_t tid)
+void POLYBENCH_GESUMMV::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_y, m_N);
+  checksum[vid][tune_idx] += calcChecksum(m_y, m_N);
 }
 
-void POLYBENCH_GESUMMV::tearDown(VariantID vid, size_t /*tid*/)
+void POLYBENCH_GESUMMV::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_x);

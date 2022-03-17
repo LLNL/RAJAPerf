@@ -18,7 +18,7 @@ namespace stream
 {
 
 
-void COPY::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void COPY::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

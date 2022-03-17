@@ -59,19 +59,19 @@ PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
-void PI_ATOMIC::setUp(VariantID vid, size_t /*tid*/)
+void PI_ATOMIC::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   m_dx = 1.0 / double(getActualProblemSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
 }
 
-void PI_ATOMIC::updateChecksum(VariantID vid, size_t tid)
+void PI_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += Checksum_type(*m_pi);
+  checksum[vid][tune_idx] += Checksum_type(*m_pi);
 }
 
-void PI_ATOMIC::tearDown(VariantID vid, size_t /*tid*/)
+void PI_ATOMIC::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_pi);

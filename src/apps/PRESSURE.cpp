@@ -58,7 +58,7 @@ PRESSURE::~PRESSURE()
 {
 }
 
-void PRESSURE::setUp(VariantID vid, size_t /*tid*/)
+void PRESSURE::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitData(m_compression, getActualProblemSize(), vid);
   allocAndInitData(m_bvc, getActualProblemSize(), vid);
@@ -72,12 +72,12 @@ void PRESSURE::setUp(VariantID vid, size_t /*tid*/)
   initData(m_eosvmax);
 }
 
-void PRESSURE::updateChecksum(VariantID vid, size_t tid)
+void PRESSURE::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_p_new, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
-void PRESSURE::tearDown(VariantID vid, size_t /*tid*/)
+void PRESSURE::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
 

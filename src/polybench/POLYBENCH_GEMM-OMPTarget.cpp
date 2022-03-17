@@ -37,7 +37,7 @@ namespace polybench
   deallocOpenMPDeviceData(C, did);
 
 
-void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid, size_t /*tid*/)
+void POLYBENCH_GEMM::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

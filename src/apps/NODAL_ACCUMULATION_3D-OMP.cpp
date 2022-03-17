@@ -20,7 +20,7 @@ namespace apps
 {
 
 
-void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t /*tid*/)
+void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

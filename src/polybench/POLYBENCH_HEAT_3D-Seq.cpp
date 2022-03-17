@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t /*tid*/)
+void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps= getRunReps();
 

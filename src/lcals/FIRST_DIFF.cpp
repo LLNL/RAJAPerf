@@ -59,18 +59,18 @@ FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid, size_t /*tid*/)
+void FIRST_DIFF::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }
 
-void FIRST_DIFF::updateChecksum(VariantID vid, size_t tid)
+void FIRST_DIFF::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize());
 }
 
-void FIRST_DIFF::tearDown(VariantID vid, size_t /*tid*/)
+void FIRST_DIFF::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_x);

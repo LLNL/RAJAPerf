@@ -64,7 +64,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
 
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}
 
-void MAT_MAT_SHARED::setUp(VariantID vid, size_t /*tid*/) {
+void MAT_MAT_SHARED::setUp(VariantID vid, size_t /*tune_idx*/) {
   const Index_type NN = m_N * m_N;
 
   allocAndInitDataConst(m_A, NN, 1.0, vid);
@@ -72,11 +72,11 @@ void MAT_MAT_SHARED::setUp(VariantID vid, size_t /*tid*/) {
   allocAndInitDataConst(m_C, NN, 0.0, vid);
 }
 
-void MAT_MAT_SHARED::updateChecksum(VariantID vid, size_t tid) {
-  checksum[vid][tid] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
+void MAT_MAT_SHARED::updateChecksum(VariantID vid, size_t tune_idx) {
+  checksum[vid][tune_idx] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
 }
 
-void MAT_MAT_SHARED::tearDown(VariantID vid, size_t /*tid*/) {
+void MAT_MAT_SHARED::tearDown(VariantID vid, size_t /*tune_idx*/) {
   (void)vid;
   deallocData(m_A);
   deallocData(m_B);

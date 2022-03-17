@@ -62,7 +62,7 @@ TRIAD::~TRIAD()
 {
 }
 
-void TRIAD::setUp(VariantID vid, size_t /*tid*/)
+void TRIAD::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -70,12 +70,12 @@ void TRIAD::setUp(VariantID vid, size_t /*tid*/)
   initData(m_alpha, vid);
 }
 
-void TRIAD::updateChecksum(VariantID vid, size_t tid)
+void TRIAD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
-void TRIAD::tearDown(VariantID vid, size_t /*tid*/)
+void TRIAD::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_a);
