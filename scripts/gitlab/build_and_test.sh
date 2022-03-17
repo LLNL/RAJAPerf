@@ -66,7 +66,7 @@ if [[ -z ${hostconfig} ]]
 then
     # If no host config file was provided, we assume it was generated.
     # This means we are looking of a unique one in project dir.
-    hostconfigs=( $( ls "${project_dir}/"hc-*.cmake ) )
+    hostconfigs=( $( ls "${project_dir}/tpl/RAJA/"hc-*.cmake ) )
     if [[ ${#hostconfigs[@]} == 1 ]]
     then
         hostconfig_path=${hostconfigs[0]}
