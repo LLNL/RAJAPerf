@@ -56,7 +56,7 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    python3 scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
+    python3 tpl/RAJA/scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
 
 fi
 date
