@@ -109,6 +109,9 @@ blt_add_executable(
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
+  basic/TRIDIAGONAL.cpp
+  basic/TRIDIAGONAL-Seq.cpp
+  basic/TRIDIAGONAL-OMPTarget.cpp
   lcals/DIFF_PREDICT.cpp
   lcals/DIFF_PREDICT-Seq.cpp
   lcals/DIFF_PREDICT-OMPTarget.cpp

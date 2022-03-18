@@ -30,6 +30,7 @@
 #include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/TRAP_INT.hpp"
+#include "basic/TRIDIAGONAL.hpp"
 
 //
 // Lcals kernels...
@@ -158,6 +159,7 @@ static const std::string KernelNames [] =
   std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_TRAP_INT"),
+  std::string("Basic_TRIDIAGONAL"),
 
 //
 // Lcals kernels...
@@ -543,6 +545,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
+       break;
+    }
+    case Basic_TRIDIAGONAL : {
+       kernel = new basic::TRIDIAGONAL(run_params);
        break;
     }
 

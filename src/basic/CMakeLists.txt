@@ -86,5 +86,11 @@ blt_add_library(
           TRAP_INT-Cuda.cpp
           TRAP_INT-OMPTarget.cpp
           TRAP_INT-OMP.cpp
+          TRIDIAGONAL.cpp
+          TRIDIAGONAL-Seq.cpp
+          TRIDIAGONAL-Hip.cpp
+          TRIDIAGONAL-Cuda.cpp
+          TRIDIAGONAL-OMPTarget.cpp
+          TRIDIAGONAL-OMP.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
