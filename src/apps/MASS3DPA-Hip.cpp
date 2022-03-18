@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 // Uncomment to add compiler directives loop unrolling
-//#define USE_RAJA_UNROLL
+//#define USE_RAJAPERF_UNROLL
 
 #include "MASS3DPA.hpp"
 
@@ -37,7 +37,7 @@ namespace apps {
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
-__global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
+__global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
   const int e = hipBlockIdx_x;
@@ -118,7 +118,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipLaunchKernelGGL((Mass3DPA), dim3(grid_size), dim3(block_size), 0, 0,
-                         NE, B, Bt, D, X, Y);
+                         B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
 
@@ -134,27 +134,20 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
-                                                   >;
+    constexpr bool async = true;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_x_direct
-                                           >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_x_loop
-                                             >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_y_loop
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(NE),
                          RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {

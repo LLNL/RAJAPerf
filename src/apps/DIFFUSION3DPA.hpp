@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -334,7 +334,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_3 \
            double u = 0.0, v = 0.0; \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dx = 0; dx < DPA_D1D; ++dx) \
             { \
                const int i = qi(qx,dx,DPA_Q1D); \
@@ -351,7 +351,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_4 \
    double u = 0.0, v = 0.0, w = 0.0; \
-   RAJA_UNROLL(MD1)  \
+   RAJAPERF_UNROLL(MD1)  \
    for (int dy = 0; dy < DPA_D1D; ++dy) \
    { \
       const int i = qi(qy,dy,DPA_Q1D); \
@@ -369,7 +369,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_5 \
                double u = 0.0, v = 0.0, w = 0.0; \
-               RAJA_UNROLL(MD1) \
+               RAJAPERF_UNROLL(MD1) \
                for (int dz = 0; dz < DPA_D1D; ++dz) \
                { \
                   const int i = qi(qz,dz,DPA_Q1D); \
@@ -407,7 +407,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_7 \
             double u = 0.0, v = 0.0, w = 0.0; \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qx = 0; qx < DPA_Q1D; ++qx) \
             { \
               const int i = qi(qx,dx,DPA_Q1D); \
@@ -425,7 +425,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_8 \
         double u = 0.0, v = 0.0, w = 0.0; \
-        RAJA_UNROLL(DPA_Q1D)  \
+        RAJAPERF_UNROLL(DPA_Q1D)  \
         for (int qy = 0; qy < DPA_Q1D; ++qy) \
         { \
           const int i = qi(qy,dy,DPA_Q1D); \
@@ -443,7 +443,7 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
 
 #define DIFFUSION3DPA_9 \
         double u = 0.0, v = 0.0, w = 0.0; \
-        RAJA_UNROLL(MQ1) \
+        RAJAPERF_UNROLL(MQ1) \
         for (int qz = 0; qz < DPA_Q1D; ++qz)  \
         {                                     \
           const int i = qi(qz,dz,DPA_Q1D); \
@@ -456,22 +456,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
           w += QDD2[qz][dy][dx] * Gt[l][k] * s; \
         }                                       \
         dpaY_(dx,dy,dz,e) += (u + v + w);
-
-#if defined(RAJA_ENABLE_CUDA)
-  using d3d_device_launch = RAJA::expt::cuda_launch_t<true>;
-  using d3d_gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using d3d_gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using d3d_gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
-  using d3d_gpu_thread_z_policy = RAJA::cuda_thread_z_loop;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  using d3d_device_launch = RAJA::expt::hip_launch_t<true>;
-  using d3d_gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using d3d_gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using d3d_gpu_thread_y_policy = RAJA::hip_thread_y_loop;
-  using d3d_gpu_thread_z_policy = RAJA::hip_thread_z_loop;
-#endif
 
 namespace rajaperf
 {

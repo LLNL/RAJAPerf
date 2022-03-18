@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -8,11 +8,11 @@
 #ifndef RAJAPerf_FEM_MACROS_HPP
 #define RAJAPerf_FEM_MACROS_HPP
 
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#if defined(USE_RAJA_UNROLL)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
+#define RAJAPERF_DIRECT_PRAGMA(X) _Pragma(#X)
+#if defined(USE_RAJAPERF_UNROLL)
+#define RAJAPERF_UNROLL(N) RAJAPERF_DIRECT_PRAGMA(unroll(N))
 #else
-#define RAJA_UNROLL(N)
+#define RAJAPERF_UNROLL(N)
 #endif
 
 // Need two different host/device macros due to
