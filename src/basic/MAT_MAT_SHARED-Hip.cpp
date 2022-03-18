@@ -199,31 +199,20 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
 
     MAT_MAT_SHARED_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
-                                                   >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
 
-    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_x_direct
-                                           >;
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 
-    using teams_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_y_direct
-                                           >;
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_x_direct
-                                             >;
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
 
-    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_y_direct
-                                             >;
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(Nx, Ny),
                          RAJA::expt::Threads(TL_SZ, TL_SZ)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {

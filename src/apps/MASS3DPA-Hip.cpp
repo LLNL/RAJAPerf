@@ -134,27 +134,18 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
-                                                   >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_x_direct
-                                           >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_x_loop
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_y_loop
-                                             >;
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(NE),
                          RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {

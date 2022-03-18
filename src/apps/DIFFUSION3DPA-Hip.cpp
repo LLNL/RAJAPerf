@@ -152,26 +152,24 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
     DIFFUSION3DPA_DATA_SETUP_HIP;
 
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t,
-                                 RAJA::expt::hip_launch_t<true>>;
+        RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
 
     using outer_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::hip_block_x_direct>;
+        RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 
     using inner_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::hip_thread_x_loop>;
+        RAJA::expt::LoopPolicy<RAJA::hip_thread_x_loop>;
 
     using inner_y =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::hip_thread_y_loop>;
+        RAJA::expt::LoopPolicy<RAJA::hip_thread_y_loop>;
 
     using inner_z =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::hip_thread_z_loop>;
+        RAJA::expt::LoopPolicy<RAJA::hip_thread_z_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::DEVICE,
           RAJA::expt::Grid(RAJA::expt::Teams(NE),
                            RAJA::expt::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
