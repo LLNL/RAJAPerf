@@ -131,27 +131,20 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::cuda_launch_t<true>
-                                                   >;
+    constexpr bool async = true;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::cuda_block_x_direct
-                                           >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_x_loop
-                                             >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_y_loop
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
+
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(NE),
                          RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
