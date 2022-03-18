@@ -56,7 +56,9 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    python3 scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
+    python3 tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+
+    mv ${project_dir}/tpl/RAJA/hc-*.cmake ${project_dir}/.
 
 fi
 date
