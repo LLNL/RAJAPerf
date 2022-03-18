@@ -37,7 +37,7 @@ namespace apps {
   deallocCudaDeviceData(X);                                              \
   deallocCudaDeviceData(Y);
 
-__global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
+__global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
   const int e = blockIdx.x;
@@ -116,7 +116,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
       dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
-      Mass3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
+      Mass3DPA<<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }

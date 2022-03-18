@@ -37,7 +37,7 @@ namespace apps {
   deallocHipDeviceData(X);                                                     \
   deallocHipDeviceData(Y);
 
-__global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis,
+__global__ void Diffusion3DPA(const Real_ptr Basis,
                               const Real_ptr dBasis, const Real_ptr D,
                               const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -136,7 +136,7 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipLaunchKernelGGL((Diffusion3DPA), dim3(grid_size), dim3(block_size), 0,
-                         0, NE, Basis, dBasis, D, X, Y, symmetric);
+                         0, Basis, dBasis, D, X, Y, symmetric);
 
       hipErrchk(hipGetLastError());
     }
