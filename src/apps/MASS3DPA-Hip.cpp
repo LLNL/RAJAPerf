@@ -102,7 +102,7 @@ __global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runHipVariant(VariantID vid, size_t tune_idx) {
+void MASS3DPA::runHipVariant(VariantID vid, size_t /*tune_idx*/) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
