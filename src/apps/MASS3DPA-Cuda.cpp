@@ -131,7 +131,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<true>>;
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 

@@ -199,7 +199,9 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
 
     MAT_MAT_SHARED_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
     using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 

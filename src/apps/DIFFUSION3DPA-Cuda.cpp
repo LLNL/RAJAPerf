@@ -150,8 +150,10 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
     DIFFUSION3DPA_DATA_SETUP_CUDA;
 
+    constexpr bool async = true;
+
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<true>>;
+        RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
     using outer_x =
         RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;

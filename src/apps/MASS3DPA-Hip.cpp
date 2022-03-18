@@ -134,7 +134,9 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 

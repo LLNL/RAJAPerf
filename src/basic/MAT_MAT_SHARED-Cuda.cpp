@@ -194,7 +194,9 @@ void MAT_MAT_SHARED::runCudaVariant(VariantID vid) {
 
     MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<true>>;
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
     using teams_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 

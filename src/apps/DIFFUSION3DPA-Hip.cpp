@@ -151,8 +151,10 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid) {
 
     DIFFUSION3DPA_DATA_SETUP_HIP;
 
+    constexpr bool async = true;
+
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
+        RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
     using outer_x =
         RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
