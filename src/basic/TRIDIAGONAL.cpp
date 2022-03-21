@@ -34,7 +34,7 @@ TRIDIAGONAL::TRIDIAGONAL(const RunParams &params)
                   0 + 2 * (m_N-1)
                   ) * getActualProblemSize());
 
-  checksum_scale_factor = (1e0 / m_N) *
+  checksum_scale_factor = (1e-3 / m_N) *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -71,7 +71,32 @@ void TRIDIAGONAL::setUp(VariantID vid, size_t /*tune_idx*/) {
 }
 
 void TRIDIAGONAL::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_x_global, m_N * getActualProblemSize(), checksum_scale_factor );
+  // calculate checksum as sum of errors, instead of sum of x
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+  TRIDIAGONAL_DATA_SETUP;
+  for (Index_type i = ibegin; i < iend; ++i) {
+    TRIDIAGONAL_LOCAL_DATA_SETUP;
+    Index_type idx_0 = TRIDIAGONAL_INDEX(0);
+    Index_type idx_1 = TRIDIAGONAL_INDEX(1);
+    Real_type b0 = Ab[idx_0] * x[idx_0] +
+                   Ac[idx_0] * x[idx_1];
+    checksum[vid][tune_idx] += std::abs(b0 - b[idx_0]) * checksum_scale_factor;
+    for (Index_type n = 1; n < N-1; ++n) {
+      Index_type idx_m = TRIDIAGONAL_INDEX(n-1);
+      Index_type idx_n = TRIDIAGONAL_INDEX(n);
+      Index_type idx_p = TRIDIAGONAL_INDEX(n+1);
+      Real_type bn = Aa[idx_n] * x[idx_m] +
+                     Ab[idx_n] * x[idx_n] +
+                     Ac[idx_n] * x[idx_p];
+      checksum[vid][tune_idx] += std::abs(bn - b[idx_n]) * checksum_scale_factor;
+    }
+    Index_type idx_M = TRIDIAGONAL_INDEX(N-2);
+    Index_type idx_N = TRIDIAGONAL_INDEX(N-1);
+    Real_type bN = Aa[idx_N] * x[idx_M] +
+                   Ab[idx_N] * x[idx_N];
+    checksum[vid][tune_idx] += std::abs(bN - b[idx_N]) * checksum_scale_factor;
+  }
 }
 
 void TRIDIAGONAL::tearDown(VariantID vid, size_t /*tune_idx*/) {
