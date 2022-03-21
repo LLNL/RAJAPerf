@@ -20,6 +20,9 @@
     - if: '$CI_JOB_NAME =~ /release_resources/'
       when: always
     - when: on_success
+  only:
+    variables:
+      - $SOURCE_ZONE == "CZ"
 
 ####
 # Generic corona build job, extending build script

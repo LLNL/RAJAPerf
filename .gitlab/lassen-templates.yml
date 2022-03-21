@@ -16,6 +16,9 @@
     - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
     - when: on_success
+  only:
+    variables:
+      - $SOURCE_ZONE == "CZ"
 
 .build_and_test_on_lassen:
   stage: l_build_and_test

@@ -7,22 +7,12 @@
 
 # HIP jobs on RZnevada
 
-hip_4_3_cce_13_0_0:
+hip_4_5_2_cce_13_0_0:
   variables:
-    SPEC: "+hip~openmp %cce@13.0.0 ^hip@4.3.1"
+    SPEC: "+rocm~openmp amdgpu_target=gfx906 %cce@13.0.0 ^hip@4.5.2"
   extends: .build_and_test_on_nevada
 
-hip_4_3_gcc_8_4_1:
-  variables:
-    SPEC: "+hip~openmp %gcc@8.4.1 ^hip@4.3.1"
-  extends: .build_and_test_on_nevada
-
-hip_4_3_clang_11_0_0:
-  variables:
-    SPEC: "+hip~openmp %clang@11.0.0 ^hip@4.3.1"
-  extends: .build_and_test_on_nevada
-
-hip_5_2_gcc_8_4_1:
-  variables:
-    SPEC: "+hip~openmp %gcc@8.4.1 ^hip@4.5.2"
-  extends: .build_and_test_on_nevada
+  #hip_4_5_2_clang_13_0_0:
+  #variables:
+  #  SPEC: "+rocm~openmp amdgpu_target=gfx906 %clang@13.0.0 ^hip@4.5.2"
+  #extends: .build_and_test_on_nevada

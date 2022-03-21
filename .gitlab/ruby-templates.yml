@@ -20,6 +20,9 @@
     - if: '$CI_JOB_NAME =~ /release_resources/'
       when: always
     - when: on_success
+  only:
+    variables:
+      - $SOURCE_ZONE == "CZ"
 
 ####
 # In pre-build phase, allocate a node for builds
