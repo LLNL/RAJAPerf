@@ -46,19 +46,19 @@ namespace basic
 
 #define TRIDIAGONAL_LOCAL_DATA_SETUP_CUDA \
   TRIDIAGONAL_LOCAL_DATA_SETUP; \
-  Real_ptr d = d_global + i * N;
+  Real_ptr d = d_global + TRIDIAGONAL_OFFSET(i);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void tridigonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
+__global__ void tridiagonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
                            Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
                            Index_type N, Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     TRIDIAGONAL_LOCAL_DATA_SETUP_CUDA;
-    TRIDIAGONAL_BODY_FORWARD;
-    TRIDIAGONAL_BODY_BACKWARD;
+    TRIDIAGONAL_BODY_FORWARD_V2;
+    TRIDIAGONAL_BODY_BACKWARD_V2;
   }
 }
 
@@ -81,7 +81,7 @@ void TRIDIAGONAL::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      tridigonal<block_size><<<grid_size, block_size>>>(
+      tridiagonal<block_size><<<grid_size, block_size>>>(
           Aa_global, Ab_global, Ac_global,
           x_global, b_global, d_global,
           N, iend );
@@ -105,8 +105,8 @@ void TRIDIAGONAL::runCudaVariantImpl(VariantID vid)
       lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         TRIDIAGONAL_LOCAL_DATA_SETUP_CUDA;
-        TRIDIAGONAL_BODY_FORWARD;
-        TRIDIAGONAL_BODY_BACKWARD;
+        TRIDIAGONAL_BODY_FORWARD_V2;
+        TRIDIAGONAL_BODY_BACKWARD_V2;
       });
       cudaErrchk( cudaGetLastError() );
 
@@ -127,8 +127,8 @@ void TRIDIAGONAL::runCudaVariantImpl(VariantID vid)
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRIDIAGONAL_LOCAL_DATA_SETUP_CUDA;
-        TRIDIAGONAL_BODY_FORWARD;
-        TRIDIAGONAL_BODY_BACKWARD;
+        TRIDIAGONAL_BODY_FORWARD_V2;
+        TRIDIAGONAL_BODY_BACKWARD_V2;
       });
 
     }

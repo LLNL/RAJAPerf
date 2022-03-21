@@ -46,19 +46,19 @@ namespace basic
 
 #define TRIDIAGONAL_LOCAL_DATA_SETUP_HIP \
   TRIDIAGONAL_LOCAL_DATA_SETUP; \
-  Real_ptr d = d_global + i * N;
+  Real_ptr d = d_global + TRIDIAGONAL_OFFSET(i);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void tridigonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
-                           Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
-                           Index_type N, Index_type iend)
+__global__ void tridiagonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
+                            Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
+                            Index_type N, Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     TRIDIAGONAL_LOCAL_DATA_SETUP_HIP;
-    TRIDIAGONAL_BODY_FORWARD;
-    TRIDIAGONAL_BODY_BACKWARD;
+    TRIDIAGONAL_BODY_FORWARD_V2;
+    TRIDIAGONAL_BODY_BACKWARD_V2;
   }
 }
 
@@ -81,7 +81,7 @@ void TRIDIAGONAL::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((tridigonal<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((tridiagonal<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
           Aa_global, Ab_global, Ac_global,
           x_global, b_global, d_global,
           N, iend );
@@ -101,15 +101,15 @@ void TRIDIAGONAL::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto tridigonal_lambda = [=] __device__ (Index_type i) {
+      auto tridiagonal_lambda = [=] __device__ (Index_type i) {
         TRIDIAGONAL_LOCAL_DATA_SETUP_HIP;
-        TRIDIAGONAL_BODY_FORWARD;
-        TRIDIAGONAL_BODY_BACKWARD;
+        TRIDIAGONAL_BODY_FORWARD_V2;
+        TRIDIAGONAL_BODY_BACKWARD_V2;
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(tridigonal_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, tridigonal_lambda);
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(tridiagonal_lambda)>),
+        grid_size, block_size, 0, 0, ibegin, iend, tridiagonal_lambda);
       hipErrchk( hipGetLastError() );
 
     }
@@ -129,8 +129,8 @@ void TRIDIAGONAL::runHipVariantImpl(VariantID vid)
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRIDIAGONAL_LOCAL_DATA_SETUP_HIP;
-        TRIDIAGONAL_BODY_FORWARD;
-        TRIDIAGONAL_BODY_BACKWARD;
+        TRIDIAGONAL_BODY_FORWARD_V2;
+        TRIDIAGONAL_BODY_BACKWARD_V2;
       });
 
     }
