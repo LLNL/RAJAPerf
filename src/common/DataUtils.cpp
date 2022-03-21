@@ -38,17 +38,17 @@ void incDataInitCount()
 /*
  * Allocate and initialize aligned integer data arrays.
  */
-void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
+void allocAndInitData(Int_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Int_type[len];
-  initData(ptr, len, vid);
+  initData(ptr, len, vid, seed);
 }
 
 /*
  * Allocate and initialize aligned data arrays.
  */
-void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
+void allocAndInitData(Real_ptr& ptr, int len, VariantID vid)
 {
   ptr =
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
@@ -67,20 +67,20 @@ void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
   initDataConst(ptr, len, val, vid);
 }
 
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   ptr =
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
                                            len*sizeof(Real_type));
-  initDataRandSign(ptr, len, vid);
+  initDataRandSign(ptr, len, vid, seed);
 }
 
-void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   ptr =
     RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
                                            len*sizeof(Real_type));
-  initDataRandValue(ptr, len, vid);
+  initDataRandValue(ptr, len, vid, seed);
 }
 
 void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
@@ -123,7 +123,7 @@ void deallocData(Complex_ptr& ptr)
  * \brief Initialize Int_type data array to
  * randomly signed positive and negative values.
  */
-void initData(Int_ptr& ptr, int len, VariantID vid)
+void initData(Int_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   (void) vid;
 
@@ -139,7 +139,7 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
   }
 #endif
 
-  srand(4793);
+  srand(seed);
 
   Real_type signfact = 0.0;
 
@@ -220,7 +220,7 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
 /*
  * Initialize Real_type data array with random sign.
  */
-void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandSign(Real_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   (void) vid;
 
@@ -238,7 +238,7 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
-  srand(4793);
+  srand(seed);
 
   for (int i = 0; i < len; ++i) {
     Real_type signfact = Real_type(rand())/RAND_MAX;
@@ -252,7 +252,7 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Real_type data array with random values.
  */
-void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandValue(Real_ptr& ptr, int len, VariantID vid, size_t seed)
 {
   (void) vid;
 
@@ -268,7 +268,7 @@ void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
   }
 #endif
 
-  srand(4793);
+  srand(seed);
 
   for (int i = 0; i < len; ++i) {
     ptr[i] = Real_type(rand())/RAND_MAX;

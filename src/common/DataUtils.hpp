@@ -31,7 +31,9 @@
 namespace rajaperf
 {
 
-  
+constexpr size_t default_seed = 4793;
+
+
 /*!
  * Reset counter for data initialization.
  */
@@ -45,11 +47,12 @@ void incDataInitCount();
 
 /*!
  * \brief Allocate and initialize Int_type data array.
- * 
+ *
  * Array is initialized using method initData(Int_ptr& ptr...) below.
  */
 void allocAndInitData(Int_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+                      VariantID vid = NumVariants,
+                      size_t seed = default_seed);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
@@ -74,7 +77,8 @@ void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
  * Array is initialized using method initDataRandSign(Real_ptr& ptr...) below.
  */
 void allocAndInitDataRandSign(Real_ptr& ptr, int len,
-                              VariantID vid = NumVariants);
+                              VariantID vid = NumVariants,
+                              size_t seed = default_seed);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array with random
@@ -83,7 +87,8 @@ void allocAndInitDataRandSign(Real_ptr& ptr, int len,
  * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
  */
 void allocAndInitDataRandValue(Real_ptr& ptr, int len,
-                               VariantID vid = NumVariants);
+                               VariantID vid = NumVariants,
+                               size_t seed = default_seed);
 
 /*!
  * \brief Allocate and initialize aligned Complex_type data array.
@@ -110,7 +115,8 @@ void deallocData(Complex_ptr& ptr);
  * a value > 1, one to a value < -1.
  */
 void initData(Int_ptr& ptr, int len,
-              VariantID vid = NumVariants);
+              VariantID vid = NumVariants,
+              size_t seed = default_seed);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -137,7 +143,8 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
  * initData(Real_ptr& ptr...) above, but with random sign.
  */
 void initDataRandSign(Real_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+                      VariantID vid = NumVariants,
+                      size_t seed = default_seed);
 
 /*!
  * \brief Initialize Real_type data array with random values.
@@ -145,7 +152,8 @@ void initDataRandSign(Real_ptr& ptr, int len,
  * Array entries are initialized with random values in the interval [0.0, 1.0].
  */
 void initDataRandValue(Real_ptr& ptr, int len,
-                       VariantID vid = NumVariants);
+                       VariantID vid = NumVariants,
+                       size_t seed = default_seed);
 
 /*!
  * \brief Initialize Complex_type data array.

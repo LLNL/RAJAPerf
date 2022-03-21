@@ -62,12 +62,12 @@ TRIDIAGONAL::~TRIDIAGONAL() {}
 
 void TRIDIAGONAL::setUp(VariantID vid, size_t /*tune_idx*/) {
   const Index_type size = m_N * getActualProblemSize();
-
-  allocAndInitDataRandValue(m_Aa_global, size, vid);
-  allocAndInitDataRandValue(m_Ab_global, size, vid);
-  allocAndInitDataRandValue(m_Ac_global, size, vid);
+  // Using custom seeds so the matrix has a solution
+  allocAndInitDataRandValue(m_Aa_global, size, vid, 123456);
+  allocAndInitDataRandValue(m_Ab_global, size, vid, 234567);
+  allocAndInitDataRandValue(m_Ac_global, size, vid, 345678);
   allocAndInitDataConst(m_x_global, size, 0.0, vid);
-  allocAndInitDataRandValue(m_b_global, size, vid);
+  allocAndInitDataRandValue(m_b_global, size, vid, 456789);
 }
 
 void TRIDIAGONAL::updateChecksum(VariantID vid, size_t tune_idx) {
