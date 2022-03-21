@@ -15,8 +15,8 @@
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
-    - if: '$SOURCE_ZONE == "CZ"'
-      when: always
+    - if: '$SOURCE_ZONE == "RZ"'
+      when: never
     - when: on_success
 
 .build_and_test_on_lassen:
