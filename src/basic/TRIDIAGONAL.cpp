@@ -21,9 +21,9 @@ TRIDIAGONAL::TRIDIAGONAL(const RunParams &params)
     : KernelBase(rajaperf::Basic_TRIDIAGONAL, params)
 {
   setDefaultProblemSize(1000000);
-  setDefaultReps(10);
+  setDefaultReps(5);
 
-  m_N = 73;
+  m_N = 60;
 
   setActualProblemSize( getTargetProblemSize() );
 
