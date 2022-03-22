@@ -30,21 +30,21 @@ void TRIDIAGONAL::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 
     case Base_Seq : {
 
-      TRIDIAGONAL_TEMP_DATA_SETUP;
+      TRIDIAGONAL_TEMP_DATA_SETUP_LOCAL;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRIDIAGONAL_LOCAL_DATA_SETUP;
-          TRIDIAGONAL_BODY_FORWARD;
-          TRIDIAGONAL_BODY_BACKWARD;
+          TRIDIAGONAL_BODY_FORWARD_TEMP_LOCAL;
+          TRIDIAGONAL_BODY_BACKWARD_TEMP_LOCAL;
         }
 
       }
       stopTimer();
 
-      TRIDIAGONAL_TEMP_DATA_TEARDOWN;
+      TRIDIAGONAL_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }
@@ -52,12 +52,12 @@ void TRIDIAGONAL::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      TRIDIAGONAL_TEMP_DATA_SETUP;
+      TRIDIAGONAL_TEMP_DATA_SETUP_LOCAL;
 
       auto triad_lam = [=](Index_type i) {
                          TRIDIAGONAL_LOCAL_DATA_SETUP;
-                         TRIDIAGONAL_BODY_FORWARD;
-                         TRIDIAGONAL_BODY_BACKWARD;
+                         TRIDIAGONAL_BODY_FORWARD_TEMP_LOCAL;
+                         TRIDIAGONAL_BODY_BACKWARD_TEMP_LOCAL;
                        };
 
       startTimer();
@@ -70,19 +70,19 @@ void TRIDIAGONAL::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       }
       stopTimer();
 
-      TRIDIAGONAL_TEMP_DATA_TEARDOWN;
+      TRIDIAGONAL_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }
 
     case RAJA_Seq : {
 
-      TRIDIAGONAL_TEMP_DATA_SETUP;
+      TRIDIAGONAL_TEMP_DATA_SETUP_LOCAL;
 
       auto triad_lam = [=](Index_type i) {
                          TRIDIAGONAL_LOCAL_DATA_SETUP;
-                         TRIDIAGONAL_BODY_FORWARD;
-                         TRIDIAGONAL_BODY_BACKWARD;
+                         TRIDIAGONAL_BODY_FORWARD_TEMP_LOCAL;
+                         TRIDIAGONAL_BODY_BACKWARD_TEMP_LOCAL;
                        };
 
       startTimer();
@@ -94,7 +94,7 @@ void TRIDIAGONAL::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       }
       stopTimer();
 
-      TRIDIAGONAL_TEMP_DATA_TEARDOWN;
+      TRIDIAGONAL_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }

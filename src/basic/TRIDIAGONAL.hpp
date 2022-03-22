@@ -51,10 +51,10 @@
   Real_ptr b_global = m_b_global;                                              \
   Index_type N = m_N;
 
-#define TRIDIAGONAL_TEMP_DATA_SETUP                                            \
+#define TRIDIAGONAL_TEMP_DATA_SETUP_LOCAL                                      \
   Real_ptr d = new Real_type[N];
 
-#define TRIDIAGONAL_TEMP_DATA_TEARDOWN                                         \
+#define TRIDIAGONAL_TEMP_DATA_TEARDOWN_LOCAL                                   \
   delete[] d; d = nullptr;
 
 #define TRIDIAGONAL_OFFSET(i)                                                  \
@@ -63,7 +63,7 @@
 #define TRIDIAGONAL_INDEX(n)                                                   \
   ((n) * iend)
 
-#define TRIDIAGONAL_INDEX_TEMP(n)                                              \
+#define TRIDIAGONAL_INDEX_LOCAL(n)                                              \
   (n)
 
 #define TRIDIAGONAL_LOCAL_DATA_SETUP                                           \
@@ -73,32 +73,32 @@
   Real_ptr x = x_global + TRIDIAGONAL_OFFSET(i);                               \
   Real_ptr b = b_global + TRIDIAGONAL_OFFSET(i);
 
-#define TRIDIAGONAL_BODY_FORWARD                                               \
+#define TRIDIAGONAL_BODY_FORWARD_TEMP_LOCAL                                    \
   {                                                                            \
     Index_type idx_0 = TRIDIAGONAL_INDEX(0);                                   \
-    Index_type tmp_0 = TRIDIAGONAL_INDEX_TEMP(0);                              \
+    Index_type tmp_0 = TRIDIAGONAL_INDEX_LOCAL(0);                              \
     d[tmp_0] = Ac[idx_0] / Ab[idx_0];                                          \
     x[idx_0] =  b[idx_0] / Ab[idx_0];                                          \
     for (Index_type n = 1; n < N; ++n) {                                       \
       Index_type idx_n = TRIDIAGONAL_INDEX(n);                                 \
       Index_type idx_m = TRIDIAGONAL_INDEX(n-1);                               \
-      Index_type tmp_n = TRIDIAGONAL_INDEX_TEMP(n);                            \
-      Index_type tmp_m = TRIDIAGONAL_INDEX_TEMP(n-1);                          \
+      Index_type tmp_n = TRIDIAGONAL_INDEX_LOCAL(n);                            \
+      Index_type tmp_m = TRIDIAGONAL_INDEX_LOCAL(n-1);                          \
       Real_type div = Ab[idx_n] - Aa[idx_n] * d[tmp_m];                        \
       d[tmp_n] = Ac[idx_n] / div;                                              \
       x[idx_n] = (b[idx_n] - Aa[idx_n] * x[idx_m]) / div;                      \
     }                                                                          \
   }
 
-#define TRIDIAGONAL_BODY_BACKWARD                                              \
+#define TRIDIAGONAL_BODY_BACKWARD_TEMP_LOCAL                                   \
   for (Index_type n = N-2; n >= 0; --n) {                                      \
     Index_type idx_n = TRIDIAGONAL_INDEX(n);                                   \
     Index_type idx_p = TRIDIAGONAL_INDEX(n+1);                                 \
-    Index_type tmp_n = TRIDIAGONAL_INDEX_TEMP(n);                              \
+    Index_type tmp_n = TRIDIAGONAL_INDEX_LOCAL(n);                              \
     x[idx_n] = x[idx_n] - d[tmp_n] * x[idx_p];                                 \
   }
 
-#define TRIDIAGONAL_BODY_FORWARD_V2                                            \
+#define TRIDIAGONAL_BODY_FORWARD_TEMP_GLOBAL                                   \
   {                                                                            \
     Index_type idx_0 = TRIDIAGONAL_INDEX(0);                                   \
     d[idx_0] = Ac[idx_0] / Ab[idx_0];                                          \
@@ -112,7 +112,7 @@
     }                                                                          \
   }
 
-#define TRIDIAGONAL_BODY_BACKWARD_V2                                           \
+#define TRIDIAGONAL_BODY_BACKWARD_TEMP_GLOBAL                                  \
   for (Index_type n = N-2; n >= 0; --n) {                                      \
     Index_type idx_n = TRIDIAGONAL_INDEX(n);                                   \
     Index_type idx_p = TRIDIAGONAL_INDEX(n+1);                                 \
