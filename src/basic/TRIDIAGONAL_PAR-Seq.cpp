@@ -30,7 +30,7 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 
     case Base_Seq : {
 
-      TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+      // TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -163,7 +163,7 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       }
       stopTimer();
 
-      TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+      // TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }
