@@ -41,22 +41,26 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
           Real_type E_[N-1]; // lower diagonal of A
           Real_ptr E = E_ - 2; // [2:N]
           for (int j = 2; j <= N; ++j) { // par
-            E[j] = Aa[j-1];
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
+            E[j] = Aa[idx_m];
           }
           Real_type F_[N-1]; // upper diagonal of A
           Real_ptr F = F_ - 1; // [1:N-1]
           for (int j = 1; j <= N-1; ++j) { // par
-            F[j] = Ac[j-1];
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
+            F[j] = Ac[idx_m];
           }
           Real_type D_[N]; // diagonal of A
           Real_ptr D = D_ - 1; // [1:N]
           for (int j = 1; j <= N; ++j) { // par
-            D[j] = Ab[j-1];
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
+            D[j] = Ab[idx_m];
           }
           Real_type B_[N]; // rhs of equation
           Real_ptr B = B_ - 1; // [1:N]
           for (int j = 1; j <= N; ++j) { // par
-            B[j] = b[j-1];
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
+            B[j] = b[idx_m];
           }
 
           Real_type EF_[N]; // holds products (-e[i]*f[i-1])
@@ -155,7 +159,8 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
           }
 
           for (int i = 1; i <= N; ++i) { // par
-            x[i-1] = X[i];
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(i-1);
+            x[idx_m] = X[i];
           }
 
         }
