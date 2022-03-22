@@ -84,6 +84,7 @@ enum KernelID {
   Basic_REDUCE3_INT,
   Basic_TRAP_INT,
   Basic_TRIDIAGONAL,
+  Basic_TRIDIAGONAL_PAR,
 
 //
 // Lcals kernels...

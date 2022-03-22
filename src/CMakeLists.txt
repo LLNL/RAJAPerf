@@ -112,6 +112,9 @@ blt_add_executable(
   basic/TRIDIAGONAL.cpp
   basic/TRIDIAGONAL-Seq.cpp
   basic/TRIDIAGONAL-OMPTarget.cpp
+  basic/TRIDIAGONAL_PAR.cpp
+  basic/TRIDIAGONAL_PAR-Seq.cpp
+  basic/TRIDIAGONAL_PAR-OMPTarget.cpp
   lcals/DIFF_PREDICT.cpp
   lcals/DIFF_PREDICT-Seq.cpp
   lcals/DIFF_PREDICT-OMPTarget.cpp

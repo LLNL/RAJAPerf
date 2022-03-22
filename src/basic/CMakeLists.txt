@@ -92,5 +92,11 @@ blt_add_library(
           TRIDIAGONAL-Cuda.cpp
           TRIDIAGONAL-OMPTarget.cpp
           TRIDIAGONAL-OMP.cpp
+          TRIDIAGONAL_PAR.cpp
+          TRIDIAGONAL_PAR-Seq.cpp
+          TRIDIAGONAL_PAR-Hip.cpp
+          TRIDIAGONAL_PAR-Cuda.cpp
+          TRIDIAGONAL_PAR-OMPTarget.cpp
+          TRIDIAGONAL_PAR-OMP.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
