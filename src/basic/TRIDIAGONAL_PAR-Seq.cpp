@@ -38,51 +38,51 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
 
-          double E_[N-1]; // lower diagonal of A
-          double* E = E_ - 2; // [2:N]
+          Real_type E_[N-1]; // lower diagonal of A
+          Real_ptr E = E_ - 2; // [2:N]
           for (int j = 2; j <= N; ++j) { // par
             E[j] = Aa[j-1];
           }
-          double F_[N-1]; // upper diagonal of A
-          double* F = F_ - 1; // [1:N-1]
+          Real_type F_[N-1]; // upper diagonal of A
+          Real_ptr F = F_ - 1; // [1:N-1]
           for (int j = 1; j <= N-1; ++j) { // par
             F[j] = Ac[j-1];
           }
-          double D_[N]; // diagonal of A
-          double* D = D_ - 1; // [1:N]
+          Real_type D_[N]; // diagonal of A
+          Real_ptr D = D_ - 1; // [1:N]
           for (int j = 1; j <= N; ++j) { // par
             D[j] = Ab[j-1];
           }
-          double B_[N]; // rhs of equation
-          double* B = B_ - 1; // [1:N]
+          Real_type B_[N]; // rhs of equation
+          Real_ptr B = B_ - 1; // [1:N]
           for (int j = 1; j <= N; ++j) { // par
             B[j] = b[j-1];
           }
 
-          double EF_[N]; // holds products (-e[i]*f[i-1])
-          double* EF = EF_ - 1; // [1:N]
-          double TEMP_[N]; // temporary array
-          double* TEMP = TEMP_ - 1; // [1:N]
-          double QI_[N]; // Qi[j]
-          double* QI = QI_ - 1; // [1:N]
-          double QIM1_[N+1]; // Qi-1[j]
-          double* QIM1 = QIM1_ - 0; // [0:N]
-          double QIM2_[N+2]; // Qi-1[j]
-          double* QIM2 = QIM2_ - (-1); // [-1:N]
+          Real_type EF_[N]; // holds products (-e[i]*f[i-1])
+          Real_ptr EF = EF_ - 1; // [1:N]
+          Real_type TEMP_[N]; // temporary array
+          Real_ptr TEMP = TEMP_ - 1; // [1:N]
+          Real_type QI_[N]; // Qi[j]
+          Real_ptr QI = QI_ - 1; // [1:N]
+          Real_type QIM1_[N+1]; // Qi-1[j]
+          Real_ptr QIM1 = QIM1_ - 0; // [0:N]
+          Real_type QIM2_[N+2]; // Qi-1[j]
+          Real_ptr QIM2 = QIM2_ - (-1); // [-1:N]
 
-          double U_[N];
-          double* U = U_ - 1; // [1:N]
+          Real_type U_[N];
+          Real_ptr U = U_ - 1; // [1:N]
 
-          // double M_[N-1];
-          // double* M = M_ - 2; // [2:N]
-          double M_[N];
-          double* M = M_ - 1; // [1:N]
+          // Real_type M_[N-1];
+          // Real_ptr M = M_ - 2; // [2:N]
+          Real_type M_[N];
+          Real_ptr M = M_ - 1; // [1:N]
 
-          double Y_[N];
-          double* Y = Y_ - 1; // [1:N]
+          Real_type Y_[N];
+          Real_ptr Y = Y_ - 1; // [1:N]
 
-          double X_[N];
-          double* X = X_ - 1; // [1:N]
+          Real_type X_[N];
+          Real_ptr X = X_ - 1; // [1:N]
 
           EF[1] = 0;
           for (int j = 2; j <= N; ++j) { // par
