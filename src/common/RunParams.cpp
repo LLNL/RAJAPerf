@@ -108,6 +108,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
 
+  str << "\n tridiagonal_matrix_size = " << tridiagonal_matrix_size;
+
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
@@ -516,6 +518,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
       }
 
+    } else if ( opt == std::string("--tridiagonal_matrix_size") ) {
+
+      i++;
+      if ( i < argc ) {
+        tridiagonal_matrix_size = ::atoi( argv[i] );
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give --tridiagonal_matrix_size a value for matrix size (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
     } else {
 
       input_state = BadInput;
@@ -663,6 +677,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
+
+  str << "\t --tridiagonal_matrix_size <int> [default is 0]\n"
+      << "\t      (matrix size for tridiagonal kernels)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --tridiagonal_matrix_size 53 (runs tridiagonal kernels with 53x53 matrix)\n\n";
 
   str << std::endl;
   str.flush();

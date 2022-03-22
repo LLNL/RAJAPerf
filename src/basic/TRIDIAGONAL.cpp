@@ -23,7 +23,10 @@ TRIDIAGONAL::TRIDIAGONAL(const RunParams &params)
   setDefaultProblemSize(1000000);
   setDefaultReps(5);
 
-  m_N = 60;
+  m_N = N_default;
+  if (params.getTridiagonalMatrixSize() > 0) {
+    m_N = params.getTridiagonalMatrixSize();
+  }
 
   setActualProblemSize( getTargetProblemSize() );
 

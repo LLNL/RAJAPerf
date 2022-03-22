@@ -151,6 +151,8 @@ private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
 
+  static const Index_type N_default = 60;
+
   Real_ptr m_Aa_global;
   Real_ptr m_Ab_global;
   Real_ptr m_Ac_global;

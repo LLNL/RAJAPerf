@@ -142,6 +142,8 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
+  int getTridiagonalMatrixSize() const { return tridiagonal_matrix_size; }
+
   const std::vector<std::string>& getKernelInput() const
                                   { return kernel_input; }
   void setInvalidKernelInput( std::vector<std::string>& svec )
@@ -241,6 +243,12 @@ private:
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */
+
+  //
+  // Kernel specific command line args.
+  //
+  int tridiagonal_matrix_size = 0;
+
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for
