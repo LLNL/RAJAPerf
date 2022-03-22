@@ -26,25 +26,25 @@
 ###
 ## In pre-build phase, allocate a node for builds
 ## NOTE: Not specifying 'salloc -c 56' should allocate the max number of CPU cores
-allocate_resources (on nevada):
-  variables:
-    GIT_STRATEGY: none
-  extends: .on_nevada
-  stage: n_allocate_resources
-  script:
-    - salloc -N 1 -t 45 --no-shell --job-name=${ALLOC_NAME}
+#allocate_resources (on nevada):
+#  variables:
+#    GIT_STRATEGY: none
+#  extends: .on_nevada
+#  stage: n_allocate_resources
+#  script:
+#    - salloc -N 1 -t 45 --no-shell --job-name=${ALLOC_NAME}
 
 ###
 # In post-build phase, deallocate resources
 # Note : make sure this is run even on build phase failure
-release_resources (on nevada):
-  variables:
-    GIT_STRATEGY: none
-  extends: .on_nevada
-  stage: n_release_resources
-  script:
-    - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
-    - ([[ -n "${JOBID}" ]] && scancel ${JOBID})
+#release_resources (on nevada):
+#  variables:
+#    GIT_STRATEGY: none
+#  extends: .on_nevada
+#  stage: n_release_resources
+#  script:
+#    - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
+#    - ([[ -n "${JOBID}" ]] && scancel ${JOBID})
 
 # Generic nevada build job, extending build script
 .build_and_test_on_nevada:
