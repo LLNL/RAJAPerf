@@ -37,16 +37,16 @@ void TRIDIAGONAL_PAR::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 
         #pragma omp parallel
         {
-          TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+          TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
           #pragma omp for
           for (Index_type i = ibegin; i < iend; ++i ) {
             TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
-            TRIDIAGONAL_PAR_BODY_FORWARD;
-            TRIDIAGONAL_PAR_BODY_BACKWARD;
+            TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL;
+            TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL;
           }
 
-          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
         }
 
       }
@@ -62,12 +62,12 @@ void TRIDIAGONAL_PAR::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 
         #pragma omp parallel
         {
-          TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+          TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
           auto tridiagonal_lam = [=](Index_type i) {
                              TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
-                             TRIDIAGONAL_PAR_BODY_FORWARD;
-                             TRIDIAGONAL_PAR_BODY_BACKWARD;
+                             TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL;
+                             TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL;
                            };
 
           #pragma omp for
@@ -75,7 +75,7 @@ void TRIDIAGONAL_PAR::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
             tridiagonal_lam(i);
           }
 
-          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
         }
 
       }
@@ -91,18 +91,18 @@ void TRIDIAGONAL_PAR::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 
         RAJA::region<RAJA::omp_parallel_region>( [=]() {
 
-          TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+          TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
           auto tridiagonal_lam = [=](Index_type i) {
                              TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
-                             TRIDIAGONAL_PAR_BODY_FORWARD;
-                             TRIDIAGONAL_PAR_BODY_BACKWARD;
+                             TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL;
+                             TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL;
                            };
 
           RAJA::forall< RAJA::omp_for_exec >(
             RAJA::RangeSegment(ibegin, iend), tridiagonal_lam);
 
-          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+          TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
 
         }); // end omp parallel region
 

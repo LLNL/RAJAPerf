@@ -34,31 +34,30 @@ namespace basic
   deallocHipDeviceData(Ab_global); \
   deallocHipDeviceData(Ac_global); \
   deallocHipDeviceData(x_global); \
-  deallocHipDeviceData(b_global); \
-  deallocHipDeviceData(d_global);
+  deallocHipDeviceData(b_global);
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP \
+#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP_GLOBAL \
   Real_ptr d_global; \
   allocHipDeviceData(d_global, m_N*iend);
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP \
+#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP_GLOBAL \
   deallocHipDeviceData(d_global);
 
-#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP \
+#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP_GLOBAL \
   TRIDIAGONAL_PAR_LOCAL_DATA_SETUP; \
   Real_ptr d = d_global + TRIDIAGONAL_PAR_OFFSET(i);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void tridiagonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
-                            Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
-                            Index_type N, Index_type iend)
+__global__ void tridiagonal_par(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
+                                Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
+                                Index_type N, Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
-    TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP;
-    TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-    TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+    TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP_GLOBAL;
+    TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+    TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
   }
 }
 
@@ -75,13 +74,13 @@ void TRIDIAGONAL_PAR::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_HIP;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((tridiagonal<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((tridiagonal_par<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
           Aa_global, Ab_global, Ac_global,
           x_global, b_global, d_global,
           N, iend );
@@ -90,53 +89,53 @@ void TRIDIAGONAL_PAR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_HIP;
 
   } else if ( vid == Lambda_HIP ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_HIP;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto tridiagonal_lambda = [=] __device__ (Index_type i) {
-        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP;
-        TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-        TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+      auto tridiagonal_par_lambda = [=] __device__ (Index_type i) {
+        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(tridiagonal_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, tridiagonal_lambda);
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(tridiagonal_par_lambda)>),
+        grid_size, block_size, 0, 0, ibegin, iend, tridiagonal_par_lambda);
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_HIP;
 
   } else if ( vid == RAJA_HIP ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_HIP;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_HIP_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP;
-        TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-        TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_HIP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
       });
 
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_HIP_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_HIP;
 
   } else {

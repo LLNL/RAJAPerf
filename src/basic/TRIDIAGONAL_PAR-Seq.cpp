@@ -171,12 +171,12 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+      TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
       auto triad_lam = [=](Index_type i) {
                          TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
-                         TRIDIAGONAL_PAR_BODY_FORWARD;
-                         TRIDIAGONAL_PAR_BODY_BACKWARD;
+                         TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL;
+                         TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL;
                        };
 
       startTimer();
@@ -189,19 +189,19 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       }
       stopTimer();
 
-      TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+      TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }
 
     case RAJA_Seq : {
 
-      TRIDIAGONAL_PAR_TEMP_DATA_SETUP;
+      TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL;
 
       auto triad_lam = [=](Index_type i) {
                          TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
-                         TRIDIAGONAL_PAR_BODY_FORWARD;
-                         TRIDIAGONAL_PAR_BODY_BACKWARD;
+                         TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL;
+                         TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL;
                        };
 
       startTimer();
@@ -213,7 +213,7 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       }
       stopTimer();
 
-      TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN;
+      TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL;
 
       break;
     }

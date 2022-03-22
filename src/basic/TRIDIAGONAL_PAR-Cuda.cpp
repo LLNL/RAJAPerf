@@ -34,31 +34,30 @@ namespace basic
   deallocCudaDeviceData(Ab_global); \
   deallocCudaDeviceData(Ac_global); \
   deallocCudaDeviceData(x_global); \
-  deallocCudaDeviceData(b_global); \
-  deallocCudaDeviceData(d_global);
+  deallocCudaDeviceData(b_global);
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA \
+#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA_GLOBAL \
   Real_ptr d_global; \
   allocCudaDeviceData(d_global, m_N*iend);
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA \
+#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA_GLOBAL \
   deallocCudaDeviceData(d_global);
 
-#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA \
+#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA_GLOBAL \
   TRIDIAGONAL_PAR_LOCAL_DATA_SETUP; \
   Real_ptr d = d_global + TRIDIAGONAL_PAR_OFFSET(i);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
-__global__ void tridiagonal(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
-                           Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
-                           Index_type N, Index_type iend)
+__global__ void tridiagonal_par(Real_ptr Aa_global, Real_ptr Ab_global, Real_ptr Ac_global,
+                                Real_ptr  x_global, Real_ptr  b_global, Real_ptr  d_global,
+                                Index_type N, Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
-    TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA;
-    TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-    TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+    TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA_GLOBAL;
+    TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+    TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
   }
 }
 
@@ -75,13 +74,13 @@ void TRIDIAGONAL_PAR::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_CUDA;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      tridiagonal<block_size><<<grid_size, block_size>>>(
+      tridiagonal_par<block_size><<<grid_size, block_size>>>(
           Aa_global, Ab_global, Ac_global,
           x_global, b_global, d_global,
           N, iend );
@@ -90,13 +89,13 @@ void TRIDIAGONAL_PAR::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == Lambda_CUDA ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_CUDA;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,37 +103,37 @@ void TRIDIAGONAL_PAR::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
-        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA;
-        TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-        TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
       });
       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_CUDA;
 
   } else if ( vid == RAJA_CUDA ) {
 
     TRIDIAGONAL_PAR_DATA_SETUP_CUDA;
-    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_SETUP_CUDA_GLOBAL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA;
-        TRIDIAGONAL_PAR_BODY_FORWARD_V2;
-        TRIDIAGONAL_PAR_BODY_BACKWARD_V2;
+        TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_CUDA_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL;
+        TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL;
       });
 
     }
     stopTimer();
 
-    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA;
+    TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_CUDA_GLOBAL;
     TRIDIAGONAL_PAR_DATA_TEARDOWN_CUDA;
 
   } else {

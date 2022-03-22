@@ -43,7 +43,7 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
-#define TRIDIAGONAL_PAR_DATA_SETUP                                                 \
+#define TRIDIAGONAL_PAR_DATA_SETUP                                             \
   Real_ptr Aa_global = m_Aa_global;                                            \
   Real_ptr Ab_global = m_Ab_global;                                            \
   Real_ptr Ac_global = m_Ac_global;                                            \
@@ -51,73 +51,74 @@
   Real_ptr b_global = m_b_global;                                              \
   Index_type N = m_N;
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP                                            \
+#define TRIDIAGONAL_PAR_TEMP_DATA_SETUP_LOCAL                                  \
   Real_ptr d = new Real_type[N];
 
-#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN                                         \
+#define TRIDIAGONAL_PAR_TEMP_DATA_TEARDOWN_LOCAL                               \
   delete[] d; d = nullptr;
 
-#define TRIDIAGONAL_PAR_OFFSET(i)                                                  \
-  ((i) * N)
+#define TRIDIAGONAL_PAR_OFFSET(i)                                              \
+  (i)
 
-#define TRIDIAGONAL_PAR_INDEX(n)                                                   \
+#define TRIDIAGONAL_PAR_INDEX(n)                                               \
+  ((n) * iend)
+
+#define TRIDIAGONAL_PAR_INDEX_LOCAL(n)                                         \
   (n)
 
-#define TRIDIAGONAL_PAR_INDEX_TEMP(n)                                              \
-  (n)
-
-#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP                                           \
-  Real_ptr Aa = Aa_global + TRIDIAGONAL_PAR_OFFSET(i);                             \
-  Real_ptr Ab = Ab_global + TRIDIAGONAL_PAR_OFFSET(i);                             \
-  Real_ptr Ac = Ac_global + TRIDIAGONAL_PAR_OFFSET(i);                             \
-  Real_ptr x = x_global + TRIDIAGONAL_PAR_OFFSET(i);                               \
+#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP                                       \
+  Real_ptr Aa = Aa_global + TRIDIAGONAL_PAR_OFFSET(i);                         \
+  Real_ptr Ab = Ab_global + TRIDIAGONAL_PAR_OFFSET(i);                         \
+  Real_ptr Ac = Ac_global + TRIDIAGONAL_PAR_OFFSET(i);                         \
+  Real_ptr x = x_global + TRIDIAGONAL_PAR_OFFSET(i);                           \
   Real_ptr b = b_global + TRIDIAGONAL_PAR_OFFSET(i);
 
-#define TRIDIAGONAL_PAR_BODY_FORWARD                                               \
+#define TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_LOCAL                                \
   {                                                                            \
-    Index_type idx_0 = TRIDIAGONAL_PAR_INDEX(0);                                   \
-    Index_type tmp_0 = TRIDIAGONAL_PAR_INDEX_TEMP(0);                              \
+    Index_type idx_0 = TRIDIAGONAL_PAR_INDEX(0);                               \
+    Index_type tmp_0 = TRIDIAGONAL_PAR_INDEX_LOCAL(0);                         \
     d[tmp_0] = Ac[idx_0] / Ab[idx_0];                                          \
     x[idx_0] =  b[idx_0] / Ab[idx_0];                                          \
     for (Index_type n = 1; n < N; ++n) {                                       \
-      Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                                 \
-      Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);                               \
-      Index_type tmp_n = TRIDIAGONAL_PAR_INDEX_TEMP(n);                            \
-      Index_type tmp_m = TRIDIAGONAL_PAR_INDEX_TEMP(n-1);                          \
+      Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                             \
+      Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);                           \
+      Index_type tmp_n = TRIDIAGONAL_PAR_INDEX_LOCAL(n);                       \
+      Index_type tmp_m = TRIDIAGONAL_PAR_INDEX_LOCAL(n-1);                     \
       Real_type div = Ab[idx_n] - Aa[idx_n] * d[tmp_m];                        \
       d[tmp_n] = Ac[idx_n] / div;                                              \
       x[idx_n] = (b[idx_n] - Aa[idx_n] * x[idx_m]) / div;                      \
     }                                                                          \
   }
 
-#define TRIDIAGONAL_PAR_BODY_BACKWARD                                              \
+#define TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_LOCAL                               \
   for (Index_type n = N-2; n >= 0; --n) {                                      \
-    Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                                   \
-    Index_type idx_p = TRIDIAGONAL_PAR_INDEX(n+1);                                 \
-    Index_type tmp_n = TRIDIAGONAL_PAR_INDEX_TEMP(n);                              \
+    Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                               \
+    Index_type idx_p = TRIDIAGONAL_PAR_INDEX(n+1);                             \
+    Index_type tmp_n = TRIDIAGONAL_PAR_INDEX_LOCAL(n);                         \
     x[idx_n] = x[idx_n] - d[tmp_n] * x[idx_p];                                 \
   }
 
-#define TRIDIAGONAL_PAR_BODY_FORWARD_V2                                            \
+#define TRIDIAGONAL_PAR_BODY_FORWARD_TEMP_GLOBAL                               \
   {                                                                            \
-    Index_type idx_0 = TRIDIAGONAL_PAR_INDEX(0);                                   \
+    Index_type idx_0 = TRIDIAGONAL_PAR_INDEX(0);                               \
     d[idx_0] = Ac[idx_0] / Ab[idx_0];                                          \
     x[idx_0] =  b[idx_0] / Ab[idx_0];                                          \
     for (Index_type n = 1; n < N; ++n) {                                       \
-      Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                                 \
-      Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);                               \
+      Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                             \
+      Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);                           \
       Real_type div = Ab[idx_n] - Aa[idx_n] * d[idx_m];                        \
       d[idx_n] = Ac[idx_n] / div;                                              \
       x[idx_n] = (b[idx_n] - Aa[idx_n] * x[idx_m]) / div;                      \
     }                                                                          \
   }
 
-#define TRIDIAGONAL_PAR_BODY_BACKWARD_V2                                           \
+#define TRIDIAGONAL_PAR_BODY_BACKWARD_TEMP_GLOBAL                              \
   for (Index_type n = N-2; n >= 0; --n) {                                      \
-    Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                                   \
-    Index_type idx_p = TRIDIAGONAL_PAR_INDEX(n+1);                                 \
+    Index_type idx_n = TRIDIAGONAL_PAR_INDEX(n);                               \
+    Index_type idx_p = TRIDIAGONAL_PAR_INDEX(n+1);                             \
     x[idx_n] = x[idx_n] - d[idx_n] * x[idx_p];                                 \
   }
+
 
 namespace rajaperf {
 class RunParams;
