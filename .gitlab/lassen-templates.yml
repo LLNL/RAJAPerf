@@ -14,6 +14,7 @@
     - lassen
   rules:
     - if: '$LC_ZONE == "CZ"' # run only if ...
+      when: always
     - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
     - when: on_success

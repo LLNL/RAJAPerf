@@ -16,6 +16,7 @@
     - rznevada
   rules:
     - if: '$LC_ZONE == "RZ"' # run only if ...
+      when: always
     - if: '$CI_COMMIT_BRANCH =~ /_cnone/ || $ON_NEVADA == "OFF"' #run except if ...
       when: never
     - if: '$CI_JOB_NAME =~ /release_resources/'
