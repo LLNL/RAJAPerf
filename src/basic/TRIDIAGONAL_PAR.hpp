@@ -8,6 +8,8 @@
 
 ///
 /// Tri-Diagonal parallel matrix solver
+/// based on notation in Stone, 1973, "An Efficient Parallel Algorithm for the
+/// Solution of a Tridiagonal Linear System of Equations"
 /// reference implementation:
 ///
 ///      Real_type E_[N-1]; // lower diagonal of A
