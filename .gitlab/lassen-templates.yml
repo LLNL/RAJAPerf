@@ -13,9 +13,9 @@
     - shell
     - lassen
   rules:
+    - if: '$LC_ZONE == "CZ"' # run only if ...
     - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"' #run except if ...
       when: never
-    - if: '$LC_ZONE == "CZ"' # run only if ...
     - when: on_success
 
 .build_and_test_on_lassen:
