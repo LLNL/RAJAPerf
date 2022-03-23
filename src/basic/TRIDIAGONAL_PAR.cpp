@@ -56,7 +56,7 @@ TRIDIAGONAL_PAR::TRIDIAGONAL_PAR(const RunParams &params)
   // setVariantDefined(Lambda_CUDA);
   // setVariantDefined(RAJA_CUDA);
 
-  // setVariantDefined(Base_HIP);
+  setVariantDefined(Base_HIP);
   // setVariantDefined(Lambda_HIP);
   // setVariantDefined(RAJA_HIP);
 }
