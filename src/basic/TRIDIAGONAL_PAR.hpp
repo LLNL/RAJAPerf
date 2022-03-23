@@ -154,10 +154,10 @@
   delete[] d; d = nullptr;
 
 #define TRIDIAGONAL_PAR_OFFSET(i)                                              \
-  (i)
+  ((i) * N)
 
 #define TRIDIAGONAL_PAR_INDEX(n)                                               \
-  ((n) * iend)
+  (n)
 
 #define TRIDIAGONAL_PAR_INDEX_LOCAL(n)                                         \
   (n)
