@@ -162,6 +162,13 @@
 #define TRIDIAGONAL_PAR_INDEX_LOCAL(n)                                         \
   (n)
 
+#define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_V2                                    \
+  Real_ptr Aa_data = Aa_global + TRIDIAGONAL_PAR_OFFSET(i);                    \
+  Real_ptr Ab_data = Ab_global + TRIDIAGONAL_PAR_OFFSET(i);                    \
+  Real_ptr Ac_data = Ac_global + TRIDIAGONAL_PAR_OFFSET(i);                    \
+  Real_ptr x_data = x_global + TRIDIAGONAL_PAR_OFFSET(i);                      \
+  Real_ptr b_data = b_global + TRIDIAGONAL_PAR_OFFSET(i);
+
 #define TRIDIAGONAL_PAR_LOCAL_DATA_SETUP                                       \
   Real_ptr Aa = Aa_global + TRIDIAGONAL_PAR_OFFSET(i);                         \
   Real_ptr Ab = Ab_global + TRIDIAGONAL_PAR_OFFSET(i);                         \

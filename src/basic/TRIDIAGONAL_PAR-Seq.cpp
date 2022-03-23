@@ -36,131 +36,128 @@ void TRIDIAGONAL_PAR::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          TRIDIAGONAL_PAR_LOCAL_DATA_SETUP;
+          TRIDIAGONAL_PAR_LOCAL_DATA_SETUP_V2;
 
-          Real_type E_[N-1]; // lower diagonal of A
-          Real_ptr E = E_ - 2; // [2:N]
-          for (int j = 2; j <= N; ++j) { // par
-            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
-            E[j] = Aa[idx_m];
+          Real_type Aa_[N-1]; // lower diagonal of A
+          Real_ptr Aa = Aa_ - 2; // [2:N]
+          for (int n = 2; n <= N; ++n) { // par
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);
+            Aa[n] = Aa_data[idx_m];
           }
-          Real_type F_[N-1]; // upper diagonal of A
-          Real_ptr F = F_ - 1; // [1:N-1]
-          for (int j = 1; j <= N-1; ++j) { // par
-            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
-            F[j] = Ac[idx_m];
+          Real_type Ac_[N-1]; // upper diagonal of A
+          Real_ptr Ac = Ac_ - 1; // [1:N-1]
+          for (int n = 1; n <= N-1; ++n) { // par
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);
+            Ac[n] = Ac_data[idx_m];
           }
-          Real_type D_[N]; // diagonal of A
-          Real_ptr D = D_ - 1; // [1:N]
-          for (int j = 1; j <= N; ++j) { // par
-            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
-            D[j] = Ab[idx_m];
+          Real_type Ab_[N]; // diagonal of A
+          Real_ptr Ab = Ab_ - 1; // [1:N]
+          for (int n = 1; n <= N; ++n) { // par
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);
+            Ab[n] = Ab_data[idx_m];
           }
-          Real_type B_[N]; // rhs of equation
-          Real_ptr B = B_ - 1; // [1:N]
-          for (int j = 1; j <= N; ++j) { // par
-            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(j-1);
-            B[j] = b[idx_m];
+          Real_type b_[N]; // rhs of equation
+          Real_ptr b = b_ - 1; // [1:N]
+          for (int n = 1; n <= N; ++n) { // par
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);
+            b[n] = b_data[idx_m];
           }
 
-          Real_type EF_[N]; // holds products (-e[i]*f[i-1])
-          Real_ptr EF = EF_ - 1; // [1:N]
-          Real_type TEMP_[N]; // temporary array
-          Real_ptr TEMP = TEMP_ - 1; // [1:N]
-          Real_type QI_[N]; // Qi[j]
-          Real_ptr QI = QI_ - 1; // [1:N]
-          Real_type QIM1_[N+1]; // Qi-1[j]
-          Real_ptr QIM1 = QIM1_ - 0; // [0:N]
-          Real_type QIM2_[N+2]; // Qi-1[j]
-          Real_ptr QIM2 = QIM2_ - (-1); // [-1:N]
+          Real_type AaAc_[N]; // holds products (-e[i]*f[i-1])
+          Real_ptr AaAc = AaAc_ - 1; // [1:N]
+          Real_type temp_[N]; // temporary array
+          Real_ptr temp = temp_ - 1; // [1:N]
+          Real_type qi_[N]; // Qi[n]
+          Real_ptr qi = qi_ - 1; // [1:N]
+          Real_type qim1_[N+1]; // Qi-1[n]
+          Real_ptr qim1 = qim1_ - 0; // [0:N]
+          Real_type qim2_[N+2]; // Qi-1[n]
+          Real_ptr qim2 = qim2_ - (-1); // [-1:N]
 
-          Real_type U_[N];
-          Real_ptr U = U_ - 1; // [1:N]
+          Real_type u_[N];
+          Real_ptr u = u_ - 1; // [1:N]
 
-          // Real_type M_[N-1];
-          // Real_ptr M = M_ - 2; // [2:N]
-          Real_type M_[N];
-          Real_ptr M = M_ - 1; // [1:N]
+          // Real_type m_[N-1];
+          // Real_ptr m = m_ - 2; // [2:N]
+          Real_type m_[N];
+          Real_ptr m = m_ - 1; // [1:N]
 
-          Real_type Y_[N];
-          Real_ptr Y = Y_ - 1; // [1:N]
+          Real_type x_[N];
+          Real_ptr x = x_ - 1; // [1:N]
 
-          Real_type X_[N];
-          Real_ptr X = X_ - 1; // [1:N]
-
-          EF[1] = 0;
-          for (int j = 2; j <= N; ++j) { // par
-            EF[j] = -E[j] * F[j-1];
+          AaAc[1] = 0;
+          for (int n = 2; n <= N; ++n) { // par
+            AaAc[n] = -Aa[n] * Ac[n-1];
           }
-          for (int j = -1; j <= N; ++j) { // par
-            QIM2[j] = 1;
+          for (int n = -1; n <= N; ++n) { // par
+            qim2[n] = 1;
           }
-          QIM1[0] = 1;
-          for (int j = 1; j <= N; ++j) { // par
-            QIM1[j] = D[j];
+          qim1[0] = 1;
+          for (int n = 1; n <= N; ++n) { // par
+            qim1[n] = Ab[n];
           }
-          QI[1] = D[1];
-          for (int j = 2; j <= N; ++j) { // par
-            QI[j] = D[j] * D[j-1] + EF[j];
+          qi[1] = Ab[1];
+          for (int n = 2; n <= N; ++n) { // par
+            qi[n] = Ab[n] * Ab[n-1] + AaAc[n];
           }
-          for (int i = 2; i <= N; i *= 2) {
-            for (int j = i-1; j <= N; ++j) { // par
-              TEMP[j] = QIM1[j] * QIM1[j-i+1] + EF[j-i+2] * QIM2[j] * QIM2[j-i];
+          for (int k = 2; k <= N; k *= 2) {
+            for (int n = k-1; n <= N; ++n) { // par
+              temp[n] = qim1[n] * qim1[n-k+1] + AaAc[n-k+2] * qim2[n] * qim2[n-k];
             }
-            for (int j = N; j >= i; --j) { // par (beware)
-              QIM1[j] = QI[j] * QIM1[j-i] + EF[j-i+1] * QIM1[j] * QIM2[j-i-1];
+            for (int n = N; n >= k; --n) { // par (beware)
+              qim1[n] = qi[n] * qim1[n-k] + AaAc[n-k+1] * qim1[n] * qim2[n-k-1];
             }
-            for (int j = i-1; j <= N; ++j) { // par
-              QIM2[j] = TEMP[j];
+            for (int n = k-1; n <= N; ++n) { // par
+              qim2[n] = temp[n];
             }
-            for (int j = i+1; j <= N; ++j) { // par
-              QI[j] = D[j] * QIM1[j-1] + EF[j] * QIM2[j-2];
+            for (int n = k+1; n <= N; ++n) { // par
+              qi[n] = Ab[n] * qim1[n-1] + AaAc[n] * qim2[n-2];
             }
           }
 
-          U[1] = QI[1];
-          for (int j = 2; j <= N; ++j) { // par
-            U[j] = QI[j] / QI[j-1];
+          u[1] = qi[1];
+          for (int n = 2; n <= N; ++n) { // par
+            u[n] = qi[n] / qi[n-1];
           }
-          for (int j = 2; j <= N; ++j) { // par
-            M[j] = E[j] / U[j-1];
+          for (int n = 2; n <= N; ++n) { // par
+            m[n] = Aa[n] / u[n-1];
           }
-          for (int j = 1; j <= N; ++j) { // par
-            Y[j] = B[j];
+          for (int n = 1; n <= N; ++n) { // par
+            x[n] = b[n];
           }
-          M[1] = 0;
-          for (int j = 2; j <= N; ++j) { // par
-            M[j] = -M[j];
-          }
-
-          for (int i = 1; i <= N; i *= 2) {
-            for (int j = N; j >= i+1; --j) { // par (beware)
-              Y[j] = Y[j] + Y[j-i] * M[j];
-            }
-            for (int j = N; j >= i+1; --j) { // par (beware)
-              M[j] = M[j] * M[j-i];
-            }
+          m[1] = 0;
+          for (int n = 2; n <= N; ++n) { // par
+            m[n] = -m[n];
           }
 
-          for (int j = 1; j <= N; ++j) { // par
-            X[j] = Y[j] / U[j];
-          }
-          for (int j = 1; j <= N-1; ++j) { // par
-            M[j] = -F[j] / U[j];
-          }
-          M[N] = 0;
-          for (int i = 1; i <= N; i *= 2) {
-            for (int j = 1; j <= N-i; ++j) { // par (beware)
-              X[j] = X[j] + X[j+i] * M[j];
+          for (int k = 1; k <= N; k *= 2) {
+            for (int n = N; n >= k+1; --n) { // par (beware)
+              x[n] = x[n] + x[n-k] * m[n];
             }
-            for (int j = 1; j <= N-i; ++j) { // par (beware)
-              M[j] = M[j] * M[j+i];
+            for (int n = N; n >= k+1; --n) { // par (beware)
+              m[n] = m[n] * m[n-k];
             }
           }
 
-          for (int i = 1; i <= N; ++i) { // par
-            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(i-1);
-            x[idx_m] = X[i];
+          for (int n = 1; n <= N; ++n) { // par
+            x[n] = x[n] / u[n];
+          }
+          for (int n = 1; n <= N-1; ++n) { // par
+            m[n] = -Ac[n] / u[n];
+          }
+          m[N] = 0;
+          for (int k = 1; k <= N; k *= 2) {
+            for (int n = 1; n <= N-k; ++n) { // par (beware)
+              x[n] = x[n] + x[n+k] * m[n];
+            }
+            for (int n = 1; n <= N-k; ++n) { // par (beware)
+              m[n] = m[n] * m[n+k];
+            }
+          }
+
+          for (int n = 1; n <= N; ++n) { // par
+            Index_type idx_m = TRIDIAGONAL_PAR_INDEX(n-1);
+            x_data[idx_m] = x[n];
           }
 
         }
