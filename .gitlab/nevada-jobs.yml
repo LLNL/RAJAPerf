@@ -12,7 +12,17 @@ hip_4_5_2_cce_13_0_0:
     SPEC: "+rocm~openmp amdgpu_target=gfx906 %cce@13.0.0 ^hip@4.5.2"
   extends: .build_and_test_on_nevada
 
-  #hip_4_5_2_clang_13_0_0:
+hip_4_5_2_clang_13_0_0:
+  variables:
+    SPEC: "+rocm~openmp amdgpu_target=gfx906 %clang@13.0.0 ^hip@4.5.2"
+  extends: .build_and_test_on_nevada
+
+hip_5_0_2_cce_13_0_0:
+  variables:
+    SPEC: "+rocm~openmp amdgpu_target=gfx906 %cce@13.0.0 ^hip@5.0.2"
+  extends: .build_and_test_on_nevada
+
+  #hip_4_5_2_gcc_11_2_0:
   #variables:
-  #  SPEC: "+rocm~openmp amdgpu_target=gfx906 %clang@13.0.0 ^hip@4.5.2"
+  #  SPEC: "+rocm~openmp amdgpu_target=gfx906 %gcc@11.2.0 ^hip@4.5.2"
   #extends: .build_and_test_on_nevada
