@@ -205,29 +205,7 @@ void POLYBENCH_GEMM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void POLYBENCH_GEMM::runCudaVariant(VariantID vid, size_t tune_idx)
-{
-  size_t t = 0;
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      if (tune_idx == t) {
-        runCudaVariantImpl<block_size>(vid);
-      }
-      t += 1;
-    }
-  });
-}
-
-void POLYBENCH_GEMM::setCudaTuningDefinitions(VariantID vid)
-{
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
-    }
-  });
-}
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GEMM, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

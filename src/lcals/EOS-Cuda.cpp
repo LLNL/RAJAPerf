@@ -96,29 +96,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void EOS::runCudaVariant(VariantID vid, size_t tune_idx)
-{
-  size_t t = 0;
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      if (tune_idx == t) {
-        runCudaVariantImpl<block_size>(vid);
-      }
-      t += 1;
-    }
-  });
-}
-
-void EOS::setCudaTuningDefinitions(VariantID vid)
-{
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
-    }
-  });
-}
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EOS, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

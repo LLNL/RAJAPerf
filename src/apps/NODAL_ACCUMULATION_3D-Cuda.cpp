@@ -113,29 +113,7 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-void NODAL_ACCUMULATION_3D::runCudaVariant(VariantID vid, size_t tune_idx)
-{
-  size_t t = 0;
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      if (tune_idx == t) {
-        runCudaVariantImpl<block_size>(vid);
-      }
-      t += 1;
-    }
-  });
-}
-
-void NODAL_ACCUMULATION_3D::setCudaTuningDefinitions(VariantID vid)
-{
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
-    }
-  });
-}
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf
