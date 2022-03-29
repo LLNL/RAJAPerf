@@ -39,7 +39,7 @@ namespace apps {
 
 template < size_t block_size >
   __launch_bounds__(block_size)
-__global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
+__global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
   const int e = blockIdx.x;
@@ -118,7 +118,7 @@ void MASS3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
 
       dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
-      Mass3DPA<MPA_Q1D*MPA_Q1D><<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
+      Mass3DPA<MPA_Q1D*MPA_Q1D><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -133,27 +133,20 @@ void MASS3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::cuda_launch_t<true, MPA_Q1D*MPA_Q1D>
-                                                   >;
+    constexpr bool async = true;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::cuda_block_x_direct
-                                           >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async, MPA_Q1D*MPA_Q1D>>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_x_loop
-                                             >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_y_loop
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
+
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(NE),
                          RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {

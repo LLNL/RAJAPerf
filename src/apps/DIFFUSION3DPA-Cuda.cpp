@@ -39,7 +39,7 @@ namespace apps {
 
 template < size_t block_size >
   __launch_bounds__(block_size)
-__global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis,
+__global__ void Diffusion3DPA(const Real_ptr Basis,
                               const Real_ptr dBasis, const Real_ptr D,
                               const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -137,7 +137,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t tune_idx) {
       dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
       Diffusion3DPA<DPA_Q1D*DPA_Q1D*DPA_Q1D><<<NE, nthreads_per_block>>>(
-          NE, Basis, dBasis, D, X, Y, symmetric);
+          Basis, dBasis, D, X, Y, symmetric);
 
       cudaErrchk(cudaGetLastError());
     }
@@ -152,27 +152,27 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t tune_idx) {
 
     DIFFUSION3DPA_DATA_SETUP_CUDA;
 
+    constexpr bool async = true;
+
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t,
-                                 RAJA::expt::cuda_launch_t<true, DPA_Q1D*DPA_Q1D*DPA_Q1D>>;
+        RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async, DPA_Q1D*DPA_Q1D*DPA_Q1D>>;
 
     using outer_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_block_x_direct>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
     using inner_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_x_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
 
     using inner_y =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_y_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     using inner_z =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_z_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_z_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::DEVICE,
           RAJA::expt::Grid(RAJA::expt::Teams(NE),
                            RAJA::expt::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {

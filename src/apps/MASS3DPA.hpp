@@ -339,20 +339,6 @@ for (int qz = 0; qz < MPA_Q1D; ++qz) { \
             }
 
 
-#if defined(RAJA_ENABLE_CUDA)
-  using m3d_device_launch = RAJA::expt::cuda_launch_t<true>;
-  using m3d_gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using m3d_gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using m3d_gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  using m3d_device_launch = RAJA::expt::hip_launch_t<true>;
-  using m3d_gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using m3d_gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using m3d_gpu_thread_y_policy = RAJA::hip_thread_y_loop;
-#endif
-
 namespace rajaperf
 {
 class RunParams;

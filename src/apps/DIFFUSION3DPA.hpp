@@ -457,22 +457,6 @@ static RAJA_HOST_DEVICE inline double sign(const int q, const int d)
         }                                       \
         dpaY_(dx,dy,dz,e) += (u + v + w);
 
-#if defined(RAJA_ENABLE_CUDA)
-  using d3d_device_launch = RAJA::expt::cuda_launch_t<true>;
-  using d3d_gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using d3d_gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using d3d_gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
-  using d3d_gpu_thread_z_policy = RAJA::cuda_thread_z_loop;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  using d3d_device_launch = RAJA::expt::hip_launch_t<true>;
-  using d3d_gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using d3d_gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using d3d_gpu_thread_y_policy = RAJA::hip_thread_y_loop;
-  using d3d_gpu_thread_z_policy = RAJA::hip_thread_z_loop;
-#endif
-
 namespace rajaperf
 {
 class RunParams;
