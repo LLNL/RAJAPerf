@@ -46,7 +46,7 @@ release_resources (on rznevada):
 # Generic rznevada build job, extending build script
 .build_and_test_on_rznevada:
   stage: n_build_and_test
-  extends: [.build_toss_4_x86_64_ib_rznevada_script, .on_nevada]
+  extends: [.build_toss_4_x86_64_ib_rznevada_script, .on_rznevada]
   needs: []
 
 .build_and_test_on_rznevada_advanced:
