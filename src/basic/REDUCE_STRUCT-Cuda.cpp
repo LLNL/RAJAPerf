@@ -122,7 +122,7 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      cudaErrchk(cudaMemset(mem, 0.0, 6*sizeof(Real_type)));  
+      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));  
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
                                                             
       reduce_struct<<<grid_size, block_size,6*sizeof(Real_type)*block_size>>>
