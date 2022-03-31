@@ -27,9 +27,8 @@ namespace basic
 {
 
   //
-  // Define thread block size for HIP execution
+  // Define magic numbers for HIP execution
   //
-  const size_t block_size = 256;
   const size_t warp_size = 64;
   const size_t items_per_thread = 8;
 
@@ -257,7 +256,8 @@ __global__ void indexlist(Real_ptr x,
   }
 }
 
-void INDEXLIST::runHipVariant(VariantID vid)
+template < size_t block_size >
+void INDEXLIST::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -309,6 +309,8 @@ void INDEXLIST::runHipVariant(VariantID vid)
     std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

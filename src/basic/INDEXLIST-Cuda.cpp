@@ -27,9 +27,8 @@ namespace basic
 {
 
   //
-  // Define thread block size for CUDA execution
+  // Define magic numbers for CUDA execution
   //
-  const size_t block_size = 256;
   const size_t warp_size = 32;
   const size_t items_per_thread = 15;
 
@@ -257,7 +256,8 @@ __global__ void indexlist(Real_ptr x,
   }
 }
 
-void INDEXLIST::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void INDEXLIST::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -309,6 +309,8 @@ void INDEXLIST::runCudaVariant(VariantID vid)
     std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
   Index_type* counts; \
   allocHipDeviceData(counts, getActualProblemSize()+1); \
@@ -40,23 +34,27 @@ namespace basic
   deallocHipDeviceData(list);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void indexlist_conditional(Real_ptr x,
                                       Int_ptr list,
                                       Index_type* counts,
                                       Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
   }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void indexlist_make_list(Int_ptr list,
                                     Index_type* counts,
                                     Index_type* len,
                                     Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     INDEXLIST_3LOOP_MAKE_LIST;
     if (i == iend-1) {
@@ -66,7 +64,8 @@ __global__ void indexlist_make_list(Int_ptr list,
 }
 
 
-void INDEXLIST_3LOOP::runHipVariant(VariantID vid)
+template < size_t block_size >
+void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -116,7 +115,7 @@ void INDEXLIST_3LOOP::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((indexlist_conditional), grid_size, block_size, 0, stream,
+      hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, 0, stream,
           x, list, counts, iend );
       hipErrchk( hipGetLastError() );
 
@@ -140,7 +139,7 @@ void INDEXLIST_3LOOP::runHipVariant(VariantID vid)
                                                  stream));
 #endif
 
-      hipLaunchKernelGGL((indexlist_make_list), grid_size, block_size, 0, stream,
+      hipLaunchKernelGGL((indexlist_make_list<block_size>), grid_size, block_size, 0, stream,
           list, counts, len, iend );
       hipErrchk( hipGetLastError() );
 
@@ -193,6 +192,8 @@ void INDEXLIST_3LOOP::runHipVariant(VariantID vid)
     std::cout << "\n  INDEXLIST_3LOOP : Unknown variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST_3LOOP, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf
