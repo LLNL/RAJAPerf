@@ -138,11 +138,11 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_loop>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
