@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -61,7 +61,7 @@ echo "***********************************************************************"
 echo
 echo "cd into directory build_${BUILD_SUFFIX} and run make to build RAJA Perf Suite"
 echo
-echo "  Please note that you have to disable CUDA GPU hooks when you run"
+echo "  Please note that you have to run with mpi when you run"
 echo "  the RAJA Perf Suite; for example,"
 echo
 echo "    lrun -n4 ./bin/raja-perf.exe"

@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -56,7 +56,9 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    python scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
+    python3 tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+
+    mv ${project_dir}/tpl/RAJA/hc-*.cmake ${project_dir}/.
 
 fi
 date
@@ -104,6 +106,10 @@ then
     echo "~ Build Dir:   ${build_dir}"
     echo "~ Project Dir: ${project_dir}"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo ""
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~ ENV ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ Building RAJA PerfSuite"
@@ -123,7 +129,7 @@ then
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       echo "~~~~ Updating Submodules within RAJA ~~~~~~"
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-      git submodule init && git submodule update --recursive
+      git submodule update --init --recursive
       cd -
     fi
 
@@ -135,6 +141,12 @@ then
     mkdir -p ${build_dir} && cd ${build_dir}
 
     date
+
+    if [[ "${truehostname}" == "corona" ]]
+    then
+        module unload rocm
+    fi
+
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
@@ -186,9 +198,9 @@ then
             echo "./bin/raja-perf.exe -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
-            ./bin/raja-perf.exe --checkrun -sp
+            ./bin/raja-perf.exe --checkrun 10 -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --checkrun -sp"
+            echo "./bin/raja-perf.exe --checkrun 10 -sp"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fi
     fi

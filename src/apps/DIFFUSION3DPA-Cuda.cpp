@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 // Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJA_UNROLL
+//#define USE_RAJAPERF_UNROLL
 
 #include "DIFFUSION3DPA.hpp"
 
@@ -37,7 +37,7 @@ namespace apps {
   deallocCudaDeviceData(X);                                                    \
   deallocCudaDeviceData(Y);
 
-__global__ void Diffusion3DPA(Index_type NE, const Real_ptr Basis,
+__global__ void Diffusion3DPA(const Real_ptr Basis,
                               const Real_ptr dBasis, const Real_ptr D,
                               const Real_ptr X, Real_ptr Y, bool symmetric) {
 
@@ -134,7 +134,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
       dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
-      Diffusion3DPA<<<NE, nthreads_per_block>>>(NE, Basis, dBasis, D, X, Y,
+      Diffusion3DPA<<<NE, nthreads_per_block>>>(Basis, dBasis, D, X, Y,
                                                 symmetric);
 
       cudaErrchk(cudaGetLastError());
@@ -150,27 +150,27 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
 
     DIFFUSION3DPA_DATA_SETUP_CUDA;
 
+    constexpr bool async = true;
+
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t,
-                                 RAJA::expt::cuda_launch_t<true>>;
+        RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
     using outer_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_block_x_direct>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
     using inner_x =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_x_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
 
     using inner_y =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_y_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     using inner_z =
-        RAJA::expt::LoopPolicy<RAJA::loop_exec, RAJA::cuda_thread_z_loop>;
+        RAJA::expt::LoopPolicy<RAJA::cuda_thread_z_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-          RAJA::expt::DEVICE,
           RAJA::expt::Grid(RAJA::expt::Teams(NE),
                            RAJA::expt::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
@@ -199,7 +199,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
               ctx.teamSync();
 
               RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
-                [&](int dz) {
+                [&](int RAJA_UNUSED_ARG(dz)) {
                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
@@ -271,7 +271,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid) {
              ctx.teamSync();
 
              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
-               [&](int dz) {
+               [&](int RAJA_UNUSED_ARG(dz)) {
                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int d) {
                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
