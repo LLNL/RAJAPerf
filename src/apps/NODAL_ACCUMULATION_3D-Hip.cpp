@@ -23,12 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define NODAL_ACCUMULATION_3D_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_nodal_array_length); \
   allocAndInitHipDeviceData(vol, m_vol, m_zonal_array_length); \
@@ -40,6 +34,8 @@ namespace apps
   deallocHipDeviceData(vol); \
   deallocHipDeviceData(real_zones);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void nodal_accumulation_3d(Real_ptr vol,
                       Real_ptr x0, Real_ptr x1,
                       Real_ptr x2, Real_ptr x3,
@@ -57,7 +53,8 @@ __global__ void nodal_accumulation_3d(Real_ptr vol,
 }
 
 
-void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -76,7 +73,7 @@ void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL((nodal_accumulation_3d), dim3(grid_size), dim3(block_size), 0, 0, vol,
+      hipLaunchKernelGGL((nodal_accumulation_3d<block_size>), dim3(grid_size), dim3(block_size), 0, 0, vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        real_zones,
                                        ibegin, iend);
@@ -115,6 +112,8 @@ void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid)
      std::cout << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

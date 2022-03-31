@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void TRIDIAG_ELIM::runOpenMPVariant(VariantID vid)
+void TRIDIAG_ELIM::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

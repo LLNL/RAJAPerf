@@ -51,7 +51,7 @@ namespace apps
   deallocOpenMPDeviceData(real_zones, did);
 
 
-void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
+void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -94,7 +94,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    camp::resources::Resource working_res{camp::resources::Omp()};
+    camp::resources::Resource working_res{camp::resources::Omp::get_default()};
     RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                              m_domain->n_real_zones,
                                              working_res);

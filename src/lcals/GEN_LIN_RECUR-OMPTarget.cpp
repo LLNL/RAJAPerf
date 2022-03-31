@@ -43,7 +43,7 @@ namespace lcals
   deallocOpenMPDeviceData(sb, did);
 
 
-void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid)
+void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

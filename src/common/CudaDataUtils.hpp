@@ -18,6 +18,7 @@
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "common/GPUUtils.hpp"
 
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
@@ -49,6 +50,16 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
     body(i);
   }
 }
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda body)
+{
+  Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
+  if (i < iend) {
+    body(i);
+  }
+}
 
 /*!
  * \brief Simple cuda kernel that runs a lambda.
@@ -56,7 +67,14 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
 template < typename Lambda >
 __global__ void lambda_cuda(Lambda body)
 {
-    body();
+  body();
+}
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_cuda(Lambda body)
+{
+  body();
 }
 
 /*!

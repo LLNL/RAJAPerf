@@ -62,7 +62,7 @@ HYDRO_1D::~HYDRO_1D()
 {
 }
 
-void HYDRO_1D::setUp(VariantID vid)
+void HYDRO_1D::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitData(m_y, m_array_length, vid);
@@ -73,12 +73,12 @@ void HYDRO_1D::setUp(VariantID vid)
   initData(m_t, vid);
 }
 
-void HYDRO_1D::updateChecksum(VariantID vid)
+void HYDRO_1D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize(), checksum_scale_factor );
 }
 
-void HYDRO_1D::tearDown(VariantID vid)
+void HYDRO_1D::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_x);

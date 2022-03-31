@@ -18,7 +18,7 @@
 namespace rajaperf {
 namespace apps {
 
-void DIFFUSION3DPA::runOpenMPVariant(VariantID vid) {
+void DIFFUSION3DPA::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/) {
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

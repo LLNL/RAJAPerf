@@ -28,7 +28,7 @@ MUL::MUL(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) *
                   getActualProblemSize() );
   setFLOPsPerRep(1 * getActualProblemSize());
 
@@ -58,19 +58,19 @@ MUL::~MUL()
 {
 }
 
-void MUL::setUp(VariantID vid)
+void MUL::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_b, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_c, getActualProblemSize(), vid);
   initData(m_alpha, vid);
 }
 
-void MUL::updateChecksum(VariantID vid)
+void MUL::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_b, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_b, getActualProblemSize());
 }
 
-void MUL::tearDown(VariantID vid)
+void MUL::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_b);

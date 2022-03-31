@@ -29,7 +29,7 @@ DOT::DOT(const RunParams& params)
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
-                  (0*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+                  (0*sizeof(Real_type) + 2*sizeof(Real_type)) *
                   getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
 
@@ -58,7 +58,7 @@ DOT::~DOT()
 {
 }
 
-void DOT::setUp(VariantID vid)
+void DOT::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -67,12 +67,12 @@ void DOT::setUp(VariantID vid)
   m_dot_init = 0.0;
 }
 
-void DOT::updateChecksum(VariantID vid)
+void DOT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += m_dot;
+  checksum[vid][tune_idx] += m_dot;
 }
 
-void DOT::tearDown(VariantID vid)
+void DOT::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_a);

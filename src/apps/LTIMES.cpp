@@ -31,7 +31,7 @@ LTIMES::LTIMES(const RunParams& params)
   setDefaultProblemSize(m_num_d_default * m_num_g_default * m_num_z_default);
   setDefaultReps(50);
 
-  m_num_z = std::max( getTargetProblemSize() / 
+  m_num_z = std::max( getTargetProblemSize() /
                       (m_num_d_default * m_num_g_default),
                       Index_type(1) );
   m_num_g = m_num_g_default;
@@ -54,7 +54,7 @@ LTIMES::LTIMES(const RunParams& params)
 
   checksum_scale_factor = 0.001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
-                                           getActualProblemSize() ); 
+                                           getActualProblemSize() );
 
   setUsesFeature(Kernel);
   setUsesFeature(View);
@@ -83,19 +83,19 @@ LTIMES::~LTIMES()
 {
 }
 
-void LTIMES::setUp(VariantID vid)
+void LTIMES::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_phidat, int(m_philen), Real_type(0.0), vid);
   allocAndInitData(m_elldat, int(m_elllen), vid);
   allocAndInitData(m_psidat, int(m_psilen), vid);
 }
 
-void LTIMES::updateChecksum(VariantID vid)
+void LTIMES::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
 }
 
-void LTIMES::tearDown(VariantID vid)
+void LTIMES::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
 

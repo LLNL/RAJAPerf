@@ -36,7 +36,7 @@ namespace apps
   deallocOpenMPDeviceData(psidat, did);
 
 
-void LTIMES::runOpenMPTargetVariant(VariantID vid)
+void LTIMES::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

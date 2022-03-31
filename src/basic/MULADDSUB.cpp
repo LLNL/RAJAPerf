@@ -57,7 +57,7 @@ MULADDSUB::~MULADDSUB()
 {
 }
 
-void MULADDSUB::setUp(VariantID vid)
+void MULADDSUB::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
   allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
@@ -66,14 +66,14 @@ void MULADDSUB::setUp(VariantID vid)
   allocAndInitData(m_in2, getActualProblemSize(), vid);
 }
 
-void MULADDSUB::updateChecksum(VariantID vid)
+void MULADDSUB::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize());
 }
 
-void MULADDSUB::tearDown(VariantID vid)
+void MULADDSUB::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_out1);

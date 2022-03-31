@@ -15,8 +15,8 @@
 ///   }
 /// }
 ///
-/// Note: this part of the kernel is modified to avoid 
-///       excessively large checksums   
+/// Note: this part of the kernel is modified to avoid
+///       excessively large checksums
 /// for (Index_type i = 0; i < N; i++) {
 ///   Real_type dot = 0.0;
 ///   for (Index_type j = 0; j < N; j++) {
@@ -143,17 +143,28 @@ public:
 
   ~POLYBENCH_GEMVER();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size,
+                                                         gpu_block_size::MultipleOf<32>>;
+
   Index_type m_n;
   Real_type m_alpha;
   Real_type m_beta;

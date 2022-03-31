@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void INIT_VIEW1D::runOpenMPVariant(VariantID vid)
+void INIT_VIEW1D::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

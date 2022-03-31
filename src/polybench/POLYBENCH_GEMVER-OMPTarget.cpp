@@ -54,7 +54,7 @@ namespace polybench
 
 
 
-void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

@@ -29,8 +29,8 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   Index_type nl_default = 1000;
   Index_type nm_default = 1200;
 
-  setDefaultProblemSize( std::max( std::max( ni_default*nj_default, 
-                                             nj_default*nl_default ), 
+  setDefaultProblemSize( std::max( std::max( ni_default*nj_default,
+                                             nj_default*nl_default ),
                                   ni_default*nl_default ) );
   setDefaultProblemSize( ni_default * nj_default );
   setDefaultReps(2);
@@ -42,7 +42,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   m_nm = nm_default;
 
 
-  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ), 
+  setActualProblemSize( std::max( std::max( m_ni*m_nj, m_nj*m_nl ),
                                   m_ni*m_nl ) );
 
   setItsPerRep( m_ni*m_nj + m_nj*m_nl + m_ni*m_nl );
@@ -62,7 +62,7 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
                  2 * m_nj*m_nl*m_nm +
                  2 * m_ni*m_nj*m_nl );
 
-  checksum_scale_factor = 0.000000001 * 
+  checksum_scale_factor = 0.000000001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -92,7 +92,7 @@ POLYBENCH_3MM::~POLYBENCH_3MM()
 {
 }
 
-void POLYBENCH_3MM::setUp(VariantID vid)
+void POLYBENCH_3MM::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   allocAndInitData(m_A, m_ni * m_nk, vid);
@@ -104,12 +104,12 @@ void POLYBENCH_3MM::setUp(VariantID vid)
   allocAndInitDataConst(m_G, m_ni * m_nl, 0.0, vid);
 }
 
-void POLYBENCH_3MM::updateChecksum(VariantID vid)
+void POLYBENCH_3MM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_G, m_ni * m_nl, checksum_scale_factor );
 }
 
-void POLYBENCH_3MM::tearDown(VariantID vid)
+void POLYBENCH_3MM::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_A);

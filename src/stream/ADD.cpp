@@ -28,7 +28,7 @@ ADD::ADD(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) *
                   getActualProblemSize() );
   setFLOPsPerRep(1 * getActualProblemSize());
 
@@ -58,19 +58,19 @@ ADD::~ADD()
 {
 }
 
-void ADD::setUp(VariantID vid)
+void ADD::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
   allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
-void ADD::updateChecksum(VariantID vid)
+void ADD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize());
 }
 
-void ADD::tearDown(VariantID vid)
+void ADD::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
   deallocData(m_a);

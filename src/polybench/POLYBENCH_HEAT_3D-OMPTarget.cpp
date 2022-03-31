@@ -36,7 +36,7 @@ namespace polybench
   deallocOpenMPDeviceData(B, did);
 
 
-void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

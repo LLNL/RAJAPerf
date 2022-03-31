@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void NESTED_INIT::runSeqVariant(VariantID vid)
+void NESTED_INIT::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
 

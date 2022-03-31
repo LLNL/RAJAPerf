@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid)
+void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps= getRunReps();
 

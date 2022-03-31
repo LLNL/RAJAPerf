@@ -74,18 +74,18 @@ NODAL_ACCUMULATION_3D::~NODAL_ACCUMULATION_3D()
   delete m_domain;
 }
 
-void NODAL_ACCUMULATION_3D::setUp(VariantID vid)
+void NODAL_ACCUMULATION_3D::setUp(VariantID vid, size_t /*tune_idx*/)
 {
   allocAndInitDataConst(m_x, m_nodal_array_length, 0.0, vid);
   allocAndInitDataConst(m_vol, m_zonal_array_length, 1.0, vid);
 }
 
-void NODAL_ACCUMULATION_3D::updateChecksum(VariantID vid)
+void NODAL_ACCUMULATION_3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_x, m_nodal_array_length, checksum_scale_factor );
+  checksum[vid].at(tune_idx) += calcChecksum(m_x, m_nodal_array_length, checksum_scale_factor );
 }
 
-void NODAL_ACCUMULATION_3D::tearDown(VariantID vid)
+void NODAL_ACCUMULATION_3D::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
 

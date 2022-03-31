@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void DAXPY_ATOMIC::runOpenMPVariant(VariantID vid)
+void DAXPY_ATOMIC::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

@@ -67,7 +67,7 @@ MASS3DPA::~MASS3DPA()
 {
 }
 
-void MASS3DPA::setUp(VariantID vid)
+void MASS3DPA::setUp(VariantID vid, size_t /*tune_idx*/)
 {
 
   allocAndInitDataConst(m_B, int(MPA_Q1D*MPA_D1D), Real_type(1.0), vid);
@@ -77,12 +77,12 @@ void MASS3DPA::setUp(VariantID vid)
   allocAndInitDataConst(m_Y, int(MPA_D1D*MPA_D1D*MPA_D1D*m_NE), Real_type(0.0), vid);
 }
 
-void MASS3DPA::updateChecksum(VariantID vid)
+void MASS3DPA::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
+  checksum[vid][tune_idx] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
 }
 
-void MASS3DPA::tearDown(VariantID vid)
+void MASS3DPA::tearDown(VariantID vid, size_t /*tune_idx*/)
 {
   (void) vid;
 

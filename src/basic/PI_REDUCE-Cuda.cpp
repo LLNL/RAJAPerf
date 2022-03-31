@@ -21,28 +21,24 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void pi_reduce(Real_type dx,
                           Real_ptr dpi, Real_type pi_init,
                           Index_type iend)
 {
   extern __shared__ Real_type ppi[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   ppi[ threadIdx.x ] = pi_init;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     double x = (double(i) + 0.5) * dx;
     ppi[ threadIdx.x ] += dx / (1.0 + x * x);
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ];
     }
@@ -61,7 +57,9 @@ __global__ void pi_reduce(Real_type dx,
 }
 
 
-void PI_REDUCE::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void PI_REDUCE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -80,7 +78,7 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
       initCudaDeviceData(dpi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      pi_reduce<<<grid_size, block_size,
+      pi_reduce<block_size><<<grid_size, block_size,
                   sizeof(Real_type)*block_size>>>( dx,
                                                    dpi, m_pi_init,
                                                    iend );
@@ -118,6 +116,8 @@ void PI_REDUCE::runCudaVariant(VariantID vid)
      getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_REDUCE, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

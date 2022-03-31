@@ -32,7 +32,7 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-void TRAP_INT::runOpenMPVariant(VariantID vid)
+void TRAP_INT::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
