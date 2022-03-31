@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -27,7 +27,7 @@ void ENERGY::runOpenMPVariant(VariantID vid)
   const Index_type iend = getActualProblemSize();
 
   ENERGY_DATA_SETUP;
-  
+
   auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
@@ -93,7 +93,7 @@ void ENERGY::runOpenMPVariant(VariantID vid)
 
       break;
     }
-  
+
     case Lambda_OpenMP : {
 
       startTimer();
@@ -154,16 +154,16 @@ void ENERGY::runOpenMPVariant(VariantID vid)
 
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), energy_lam3);
-  
+
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), energy_lam4);
-  
+
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), energy_lam5);
-  
+
           RAJA::forall< RAJA::omp_for_nowait_static_exec< > >(
             RAJA::RangeSegment(ibegin, iend), energy_lam6);
-  
+
         }); // end omp parallel region
 
       }
@@ -172,12 +172,12 @@ void ENERGY::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  ENERGY : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  ENERGY : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

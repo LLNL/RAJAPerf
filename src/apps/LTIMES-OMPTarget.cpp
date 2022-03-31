@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -72,7 +72,7 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
 
     LTIMES_VIEWS_RANGES_RAJA;
 
-    using EXEC_POL = 
+    using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<1, 2, 3>, // z, g, m
@@ -91,7 +91,7 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
                                                IMRange(0, num_m)),
         [=] (ID d, IZ z, IG g, IM m) {
         LTIMES_BODY_RAJA;
-      }); 
+      });
 
     }
     stopTimer();
@@ -99,7 +99,7 @@ void LTIMES::runOpenMPTargetVariant(VariantID vid)
     LTIMES_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n LTIMES : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -86,8 +86,8 @@ void NESTED_INIT::runHipVariant(VariantID vid)
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((nested_init), 
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0, 
+      hipLaunchKernelGGL((nested_init),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          array, ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
@@ -106,12 +106,12 @@ void NESTED_INIT::runHipVariant(VariantID vid)
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
 
-      auto nested_init_lambda = [=] __device__ (Index_type i, Index_type j, 
+      auto nested_init_lambda = [=] __device__ (Index_type i, Index_type j,
                                                 Index_type k) {
         NESTED_INIT_BODY;
       };
 
-      hipLaunchKernelGGL((nested_init_lam< decltype(nested_init_lambda) >), 
+      hipLaunchKernelGGL((nested_init_lam< decltype(nested_init_lambda) >),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          ni, nj, nk, nested_init_lambda);
       hipErrchk( hipGetLastError() );
@@ -142,7 +142,7 @@ void NESTED_INIT::runHipVariant(VariantID vid)
             >
           >
         >
-      >; 
+      >;
 
 
     startTimer();
@@ -161,7 +161,7 @@ void NESTED_INIT::runHipVariant(VariantID vid)
     NESTED_INIT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

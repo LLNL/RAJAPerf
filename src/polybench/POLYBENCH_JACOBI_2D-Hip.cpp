@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -127,7 +127,7 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
         JACOBI_2D_THREADS_PER_BLOCK_HIP;
         JACOBI_2D_NBLOCKS_HIP;
 
-        auto poly_jacobi_2D_1_lambda = 
+        auto poly_jacobi_2D_1_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_JACOBI_2D_BODY1;
           };
@@ -137,7 +137,7 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
                            N, poly_jacobi_2D_1_lambda);
         hipErrchk( hipGetLastError() );
 
-        auto poly_jacobi_2D_2_lambda = 
+        auto poly_jacobi_2D_2_lambda =
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_JACOBI_2D_BODY2;
           };
@@ -204,7 +204,7 @@ void POLYBENCH_JACOBI_2D::runHipVariant(VariantID vid)
     POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

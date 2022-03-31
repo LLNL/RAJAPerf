@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -14,7 +14,7 @@
 #include <cstring>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -39,7 +39,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           }
         }
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMVER_BODY3;
@@ -47,11 +47,11 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           POLYBENCH_GEMVER_BODY4;
         }
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY5;
         }
 
-        for (Index_type i = 0; i < n; i++ ) { 
+        for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; j++) {
             POLYBENCH_GEMVER_BODY7;
@@ -71,7 +71,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
       auto poly_gemver_base_lam1 = [=](Index_type i, Index_type j) {
                                      POLYBENCH_GEMVER_BODY1;
                                    };
-      auto poly_gemver_base_lam3 = [=](Index_type i, Index_type j, 
+      auto poly_gemver_base_lam3 = [=](Index_type i, Index_type j,
                                        Real_type &dot) {
                                      POLYBENCH_GEMVER_BODY3;
                                    };
@@ -81,7 +81,7 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
       auto poly_gemver_base_lam5 = [=](Index_type i) {
                                      POLYBENCH_GEMVER_BODY5;
                                    };
-      auto poly_gemver_base_lam7 = [=](Index_type i, Index_type j, 
+      auto poly_gemver_base_lam7 = [=](Index_type i, Index_type j,
                                        Real_type &dot) {
                                      POLYBENCH_GEMVER_BODY7;
                                     };
@@ -182,8 +182,8 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
                                                   RAJA::RangeSegment{0, n}),
           poly_gemver_lam1
         );
-        
-        RAJA::kernel_param<EXEC_POL24>( 
+
+        RAJA::kernel_param<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
@@ -192,12 +192,12 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam3,
           poly_gemver_lam4
         );
-        
-        RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n}, 
+
+        RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n},
           poly_gemver_lam5
         );
 
-        RAJA::kernel_param<EXEC_POL24>( 
+        RAJA::kernel_param<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
@@ -207,16 +207,16 @@ void POLYBENCH_GEMVER::runSeqVariant(VariantID vid)
           poly_gemver_lam8
 
         );
-        
+
       }
       stopTimer();
-      
+
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
     }
 
   }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -147,19 +147,19 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
           RAJA::kernel<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam1); 
+                       hydro2d_lam1);
 
           RAJA::kernel<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam2); 
+                       hydro2d_lam2);
 
           RAJA::kernel<EXECPOL>(
                        RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                                          RAJA::RangeSegment(jbeg, jend)),
-                       hydro2d_lam3); 
+                       hydro2d_lam3);
 
-        }); // end omp parallel region 
+        }); // end omp parallel region
 
       }
       stopTimer();
@@ -168,12 +168,12 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  HYDRO_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  HYDRO_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

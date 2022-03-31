@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -23,8 +23,8 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid)
   const Index_type run_reps = getRunReps();
 
   LTIMES_NOVIEW_DATA_SETUP;
- 
-  auto ltimesnoview_lam = [=](Index_type d, Index_type z, 
+
+  auto ltimesnoview_lam = [=](Index_type d, Index_type z,
                               Index_type g, Index_type m) {
                                 LTIMES_NOVIEW_BODY;
                           };
@@ -50,7 +50,7 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
@@ -100,14 +100,14 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid)
                               );
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
     }
 
   }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,7 +13,7 @@
 #include <iostream>
 #include <cstring>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -34,18 +34,18 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type t = 1; t <= tsteps; ++t) { 
+        for (Index_type t = 1; t <= tsteps; ++t) {
 
           #pragma omp parallel for
           for (Index_type i = 1; i < n-1; ++i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
               POLYBENCH_ADI_BODY3;
-            }  
+            }
             POLYBENCH_ADI_BODY4;
             for (Index_type k = n-2; k >= 1; --k) {
               POLYBENCH_ADI_BODY5;
-            }  
+            }
           }
 
           #pragma omp parallel for
@@ -57,7 +57,7 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
             POLYBENCH_ADI_BODY8;
             for (Index_type k = n-2; k >= 1; --k) {
               POLYBENCH_ADI_BODY9;
-            }  
+            }
           }
 
         }  // tstep loop
@@ -213,12 +213,12 @@ void POLYBENCH_ADI::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\nPOLYBENCH_ADI  Unknown variant id = " << vid << std::endl;
+      getCout() << "\nPOLYBENCH_ADI  Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

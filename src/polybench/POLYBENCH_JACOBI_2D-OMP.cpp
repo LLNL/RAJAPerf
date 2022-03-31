@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,7 +13,7 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -37,19 +37,19 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
         for (Index_type t = 0; t < tsteps; ++t) {
 
           #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
               POLYBENCH_JACOBI_2D_BODY1;
             }
           }
 
           #pragma omp parallel for
-          for (Index_type i = 1; i < N-1; ++i ) { 
-            for (Index_type j = 1; j < N-1; ++j ) { 
+          for (Index_type i = 1; i < N-1; ++i ) {
+            for (Index_type j = 1; j < N-1; ++j ) {
               POLYBENCH_JACOBI_2D_BODY2;
             }
           }
-           
+
         }
 
       }
@@ -59,7 +59,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
 
       break;
     }
-  
+
     case Lambda_OpenMP : {
 
       auto poly_jacobi2d_base_lam1 = [=](Index_type i, Index_type j) {
@@ -146,12 +146,12 @@ void POLYBENCH_JACOBI_2D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

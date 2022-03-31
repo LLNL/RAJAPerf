@@ -1,11 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+#include "common/RAJAPerfSuite.hpp"
 #include "AppsData.hpp"
 
 #include <iostream>
@@ -23,7 +24,7 @@ void setMeshPositions_2d(Real_ptr x, Real_type dx,
                          const ADomain& domain)
 {
   if (domain.ndims != 2) {
-    std::cout << "\n******* ERROR!!! domain is not 2d *******" << std::endl;
+    getCout() << "\n******* ERROR!!! domain is not 2d *******" << std::endl;
     return;
   }
 
@@ -34,8 +35,8 @@ void setMeshPositions_2d(Real_ptr x, Real_type dx,
 
   Index_type jp = domain.jp;
 
-  Index_type npnl = domain.NPNL; 
-  Index_type npnr = domain.NPNR; 
+  Index_type npnl = domain.NPNL;
+  Index_type npnr = domain.NPNR;
 
   Real_ptr x1, x2, x3, x4;
   Real_ptr y1, y2, y3, y4;
@@ -66,7 +67,7 @@ void setMeshPositions_3d(Real_ptr x, Real_type dx,
                          const ADomain& domain)
 {
   if (domain.ndims != 3) {
-    std::cout << "\n******* ERROR!!! domain is not 3d *******" << std::endl;
+    getCout() << "\n******* ERROR!!! domain is not 3d *******" << std::endl;
     return;
   }
 
@@ -80,8 +81,8 @@ void setMeshPositions_3d(Real_ptr x, Real_type dx,
   Index_type jp = domain.jp;
   Index_type kp = domain.kp;
 
-  Index_type npnl = domain.NPNL; 
-  Index_type npnr = domain.NPNR; 
+  Index_type npnl = domain.NPNL;
+  Index_type npnr = domain.NPNR;
 
   Real_ptr x0, x1, x2, x3, x4, x5, x6, x7;
   Real_ptr y0, y1, y2, y3, y4, y5, y6, y7;

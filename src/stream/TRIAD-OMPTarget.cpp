@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -84,7 +84,7 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid)
     TRIAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

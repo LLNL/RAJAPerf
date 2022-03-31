@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -90,7 +90,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid)
     DOT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  DOT : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  DOT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -250,7 +250,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
             >
           >
         >
-      >;       
+      >;
 
     using EXEC_POL24 =
       RAJA::KernelPolicy<
@@ -324,7 +324,7 @@ void POLYBENCH_GEMVER::runCudaVariant(VariantID vid)
     POLYBENCH_GEMVER_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }

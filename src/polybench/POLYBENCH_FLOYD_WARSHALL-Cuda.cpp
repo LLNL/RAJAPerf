@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,13 +52,13 @@ __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
   Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if ( i < N && j < N ) { 
+  if ( i < N && j < N ) {
     POLYBENCH_FLOYD_WARSHALL_BODY;
   }
 }
 
 template< typename Lambda >
-__global__ void poly_floyd_warshall_lam(Index_type N, 
+__global__ void poly_floyd_warshall_lam(Index_type N,
                                         Lambda body)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -87,7 +87,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA;
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
-   
+
         poly_floyd_warshall<<<nblocks, nthreads_per_block>>>(pout, pin,
                                                              k, N);
         cudaErrchk( cudaGetLastError() );
@@ -166,7 +166,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariant(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }

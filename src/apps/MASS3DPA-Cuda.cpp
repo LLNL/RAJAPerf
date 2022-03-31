@@ -1,10 +1,13 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+// Uncomment to add compiler directives loop unrolling
+//#define USE_RAJAPERF_UNROLL
 
 #include "MASS3DPA.hpp"
 
@@ -19,89 +22,79 @@
 namespace rajaperf {
 namespace apps {
 
-#define MASS3DPA_DATA_SETUP_CUDA                                        \
-  allocAndInitCudaDeviceData(B, m_B, Q1D *D1D);                         \
-  allocAndInitCudaDeviceData(Bt, m_Bt, Q1D *D1D);                       \
-  allocAndInitCudaDeviceData(D, m_D, Q1D *Q1D *Q1D *m_NE);              \
-  allocAndInitCudaDeviceData(X, m_X, D1D *D1D *D1D *m_NE);              \
-  allocAndInitCudaDeviceData(Y, m_Y, D1D *D1D *D1D *m_NE);
+#define MASS3DPA_DATA_SETUP_CUDA                                         \
+  allocAndInitCudaDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                  \
+  allocAndInitCudaDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                \
+  allocAndInitCudaDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);   \
+  allocAndInitCudaDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);   \
+  allocAndInitCudaDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
 
 #define MASS3DPA_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_Y, Y, D1D *D1D *D1D *m_NE);                        \
+  getCudaDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);            \
   deallocCudaDeviceData(B);                                              \
   deallocCudaDeviceData(Bt);                                             \
   deallocCudaDeviceData(D);                                              \
   deallocCudaDeviceData(X);                                              \
   deallocCudaDeviceData(Y);
 
-//#define USE_RAJA_UNROLL
-#define RAJA_DIRECT_PRAGMA(X) _Pragma(#X)
-#if defined(USE_RAJA_UNROLL)
-#define RAJA_UNROLL(N) RAJA_DIRECT_PRAGMA(unroll(N))
-#else
-#define RAJA_UNROLL(N)
-#endif
-#define FOREACH_THREAD(i, k, N)                                                \
-  for (int i = threadIdx.k; i < N; i += blockDim.k)
-
-__global__ void Mass3DPA(Index_type NE, const Real_ptr B, const Real_ptr Bt,
+__global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
   const int e = blockIdx.x;
 
   MASS3DPA_0_GPU
 
-  FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D){
+  GPU_FOREACH_THREAD(dy, y, MPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, MPA_D1D){
       MASS3DPA_1
     }
-    FOREACH_THREAD(dx, x, Q1D) {
+    GPU_FOREACH_THREAD(dx, x, MPA_Q1D) {
       MASS3DPA_2
     }
   }
   __syncthreads();
-  FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(qx, x, Q1D) {
+  GPU_FOREACH_THREAD(dy, y, MPA_D1D) {
+    GPU_FOREACH_THREAD(qx, x, MPA_Q1D) {
       MASS3DPA_3
     }
   }
   __syncthreads();
-  FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(qx, x, Q1D) {
+  GPU_FOREACH_THREAD(qy, y, MPA_Q1D) {
+    GPU_FOREACH_THREAD(qx, x, MPA_Q1D) {
       MASS3DPA_4
     }
   }
   __syncthreads();
-  FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(qx, x, Q1D) {
+  GPU_FOREACH_THREAD(qy, y, MPA_Q1D) {
+    GPU_FOREACH_THREAD(qx, x, MPA_Q1D) {
       MASS3DPA_5
     }
   }
 
   __syncthreads();
-  FOREACH_THREAD(d, y, D1D) {
-    FOREACH_THREAD(q, x, Q1D) {
+  GPU_FOREACH_THREAD(d, y, MPA_D1D) {
+    GPU_FOREACH_THREAD(q, x, MPA_Q1D) {
       MASS3DPA_6
     }
   }
 
   __syncthreads();
-  FOREACH_THREAD(qy, y, Q1D) {
-    FOREACH_THREAD(dx, x, D1D) {
+  GPU_FOREACH_THREAD(qy, y, MPA_Q1D) {
+    GPU_FOREACH_THREAD(dx, x, MPA_D1D) {
       MASS3DPA_7
     }
   }
   __syncthreads();
 
-  FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D) {
+  GPU_FOREACH_THREAD(dy, y, MPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, MPA_D1D) {
       MASS3DPA_8
     }
   }
 
   __syncthreads();
-  FOREACH_THREAD(dy, y, D1D) {
-    FOREACH_THREAD(dx, x, D1D) {
+  GPU_FOREACH_THREAD(dy, y, MPA_D1D) {
+    GPU_FOREACH_THREAD(dx, x, MPA_D1D) {
       MASS3DPA_9
     }
   }
@@ -121,9 +114,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      dim3 nthreads_per_block(Q1D, Q1D, 1);
+      dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
-      Mass3DPA<<<NE, nthreads_per_block>>>(NE, B, Bt, D, X, Y);
+      Mass3DPA<<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -138,29 +131,22 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::cuda_launch_t<true>
-                                                   >;
+    constexpr bool async = true;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::cuda_block_x_direct
-                                           >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_x_loop
-                                             >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::cuda_thread_y_loop
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
+
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(NE),
-                         RAJA::expt::Threads(Q1D, Q1D, 1)),
+                         RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
           RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
@@ -168,15 +154,15 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               MASS3DPA_0_GPU
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_1
                     }
                   );  // RAJA::expt::loop<inner_x>
 
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int dx) {
                       MASS3DPA_2
                     }
@@ -186,9 +172,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_3
                     }
@@ -198,21 +184,21 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_4
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
                 }
               );  // RAJA::expt::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_5
                     }
@@ -222,9 +208,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int d) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, Q1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int q) {
                       MASS3DPA_6
                     }
@@ -234,21 +220,21 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, Q1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_7
                     }
-                  );  // RAJA::expt::loop<inner_x> 
+                  );  // RAJA::expt::loop<inner_x>
                 }
               );  // RAJA::expt::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_8
                     }
@@ -258,9 +244,9 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, D1D),
+              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, D1D),
+                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_9
                     }
@@ -284,7 +270,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown Cuda variant id = " << vid << std::endl;
     break;
   }
   }

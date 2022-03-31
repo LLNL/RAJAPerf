@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 EXECUTABLES=""
 SIZE_MIN=10000

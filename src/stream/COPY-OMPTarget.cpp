@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
@@ -83,7 +83,7 @@ void COPY::runOpenMPTargetVariant(VariantID vid)
     COPY_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  COPY : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  COPY : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

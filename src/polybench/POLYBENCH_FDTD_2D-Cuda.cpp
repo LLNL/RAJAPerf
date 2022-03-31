@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -72,7 +72,7 @@ __global__ void poly_fdtd2d_1_lam(Index_type ny, Lambda body)
   }
 }
 
-__global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz, 
+__global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz,
                               Index_type nx, Index_type ny)
 {
   Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -91,7 +91,7 @@ __global__ void poly_fdtd2d_2_lam(Index_type nx, Index_type ny,
   Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (i > 0 && i < nx && j < ny) {
-    body(i, j); 
+    body(i, j);
   }
 }
 
@@ -296,7 +296,7 @@ void POLYBENCH_FDTD_2D::runCudaVariant(VariantID vid)
     POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_FDTD_2D : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 
 }

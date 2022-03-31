@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -45,7 +45,7 @@ void VOL3D::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
           VOL3D_BODY;
         }
@@ -87,12 +87,12 @@ void VOL3D::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

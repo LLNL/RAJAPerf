@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -126,7 +126,7 @@ void PRESSURE::runHipVariant(VariantID vid)
     PRESSURE_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

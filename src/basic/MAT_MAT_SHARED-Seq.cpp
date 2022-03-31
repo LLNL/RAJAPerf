@@ -155,47 +155,26 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 
   case RAJA_Seq: {
 
-    //Currently Teams requires two policies if compiled with a device
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-#if defined(RAJA_DEVICE_ACTIVE)
-                                                   ,mms_device_launch
-#endif
-                                                   >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,mms_gpu_block_x_policy
-#endif
-                                           >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,mms_gpu_block_y_policy
-#endif
-                                           >;
+    using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                             ,mms_gpu_thread_x_policy
-#endif
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                             ,mms_gpu_thread_y_policy
-#endif
-                                             >;
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       //Grid is empty as the host does not need a compute grid to be specified
-      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Grid(),
+      RAJA::expt::launch<launch_policy>(RAJA::expt::Grid(),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny), 
+          RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny),
             [&](Index_type by) {
-              RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx), 
+              RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx),
                 [&](Index_type bx) {
 
                   MAT_MAT_SHARED_BODY_0
@@ -203,7 +182,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
 
                     [&](Index_type ty) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ), 
+                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_1
                         }
@@ -231,7 +210,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
                           }
-                        );  // RAJA::expt::loop<inner_x> 
+                        );  // RAJA::expt::loop<inner_x>
                       }
                     );  // RAJA::expt::loop<inner_y>
 
@@ -265,7 +244,7 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid) {
 #endif // RUN_RAJA_SEQ
 
   default: {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
               << std::endl;
   }
   }

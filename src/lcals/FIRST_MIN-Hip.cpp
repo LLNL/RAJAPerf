@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -129,7 +129,7 @@ void FIRST_MIN::runHipVariant(VariantID vid)
     FIRST_MIN_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

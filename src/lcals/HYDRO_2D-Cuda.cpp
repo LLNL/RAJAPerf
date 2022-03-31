@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -127,7 +127,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
 
       HYDRO_2D_THREADS_PER_BLOCK_CUDA;
       HYDRO_2D_NBLOCKS_CUDA;
- 
+
       hydro_2d1<<<nblocks, nthreads_per_block>>>(zadat, zbdat,
                                                  zpdat, zqdat, zrdat, zmdat,
                                                  jn, kn);
@@ -159,9 +159,9 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
     using EXECPOL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<j_block_sz * k_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>, 
+          RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>,
                                    RAJA::cuda_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>, 
+            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
                                    RAJA::cuda_block_x_direct,
               RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // k
                 RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
@@ -172,7 +172,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
           >
         >
       >;
-      
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -203,7 +203,7 @@ void HYDRO_2D::runCudaVariant(VariantID vid)
     HYDRO_2D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

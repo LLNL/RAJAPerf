@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,12 +13,12 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -149,17 +149,17 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       stopTimer();
 
       POLYBENCH_HEAT_3D_DATA_RESET;
-      
+
       break;
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

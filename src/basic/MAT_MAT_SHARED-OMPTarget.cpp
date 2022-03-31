@@ -27,7 +27,7 @@ namespace basic {
 
     default: {
 
-      std::cout << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
+      getCout() << "\n MAT_MAT_SHARED : Unknown OpenMPTarget variant id = " << vid << std::endl;
       break;
     }
     }

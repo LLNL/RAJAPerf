@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,12 +13,12 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
@@ -38,7 +38,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
         {
 
           #pragma omp for schedule(static) nowait
-          for (Index_type i = 0; i < N; ++i ) { 
+          for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY1;
             for (Index_type j = 0; j < N; ++j ) {
               POLYBENCH_MVT_BODY2;
@@ -47,7 +47,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
           }
 
           #pragma omp for schedule(static) nowait
-          for (Index_type i = 0; i < N; ++i ) { 
+          for (Index_type i = 0; i < N; ++i ) {
             POLYBENCH_MVT_BODY4;
             for (Index_type j = 0; j < N; ++j ) {
               POLYBENCH_MVT_BODY5;
@@ -140,7 +140,7 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >, // i
-            RAJA::statement::Lambda<0, RAJA::Params<0>>,  
+            RAJA::statement::Lambda<0, RAJA::Params<0>>,
             RAJA::statement::For<1, RAJA::loop_exec,                   // j
               RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
             >,
@@ -157,22 +157,22 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
             RAJA::tuple<Real_type>{0.0},
- 
+
             poly_mvt_lam1,
             poly_mvt_lam2,
             poly_mvt_lam3
- 
+
           );
 
           RAJA::kernel_param<EXEC_POL>(
             RAJA::make_tuple(RAJA::RangeSegment{0, N},
                              RAJA::RangeSegment{0, N}),
             RAJA::tuple<Real_type>{0.0},
- 
+
             poly_mvt_lam4,
-            poly_mvt_lam5, 
+            poly_mvt_lam5,
             poly_mvt_lam6
- 
+
           );
 
         }); // end omp parallel region
@@ -184,12 +184,12 @@ void POLYBENCH_MVT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_MVT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_MVT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,7 +20,7 @@
 //#undef USE_RAJA_OMP_COLLAPSE
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -45,7 +45,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
         #pragma omp parallel for collapse(2)
 #else
         #pragma omp parallel for
-#endif 
+#endif
         for (Index_type i = 0; i < ni; i++ ) {
           for(Index_type j = 0; j < nj; j++) {
             POLYBENCH_2MM_BODY1;
@@ -60,7 +60,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
         #pragma omp parallel for collapse(2)
 #else
         #pragma omp parallel for
-#endif 
+#endif
         for(Index_type i = 0; i < ni; i++) {
           for(Index_type l = 0; l < nl; l++) {
             POLYBENCH_2MM_BODY4;
@@ -142,7 +142,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       auto poly_2mm_lam1 = [=](Real_type &dot) {
                              POLYBENCH_2MM_BODY1_RAJA;
                            };
-      auto poly_2mm_lam2 = [=](Index_type i, Index_type j, Index_type k, 
+      auto poly_2mm_lam2 = [=](Index_type i, Index_type j, Index_type k,
                                Real_type &dot) {
                              POLYBENCH_2MM_BODY2_RAJA;
                            };
@@ -153,7 +153,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       auto poly_2mm_lam4 = [=](Real_type &dot) {
                              POLYBENCH_2MM_BODY4_RAJA;
                            };
-      auto poly_2mm_lam5 = [=](Index_type i, Index_type l, Index_type j, 
+      auto poly_2mm_lam5 = [=](Index_type i, Index_type l, Index_type j,
                                Real_type &dot) {
                              POLYBENCH_2MM_BODY5_RAJA;
                            };
@@ -192,7 +192,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>( 
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nj},
                            RAJA::RangeSegment{0, nk}),
@@ -203,7 +203,7 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
           poly_2mm_lam3
         );
 
-        RAJA::kernel_param<EXEC_POL>( 
+        RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                            RAJA::RangeSegment{0, nl},
                            RAJA::RangeSegment{0, nj}),
@@ -221,12 +221,12 @@ void POLYBENCH_2MM::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_2MM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_2MM : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

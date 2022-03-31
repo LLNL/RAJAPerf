@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -108,7 +108,7 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
     INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

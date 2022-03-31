@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -163,22 +163,22 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
 
       POLY_3MM_THREADS_PER_BLOCK_HIP;
 
-      POLY_3MM_1_NBLOCKS_HIP;     
-      hipLaunchKernelGGL((poly_3mm_1), 
+      POLY_3MM_1_NBLOCKS_HIP;
+      hipLaunchKernelGGL((poly_3mm_1),
                          dim3(nblocks1) , dim3(nthreads_per_block), 0, 0,
                          E, A, B,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_2), 
+      hipLaunchKernelGGL((poly_3mm_2),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          F, C, D,
                          nj, nl, nm);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_3mm_3), 
+      hipLaunchKernelGGL((poly_3mm_3),
                          dim3(nblocks3), dim3(nthreads_per_block), 0, 0,
                          G, E, F,
                          ni, nl, nj);
@@ -270,7 +270,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
             >
           >
         >
-      >; 
+      >;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -341,7 +341,7 @@ void POLYBENCH_3MM::runHipVariant(VariantID vid)
     POLYBENCH_3MM_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_3MM : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_3MM : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

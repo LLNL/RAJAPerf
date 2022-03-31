@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -36,7 +36,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         Real_type pi = m_pi_init;
-        
+
         #pragma omp parallel for reduction(+:pi)
         for (Index_type i = ibegin; i < iend; ++i ) {
           PI_REDUCE_BODY;
@@ -79,11 +79,11 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init); 
 
-        RAJA::forall<RAJA::omp_parallel_for_exec>( 
-          RAJA::RangeSegment(ibegin, iend), 
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init);
+
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
+          RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             PI_REDUCE_BODY;
         });
@@ -97,12 +97,12 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

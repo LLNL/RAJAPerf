@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -130,14 +130,14 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
       POLY_2MM_THREADS_PER_BLOCK_HIP;
 
       POLY_2MM_1_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_2mm_1), 
+      hipLaunchKernelGGL((poly_2mm_1),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          tmp, A, B, alpha,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_2MM_2_NBLOCKS_HIP;
-      hipLaunchKernelGGL((poly_2mm_2), 
+      hipLaunchKernelGGL((poly_2mm_2),
                          dim3(nblocks2), dim3(nthreads_per_block), 0, 0,
                          tmp, C, D, beta,
                          ni, nl, nj);
@@ -165,12 +165,12 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
         POLYBENCH_2MM_BODY3;
       };
 
-      POLY_2MM_1_NBLOCKS_HIP;      
+      POLY_2MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_2mm_1_lam<decltype(poly_2mm_1_lambda)>),
                          dim3(nblocks1), dim3(nthreads_per_block), 0, 0,
                          ni, nj, poly_2mm_1_lambda);
       hipErrchk( hipGetLastError() );
- 
+
       auto poly_2mm_2_lambda = [=] __device__ (Index_type i, Index_type l) {
         POLYBENCH_2MM_BODY4;
         for (Index_type j=0; j < nj; ++j) {
@@ -264,7 +264,7 @@ void POLYBENCH_2MM::runHipVariant(VariantID vid)
     POLYBENCH_2MM_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_2MM : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_2MM : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

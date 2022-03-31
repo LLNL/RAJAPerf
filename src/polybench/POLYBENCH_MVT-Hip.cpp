@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -172,7 +172,7 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
     POLYBENCH_MVT_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
   }
 
 }

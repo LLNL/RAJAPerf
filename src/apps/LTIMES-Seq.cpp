@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -45,12 +45,12 @@ void LTIMES::runSeqVariant(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto ltimes_base_lam = [=](Index_type d, Index_type z, 
+      auto ltimes_base_lam = [=](Index_type d, Index_type z,
                                  Index_type g, Index_type m) {
                                LTIMES_BODY;
                              };
@@ -83,7 +83,7 @@ void LTIMES::runSeqVariant(VariantID vid)
                         };
 
 
-      using EXEC_POL = 
+      using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<1, RAJA::loop_exec,       // z
             RAJA::statement::For<2, RAJA::loop_exec,     // g
@@ -94,27 +94,27 @@ void LTIMES::runSeqVariant(VariantID vid)
               >
             >
           >
-        >;  
+        >;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-     
+
         RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
                                                  IZRange(0, num_z),
                                                  IGRange(0, num_g),
-                                                 IMRange(0, num_m)), 
+                                                 IMRange(0, num_m)),
                                 ltimes_lam
                               );
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n LTIMES : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n LTIMES : Unknown variant id = " << vid << std::endl;
     }
 
   }

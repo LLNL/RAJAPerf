@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -122,7 +122,7 @@ void VOL3D::runHipVariant(VariantID vid)
     VOL3D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  VOL3D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  VOL3D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

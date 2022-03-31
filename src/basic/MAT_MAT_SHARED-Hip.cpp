@@ -199,31 +199,22 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
 
     MAT_MAT_SHARED_DATA_SETUP_HIP;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t
-                                                   ,RAJA::expt::hip_launch_t<true>
-                                                   >;
+    constexpr bool async = true;
 
-    using teams_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_x_direct
-                                           >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
 
-    using teams_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                           ,RAJA::hip_block_y_direct
-                                           >;
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 
-    using threads_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_x_direct
-                                             >;
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-                                             ,RAJA::hip_thread_y_direct
-                                             >;
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
+
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::DEVICE,
         RAJA::expt::Grid(RAJA::expt::Teams(Nx, Ny),
                          RAJA::expt::Threads(TL_SZ, TL_SZ)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
@@ -264,13 +255,13 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
                         RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3
-                          } 
+                          }
                         );  // RAJA::expt::loop<threads_x>
                       }
                     );  // RAJA::expt::loop<threads_y>
 
                     ctx.teamSync();
-                
+
                   }  // for (k)
 
                   RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
@@ -297,7 +288,7 @@ void MAT_MAT_SHARED::runHipVariant(VariantID vid) {
     MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
               << std::endl;
   }
 }

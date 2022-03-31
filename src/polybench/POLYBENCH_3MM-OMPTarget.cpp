@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -31,7 +31,7 @@ namespace polybench
   allocAndInitOpenMPDeviceData(D, m_D, m_nm * m_nl, did, hid); \
   allocAndInitOpenMPDeviceData(E, m_E, m_ni * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(F, m_F, m_nj * m_nl, did, hid); \
-  allocAndInitOpenMPDeviceData(G, m_G, m_ni * m_nl, did, hid); 
+  allocAndInitOpenMPDeviceData(G, m_G, m_ni * m_nl, did, hid);
 
 
 #define POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET \
@@ -56,7 +56,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    
+
       #pragma omp target is_device_ptr(A,B,E) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
@@ -94,7 +94,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
       }
 
     }
-    stopTimer(); 
+    stopTimer();
 
     POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
 
@@ -107,7 +107,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
-                                  RAJA::ArgList<0, 1>, 
+                                  RAJA::ArgList<0, 1>,
           RAJA::statement::Lambda<0, RAJA::Params<0>>,
           RAJA::statement::For<2, RAJA::seq_exec,
             RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
@@ -118,8 +118,8 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    
-      RAJA::kernel_param<EXEC_POL>( 
+
+      RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nk}),
@@ -128,18 +128,18 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         [=] (Real_type &dot) {
           POLYBENCH_3MM_BODY1_RAJA;
         },
-        [=] (Index_type i, Index_type j, Index_type k, 
+        [=] (Index_type i, Index_type j, Index_type k,
              Real_type &dot) {
           POLYBENCH_3MM_BODY2_RAJA;
         },
-        [=] (Index_type i, Index_type j, 
+        [=] (Index_type i, Index_type j,
              Real_type &dot) {
           POLYBENCH_3MM_BODY3_RAJA;
         }
 
       );
 
-      RAJA::kernel_param<EXEC_POL>( 
+      RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, nj},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nm}),
@@ -148,18 +148,18 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         [=] (Real_type &dot) {
           POLYBENCH_3MM_BODY4_RAJA;
         },
-        [=] (Index_type j, Index_type l, Index_type m, 
+        [=] (Index_type j, Index_type l, Index_type m,
              Real_type &dot) {
           POLYBENCH_3MM_BODY5_RAJA;
         },
-        [=] (Index_type j, Index_type l, 
+        [=] (Index_type j, Index_type l,
              Real_type &dot) {
           POLYBENCH_3MM_BODY6_RAJA;
         }
 
       );
 
-      RAJA::kernel_param<EXEC_POL>( 
+      RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nj}),
@@ -168,16 +168,16 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
         [=] (Real_type &dot) {
           POLYBENCH_3MM_BODY7_RAJA;
         },
-        [=] (Index_type i, Index_type l, Index_type j, 
+        [=] (Index_type i, Index_type l, Index_type j,
              Real_type &dot) {
           POLYBENCH_3MM_BODY8_RAJA;
         },
-        [=] (Index_type i, Index_type l, 
+        [=] (Index_type i, Index_type l,
              Real_type &dot) {
           POLYBENCH_3MM_BODY9_RAJA;
         }
 
-      ); 
+      );
 
     }
     stopTimer();
@@ -185,7 +185,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  POLYBENCH_3MM : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  POLYBENCH_3MM : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

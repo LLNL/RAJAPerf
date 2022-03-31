@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//  
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_2D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -58,14 +58,14 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
             POLYBENCH_JACOBI_2D_BODY1;
           }
         }
-    
+
         #pragma omp target is_device_ptr(A,B) device( did )
         #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
         for (Index_type i = 1; i < N-1; ++i ) {
           for (Index_type j = 1; j < N-1; ++j ) {
             POLYBENCH_JACOBI_2D_BODY2;
           }
-        }  
+        }
 
       }
 
@@ -83,11 +83,11 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
-                                  RAJA::ArgList<0, 1>, 
+                                  RAJA::ArgList<0, 1>,
           RAJA::statement::Lambda<0>
         >,
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
-                                  RAJA::ArgList<0, 1>, 
+                                  RAJA::ArgList<0, 1>,
           RAJA::statement::Lambda<1>
         >
       >;
@@ -115,7 +115,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -124,4 +124,4 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

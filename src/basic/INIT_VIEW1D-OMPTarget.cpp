@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -47,13 +47,13 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
 
   if ( vid == Base_OpenMPTarget ) {
 
-    INIT_VIEW1D_DATA_SETUP_OMP_TARGET;                 
+    INIT_VIEW1D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(a) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         INIT_VIEW1D_BODY;
       }
@@ -83,7 +83,7 @@ void INIT_VIEW1D::runOpenMPTargetVariant(VariantID vid)
      INIT_VIEW1D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown OMP Targetvariant id = " << vid << std::endl;
   }
 }
 

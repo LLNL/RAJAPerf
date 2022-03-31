@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -27,7 +27,7 @@ void MASS3DPA::runOpenMPTargetVariant(VariantID vid) {
 
   default: {
 
-    std::cout << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
     break;
   }
   }

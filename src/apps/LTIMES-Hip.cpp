@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -93,10 +93,10 @@ void LTIMES::runHipVariant(VariantID vid)
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((ltimes), 
+      hipLaunchKernelGGL((ltimes),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          phidat, elldat, psidat,
-                         num_d, 
+                         num_d,
                          num_m, num_g, num_z);
       hipErrchk( hipGetLastError() );
 
@@ -115,7 +115,7 @@ void LTIMES::runHipVariant(VariantID vid)
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
 
-      auto ltimes_lambda = 
+      auto ltimes_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_BODY;
@@ -179,7 +179,7 @@ void LTIMES::runHipVariant(VariantID vid)
     LTIMES_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
