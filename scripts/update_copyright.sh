@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -10,7 +10,7 @@
 
 #=============================================================================
 # Change the copyright date in all files that contain the text
-# "the RAJAPerf/COPYRIGHT file", which is part of the copyright statement
+# "the RAJAPerf/LICENSE file", which is part of the copyright statement
 # at the top of each RAJA file. We use this to distinguish RAJA files from
 # that we do not own (e.g., other repos included as submodules), which we do
 # not want to modify. Note that this file and *.git files are omitted
@@ -37,7 +37,7 @@
 #=============================================================================
 # First find all the files we want to modify
 #=============================================================================
-find . -type f ! -name \*.git\*  ! -name \*update_copyright\* -exec grep -l "the RAJAPerf/COPYRIGHT file" {} \; > files2change
+find . -type f ! -name \*.git\*  ! -name \*update_copyright\* -exec grep -l "the RAJAPerf/LICENSE file" {} \; > files2change
 
 #=============================================================================
 # Replace the old copyright dates with new dates
@@ -46,14 +46,14 @@ for i in `cat files2change`
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/Copyright (c) 2017-20/Copyright (c) 2017-21/" $i.sed.bak > $i
+    sed "s/Copyright (c) 2017-21/Copyright (c) 2017-22/" $i.sed.bak > $i
 done
 
 for i in LICENSE RELEASE README.md
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/2017-2020/2017-2021/" $i.sed.bak > $i
+    sed "s/2017-2021/2017-2022/" $i.sed.bak > $i
 done
 
 #=============================================================================

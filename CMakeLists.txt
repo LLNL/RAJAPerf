@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -14,7 +14,7 @@ option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
 
 #
-# Initialize the BLT build system
+# Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
 #
 
 if (PERFSUITE_ENABLE_WARNINGS)
@@ -25,8 +25,8 @@ set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
 set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
 
-set(CMAKE_CXX_STANDARD 11)
-set(BLT_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+set(BLT_CXX_STD c++14)
 
 include(blt/SetupBLT.cmake)
 
@@ -40,8 +40,8 @@ cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI
 # Define RAJA settings...
 #
 
-set(ENABLE_TESTS Off CACHE BOOL "")
-set(ENABLE_EXAMPLES Off CACHE BOOL "")
+set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
+set(RAJA_ENABLE_EXAMPLES Off CACHE BOOL "")
 set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
 set(ENABLE_TBB Off CACHE BOOL "")
@@ -59,15 +59,8 @@ add_subdirectory(tpl/RAJA)
 get_property(RAJA_INCLUDE_DIRS DIRECTORY tpl/RAJA PROPERTY INCLUDE_DIRECTORIES)
 include_directories(${RAJA_INCLUDE_DIRS})
 
+set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
 
-#
-# Setup variables to pass to Perf suite
-#
-
-#
-# These (hopefully temporary) macro constants are needed to work-around
-# performance issues in the xl compiler.
-#
 if (ENABLE_RAJA_SEQUENTIAL)
   add_definitions(-DRUN_RAJA_SEQ)
 endif ()
@@ -91,14 +84,19 @@ if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
 if (ENABLE_HIP)
-  list(APPEND RAJA_PERFSUITE_DEPENDS hip)
+  message(STATUS "HIP version: ${hip_VERSION}")
+  if("${hip_VERSION}" VERSION_LESS "3.5")
+    message(FATAL_ERROR "Trying to use HIP/ROCm version ${hip_VERSION}. RAJA Perf Suite requires HIP/ROCm version 3.5 or newer. ")
+  endif()
+  list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip)
+  list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip_runtime)
 endif()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 11)
+  set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
@@ -116,9 +114,9 @@ else()
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/bin/rajaperf_config.hpp)
+  ${CMAKE_CURRENT_BINARY_DIR}/include/rajaperf_config.hpp)
 
-include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/bin>)
+include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
 
 # Make sure RAJA flag propagate (we need to do some house cleaning to
 # remove project-specific CMake variables that are no longer needed)

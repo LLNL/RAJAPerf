@@ -1,7 +1,7 @@
 [comment]: # (#################################################################)
-[comment]: # (Copyright 2017-2021, Lawrence Livermore National Security, LLC)
+[comment]: # (Copyright 2017-2022, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
-[comment]: # (See the RAJA/LICENSE file for details.)
+[comment]: # (See the RAJAPerf/LICENSE file for details.)
 [comment]: #
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
@@ -452,7 +452,7 @@ Here is what a header file for the FOO kernel object should look like:
 
 ```cpp
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //

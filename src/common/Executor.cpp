@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -802,10 +802,13 @@ void Executor::runSuite()
            } else {
              getCout() << "   No ";
            }
-           getCout() << getVariantName(vid) << " variant" << endl;
+           getCout() << getVariantName(vid) << " variant";
          }
          if ( kern->hasVariantDefined(vid) ) {
-           kernels[ik]->execute(vid);
+           kern->execute(vid);
+           getCout() << " -- " << kern->getTotTime(vid) << " sec." << endl; 
+         } else {
+            getCout() << endl;
          }
       } // loop over variants
 
