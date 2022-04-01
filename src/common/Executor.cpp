@@ -796,7 +796,7 @@ void Executor::runSuite()
 
   warmup_kernels.push_back(makeKernel<basic::DAXPY>());
   warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-  warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP());
+  warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
   warmup_kernels.push_back(makeKernel<algorithm::SORT>());
   warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
 
