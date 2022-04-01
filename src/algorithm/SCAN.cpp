@@ -47,6 +47,10 @@ SCAN::SCAN(const RunParams& params)
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
 
+#if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
+  setVariantDefined( Base_OpenMPTarget );
+#endif
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
 

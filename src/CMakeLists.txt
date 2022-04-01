@@ -81,8 +81,10 @@ blt_add_executable(
   basic/IF_QUAD-OMPTarget.cpp
   basic/INDEXLIST.cpp
   basic/INDEXLIST-Seq.cpp
+  basic/INDEXLIST-OMPTarget.cpp
   basic/INDEXLIST_3LOOP.cpp
   basic/INDEXLIST_3LOOP-Seq.cpp
+  basic/INDEXLIST_3LOOP-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp
@@ -209,6 +211,7 @@ blt_add_executable(
   common/RunParams.cpp
   algorithm/SCAN.cpp
   algorithm/SCAN-Seq.cpp
+  algorithm/SCAN-OMPTarget.cpp
   algorithm/SORT.cpp
   algorithm/SORT-Seq.cpp
   algorithm/SORTPAIRS.cpp

@@ -42,6 +42,10 @@ INDEXLIST::INDEXLIST(const RunParams& params)
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
 
+#if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
+  setVariantDefined( Base_OpenMPTarget );
+#endif
+
   setVariantDefined( Base_CUDA );
 
   setVariantDefined( Base_HIP );
