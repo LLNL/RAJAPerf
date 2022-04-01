@@ -120,7 +120,7 @@ __global__ void Diffusion3DPA(const Real_ptr Basis,
   }
 }
 
-void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t tune_idx) {
+void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
   const Index_type run_reps = getRunReps();
 
   DIFFUSION3DPA_DATA_SETUP;
