@@ -17,7 +17,7 @@
   rules:
     - if: '$ON_CORONA == "OFF"'
       when: never   # no jobs on corona if ON_CORONA == OFF
-    - if: '$LC_ZONE =~ "CZ"' #run only on CZ ...
+    - if: '$LC_ZONE =~ "RZ"' #run only on CZ ...
       when: never   # no jobs on corona if not on CZ
     - if: '$CI_JOB_NAME =~ /release_resources/'
       when: always   # release_resources jobs should run whatever the previous stage status
