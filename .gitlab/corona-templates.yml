@@ -15,12 +15,13 @@
     - shell
     - corona
   rules:
-    - if: '$ON_CORONA == "OFF"' #run except if ...
-      when: never
+    - if: '$ON_CORONA == "OFF"'
+      when: never   # no jobs on corona if ON_CORONA == OFF
+    - if: '$LC_ZONE ~= "CZ"' #run only on CZ ...
+      when: never   # no jobs on corona if not on CZ
     - if: '$CI_JOB_NAME =~ /release_resources/'
-      when: always
-    - if: '$LC_ZONE == "CZ"' #run only if ...
-      when: always
+      when: always   # release_resources jobs should run whatever the previous stage status
+    - when: on_success   # regular jobs need one true if clause to run
 
 ####
 # Generic corona build job, extending build script

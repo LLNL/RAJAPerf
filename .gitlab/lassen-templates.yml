@@ -14,9 +14,10 @@
     - lassen
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /_lnone/ || $ON_LASSEN == "OFF"' #run except if ...
-      when: never
-    - if: '$LC_ZONE == "CZ"' # run only if ...
-      when: always
+      when: never   # no jobs on lassen if ON_LASSEN == OFF
+    - if: '$LC_ZONE ~= "CZ"' #run only on CZ ...
+      when: never   # no jobs on lassen if not on CZ
+    - when: on_success   # regular jobs need one true if clause to run
 
 .build_and_test_on_lassen:
   stage: l_build_and_test
