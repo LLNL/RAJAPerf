@@ -59,7 +59,7 @@ FIRST_DIFF::~FIRST_DIFF()
 {
 }
 
-void FIRST_DIFF::setUp(VariantID vid, size_t /*tune_idx*/)
+void FIRST_DIFF::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
@@ -70,7 +70,7 @@ void FIRST_DIFF::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize());
 }
 
-void FIRST_DIFF::tearDown(VariantID vid, size_t /*tune_idx*/)
+void FIRST_DIFF::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

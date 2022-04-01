@@ -104,7 +104,7 @@ HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
-void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t /*tune_idx*/)
+void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
@@ -139,7 +139,7 @@ void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
   }
 }
 
-void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t /*tune_idx*/)
+void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
     deallocData(m_buffers[l]);

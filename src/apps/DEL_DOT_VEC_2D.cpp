@@ -69,7 +69,7 @@ DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
   delete m_domain;
 }
 
-void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t /*tune_idx*/)
+void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -92,7 +92,7 @@ void DEL_DOT_VEC_2D::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_div, m_array_length);
 }
 
-void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t /*tune_idx*/)
+void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

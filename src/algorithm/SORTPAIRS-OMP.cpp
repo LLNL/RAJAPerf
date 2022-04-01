@@ -18,7 +18,7 @@ namespace algorithm
 {
 
 
-void SORTPAIRS::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
+void SORTPAIRS::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

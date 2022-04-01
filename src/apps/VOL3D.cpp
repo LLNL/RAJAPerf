@@ -71,7 +71,7 @@ VOL3D::~VOL3D()
   delete m_domain;
 }
 
-void VOL3D::setUp(VariantID vid, size_t /*tune_idx*/)
+void VOL3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -92,7 +92,7 @@ void VOL3D::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
-void VOL3D::tearDown(VariantID vid, size_t /*tune_idx*/)
+void VOL3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

@@ -61,7 +61,7 @@ IF_QUAD::~IF_QUAD()
 {
 }
 
-void IF_QUAD::setUp(VariantID vid, size_t /*tune_idx*/)
+void IF_QUAD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataRandSign(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -76,7 +76,7 @@ void IF_QUAD::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
 }
 
-void IF_QUAD::tearDown(VariantID vid, size_t /*tune_idx*/)
+void IF_QUAD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

@@ -68,7 +68,7 @@ POLYBENCH_MVT::~POLYBENCH_MVT()
 {
 }
 
-void POLYBENCH_MVT::setUp(VariantID vid, size_t /*tune_idx*/)
+void POLYBENCH_MVT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_y1, m_N, vid);
@@ -84,7 +84,7 @@ void POLYBENCH_MVT::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_x2, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_MVT::tearDown(VariantID vid, size_t /*tune_idx*/)
+void POLYBENCH_MVT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x1);

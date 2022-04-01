@@ -58,7 +58,7 @@ DOT::~DOT()
 {
 }
 
-void DOT::setUp(VariantID vid, size_t /*tune_idx*/)
+void DOT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -72,7 +72,7 @@ void DOT::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += m_dot;
 }
 
-void DOT::tearDown(VariantID vid, size_t /*tune_idx*/)
+void DOT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

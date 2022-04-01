@@ -58,7 +58,7 @@ PRESSURE::~PRESSURE()
 {
 }
 
-void PRESSURE::setUp(VariantID vid, size_t /*tune_idx*/)
+void PRESSURE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_compression, getActualProblemSize(), vid);
   allocAndInitData(m_bvc, getActualProblemSize(), vid);
@@ -77,7 +77,7 @@ void PRESSURE::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
-void PRESSURE::tearDown(VariantID vid, size_t /*tune_idx*/)
+void PRESSURE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
