@@ -38,7 +38,6 @@ INDEXLIST::INDEXLIST(const RunParams& params)
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
-  setVariantDefined( RAJA_Seq );
 
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
