@@ -55,7 +55,7 @@ __device__ void grid_scan(const int block_id,
                           unsigned* block_readys)
 {
   const bool first_block = (block_id == 0);
-  const bool last_block = (block_id == gridDim.x-1);
+  const bool last_block = (block_id == static_cast<int>(gridDim.x-1));
   const bool last_thread = (threadIdx.x == block_size-1);
   const bool last_warp = (threadIdx.x >= block_size - warp_size);
   const int warp_index = (threadIdx.x % warp_size);
@@ -82,7 +82,7 @@ __device__ void grid_scan(const int block_id,
   BlockScan().exclusive_scan(val, exclusive, Index_type{0}, s_temp_storage.block_scan_storage);
   __syncthreads();
 
-  for (int ti = 0; ti < items_per_thread; ++ti) {
+  for (size_t ti = 0; ti < items_per_thread; ++ti) {
     inclusive[ti] = exclusive[ti] + val[ti];
   }
 
@@ -195,13 +195,13 @@ __device__ void grid_scan(const int block_id,
     __syncthreads();
     Index_type prev_grid_count = s_temp_storage.prev_grid_count;
 
-    for (int ti = 0; ti < items_per_thread; ++ti) {
+    for (size_t ti = 0; ti < items_per_thread; ++ti) {
       exclusive[ti] = prev_grid_count + exclusive[ti];
       inclusive[ti] = prev_grid_count + inclusive[ti];
     }
 
     if (last_block) {
-      for (int i = threadIdx.x; i < gridDim.x-1; i += block_size) {
+      for (unsigned i = threadIdx.x; i < gridDim.x-1; i += block_size) {
         while (atomicCAS(&block_readys[i], 2u, 0u) != 2u);
       }
     }
@@ -225,7 +225,7 @@ __global__ void indexlist(Real_ptr x,
 
   Index_type vals[items_per_thread];
 
-  for (Index_type ti = 0; ti < items_per_thread; ++ti) {
+  for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
     Index_type val = 0;
     if (i < iend) {
@@ -241,7 +241,7 @@ __global__ void indexlist(Real_ptr x,
   grid_scan<block_size, items_per_thread>(
       block_id, vals, exclusives, inclusives, block_counts, grid_counts, block_readys);
 
-  for (Index_type ti = 0; ti < items_per_thread; ++ti) {
+  for (size_t ti = 0; ti < items_per_thread; ++ti) {
     Index_type i = block_id * block_size * items_per_thread + ti * block_size + threadIdx.x;
     Index_type exclusive = exclusives[ti];
     Index_type inclusive = inclusives[ti];
