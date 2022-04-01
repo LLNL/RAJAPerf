@@ -31,8 +31,8 @@ namespace rajaperf
  */
 std::string recursiveMkdir(const std::string& in_path)
 {
-  int rank = 0;
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
+  int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   // Processes wait for rank 0 to make the directories before proceeding
