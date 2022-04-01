@@ -17,7 +17,7 @@ namespace rajaperf
 namespace basic
 {
 
-void INDEXLIST::runOpenMPVariant(VariantID vid)
+void INDEXLIST::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

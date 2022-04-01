@@ -18,7 +18,7 @@ namespace basic
 {
 
 
-void INDEXLIST::runSeqVariant(VariantID vid)
+void INDEXLIST::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

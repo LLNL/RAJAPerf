@@ -60,20 +60,20 @@ INDEXLIST_3LOOP::~INDEXLIST_3LOOP()
 {
 }
 
-void INDEXLIST_3LOOP::setUp(VariantID vid)
+void INDEXLIST_3LOOP::setUp(VariantID vid, size_t tune_idx)
 {
   allocAndInitDataRandSign(m_x, getActualProblemSize(), vid);
   allocAndInitData(m_list, getActualProblemSize(), vid);
   m_len = -1;
 }
 
-void INDEXLIST_3LOOP::updateChecksum(VariantID vid)
+void INDEXLIST_3LOOP::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_list, getActualProblemSize());
-  checksum[vid] += Checksum_type(m_len);
+  checksum[vid][tune_idx] += calcChecksum(m_list, getActualProblemSize());
+  checksum[vid][tune_idx] += Checksum_type(m_len);
 }
 
-void INDEXLIST_3LOOP::tearDown(VariantID vid)
+void INDEXLIST_3LOOP::tearDown(VariantID vid, size_t tune_idx)
 {
   (void) vid;
   deallocData(m_x);

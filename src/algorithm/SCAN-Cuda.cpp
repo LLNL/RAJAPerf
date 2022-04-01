@@ -40,7 +40,7 @@ namespace algorithm
   deallocCudaDeviceData(y);
 
 
-void SCAN::runCudaVariant(VariantID vid)
+void SCAN::runCudaVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

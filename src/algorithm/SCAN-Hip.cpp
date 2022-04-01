@@ -45,7 +45,7 @@ namespace algorithm
   deallocHipDeviceData(y);
 
 
-void SCAN::runHipVariant(VariantID vid)
+void SCAN::runHipVariant(VariantID vid, size_t /*tune_idx*/)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
