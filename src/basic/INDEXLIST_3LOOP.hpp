@@ -36,10 +36,10 @@
   Real_ptr x = m_x; \
   Int_ptr list = m_list;
 
-#define INDEXLIST_3LOOP_CONDITIONAL  \
+#define INDEXLIST_3LOOP_CONDITIONAL \
   x[i] < 0.0
 
-#define INDEXLIST_3LOOP_MAKE_LIST  \
+#define INDEXLIST_3LOOP_MAKE_LIST \
   if (counts[i] != counts[i+1]) { \
     list[counts[i]] = i ; \
   }
