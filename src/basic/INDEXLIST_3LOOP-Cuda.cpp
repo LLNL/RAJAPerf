@@ -23,7 +23,7 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_CUDA \
   Index_type* counts; \
-  allocCudaDeviceData(counts, getActualProblemSize()+1); \
+  allocCudaDeviceData(counts, iend+1); \
   allocAndInitCudaDeviceData(x, m_x, iend); \
   allocAndInitCudaDeviceData(list, m_list, iend);
 

@@ -18,7 +18,7 @@ namespace basic
 {
 
 #define INDEXLIST_3LOOP_DATA_SETUP_OMP \
-  Index_type* counts = new Index_type[getActualProblemSize()+1];
+  Index_type* counts = new Index_type[iend+1];
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_OMP \
   delete[] counts; counts = nullptr;

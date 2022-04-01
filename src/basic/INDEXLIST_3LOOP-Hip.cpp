@@ -23,7 +23,7 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
   Index_type* counts; \
-  allocHipDeviceData(counts, getActualProblemSize()+1); \
+  allocHipDeviceData(counts, iend+1); \
   allocAndInitHipDeviceData(x, m_x, iend); \
   allocAndInitHipDeviceData(list, m_list, iend);
 
