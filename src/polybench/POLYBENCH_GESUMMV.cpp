@@ -24,7 +24,7 @@ POLYBENCH_GESUMMV::POLYBENCH_GESUMMV(const RunParams& params)
   Index_type N_default = 1000;
 
   setDefaultProblemSize( N_default * N_default );
-  setDefaultReps(120); 
+  setDefaultReps(120);
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
 
@@ -65,7 +65,7 @@ POLYBENCH_GESUMMV::~POLYBENCH_GESUMMV()
 {
 }
 
-void POLYBENCH_GESUMMV::setUp(VariantID vid)
+void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_x, m_N, vid);
@@ -74,12 +74,12 @@ void POLYBENCH_GESUMMV::setUp(VariantID vid)
   allocAndInitData(m_B, m_N * m_N, vid);
 }
 
-void POLYBENCH_GESUMMV::updateChecksum(VariantID vid)
+void POLYBENCH_GESUMMV::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_y, m_N);
+  checksum[vid][tune_idx] += calcChecksum(m_y, m_N);
 }
 
-void POLYBENCH_GESUMMV::tearDown(VariantID vid)
+void POLYBENCH_GESUMMV::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

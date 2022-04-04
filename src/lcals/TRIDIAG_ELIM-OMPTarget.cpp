@@ -43,7 +43,7 @@ namespace lcals
   deallocOpenMPDeviceData(z, did);
 
 
-void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid)
+void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;

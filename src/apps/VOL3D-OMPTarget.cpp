@@ -45,7 +45,7 @@ namespace apps
   deallocOpenMPDeviceData(vol, did);
 
 
-void VOL3D::runOpenMPTargetVariant(VariantID vid)
+void VOL3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = m_domain->fpz;

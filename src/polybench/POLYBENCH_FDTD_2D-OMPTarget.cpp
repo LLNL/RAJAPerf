@@ -43,7 +43,7 @@ namespace polybench
   deallocOpenMPDeviceData(fict, did);
 
 
-void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 

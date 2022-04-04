@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define thread block size for Hip execution
-  //
-  const size_t block_size = 256;
-
 #define POLYBENCH_MVT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x1, m_x1, N); \
   allocAndInitHipDeviceData(x2, m_x2, N); \
@@ -44,10 +39,12 @@ namespace polybench
   deallocHipDeviceData(A);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
                            Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_MVT_BODY1;
@@ -58,10 +55,12 @@ __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
                            Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_MVT_BODY4;
@@ -73,7 +72,8 @@ __global__ void poly_mvt_2(Real_ptr A, Real_ptr x2, Real_ptr y2,
 }
 
 
-void POLYBENCH_MVT::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -88,12 +88,12 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      hipLaunchKernelGGL((poly_mvt_1),
+      hipLaunchKernelGGL((poly_mvt_1<block_size>),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, x1, y1, N);
       hipErrchk( hipGetLastError() );
 
-      hipLaunchKernelGGL((poly_mvt_2),
+      hipLaunchKernelGGL((poly_mvt_2<block_size>),
                          dim3(grid_size), dim3(block_size), 0, 0,
                          A, x2, y2, N);
       hipErrchk( hipGetLastError() );
@@ -174,8 +174,9 @@ void POLYBENCH_MVT::runHipVariant(VariantID vid)
   } else {
       getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_MVT, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

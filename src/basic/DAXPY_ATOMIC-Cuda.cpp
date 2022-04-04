@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define DAXPY_ATOMIC_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend); \
   allocAndInitCudaDeviceData(y, m_y, iend);
@@ -36,6 +30,8 @@ namespace basic
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void daxpy_atomic(Real_ptr y, Real_ptr x,
                       Real_type a,
                       Index_type iend)
@@ -46,7 +42,9 @@ __global__ void daxpy_atomic(Real_ptr y, Real_ptr x,
    }
 }
 
-void DAXPY_ATOMIC::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -62,7 +60,7 @@ void DAXPY_ATOMIC::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      daxpy_atomic<<<grid_size, block_size>>>( y, x, a,
+      daxpy_atomic<block_size><<<grid_size, block_size>>>( y, x, a,
                                         iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -79,7 +77,7 @@ void DAXPY_ATOMIC::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
       });
@@ -111,6 +109,8 @@ void DAXPY_ATOMIC::runCudaVariant(VariantID vid)
      getCout() << "\n  DAXPY_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY_ATOMIC, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

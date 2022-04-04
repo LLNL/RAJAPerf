@@ -409,6 +409,61 @@ bool isVariantAvailable(VariantID vid)
   return ret_val;
 }
 
+/*!
+ *******************************************************************************
+ *
+ * Return true if variant associated with VariantID enum value runs on the GPU.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid)
+{
+  bool ret_val = false;
+
+  if ( vid == Base_Seq ) {
+    ret_val = false;
+  }
+#if defined(RUN_RAJA_SEQ)
+  if ( vid == Lambda_Seq ||
+       vid == RAJA_Seq ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
+       vid == RAJA_OpenMP ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  if ( vid == Base_OpenMPTarget ||
+       vid == RAJA_OpenMPTarget ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  if ( vid == Base_CUDA ||
+       vid == Lambda_CUDA ||
+       vid == RAJA_CUDA ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  if ( vid == Base_HIP ||
+       vid == Lambda_HIP ||
+       vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+  return ret_val;
+}
+
 /*
  *******************************************************************************
  *

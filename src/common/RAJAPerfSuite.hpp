@@ -276,6 +276,16 @@ bool isVariantAvailable(VariantID vid);
 /*!
  *******************************************************************************
  *
+ * \brief Return true if variant associated with VariantID enum value runs
+ *        on the gpu.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
  * \brief Return feature name associated with FeatureID enum value.
  *
  *******************************************************************************

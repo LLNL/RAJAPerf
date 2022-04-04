@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void HYDRO_2D::runOpenMPVariant(VariantID vid)
+void HYDRO_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

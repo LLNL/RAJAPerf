@@ -37,6 +37,8 @@ namespace apps {
   deallocCudaDeviceData(X);                                              \
   deallocCudaDeviceData(Y);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
@@ -100,7 +102,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runCudaVariant(VariantID vid) {
+template < size_t block_size >
+void MASS3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -116,7 +119,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
       dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
-      Mass3DPA<<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
+      Mass3DPA<block_size><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -133,7 +136,7 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
 
     constexpr bool async = true;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async>>;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async, MPA_Q1D*MPA_Q1D>>;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
 
@@ -275,6 +278,8 @@ void MASS3DPA::runCudaVariant(VariantID vid) {
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

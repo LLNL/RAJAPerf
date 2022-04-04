@@ -20,7 +20,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_3MM::runSeqVariant(VariantID vid)
+void POLYBENCH_3MM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
