@@ -50,7 +50,7 @@ public:
   void runOpenMPVariant(VariantID vid, size_t tune_idx);
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
-  void runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
+  void runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   {
     getCout() << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
   }

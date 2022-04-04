@@ -85,7 +85,7 @@ POLYBENCH_GEMVER::~POLYBENCH_GEMVER()
 {
 }
 
-void POLYBENCH_GEMVER::setUp(VariantID vid, size_t /*tune_idx*/)
+void POLYBENCH_GEMVER::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
@@ -105,7 +105,7 @@ void POLYBENCH_GEMVER::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_w, m_n, checksum_scale_factor );
 }
 
-void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t /*tune_idx*/)
+void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_A);

@@ -58,7 +58,7 @@ ADD::~ADD()
 {
 }
 
-void ADD::setUp(VariantID vid, size_t /*tune_idx*/)
+void ADD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -70,7 +70,7 @@ void ADD::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize());
 }
 
-void ADD::tearDown(VariantID vid, size_t /*tune_idx*/)
+void ADD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

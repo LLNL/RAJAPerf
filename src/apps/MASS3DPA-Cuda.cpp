@@ -102,7 +102,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
+template < size_t block_size >
+void MASS3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -118,7 +119,7 @@ void MASS3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
 
       dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
-      Mass3DPA<MPA_Q1D*MPA_Q1D><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
+      Mass3DPA<block_size><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -277,6 +278,8 @@ void MASS3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

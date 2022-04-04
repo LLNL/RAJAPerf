@@ -58,7 +58,7 @@ MUL::~MUL()
 {
 }
 
-void MUL::setUp(VariantID vid, size_t /*tune_idx*/)
+void MUL::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_b, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_c, getActualProblemSize(), vid);
@@ -70,7 +70,7 @@ void MUL::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_b, getActualProblemSize());
 }
 
-void MUL::tearDown(VariantID vid, size_t /*tune_idx*/)
+void MUL::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_b);

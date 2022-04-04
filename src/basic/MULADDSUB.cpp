@@ -57,7 +57,7 @@ MULADDSUB::~MULADDSUB()
 {
 }
 
-void MULADDSUB::setUp(VariantID vid, size_t /*tune_idx*/)
+void MULADDSUB::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
   allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
@@ -73,7 +73,7 @@ void MULADDSUB::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize());
 }
 
-void MULADDSUB::tearDown(VariantID vid, size_t /*tune_idx*/)
+void MULADDSUB::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_out1);

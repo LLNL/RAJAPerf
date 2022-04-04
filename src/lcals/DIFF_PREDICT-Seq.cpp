@@ -18,7 +18,7 @@ namespace lcals
 {
 
 
-void DIFF_PREDICT::runSeqVariant(VariantID vid, size_t /*tune_idx*/)
+void DIFF_PREDICT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

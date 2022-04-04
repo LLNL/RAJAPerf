@@ -120,7 +120,8 @@ __global__ void Diffusion3DPA(const Real_ptr Basis,
   }
 }
 
-void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
+template < size_t block_size >
+void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   DIFFUSION3DPA_DATA_SETUP;
@@ -136,7 +137,7 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
 
       dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
-      Diffusion3DPA<DPA_Q1D*DPA_Q1D*DPA_Q1D><<<NE, nthreads_per_block>>>(
+      Diffusion3DPA<block_size><<<NE, nthreads_per_block>>>(
           Basis, dBasis, D, X, Y, symmetric);
 
       cudaErrchk(cudaGetLastError());
@@ -364,6 +365,8 @@ void DIFFUSION3DPA::runCudaVariant(VariantID vid, size_t /*tune_idx*/) {
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DIFFUSION3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

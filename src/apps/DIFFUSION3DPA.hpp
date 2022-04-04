@@ -482,8 +482,16 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
+
 private:
   static const size_t default_gpu_block_size = DPA_Q1D * DPA_Q1D * DPA_Q1D;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

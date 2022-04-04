@@ -57,7 +57,7 @@ TRAP_INT::~TRAP_INT()
 {
 }
 
-void TRAP_INT::setUp(VariantID vid, size_t /*tune_idx*/)
+void TRAP_INT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   Real_type xn;
   initData(xn, vid);
@@ -79,7 +79,7 @@ void TRAP_INT::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += m_sumx;
 }
 
-void TRAP_INT::tearDown(VariantID vid, size_t /*tune_idx*/)
+void TRAP_INT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 }

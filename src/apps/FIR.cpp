@@ -62,7 +62,7 @@ FIR::~FIR()
 {
 }
 
-void FIR::setUp(VariantID vid, size_t /*tune_idx*/)
+void FIR::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_in, getActualProblemSize(), vid);
   allocAndInitDataConst(m_out, getActualProblemSize(), 0.0, vid);
@@ -73,7 +73,7 @@ void FIR::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor );
 }
 
-void FIR::tearDown(VariantID vid, size_t /*tune_idx*/)
+void FIR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

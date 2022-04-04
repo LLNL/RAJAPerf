@@ -18,7 +18,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
+void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

@@ -63,7 +63,7 @@ GEN_LIN_RECUR::~GEN_LIN_RECUR()
 {
 }
 
-void GEN_LIN_RECUR::setUp(VariantID vid, size_t /*tune_idx*/)
+void GEN_LIN_RECUR::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_kb5i = 0;
 
@@ -78,7 +78,7 @@ void GEN_LIN_RECUR::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_b5, getActualProblemSize(), checksum_scale_factor );
 }
 
-void GEN_LIN_RECUR::tearDown(VariantID vid, size_t /*tune_idx*/)
+void GEN_LIN_RECUR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_b5);

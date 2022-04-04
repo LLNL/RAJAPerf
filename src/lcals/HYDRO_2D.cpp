@@ -77,7 +77,7 @@ HYDRO_2D::~HYDRO_2D()
 {
 }
 
-void HYDRO_2D::setUp(VariantID vid, size_t /*tune_idx*/)
+void HYDRO_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_zzout, m_array_length, 0.0, vid);
@@ -98,7 +98,7 @@ void HYDRO_2D::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
-void HYDRO_2D::tearDown(VariantID vid, size_t /*tune_idx*/)
+void HYDRO_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_zrout);

@@ -22,7 +22,7 @@ namespace apps
 {
 
 
-void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t /*tune_idx*/)
+void DEL_DOT_VEC_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

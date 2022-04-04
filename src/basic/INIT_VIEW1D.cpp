@@ -58,7 +58,7 @@ INIT_VIEW1D::~INIT_VIEW1D()
 {
 }
 
-void INIT_VIEW1D::setUp(VariantID vid, size_t /*tune_idx*/)
+void INIT_VIEW1D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   m_val = 0.00000123;
@@ -69,7 +69,7 @@ void INIT_VIEW1D::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize());
 }
 
-void INIT_VIEW1D::tearDown(VariantID vid, size_t /*tune_idx*/)
+void INIT_VIEW1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

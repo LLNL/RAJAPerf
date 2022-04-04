@@ -47,7 +47,7 @@ SORT::~SORT()
 {
 }
 
-void SORT::setUp(VariantID vid, size_t /*tune_idx*/)
+void SORT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataRandValue(m_x, getActualProblemSize()*getRunReps(), vid);
 }
@@ -57,7 +57,7 @@ void SORT::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
 }
 
-void SORT::tearDown(VariantID vid, size_t /*tune_idx*/)
+void SORT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

@@ -120,7 +120,8 @@ __global__ void Diffusion3DPA(const Real_ptr Basis,
   }
 }
 
-void DIFFUSION3DPA::runHipVariant(VariantID vid, size_t /*tune_idx*/) {
+template < size_t block_size >
+void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   DIFFUSION3DPA_DATA_SETUP;
@@ -131,14 +132,14 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid, size_t /*tune_idx*/) {
 
     DIFFUSION3DPA_DATA_SETUP_HIP;
 
-    dim3 grid_size(NE);
-    dim3 block_size(DPA_Q1D, DPA_Q1D, DPA_Q1D);
+    dim3 nblocks(NE);
+    dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Diffusion3DPA<DPA_Q1D*DPA_Q1D*DPA_Q1D>),
-          dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((Diffusion3DPA<block_size>),
+          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
           Basis, dBasis, D, X, Y, symmetric);
 
       hipErrchk(hipGetLastError());
@@ -366,6 +367,8 @@ void DIFFUSION3DPA::runHipVariant(VariantID vid, size_t /*tune_idx*/) {
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DIFFUSION3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

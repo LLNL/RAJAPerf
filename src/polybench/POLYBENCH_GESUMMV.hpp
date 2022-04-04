@@ -108,7 +108,7 @@ public:
 
 private:
   static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
   Index_type m_N;
 

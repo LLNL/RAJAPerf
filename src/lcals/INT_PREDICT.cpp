@@ -55,7 +55,7 @@ INT_PREDICT::~INT_PREDICT()
 {
 }
 
-void INT_PREDICT::setUp(VariantID vid, size_t /*tune_idx*/)
+void INT_PREDICT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_array_length = getActualProblemSize() * 13;
   m_offset = getActualProblemSize();
@@ -82,7 +82,7 @@ void INT_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize());
 }
 
-void INT_PREDICT::tearDown(VariantID vid, size_t /*tune_idx*/)
+void INT_PREDICT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_px);
