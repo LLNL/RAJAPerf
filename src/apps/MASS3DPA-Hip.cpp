@@ -102,7 +102,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+template < size_t block_size >
+void MASS3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -113,13 +114,13 @@ void MASS3DPA::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
     MASS3DPA_DATA_SETUP_HIP;
 
-    dim3 grid_size(NE);
-    dim3 block_size(MPA_Q1D, MPA_Q1D, 1);
+    dim3 nblocks(NE);
+    dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DPA<MPA_Q1D*MPA_Q1D>), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
@@ -279,6 +280,8 @@ void MASS3DPA::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf
