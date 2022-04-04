@@ -239,6 +239,8 @@ void INDEXLIST_3LOOP::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

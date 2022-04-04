@@ -37,7 +37,6 @@ namespace basic
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void indexlist_conditional(Real_ptr x,
-                                      Int_ptr list,
                                       Index_type* counts,
                                       Index_type iend)
 {
@@ -116,7 +115,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((indexlist_conditional<block_size>), grid_size, block_size, 0, stream,
-          x, list, counts, iend );
+          x, counts, iend );
       hipErrchk( hipGetLastError() );
 
 #if defined(__HIPCC__)
