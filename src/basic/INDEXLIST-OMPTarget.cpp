@@ -38,7 +38,7 @@ namespace basic
 #endif
 
 
-void INDEXLIST::runOpenMPTargetVariant(VariantID vid, size_t /*tune_idx*/)
+void INDEXLIST::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP) \
  && _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
