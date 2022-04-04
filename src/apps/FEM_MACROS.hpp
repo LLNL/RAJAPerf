@@ -8,9 +8,9 @@
 #ifndef RAJAPerf_FEM_MACROS_HPP
 #define RAJAPerf_FEM_MACROS_HPP
 
-#define RAJAPERF_DIRECT_PRAGMA(X) _Pragma(#X)
 #if defined(USE_RAJAPERF_UNROLL)
-#define RAJAPERF_UNROLL(N) RAJAPERF_DIRECT_PRAGMA(unroll(N))
+// If enabled uses RAJA's RAJA_UNROLL_COUNT which is always on
+#define RAJAPERF_UNROLL(N) RAJA_UNROLL_COUNT(N)
 #else
 #define RAJAPERF_UNROLL(N)
 #endif
