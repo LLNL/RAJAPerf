@@ -21,12 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define SORT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend*run_reps);
 
@@ -50,7 +44,7 @@ void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(RAJA_SORT_ARGS);
+      RAJA::sort< RAJA::cuda_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORT_ARGS);
 
     }
     stopTimer();
