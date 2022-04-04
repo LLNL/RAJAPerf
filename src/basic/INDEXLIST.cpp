@@ -55,7 +55,7 @@ INDEXLIST::~INDEXLIST()
 {
 }
 
-void INDEXLIST::setUp(VariantID vid, size_t /*tune_idx*/)
+void INDEXLIST::setUp(VariantID vid, RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataRandSign(m_x, getActualProblemSize(), vid);
   allocAndInitData(m_list, getActualProblemSize(), vid);
@@ -68,7 +68,7 @@ void INDEXLIST::updateChecksum(VariantID vid, size_t tune_idx)
   checksum[vid][tune_idx] += Checksum_type(m_len);
 }
 
-void INDEXLIST::tearDown(VariantID vid, size_t /*tune_idx*/)
+void INDEXLIST::tearDown(VariantID vid, RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);
