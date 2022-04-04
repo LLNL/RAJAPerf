@@ -18,6 +18,9 @@ namespace rajaperf
 namespace algorithm
 {
 
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP) \
+ && _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
+
   //
   // Define threads per team for target execution
   //
@@ -34,6 +37,8 @@ namespace algorithm
   getOpenMPDeviceData(m_y, y, iend, hid, did); \
   deallocOpenMPDeviceData(x, did); \
   deallocOpenMPDeviceData(y, did);
+
+#endif
 
 
 void SCAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
