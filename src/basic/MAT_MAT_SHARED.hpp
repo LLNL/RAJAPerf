@@ -149,7 +149,7 @@ public:
 
 private:
   static const size_t default_gpu_block_size = TL_SZ * TL_SZ;
-  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size, gpu_block_size::ExactSqrt>;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size, gpu_block_size::ExactSqrt>;
 
   Real_ptr m_A;
   Real_ptr m_B;

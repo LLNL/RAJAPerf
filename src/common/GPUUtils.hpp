@@ -138,18 +138,21 @@ struct ExactSqrt
   static constexpr bool valid() { return sqrt(I)*sqrt(I) == I; }
 };
 
+template < size_t... block_sizes >
+using list_type = camp::int_seq<size_t, block_sizes...>;
+
 // A camp::int_seq of size_t's that is rajaperf::configuration::gpu_block_sizes
 // if rajaperf::configuration::gpu_block_sizes is not empty
 // and a camp::int_seq of default_block_size otherwise
 // with invalid entries removed according to validity_checker
 template < size_t default_block_size, typename validity_checker = AllowAny >
-using list_type =
+using make_list_type =
       typename detail::remove_invalid<validity_checker,
-          typename std::conditional< (detail::SizeOfIntSeq<rajaperf::configuration::gpu_block_sizes>::size > 0),
-              rajaperf::configuration::gpu_block_sizes,
-              camp::int_seq<size_t, default_block_size>
-            >::type
-        >::type;
+        typename std::conditional< (detail::SizeOfIntSeq<rajaperf::configuration::gpu_block_sizes>::size > 0),
+          rajaperf::configuration::gpu_block_sizes,
+          list_type<default_block_size>
+        >::type
+      >::type;
 
 } // closing brace for gpu_block_size namespace
 
