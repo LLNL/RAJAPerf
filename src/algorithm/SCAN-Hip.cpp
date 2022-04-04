@@ -29,12 +29,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define SCAN_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, iend); \
   allocAndInitHipDeviceData(y, m_y, iend);
@@ -131,7 +125,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::exclusive_scan< RAJA::hip_exec<block_size, true /*async*/> >(RAJA_SCAN_ARGS);
+      RAJA::exclusive_scan< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SCAN_ARGS);
 
     }
     stopTimer();
