@@ -18,5 +18,11 @@ blt_add_library(
           SORTPAIRS-Hip.cpp
           SORTPAIRS-Cuda.cpp
           SORTPAIRS-OMP.cpp
+          REDUCE_SUM.cpp
+          REDUCE_SUM-Seq.cpp
+          REDUCE_SUM-Hip.cpp
+          REDUCE_SUM-Cuda.cpp
+          REDUCE_SUM-OMP.cpp
+          REDUCE_SUM-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
