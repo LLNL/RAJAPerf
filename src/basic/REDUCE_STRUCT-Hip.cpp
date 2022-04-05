@@ -21,11 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
 
 #define REDUCE_STRUCT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(particles.x, m_x, particles.N); \
@@ -34,7 +29,8 @@ namespace basic
 #define REDUCE_STRUCT_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(particles.x); \
   deallocHipDeviceData(particles.y); \
-
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_ptr xsum, Real_ptr xmin, Real_ptr xmax, 
                               Real_ptr ysum, Real_ptr ymin, Real_ptr ymax, 
@@ -104,6 +100,7 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 }
 
 
+template < size_t block_size >
 void REDUCE_STRUCT::runHipVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -123,7 +120,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((reduce_struct), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
 	                                                  particles.x, particles.y,
 							  mem,  mem+1,mem+2, //xcenter,xmin,xmax
@@ -176,10 +173,10 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
     REDUCE_STRUCT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
-
+	RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Hip)	
 } // end namespace basic
 } // end namespace rajaperf
 

@@ -76,18 +76,25 @@ public:
 
   ~REDUCE_STRUCT();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid),  size_t tune_idx;
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+
+  template < size_t block_size >
   void runHipVariant(VariantID vid);
+  template < size_t block_size >
   void runOpenMPTargetVariant(VariantID vid);
 
 private:
 
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
   struct particles_t{
     Int_type N;
     Real_ptr x, y;

@@ -21,12 +21,7 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for Cuda execution
-  //
-  const size_t block_size = 256;
-
-
+  
 #define REDUCE_STRUCT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(particles.x, m_x, particles.N); \
   allocAndInitCudaDeviceData(particles.y, m_y, particles.N); \
@@ -35,7 +30,8 @@ namespace basic
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(particles.x); \
   deallocCudaDeviceData(particles.y); \
-
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_ptr xsum, Real_ptr xmin, Real_ptr xmax, 
                               Real_ptr ysum, Real_ptr ymin, Real_ptr ymax, 
@@ -104,7 +100,7 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
   }
 }
 
-
+template < size_t block_size >
 void REDUCE_STRUCT::runCudaVariant(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -123,7 +119,7 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));  
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(particles.N, block_size);
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
                                                             
       reduce_struct<<<grid_size, block_size,6*sizeof(Real_type)*block_size>>>
 	                                                  (particles.x, particles.y,
@@ -175,10 +171,10 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid)
     REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  REDUCE_STRUCT : Unknown CUDA variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE_STRUCT : Unknown CUDA variant id = " << vid << std::endl;
   }
 }
-
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Cuda)
 } // end namespace basic
 } // end namespace rajaperf
 
