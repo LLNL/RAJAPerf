@@ -30,6 +30,39 @@ namespace algorithm
 #define REDUCE_SUM_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  extern __shared__ Real_type psum[ ];
+
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+  psum[ threadIdx.x ] = sum_init;
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
+    psum[ threadIdx.x ] += x[i];
+  }
+  __syncthreads();
+
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
+      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
+    }
+     __syncthreads();
+  }
+
+#if 1 // serialized access to shared data;
+  if ( threadIdx.x == 0 ) {
+    RAJA::atomicAdd<RAJA::cuda_atomic>( dsum, psum[ 0 ] );
+  }
+#else // this doesn't work due to data races
+  if ( threadIdx.x == 0 ) {
+    *dsum += psum[ 0 ];
+  }
+#endif
+}
+
 
 void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 {
@@ -107,7 +140,39 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
   REDUCE_SUM_DATA_SETUP;
 
-  if ( vid == RAJA_CUDA ) {
+  if ( vid == Base_CUDA ) {
+
+    REDUCE_SUM_DATA_SETUP_CUDA;
+
+    Real_ptr dsum;
+    allocCudaDeviceData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initCudaDeviceData(dsum, &m_sum_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      reduce_sum<block_size><<<grid_size, block_size,
+                  sizeof(Real_type)*block_size>>>( x,
+                                                   dsum, m_sum_init,
+                                                   iend );
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lsum;
+      Real_ptr plsum = &lsum;
+      getCudaDeviceData(plsum, dsum, 1);
+
+      m_sum = lsum;
+
+    }
+    stopTimer();
+
+    deallocCudaDeviceData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == RAJA_CUDA ) {
 
     REDUCE_SUM_DATA_SETUP_CUDA;
 
@@ -136,7 +201,20 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   if ( vid == Base_CUDA ) {
-    runCudaVariantCub(vid);
+    size_t t = 0;
+    if (tune_idx == t) {
+      runCudaVariantCub(vid);
+    }
+    t += 1;
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (tune_idx == t) {
+          runCudaVariantBlock<block_size>(vid);
+        }
+        t += 1;
+      }
+    });
   } else if ( vid == RAJA_CUDA ) {
     size_t t = 0;
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
@@ -157,6 +235,12 @@ void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
 {
   if ( vid == Base_CUDA ) {
     addVariantTuningName(vid, "cub");
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      }
+    });
   } else if ( vid == RAJA_CUDA ) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
