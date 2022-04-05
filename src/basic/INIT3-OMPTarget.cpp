@@ -47,7 +47,7 @@ namespace basic
   deallocOpenMPDeviceData(in2, did);
 
 
-void INIT3::runOpenMPTargetVariant(VariantID vid)
+void INIT3::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

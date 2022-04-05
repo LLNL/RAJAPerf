@@ -27,7 +27,7 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   Index_type nk_default = 1120;
   Index_type nl_default = 1000;
 
-  setDefaultProblemSize( std::max( ni_default*nj_default, 
+  setDefaultProblemSize( std::max( ni_default*nj_default,
                                    ni_default*nl_default ) );
   setDefaultReps(2);
 
@@ -54,10 +54,10 @@ POLYBENCH_2MM::POLYBENCH_2MM(const RunParams& params)
   setFLOPsPerRep(3 * m_ni*m_nj*m_nk +
                  2 * m_ni*m_nj*m_nl );
 
-  checksum_scale_factor = 0.000001 * 
+  checksum_scale_factor = 0.000001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
-                                       
+
   setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
@@ -84,7 +84,7 @@ POLYBENCH_2MM::~POLYBENCH_2MM()
 {
 }
 
-void POLYBENCH_2MM::setUp(VariantID vid)
+void POLYBENCH_2MM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_tmp, m_ni * m_nj, vid);
@@ -94,12 +94,12 @@ void POLYBENCH_2MM::setUp(VariantID vid)
   allocAndInitDataConst(m_D, m_ni * m_nl, 0.0, vid);
 }
 
-void POLYBENCH_2MM::updateChecksum(VariantID vid)
+void POLYBENCH_2MM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_D, m_ni * m_nl, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_D, m_ni * m_nl, checksum_scale_factor );
 }
 
-void POLYBENCH_2MM::tearDown(VariantID vid)
+void POLYBENCH_2MM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_tmp);

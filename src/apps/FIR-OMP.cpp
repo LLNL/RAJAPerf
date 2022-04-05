@@ -19,7 +19,7 @@ namespace apps
 {
 
 
-void FIR::runOpenMPVariant(VariantID vid)
+void FIR::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

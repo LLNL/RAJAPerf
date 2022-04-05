@@ -29,7 +29,7 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   m_N = std::sqrt( getTargetProblemSize() )+1;
 
 
-  setActualProblemSize( m_N * m_N ); 
+  setActualProblemSize( m_N * m_N );
 
   setItsPerRep( m_N + m_N );
   setKernelsPerRep(2);
@@ -41,7 +41,7 @@ POLYBENCH_ATAX::POLYBENCH_ATAX(const RunParams& params)
   setFLOPsPerRep(2 * m_N*m_N +
                  2 * m_N*m_N );
 
-  checksum_scale_factor = 0.001 * 
+  checksum_scale_factor = 0.001 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                            getActualProblemSize() );
 
@@ -71,7 +71,7 @@ POLYBENCH_ATAX::~POLYBENCH_ATAX()
 {
 }
 
-void POLYBENCH_ATAX::setUp(VariantID vid)
+void POLYBENCH_ATAX::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_tmp, m_N, vid);
@@ -80,12 +80,12 @@ void POLYBENCH_ATAX::setUp(VariantID vid)
   allocAndInitDataConst(m_y, m_N, 0.0, vid);
 }
 
-void POLYBENCH_ATAX::updateChecksum(VariantID vid)
+void POLYBENCH_ATAX::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_y, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_y, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_ATAX::tearDown(VariantID vid)
+void POLYBENCH_ATAX::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_tmp);

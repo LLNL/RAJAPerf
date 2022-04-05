@@ -104,7 +104,7 @@
 ///   for(int qz=0;qz<Q1D;qz++){
 ///     for(int qy=0;qy<Q1D;++qy){
 ///       for(int qx=0; qx<Q1D;++qx){
-///    
+///
 ///         double u = 0.0, v = 0.0, w = 0.0;
 ///         for (int dz = 0; dz < D1D; ++dz){
 ///           const int i = qi(qz,dz,Q1D);
@@ -472,17 +472,26 @@ public:
 
   ~DIFFUSION3DPA();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = DPA_Q1D * DPA_Q1D * DPA_Q1D;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

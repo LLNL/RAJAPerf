@@ -26,7 +26,8 @@ class WarmupKernel;
 /*!
  *******************************************************************************
  *
- * \brief Class that assembles kernels and variants to run and executes them.
+ * \brief Class that assembles kernels, variants, and tunings to run and
+ *        executes them.
  *
  *******************************************************************************
  */
@@ -56,9 +57,13 @@ private:
   };
 
   struct FOMGroup {
-    VariantID base;
     std::vector<VariantID> variants;
   };
+
+  template < typename Kernel >
+  KernelBase* makeKernel();
+
+  void runKernel(KernelBase* kern, bool print_kernel_name);
 
   std::unique_ptr<std::ostream> openOutputFile(const std::string& filename) const;
 
@@ -70,7 +75,7 @@ private:
                       RunParams::CombinerOpt combiner, size_t prec);
   std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
   long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
-                                 KernelBase* kern, VariantID vid);
+                                 KernelBase* kern, VariantID vid, size_t tune_idx);
 
   void writeChecksumReport(std::ostream& file);
 
@@ -80,8 +85,10 @@ private:
   RunParams run_params;
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
+  std::vector<std::string> tuning_names[NumVariants];
 
   VariantID reference_vid;
+  size_t    reference_tune_idx;
 };
 
 }  // closing brace for rajaperf namespace

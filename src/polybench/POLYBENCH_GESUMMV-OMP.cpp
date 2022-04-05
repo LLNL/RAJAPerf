@@ -19,7 +19,7 @@ namespace polybench
 {
 
 
-void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
+void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

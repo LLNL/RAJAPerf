@@ -25,12 +25,6 @@ namespace apps
 #define USE_HIP_CONSTANT_MEMORY
 // #undef USE_HIP_CONSTANT_MEMORY
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #if defined(USE_HIP_CONSTANT_MEMORY)
 
 __constant__ Real_type coeff[FIR_COEFFLEN];
@@ -46,11 +40,13 @@ __constant__ Real_type coeff[FIR_COEFFLEN];
   deallocHipDeviceData(in); \
   deallocHipDeviceData(out);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
@@ -73,12 +69,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
   deallocHipDeviceData(out); \
   deallocHipDeviceData(coeff);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     Real_ptr coeff,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
@@ -87,7 +85,8 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 #endif
 
 
-void FIR::runHipVariant(VariantID vid)
+template < size_t block_size >
+void FIR::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -107,12 +106,12 @@ void FIR::runHipVariant(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
-       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
                                        coefflen,
                                        iend );
        hipErrchk( hipGetLastError() );
 #else
-       hipLaunchKernelGGL((fir), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -147,6 +146,8 @@ void FIR::runHipVariant(VariantID vid)
      getCout() << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -58,7 +58,7 @@ COUPLE::~COUPLE()
   delete m_domain;
 }
 
-void COUPLE::setUp(VariantID vid)
+void COUPLE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   Index_type max_loop_index = m_domain->lrn;
 
@@ -80,8 +80,9 @@ void COUPLE::setUp(VariantID vid)
   m_ireal = Complex_type(0.0, 1.0);
 }
 
-void COUPLE::runKernel(VariantID vid)
+void COUPLE::runKernel(VariantID vid, size_t tune_idx)
 {
+  RAJA_UNUSED_VAR(tune_idx);
   const Index_type run_reps = getRunReps();
 
   COUPLE_DATA_SETUP;
@@ -158,7 +159,7 @@ void COUPLE::runKernel(VariantID vid)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :
     {
-      runOpenMPTargetVariant(vid);
+      runOpenMPTargetVariant(vid, tune_idx);
       break;
     }
 #endif
@@ -167,7 +168,7 @@ void COUPLE::runKernel(VariantID vid)
     case Base_CUDA :
     case RAJA_CUDA :
     {
-      runCudaVariant(vid);
+      runCudaVariant(vid, tune_idx);
       break;
     }
 #endif
@@ -179,16 +180,16 @@ void COUPLE::runKernel(VariantID vid)
   }
 }
 
-void COUPLE::updateChecksum(VariantID vid)
+void COUPLE::updateChecksum(VariantID vid, size_t tune_idx)
 {
   Index_type max_loop_index = m_domain->lrn;
 
-  checksum[vid] += calcChecksum(m_t0, max_loop_index);
-  checksum[vid] += calcChecksum(m_t1, max_loop_index);
-  checksum[vid] += calcChecksum(m_t2, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t0, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t1, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t2, max_loop_index);
 }
 
-void COUPLE::tearDown(VariantID vid)
+void COUPLE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
