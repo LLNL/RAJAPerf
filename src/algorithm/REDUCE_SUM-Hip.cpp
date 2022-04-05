@@ -36,42 +36,7 @@ namespace algorithm
   deallocHipDeviceData(x);
 
 
-template < size_t block_size >
-void REDUCE_SUM::runHipVariantImpl(VariantID vid)
-{
-  const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
-
-  REDUCE_SUM_DATA_SETUP;
-
-  if ( vid == RAJA_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
-
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          REDUCE_SUM_BODY;
-      });
-
-      m_sum = sum.get();
-
-    }
-    stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
-
-  } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
-  }
-}
-
-void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
+void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -155,24 +120,64 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
+  } else {
+     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
 
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantBlock(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_SUM_BODY;
+      });
+
+      m_sum = sum.get();
+
+    }
+    stopTimer();
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else {
+     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  if ( vid == Base_HIP ) {
+    runHipVariantRocprim(vid);
   } else if ( vid == RAJA_HIP ) {
-
     size_t t = 0;
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
         if (tune_idx == t) {
-          runHipVariantImpl<block_size>(vid);
+          runHipVariantBlock<block_size>(vid);
         }
         t += 1;
       }
     });
-
   } else {
      getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
   }
-
 }
 
 void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
