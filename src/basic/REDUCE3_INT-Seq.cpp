@@ -55,9 +55,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto init3_base_lam = [=](Index_type i) -> Int_type {
-                              return vec[i];
-                            };
+      auto reduce3_base_lam = [=](Index_type i) -> Int_type {
+                                return vec[i];
+                              };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,9 +67,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
         Int_type vmax = m_vmax_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
+          vsum += reduce3_base_lam(i);
+          vmin = RAJA_MIN(vmin, reduce3_base_lam(i));
+          vmax = RAJA_MAX(vmax, reduce3_base_lam(i));
         }
 
         m_vsum += vsum;
