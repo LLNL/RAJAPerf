@@ -127,8 +127,11 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     REDUCE_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
   }
+
 }
 
 template < size_t block_size >
@@ -194,60 +197,103 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     REDUCE_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
   }
+
 }
 
 void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   if ( vid == Base_CUDA ) {
+
     size_t t = 0;
+
     if (tune_idx == t) {
+
       runCudaVariantCub(vid);
+
     }
+
     t += 1;
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         if (tune_idx == t) {
+
           runCudaVariantBlock<block_size>(vid);
+
         }
+
         t += 1;
+
       }
+
     });
+
   } else if ( vid == RAJA_CUDA ) {
+
     size_t t = 0;
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         if (tune_idx == t) {
+
           runCudaVariantBlock<block_size>(vid);
+
         }
+
         t += 1;
+
       }
+
     });
+
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
+
   }
+
 }
 
 void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
 {
   if ( vid == Base_CUDA ) {
+
     addVariantTuningName(vid, "cub");
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
       }
+
     });
+
   } else if ( vid == RAJA_CUDA ) {
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
       }
+
     });
+
   }
 }
 

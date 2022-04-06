@@ -154,8 +154,11 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
   }
+
 }
 
 template < size_t block_size >
@@ -220,65 +223,109 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
   }
+
 }
 
 void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 {
   if ( vid == Base_HIP ) {
+
     size_t t = 0;
+
     if (tune_idx == t) {
+
       runHipVariantRocprim(vid);
+
     }
+
     t += 1;
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         if (tune_idx == t) {
+
           runHipVariantBlock<block_size>(vid);
+
         }
+
         t += 1;
+
       }
+
     });
+
   } else if ( vid == RAJA_HIP ) {
+
     size_t t = 0;
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         if (tune_idx == t) {
+
           runHipVariantBlock<block_size>(vid);
+
         }
+
         t += 1;
+
       }
+
     });
+
   } else {
-     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
   }
+
 }
 
 void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
 {
   if ( vid == Base_HIP ) {
+
 #if defined(__HIPCC__)
     addVariantTuningName(vid, "rocprim");
 #elif defined(__CUDACC__)
     addVariantTuningName(vid, "cub");
 #endif
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
       }
+
     });
+
   } else if ( vid == RAJA_HIP ) {
+
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
+
         addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
       }
+
     });
+
   }
+
 }
 
 } // end namespace algorithm
