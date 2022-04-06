@@ -198,6 +198,8 @@ void INDEXLIST::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

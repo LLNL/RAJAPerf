@@ -216,6 +216,9 @@ blt_add_executable(
   algorithm/SORT-Seq.cpp
   algorithm/SORTPAIRS.cpp
   algorithm/SORTPAIRS-Seq.cpp
+  algorithm/REDUCE_SUM.cpp
+  algorithm/REDUCE_SUM-Seq.cpp
+  algorithm/REDUCE_SUM-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 
