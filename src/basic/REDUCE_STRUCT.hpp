@@ -9,9 +9,10 @@
 ///
 /// REDUCE_STRUCT kernel reference implementation:
 ///
-/// Real_type xsum = 0.0;
-/// Real_type xmin = 0.0;
-/// Real_type xmax = 0.0;
+/// Real_type xsum; Real_type ysum;
+/// Real_type xmin; Real_type ymin;
+/// Real_type xmax; Real_type ymax;
+
 ///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
 ///   xsum += x[i] ; ysum += y[i] ;
