@@ -101,7 +101,7 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 }
 
 template < size_t block_size >
-void REDUCE_STRUCT::runCudaVariant(VariantID vid)
+void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;

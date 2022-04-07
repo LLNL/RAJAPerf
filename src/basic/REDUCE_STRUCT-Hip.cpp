@@ -28,7 +28,8 @@ namespace basic
   
 #define REDUCE_STRUCT_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(particles.x); \
-  deallocHipDeviceData(particles.y); \
+  deallocHipDeviceData(particles.y); 
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
@@ -101,7 +102,7 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 
 
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariant(VariantID vid)
+void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -121,7 +122,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid)
 
       hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce_struct), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
+      hipLaunchKernelGGL((reduce_struct<block_size>), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
 	                                                  particles.x, particles.y,
 							  mem,  mem+1,mem+2, //xcenter,xmin,xmax
 							  mem+3,mem+4,mem+5, //ycenter,ymin,ymax

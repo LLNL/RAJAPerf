@@ -19,7 +19,7 @@ namespace basic
 {
 
 
-void REDUCE_STRUCT::runOpenMPVariant(VariantID vid)
+void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
