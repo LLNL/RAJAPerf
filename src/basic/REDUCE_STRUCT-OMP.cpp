@@ -84,7 +84,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
         xsum += init_struct_x_base_lam(i);
         xmin = RAJA_MIN(xmin, init_struct_x_base_lam(i));
         xmax = RAJA_MAX(xmax, init_struct_x_base_lam(i));
-        ysum += init_struct_y_base_lam(i);
+        ysum += reduce_struct_y_base_lam(i);
         ymin = RAJA_MIN(ymin, init_struct_y_base_lam(i));
         ymax = RAJA_MAX(ymax, init_struct_y_base_lam(i));
 
