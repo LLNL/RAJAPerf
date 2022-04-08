@@ -73,11 +73,11 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           xsum += reduce_struct_x_base_lam(i);
-          xmin = RAJA_MIN(xmin, init_struct_x_base_lam(i));
-          xmax = RAJA_MAX(xmax, init_struct_x_base_lam(i));
+          xmin = RAJA_MIN(xmin, reduce_struct_x_base_lam(i));
+          xmax = RAJA_MAX(xmax, reduce_struct_x_base_lam(i));
           ysum += reduce_struct_y_base_lam(i);
-          ymin = RAJA_MIN(ymin, init_struct_y_base_lam(i));
-          ymax = RAJA_MAX(ymax, init_struct_y_base_lam(i));
+          ymin = RAJA_MIN(ymin, reduce_struct_y_base_lam(i));
+          ymax = RAJA_MAX(ymax, reduce_struct_y_base_lam(i));
         }
 
         particles.SetCenter(xsum/(particles.N),ysum/(particles.N));
