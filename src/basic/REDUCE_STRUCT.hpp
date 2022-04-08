@@ -94,10 +94,6 @@ public:
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
-private:
-
-  static const size_t default_gpu_block_size = 256;
-  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
   struct particles_t{
     Int_type N;
     Real_ptr x, y;
@@ -119,7 +115,9 @@ private:
     Real_type xmin, xmax;
     Real_type ymin, ymax;
     }; 
-
+private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
   Real_ptr m_x; Real_ptr m_y;
   particles_t m_particles;
   Real_type X_MIN = 0.0, X_MAX = 100.0; 
