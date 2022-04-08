@@ -68,10 +68,12 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin; i < iend; ++i ) {
         REDUCE_STRUCT_BODY;
       }
+
       particles.SetCenter(xsum/particles.N,ysum/particles.N);
       particles.SetXMin(xmin); particles.SetXMax(xmax);
       particles.SetYMin(ymin); particles.SetYMax(ymax);
       m_particles=particles;
+
     }
     stopTimer();
 
@@ -107,6 +109,7 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
   } else {
      std::cout << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid << std::endl;
   }
+
 }
 
 } // end namespace basic

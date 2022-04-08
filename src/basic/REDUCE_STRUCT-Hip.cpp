@@ -114,20 +114,23 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_HIP;
 
-	Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-	allocHipDeviceData(mem,6);
+    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
+    allocHipDeviceData(mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
-      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce_struct<block_size>), dim3(grid_size), dim3(block_size), 6*sizeof(Real_type)*block_size, 0,
-	                                                  particles.x, particles.y,
-							  mem,  mem+1,mem+2, //xcenter,xmin,xmax
-							  mem+3,mem+4,mem+5, //ycenter,ymin,ymax
-							  particles.N);
 
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((reduce_struct<block_size>), 
+                         dim3(grid_size), dim3(block_size), 
+                         6*sizeof(Real_type)*block_size, 0,
+	                 particles.x, particles.y,
+                         mem, mem+1, mem+2,    // xcenter,xmin,xmax
+                         mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
+                         particles.N);
       hipErrchk( hipGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -140,6 +143,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       particles.SetYMin(lmem[4]);
       particles.SetYMax(lmem[5]);
       m_particles=particles;
+
     }
     stopTimer();
 
@@ -159,8 +163,8 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(0.0), ymax(0.0);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-      RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-      REDUCE_STRUCT_BODY_RAJA;
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
       });
 
 
@@ -168,6 +172,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
       particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
       m_particles=particles;
+
     }
     stopTimer();
 
@@ -176,8 +181,11 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
   }
+
 }
-	RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Hip)	
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Hip)
+
 } // end namespace basic
 } // end namespace rajaperf
 
