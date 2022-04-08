@@ -91,13 +91,13 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
 
 // serialized access to shared data;
   if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::Cuda_atomic>( xsum, pxsum[ 0 ] );
-    RAJA::atomicMin<RAJA::Cuda_atomic>( xmin, pxmin[ 0 ] );
-    RAJA::atomicMax<RAJA::Cuda_atomic>( xmax, pxmax[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( xsum, pxsum[ 0 ] );
+    RAJA::atomicMin<RAJA::cuda_atomic>( xmin, pxmin[ 0 ] );
+    RAJA::atomicMax<RAJA::cuda_atomic>( xmax, pxmax[ 0 ] );
 
-    RAJA::atomicAdd<RAJA::Cuda_atomic>( xsum, pysum[ 0 ] );
-    RAJA::atomicMin<RAJA::Cuda_atomic>( ymin, pymin[ 0 ] );
-    RAJA::atomicMax<RAJA::Cuda_atomic>( ymax, pymax[ 0 ] );
+    RAJA::atomicAdd<RAJA::cuda_atomic>( xsum, pysum[ 0 ] );
+    RAJA::atomicMin<RAJA::cuda_atomic>( ymin, pymin[ 0 ] );
+    RAJA::atomicMax<RAJA::cuda_atomic>( ymax, pymax[ 0 ] );
   }
 }
 
@@ -156,9 +156,12 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum=0.0, ysum=0.0;
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin=0.0, ymin=0.0;
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax=0.0, ymax=0.0;
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum(0.0);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> ysum(0.0);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin(0.0); 
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> ymin(0.0);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(0.0); 
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(0.0);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

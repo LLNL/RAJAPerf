@@ -108,10 +108,13 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> xsum(0.0), ysum(0.0);
-        RAJA::ReduceMin<RAJA::omp_reduce, Real_type> xmin(0.0), ymin(0.0);
-        RAJA::ReduceMax<RAJA::omp_reduce, Real_type> xmax(0.0), ymax(0.0);
+ 
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> xsum(0.0);
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> ysum(0.0);
+        RAJA::ReduceMin<RAJA::omp_reduce, Real_type> xmin(0.0); 
+        RAJA::ReduceMin<RAJA::omp_reduce, Real_type> ymin(0.0);
+        RAJA::ReduceMax<RAJA::omp_reduce, Real_type> xmax(0.0); 
+        RAJA::ReduceMax<RAJA::omp_reduce, Real_type> ymax(0.0);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {

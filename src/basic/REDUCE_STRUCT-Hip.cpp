@@ -158,15 +158,17 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(0.0), ysum(0.0);
-      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(0.0), ymin(0.0);
-      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(0.0), ymax(0.0);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(0.0);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> ysum(0.0);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(0.0);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> ymin(0.0);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(0.0);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(0.0);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_STRUCT_BODY_RAJA;
       });
-
 
       particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
       particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));

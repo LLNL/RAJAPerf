@@ -86,9 +86,12 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> xsum(0.0), ysum(0.0);
-      RAJA::ReduceMin<RAJA::omp_target_reduce, Real_type> xmin(0.0), ymin(0.0);
-      RAJA::ReduceMax<RAJA::omp_target_reduce, Real_type> xmax(0.0), ymax(0.0);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> xsum(0.0);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> ysum(0.0);
+      RAJA::ReduceMin<RAJA::omp_target_reduce, Real_type> xmin(0.0);
+      RAJA::ReduceMin<RAJA::omp_target_reduce, Real_type> ymin(0.0);
+      RAJA::ReduceMax<RAJA::omp_target_reduce, Real_type> xmax(0.0);
+      RAJA::ReduceMax<RAJA::omp_target_reduce, Real_type> ymax(0.0);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
