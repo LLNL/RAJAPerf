@@ -29,7 +29,8 @@ namespace basic
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(particles.x); \
-  deallocCudaDeviceData(particles.y); \
+  deallocCudaDeviceData(particles.y);
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
