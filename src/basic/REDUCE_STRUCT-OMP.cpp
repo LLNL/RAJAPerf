@@ -66,6 +66,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       auto reduce_struct_x_base_lam = [=](Index_type i) -> Real_type {
                                    return particles.x[i];
                                  };
+
       auto reduce_struct_y_base_lam = [=](Index_type i) -> Real_type {
                                    return particles.y[i];
                                  };
@@ -76,18 +77,18 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
         Real_type xsum = 0.0, ysum = 0.0;
         Real_type xmin = 0.0, ymin = 0.0;
         Real_type xmax = 0.0, ymax = 0.0;
+
         #pragma omp parallel for reduction(+:xsum), \
                                  reduction(min:xmin), \
                                  reduction(max:xmax), \
                                  reduction(+:ysum), \
                                  reduction(min:ymin), \
                                  reduction(max:ymax)
-
         for (Index_type i = ibegin; i < iend; ++i ) {
-          xsum += init_struct_x_base_lam(i);
+          xsum += reduce_struct_x_base_lam(i);
           xmin = RAJA_MIN(xmin, init_struct_x_base_lam(i));
           xmax = RAJA_MAX(xmax, init_struct_x_base_lam(i));
-          ysum += init_struct_y_base_lam(i);
+          ysum += reduce_struct_y_base_lam(i);
           ymin = RAJA_MIN(ymin, init_struct_y_base_lam(i));
           ymax = RAJA_MAX(ymax, init_struct_y_base_lam(i));
         }

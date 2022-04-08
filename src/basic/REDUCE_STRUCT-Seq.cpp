@@ -30,21 +30,23 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
   switch ( vid ) {
 
     case Base_Seq : {
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type xsum = 0.0; Real_type ysum = 0.0;
-      Real_type xmin = 0.0; Real_type ymin = 0.0;
-      Real_type xmax = 0.0; Real_type ymax = 0.0;
+        Real_type xsum = 0.0; Real_type ysum = 0.0;
+        Real_type xmin = 0.0; Real_type ymin = 0.0;
+        Real_type xmax = 0.0; Real_type ymax = 0.0;
 
-      for (Index_type i = ibegin; i < iend; ++i ) {
-        REDUCE_STRUCT_BODY;
-      }
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          REDUCE_STRUCT_BODY;
+        }
 
-      particles.SetCenter(xsum/(particles.N),ysum/(particles.N));
-      particles.SetXMin(xmin); particles.SetXMax(xmax);
-      particles.SetYMin(ymin); particles.SetYMax(ymax);
-      m_particles=particles;
+        particles.SetCenter(xsum/(particles.N),ysum/(particles.N));
+        particles.SetXMin(xmin); particles.SetXMax(xmax);
+        particles.SetYMin(ymin); particles.SetYMax(ymax);
+        m_particles=particles;
+
       }
       stopTimer();
 
@@ -53,31 +55,36 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
-      auto init_struct_x_base_lam = [=](Index_type i) -> Real_type {
-                              return particles.x[i];
-                            };
-      auto init_struct_y_base_lam = [=](Index_type i) -> Real_type {
-                              return particles.y[i];
-                            };
+
+      auto reduce_struct_x_base_lam = [=](Index_type i) -> Real_type {
+                                   return particles.x[i];
+                                 };
+
+      auto reduce_struct_y_base_lam = [=](Index_type i) -> Real_type {
+                                   return particles.y[i];
+                                 };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type xsum = 0.0; Real_type ysum = 0.0;
-      Real_type xmin = 0.0; Real_type ymin = 0.0;
-      Real_type xmax = 0.0; Real_type ymax = 0.0;
+        Real_type xsum = 0.0; Real_type ysum = 0.0;
+        Real_type xmin = 0.0; Real_type ymin = 0.0;
+        Real_type xmax = 0.0; Real_type ymax = 0.0;
 
-      for (Index_type i = ibegin; i < iend; ++i ) {
-        xsum += init_struct_x_base_lam(i);
-        xmin = RAJA_MIN(xmin, init_struct_x_base_lam(i));
-        xmax = RAJA_MAX(xmax, init_struct_x_base_lam(i));
-        ysum += init_struct_y_base_lam(i);
-        ymin = RAJA_MIN(ymin, init_struct_y_base_lam(i));
-        ymax = RAJA_MAX(ymax, init_struct_y_base_lam(i));
-      }
-      particles.SetCenter(xsum/(particles.N),ysum/(particles.N));
-      particles.SetXMin(xmin); particles.SetXMax(xmax);
-      particles.SetYMin(ymin); particles.SetYMax(ymax);
-      m_particles=particles;
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          xsum += reduce_struct_x_base_lam(i);
+          xmin = RAJA_MIN(xmin, init_struct_x_base_lam(i));
+          xmax = RAJA_MAX(xmax, init_struct_x_base_lam(i));
+          ysum += reduce_struct_y_base_lam(i);
+          ymin = RAJA_MIN(ymin, init_struct_y_base_lam(i));
+          ymax = RAJA_MAX(ymax, init_struct_y_base_lam(i));
+        }
+
+        particles.SetCenter(xsum/(particles.N),ysum/(particles.N));
+        particles.SetXMin(xmin); particles.SetXMax(xmax);
+        particles.SetYMin(ymin); particles.SetYMax(ymax);
+        m_particles=particles;
+
       }
       stopTimer();
 
@@ -85,6 +92,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
     }
 
     case RAJA_Seq : {
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -101,6 +109,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 	particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
 	particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
         m_particles=particles;
+
       }
       stopTimer();
 
