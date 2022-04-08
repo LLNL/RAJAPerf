@@ -115,7 +115,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          REDUCE_REAL_BODY_RAJA;
+          REDUCE_STRUCT_BODY_RAJA;
         });
 
         particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
