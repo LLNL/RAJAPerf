@@ -30,12 +30,12 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitHipDeviceData(particles.x, m_x, particles.N, did, hid); \
-  allocAndInitHipDeviceData(particles.y, m_y, particles.N, did, hid); 
+  allocAndInitHipDeviceData(points.x, m_x, points.N, did, hid); \
+  allocAndInitHipDeviceData(points.y, m_y, points.N, did, hid); 
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_OMP_TARGET \
-  deallocHipDeviceData(particles.x); \
-  deallocHipDeviceData(particles.y); \
+  deallocHipDeviceData(points.x); \
+  deallocHipDeviceData(points.y); \
 
 
 void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
@@ -69,10 +69,10 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
         REDUCE_STRUCT_BODY;
       }
 
-      particles.SetCenter(xsum/particles.N,ysum/particles.N);
-      particles.SetXMin(xmin); particles.SetXMax(xmax);
-      particles.SetYMin(ymin); particles.SetYMax(ymax);
-      m_particles=particles;
+      points.SetCenter(xsum/points.N,ysum/points.N);
+      points.SetXMin(xmin); points.SetXMax(xmax);
+      points.SetYMin(ymin); points.SetYMax(ymax);
+      m_points=points;
 
     }
     stopTimer();
@@ -99,10 +99,10 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
         REDUCE_STRUCT_BODY_RAJA;
       });
 
-      particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
-	  particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetYMin(static_cast<Real_type>(xmax.get()));
-	  particles.SetYMax(static_cast<Real_type>(ymax.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
-      m_particles=particles;
+      points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),ysum.get()/(points.N));
+	  points.SetXMin(static_cast<Real_type>(xmin.get())); points.SetYMin(static_cast<Real_type>(xmax.get()));
+	  points.SetYMax(static_cast<Real_type>(ymax.get())); points.SetYMax(static_cast<Real_type>(ymax.get()));
+      m_points=points;
 
     }
     stopTimer();

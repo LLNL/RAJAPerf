@@ -20,14 +20,14 @@
 ///   ymin = RAJA_MIN(ymin, y[i]) ; ymax = RAJA_MAX(ymax, y[i]) ;
 /// }
 ///
-/// particles.xcenter = xsum;
-/// particles.xcenter /= particles.N
-/// particles.xmin = xmin;
-/// particles.xmax = xmax;
-/// particles.ycenter = ysum;
-/// particles.ycenter /= particles.N
-/// particles.ymin = ymin;
-/// particles.ymax = ymax;
+/// points.xcenter = xsum;
+/// points.xcenter /= points.N
+/// points.xmin = xmin;
+/// points.xmax = xmax;
+/// points.ycenter = ysum;
+/// points.ycenter /= points.N
+/// points.ymin = ymin;
+/// points.ymax = ymax;
 
 ///
 /// RAJA_MIN/MAX are macros that do what you would expect.
@@ -38,26 +38,26 @@
 
 
 #define REDUCE_STRUCT_DATA_SETUP \
-  particles_t particles; \
-  particles.N = getActualProblemSize(); \
-  particles.x = m_x; \
-  particles.y = m_y; \
+  points points; \
+  points.N = getActualProblemSize(); \
+  points.x = m_x; \
+  points.y = m_y; \
 
 #define REDUCE_STRUCT_BODY  \
-  xsum += particles.x[i] ; \
-  xmin = RAJA_MIN(xmin, particles.x[i]) ; \
-  xmax = RAJA_MAX(xmax, particles.x[i]) ; \
-  ysum += particles.y[i] ; \
-  ymin = RAJA_MIN(ymin, particles.y[i]) ; \
-  ymax = RAJA_MAX(ymax, particles.y[i]) ;
+  xsum += points.x[i] ; \
+  xmin = RAJA_MIN(xmin, points.x[i]) ; \
+  xmax = RAJA_MAX(xmax, points.x[i]) ; \
+  ysum += points.y[i] ; \
+  ymin = RAJA_MIN(ymin, points.y[i]) ; \
+  ymax = RAJA_MAX(ymax, points.y[i]) ;
 
 #define REDUCE_STRUCT_BODY_RAJA  \
-  xsum += particles.x[i] ; \
-  xmin.min(particles.x[i]) ; \
-  xmax.max(particles.x[i]) ; \
-  ysum += particles.y[i] ; \
-  ymin.min(particles.y[i]) ; \
-  ymax.max(particles.y[i]) ;
+  xsum += points.x[i] ; \
+  xmin.min(points.x[i]) ; \
+  xmax.max(points.x[i]) ; \
+  ysum += points.y[i] ; \
+  ymin.min(points.y[i]) ; \
+  ymax.max(points.y[i]) ;
 
 
 #include "common/KernelBase.hpp"
@@ -94,7 +94,7 @@ public:
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
-  struct particles_t{
+  struct points{
     Int_type N;
     Real_ptr x, y;
 
@@ -122,7 +122,7 @@ private:
   Real_type	m_init_sum; 
   Real_type	m_init_min; 
   Real_type	m_init_max; 
-  particles_t m_particles;
+  points m_points;
   Real_type X_MIN = 0.0, X_MAX = 100.0; 
   Real_type Y_MIN = 0.0, Y_MAX = 50.0; 
   Real_type Lx = (X_MAX) - (X_MIN); 

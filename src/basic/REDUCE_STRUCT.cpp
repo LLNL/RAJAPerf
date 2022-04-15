@@ -79,12 +79,12 @@ void REDUCE_STRUCT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void REDUCE_STRUCT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += m_particles.GetCenter()[0];
-  checksum[vid][tune_idx] += m_particles.GetXMin();
-  checksum[vid][tune_idx] += m_particles.GetXMax();
-  checksum[vid][tune_idx] += m_particles.GetCenter()[1];
-  checksum[vid][tune_idx] += m_particles.GetYMin();
-  checksum[vid][tune_idx] += m_particles.GetYMax();
+  checksum[vid][tune_idx] += m_points.GetCenter()[0];
+  checksum[vid][tune_idx] += m_points.GetXMin();
+  checksum[vid][tune_idx] += m_points.GetXMax();
+  checksum[vid][tune_idx] += m_points.GetCenter()[1];
+  checksum[vid][tune_idx] += m_points.GetYMin();
+  checksum[vid][tune_idx] += m_points.GetYMax();
 
   return;
 }

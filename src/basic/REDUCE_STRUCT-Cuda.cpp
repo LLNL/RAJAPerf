@@ -23,13 +23,13 @@ namespace basic
 
   
 #define REDUCE_STRUCT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(particles.x, m_x, particles.N); \
-  allocAndInitCudaDeviceData(particles.y, m_y, particles.N); \
+  allocAndInitCudaDeviceData(points.x, m_x, points.N); \
+  allocAndInitCudaDeviceData(points.y, m_y, points.N); \
   
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(particles.x); \
-  deallocCudaDeviceData(particles.y);
+  deallocCudaDeviceData(points.x); \
+  deallocCudaDeviceData(points.y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -125,22 +125,22 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
                                                             
       reduce_struct<block_size><<<grid_size, block_size,
                                   6*sizeof(Real_type)*block_size>>>(
-        particles.x, particles.y,
+        points.x, points.y,
         mem, mem+1, mem+2,    // xcenter,xmin,xmax
         mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
-        particles.N);
+        points.N);
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
       Real_ptr plmem = &lmem[0];
       getCudaDeviceData(plmem, mem, 6);
 
-      particles.SetCenter(lmem[0]/particles.N,lmem[3]/particles.N);
-      particles.SetXMin(lmem[1]);
-      particles.SetXMax(lmem[2]);
-      particles.SetYMin(lmem[4]);
-      particles.SetYMax(lmem[5]);
-      m_particles=particles;
+      points.SetCenter(lmem[0]/points.N,lmem[3]/points.N);
+      points.SetXMin(lmem[1]);
+      points.SetXMax(lmem[2]);
+      points.SetYMin(lmem[4]);
+      points.SetYMax(lmem[5]);
+      m_points=points;
 
     }
     stopTimer();
@@ -168,10 +168,10 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
           REDUCE_STRUCT_BODY_RAJA;
       });
 
-      particles.SetCenter(static_cast<Real_type>(xsum.get()/(particles.N)),ysum.get()/(particles.N));
-      particles.SetXMin(static_cast<Real_type>(xmin.get())); particles.SetXMax(static_cast<Real_type>(xmax.get()));
-      particles.SetYMin(static_cast<Real_type>(ymin.get())); particles.SetYMax(static_cast<Real_type>(ymax.get()));
-      m_particles=particles;
+      points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),ysum.get()/(points.N));
+      points.SetXMin(static_cast<Real_type>(xmin.get())); points.SetXMax(static_cast<Real_type>(xmax.get()));
+      points.SetYMin(static_cast<Real_type>(ymin.get())); points.SetYMax(static_cast<Real_type>(ymax.get()));
+      m_points=points;
 
     }
     stopTimer();
