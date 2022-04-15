@@ -35,6 +35,9 @@ __launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_ptr xsum, Real_ptr xmin, Real_ptr xmax, 
                               Real_ptr ysum, Real_ptr ymin, Real_ptr ymax, 
+                              Real_type m_init_sum,
+                              Real_type m_init_min,
+                              Real_type m_init_max,
                               Index_type iend)
 {
 
@@ -130,6 +133,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 	                 points.x, points.y,
                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
+                         m_init_sum, m_init_min, m_init_max,
                          points.N);
       hipErrchk( hipGetLastError() );
 
@@ -137,7 +141,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       Real_ptr plmem = &lmem[0];
       getHipDeviceData(plmem, mem, 6);
 
-      points.SetCenter(lmem[0]/points.N,lmem[3]/points.N);
+      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
       points.SetXMin(lmem[1]);
       points.SetXMax(lmem[2]);
       points.SetYMin(lmem[4]);
@@ -170,9 +174,12 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
           REDUCE_STRUCT_BODY_RAJA;
       });
 
-      points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),ysum.get()/(points.N));
-      points.SetXMin(static_cast<Real_type>(xmin.get())); points.SetXMax(static_cast<Real_type>(xmax.get()));
-      points.SetYMin(static_cast<Real_type>(ymin.get())); points.SetYMax(static_cast<Real_type>(ymax.get()));
+      points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),
+                       static_cast<Real_type>(ysum.get()/(points.N)));
+      points.SetXMin(static_cast<Real_type>(xmin.get())); 
+      points.SetXMax(static_cast<Real_type>(xmax.get()));
+      points.SetYMin(static_cast<Real_type>(ymin.get())); 
+      points.SetYMax(static_cast<Real_type>(ymax.get()));
       m_points=points;
 
     }

@@ -33,18 +33,20 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Real_type xsum = 0.0; Real_type ysum = 0.0;
-        Real_type xmin = 0.0; Real_type ymin = 0.0;
-        Real_type xmax = 0.0; Real_type ymax = 0.0;
+ 
+        Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
+        Real_type xmin = m_init_min; Real_type ymin = m_init_min;
+        Real_type xmax = m_init_max; Real_type ymax = m_init_max;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE_STRUCT_BODY;
         }
 
-        points.SetCenter(xsum/(points.N),ysum/(points.N));
-        points.SetXMin(xmin); points.SetXMax(xmax);
-        points.SetYMin(ymin); points.SetYMax(ymax);
+        points.SetCenter(xsum/(points.N), ysum/(points.N));
+        points.SetXMin(xmin); 
+        points.SetXMax(xmax);
+        points.SetYMin(ymin);
+        points.SetYMax(ymax);
         m_points=points;
 
       }
@@ -67,9 +69,9 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type xsum = 0.0; Real_type ysum = 0.0;
-        Real_type xmin = 0.0; Real_type ymin = 0.0;
-        Real_type xmax = 0.0; Real_type ymax = 0.0;
+        Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
+        Real_type xmin = m_init_min; Real_type ymin = m_init_min;
+        Real_type xmax = m_init_max; Real_type ymax = m_init_max; 
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           xsum += reduce_struct_x_base_lam(i);
@@ -80,9 +82,11 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
           ymax = RAJA_MAX(ymax, reduce_struct_y_base_lam(i));
         }
 
-        points.SetCenter(xsum/(points.N),ysum/(points.N));
-        points.SetXMin(xmin); points.SetXMax(xmax);
-        points.SetYMin(ymin); points.SetYMax(ymax);
+        points.SetCenter(xsum/(points.N), ysum/(points.N));
+        points.SetXMin(xmin); 
+        points.SetXMax(xmax);
+        points.SetYMin(ymin); 
+        points.SetYMax(ymax);
         m_points=points;
 
       }
@@ -96,21 +100,24 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(0.0);
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(0.0);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(0.0); 
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> ymin(0.0);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(0.0); 
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(0.0);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(m_init_sum);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(m_init_sum);
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(m_init_min);
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> ymin(m_init_min);
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(m_init_max);
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(m_init_max);
 
         RAJA::forall<RAJA::loop_exec>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
         REDUCE_STRUCT_BODY_RAJA;
         });
 
-      	points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),static_cast<Real_type>(ysum.get()/(points.N)));
-	points.SetXMin(static_cast<Real_type>(xmin.get())); points.SetXMax(static_cast<Real_type>(xmax.get()));
-	points.SetYMin(static_cast<Real_type>(ymin.get())); points.SetYMax(static_cast<Real_type>(ymax.get()));
+      	points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),
+                         static_cast<Real_type>(ysum.get()/(points.N)));
+	points.SetXMin(static_cast<Real_type>(xmin.get())); 
+        points.SetXMax(static_cast<Real_type>(xmax.get()));
+	points.SetYMin(static_cast<Real_type>(ymin.get())); 
+        points.SetYMax(static_cast<Real_type>(ymax.get()));
         m_points=points;
 
       }
