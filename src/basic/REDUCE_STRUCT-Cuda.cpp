@@ -131,7 +131,7 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
         points.x, points.y,
         mem, mem+1, mem+2,    // xcenter,xmin,xmax
         mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
-        m_init_sum, m_init_min, m_init_max
+        m_init_sum, m_init_min, m_init_max,
         points.N);
       cudaErrchk( cudaGetLastError() );
 
