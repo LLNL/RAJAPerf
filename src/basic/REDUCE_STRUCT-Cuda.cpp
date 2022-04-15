@@ -52,13 +52,13 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
 
   //x
-  pxsum[ threadIdx.x ] = 0.0;
-  pxmin[ threadIdx.x ] = std::numeric_limits<Int_type>::max();
-  pxmax[ threadIdx.x ] = std::numeric_limits<Int_type>::min();
+  pxsum[ threadIdx.x ] = m_init_sum;
+  pxmin[ threadIdx.x ] = m_init_min;
+  pxmax[ threadIdx.x ] = m_init_max;
   //y
-  pysum[ threadIdx.x ] = 0.0;
-  pymin[ threadIdx.x ] = std::numeric_limits<Int_type>::max();
-  pymax[ threadIdx.x ] = std::numeric_limits<Int_type>::min();
+  pysum[ threadIdx.x ] = m_init_sum;
+  pymin[ threadIdx.x ] = m_init_min;
+  pymax[ threadIdx.x ] = m_init_max;
 
 
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
@@ -156,12 +156,12 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum(0.0);
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> ysum(0.0);
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin(0.0); 
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> ymin(0.0);
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(0.0); 
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(0.0);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum(m_init_sum);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> ysum(m_init_sum);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin(m_init_min); 
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> ymin(m_init_min);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(m_init_max); 
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(m_init_max);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
