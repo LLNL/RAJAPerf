@@ -164,10 +164,6 @@ then
     date
 fi
 
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "~~~~~ RUNNING RAJAPERF SUITE"
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
 if [[ ! -d ${build_dir} ]]
 then
     echo "ERROR: Build directory not found : ${build_dir}" && exit 1
@@ -175,34 +171,60 @@ fi
 
 cd ${build_dir}
 
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~ TESTING RAJAPERF SUITE"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
+
+    #
+    # Maintaining separate, but identical release and debug sections 
+    # in case we want to make them disctinct in the future.
+    #
+
     if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 --smpiargs='-disable_gpu_hooks' /bin/raja-perf.exe -sp"
+            echo "lrun -n1 --smpiargs='-disable_gpu_hooks' ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         else
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe --checkrun -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 --smpiargs='-disable_gpu_hook' ./bin/raja-perf.exe --checkrun -sp"
+            echo "lrun -n1 --smpiargs='-disable_gpu_hooks' ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         fi
     else
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
-            ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe -sp"
+            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         else
-            ./bin/raja-perf.exe --checkrun 10 -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --checkrun 10 -sp"
+            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         fi
+    fi
+
+    no_test_str="No tests were found!!!"
+    if [[ "$(tail -n 1 tests_output.txt)" == "${no_test_str}" ]]
+    then
+        echo "ERROR: No tests were found" && exit 1
+    fi
+
+    echo "Copying Testing xml reports for export"
+    tree Testing
+    xsltproc -o junit.xml ${project_dir}/blt/tests/ctest-to-junit.xsl Testing/*/Test.xml
+    mv junit.xml ${project_dir}/junit.xml
+
+    if grep -q "Errors while running CTest" ./tests_output.txt
+    then
+        echo "ERROR: failure(s) while running CTest" && exit 1
     fi
 fi
 
