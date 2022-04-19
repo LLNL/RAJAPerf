@@ -127,9 +127,9 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),
                          static_cast<Real_type>(ysum.get()/(points.N)));
-	points.SetXMin(static_cast<Real_type>(xmin.get())); 
+        points.SetXMin(static_cast<Real_type>(xmin.get())); 
         points.SetXMax(static_cast<Real_type>(xmax.get()));
-	points.SetYMin(static_cast<Real_type>(ymin.get())); 
+        points.SetYMin(static_cast<Real_type>(ymin.get())); 
         points.SetYMax(static_cast<Real_type>(ymax.get()));
         m_points=points;
 
