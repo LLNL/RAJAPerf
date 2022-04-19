@@ -6,7 +6,8 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-include_directories(../src)
+#include_directories(../src)
+target_include_directories(test-raja-perf-suite PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     common
