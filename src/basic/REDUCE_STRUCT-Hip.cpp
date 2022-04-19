@@ -174,12 +174,12 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
           REDUCE_STRUCT_BODY_RAJA;
       });
 
-      points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),
-                       static_cast<Real_type>(ysum.get()/(points.N)));
-      points.SetXMin(static_cast<Real_type>(xmin.get())); 
-      points.SetXMax(static_cast<Real_type>(xmax.get()));
-      points.SetYMin(static_cast<Real_type>(ymin.get())); 
-      points.SetYMax(static_cast<Real_type>(ymax.get()));
+      points.SetCenter((xsum.get()/(points.N)),
+                       (ysum.get()/(points.N)));
+      points.SetXMin((xmin.get())); 
+      points.SetXMax((xmax.get()));
+      points.SetYMin((ymin.get())); 
+      points.SetYMax((ymax.get()));
       m_points=points;
 
     }
