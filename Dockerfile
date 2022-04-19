@@ -46,15 +46,6 @@ RUN . /opt/spack/share/spack/setup-env.sh && spack load llvm && \
     make -j 6 &&\
     ctest -T test --output-on-failure
 
-FROM ghcr.io/rse-ops/clang-ubuntu-20.04:llvm-11.0.0 AS clang11-debug
-ENV GTEST_COLOR=1
-COPY . /home/raja/workspace
-WORKDIR /home/raja/workspace/build
-RUN . /opt/spack/share/spack/setup-env.sh && spack load llvm && \
-    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_OPENMP=On -DRAJA_PERFSUITE_ENABLE_TESTS=On .. && \
-    make -j 6 &&\
-    ctest -T test --output-on-failure
-
 FROM ghcr.io/rse-ops/clang-ubuntu-22.04:llvm-13.0.0 AS clang13
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
