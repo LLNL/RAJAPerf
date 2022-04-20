@@ -245,7 +245,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                                         cudacompiler))
 
             cfg.write(cmake_cache_string("BLT_CXX_STD", "c++14"))
-            cfg.write(cmake_cache_option("RAJA_PERFSUITE_ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             if ("xl" in cpp_compiler):
                 cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O3 -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
@@ -282,7 +282,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
-            cfg.write(cmake_cache_option("RAJA_PERFSUITE_ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
@@ -341,7 +341,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         cfg.write(cmake_cache_option("ENABLE_OPENMP","+openmp" in spec))
 
         cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-        cfg.write(cmake_cache_option("RAJA_PERFSUITE_ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
         #######################
         # Close and save

@@ -33,19 +33,16 @@ include(blt/SetupBLT.cmake)
 
 #cmake_dependent_option(RAJA_PERFSUITE_ENABLE_TESTS "Enable RAJA Perf Suite Tests" On "ENABLE_TESTS" Off)
 
-if (RAJA_PERFSUITE_ENABLE_TESTS)
+if (ENABLE_TESTS)
 
-  set(ENABLE_TESTS On CACHE BOOL "Enable testing for RAJA Perf Suite")
+  set(RAJA_PERFSUITE_ENABLE_TESTS On CACHE BOOL "Enable testing for RAJA Perf Suite")
   set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
   set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
   set(BLT_ENABLE_TESTS Off CACHE BOOL "")
 
-else()
-
-set(ENABLE_TESTS Off CACHE BOOL "Enable BLT, camp, and RAJA tests")
-set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
-
 endif()
+
+set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
 
