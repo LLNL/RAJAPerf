@@ -9,7 +9,7 @@ FROM ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-7.3.0 AS gcc7
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
-RUN cmake -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DENABLE_OPENMP=On -DRAJA_PERFSUITE_ENABLE_TESTS=On .. && \
+RUN cmake -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
     ctest -T test --output-on-failure
 
