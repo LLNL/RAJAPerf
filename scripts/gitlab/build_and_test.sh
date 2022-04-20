@@ -149,7 +149,6 @@ then
 
     cmake \
       -C ${hostconfig_path} \
-      -DRAJA_PERFSUITE_ENABLE_TESTS=On \
       ${project_dir}
     if echo ${spec} | grep -q "intel" ; then
         cmake --build . -j 16

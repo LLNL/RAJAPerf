@@ -341,7 +341,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         cfg.write(cmake_cache_option("ENABLE_OPENMP","+openmp" in spec))
 
         cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-        cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        cfg.write(cmake_cache_option("RAJA_PERFSUITE_ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
         #######################
         # Close and save
