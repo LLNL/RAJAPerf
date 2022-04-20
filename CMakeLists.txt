@@ -38,7 +38,6 @@ if (ENABLE_TESTS)
   set(RAJA_PERFSUITE_ENABLE_TESTS On CACHE BOOL "Enable testing for RAJA Perf Suite")
   set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
   set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
-  set(BLT_ENABLE_TESTS Off CACHE BOOL "")
 
 endif()
 
