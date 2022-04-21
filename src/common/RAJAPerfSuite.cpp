@@ -701,6 +701,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Apps kernels...
 //
+    case Apps_BLOCK_DIAG_MAT_VEC : {
+       kernel = new apps::BLOCK_DIAG_MAT_VEC(run_params);
+       break;
+    }
     case Apps_COUPLE : {
        kernel = new apps::COUPLE(run_params);
        break;
