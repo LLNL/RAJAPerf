@@ -18,7 +18,7 @@ set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     algorithm)
 list(APPEND RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
  
-blt_add_executable((
+blt_add_executable(
   NAME test-raja-perf-suite
   SOURCES test-raja-perf-suite.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS}
