@@ -34,8 +34,6 @@ BLOCK_DIAG_MAT_VEC::BLOCK_DIAG_MAT_VEC(const RunParams &params)
   setBytesPerRep( m_N*m_N*sizeof(Real_type) +
                   m_N*sizeof(Real_type) );
 
-  const Index_type no_tiles = (TL_SZ + m_N - 1) / TL_SZ;
-  const Index_type no_blocks = RAJA_DIVIDE_CEILING_INT(m_N, TL_SZ);
   //Square Mat-Vec product flops should be 2*N*N − N
   setFLOPsPerRep(2 * m_N * m_N - 1.0);
 
@@ -73,7 +71,7 @@ void BLOCK_DIAG_MAT_VEC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 }
 
 void BLOCK_DIAG_MAT_VEC::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_C, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_X, m_N, checksum_scale_factor );
 }
 
 void BLOCK_DIAG_MAT_VEC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
