@@ -131,6 +131,7 @@ enum KernelID {
 //
 // Apps kernels...
 //
+  Apps_BLOCK_DIAG_MAT_VEC,
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
