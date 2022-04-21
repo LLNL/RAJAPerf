@@ -18,19 +18,24 @@
 
 TEST(ShortSuiteTest, Basic)
 {
-  // Assemble command line args for basic test
-  constexpr int nargs = 4;
 
-  int argc = nargs;
+// Assemble command line args for basic test
+  int argc = 4;
+#if defined(RAJA_ENABLE_HIP)
+  argc = 6;
+#endif
+  std::vector< std::string > sargv(argc);
+  sargv[0] = std::string("dummy ");  // for executable name
+  sargv[1] = std::string("--checkrun ");
+  sargv[2] = std::string("5 ");
+  sargv[3] = std::string("-show-progress ");
+#if defined(RAJA_ENABLE_HIP)
+  sargv[4] = std::string("--exclude-kernels ");
+  sargv[5] = std::string("HALOEXCHANGE_FUSED");
+#endif
 
-  std::vector< std::string > sargv(nargs);
-  sargv[0] = std::string("dummy");  // for executable name
-  sargv[1] = std::string("--checkrun");
-  sargv[2] = std::string("5");
-  sargv[3] = std::string("-sp");
-
-  char** argv = new char* [nargs];
-  for (int is = 0; is < nargs; ++is) { 
+  char** argv = new char* [argc];
+  for (int is = 0; is < argc; ++is) { 
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
 
