@@ -26,11 +26,11 @@ TEST(ShortSuiteTest, Basic)
 #endif
   std::vector< std::string > sargv(argc);
   sargv[0] = std::string("dummy ");  // for executable name
-  sargv[1] = std::string("--checkrun ");
-  sargv[2] = std::string("5 ");
-  sargv[3] = std::string("-show-progress ");
+  sargv[1] = std::string("--checkrun");
+  sargv[2] = std::string("5");
+  sargv[3] = std::string("--show-progress");
 #if defined(RAJA_ENABLE_HIP)
-  sargv[4] = std::string("--exclude-kernels ");
+  sargv[4] = std::string("--exclude-kernels");
   sargv[5] = std::string("HALOEXCHANGE_FUSED");
 #endif
 
