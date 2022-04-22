@@ -92,6 +92,12 @@ blt_add_library(
           REDUCE3_INT-Cuda.cpp
           REDUCE3_INT-OMP.cpp
           REDUCE3_INT-OMPTarget.cpp
+          REDUCE_STRUCT.cpp
+          REDUCE_STRUCT-Seq.cpp
+          REDUCE_STRUCT-Hip.cpp
+          REDUCE_STRUCT-Cuda.cpp
+          REDUCE_STRUCT-OMP.cpp
+          REDUCE_STRUCT-OMPTarget.cpp
           TRAP_INT.cpp
           TRAP_INT-Seq.cpp
           TRAP_INT-Hip.cpp
