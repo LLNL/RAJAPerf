@@ -21,7 +21,10 @@ TEST(ShortSuiteTest, Basic)
 
 // Assemble command line args for basic test
   int argc = 4;
-#if defined(RAJA_ENABLE_HIP)
+#if ( (defined(RAJA_ENABLE_HIP) && \
+       (HIP_VERSION_MAJOR < 5 || \
+       (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1)) ) \
+      || (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11) )
   argc = 6;
 #endif
   std::vector< std::string > sargv(argc);
@@ -29,9 +32,15 @@ TEST(ShortSuiteTest, Basic)
   sargv[1] = std::string("--checkrun");
   sargv[2] = std::string("5");
   sargv[3] = std::string("--show-progress");
-#if defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_ENABLE_HIP) && \
+     (HIP_VERSION_MAJOR < 5 || \
+     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
   sargv[4] = std::string("--exclude-kernels");
   sargv[5] = std::string("HALOEXCHANGE_FUSED");
+#endif
+#if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
+  sargv[4] = std::string("--exclude-kernels");
+  sargv[5] = std::string("FIRST_MIN");
 #endif
 
   char** argv = new char* [argc];
@@ -106,7 +115,7 @@ TEST(ShortSuiteTest, Basic)
                     << kernel->getVariantTuningName(vid, tune_idx) 
                     << std::endl;
           EXPECT_GT(rtime, 0.0);
-          EXPECT_LT(cksum_diff, 1e-5);
+          EXPECT_LT(cksum_diff, 1e-7);
           
         }
       } 
