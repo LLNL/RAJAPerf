@@ -21,23 +21,30 @@ TEST(ShortSuiteTest, Basic)
 
 // Assemble command line args for basic test
   int argc = 4;
-#if ( (defined(RAJA_ENABLE_HIP) && \
-       (HIP_VERSION_MAJOR < 5 || \
-       (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1)) ) \
-      || (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11) )
+
+#if defined(RAJA_ENABLE_HIP) && \
+     (HIP_VERSION_MAJOR < 5 || \
+     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
   argc = 6;
 #endif
+
+#if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
+  argc = 6;
+#endif
+
   std::vector< std::string > sargv(argc);
   sargv[0] = std::string("dummy ");  // for executable name
   sargv[1] = std::string("--checkrun");
   sargv[2] = std::string("5");
   sargv[3] = std::string("--show-progress");
+
 #if defined(RAJA_ENABLE_HIP) && \
      (HIP_VERSION_MAJOR < 5 || \
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
   sargv[4] = std::string("--exclude-kernels");
   sargv[5] = std::string("HALOEXCHANGE_FUSED");
 #endif
+
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
   sargv[4] = std::string("--exclude-kernels");
   sargv[5] = std::string("FIRST_MIN");
