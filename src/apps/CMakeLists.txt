@@ -9,6 +9,12 @@
 blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
+          BLOCK_DIAG_MAT_VEC.cpp 
+          BLOCK_DIAG_MAT_VEC-Seq.cpp 
+          BLOCK_DIAG_MAT_VEC-Hip.cpp 
+          BLOCK_DIAG_MAT_VEC-Cuda.cpp 
+          BLOCK_DIAG_MAT_VEC-OMP.cpp 
+          BLOCK_DIAG_MAT_VEC-OMPTarget.cpp 
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 
