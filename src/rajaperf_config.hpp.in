@@ -21,10 +21,12 @@
 #define RAJAPerf_config_HPP
 
 #include "RAJA/config.hpp"
+#include "camp/number.hpp"
 
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
+#cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
 namespace rajaperf {
 
@@ -53,6 +55,12 @@ static const std::string compiler = "@RAJAPERF_COMPILER@";
 static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
 #endif
 
+// helper alias to void trailing comma in no-arg case
+template < size_t... Is >
+using i_seq = camp::int_seq<size_t, Is...>;
+// List of GPU block sizes
+using gpu_block_sizes = i_seq<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+
 // Name of user who ran code
 std::string user_run;
 
@@ -66,5 +74,12 @@ std::string machine_run;
 };
 
 } // closing brace for rajaperf namespace
+
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
 
 #endif  // closing endif for header file include guard

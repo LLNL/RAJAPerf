@@ -125,6 +125,17 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
+  size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
+  bool validGPUBlockSize(size_t block_size) const
+  {
+    for (size_t valid_block_size : gpu_block_sizes) {
+      if (valid_block_size == block_size) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -221,6 +232,7 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
+  std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */

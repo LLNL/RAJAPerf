@@ -73,6 +73,8 @@ enum KernelID {
   Basic_DAXPY = 0,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
+  Basic_INDEXLIST,
+  Basic_INDEXLIST_3LOOP,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
@@ -82,6 +84,7 @@ enum KernelID {
   Basic_PI_ATOMIC,
   Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
+  Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
 
 //
@@ -145,8 +148,10 @@ enum KernelID {
 //
 // Algorithm kernels...
 //
+  Algorithm_SCAN,
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
+  Algorithm_REDUCE_SUM,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -276,6 +281,16 @@ bool isVariantAvailable(VariantID vid);
 /*!
  *******************************************************************************
  *
+ * \brief Return true if variant associated with VariantID enum value runs
+ *        on the gpu.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
  * \brief Return feature name associated with FeatureID enum value.
  *
  *******************************************************************************
@@ -321,6 +336,16 @@ std::ostream* makeNullStream();
  *******************************************************************************
  */
 std::ostream& getNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Empty function used to squash compiler warnings for unused variables.
+ *
+ *******************************************************************************
+ */
+template < typename... Ts >
+inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace
 

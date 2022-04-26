@@ -71,7 +71,7 @@ DIFFUSION3DPA::~DIFFUSION3DPA()
 {
 }
 
-void DIFFUSION3DPA::setUp(VariantID vid)
+void DIFFUSION3DPA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 
   allocAndInitDataConst(m_B, int(DPA_Q1D*DPA_D1D), Real_type(1.0), vid);
@@ -81,12 +81,12 @@ void DIFFUSION3DPA::setUp(VariantID vid)
   allocAndInitDataConst(m_Y, int(DPA_D1D*DPA_D1D*DPA_D1D*m_NE), Real_type(0.0), vid);
 }
 
-void DIFFUSION3DPA::updateChecksum(VariantID vid)
+void DIFFUSION3DPA::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
+  checksum[vid][tune_idx] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
 }
 
-void DIFFUSION3DPA::tearDown(VariantID vid)
+void DIFFUSION3DPA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

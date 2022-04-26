@@ -35,6 +35,7 @@ include(blt/SetupBLT.cmake)
 #
 
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
+cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan variants" Off "ENABLE_OPENMP" Off)
 
 #
 # Define RAJA settings...
@@ -48,10 +49,18 @@ set(ENABLE_TBB Off CACHE BOOL "")
 
 set(RAJA_USE_CHRONO On CACHE BOOL "")
 
+set(RAJA_PERFSUITE_GPU_BLOCKSIZES "" CACHE STRING "Comma separated list of GPU block sizes, ex '256,1024'")
+
 set(RAJA_RANGE_ALIGN 4)
 set(RAJA_RANGE_MIN_LENGTH 32)
 set(RAJA_DATA_ALIGN 64)
 
+string(LENGTH "${RAJA_PERFSUITE_GPU_BLOCKSIZES}" BLOCKSIZES_LENGTH)
+if (BLOCKSIZES_LENGTH GREATER 0)
+  message(STATUS "Using gpu block size(s): ${RAJA_PERFSUITE_GPU_BLOCKSIZES}")
+else()
+  message(STATUS "Using default gpu block size(s)")
+endif()
 
 # exclude RAJA make targets from top-level build...
 add_subdirectory(tpl/RAJA)

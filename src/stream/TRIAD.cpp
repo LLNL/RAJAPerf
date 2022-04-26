@@ -28,7 +28,7 @@ TRIAD::TRIAD(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) * 
+  setBytesPerRep( (1*sizeof(Real_type) + 2*sizeof(Real_type)) *
                   getActualProblemSize() );
   setFLOPsPerRep(2 * getActualProblemSize());
 
@@ -62,7 +62,7 @@ TRIAD::~TRIAD()
 {
 }
 
-void TRIAD::setUp(VariantID vid)
+void TRIAD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_b, getActualProblemSize(), vid);
@@ -70,12 +70,12 @@ void TRIAD::setUp(VariantID vid)
   initData(m_alpha, vid);
 }
 
-void TRIAD::updateChecksum(VariantID vid)
+void TRIAD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
 }
 
-void TRIAD::tearDown(VariantID vid)
+void TRIAD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

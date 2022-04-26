@@ -20,6 +20,8 @@
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
+#include "basic/INDEXLIST.hpp"
+#include "basic/INDEXLIST_3LOOP.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
@@ -29,6 +31,7 @@
 #include "basic/PI_ATOMIC.hpp"
 #include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
+#include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
 
 //
@@ -92,8 +95,10 @@
 //
 // Algorithm kernels...
 //
+#include "algorithm/SCAN.hpp"
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
+#include "algorithm/REDUCE_SUM.hpp"
 
 
 #include <iostream>
@@ -148,6 +153,8 @@ static const std::string KernelNames [] =
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
+  std::string("Basic_INDEXLIST"),
+  std::string("Basic_INDEXLIST_3LOOP"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
@@ -157,6 +164,7 @@ static const std::string KernelNames [] =
   std::string("Basic_PI_ATOMIC"),
   std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
 
 //
@@ -220,8 +228,10 @@ static const std::string KernelNames [] =
 //
 // Algorithm kernels...
 //
+  std::string("Algorithm_SCAN"),
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
+  std::string("Algorithm_REDUCE_SUM"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -409,6 +419,61 @@ bool isVariantAvailable(VariantID vid)
   return ret_val;
 }
 
+/*!
+ *******************************************************************************
+ *
+ * Return true if variant associated with VariantID enum value runs on the GPU.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid)
+{
+  bool ret_val = false;
+
+  if ( vid == Base_Seq ) {
+    ret_val = false;
+  }
+#if defined(RUN_RAJA_SEQ)
+  if ( vid == Lambda_Seq ||
+       vid == RAJA_Seq ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
+       vid == RAJA_OpenMP ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  if ( vid == Base_OpenMPTarget ||
+       vid == RAJA_OpenMPTarget ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  if ( vid == Base_CUDA ||
+       vid == Lambda_CUDA ||
+       vid == RAJA_CUDA ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  if ( vid == Base_HIP ||
+       vid == Lambda_HIP ||
+       vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+  return ret_val;
+}
+
 /*
  *******************************************************************************
  *
@@ -450,6 +515,14 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::IF_QUAD(run_params);
        break;
     }
+    case Basic_INDEXLIST : {
+       kernel = new basic::INDEXLIST(run_params);
+       break;
+    }
+    case Basic_INDEXLIST_3LOOP : {
+       kernel = new basic::INDEXLIST_3LOOP(run_params);
+       break;
+    }
     case Basic_INIT3 : {
        kernel = new basic::INIT3(run_params);
        break;
@@ -486,6 +559,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::REDUCE3_INT(run_params);
        break;
     }
+    case Basic_REDUCE_STRUCT : { 
+        kernel = new basic::REDUCE_STRUCT(run_params);
+        break;
+    } 	
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
        break;
@@ -678,12 +755,20 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Algorithm kernels...
 //
+    case Algorithm_SCAN: {
+       kernel = new algorithm::SCAN(run_params);
+       break;
+    }
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;
     }
     case Algorithm_SORTPAIRS: {
        kernel = new algorithm::SORTPAIRS(run_params);
+       break;
+    }
+    case Algorithm_REDUCE_SUM: {
+       kernel = new algorithm::REDUCE_SUM(run_params);
        break;
     }
 

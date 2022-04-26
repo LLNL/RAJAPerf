@@ -22,13 +22,17 @@ namespace lcals
 {
 
   //
-  // Define thread block size for Hip execution
+  // Define thread block shape for Hip execution
   //
-  constexpr size_t j_block_sz = 32;
-  constexpr size_t k_block_sz = 8;
+#define j_block_sz (32)
+#define k_block_sz (block_size / j_block_sz)
+
+#define HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  j_block_sz, k_block_sz
 
 #define HYDRO_2D_THREADS_PER_BLOCK_HIP \
-  dim3 nthreads_per_block(j_block_sz, k_block_sz, 1);
+  dim3 nthreads_per_block(HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1); \
+  static_assert(j_block_sz*k_block_sz == block_size, "Invalid block_size");
 
 #define HYDRO_2D_NBLOCKS_HIP \
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(jn-2, j_block_sz)), \
@@ -65,41 +69,47 @@ namespace lcals
   deallocHipDeviceData(zroutdat); \
   deallocHipDeviceData(zzoutdat);
 
+template < size_t j_block_size, size_t k_block_size >
+__launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
                           Real_ptr zpdat, Real_ptr zqdat,
                           Real_ptr zrdat, Real_ptr zmdat,
                           Index_type jn, Index_type kn)
 {
-   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type k = 1 + blockIdx.y * k_block_size + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
    if (k < kn-1 && j < jn-1) {
      HYDRO_2D_BODY1;
    }
 }
 
+template < size_t j_block_size, size_t k_block_size >
+__launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d2(Real_ptr zudat, Real_ptr zvdat,
                           Real_ptr zadat, Real_ptr zbdat,
                           Real_ptr zzdat, Real_ptr zrdat,
                           Real_type s,
                           Index_type jn, Index_type kn)
 {
-   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type k = 1 + blockIdx.y * k_block_size + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
    if (k < kn-1 && j < jn-1) {
      HYDRO_2D_BODY2;
    }
 }
 
+template < size_t j_block_size, size_t k_block_size >
+__launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d3(Real_ptr zroutdat, Real_ptr zzoutdat,
                           Real_ptr zrdat, Real_ptr zudat,
                           Real_ptr zzdat, Real_ptr zvdat,
                           Real_type t,
                           Index_type jn, Index_type kn)
 {
-   Index_type k = 1 + blockIdx.y * blockDim.y + threadIdx.y;
-   Index_type j = 1 + blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type k = 1 + blockIdx.y * k_block_size + threadIdx.y;
+   Index_type j = 1 + blockIdx.x * j_block_size + threadIdx.x;
 
    if (k < kn-1 && j < jn-1) {
      HYDRO_2D_BODY3;
@@ -107,7 +117,8 @@ __global__ void hydro_2d3(Real_ptr zroutdat, Real_ptr zzoutdat,
 }
 
 
-void HYDRO_2D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void HYDRO_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type kbeg = 1;
@@ -127,14 +138,14 @@ void HYDRO_2D::runHipVariant(VariantID vid)
       HYDRO_2D_THREADS_PER_BLOCK_HIP;
       HYDRO_2D_NBLOCKS_HIP;
 
-      hipLaunchKernelGGL((hydro_2d1),
+      hipLaunchKernelGGL((hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          zadat, zbdat,
                          zpdat, zqdat, zrdat, zmdat,
                          jn, kn);
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d2),
+       hipLaunchKernelGGL((hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                           zudat, zvdat,
                           zadat, zbdat, zzdat, zrdat,
@@ -142,7 +153,7 @@ void HYDRO_2D::runHipVariant(VariantID vid)
                           jn, kn);
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((hydro_2d3),
+       hipLaunchKernelGGL((hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                           zroutdat, zzoutdat,
                           zrdat, zudat, zzdat, zvdat,
@@ -211,6 +222,8 @@ void HYDRO_2D::runHipVariant(VariantID vid)
      getCout() << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_2D, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

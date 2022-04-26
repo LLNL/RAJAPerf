@@ -58,18 +58,18 @@ FIRST_SUM::~FIRST_SUM()
 {
 }
 
-void FIRST_SUM::setUp(VariantID vid)
+void FIRST_SUM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   allocAndInitData(m_y, m_N, vid);
 }
 
-void FIRST_SUM::updateChecksum(VariantID vid)
+void FIRST_SUM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize());
 }
 
-void FIRST_SUM::tearDown(VariantID vid)
+void FIRST_SUM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

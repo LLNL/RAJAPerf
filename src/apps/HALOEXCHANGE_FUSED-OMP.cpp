@@ -18,7 +18,7 @@ namespace apps
 {
 
 
-void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid)
+void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 

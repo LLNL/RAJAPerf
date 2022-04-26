@@ -39,7 +39,7 @@ namespace lcals
   deallocOpenMPDeviceData(y, did);
 
 
-void FIRST_SUM::runOpenMPTargetVariant(VariantID vid)
+void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;

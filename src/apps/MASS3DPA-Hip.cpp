@@ -37,6 +37,8 @@ namespace apps {
   deallocHipDeviceData(X);                                                \
   deallocHipDeviceData(Y);
 
+template < size_t block_size >
+  __launch_bounds__(block_size)
 __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
                          const Real_ptr D, const Real_ptr X, Real_ptr Y) {
 
@@ -100,7 +102,8 @@ __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
   }
 }
 
-void MASS3DPA::runHipVariant(VariantID vid) {
+template < size_t block_size >
+void MASS3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -111,13 +114,13 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_HIP;
 
-    dim3 grid_size(NE);
-    dim3 block_size(MPA_Q1D, MPA_Q1D, 1);
+    dim3 nblocks(NE);
+    dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DPA), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
                          B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
@@ -136,7 +139,7 @@ void MASS3DPA::runHipVariant(VariantID vid) {
 
     constexpr bool async = true;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async>>;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, MPA_Q1D*MPA_Q1D>>;
 
     using outer_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
 
@@ -277,6 +280,8 @@ void MASS3DPA::runHipVariant(VariantID vid) {
   }
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

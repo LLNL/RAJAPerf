@@ -79,6 +79,12 @@ blt_add_executable(
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Seq.cpp
   basic/IF_QUAD-OMPTarget.cpp
+  basic/INDEXLIST.cpp
+  basic/INDEXLIST-Seq.cpp
+  basic/INDEXLIST-OMPTarget.cpp
+  basic/INDEXLIST_3LOOP.cpp
+  basic/INDEXLIST_3LOOP-Seq.cpp
+  basic/INDEXLIST_3LOOP-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp
@@ -106,6 +112,9 @@ blt_add_executable(
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
+  basic/REDUCE_STRUCT.cpp
+  basic/REDUCE_STRUCT-Seq.cpp
+  basic/REDUCE_STRUCT-OMPTarget.cpp
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
@@ -203,10 +212,16 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  algorithm/SCAN.cpp
+  algorithm/SCAN-Seq.cpp
+  algorithm/SCAN-OMPTarget.cpp
   algorithm/SORT.cpp
   algorithm/SORT-Seq.cpp
   algorithm/SORTPAIRS.cpp
   algorithm/SORTPAIRS-Seq.cpp
+  algorithm/REDUCE_SUM.cpp
+  algorithm/REDUCE_SUM-Seq.cpp
+  algorithm/REDUCE_SUM-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

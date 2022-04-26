@@ -21,12 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define SORTPAIRS_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, iend*run_reps); \
   allocAndInitHipDeviceData(i, m_i, iend*run_reps);
@@ -38,7 +32,7 @@ namespace algorithm
   deallocHipDeviceData(i);
 
 
-void SORTPAIRS::runHipVariant(VariantID vid)
+void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -53,7 +47,7 @@ void SORTPAIRS::runHipVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort_pairs< RAJA::hip_exec<block_size, true /*async*/> >(RAJA_SORTPAIRS_ARGS);
+      RAJA::sort_pairs< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORTPAIRS_ARGS);
 
     }
     stopTimer();

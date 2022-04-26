@@ -34,6 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -97,6 +98,10 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n gpu_block_sizes = ";
+  for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
+    str << "\n\t" << gpu_block_sizes[j];
+  }
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
   str << "\n reference_variant = " << reference_variant;
@@ -307,6 +312,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         getCout() << "\nBad input:"
                   << " must give --size a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--gpu_block_size") ) {
+
+      bool got_someting = false;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          got_someting = true;
+          int gpu_block_size = ::atoi( opt.c_str() );
+          if ( gpu_block_size <= 0 ) {
+            std::cout << "\nBad input:"
+                      << " must give --gpu_block_size POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else {
+            gpu_block_sizes.push_back(gpu_block_size);
+          }
+          ++i;
+        }
+      }
+      if (!got_someting) {
+        std::cout << "\nBad input:"
+                  << " must give --gpu_block_size one or more values (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -553,6 +589,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+
+  str << "\t --gpu_block_size <space-separated ints> [no default]\n"
+      << "\t      (block sizes to run for all GPU kernels)\n"
+      << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
+      << "\t      (Support is determined by kernel implementation and cmake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";

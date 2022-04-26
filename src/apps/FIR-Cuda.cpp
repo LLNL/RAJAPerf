@@ -25,12 +25,6 @@ namespace apps
 #define USE_CUDA_CONSTANT_MEMORY
 //#undef USE_CUDA_CONSTANT_MEMORY
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #if defined(USE_CUDA_CONSTANT_MEMORY)
 
 __constant__ Real_type coeff[FIR_COEFFLEN];
@@ -46,11 +40,13 @@ __constant__ Real_type coeff[FIR_COEFFLEN];
   deallocCudaDeviceData(in); \
   deallocCudaDeviceData(out);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
@@ -73,12 +69,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
   deallocCudaDeviceData(out); \
   deallocCudaDeviceData(coeff);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     Real_ptr coeff,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
@@ -87,7 +85,8 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 #endif
 
 
-void FIR::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void FIR::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -107,12 +106,12 @@ void FIR::runCudaVariant(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
 #if defined(USE_CUDA_CONSTANT_MEMORY)
-       fir<<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size>>>( out, in,
                                        coefflen,
                                        iend );
        cudaErrchk( cudaGetLastError() );
 #else
-       fir<<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -147,6 +146,8 @@ void FIR::runCudaVariant(VariantID vid)
      getCout() << "\n  FIR : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf
