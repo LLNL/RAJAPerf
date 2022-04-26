@@ -25,6 +25,7 @@
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
+#include "basic/MAT_FUSED_MUL_ADD.hpp"
 #include "basic/MAT_MAT_SHARED.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
@@ -158,6 +159,7 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
+  std::string("Basic_MAT_FUSED_MUL_ADD"),
   std::string("Basic_MAT_MAT_SHARED"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
@@ -533,6 +535,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Basic_INIT_VIEW1D_OFFSET : {
        kernel = new basic::INIT_VIEW1D_OFFSET(run_params);
+       break;
+    }
+    case Basic_MAT_FUSED_MUL_ADD : {
+       kernel = new basic::MAT_FUSED_MUL_ADD(run_params);
        break;
     }
     case Basic_MAT_MAT_SHARED : {
