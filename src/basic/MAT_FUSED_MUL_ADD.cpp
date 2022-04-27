@@ -34,11 +34,10 @@ MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( m_N*m_N*sizeof(Real_type) +
-                  m_N*m_N*sizeof(Real_type) );
+  setBytesPerRep( 2*m_N*m_N*sizeof(Real_type));
 
   //Square Mat-Mat product flops should be (2^N−1)N^2=2*N^3−N^2
-  setFLOPsPerRep(2*m_N*m_N*m_N - m_N*m_N);
+  setFLOPsPerRep(2*m_N*m_N*m_N);
 
   checksum_scale_factor = 1e-6 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
@@ -66,23 +65,16 @@ MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
 MAT_FUSED_MUL_ADD::~MAT_FUSED_MUL_ADD() {}
 
 void MAT_FUSED_MUL_ADD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
-	
-  //hard coded for 16 at the moment
-  const Index_type m_Me = m_Ne;
-  const Index_type m_Ne = m_Ne;
-  const Index_type m_Ke = m_Ne;
+
   //global matrices
   allocAndInitDataConst(m_A, m_N * m_N, 1.0, vid);
   allocAndInitDataConst(m_B, m_N * m_N, 1.0, vid);
   allocAndInitDataConst(m_D, m_N * m_N, 0.0, vid);
-  //element/batch matrices
-  allocAndInitDataConst(m_Ae, m_Me * m_Ke, 1.0, vid);
-  allocAndInitDataConst(m_Be, m_Ke * m_Ne, 1.0, vid);
-  allocAndInitDataConst(m_De, m_Me * m_Ne, 0.0, vid);
+
 }
 
 void MAT_FUSED_MUL_ADD::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_Ae, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_D, m_N*m_N, checksum_scale_factor );
 }
 
 void MAT_FUSED_MUL_ADD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
@@ -90,9 +82,7 @@ void MAT_FUSED_MUL_ADD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   deallocData(m_A);
   deallocData(m_B);
   deallocData(m_D);
-  deallocData(m_Ae);
-  deallocData(m_Be);
-  deallocData(m_De);
+
 }
 
 } // end namespace basic
