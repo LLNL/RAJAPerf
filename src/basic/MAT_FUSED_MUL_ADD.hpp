@@ -33,10 +33,7 @@
 #define MAT_FUSED_MUL_ADD_DATA_SETUP        \
   Real_ptr A = m_A; 						\
   Real_ptr B = m_B; 						\
-  Real_ptr D = m_D; 						\
-  Real_ptr Ae = m_Ae;                       \
-  Real_ptr Be = m_Be;                       \
-  Real_ptr De = m_De;
+  Real_ptr D = m_D; 						
 
 namespace rajaperf {
 class RunParams;
@@ -73,9 +70,6 @@ private:
   Real_ptr m_A;
   Real_ptr m_B;
   Real_ptr m_D;
-  Real_ptr m_Ae;
-  Real_ptr m_Be;
-  Real_ptr m_De;
 
   Index_type m_N;
   Index_type m_N_default;

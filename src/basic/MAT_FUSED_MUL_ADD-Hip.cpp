@@ -22,27 +22,17 @@ namespace basic {
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_HIP           \
   const Index_type N = m_N;                        \
   const Index_type NN = m_N * m_N;                 \
-  const Index_type Ne = m_Ne;                      \
   allocAndInitHipDeviceData(A, m_A, NN);            \
   allocAndInitHipDeviceData(B, m_B, NN);            \
-  allocAndInitHipDeviceData(D, m_D, NN);			   \
-  allocAndInitHipDeviceData(Ae, m_Ae, Ne);         \
-  allocAndInitHipDeviceData(Be, m_Be, Ne);         \
-  allocAndInitHipDeviceData(De, m_De, Ne);
+  allocAndInitHipDeviceData(D, m_D, NN);			   
 
 #define MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP        \
   getHipDeviceData(m_A, A, NN);                     \
   getHipDeviceData(m_B, B, NN);                     \
   getHipDeviceData(m_D, D, NN);                     \
-  getHipDeviceData(m_Ae, Ae, Ne);                  \
-  getHipDeviceData(m_Be, Be, Ne);                  \
-  getHipDeviceData(m_De, De, Ne);                  \
   deallocHipDeviceData(A);                         \
   deallocHipDeviceData(B);                         \
-  deallocHipDeviceData(D);						   \
-  deallocHipDeviceData(Ae);                        \
-  deallocHipDeviceData(Be);                        \
-  deallocHipDeviceData(De);
+  deallocHipDeviceData(D);						   
 
 template < Index_type block_size >
 __launch_bounds__(block_size)
@@ -91,7 +81,6 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
   const Index_type NN = m_N * m_N;
-  //const Index_type Ne = m_Ne;
 
   dim3 gridDim (1, 1, 1);
   dim3 blockDim(16, 4, 1);
@@ -114,6 +103,13 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
+//  for(int i = 0; i != A_h.size(); ++i){ 
+//      printf("A_h[%d] = %f\n", i, A_h[i]); 
+//  }
+  for(int i = 0; i != NN; ++i){ 
+      printf("D[%d] = %f\n", i, m_D[i]); 
+  }
+
 
 
   } else if (vid == Lambda_HIP) {
