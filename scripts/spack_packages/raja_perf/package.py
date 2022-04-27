@@ -292,7 +292,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                                         rocm_root))
             cfg.write(cmake_cache_entry("HIP_PATH",
                                         rocm_root + '/llvm/bin'))
-            cfg.write(cmake_cache_entry("CMAKE_HIP_ARCHITECTURES", 'fx906'))
+            cfg.write(cmake_cache_entry("CMAKE_HIP_ARCHITECTURES", 'gfx906'))
 
             hipcc_flags = ['--amdgpu-target=gfx906']
 
