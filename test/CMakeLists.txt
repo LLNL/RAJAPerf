@@ -22,4 +22,4 @@ raja_add_test(
   DEPENDS_ON ${RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS}
   )
 
-target_include_directories(test-raja-perf-suite.exe PRIVATE ../src)
+target_include_directories(test-raja-perf-suite.exe PRIVATE ${PROJECT_SOURCE_DIR}/src)
