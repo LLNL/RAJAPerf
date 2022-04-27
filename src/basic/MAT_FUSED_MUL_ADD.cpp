@@ -20,14 +20,15 @@ namespace basic {
 MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_FUSED_MUL_ADD, params)
 {
-  m_N_default = 1000;
-  setDefaultProblemSize(m_N_default*m_N_default);
+  m_N_default = 16;
+  setDefaultProblemSize(m_N_default);
   setDefaultReps(5);
 
   //If problem target size is not divisible by Ne, round up
-  m_N = std::max(Index_type(getTargetProblemSize())*(Index_type(getTargetProblemSize())/16), \
-  		Index_type(m_Ne));
+//  m_N = std::max(Index_type(getTargetProblemSize())*(Index_type(getTargetProblemSize())/16), \
+//  		Index_type(m_Ne));
 
+  m_N = 16;
   setActualProblemSize(m_N*m_N);
 
   setItsPerRep(getActualProblemSize());
