@@ -6,8 +6,6 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-include_directories(../src)
-
 set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     common
     apps
@@ -23,3 +21,5 @@ raja_add_test(
   SOURCES test-raja-perf-suite.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS}
   )
+
+target_include_directories(test-raja-perf-suite.exe PRIVATE ../src)
