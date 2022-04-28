@@ -21,15 +21,16 @@ namespace basic {
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_HIP           \
   const Index_type N = m_N;                        \
-  const Index_type NN = m_N * m_N;                 \
-  allocAndInitHipDeviceData(A, m_A, NN);            \
-  allocAndInitHipDeviceData(B, m_B, NN);            \
-  allocAndInitHipDeviceData(D, m_D, NN);			   
+  const Index_type Ne = m_Ne;                 \
+  const Index_type NeNe = m_Ne * m_Ne;                 \
+  allocAndInitHipDeviceData(A, m_A, N);            \
+  allocAndInitHipDeviceData(B, m_B, N);            \
+  allocAndInitHipDeviceData(D, m_D, N);			   
 
 #define MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP        \
-  getHipDeviceData(m_A, A, NN);                     \
-  getHipDeviceData(m_B, B, NN);                     \
-  getHipDeviceData(m_D, D, NN);                     \
+  getHipDeviceData(m_A, A, N);                     \
+  getHipDeviceData(m_B, B, N);                     \
+  getHipDeviceData(m_D, D, N);                     \
   deallocHipDeviceData(A);                         \
   deallocHipDeviceData(B);                         \
   deallocHipDeviceData(D);						   
@@ -80,7 +81,8 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
-  const Index_type NN = m_N * m_N;
+  const Index_type Ne = m_Ne;
+  const Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
   dim3 blockDim(16, 4, 1);
@@ -89,8 +91,11 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 
   if (vid == Base_HIP) {
 
-  	for(Index_type i = 0; i != NN; ++i){ m_A[i] = i; }
-  	for(Index_type i = 0; i != NN; ++i){ m_B[i] = NN - 1 - i; }	
+	for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+	//for(Index_type ii = 0; ii != 3; ++ii){
+  		for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }
+  		for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }
+	}
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
 
     startTimer();
@@ -103,12 +108,12 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
-//  for(int i = 0; i != A_h.size(); ++i){ 
-//      printf("A_h[%d] = %f\n", i, A_h[i]); 
-//  }
-  for(int i = 0; i != NN; ++i){ 
-      printf("D[%d] = %f\n", i, m_D[i]); 
+  for(int i = 0; i != N; ++i){ 
+      printf("A[%d] = %f\n", i, m_A[i]); 
   }
+//  for(int i = 0; i != NN; ++i){ 
+//      printf("D[%d] = %f\n", i, m_D[i]); 
+//  }
 
 
 

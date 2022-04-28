@@ -20,24 +20,20 @@ namespace basic {
 MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_FUSED_MUL_ADD, params)
 {
-  m_N_default = 16;
+  m_N_default = 1024;
   setDefaultProblemSize(m_N_default);
   setDefaultReps(5);
 
-  //If problem target size is not divisible by Ne, round up
-//  m_N = std::max(Index_type(getTargetProblemSize())*(Index_type(getTargetProblemSize())/16), \
-//  		Index_type(m_Ne));
-
-  m_N = 16;
-  setActualProblemSize(m_N*m_N);
+  //Make sure problem target size is divisible by Ne*Ne
+  m_N = RAJA_DIVIDE_CEILING_INT(Index_type(getTargetProblemSize()),Index_type(m_Ne*m_Ne))*Index_type(m_Ne*m_Ne);
+  setActualProblemSize(m_N);
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 2*m_N*m_N*sizeof(Real_type));
+  setBytesPerRep(2*m_N*sizeof(Real_type));
+  setFLOPsPerRep(2*m_N*m_Ne);
 
-  //Square Mat-Mat product flops should be (2^N−1)N^2=2*N^3−N^2
-  setFLOPsPerRep(2*m_N*m_N*m_N);
 
   checksum_scale_factor = 1e-6 *
               ( static_cast<Checksum_type>(getDefaultProblemSize()) /
@@ -67,9 +63,9 @@ MAT_FUSED_MUL_ADD::~MAT_FUSED_MUL_ADD() {}
 void MAT_FUSED_MUL_ADD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 
   //global matrices
-  allocAndInitDataConst(m_A, m_N * m_N, 1.0, vid);
-  allocAndInitDataConst(m_B, m_N * m_N, 1.0, vid);
-  allocAndInitDataConst(m_D, m_N * m_N, 0.0, vid);
+  allocAndInitDataConst(m_A, m_N, 1.0, vid);
+  allocAndInitDataConst(m_B, m_N, 1.0, vid);
+  allocAndInitDataConst(m_D, m_N*m_N, 0.0, vid);
 
 }
 
