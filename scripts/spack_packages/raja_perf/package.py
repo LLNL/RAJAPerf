@@ -248,7 +248,8 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             if ("xl" in cpp_compiler):
-                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O3 -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
+                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O2 -Xcompiler -qstrict " +
+                                            "-Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
                                             "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh -Xcompiler -qsuppress=1500-029 " +
                                             "-Xcompiler -qsuppress=1500-036 -Xcompiler -qsuppress=1500-030"))
                 cuda_release_flags = "-O3"
