@@ -37,17 +37,20 @@ namespace basic {
 
 template < Index_type block_size >
 __launch_bounds__(block_size)
-__global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D){
+__global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
+                                  Index_type N){
+constexpr Index_type Ne = 16;                                  
+for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   // compute a 16x16x16 matrix multiplication using a single wavefront.
 #if defined(RP_USE_DOUBLE)
   using double4 = __attribute__((__vector_size__(4 * sizeof(double)))) double;
   double4 result = {0};
 #elif defined(RP_USE_FLOAT)
   using float4 = __attribute__((__vector_size__(4 * sizeof(float)))) float;
-  float4 result = {0}; // zero out 4 vanilla VGPRs
+  float4 result = {0};
 #endif
-  Index_type a_idx = 16 * threadIdx.x + threadIdx.y;
-  Index_type b_idx = threadIdx.x + 16 * threadIdx.y;
+  Index_type a_idx = Ne * threadIdx.x + threadIdx.y + ii*(Ne*Ne);
+  Index_type b_idx = threadIdx.x + Ne * threadIdx.y + ii*(Ne*Ne);
 
   for(int i = 0; i < 4; ++i){
     Real_type a = A[a_idx];
@@ -61,19 +64,20 @@ __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D
 #endif  
 #endif
     a_idx += 4; // move four columns to the right
-    b_idx += 4*16; // move four rows down
+    b_idx += 4*Ne; // move four rows down
   }
 
   #pragma unroll 4
   for(Index_type i = 0; i < 4; ++i){
     const Index_type d_idx =  threadIdx.x            
-                     + i * 16                
-                     + threadIdx.y * 4 * 16; 
+                     + i * Ne                
+                     + threadIdx.y * 4 * Ne
+                     + ii*(Ne*Ne); 
 
     D[d_idx] = result[i];
   }
 }
-
+}
 
 
 template < size_t block_size >
@@ -102,20 +106,12 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         A, B, D);
+                         A, B, D, N);
       hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
-//  for(int i = 0; i != N; ++i){ 
-//      printf("A[%d] = %f\n", i, m_A[i]); 
-//  }
-  for(int i = 0; i != N; ++i){ 
-      printf("D[%d] = %f\n", i, m_D[i]); 
-  }
-
-
 
   } else if (vid == Lambda_HIP) {
 
