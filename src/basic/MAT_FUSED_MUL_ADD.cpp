@@ -62,15 +62,14 @@ MAT_FUSED_MUL_ADD::~MAT_FUSED_MUL_ADD() {}
 
 void MAT_FUSED_MUL_ADD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 
-  //global matrices
   allocAndInitDataConst(m_A, m_N, 1.0, vid);
   allocAndInitDataConst(m_B, m_N, 1.0, vid);
-  allocAndInitDataConst(m_D, m_N*m_N, 0.0, vid);
+  allocAndInitDataConst(m_D, m_N, 0.0, vid);
 
 }
 
 void MAT_FUSED_MUL_ADD::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_D, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_D, m_N, checksum_scale_factor );
 }
 
 void MAT_FUSED_MUL_ADD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {

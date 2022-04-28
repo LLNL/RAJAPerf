@@ -24,26 +24,15 @@ namespace basic {
   const Index_type Ne = m_Ne;                       \
   allocAndInitCudaDeviceData(A, m_A, N);            \
   allocAndInitCudaDeviceData(B, m_B, N);            \
-  allocAndInitCudaDeviceData(D, m_D, N);			\
-  allocAndInitCudaDeviceData(Ae, m_Ae, Ne);         \
-  allocAndInitCudaDeviceData(Be, m_Be, Ne);         \
-  allocAndInitCudaDeviceData(De, m_De, Ne);
-
+  allocAndInitCudaDeviceData(D, m_D, N);			
 
 #define MAT_FUSED_MUL_ADD_DATA_TEARDOWN_CUDA        \
   getCudaDeviceData(m_A, A, N);                     \
   getCudaDeviceData(m_B, B, N);                     \
   getCudaDeviceData(m_D, D, N);                     \
-  getCudaDeviceData(m_Ae, Ae, Ne);                  \
-  getCudaDeviceData(m_Be, Be, Ne);                  \
-  getCudaDeviceData(m_De, De, Ne);                  \
   deallocCudaDeviceData(A);                         \
   deallocCudaDeviceData(B);                         \
-  deallocCudaDeviceData(D);							\
-  deallocCudaDeviceData(Ae);                        \
-  deallocCudaDeviceData(Be);                        \
-  deallocCudaDeviceData(De);
-
+  deallocCudaDeviceData(D);							
 
 template < Index_type block_size >
   __launch_bounds__(block_size)

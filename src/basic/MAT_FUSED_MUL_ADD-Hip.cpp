@@ -108,12 +108,12 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
-  for(int i = 0; i != N; ++i){ 
-      printf("A[%d] = %f\n", i, m_A[i]); 
-  }
-//  for(int i = 0; i != NN; ++i){ 
-//      printf("D[%d] = %f\n", i, m_D[i]); 
+//  for(int i = 0; i != N; ++i){ 
+//      printf("A[%d] = %f\n", i, m_A[i]); 
 //  }
+  for(int i = 0; i != N; ++i){ 
+      printf("D[%d] = %f\n", i, m_D[i]); 
+  }
 
 
 
