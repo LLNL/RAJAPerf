@@ -84,6 +84,7 @@ enum KernelID {
   Basic_PI_ATOMIC,
   Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
+  Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
 
 //
