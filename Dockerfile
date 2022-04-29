@@ -1,4 +1,4 @@
-###############################################################################
+##############################################################################
 # Copyright (c) 2016-22, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJA/LICENSE file for details.
 #
@@ -11,7 +11,7 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-8.1.0 AS gcc8
 ENV GTEST_COLOR=1
@@ -19,7 +19,7 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DRAJA_ENABLE_WARNINGS_AS_ERRORS=On -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-9.4.0 AS gcc9
 ENV GTEST_COLOR=1
@@ -27,7 +27,7 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-11.2.0 AS gcc11
 ENV GTEST_COLOR=1
@@ -35,15 +35,16 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_COMPILER=g++ -DRAJA_ENABLE_WARNINGS=On -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/clang-ubuntu-20.04:llvm-11.0.0 AS clang11
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
-RUN cmake -DCMAKE_CXX_COMPILER=clang++ .. && \
+RUN . /opt/spack/share/spack/setup-env.sh && spack load llvm && \
+    cmake -DCMAKE_CXX_COMPILER=clang++ -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/clang-ubuntu-20.04:llvm-11.0.0 AS clang11-debug
 ENV GTEST_COLOR=1
@@ -51,15 +52,16 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/clang-ubuntu-22.04:llvm-13.0.0 AS clang13
 ENV GTEST_COLOR=1
 COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
-RUN cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release .. && \
+RUN . /opt/spack/share/spack/setup-env.sh && spack load llvm && \
+    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
-    ./bin/raja-perf.exe --checkrun 5 -sp
+    ctest -T test --output-on-failure
 
 FROM ghcr.io/rse-ops/cuda:cuda-10.1.243-ubuntu-18.04 AS nvcc10
 ENV GTEST_COLOR=1

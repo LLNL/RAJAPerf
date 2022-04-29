@@ -337,14 +337,21 @@ long double calcChecksum(const Int_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
+  long double ckahan = 0.0;
   for (Index_type j = 0; j < len; ++j) {
-    tchk += (j+1)*ptr[j]*scale_factor;
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
       getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
+  tchk *= scale_factor;
   return tchk;
 }
 
@@ -352,14 +359,21 @@ long double calcChecksum(const Real_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
+  long double ckahan = 0.0;
   for (Index_type j = 0; j < len; ++j) {
-    tchk += (j+1)*ptr[j]*scale_factor;
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
       getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
+  tchk *= scale_factor;
   return tchk;
 }
 
@@ -367,14 +381,21 @@ long double calcChecksum(const Complex_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
+  long double ckahan = 0.0;
   for (Index_type j = 0; j < len; ++j) {
-    tchk += (j+1)*(real(ptr[j])+imag(ptr[j]))*scale_factor;
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * (real(ptr[j])+imag(ptr[j]));
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
       getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
+  tchk *= scale_factor;
   return tchk;
 }
 
