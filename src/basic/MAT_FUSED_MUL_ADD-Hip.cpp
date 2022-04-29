@@ -56,13 +56,20 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
     Real_type a = A[a_idx];
     Real_type b = B[b_idx];
 
-#ifdef __gfx90a__	
 #if defined(RP_USE_DOUBLE)
+#ifdef __gfx90a__	
 	result = __builtin_amdgcn_mfma_f64_16x16x4f64(a, b, result, 0, 0, 0);
+#else
+	 result = {0}; //currenlty unimplemented
+#endif //end __gfx90a__
 #elif defined(RP_USE_FLOAT)
+#ifdef __gfx90a__ || __gfx908__
     result = __builtin_amdgcn_mfma_f32_16x16x4f32(a, b, result, 0, 0, 0);
-#endif  
-#endif
+#else
+	result = {0}; //uncurrently unimplemented
+#endif //end __gfx90a__ or __gfx908__
+#endif //end FLOAT vs DOBULE
+
     a_idx += 4; // move four columns to the right
     b_idx += 4*Ne; // move four rows down
   }
