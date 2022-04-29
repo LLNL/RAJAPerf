@@ -21,8 +21,8 @@ namespace basic {
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_HIP           \
   const Index_type N = m_N;                        \
-  const Index_type Ne = m_Ne;                 \
-  const Index_type NeNe = m_Ne * m_Ne;                 \
+  constexpr Index_type Ne = m_Ne;                 \
+  constexpr Index_type NeNe = m_Ne * m_Ne;                 \
   allocAndInitHipDeviceData(A, m_A, N);            \
   allocAndInitHipDeviceData(B, m_B, N);            \
   allocAndInitHipDeviceData(D, m_D, N);			   
@@ -85,18 +85,17 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
-  const Index_type Ne = m_Ne;
-  const Index_type NeNe = m_Ne * m_Ne;
+  constexpr Index_type Ne = m_Ne;
+  constexpr Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
-  dim3 blockDim(16, 4, 1);
+  dim3 blockDim(Ne, 4, 1);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
   if (vid == Base_HIP) {
 
 	for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-	//for(Index_type ii = 0; ii != 3; ++ii){
   		for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }
   		for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }
 	}

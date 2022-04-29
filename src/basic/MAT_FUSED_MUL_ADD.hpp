@@ -5,24 +5,30 @@
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-
 // Compute D = A x B + C, where
-// A: a M x K matrix
-// B: a K x N matrix
-// C, D: M x N matrices
-// All square row-major matrices, C is a null matrix and ignored.
-//    for(int row = 0; row != m; ++row){
-//      for(int col = 0; col != n; ++col){
-//
-//        float sum = 0.0;
-//        for (int kk = 0; kk < k; ++kk){
-//            sum += A[row][kk] * B[kk][col];
-//        }
-//        D[row][col] = sum;
+// Inputs:
+// A: N/(Ne*Ne) Ne x Ne matrices
+// B: N/(Ne*Ne) Ne x Ne matrices
+// Ouput:
+// D: N/(Ne*Ne) Ne x Ne matrices
+// All square row-major matrices, C is ignored.
+// for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+//  for(int row = 0; row != Ne; ++row){
+//    for(int col = 0; col != Ne; ++col){
+//      float dot = 0.0;
+//      int A_idx = row * Ne + ii*NeNe;
+//      int B_idx = col + ii*NeNe;
+//      for(int i = 0; i != Ne; ++i){
+//        dot += A[A_idx] * B[B_idx];
+//        ++A_idx;
+//        B_idx += Ne;
 //      }
+//      D[row * Ne + col] = dot;
 //    }
 //  }
-
+//  return D;
+//}
+//}
 #ifndef RAJAPerf_Basic_MAT_FUSED_MUL_ADD_HPP
 #define RAJAPerf_Basic_MAT_FUSED_MUL_ADD_HPP
 

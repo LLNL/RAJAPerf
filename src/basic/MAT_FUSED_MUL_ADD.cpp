@@ -24,7 +24,7 @@ MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
   setDefaultProblemSize(m_N_default);
   setDefaultReps(5);
 
-  //Make sure problem target size is divisible by Ne*Ne
+  //Make sure problem target size is divisible by 16*16
   m_N = RAJA_DIVIDE_CEILING_INT(Index_type(getTargetProblemSize()),Index_type(m_Ne*m_Ne))*Index_type(m_Ne*m_Ne);
   setActualProblemSize(m_N);
 
