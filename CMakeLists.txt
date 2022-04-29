@@ -6,9 +6,10 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-project(RAJAPerfSuite CXX)
+# C is required for googletest to find Threads
+project(RAJAPerfSuite LANGUAGES CXX C)
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.14.5)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
@@ -21,10 +22,6 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-set(ENABLE_TESTS Off CACHE BOOL "Enable BLT and RAJA tests")
-set(ENABLE_EXAMPLES Off CACHE BOOL "Enable RAJA examples")
-set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "Enable RAJA exercises")
-
 set(CMAKE_CXX_STANDARD 14)
 set(BLT_CXX_STD c++14)
 
@@ -34,7 +31,17 @@ include(blt/SetupBLT.cmake)
 # Define RAJA PERFSUITE settings...
 #
 
+cmake_dependent_option(RAJA_PERFSUITE_ENABLE_TESTS "Enable RAJA Perf Suite Tests" On "ENABLE_TESTS" Off)
+
+if (ENABLE_TESTS)
+
+  set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
+  set(CAMP_ENABLE_TESTS Off CACHE BOOL "")
+
+endif()
+
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_MPI "Build with MPI" On "ENABLE_MPI" Off)
+
 cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan variants" Off "ENABLE_OPENMP" Off)
 
 #
@@ -43,6 +50,7 @@ cmake_dependent_option(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN "Build OpenMP scan var
 
 set(RAJA_ENABLE_TESTS Off CACHE BOOL "")
 set(RAJA_ENABLE_EXAMPLES Off CACHE BOOL "")
+set(RAJA_ENABLE_EXERCISES Off CACHE BOOL "")
 set(ENABLE_DOCUMENTATION Off CACHE BOOL "")
 
 set(ENABLE_TBB Off CACHE BOOL "")
@@ -135,3 +143,7 @@ set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 # Each directory in the perf suite has its own CMakeLists.txt file.
 #
 add_subdirectory(src)
+
+if (RAJA_PERFSUITE_ENABLE_TESTS)
+  add_subdirectory(test)
+endif()
