@@ -21,8 +21,8 @@ namespace basic {
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_HIP           \
   const Index_type N = m_N;                        \
-  constexpr Index_type Ne = m_Ne;                 \
-  constexpr Index_type NeNe = m_Ne * m_Ne;                 \
+  constexpr Index_type Ne = m_Ne;                  \
+  constexpr Index_type NeNe = m_Ne * m_Ne;         \
   allocAndInitHipDeviceData(A, m_A, N);            \
   allocAndInitHipDeviceData(B, m_B, N);            \
   allocAndInitHipDeviceData(D, m_D, N);			   
@@ -37,7 +37,7 @@ namespace basic {
 
 template < Index_type block_size >
 __launch_bounds__(block_size)
-__global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
+__global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
 constexpr Index_type Ne = 16;                                  
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
@@ -60,13 +60,13 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
 #ifdef __gfx90a__	
 	result = __builtin_amdgcn_mfma_f64_16x16x4f64(a, b, result, 0, 0, 0);
 #else
-	 result = {0}; //currenlty unimplemented
+	 result = {0}; //should never get here. 
 #endif //end __gfx90a__
 #elif defined(RP_USE_FLOAT)
-#ifdef __gfx90a__ || __gfx908__
+#if defined(__gfx90a__) || defined(__gfx908__)
     result = __builtin_amdgcn_mfma_f32_16x16x4f32(a, b, result, 0, 0, 0);
 #else
-	result = {0}; //uncurrently unimplemented
+	result = {0}; //should never get here
 #endif //end __gfx90a__ or __gfx908__
 #endif //end FLOAT vs DOBULE
 
@@ -85,8 +85,13 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   }
 }
 }
-
-
+//Reference for cases with no hardware support
+template < Index_type block_size >
+__launch_bounds__(block_size)
+__global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
+                                  Index_type N){
+	return;
+}
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
@@ -97,6 +102,10 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 
   dim3 gridDim (1, 1, 1);
   dim3 blockDim(Ne, 4, 1);
+  hipDeviceProp_t devProp;
+  hipError_t err = hipGetDeviceProperties(&devProp, 0);
+  std::string gcnArchName(devProp.gcnArchName);
+  std::string hipArch = gcnArchName.substr(0, 6);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
@@ -110,7 +119,23 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+	if(hipArch == "gfx90a") 
+	  //Both FP32 and FP64 supported
+      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+                         A, B, D, N);
+	else if(hipArch == "gfx908"){
+#if defined(RP_USE_FLOAT)
+	  //Only FP32 supported on MI100
+      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+                         A, B, D, N);
+#elif defined(RP_USE_DOUBLE)
+	  //FP64 not supported on MI100
+      hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+                         A, B, D, N);
+	}
+#endif
+	else
+	 //Otherwise no mfma hardware support
       hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
                          A, B, D, N);
       hipErrchk( hipGetLastError() );
@@ -118,7 +143,6 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
