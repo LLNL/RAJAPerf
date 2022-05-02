@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define IF_QUAD_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(a, m_a, iend); \
   allocAndInitHipDeviceData(b, m_b, iend); \
@@ -43,18 +37,22 @@ namespace basic
   deallocHipDeviceData(x1); \
   deallocHipDeviceData(x2);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void ifquad(Real_ptr x1, Real_ptr x2,
                        Real_ptr a, Real_ptr b, Real_ptr c,
                        Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     IF_QUAD_BODY;
   }
 }
 
 
-void IF_QUAD::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void IF_QUAD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -70,7 +68,7 @@ void IF_QUAD::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((ifquad), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
+      hipLaunchKernelGGL((ifquad<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
                                           iend );
       hipErrchk( hipGetLastError() );
 
@@ -91,7 +89,7 @@ void IF_QUAD::runHipVariant(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(ifquad_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(ifquad_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, ifquad_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -118,9 +116,11 @@ void IF_QUAD::runHipVariant(VariantID vid)
     IF_QUAD_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(IF_QUAD, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

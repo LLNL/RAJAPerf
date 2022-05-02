@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -27,7 +27,7 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   Index_type nx_default = 1000;
   Index_type ny_default = 1000;
 
-  setDefaultProblemSize( std::max( (nx_default-1) * ny_default, 
+  setDefaultProblemSize( std::max( (nx_default-1) * ny_default,
                                     nx_default * (ny_default-1) ) );
   setDefaultReps(8);
 
@@ -36,7 +36,7 @@ POLYBENCH_FDTD_2D::POLYBENCH_FDTD_2D(const RunParams& params)
   m_tsteps = 40;
 
 
-  setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) ); 
+  setActualProblemSize( std::max( (m_nx-1)*m_ny, m_nx*(m_ny-1) ) );
 
   setItsPerRep( m_tsteps * ( m_ny +
                              (m_nx-1)*m_ny +
@@ -90,7 +90,7 @@ POLYBENCH_FDTD_2D::~POLYBENCH_FDTD_2D()
 {
 }
 
-void POLYBENCH_FDTD_2D::setUp(VariantID vid)
+void POLYBENCH_FDTD_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_hz, m_nx * m_ny, 0.0, vid);
   allocAndInitData(m_ex, m_nx * m_ny, vid);
@@ -98,12 +98,12 @@ void POLYBENCH_FDTD_2D::setUp(VariantID vid)
   allocAndInitData(m_fict, m_tsteps, vid);
 }
 
-void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid)
+void POLYBENCH_FDTD_2D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
+  checksum[vid][tune_idx] += calcChecksum(m_hz, m_nx * m_ny, checksum_scale_factor);
 }
 
-void POLYBENCH_FDTD_2D::tearDown(VariantID vid)
+void POLYBENCH_FDTD_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_fict);

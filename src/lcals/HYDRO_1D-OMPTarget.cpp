@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -41,7 +41,7 @@ namespace lcals
   deallocOpenMPDeviceData(z, did); \
 
 
-void HYDRO_1D::runOpenMPTargetVariant(VariantID vid)
+void HYDRO_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -57,7 +57,7 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y, z) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         HYDRO_1D_BODY;
       }
@@ -85,7 +85,7 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid)
     HYDRO_1D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  HYDRO_1D : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_1D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

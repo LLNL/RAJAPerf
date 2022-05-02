@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -46,7 +46,7 @@ namespace apps
   deallocOpenMPDeviceData(coeff, did);
 
 
-void FIR::runOpenMPTargetVariant(VariantID vid)
+void FIR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -94,7 +94,7 @@ void FIR::runOpenMPTargetVariant(VariantID vid)
     FIR_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  FIR : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  FIR : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

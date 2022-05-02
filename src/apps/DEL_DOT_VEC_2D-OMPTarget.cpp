@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -51,7 +51,7 @@ namespace apps
   deallocOpenMPDeviceData(real_zones, did);
 
 
-void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
+void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -62,7 +62,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
   if ( vid == Base_OpenMPTarget ) {
 
     DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET;
-     
+
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -74,7 +74,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
       #pragma omp target is_device_ptr(x1,x2,x3,x4, y1,y2,y3,y4, \
                                        fx1,fx2,fx3,fx4, fy1,fy2,fy3,fy4, \
                                        div, real_zones) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
         DEL_DOT_VEC_2D_BODY_INDEX;
         DEL_DOT_VEC_2D_BODY;
@@ -88,13 +88,13 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET;
-     
+
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    camp::resources::Resource working_res{camp::resources::Omp()};
+    camp::resources::Resource working_res{camp::resources::Omp::get_default()};
     RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                              m_domain->n_real_zones,
                                              working_res);
@@ -114,7 +114,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid)
     DEL_DOT_VEC_2D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  DEL_DOT_VEC_2D : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  DEL_DOT_VEC_2D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,7 +51,7 @@ namespace apps
   }
 
 
-void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
+void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -146,7 +146,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
     HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

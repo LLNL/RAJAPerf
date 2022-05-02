@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -33,17 +33,17 @@ namespace polybench
   allocAndInitOpenMPDeviceData(U, m_U, m_n * m_n, did, hid); \
   allocAndInitOpenMPDeviceData(V, m_V, m_n * m_n, did, hid); \
   allocAndInitOpenMPDeviceData(P, m_P, m_n * m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(Q, m_Q, m_n * m_n, did, hid); 
+  allocAndInitOpenMPDeviceData(Q, m_Q, m_n * m_n, did, hid);
 
 #define POLYBENCH_ADI_DATA_TEARDOWN_OMP_TARGET \
   getOpenMPDeviceData(m_U, U, m_n * m_n, hid, did); \
   deallocOpenMPDeviceData(U, did); \
   deallocOpenMPDeviceData(V, did); \
   deallocOpenMPDeviceData(P, did); \
-  deallocOpenMPDeviceData(Q, did); 
+  deallocOpenMPDeviceData(Q, did);
 
 
-void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -56,7 +56,7 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (Index_type t = 1; t <= tsteps; ++t) { 
+      for (Index_type t = 1; t <= tsteps; ++t) {
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
@@ -64,11 +64,11 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
           POLYBENCH_ADI_BODY2;
           for (Index_type j = 1; j < n-1; ++j) {
             POLYBENCH_ADI_BODY3;
-          }  
+          }
           POLYBENCH_ADI_BODY4;
           for (Index_type k = n-2; k >= 1; --k) {
             POLYBENCH_ADI_BODY5;
-          }  
+          }
         }
 
         #pragma omp target is_device_ptr(P,Q,U,V) device( did )
@@ -86,10 +86,10 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
 
       } // tsteps
 
-    } // run_reps  
-    stopTimer(); 
+    } // run_reps
+    stopTimer();
 
-    POLYBENCH_ADI_DATA_TEARDOWN_OMP_TARGET;  
+    POLYBENCH_ADI_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
@@ -162,9 +162,9 @@ void POLYBENCH_ADI::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_ADI_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  POLYBENCH_ADI : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  POLYBENCH_ADI : Unknown OMP Target variant id = " << vid << std::endl;
   }
-}    
+}
 
 } // end namespace polybench
 } // end namespace rajaperf

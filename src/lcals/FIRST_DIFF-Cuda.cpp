@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define FIRST_DIFF_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_N); \
   allocAndInitCudaDeviceData(y, m_y, m_N);
@@ -36,17 +30,20 @@ namespace lcals
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void first_diff(Real_ptr x, Real_ptr y,
                            Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIRST_DIFF_BODY;
    }
 }
 
 
-void FIRST_DIFF::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -62,7 +59,7 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_diff<<<grid_size, block_size>>>( x, y,
+       first_diff<block_size><<<grid_size, block_size>>>( x, y,
                                               iend );
        cudaErrchk( cudaGetLastError() );
 
@@ -89,9 +86,11 @@ void FIRST_DIFF::runCudaVariant(VariantID vid)
     FIRST_DIFF_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_DIFF, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

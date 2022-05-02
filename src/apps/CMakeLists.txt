@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -15,6 +15,12 @@ blt_add_library(
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
+          DIFFUSION3DPA.cpp
+          DIFFUSION3DPA-Cuda.cpp
+          DIFFUSION3DPA-Hip.cpp
+          DIFFUSION3DPA-Seq.cpp
+          DIFFUSION3DPA-OMP.cpp
+          DIFFUSION3DPA-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 
@@ -57,6 +63,12 @@ blt_add_library(
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
+          NODAL_ACCUMULATION_3D.cpp
+          NODAL_ACCUMULATION_3D-Seq.cpp
+          NODAL_ACCUMULATION_3D-Hip.cpp
+          NODAL_ACCUMULATION_3D-Cuda.cpp
+          NODAL_ACCUMULATION_3D-OMP.cpp
+          NODAL_ACCUMULATION_3D-OMPTarget.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -28,7 +28,7 @@ COPY::COPY(const RunParams& params)
 
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
-  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * 
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) *
                   getActualProblemSize() );
   setFLOPsPerRep(0);
 
@@ -58,18 +58,18 @@ COPY::~COPY()
 {
 }
 
-void COPY::setUp(VariantID vid)
+void COPY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_a, getActualProblemSize(), vid);
   allocAndInitDataConst(m_c, getActualProblemSize(), 0.0, vid);
 }
 
-void COPY::updateChecksum(VariantID vid)
+void COPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize());
 }
 
-void COPY::tearDown(VariantID vid)
+void COPY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

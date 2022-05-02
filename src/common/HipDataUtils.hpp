@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -18,6 +18,7 @@
 
 #if defined(RAJA_ENABLE_HIP)
 
+#include "common/GPUUtils.hpp"
 
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 
@@ -31,16 +32,37 @@ namespace rajaperf
 template < typename Lambda >
 __global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda body)
 {
-   Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     body(i);
-   }
+  Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
+  if (i < iend) {
+    body(i);
+  }
+}
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda body)
+{
+  Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
+  if (i < iend) {
+    body(i);
+  }
 }
 
 /*!
-* \brief Simple hip kernel that runs a lambda.
-*/
-template <typename Lambda> __global__ void lambda_hip(Lambda body) { body(); }
+ * \brief Simple hip kernel that runs a lambda.
+ */
+template < typename Lambda >
+__global__ void lambda_hip(Lambda body)
+{
+  body();
+}
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_hip(Lambda body)
+{
+  body();
+}
 
 /*!
  * \brief Getters for hip kernel indices.

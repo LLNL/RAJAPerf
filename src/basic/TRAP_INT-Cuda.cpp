@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -37,17 +37,13 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define TRAP_INT_DATA_SETUP_CUDA  // nothing to do here...
 
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void trapint(Real_type x0, Real_type xp,
                         Real_type y, Real_type yp,
                         Real_type h,
@@ -56,17 +52,17 @@ __global__ void trapint(Real_type x0, Real_type xp,
 {
   extern __shared__ Real_type psumx[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   psumx[ threadIdx.x ] = 0.0;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     Real_type x = x0 + i*h;
     Real_type val = trap_int_func(x, y, xp, yp);
     psumx[ threadIdx.x ] += val;
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
     }
@@ -86,7 +82,9 @@ __global__ void trapint(Real_type x0, Real_type xp,
 }
 
 
-void TRAP_INT::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void TRAP_INT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -107,7 +105,7 @@ void TRAP_INT::runCudaVariant(VariantID vid)
       initCudaDeviceData(sumx, &m_sumx_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      trapint<<<grid_size, block_size,
+      trapint<block_size><<<grid_size, block_size,
                 sizeof(Real_type)*block_size>>>(x0, xp,
                                                 y, yp,
                                                 h,
@@ -149,9 +147,11 @@ void TRAP_INT::runCudaVariant(VariantID vid)
     TRAP_INT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

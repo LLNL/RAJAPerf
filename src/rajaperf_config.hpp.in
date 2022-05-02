@@ -9,7 +9,7 @@
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,13 +21,17 @@
 #define RAJAPerf_config_HPP
 
 #include "RAJA/config.hpp"
+#include "camp/number.hpp"
 
 #include <string>
+
+#cmakedefine RAJA_PERFSUITE_ENABLE_MPI
+#cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
 namespace rajaperf {
 
 struct configuration {
-
+#if 0
 // Version of RAJA Perf Suite (ex: 0.1.0)
 static const std::string perfsuite_version =
 "@RAJA_PERFSUITE_VERSION_MAJOR@" + std::string(".") +
@@ -35,7 +39,7 @@ static const std::string perfsuite_version =
 "@RAJA_PERFSUITE_VERSION_PATCHLEVEL@";
 
 // Version of RAJA used to build (ex: 0.2.4)
-static const std::string raja_version = 
+static const std::string raja_version =
 std::to_string(RAJA::RAJA_VERSION_MAJOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_MINOR) + std::string(".") +
 std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
@@ -43,13 +47,20 @@ std::to_string(RAJA::RAJA_VERSION_PATCH_LEVEL);
 // Systype and machine code was built on (ex: chaos_5_x64_64, rzhasgpu18)
 static const std::string systype_build = "@RAJAPERF_BUILD_SYSTYPE@";
 static const std::string machine_build = "@RAJAPERF_BUILD_HOST@";
-		
+
 // Compiler used to build (ex: gcc-4.9.3)
 static const std::string compiler = "@RAJAPERF_COMPILER@";
 
 // Command options used to build (ex: -Ofast -mavx)
 static const std::string compiler_options = "@RAJAPERF_COMPILER_OPTIONS@";
-		
+#endif
+
+// helper alias to void trailing comma in no-arg case
+template < size_t... Is >
+using i_seq = camp::int_seq<size_t, Is...>;
+// List of GPU block sizes
+using gpu_block_sizes = i_seq<@RAJA_PERFSUITE_GPU_BLOCKSIZES@>;
+
 // Name of user who ran code
 std::string user_run;
 
@@ -59,9 +70,16 @@ std::string date_run;
 // Systype and machine code ran on (ex: chaos_5_x64_64)
 std::string systype_run;
 std::string machine_run;
-		
+
 };
 
 } // closing brace for rajaperf namespace
+
+// Squash compiler warnings about unused variables
+template < typename ... Ts >
+inline void RAJAPERF_UNUSED_VAR(Ts&&...) { }
+
+// Squash compiler warnings about unused arguments
+#define RAJAPERF_UNUSED_ARG(...)
 
 #endif  // closing endif for header file include guard

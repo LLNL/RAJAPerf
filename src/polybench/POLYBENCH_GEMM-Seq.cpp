@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,13 +13,13 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
 
-void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
+void POLYBENCH_GEMM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps= getRunReps();
 
@@ -32,7 +32,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = 0; i < ni; ++i ) { 
+        for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
             POLYBENCH_GEMM_BODY2;
@@ -94,7 +94,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       auto poly_gemm_lam2 = [=](Index_type i, Index_type j) {
                                 POLYBENCH_GEMM_BODY2_RAJA;
                                };
-      auto poly_gemm_lam3 = [=](Index_type i, Index_type j, Index_type k, 
+      auto poly_gemm_lam3 = [=](Index_type i, Index_type j, Index_type k,
                                 Real_type& dot) {
                                 POLYBENCH_GEMM_BODY3_RAJA;
                                };
@@ -121,7 +121,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::kernel_param<EXEC_POL>(
-     
+
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
@@ -142,7 +142,7 @@ void POLYBENCH_GEMM::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;
     }
 
   }

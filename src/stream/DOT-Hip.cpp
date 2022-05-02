@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,12 +22,6 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define DOT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(a, m_a, iend); \
   allocAndInitHipDeviceData(b, m_b, iend);
@@ -36,21 +30,23 @@ namespace stream
   deallocHipDeviceData(a); \
   deallocHipDeviceData(b);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend)
 {
   HIP_DYNAMIC_SHARED( Real_type, pdot)
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   pdot[ threadIdx.x ] = dprod_init;
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     pdot[ threadIdx.x ] += a[ i ] * b[i];
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
     }
@@ -71,7 +67,8 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 }
 
 
-void DOT::runHipVariant(VariantID vid)
+template < size_t block_size >
+void DOT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -92,9 +89,9 @@ void DOT::runHipVariant(VariantID vid)
       initHipDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((dot), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,  a, b,
-                                             dprod, m_dot_init,
-                                             iend );
+      hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
+                                            sizeof(Real_type)*block_size, 0,
+                         a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;
@@ -131,9 +128,11 @@ void DOT::runHipVariant(VariantID vid)
     DOT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf

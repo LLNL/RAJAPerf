@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -29,7 +29,7 @@ namespace polybench
   allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
   allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
   allocAndInitOpenMPDeviceData(C, m_C, m_nj * m_nl, did, hid); \
-  allocAndInitOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid); 
+  allocAndInitOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid);
 
 
 #define POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET \
@@ -41,7 +41,7 @@ namespace polybench
   deallocOpenMPDeviceData(D, did);
 
 
-void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -53,9 +53,9 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-      
+
       #pragma omp target is_device_ptr(tmp,A,B) device( did )
-      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type i = 0; i < ni; i++ ) {
         for(Index_type j = 0; j < nj; j++) {
           POLYBENCH_2MM_BODY1;
@@ -75,11 +75,11 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
             POLYBENCH_2MM_BODY5;
           }
           POLYBENCH_2MM_BODY6;
-        }  
+        }
       }
 
     }
-    stopTimer(); 
+    stopTimer();
 
     POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
 
@@ -121,7 +121,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
         }
       );
 
-      RAJA::kernel_param<EXEC_POL>( 
+      RAJA::kernel_param<EXEC_POL>(
         RAJA::make_tuple(RAJA::RangeSegment{0, ni},
                          RAJA::RangeSegment{0, nl},
                          RAJA::RangeSegment{0, nj}),
@@ -144,7 +144,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  POLYBENCH_2MM : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  POLYBENCH_2MM : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

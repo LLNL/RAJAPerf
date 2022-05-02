@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,13 +12,13 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
 
 
-void PI_ATOMIC::runOpenMPVariant(VariantID vid)
+void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -40,7 +40,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
         for (Index_type i = ibegin; i < iend; ++i ) {
           double x = (double(i) + 0.5) * dx;
           #pragma omp atomic
-          *pi += dx / (1.0 + x * x); 
+          *pi += dx / (1.0 + x * x);
         }
         *pi *= 4.0;
 
@@ -80,7 +80,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         *pi = m_pi_init;
-        RAJA::forall<RAJA::omp_parallel_for_exec>( 
+        RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
             double x = (double(i) + 0.5) * dx;
             RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
@@ -94,12 +94,12 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

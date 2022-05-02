@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 EXECUTABLES=""
 SIZE_MIN=10000
@@ -8,18 +8,18 @@ SIZE_RATIO=2
 ################################################################################
 #
 # Usage:
-#     srun -n1 --exclusive sweep.sh -x raja-perf.exe [-- raja perf args]
+#     srun -n1 --exclusive sweep.sh -x raja-perf.exe [-- <raja perf args>]
 #
 # Parse any args for this script and consume them using shift
 # leave the raja perf arguments if any for later use
 #
 # Examples:
-#     lalloc 1 lrun -n1 sweep.sh -x raja-perf.exe -- args
+#     lalloc 1 lrun -n1 sweep.sh -x raja-perf.exe -- <args>
 #       # run a sweep of default problem sizes with executable `raja-perf.exe`
 #       # with args `args`
 #
 #     srun -n1 --exclusive sweep.sh -x raja-perf.exe --size-min 1000
-#            --size-max 10000 --size-ratio 2 -- args
+#            --size-max 10000 --size-ratio 2 -- <args>
 #       # run a sweep of problem sizes 1K to 10K with ratio 2 (1K, 2K, 4K, 8K)
 #       # with executable `raja-perf.exe` with args `args`
 #

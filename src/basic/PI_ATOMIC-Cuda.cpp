@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,23 +21,19 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define PI_ATOMIC_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(pi, m_pi, 1);
 
 #define PI_ATOMIC_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(pi);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void pi_atomic(Real_ptr pi,
                           Real_type dx,
                           Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      double x = (double(i) + 0.5) * dx;
      RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
@@ -45,7 +41,9 @@ __global__ void pi_atomic(Real_ptr pi,
 }
 
 
-void PI_ATOMIC::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -63,7 +61,7 @@ void PI_ATOMIC::runCudaVariant(VariantID vid)
       initCudaDeviceData(pi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      pi_atomic<<<grid_size, block_size>>>( pi, dx, iend );
+      pi_atomic<block_size><<<grid_size, block_size>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
       getCudaDeviceData(m_pi, pi, 1);
@@ -84,7 +82,7 @@ void PI_ATOMIC::runCudaVariant(VariantID vid)
       initCudaDeviceData(pi, &m_pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
@@ -123,9 +121,11 @@ void PI_ATOMIC::runCudaVariant(VariantID vid)
     PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_ATOMIC, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

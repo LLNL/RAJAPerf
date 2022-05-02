@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define SORT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend*run_reps);
 
@@ -35,7 +29,7 @@ namespace algorithm
   deallocCudaDeviceData(x);
 
 
-void SORT::runCudaVariant(VariantID vid)
+void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -50,7 +44,7 @@ void SORT::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::cuda_exec<block_size, true /*async*/> >(RAJA_SORT_ARGS);
+      RAJA::sort< RAJA::cuda_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORT_ARGS);
 
     }
     stopTimer();
@@ -58,7 +52,7 @@ void SORT::runCudaVariant(VariantID vid)
     SORT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  SORT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  SORT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -63,7 +63,7 @@ FIRST_MIN::~FIRST_MIN()
 {
 }
 
-void FIRST_MIN::setUp(VariantID vid)
+void FIRST_MIN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
   m_x[ m_N / 2 ] = -1.0e+10;
@@ -72,12 +72,12 @@ void FIRST_MIN::setUp(VariantID vid)
   m_minloc = -1;
 }
 
-void FIRST_MIN::updateChecksum(VariantID vid)
+void FIRST_MIN::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += static_cast<long double>(m_minloc);
+  checksum[vid][tune_idx] += static_cast<long double>(m_minloc);
 }
 
-void FIRST_MIN::tearDown(VariantID vid)
+void FIRST_MIN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

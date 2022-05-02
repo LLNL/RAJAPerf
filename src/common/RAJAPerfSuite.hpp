@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -14,8 +14,10 @@
 #define RAJAPerfSuite_HPP
 
 #include "RAJA/config.hpp"
+#include "rajaperf_config.hpp"
 
 #include <string>
+#include <ostream>
 
 namespace rajaperf
 {
@@ -31,8 +33,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -58,8 +60,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) 
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!! 
+ *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
+ *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -69,7 +71,10 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_DAXPY = 0,
+  Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
+  Basic_INDEXLIST,
+  Basic_INDEXLIST_3LOOP,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
@@ -79,6 +84,7 @@ enum KernelID {
   Basic_PI_ATOMIC,
   Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
+  Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
 
 //
@@ -127,6 +133,7 @@ enum KernelID {
 //
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
+  Apps_DIFFUSION3DPA,
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
@@ -134,14 +141,17 @@ enum KernelID {
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DPA,
+  Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
 
 //
 // Algorithm kernels...
 //
+  Algorithm_SCAN,
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
+  Algorithm_REDUCE_SUM,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -156,7 +166,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!! 
+ *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -206,7 +216,7 @@ enum FeatureID {
 
   Sort,
   Scan,
-  Workgroup, 
+  Workgroup,
 
   Reduction,
   Atomic,
@@ -256,17 +266,27 @@ const std::string& getFullKernelName(KernelID kid);
  *
  *******************************************************************************
  */
-const std::string& getVariantName(VariantID vid); 
+const std::string& getVariantName(VariantID vid);
 
 /*!
  *******************************************************************************
  *
- * \brief Return true if variant associated with VariantID enum value is 
+ * \brief Return true if variant associated with VariantID enum value is
  *        available * to run; else false.
  *
  *******************************************************************************
  */
 bool isVariantAvailable(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return true if variant associated with VariantID enum value runs
+ *        on the gpu.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid);
 
 /*!
  *******************************************************************************
@@ -287,6 +307,45 @@ const std::string& getFeatureName(FeatureID vid);
  *******************************************************************************
  */
 KernelBase* getKernelObject(KernelID kid, const RunParams& run_params);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return ostream used as cout.
+ *
+ *        IMPORTANT: May return a non-printing stream when MPI is enabled.
+ *
+ *******************************************************************************
+ */
+std::ostream& getCout();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream* makeNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return reference to global non-printing ostream.
+ *
+ *******************************************************************************
+ */
+std::ostream& getNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Empty function used to squash compiler warnings for unused variables.
+ *
+ *******************************************************************************
+ */
+template < typename... Ts >
+inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace
 

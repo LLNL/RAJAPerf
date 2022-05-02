@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -10,11 +10,18 @@
 
 #include "RunParams.hpp"
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
+
 //
 // Basic kernels...
 //
 #include "basic/DAXPY.hpp"
+#include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
+#include "basic/INDEXLIST.hpp"
+#include "basic/INDEXLIST_3LOOP.hpp"
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
@@ -24,6 +31,7 @@
 #include "basic/PI_ATOMIC.hpp"
 #include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
+#include "basic/REDUCE_STRUCT.hpp"
 #include "basic/TRAP_INT.hpp"
 
 //
@@ -72,6 +80,7 @@
 //
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
+#include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -79,14 +88,17 @@
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/MASS3DPA.hpp"
+#include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
 
 //
 // Algorithm kernels...
 //
+#include "algorithm/SCAN.hpp"
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
+#include "algorithm/REDUCE_SUM.hpp"
 
 
 #include <iostream>
@@ -139,7 +151,10 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_DAXPY"),
+  std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
+  std::string("Basic_INDEXLIST"),
+  std::string("Basic_INDEXLIST_3LOOP"),
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
@@ -149,6 +164,7 @@ static const std::string KernelNames [] =
   std::string("Basic_PI_ATOMIC"),
   std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
+  std::string("Basic_REDUCE_STRUCT"),
   std::string("Basic_TRAP_INT"),
 
 //
@@ -197,6 +213,7 @@ static const std::string KernelNames [] =
 //
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
+  std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -204,14 +221,17 @@ static const std::string KernelNames [] =
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_MASS3DPA"),
+  std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
 
 //
 // Algorithm kernels...
 //
+  std::string("Algorithm_SCAN"),
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
+  std::string("Algorithm_REDUCE_SUM"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -346,7 +366,7 @@ const std::string& getVariantName(VariantID vid)
 /*!
  *******************************************************************************
  *
- * Return true if variant associated with VariantID enum value is available 
+ * Return true if variant associated with VariantID enum value is available
  * to run; else false.
  *
  *******************************************************************************
@@ -359,24 +379,79 @@ bool isVariantAvailable(VariantID vid)
     ret_val = true;
   }
 #if defined(RUN_RAJA_SEQ)
-  if ( vid == Lambda_Seq || 
+  if ( vid == Lambda_Seq ||
        vid == RAJA_Seq ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP || 
-       vid == Lambda_OpenMP || 
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
        vid == RAJA_OpenMP ) {
     ret_val = true;
   }
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
-  if ( vid == Base_OpenMPTarget || 
+  if ( vid == Base_OpenMPTarget ||
        vid == RAJA_OpenMPTarget ) {
     ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  if ( vid == Base_CUDA ||
+       vid == Lambda_CUDA ||
+       vid == RAJA_CUDA ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  if ( vid == Base_HIP ||
+       vid == Lambda_HIP ||
+       vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+  return ret_val;
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if variant associated with VariantID enum value runs on the GPU.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid)
+{
+  bool ret_val = false;
+
+  if ( vid == Base_Seq ) {
+    ret_val = false;
+  }
+#if defined(RUN_RAJA_SEQ)
+  if ( vid == Lambda_Seq ||
+       vid == RAJA_Seq ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  if ( vid == Base_OpenMP ||
+       vid == Lambda_OpenMP ||
+       vid == RAJA_OpenMP ) {
+    ret_val = false;
+  }
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  if ( vid == Base_OpenMPTarget ||
+       vid == RAJA_OpenMPTarget ) {
+    ret_val = false;
   }
 #endif
 
@@ -432,8 +507,20 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::DAXPY(run_params);
        break;
     }
+    case Basic_DAXPY_ATOMIC : {
+       kernel = new basic::DAXPY_ATOMIC(run_params);
+       break;
+    }
     case Basic_IF_QUAD : {
        kernel = new basic::IF_QUAD(run_params);
+       break;
+    }
+    case Basic_INDEXLIST : {
+       kernel = new basic::INDEXLIST(run_params);
+       break;
+    }
+    case Basic_INDEXLIST_3LOOP : {
+       kernel = new basic::INDEXLIST_3LOOP(run_params);
        break;
     }
     case Basic_INIT3 : {
@@ -472,6 +559,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::REDUCE3_INT(run_params);
        break;
     }
+    case Basic_REDUCE_STRUCT : { 
+        kernel = new basic::REDUCE_STRUCT(run_params);
+        break;
+    } 	
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
        break;
@@ -616,6 +707,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
     }
+    case Apps_DIFFUSION3DPA : {
+       kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
     case Apps_ENERGY : {
        kernel = new apps::ENERGY(run_params);
        break;
@@ -644,6 +739,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::MASS3DPA(run_params);
        break;
     }
+    case Apps_NODAL_ACCUMULATION_3D : {
+       kernel = new apps::NODAL_ACCUMULATION_3D(run_params);
+       break;
+    }
     case Apps_PRESSURE : {
        kernel = new apps::PRESSURE(run_params);
        break;
@@ -656,6 +755,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Algorithm kernels...
 //
+    case Algorithm_SCAN: {
+       kernel = new algorithm::SCAN(run_params);
+       break;
+    }
     case Algorithm_SORT: {
        kernel = new algorithm::SORT(run_params);
        break;
@@ -664,14 +767,53 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::SORTPAIRS(run_params);
        break;
     }
+    case Algorithm_REDUCE_SUM: {
+       kernel = new algorithm::REDUCE_SUM(run_params);
+       break;
+    }
 
     default: {
-      std::cout << "\n Unknown Kernel ID = " << kid << std::endl;
+      getCout() << "\n Unknown Kernel ID = " << kid << std::endl;
     }
 
   } // end switch on kernel id
 
   return kernel;
+}
+
+// subclass of streambuf that ignores overflow
+// never printing anything to the underlying stream
+struct NullStream : std::streambuf, std::ostream
+{
+  using Base = std::streambuf;
+  using int_type = typename Base::int_type;
+
+  NullStream() : std::ostream(this) {}
+public:
+  int_type overflow(int_type c) override { return c; }
+};
+
+std::ostream* makeNullStream()
+{
+  return new NullStream();
+}
+
+std::ostream& getNullStream()
+{
+  static NullStream null_stream;
+  return null_stream;
+}
+
+std::ostream& getCout()
+{
+  int rank = 0;
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+  if (rank == 0) {
+    return std::cout;
+  }
+  return getNullStream();
 }
 
 }  // closing brace for rajaperf namespace
