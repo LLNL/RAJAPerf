@@ -78,6 +78,7 @@ enum KernelID {
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
+  Basic_MAT_FUSED_MUL_ADD,
   Basic_MAT_MAT_SHARED,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
