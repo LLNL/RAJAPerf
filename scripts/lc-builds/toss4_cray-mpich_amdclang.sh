@@ -38,6 +38,11 @@ else
   echo "Unknown hip version, using ${HOSTCONFIG} host-config"
 fi
 
+if [[ ${COMP_ARCH} == gfx90a ]]
+  # note that unsafe atomics require use of coarse grain memory
+##HIP_CLANG_FLAGS="-munsafe-fp-atomics"
+fi
+
 BUILD_SUFFIX=lc_toss4-cray-mpich-${MPI_VER}-amdclang-${COMP_VER}-${COMP_ARCH}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss4/${HOSTCONFIG}.cmake
 
