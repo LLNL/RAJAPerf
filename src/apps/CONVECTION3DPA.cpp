@@ -35,21 +35,20 @@ CONVECTION3DPA::CONVECTION3DPA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( 2*CPA_Q1D*CPA_D1D*sizeof(Real_type)  +
-                  CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE*sizeof(Real_type) +
+  setBytesPerRep( 3*CPA_Q1D*CPA_D1D*sizeof(Real_type)  +
+                  CPA_VDIM*CPA_Q1D*CPA_Q1D*CPA_Q1D*m_NE*sizeof(Real_type) +
                   CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) +
                   CPA_D1D*CPA_D1D*CPA_D1D*m_NE*sizeof(Real_type) );
 
-  setFLOPsPerRep(m_NE * (CPA_Q1D * CPA_D1D +
-                         5 * CPA_D1D * CPA_D1D * CPA_Q1D * CPA_D1D +
-                         7 * CPA_D1D * CPA_D1D * CPA_Q1D * CPA_Q1D +
-                         7 * CPA_Q1D * CPA_D1D * CPA_Q1D * CPA_Q1D +
-                         15 * CPA_Q1D * CPA_Q1D * CPA_Q1D +
-                         CPA_Q1D * CPA_D1D +
-                         7 * CPA_Q1D * CPA_Q1D * CPA_D1D * CPA_Q1D +
-                         7 * CPA_Q1D * CPA_Q1D * CPA_D1D * CPA_D1D +
-                         7 * CPA_D1D * CPA_Q1D * CPA_D1D * CPA_D1D +
-                         3 * CPA_D1D * CPA_D1D * CPA_D1D));
+  setFLOPsPerRep(m_NE * (
+                         4 * CPA_D1D * CPA_Q1D * CPA_D1D * CPA_D1D + //2
+                         6 * CPA_D1D * CPA_Q1D * CPA_Q1D * CPA_D1D + //3
+                         6 * CPA_D1D * CPA_Q1D * CPA_Q1D * CPA_Q1D + //4
+                         5 * CPA_Q1D * CPA_Q1D * CPA_Q1D +  // 5
+                         2 * CPA_Q1D * CPA_D1D * CPA_Q1D * CPA_Q1D + // 6
+                         2 * CPA_Q1D * CPA_D1D * CPA_Q1D * CPA_D1D + // 7
+                         (1 + 2*CPA_Q1D) * CPA_D1D * CPA_D1D * CPA_D1D // 8
+                         ));
 
   setUsesFeature(Teams);
 

@@ -220,7 +220,7 @@ Index_type NE = m_NE;
 #define cpaY_(dx, dy, dz, e)                                                      \
   Y[dx + CPA_D1D * dy + CPA_D1D * CPA_D1D * dz + CPA_D1D * CPA_D1D * CPA_D1D * e]
 #define cpa_op(qx, qy, qz, d, e)                                       \
-  D[qx + CPA_Q1D * qy + CPA_Q1D * CPA_Q1D * qz + CPA_Q1D * CPA_Q1D * CPA_Q1D + d * CPA_Q1D * CPA_Q1D * CPA_Q1D  +  CPA_VDIM * CPA_Q1D * CPA_Q1D * CPA_Q1D * e]
+  D[qx + CPA_Q1D * qy + CPA_Q1D * CPA_Q1D * qz + CPA_Q1D * CPA_Q1D * CPA_Q1D * d  +  CPA_VDIM * CPA_Q1D * CPA_Q1D * CPA_Q1D * e]
 
 #define CONVECTION3DPA_0_GPU \
   constexpr int max_D1D = CPA_D1D; \

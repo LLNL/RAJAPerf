@@ -114,10 +114,10 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
     MASS3DPA_DATA_SETUP_CUDA;
 
+    dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
       Mass3DPA<block_size><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
 

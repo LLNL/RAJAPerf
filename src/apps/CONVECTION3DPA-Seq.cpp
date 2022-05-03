@@ -383,8 +383,9 @@ void CONVECTION3DPA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
                 } // lambda (dz)
               );  //RAJA::expt::loop<inner_z>
 
-            }
-         );
+            } // lambda (e)
+         ); // RAJA::expt::loop<outer_x>
+
         }  // outer lambda (ctx)
       );  // RAJA::expt::launch
     }  // loop over kernel reps
