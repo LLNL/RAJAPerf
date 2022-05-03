@@ -90,6 +90,15 @@ template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
+  constexpr int Ne = 16;
+  int x = threadIdx.x + blockIdx.x * blockDim.x; 
+  int y = threadIdx.y + blockIdx.y * blockDim.y; 
+
+  float sum = 0;
+  for (int k = 0; k < Ne; ++k) {
+    sum += A[y*Ne + k] * B[k*Ne + x];
+  }
+  D[y*Ne + x] = sum;
 	return;
 }
 template < size_t block_size >
@@ -101,7 +110,8 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
-  dim3 blockDim(Ne, 4, 1);
+  dim3 blockDimBuiltin(Ne, Ne/4, 1);
+  dim3 blockDim(Ne, Ne, 1);
   hipDeviceProp_t devProp;
   hipError_t err = hipGetDeviceProperties(&devProp, 0);
   std::string gcnArchName(devProp.gcnArchName);
@@ -121,12 +131,12 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 	if(hipArch == "gfx90a") 
 	  //Both FP32 and FP64 supported
-      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
                          A, B, D, N);
 	else if(hipArch == "gfx908"){
 #if defined(RP_USE_FLOAT)
 	  //Only FP32 supported on MI100
-      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
+      hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
                          A, B, D, N);
 #elif defined(RP_USE_DOUBLE)
 	  //FP64 not supported on MI100
@@ -143,6 +153,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
+
   } else if (vid == Lambda_HIP) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
