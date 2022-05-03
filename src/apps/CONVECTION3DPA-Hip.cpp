@@ -6,9 +6,6 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-// Uncomment to add compiler directives for loop unrolling
-//#define USE_RAJAPERF_UNROLL
-
 #include "CONVECTION3DPA.hpp"
 
 #include "RAJA/RAJA.hpp"
