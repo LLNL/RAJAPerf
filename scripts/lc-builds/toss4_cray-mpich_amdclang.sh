@@ -100,6 +100,6 @@ echo "  Please note that cray-mpich requires libmodules.so.1 from cce to run."
 echo "  Until this is handled transparently in the build system you may add "
 echo "  cce to your LD_LIBRARY_PATH."
 echo
-echo "    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/"
+echo "    export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/tce/packages/cce-tce/cce-13.0.2/cce/x86_64/lib/"
 echo
 echo "***********************************************************************"
