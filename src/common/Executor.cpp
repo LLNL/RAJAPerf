@@ -1616,7 +1616,7 @@ string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner
       title = string("Max ");
     }
     break;
-    default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+    default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
   }
   switch ( mode ) {
     case CSVRepMode::Timing : {
@@ -1658,7 +1658,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
           retval = kern->getMaxTime(vid, tune_idx);
         }
         break;
-        default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+        default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
       }
       break;
     }
@@ -1682,7 +1682,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
                        kern->getMaxTime(vid, tune_idx);
             }
             break;
-            default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+            default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
           }
         } else {
           retval = 0.0;
