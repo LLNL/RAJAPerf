@@ -193,7 +193,7 @@ void INDEXLIST::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     default : {
       ignore_unused(run_reps, ibegin, iend, x, list);
-      std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
     }
 
   }
