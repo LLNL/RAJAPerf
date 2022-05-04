@@ -175,7 +175,7 @@ void SCAN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     }
 
     default : {
-      std::cout << "\n  SCAN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SCAN : Unknown variant id = " << vid << std::endl;
     }
 
   }
