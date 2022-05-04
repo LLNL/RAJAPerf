@@ -44,6 +44,8 @@ using namespace std;
 
 namespace {
 
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+
 void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
                MPI_Op op, MPI_Comm comm)
 {
@@ -93,6 +95,8 @@ void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
   }
 
 }
+
+#endif
 
 }
 
