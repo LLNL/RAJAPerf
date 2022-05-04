@@ -36,6 +36,7 @@ cmake \
   -DCMAKE_BUILD_TYPE=Release \
   -DMPI_CXX_COMPILER=/usr/tce/packages/mvapich2/mvapich2-${MPI_VER}-gcc-${COMP_VER}/bin/mpic++ \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_VER}/bin/g++ \
+  -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_MPI=On \
   -DENABLE_OPENMP=On \

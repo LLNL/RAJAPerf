@@ -245,10 +245,11 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                                         cudacompiler))
 
             cfg.write(cmake_cache_string("BLT_CXX_STD", "c++14"))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", False))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             if ("xl" in cpp_compiler):
-                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O3 -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
+                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O2 -Xcompiler -qstrict " +
+                                            "-Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
                                             "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh -Xcompiler -qsuppress=1500-029 " +
                                             "-Xcompiler -qsuppress=1500-036 -Xcompiler -qsuppress=1500-030"))
                 cuda_release_flags = "-O3"
@@ -282,7 +283,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", False))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
@@ -292,7 +293,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                                         rocm_root))
             cfg.write(cmake_cache_entry("HIP_PATH",
                                         rocm_root + '/llvm/bin'))
-            cfg.write(cmake_cache_entry("CMAKE_HIP_ARCHITECTURES", 'fx906'))
+            cfg.write(cmake_cache_entry("CMAKE_HIP_ARCHITECTURES", 'gfx906'))
 
             hipcc_flags = ['--amdgpu-target=gfx906']
 

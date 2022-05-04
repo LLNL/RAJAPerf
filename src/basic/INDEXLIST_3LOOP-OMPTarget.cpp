@@ -99,7 +99,7 @@ void INDEXLIST_3LOOP::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUS
     }
 
     default : {
-      std::cout << "\n  INDEXLIST_3LOOP : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INDEXLIST_3LOOP : Unknown variant id = " << vid << std::endl;
     }
 
   }

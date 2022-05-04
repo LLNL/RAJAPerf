@@ -128,7 +128,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
     }
 
   }
