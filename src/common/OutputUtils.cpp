@@ -31,10 +31,9 @@ namespace rajaperf
  */
 std::string recursiveMkdir(const std::string& in_path)
 {
-
-  std::string dir;
-
   std::string path = in_path;
+
+  // remove leading "." or "./"
   if ( !path.empty() ) {
     if ( path.at(0) == '.' ) {
       if ( path.length() > 2 && path.at(1) == '/' ) {
@@ -56,6 +55,7 @@ std::string recursiveMkdir(const std::string& in_path)
     MPI_Barrier(MPI_COMM_WORLD);
   }
 #endif
+
 // ----------------------------------------
   std::string outpath = path;
 
