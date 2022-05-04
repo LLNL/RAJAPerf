@@ -213,7 +213,7 @@ Index_type NE = m_NE;
 #define CPA_Q1D 4
 #define CPA_VDIM 3
 #define cpa_B(x, y) Basis[x + CPA_Q1D * y]
-#define cpa_Bt(x, y) tBasis[x + CPA_Q1D * y]
+#define cpa_Bt(x, y) tBasis[x + CPA_D1D * y]
 #define cpa_G(x, y) dBasis[x + CPA_Q1D * y]
 #define cpaX_(dx, dy, dz, e)                                                     \
   X[dx + CPA_D1D * dy + CPA_D1D * CPA_D1D * dz + CPA_D1D * CPA_D1D * CPA_D1D * e]
