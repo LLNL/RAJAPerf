@@ -59,9 +59,9 @@ void MUL::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((mul<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  b, c, alpha,
-                                      iend );
-      hipErrchk( hipGetLastError() );
+      void* args[] = {(void*)&b, (void*)&c, (void*)&alpha, (void*)&iend };
+      hipErrchk( hipLaunchKernel((const void*)(mul<block_size>),
+          grid_size, block_size, args, 0, 0 ) );
 
     }
     stopTimer();
@@ -75,14 +75,14 @@ void MUL::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      auto mul_lambda = [=] __device__ (Index_type i) {
+      auto body = [=] __device__ (Index_type i) {
         MUL_BODY;
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(mul_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, mul_lambda);
-      hipErrchk( hipGetLastError() );
+      void* args[] = {(void*)&ibegin, (void*)&iend, (void*)&body };
+      hipErrchk( hipLaunchKernel((const void*)(lambda_hip_forall<block_size, decltype(body)>),
+          grid_size, block_size, args, 0, 0 ) );
 
     }
     stopTimer();

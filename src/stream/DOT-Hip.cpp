@@ -89,10 +89,9 @@ void DOT::runHipVariantImpl(VariantID vid)
       initHipDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
-                                            sizeof(Real_type)*block_size, 0,
-                         a, b, dprod, m_dot_init, iend );
-      hipErrchk( hipGetLastError() );
+      void* args[] = {(void*)&a, (void*)&b, (void*)&dprod, (void*)&m_dot_init, (void*)&iend };
+      hipErrchk( hipLaunchKernel((const void*)(dot<block_size>),
+          grid_size, block_size, args, sizeof(Real_type)*block_size, 0 ) );
 
       Real_type lprod;
       Real_ptr plprod = &lprod;
