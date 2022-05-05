@@ -34,29 +34,47 @@ namespace basic {
   deallocCudaDeviceData(B);                         \
   deallocCudaDeviceData(D);							
 
+
 template < Index_type block_size >
-  __launch_bounds__(block_size)
-__global__ void MAT_FUSED_MUL_ADD(Index_type N, Real_ptr A, Real_ptr B,
-                               Real_ptr D) {
+__launch_bounds__(block_size)
+__global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
+                                  Index_type N){
+  constexpr int Ne = 16;
+for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
+  int x = threadIdx.x + blockIdx.x * blockDim.x; 
+  int y = threadIdx.y + blockIdx.y * blockDim.y; 
 
+  float sum = 0;
+  for (int k = 0; k < Ne; ++k) {
+    sum += A[y*Ne + k] * B[k*Ne + x];
+  }
+  D[y*Ne + x + ii*(Ne*Ne)] = sum;
 }
-
+}
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
 {
 
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
-  const Index_type Ne = m_Ne;
+  constexpr Index_type Ne = m_Ne;
+  constexpr Index_type NeNe = m_Ne * m_Ne;
 
+  dim3 gridDim (1, 1, 1);
+  dim3 blockDim(Ne, Ne, 1);
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
   if (vid == Base_CUDA) {
+	for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+  		for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }
+  		for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }
+	}
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      mat_fused_mul_add<block_size><<<dim3(gridDim), dim3(blockDim)>>>(A, B, D, N);
     }
     stopTimer();
 
