@@ -106,7 +106,7 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     SCAN_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  SCAN : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  SCAN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

@@ -109,7 +109,7 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  NODAL_ACCUMULATION_3D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 

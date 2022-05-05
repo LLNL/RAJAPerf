@@ -109,7 +109,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
     NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 

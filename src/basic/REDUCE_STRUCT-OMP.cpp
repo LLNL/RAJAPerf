@@ -140,7 +140,7 @@ void REDUCE_STRUCT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
     }
 
     default : {
-      std::cout << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
     }
 
   }

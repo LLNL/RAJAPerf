@@ -133,7 +133,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
     }
 
     default : {
-      std::cout << "\n  NODAL_ACCUMULATION_3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown variant id = " << vid << std::endl;
     }
 
   }

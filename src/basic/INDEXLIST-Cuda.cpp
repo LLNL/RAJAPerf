@@ -306,7 +306,7 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     INDEXLIST_DATA_TEARDOWN_CUDA;
 
   } else {
-    std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
 

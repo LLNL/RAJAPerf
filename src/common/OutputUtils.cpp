@@ -31,19 +31,9 @@ namespace rajaperf
  */
 std::string recursiveMkdir(const std::string& in_path)
 {
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
-  int rank = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  // Processes wait for rank 0 to make the directories before proceeding
-  if (rank != 0) {
-    MPI_Barrier(MPI_COMM_WORLD);
-  }
-#endif
-
-  std::string dir;
-
   std::string path = in_path;
+
+  // remove leading "." or "./"
   if ( !path.empty() ) {
     if ( path.at(0) == '.' ) {
       if ( path.length() > 2 && path.at(1) == '/' ) {
@@ -55,6 +45,16 @@ std::string recursiveMkdir(const std::string& in_path)
   }
 
   if ( path.empty() ) return std::string();
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  // Processes wait for rank 0 to make the directories before proceeding
+  if (rank != 0) {
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+#endif
 
 // ----------------------------------------
   std::string outpath = path;

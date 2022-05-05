@@ -133,7 +133,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     SCAN_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
