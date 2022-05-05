@@ -57,6 +57,9 @@ stages:
   - n_allocate_resources
   - n_build_and_test
   - n_release_resources
+  - v_allocate_resources
+  - v_build_and_test
+  - v_release_resources
 
 # This is the rules that drives the activation of "advanced" jobs. All advanced
 # jobs will share this through a template mechanism.
@@ -81,8 +84,8 @@ stages:
   script:
     - srun -p pbatch -t 30 -N 1 scripts/gitlab/build_and_test.sh
 
-# Script for rznevada runs on toss 4
-.build_toss_4_x86_64_ib_rznevada_script:
+# Script for rznevada and rzvernal runs on rz toss 4
+.build_toss_4_x86_64_ib_rz_script:
   script:
     - echo ${ALLOC_NAME}
     - export JOBID=$(squeue -h --name=${ALLOC_NAME} --format=%A)
@@ -118,3 +121,5 @@ include:
   - local: .gitlab/corona-jobs.yml
   - local: .gitlab/rznevada-templates.yml
   - local: .gitlab/rznevada-jobs.yml
+  - local: .gitlab/rzvernal-templates.yml
+  - local: .gitlab/rzvernal-jobs.yml

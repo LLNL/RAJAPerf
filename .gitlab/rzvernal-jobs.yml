@@ -1,0 +1,28 @@
+#############################################################################
+## Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
+## and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+##
+## SPDX-License-Identifier: (BSD-3-Clause)
+##############################################################################
+
+# HIP jobs on RZvernal
+
+hip_5_1_0_cce_13_0_0:
+  variables:
+    SPEC: "+rocm~openmp amdgpu_target=gfx90a %cce@13.0.0 ^hip@5.1.0"
+  extends: .build_and_test_on_rzvernal
+
+hip_5_1_0_clang_13_0_0:
+  variables:
+    SPEC: "+rocm~openmp amdgpu_target=gfx90a %clang@13.0.0 ^hip@5.1.0"
+  extends: .build_and_test_on_rzvernal
+
+hip_5_0_2_cce_13_0_0:
+  variables:
+    SPEC: "+rocm~openmp amdgpu_target=gfx90a %cce@13.0.0 ^hip@5.0.2"
+  extends: .build_and_test_on_rzvernal
+
+  #hip_4_5_2_gcc_11_2_0:
+  #variables:
+  #  SPEC: "+rocm~openmp amdgpu_target=gfx906 %gcc@11.2.0 ^hip@4.5.2"
+  #extends: .build_and_test_on_rzvernal
