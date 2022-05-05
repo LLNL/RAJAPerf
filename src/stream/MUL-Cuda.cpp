@@ -78,6 +78,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
       auto body = [=] __device__ (Index_type i) {
         MUL_BODY;
       };
+      
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       void* args[] = {(void*)&ibegin, (void*)&iend, (void*)&body };
       cudaErrchk( cudaLaunchKernel((const void*)(lambda_cuda_forall<block_size, decltype(body)>),
