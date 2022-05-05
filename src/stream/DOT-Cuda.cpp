@@ -88,9 +88,9 @@ void DOT::runCudaVariantImpl(VariantID vid)
       initCudaDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
-          a, b, dprod, m_dot_init, iend );
-      cudaErrchk( cudaGetLastError() );
+      void* args[] = {(void*)&a, (void*)&b, (void*)&dprod, (void*)&m_dot_init, (void*)&iend };
+      cudaErrchk( cudaLaunchKernel((const void*)(dot<block_size>),
+          grid_size, block_size, args, sizeof(Real_type)*block_size, 0 ) );
 
       Real_type lprod;
       Real_ptr plprod = &lprod;
