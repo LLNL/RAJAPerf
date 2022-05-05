@@ -33,6 +33,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
 
 #include <unistd.h>
 
@@ -40,6 +41,64 @@
 namespace rajaperf {
 
 using namespace std;
+
+namespace {
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+
+void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
+               MPI_Op op, MPI_Comm comm)
+{
+  if (op != MPI_SUM && op != MPI_MIN && op != MPI_MAX) {
+    getCout() << "\nUnsupported MPI_OP..." << endl;
+  }
+
+  if (Checksum_MPI_type == MPI_DATATYPE_NULL) {
+
+    int rank = -1;
+    MPI_Comm_rank(comm, &rank);
+    int num_ranks = -1;
+    MPI_Comm_size(comm, &num_ranks);
+
+    std::vector<Checksum_type> gather(count*num_ranks);
+
+    MPI_Gather(send, count*sizeof(Checksum_type), MPI_BYTE,
+               gather.data(), count*sizeof(Checksum_type), MPI_BYTE,
+               0, comm);
+
+    if (rank == 0) {
+
+      for (int i = 0; i < count; ++i) {
+
+        Checksum_type val = gather[i];
+
+        for (int r = 1; r < num_ranks; ++r) {
+          if (op == MPI_SUM) {
+            val += gather[i + r*count];
+          } else if (op == MPI_MIN) {
+            val = std::min(val, gather[i + r*count]);
+          } else if (op == MPI_MAX) {
+            val = std::max(val, gather[i + r*count]);
+          }
+        }
+        recv[i] = val;
+      }
+
+    }
+
+    MPI_Bcast(recv, count*sizeof(Checksum_type), MPI_BYTE,
+              0, comm);
+
+  } else {
+
+    MPI_Allreduce(send, recv, count, Checksum_MPI_type, op, comm);
+  }
+
+}
+
+#endif
+
+}
 
 Executor::Executor(int argc, char** argv)
   : run_params(argc, argv),
@@ -1423,17 +1482,14 @@ void Executor::writeChecksumReport(ostream& file)
       }
 
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
-      if (Checksum_MPI_type == MPI_DATATYPE_NULL) {
-        getCout() << "Checksum_MPI_type is invalid" << endl;
-      }
 
       // get stats for checksums
       std::vector<std::vector<Checksum_type>> checksums_sum(variant_ids.size());
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_sum[iv].resize(num_tunings, 0.0);
-        MPI_Allreduce(checksums[iv].data(), checksums_sum[iv].data(), num_tunings,
-                   Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+        Allreduce(checksums[iv].data(), checksums_sum[iv].data(), num_tunings,
+                  MPI_SUM, MPI_COMM_WORLD);
       }
 
       std::vector<std::vector<Checksum_type>> checksums_avg(variant_ids.size());
@@ -1464,12 +1520,12 @@ void Executor::writeChecksumReport(ostream& file)
         checksums_abs_diff_max[iv].resize(num_tunings, 0.0);
         checksums_abs_diff_sum[iv].resize(num_tunings, 0.0);
 
-        MPI_Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_min[iv].data(), num_tunings,
-                   Checksum_MPI_type, MPI_MIN, MPI_COMM_WORLD);
-        MPI_Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_max[iv].data(), num_tunings,
-                   Checksum_MPI_type, MPI_MAX, MPI_COMM_WORLD);
-        MPI_Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_sum[iv].data(), num_tunings,
-                   Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+        Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_min[iv].data(), num_tunings,
+                  MPI_MIN, MPI_COMM_WORLD);
+        Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_max[iv].data(), num_tunings,
+                  MPI_MAX, MPI_COMM_WORLD);
+        Allreduce(checksums_abs_diff[iv].data(), checksums_abs_diff_sum[iv].data(), num_tunings,
+                  MPI_SUM, MPI_COMM_WORLD);
       }
 
       std::vector<std::vector<Checksum_type>> checksums_abs_diff_avg(variant_ids.size());
@@ -1495,8 +1551,8 @@ void Executor::writeChecksumReport(ostream& file)
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         size_t num_tunings = kernels[ik]->getNumVariantTunings(variant_ids[iv]);
         checksums_abs_diff_stddev[iv].resize(num_tunings, 0.0);
-        MPI_Allreduce(checksums_abs_diff_diff2avg2.data(), checksums_abs_diff_stddev.data(), num_tunings,
-                   Checksum_MPI_type, MPI_SUM, MPI_COMM_WORLD);
+        Allreduce(checksums_abs_diff_diff2avg2[iv].data(), checksums_abs_diff_stddev[iv].data(), num_tunings,
+                  MPI_SUM, MPI_COMM_WORLD);
         for (size_t tune_idx = 0; tune_idx < num_tunings; ++tune_idx) {
           checksums_abs_diff_stddev[iv][tune_idx] = std::sqrt(checksums_abs_diff_stddev[iv][tune_idx] / num_ranks);
         }
@@ -1564,7 +1620,7 @@ string Executor::getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner
       title = string("Max ");
     }
     break;
-    default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+    default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
   }
   switch ( mode ) {
     case CSVRepMode::Timing : {
@@ -1606,7 +1662,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
           retval = kern->getMaxTime(vid, tune_idx);
         }
         break;
-        default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+        default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
       }
       break;
     }
@@ -1630,7 +1686,7 @@ long double Executor::getReportDataEntry(CSVRepMode mode,
                        kern->getMaxTime(vid, tune_idx);
             }
             break;
-            default : { cout << "\n Unknown CSV combiner mode = " << combiner << endl; }
+            default : { getCout() << "\n Unknown CSV combiner mode = " << combiner << endl; }
           }
         } else {
           retval = 0.0;

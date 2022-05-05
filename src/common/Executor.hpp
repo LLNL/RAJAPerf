@@ -89,6 +89,12 @@ private:
 
   VariantID reference_vid;
   size_t    reference_tune_idx;
+
+public:
+  // Methods for verification testing in CI.
+  std::vector<KernelBase*> getKernels() const { return kernels; }
+  std::vector<VariantID> getVariantIDs() const { return variant_ids; }
+
 };
 
 }  // closing brace for rajaperf namespace
