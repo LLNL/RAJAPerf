@@ -97,7 +97,7 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
 
   float dot = 0;
   for (int k = 0; k < Ne; ++k) {
-    dot += A[y*Ne + k] * B[k*Ne + x];
+    dot += A[row*Ne + k] * B[k*Ne + col];
   }
   D[row*Ne + col + ii*(Ne*Ne)] = dot;
 }
