@@ -92,14 +92,14 @@ __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D
                                   Index_type N){
   constexpr int Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  int x = threadIdx.x + blockIdx.x * blockDim.x; 
-  int y = threadIdx.y + blockIdx.y * blockDim.y; 
+  int col = threadIdx.x + blockIdx.x * blockDim.x; 
+  int row = threadIdx.y + blockIdx.y * blockDim.y; 
 
-  float sum = 0;
+  float dot = 0;
   for (int k = 0; k < Ne; ++k) {
-    sum += A[y*Ne + k] * B[k*Ne + x];
+    dot += A[y*Ne + k] * B[k*Ne + x];
   }
-  D[y*Ne + x + ii*(Ne*Ne)] = sum;
+  D[row*Ne + col + ii*(Ne*Ne)] = dot;
 }
 }
 template < size_t block_size >
@@ -154,6 +154,11 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
+ 	for(int i = 0; i != N; ++i){ 
+ 	     printf("D[%d] = %f\n", i, m_D[i]); 
+ 	 }
+
+
   } else if (vid == Lambda_HIP) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;

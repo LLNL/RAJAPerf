@@ -39,16 +39,16 @@ template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
-  constexpr int Ne = 16;
+constexpr int Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  int x = threadIdx.x + blockIdx.x * blockDim.x; 
-  int y = threadIdx.y + blockIdx.y * blockDim.y; 
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
 
-  float sum = 0;
-  for (int k = 0; k < Ne; ++k) {
-    sum += A[y*Ne + k] * B[k*Ne + x];
+  Real_type dot = 0;
+  for (Real_type k = 0; k < Ne; ++k) {
+    dot += A[row*Ne + k] * B[k*Ne + col];
   }
-  D[y*Ne + x + ii*(Ne*Ne)] = sum;
+  D[row*Ne + col + ii*(Ne*Ne)] = dot;
 }
 }
 template < size_t block_size >
