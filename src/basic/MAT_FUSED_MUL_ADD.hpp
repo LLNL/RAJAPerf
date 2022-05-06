@@ -13,17 +13,17 @@
 // D: N/(Ne*Ne) Ne x Ne matrices
 // All square row-major matrices, C is ignored.
 // for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-//  for(int row = 0; row != Ne; ++row){
-//    for(int col = 0; col != Ne; ++col){
-//      float dot = 0.0;
-//      int A_idx = row * Ne + ii*NeNe;
-//      int B_idx = col + ii*NeNe;
-//      for(int i = 0; i != Ne; ++i){
-//        dot += A[A_idx] * B[B_idx];
+//  for(Index_type row = 0; row != Ne; ++row){
+//    for(Index_type col = 0; col != Ne; ++col){
+//      Real_type dot = 0.0;
+//      Index_type A_idx = row * Ne;
+//      Index_type B_idx = col;
+//      for(Index_type i = 0; i != Ne; ++i){
+//        sum += A[A_idx] * B[B_idx];
 //        ++A_idx;
 //        B_idx += Ne;
 //      }
-//      D[row * Ne + col] = dot;
+//      D[row * Ne + col + ii*(Ne*Ne)] = sum;
 //    }
 //  }
 //  return D;
@@ -35,11 +35,21 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
-
 #define MAT_FUSED_MUL_ADD_DATA_SETUP        \
   Real_ptr A = m_A; 						\
   Real_ptr B = m_B; 						\
   Real_ptr D = m_D; 						
+
+#define MAT_FUSED_MUL_ADD_BODY          \
+  Real_type sum = 0.0;                  \
+  Index_type A_idx = row * Ne;          \
+  Index_type B_idx = col;               \
+  for(Index_type i = 0; i != Ne; ++i){  \
+    sum += A[A_idx] * B[B_idx];         \
+    A_idx++;                            \
+    B_idx += Ne;                        \
+  }                                     \
+  D[row * Ne + col + ii*(Ne*Ne)] = sum;
 
 namespace rajaperf {
 class RunParams;
