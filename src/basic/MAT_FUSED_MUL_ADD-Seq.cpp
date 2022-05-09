@@ -17,10 +17,12 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
-  const Index_type Ne = m_Ne;
+  constexpr Index_type Ne = m_Ne;
+  constexpr Index_type NeNe = m_Ne * m_Ne;
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
+  MAT_FUSED_MUL_ADD_DATA_INIT;
   switch (vid) {
 
   case Base_Seq: {

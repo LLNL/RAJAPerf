@@ -35,6 +35,12 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
+#define MAT_FUSED_MUL_ADD_DATA_INIT \
+for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){ \
+	for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; } \
+	for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; } \
+} 
+
 #define MAT_FUSED_MUL_ADD_DATA_SETUP        \
   Real_ptr A = m_A; 						\
   Real_ptr B = m_B; 						\

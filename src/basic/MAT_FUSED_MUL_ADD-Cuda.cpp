@@ -60,11 +60,9 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
   dim3 blockDim(Ne, Ne, 1);
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
+  MAT_FUSED_MUL_ADD_DATA_INIT;
+
   if (vid == Base_CUDA) {
-	for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-  		for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }
-  		for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }
-	}
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_CUDA;
 
