@@ -166,6 +166,10 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   } else if (vid == Lambda_HIP) {
     dim3 gridDim (1, 1, 1);
     dim3 blockDim(Ne, Ne, 1);
+	for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+  		for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }
+  		for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }
+	}
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
 
     startTimer();
@@ -183,6 +187,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
+
   } else if (vid == RAJA_HIP) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
