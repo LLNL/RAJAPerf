@@ -32,7 +32,7 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
         for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
               for(Index_type row = 0; row != Ne; ++row){
                 for(Index_type col = 0; col != Ne; ++col){
-                    MAT_FUSED_MUL_ADD_BODY
+                    MAT_FUSED_MUL_ADD_BODY;
                 }
             }
         }
