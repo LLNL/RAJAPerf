@@ -548,7 +548,7 @@ def plot_data(outputfile_name, ykind):
             plt.plot(xaxis,yaxis,yformat,color=ycolor,label=yname)
 
       fname = "{}_{}".format(outputfile_name, kernel_name)
-      gname = "{}\n{}".format(kernel_name, kernel_name)
+      gname = "{}".format(kernel_name)
 
       if ylabel:
          plt.ylabel(ylabel)
