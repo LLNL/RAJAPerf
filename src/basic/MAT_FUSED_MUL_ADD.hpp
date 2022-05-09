@@ -19,7 +19,7 @@
 //      Index_type A_idx = row * Ne;
 //      Index_type B_idx = col;
 //      for(Index_type i = 0; i != Ne; ++i){
-//        sum += A[A_idx] * B[B_idx];
+//        dot += A[A_idx] * B[B_idx];
 //        ++A_idx;
 //        B_idx += Ne;
 //      }
@@ -40,16 +40,12 @@
   Real_ptr B = m_B; 						\
   Real_ptr D = m_D; 						
 
-#define MAT_FUSED_MUL_ADD_BODY          \
-  Real_type sum = 0.0;                  \
-  Index_type A_idx = row * Ne;          \
-  Index_type B_idx = col;               \
-  for(Index_type i = 0; i != Ne; ++i){  \
-    sum += A[A_idx] * B[B_idx];         \
-    A_idx++;                            \
-    B_idx += Ne;                        \
-  }                                     \
-  D[row * Ne + col + ii*(Ne*Ne)] = sum;
+#define MAT_FUSED_MUL_ADD_BODY             \
+  Real_type dot = 0;                        \
+  for (Index_type k = 0; k < Ne; ++k) {     \
+    dot += A[row*Ne + k] * B[k*Ne + col];   \
+  }                                         \
+  D[row*Ne + col + ii*(Ne*Ne)] = dot;       \
 
 namespace rajaperf {
 class RunParams;

@@ -92,20 +92,28 @@ __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D
                                   Index_type N){
   constexpr int Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  int col = threadIdx.x + blockIdx.x * blockDim.x; 
-  int row = threadIdx.y + blockIdx.y * blockDim.y; 
-
-  float dot = 0;
-  for (int k = 0; k < Ne; ++k) {
-    dot += A[row*Ne + k] * B[k*Ne + col];
-  }
-  D[row*Ne + col + ii*(Ne*Ne)] = dot;
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+  MAT_FUSED_MUL_ADD_BODY;
 }
+}
+template <  Index_type block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void mat_fused_lam(Index_type N, Lambda body)
+{
+  constexpr int Ne = 16;
+for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+     body(ii,col,row);
+   }
 }
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+//  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();  
   const Index_type N = m_N;
   constexpr Index_type Ne = m_Ne;
   constexpr Index_type NeNe = m_Ne * m_Ne;
@@ -133,50 +141,53 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 	if(hipArch == "gfx90a") 
 	  //Both FP32 and FP64 supported
       hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
-                         A, B, D, N);
+                         A, B, D, iend);
 	else if(hipArch == "gfx908"){
 #if defined(RP_USE_FLOAT)
 	  //Only FP32 supported on MI100
       hipLaunchKernelGGL((mat_fused_mul_add_builtin<block_size>), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
-                         A, B, D, N);
+                         A, B, D, iend);
 #elif defined(RP_USE_DOUBLE)
 	  //FP64 not supported on MI100
       hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         A, B, D, N);
+                         A, B, D, iend);
 	}
 #endif
 	else
 	 //Otherwise no mfma hardware support
       hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         A, B, D, N);
+                         A, B, D, iend);
       hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
- 	for(int i = 0; i != N; ++i){ 
- 	     printf("D[%d] = %f\n", i, m_D[i]); 
- 	 }
-
 
   } else if (vid == Lambda_HIP) {
-
+    dim3 gridDim (1, 1, 1);
+    dim3 blockDim(Ne, Ne, 1);
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto mat_fused_lamda =
+        [=] __device__ (Index_type ii, Index_type row, Index_type col) {
+            MAT_FUSED_MUL_ADD_BODY;
+        };        
+      hipLaunchKernelGGL((mat_fused_lam<block_size, decltype(mat_fused_lamda)>),
+                         dim3(gridDim), dim3(blockDim), 0, 0,
+                         iend, mat_fused_lamda);      
+    hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
-
     startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    }  // loop over kernel reps
+
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;

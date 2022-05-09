@@ -41,14 +41,10 @@ __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D
                                   Index_type N){
   constexpr int Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-  int col = threadIdx.x + blockIdx.x * blockDim.x;
-  int row = threadIdx.y + blockIdx.y * blockDim.y;
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x;
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y;
 
-  float dot = 0;
-  for (int k = 0; k < Ne; ++k) {
-    dot += A[row*Ne + k] * B[k*Ne + col];
-  }
-  D[row*Ne + col + ii*(Ne*Ne)] = dot;
+  MAT_FUSED_MUL_ADD_BODY;
 }
 }
 template < size_t block_size >
