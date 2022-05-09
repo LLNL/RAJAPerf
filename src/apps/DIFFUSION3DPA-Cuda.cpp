@@ -132,10 +132,10 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
 
     DIFFUSION3DPA_DATA_SETUP_CUDA;
 
+    dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
       Diffusion3DPA<block_size><<<NE, nthreads_per_block>>>(
           Basis, dBasis, D, X, Y, symmetric);
