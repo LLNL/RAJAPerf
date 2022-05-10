@@ -184,10 +184,35 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
 
   } else if (vid == RAJA_HIP) {
+    dim3 gridDim (1, 1, 1);
+    dim3 blockDim(Ne, Ne, 1);
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
-    startTimer();
 
+    startTimer();
+    RAJA::RangeSegment row_range(0, Ne);
+    RAJA::RangeSegment col_range(0, Ne);
+    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::HipKernel<
+        RAJA::statement::For<2, RAJA::loop_exec,
+          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, RAJA::hip_block_y_loop,
+            RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, RAJA::hip_block_x_loop,
+              RAJA::statement::For<1, RAJA::hip_thread_y_direct,
+                RAJA::statement::For<0, RAJA::hip_thread_x_direct,
+                  RAJA::statement::Lambda<0>
+                >
+              >
+            >
+          >
+        >
+        >
+      >;
+      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(ii_range, col_range, row_range),
+    [=] RAJA_DEVICE (int ii, int col, int row) {
+        MAT_FUSED_MUL_ADD_BODY;
+        });
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
