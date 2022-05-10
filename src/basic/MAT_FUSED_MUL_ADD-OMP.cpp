@@ -24,6 +24,7 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
+  MAT_FUSED_MUL_ADD_DATA_INIT;
 
   switch (vid) {
 
