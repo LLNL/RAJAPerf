@@ -585,7 +585,7 @@ def plot_data(outputfile_name, ykind):
 
             plt.plot(xaxis,yaxis,yformat,color=ycolor,label=yname)
 
-      fname = "{}_{}".format(outputfile_name, kernel_name)
+      fname = "{}_{}.png".format(outputfile_name, kernel_name)
       gname = "{}".format(kernel_name)
 
       if ylabel:
@@ -638,7 +638,7 @@ def print_data(kind):
 
 def main(argv):
    sweep_dir_paths = []
-   outputfile = "output.png"
+   outputfile = "graph"
    help_string = "sweep_graph.py -o <outputfile> <sweepdir1 [sweepdir2 ...]>"
    runinfo_filename = g_runinfo_filename
    timing_filename = g_timing_filename
