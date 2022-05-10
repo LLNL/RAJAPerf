@@ -242,10 +242,14 @@ g_exclude_kernels = {}
 g_num_variants = 0
 g_variants = {}
 g_variant_colors = {}
+g_include_variants = {}
+g_exclude_variants = {}
 
 g_num_tunings = 0
 g_tunings = {}
 g_tuning_formats = {}
+g_include_tunings = {}
+g_exclude_tunings = {}
 
 def get_size_from_dir_name(sweep_subdir_name):
    # print(sweep_subdir_name)
@@ -336,7 +340,7 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                   variant_name = row[c].strip()
                   if variant_name in g_variants:
                      pass
-                  else:
+                  elif (len(g_include_variants) == 0 or variant_name in g_include_variants) and (not variant_name in g_exclude_variants):
                      global g_num_variants
                      variant_index = g_num_variants
                      g_num_variants += 1
@@ -349,13 +353,16 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                      else:
                         print("Unknown variant {0}".format(variant_name))
                         sys.exit(1)
+                  else:
+                     g_variants[variant_name]  = -1
+
                   c_to_variant_index[c] = g_variants[variant_name]
             elif len(c_to_tuning_index) == 0:
                for c in range(1, len(row)):
                   tuning_name = row[c].strip()
                   if tuning_name in g_tunings:
                      pass
-                  else:
+                  elif (len(g_include_tunings) == 0 or tuning_name in g_include_tunings) and (not tuning_name in g_exclude_tunings):
                      global g_num_tunings
                      tuning_index = g_num_tunings
                      g_num_tunings += 1
@@ -368,6 +375,8 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                      else:
                         print("Unknown tuning {0}".format(tuning_name))
                         sys.exit(1)
+                  else:
+                     g_tunings[tuning_name] = -1
                   c_to_tuning_index[c] = g_tunings[tuning_name]
             else:
                print("Unknown row {0}".format(row))
@@ -384,6 +393,8 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             for c in range(1, len(row)):
                variant_index = c_to_variant_index[c]
                tuning_index = c_to_tuning_index[c]
+               if variant_index < 0 or tuning_index < 0:
+                  continue # ignore data
                try:
                   val = float(row[c].strip())
                   # print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
@@ -687,6 +698,26 @@ def main(argv):
             def fek(arg):
                g_exclude_kernels[arg] = arg
             handle_arg = fek
+         elif opt in ("-v", "--variants"):
+            handle_num = -1
+            def fv(arg):
+               g_include_variants[arg] = arg
+            handle_arg = fv
+         elif opt in ("-ev", "--exclude-variants"):
+            handle_num = -1
+            def fev(arg):
+               g_exclude_variants[arg] = arg
+            handle_arg = fev
+         elif opt in ("-t", "--tunings"):
+            handle_num = -1
+            def ft(arg):
+               g_include_tunings[arg] = arg
+            handle_arg = ft
+         elif opt in ("-et", "--exclude-tunings"):
+            handle_num = -1
+            def fet(arg):
+               g_exclude_tunings[arg] = arg
+            handle_arg = fet
 
          if handle_num == 0:
             print(help_string)
