@@ -65,6 +65,18 @@ g_known_variants = { "Base_Seq": {"color": color_mul(g_color_seq, g_color_base_f
                      "Lambda_HIP": {"color": color_mul(g_color_hip, g_color_lambda_factor)},
                      "RAJA_HIP": {"color": color_mul(g_color_hip, g_color_raja_factor)}
                    }
+g_known_tunings =  { "default": {"format": "-"},
+                     "block_25": {"format": "-"},
+                     "block_32": {"format": ":"},
+                     "block_64": {"format": "-."},
+                     "block_128": {"format": "--"},
+                     "block_256": {"format": "-"},
+                     "block_512": {"format": "-."},
+                     "block_1024": {"format": "-"},
+                     "cub": {"format": ":"},
+                     "rocprim": {"format": ":"}
+                   }
+g_markers = [ "o", "s", "+", "x", "*", "d", "h", "p", "8" ]
 
 g_timing_filename = "RAJAPerf-timing-Minimum.csv"
 g_runinfo_filename = "RAJAPerf-kernels.csv"
@@ -217,6 +229,7 @@ g_kinds = { "Problem size": { "type": "info" },
 
 g_num_sweeps = 0
 g_sweeps = {}
+g_sweep_markers = {}
 
 g_num_run_sizes = 0
 g_run_sizes = {}
@@ -230,7 +243,7 @@ g_variant_colors = {}
 
 g_num_tunings = 0
 g_tunings = {}
-g_tuning_colors = {}
+g_tuning_formats = {}
 
 def get_size_from_dir_name(sweep_subdir_name):
    # print(sweep_subdir_name)
@@ -344,9 +357,13 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                      g_num_tunings += 1
                      g_tunings[tuning_name]  = tuning_index
                      g_tunings[tuning_index] = tuning_name
-                     tuning_color = g_variant_colors[c_to_variant_index[c]]
-                     g_tuning_colors[tuning_name] = tuning_color
-                     g_tuning_colors[tuning_index] = tuning_color
+                     if tuning_name in g_known_tunings:
+                        tuning_format = g_known_tunings[tuning_name]["format"]
+                        g_tuning_formats[tuning_name] = tuning_format
+                        g_tuning_formats[tuning_index] = tuning_format
+                     else:
+                        print("Unknown tuning {0}".format(tuning_name))
+                        sys.exit(1)
                   c_to_tuning_index[c] = g_tunings[tuning_name]
             else:
                print("Unknown row {0}".format(row))
@@ -537,6 +554,7 @@ def plot_data(outputfile_name, ykind):
 
       for sweep_index in range(0, g_num_sweeps):
          sweep_dir_name = g_sweeps[sweep_index]
+         sweep_marker = g_sweep_markers[sweep_index]
 
          if not sweep_dir_name in xaxes:
             raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
@@ -544,7 +562,7 @@ def plot_data(outputfile_name, ykind):
          for data_name, ydata in yaxes[sweep_dir_name].items():
 
             yname = "{} {}".format(data_name, sweep_dir_name)
-            yformat = "-"
+            yformat = "{}-".format(sweep_marker)
             ycolor = (0.0, 0.0, 0.0, 1.0)
             yaxis = ydata["data"]
 
@@ -552,7 +570,7 @@ def plot_data(outputfile_name, ykind):
                variant_index = ydata["variant"]
                tuning_index = ydata["tuning"]
                ycolor = g_variant_colors[variant_index]
-               # yformat = g_tuning_formats[tuning_index]
+               yformat = "{}{}".format(sweep_marker, g_tuning_formats[tuning_index])
 
             if data_name in xaxes[sweep_dir_name]:
                xaxis = xaxes[sweep_dir_name][data_name]["data"]
@@ -686,6 +704,9 @@ def main(argv):
          if sweep_dir_name in g_sweeps:
             raise NameError("Repeated sweep_dir_name {}".format(sweep_dir_name))
          g_sweeps[g_num_sweeps] = sweep_dir_name
+         if g_num_sweeps >= len(g_markers):
+            raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
+         g_sweep_markers[g_num_sweeps] = g_markers[g_num_sweeps]
          g_num_sweeps += 1
 
    kinds_string = ""
