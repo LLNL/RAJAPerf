@@ -37,9 +37,9 @@ def color_mul(t, factor):
 def make_color_tuple(r, g, b):
    return (r/255.0, g/255.0, b/255.0)
 
-g_color_base_factor = 1.3
-g_color_lambda_factor = 1.0
-g_color_raja_factor = 0.7
+g_color_base_factor = 1.0
+g_color_lambda_factor = 0.7
+g_color_raja_factor = 0.4
 g_color_seq = normalize_color_tuple(make_color_tuple(204, 119, 34)) # ocre
 g_color_omp = normalize_color_tuple(make_color_tuple(0, 115, 125)) # omp teal
 g_color_ompt = normalize_color_tuple(make_color_tuple(125, 10, 0)) # omp teal compliment
