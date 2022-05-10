@@ -736,6 +736,7 @@ def main(argv):
                if not run_size in g_run_sizes:
                   global g_num_run_sizes
                   g_run_sizes[g_num_run_sizes] = run_size
+                  g_run_sizes[run_size] = g_num_run_sizes
                   g_num_run_sizes += 1
 
                sweep_subdir_timing_file_path = ""
