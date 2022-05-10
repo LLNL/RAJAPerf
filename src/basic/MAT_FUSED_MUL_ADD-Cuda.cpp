@@ -47,6 +47,17 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   MAT_FUSED_MUL_ADD_BODY;
 }
 }
+template <  Index_type block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void mat_fused_lam(Index_type N, Lambda body)
+{
+  constexpr int Ne = 16;
+for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+     body(ii,col,row);
+   }
+}
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
 {
@@ -80,21 +91,52 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto mat_fused_lamda =
+        [=] __device__ (Index_type ii, Index_type row, Index_type col) {
+            MAT_FUSED_MUL_ADD_BODY;
+        };        
+      mat_fused_lam<block_size, decltype(mat_fused_lamda)>
+                    <<<dim3(gridDim), dim3(blockDim)>>>(N, mat_fused_lamda);
     }
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_CUDA;
 
   } else if (vid == RAJA_CUDA) {
+    dim3 gridDim (1, 1, 1);
+    dim3 blockDim(Ne, Ne, 1);
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_CUDA;
 
     startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-    }  // loop over kernel reps
+    RAJA::RangeSegment row_range(0, Ne);
+    RAJA::RangeSegment col_range(0, Ne);
+    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+        RAJA::statement::CudaKernel<
+        RAJA::statement::For<2, RAJA::loop_exec,
+          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, RAJA::cuda_block_y_loop,
+            RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, RAJA::cuda_block_x_loop,
+              RAJA::statement::For<1, RAJA::cuda_thread_y_direct,
+                RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
+                  RAJA::statement::Lambda<0>
+                >
+              >
+            >
+          >
+        >
+        >
+      >;
+      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(ii_range, col_range, row_range),
+    [=] RAJA_DEVICE (int ii, int col, int row) {
+        MAT_FUSED_MUL_ADD_BODY;
+        });
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_CUDA;
+
 
   } else {
     getCout() << "\n  MAT_FUSED_MUL_ADD : Unknown Cuda variant id = " << vid
