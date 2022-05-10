@@ -31,6 +31,15 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    #pragma omp parallel for
+    for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+          for(Index_type row = 0; row != Ne; ++row){
+            for(Index_type col = 0; col != Ne; ++col){
+                MAT_FUSED_MUL_ADD_BODY;
+            }
+        }
+    }
+
 
     }
     stopTimer();
@@ -39,9 +48,22 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
   }
 
   case Lambda_OpenMP: {
+    auto mat_fused_base_lam = [=](Index_type ii, Index_type row, Index_type col){
+        MAT_FUSED_MUL_ADD_BODY;
+        };
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    #pragma omp parallel for
+    for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+          for(Index_type row = 0; row != Ne; ++row){
+            for(Index_type col = 0; col != Ne; ++col){
+                mat_fused_base_lam(ii, row, col);
+            }
+        }
+    }
+
+
     }
     stopTimer();
 
@@ -49,8 +71,20 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
   }
 
   case RAJA_OpenMP: {
+ 
+    RAJA::RangeSegment row_range(0, Ne);
+    RAJA::RangeSegment col_range(0, Ne);    
+    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+        RAJA::forall<RAJA::omp_parallel_for_exec>( ii_range, [=](int ii) {
+            RAJA::forall<RAJA::loop_exec>( row_range, [=](int row) {
+                RAJA::forall<RAJA::loop_exec>( col_range, [=](int col) {    
+                    MAT_FUSED_MUL_ADD_BODY;
+                });
+            });
+         });
     }  // loop over kernel reps
     stopTimer();
 

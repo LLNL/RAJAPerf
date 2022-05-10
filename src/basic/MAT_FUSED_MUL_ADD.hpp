@@ -12,23 +12,13 @@
 // Ouput:
 // D: N/(Ne*Ne) Ne x Ne matrices
 // All square row-major matrices, C is ignored.
-// for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-//  for(Index_type row = 0; row != Ne; ++row){
-//    for(Index_type col = 0; col != Ne; ++col){
-//      Real_type dot = 0.0;
-//      Index_type A_idx = row * Ne;
-//      Index_type B_idx = col;
-//      for(Index_type i = 0; i != Ne; ++i){
-//        dot += A[A_idx] * B[B_idx];
-//        ++A_idx;
-//        B_idx += Ne;
-//      }
-//      D[row * Ne + col + ii*(Ne*Ne)] = sum;
-//    }
-//  }
-//  return D;
-//}
-//}
+//for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+//      for(Index_type row = 0; row != Ne; ++row){
+//        for(Index_type col = 0; col != Ne; ++col){
+//            MAT_FUSED_MUL_ADD_BODY;
+//        }   
+//    }   
+//} 
 #ifndef RAJAPerf_Basic_MAT_FUSED_MUL_ADD_HPP
 #define RAJAPerf_Basic_MAT_FUSED_MUL_ADD_HPP
 
