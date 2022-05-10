@@ -236,6 +236,8 @@ g_run_sizes = {}
 
 g_num_kernels = 0
 g_kernels = {}
+g_include_kernels = {}
+g_exclude_kernels = {}
 
 g_num_variants = 0
 g_variants = {}
@@ -289,13 +291,15 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
             kernel_name = row[0].strip()
             if kernel_name in g_kernels:
                kernel_index = g_kernels[kernel_name]
-            else:
+            elif (len(g_include_kernels) == 0 or kernel_name in g_include_kernels) and (not kernel_name in g_exclude_kernels):
                # add kernel to global list
                global g_num_kernels
                kernel_index = g_num_kernels
                g_num_kernels += 1
                g_kernels[kernel_name]  = kernel_index
                g_kernels[kernel_index] = kernel_name
+            else:
+               continue # skip this kernel
 
             for c in range(1, len(row)):
                info_kind = c_to_info_kinds[c]
@@ -374,7 +378,7 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             if kernel_name in g_kernels:
                kernel_index = g_kernels[kernel_name]
             else:
-               raise NameError("Unknown Kernel {0}".format(kernel_name))
+               continue # skip kernel
 
             g_data[data_kind][sweep_dir_name][run_size][kernel_index] = {}
             for c in range(1, len(row)):
@@ -640,23 +644,77 @@ def main(argv):
    timing_filename = g_timing_filename
    print_kinds = []
    graph_kinds = []
-   try:
-      opts, args = getopt.getopt(argv,"h:o:p:g:",["help","output=","print=","graph="])
-   except getopt.GetoptError:
-      print(help_string)
-      sys.exit(2)
-   for opt, arg in opts:
-      if opt in ("-h", "--help"):
+
+   i = 0
+   while i < len(argv):
+      opt = argv[i]
+      if len(opt) == 0:
          print(help_string)
-         sys.exit()
-      elif opt in ("-o", "--output"):
-         outputfile = arg
-      elif opt in ("-p", "--print"):
-         print_kinds.append(arg)
-      elif opt in ("-g", "--graph"):
-         graph_kinds.append(arg)
-   for arg in args:
-      sweep_dir_paths.append(arg)
+         sys.exit(2)
+      elif opt[0] == "-":
+
+         # no arg options
+         if opt in ("-h", "--help"):
+            print(help_string)
+            sys.exit()
+
+         handle_num = 0
+         handle_arg = None
+         # single arg options
+         if opt in ("-o", "--output"):
+            handle_num = 1
+            def fo(arg):
+               outputfile = arg
+            handle_arg = fo
+         elif opt in ("-p", "--print"):
+            handle_num = 1
+            def p(arg):
+               print_kinds.append(arg)
+            handle_arg = p
+         elif opt in ("-g", "--graph"):
+            handle_num = 1
+            def fg(arg):
+               graph_kinds.append(arg)
+            handle_arg = fg
+         # multi arg options
+         elif opt in ("-k", "--kernels"):
+            handle_num = -1
+            def fk(arg):
+               g_include_kernels[arg] = arg
+            handle_arg = fk
+         elif opt in ("-ek", "--exclude-kernels"):
+            handle_num = -1
+            def fek(arg):
+               g_exclude_kernels[arg] = arg
+            handle_arg = fek
+
+         if handle_num == 0:
+            print(help_string)
+            sys.exit(2)
+
+         elif handle_num > 0:
+            if not i+handle_num < len(argv):
+               print("Missing option to {}".format(opt))
+               sys.exit(2)
+            for h in range(1, handle_num+1):
+               arg = argv[i+h]
+               if arg[0] == "-":
+                  print("Missing option to {}".format(opt))
+                  sys.exit(2)
+               handle_arg(arg)
+            i += handle_num
+
+         else:
+            while i+1 < len(argv):
+               arg = argv[i+1]
+               if arg[0] == "-":
+                  break
+               handle_arg(arg)
+               i += 1
+
+      else:
+         sweep_dir_paths.append(opt)
+      i += 1
 
    print("Input directories are \"{0}\"".format(sweep_dir_paths))
    print("Output file is \"{0}\"".format(outputfile))
