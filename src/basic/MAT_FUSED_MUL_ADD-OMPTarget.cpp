@@ -51,6 +51,8 @@ void MAT_FUSED_MUL_ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
+  MAT_FUSED_MUL_ADD_DATA_INIT;
+
   if ( vid == Base_OpenMPTarget ) {
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_OMP_TARGET;
