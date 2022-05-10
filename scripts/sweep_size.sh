@@ -31,13 +31,13 @@ while [ "$#" -gt 0 ]; do
 
     if [[ "x$1" == "x-x" || "x$1" == "x--executable" ]]; then
 
-      if [ "$#" -lt 3 ]; do
+      if [ "$#" -lt 3 ]; then
         echo "Expected 2 args to $1" 1>&2
         exit 1
-      elif  [[ "$2" =~ ^\-.* ]]; do
+      elif  [[ "$2" =~ ^\-.* ]]; then
         echo "Expected 2 args to $1: $2" 1>&2
         exit 1
-      elif  [[ "$3" =~ ^\-.* ]]; do
+      elif  [[ "$3" =~ ^\-.* ]]; then
         echo "Expected 2 args to $1: $2 $3" 1>&2
         exit 1
       fi
