@@ -764,10 +764,10 @@ def main(argv):
             try:
                run_size = get_size_from_dir_name(sweep_subdir_name)
 
-               if not run_size in g_run_sizes:
+               if not str(run_size) in g_run_sizes:
                   global g_num_run_sizes
                   g_run_sizes[g_num_run_sizes] = run_size
-                  g_run_sizes[run_size] = g_num_run_sizes
+                  g_run_sizes[str(run_size)] = g_num_run_sizes
                   g_num_run_sizes += 1
 
                sweep_subdir_timing_file_path = ""
