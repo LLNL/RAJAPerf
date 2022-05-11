@@ -805,6 +805,12 @@ def main(argv):
    print("kinds")
    print("  {}".format(kinds_string[2:]))
 
+   sweeps_string = ""
+   for v in range(0, g_num_sweeps):
+      sweeps_string += ", {}".format(g_sweeps[v])
+   print("sweeps")
+   print("  {}".format(sweeps_string[2:]))
+
    run_sizes_string = ""
    for v in range(0, g_num_run_sizes):
       run_sizes_string += ", {}".format(g_run_sizes[v])
