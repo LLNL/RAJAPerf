@@ -40,12 +40,12 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
   using real4 = __attribute__((__vector_size__(4 * sizeof(Real_type)))) Real_type;
   real4 result = {0};
 
-  int a_idx = Ne * threadIdx.x + threadIdx.y;
-  int b_idx = threadIdx.x + Ne * threadIdx.y;
+  Index_type a_idx = Ne * threadIdx.x + threadIdx.y;
+  Index_type b_idx = threadIdx.x + Ne * threadIdx.y;
 
-  for(int i = 0; i < 4; ++i){
-    double a = A[a_idx];
-    double b = B[b_idx];
+  for(Index_type i = 0; i < 4; ++i){
+    Real_type a = A[a_idx];
+    Real_type b = B[b_idx];
 #ifdef __gfx90a__	
 #if defined(RP_USE_DOUBLE)
     result = __builtin_amdgcn_mfma_f64_16x16x4f64(a, b, result, 0, 0, 0);
@@ -58,8 +58,8 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
   }
 
   #pragma unroll 4
-  for(int i = 0; i < 4; ++i){
-    const int d_idx =  threadIdx.x
+  for(Index_type i = 0; i < 4; ++i){
+    const Index_type d_idx =  threadIdx.x
       + Ne * (threadIdx.y + 4 * i); 
     D[d_idx + ii*(Ne*Ne)] = result[i];
   }
