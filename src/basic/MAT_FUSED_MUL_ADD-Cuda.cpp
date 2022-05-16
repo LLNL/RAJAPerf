@@ -129,8 +129,8 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
         >
         >
       >;
-      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(ii_range, col_range, row_range),
-    [=] RAJA_DEVICE (int ii, int col, int row) {
+      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(row_range, col_range, ii_range),
+    [=] RAJA_DEVICE (Index_type row, Index_type col, Index_type ii) {
         MAT_FUSED_MUL_ADD_BODY;
         });
     stopTimer();
