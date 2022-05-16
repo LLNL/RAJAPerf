@@ -99,7 +99,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
-  dim3 blockDimBuiltin(16, 4, 1);
+  dim3 blockDimBuiltin(Ne, 4, 1);
   dim3 blockDim(Ne, Ne, 1);
   hipDeviceProp_t devProp;
   hipGetDeviceProperties(&devProp, 0);
@@ -167,9 +167,10 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
 
     startTimer();
+    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
     RAJA::RangeSegment row_range(0, Ne);
     RAJA::RangeSegment col_range(0, Ne);
-    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernel<
@@ -186,8 +187,8 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
         >
         >
       >;
-      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(ii_range, col_range, row_range),
-    [=] RAJA_DEVICE (Index_type ii, Index_type col, Index_type row) {
+      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(row_range, col_range, ii_range),
+    [=] RAJA_DEVICE (Index_type row, Index_type col, Index_type ii) {
         MAT_FUSED_MUL_ADD_BODY;
         });
     stopTimer();
