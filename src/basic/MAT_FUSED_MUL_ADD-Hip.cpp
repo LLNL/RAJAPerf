@@ -21,8 +21,6 @@ namespace basic {
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_HIP           \
   const Index_type N = m_N;                        \
-  constexpr Index_type Ne = m_Ne;                  \
-  constexpr Index_type NeNe = m_Ne * m_Ne;         \
   allocAndInitHipDeviceData(A, m_A, N);            \
   allocAndInitHipDeviceData(B, m_B, N);            \
   allocAndInitHipDeviceData(D, m_D, N);			   
@@ -52,7 +50,7 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   Index_type a_idx = Ne * threadIdx.x + threadIdx.y + ii*(Ne*Ne);
   Index_type b_idx = threadIdx.x + Ne * threadIdx.y + ii*(Ne*Ne);
 
-  for(int i = 0; i < 4; ++i){
+  for(Index_type i = 0; i < 4; ++i){
     Real_type a = A[a_idx];
     Real_type b = B[b_idx];
 
@@ -90,7 +88,7 @@ template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
-  constexpr int Ne = 16;
+  constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
@@ -101,7 +99,7 @@ template <  Index_type block_size, typename Lambda >
 __launch_bounds__(block_size)
 __global__ void mat_fused_lam(Index_type N, Lambda body)
 {
-  constexpr int Ne = 16;
+  constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
@@ -122,7 +120,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   dim3 blockDimBuiltin(Ne, Ne/4, 1);
   dim3 blockDim(Ne, Ne, 1);
   hipDeviceProp_t devProp;
-  hipError_t err = hipGetDeviceProperties(&devProp, 0);
+  hipGetDeviceProperties(&devProp, 0);
   std::string gcnArchName(devProp.gcnArchName);
   std::string hipArch = gcnArchName.substr(0, 6);
 
@@ -184,8 +182,6 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
 
   } else if (vid == RAJA_HIP) {
-    dim3 gridDim (1, 1, 1);
-    dim3 blockDim(Ne, Ne, 1);
 
     MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
 
@@ -210,7 +206,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
         >
       >;
       RAJA::kernel<EXEC_POL>(RAJA::make_tuple(ii_range, col_range, row_range),
-    [=] RAJA_DEVICE (int ii, int col, int row) {
+    [=] RAJA_DEVICE (Index_type ii, Index_type col, Index_type row) {
         MAT_FUSED_MUL_ADD_BODY;
         });
     stopTimer();
