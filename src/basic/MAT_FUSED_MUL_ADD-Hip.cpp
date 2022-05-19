@@ -46,6 +46,7 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
   for(Index_type i = 0; i < 4; ++i){
     Real_type a = A[a_idx];
     Real_type b = B[b_idx];
+
 #ifdef __gfx90a__	
 #if defined(RP_USE_DOUBLE)
     result = __builtin_amdgcn_mfma_f64_16x16x4f64(a, b, result, 0, 0, 0);
@@ -94,6 +95,41 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
      body(ii,col,row);
    }
 }
+void MAT_FUSED_MUL_ADD::runHipVariantBuiltin(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+//  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();  
+  const Index_type N = m_N;
+  constexpr Index_type Ne = m_Ne;
+  constexpr Index_type NeNe = m_Ne * m_Ne;
+
+  dim3 gridDim (1, 1, 1);
+  dim3 blockDimBuiltin(Ne, 4, 1);
+  dim3 blockDim(Ne, Ne, 1);
+
+  MAT_FUSED_MUL_ADD_DATA_SETUP;
+
+  MAT_FUSED_MUL_ADD_DATA_INIT;
+
+  if (vid == Base_HIP) {
+
+    MAT_FUSED_MUL_ADD_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      hipLaunchKernelGGL((mat_fused_mul_add_builtin), dim3(gridDim), dim3(blockDimBuiltin), 0, 0, A, B, D, iend);
+      hipErrchk( hipGetLastError() );
+    }
+    stopTimer();
+
+    MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;
+  
+  } else {
+    getCout() << "\n  MAT_FUSED_MUL_ADD : Unknown Hip variant id = " << vid
+              << std::endl;
+  }
+}
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
@@ -107,10 +143,6 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   dim3 gridDim (1, 1, 1);
   dim3 blockDimBuiltin(Ne, 4, 1);
   dim3 blockDim(Ne, Ne, 1);
-  hipDeviceProp_t devProp;
-  hipGetDeviceProperties(&devProp, 0);
-  std::string gcnArchName(devProp.gcnArchName);
-  std::string hipArch = gcnArchName.substr(0, 6);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
@@ -122,25 +154,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-	if(hipArch == "gfx90a") 
-	  //Both FP32 and FP64 supported
-      hipLaunchKernelGGL((mat_fused_mul_add_builtin), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
-                         A, B, D, iend);
-	else if(hipArch == "gfx908"){
-#if defined(RP_USE_FLOAT)
-	  //Only FP32 supported on MI100
-      hipLaunchKernelGGL((mat_fused_mul_add_builtin), dim3(gridDim), dim3(blockDimBuiltin), 0, 0,
-                         A, B, D, iend);
-#elif defined(RP_USE_DOUBLE)
-	  //FP64 not supported on MI100
-      hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         A, B, D, iend);
-	}
-#endif
-	else
-	 //Otherwise no mfma hardware support
-      hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0,
-                         A, B, D, iend);
+      hipLaunchKernelGGL((mat_fused_mul_add<block_size>), dim3(gridDim), dim3(blockDim), 0, 0, A, B, D, iend);
       hipErrchk( hipGetLastError() );
     }
     stopTimer();
@@ -206,8 +220,89 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
               << std::endl;
   }
 }
+std::string getArch()
+{  
+  hipDeviceProp_t devProp;
+  hipGetDeviceProperties(&devProp, 0);
+  std::string gcnArchName(devProp.gcnArchName);
+  std::string hipArch = gcnArchName.substr(0, 6);
+  return hipArch;
+}
+bool builtinSupported()
+{
+	std::string hipArch = getArch();
+#if defined(RP_USE_DOUBLE)
+	if (hipArch=="gfx90a") 
+		return true;
+#endif
+#if defined(RP_USE_FLOAT)
+	if (hipArch=="gfx90a" || hipArch=="gfx908")
+		return true;
+#endif
+return false;
+}
+void MAT_FUSED_MUL_ADD::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool builtin_supported = builtinSupported();
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MAT_FUSED_MUL_ADD, Hip)
+   size_t t = 0;
+  if ( vid == Base_HIP  && builtin_supported) {
+
+    if (tune_idx == t) {
+
+      runHipVariantBuiltin(vid);
+
+    }
+
+    t += 1;
+  }
+  if ( (vid == Base_HIP) || (vid == RAJA_HIP) || (vid == Lambda_HIP)){
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0 ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runHipVariantImpl<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+  }
+  else {
+
+    getCout() << "\n  MAT_FUSED_MUL_ADD : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void MAT_FUSED_MUL_ADD::setHipTuningDefinitions(VariantID vid)
+{
+  bool builtin_supported = builtinSupported();
+  if ( vid == Base_HIP ) {
+
+  if (builtin_supported) {
+    addVariantTuningName(vid, "builtin");
+  }
+  }
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      }
+
+    });
+
+}
 
 } // end namespace basic
 } // end namespace rajaperf
