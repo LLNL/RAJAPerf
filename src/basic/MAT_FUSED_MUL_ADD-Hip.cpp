@@ -40,8 +40,8 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
   using real4 = __attribute__((__vector_size__(4 * sizeof(Real_type)))) Real_type;
   real4 result = {0};
 
-  Index_type a_idx = Ne * threadIdx.x + threadIdx.y;
-  Index_type b_idx = threadIdx.x + Ne * threadIdx.y;
+  Index_type a_idx = Ne * threadIdx.x + threadIdx.y + ii*(Ne*Ne);
+  Index_type b_idx = threadIdx.x + Ne * threadIdx.y + ii*(Ne*Ne);
 
   for(Index_type i = 0; i < 4; ++i){
     Real_type a = A[a_idx];
