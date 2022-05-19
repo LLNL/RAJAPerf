@@ -39,7 +39,7 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){ \
 #define MAT_FUSED_MUL_ADD_BODY             \
   Real_type dot = 0;                        \
   for (Index_type k = 0; k < Ne; ++k) {     \
-    dot += A[row*Ne + k] * B[k*Ne + col];   \
+    dot += A[row*Ne + k + ii*(Ne*Ne)] * B[k*Ne + col + ii*(Ne*Ne)];   \
   }                                         \
   D[row*Ne + col + ii*(Ne*Ne)] = dot;       \
 
