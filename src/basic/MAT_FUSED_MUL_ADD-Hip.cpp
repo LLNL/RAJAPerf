@@ -33,15 +33,15 @@ namespace basic {
   deallocHipDeviceData(B);                         \
   deallocHipDeviceData(D);						   
 
-__global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Real_ptr D, Index_type N){ 
+__global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Real_ptr D, const Index_type N){ 
   constexpr Index_type Ne = 16;
   for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   // This kernel computes a 16x16x16 matrix multiplication using a single wavefront.
   using real4 = __attribute__((__vector_size__(4 * sizeof(Real_type)))) Real_type;
   real4 result = {0};
 
-  int a_idx = Ne * threadIdx.x + threadIdx.y;
-  int b_idx = threadIdx.x + Ne * threadIdx.y;
+  int a_idx = Ne * threadIdx.x + threadIdx.y + ii*(Ne*Ne);
+  int b_idx = threadIdx.x + Ne * threadIdx.y + ii*(Ne*Ne);
 
   for(int i = 0; i < 4; ++i){
     double a = A[a_idx];
@@ -50,6 +50,12 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
 #if defined(RP_USE_DOUBLE)
     result = __builtin_amdgcn_mfma_f64_16x16x4f64(a, b, result, 0, 0, 0);
 #elif defined(RP_USE_FLOAT)
+    result = __builtin_amdgcn_mfma_f32_16x16x4f32(a, b, result, 0, 0, 0);
+#endif  
+#endif
+
+#ifdef __gfx908__
+#if defined(RP_USE_FLOAT)
     result = __builtin_amdgcn_mfma_f32_16x16x4f32(a, b, result, 0, 0, 0);
 #endif  
 #endif
@@ -69,17 +75,17 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
 template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
-                                  Index_type N){
+                                  const Index_type N){
   constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
-  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x + ii*(Ne*Ne); 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y + ii*(Ne*Ne); 
   MAT_FUSED_MUL_ADD_BODY;
 }
 }
 template <  Index_type block_size, typename Lambda >
 __launch_bounds__(block_size)
-__global__ void mat_fused_lam(Index_type N, Lambda body)
+__global__ void mat_fused_lam(const Index_type N, Lambda body)
 {
   constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
