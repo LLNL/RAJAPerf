@@ -97,14 +97,12 @@ for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
 void MAT_FUSED_MUL_ADD::runHipVariantBuiltin(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-//  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();  
   const Index_type N = m_N;
   constexpr Index_type Ne = m_Ne;
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
-  dim3 blockDimBuiltin(Ne, 4, 1);
   dim3 blockDim(Ne, Ne, 1);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
