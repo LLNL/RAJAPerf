@@ -216,6 +216,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
               << std::endl;
   }
 }
+namespace{
 std::string getArch()
 {  
   hipDeviceProp_t devProp;
@@ -236,6 +237,7 @@ bool builtinSupported()
 		return true;
 #endif
 return false;
+}
 }
 void MAT_FUSED_MUL_ADD::runHipVariant(VariantID vid, size_t tune_idx)
 {
