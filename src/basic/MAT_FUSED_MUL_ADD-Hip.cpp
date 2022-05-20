@@ -36,7 +36,6 @@ namespace basic {
 __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Real_ptr D, const Index_type N){ 
   constexpr Index_type Ne = 16;
   for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
-  // This kernel computes a 16x16x16 matrix multiplication using a single wavefront.
   using real4 = __attribute__((__vector_size__(4 * sizeof(Real_type)))) Real_type;
   real4 result = {0};
 
@@ -134,14 +133,12 @@ template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-//  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();  
   const Index_type N = m_N;
   constexpr Index_type Ne = m_Ne;
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
   dim3 gridDim (1, 1, 1);
-  dim3 blockDimBuiltin(Ne, 4, 1);
   dim3 blockDim(Ne, Ne, 1);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
