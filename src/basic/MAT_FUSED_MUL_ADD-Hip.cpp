@@ -136,8 +136,9 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   constexpr Index_type Ne = m_Ne;
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
-  constexpr Index_type tile_size = gpu_block_size::sqrt(block_size);
-  dim3 blockDim(tile_size, tile_size);
+  constexpr Index_type block_x = gpu_block_size::sqrt(block_size);
+  constexpr Index_type block_y = gpu_block_size::sqrt(block_size);
+  dim3 blockDim(block_x, block_y);
   dim3 gridDim(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(Ne, block_size)),
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(Ne, block_size)), 
                static_cast<size_t>(1));
