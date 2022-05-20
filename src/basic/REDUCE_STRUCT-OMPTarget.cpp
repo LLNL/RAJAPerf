@@ -115,7 +115,7 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
     REDUCE_STRUCT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
