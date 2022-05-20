@@ -101,6 +101,15 @@ def stddev(vals):
    stddev_val = math.sqrt(stddev_val)
    return stddev_val
 
+def relstddev(vals):
+   avg_val = avg(vals)
+   stddev_val = 0
+   for val in vals:
+      stddev_val += (val - avg_val)*(val - avg_val)
+   stddev_val /= len(vals)
+   stddev_val = math.sqrt(stddev_val)
+   return stddev_val / abs(avg_val)
+
 
 class Data:
 
@@ -129,31 +138,19 @@ class Data:
    exclude_tunings = {}
 
    # multi-dimensional array structured like this
-   #   kind - time, bandwidth, etc (["info"])
    #     directory name - platform, compiler, etc
    #       run size - problem size, for run_sizes
    #         kernel index - for kernels
-   info = { "Problem size": { },
-            "Reps": { },
-            "Iterations/rep": { },
-            "Kernels/rep": { },
-            "Bytes/rep": { },
-            "FLOPS/rep": { }
-          }
-   num_info_axes = 3
    info_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
                  "run_size": 1,       1: "run_size",
                  "kernel_index": 2,   2: "kernel_index", }
 
    # multi-dimensional array structured like this
-   #   kind - time, bandwidth, etc (["data"])
    #     directory name - platform, compiler, etc
    #       run size - problem size, for run_sizes
    #         kernel index - for kernels
    #           variant index - for variants
    #             tuning index - for tunings
-   data = { }
-   num_data_axes = 5
    data_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
                  "run_size": 1,       1: "run_size",
                  "kernel_index": 2,   2: "kernel_index",
@@ -161,38 +158,35 @@ class Data:
                  "tuning_index": 4,   4: "tuning_index", }
 
    # multi-dimensional array structured like data but missing some dimensions
-   #   kind - time, bandwidth, etc (["data"])
    #     directory name - platform, compiler, etc
-   #       run size - problem size, for run_sizes
-   #         kernel index - for kernels
-   #           variant index - for variants
-   #             tuning index - for tunings
-   reduced = { }
+   #       kernel index - for kernels
+   #         variant index - for variants
+   #           tuning index - for tunings
    run_size_reduced_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
                              "kernel_index": 1,   1: "kernel_index",
                              "variant_index": 2,  2: "variant_index",
                              "tuning_index": 3,   3: "tuning_index", }
 
-   model_kind = "time(s)"
+   data_model_kind = "time(s)"
 
-   def DataTreeIterator0(data_tree):
+   def DataTreeIterator0(self, data_tree):
       assert(data_tree.num_axes == 0)
       yield data_tree.data
 
-   def DataTreeIterator1(data_tree):
+   def DataTreeIterator1(self, data_tree):
       assert(data_tree.num_axes == 1)
       assert(data_tree.data)
       for k0 in data_tree.data.keys():
          yield (k0,)
 
-   def DataTreeIterator2(data_tree):
+   def DataTreeIterator2(self, data_tree):
       assert(data_tree.num_axes == 2)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
          for k1 in v0.keys():
             yield (k0, k1,)
 
-   def DataTreeIterator3(data_tree):
+   def DataTreeIterator3(self, data_tree):
       assert(data_tree.num_axes == 3)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -200,7 +194,7 @@ class Data:
             for k2 in v1.keys():
                yield (k0, k1, k2,)
 
-   def DataTreeIterator4(data_tree):
+   def DataTreeIterator4(self, data_tree):
       assert(data_tree.num_axes == 4)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -209,7 +203,7 @@ class Data:
                for k3 in v2.keys():
                   yield (k0, k1, k2, k3,)
 
-   def DataTreeIterator5(data_tree):
+   def DataTreeIterator5(self, data_tree):
       assert(data_tree.num_axes == 5)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -237,20 +231,72 @@ class Data:
 
       def __iter__(self):
          if self.num_axes == 0:
-            return DataTreeIterator0(self)
+            return Data.DataTreeIterator0(self)
          elif self.num_axes == 1:
-            return DataTreeIterator1(self)
+            return Data.DataTreeIterator1(self)
          elif self.num_axes == 2:
-            return DataTreeIterator2(self)
+            return Data.DataTreeIterator2(self)
          elif self.num_axes == 3:
-            return DataTreeIterator3(self)
+            return Data.DataTreeIterator3(self)
          elif self.num_axes == 4:
-            return DataTreeIterator4(self)
+            return Data.DataTreeIterator4(self)
          elif self.num_axes == 5:
-            return DataTreeIterator5(self)
+            return Data.DataTreeIterator5(self)
          else:
             raise ValueError
 
+      def printData(self):
+         if self.data:
+            print("printData {}:".format(self.kind))
+         else:
+            print("printData {}: empty".format(self.kind))
+            return
+
+         if self.type == "info":
+            for sweep_dir_name, sweep_info in self.data.items():
+               for run_size, run_info in sweep_info.items():
+                  for kernel_index, val in run_info.items():
+                     kernel_name = Data.kernels[kernel_index]
+                     print("{} {} {} {}".format(sweep_dir_name, run_size, kernel_name, val))
+
+         elif self.type == "data" or \
+              self.type == "computed":
+            for sweep_dir_name, sweep_data in self.data.items():
+               for run_size, run_data in sweep_data.items():
+                  for kernel_index, kernel_data in run_data.items():
+                     kernel_name = Data.kernels[kernel_index]
+                     for variant_index, variant_data in kernel_data.items():
+                        variant_name = Data.variants[variant_index]
+                        for tuning_index, val in variant_data.items():
+                           tuning_name = Data.tunings[tuning_index]
+                           print("{} {} {} {} {} {}".format(sweep_dir_name, run_size, kernel_name, variant_name, tuning_name, val))
+
+         elif self.type == "run_size_reduced":
+            for sweep_dir_name, sweep_data in self.data.items():
+               for kernel_index, kernel_data in sweep_data.items():
+                  kernel_name = Data.kernels[kernel_index]
+                  for variant_index, variant_data in kernel_data.items():
+                     variant_name = Data.variants[variant_index]
+                     for tuning_index, val in variant_data.items():
+                        tuning_name = Data.tunings[tuning_index]
+                        print("{} {} {} {} {}".format(sweep_dir_name, kernel_name, variant_name, tuning_name, val))
+
+         else:
+            raise NameError("Can not print type {}".format(self.type))
+
+   class DataTreeTemplate:
+
+      def __init__(self, kind_template, type, axes, arg_templates, func):
+         self.kind_template = kind_template
+         self.type = type
+         self.axes = axes
+         self.arg_templates = arg_templates
+         self.func = func
+
+      def makeDataTree(self, template_args):
+         kind = self.kind_template.format(*template_args)
+         args = [ arg.format(*template_args) for arg in self.arg_templates ]
+         return Data.DataTree(kind, self.type, self.axes, args, self.func)
 
    # has info derivable from first kind "time(s)" which is read from files
    kinds = { "Problem size":   DataTree("Problem size",   "info", info_axes),
@@ -305,12 +351,170 @@ class Data:
              "GFLOPS": DataTree("GFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000.0),
              "TFLOPS": DataTree("TFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000000.0),
 
-             "avg_time(s)": DataTree("avg_time(s)", "reduced", run_size_reduced_axes, ["time(s)"], avg),
-             "stddev_time(s)": DataTree("stddev_time(s)", "reduced", run_size_reduced_axes, ["time(s)"], stddev),
+      }
 
-           }
+   kind_templates = {
+             "avg": DataTreeTemplate("avg<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], avg),
+             "stddev": DataTreeTemplate("stddev<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], stddev),
+             "relstddev": DataTreeTemplate("relstddev<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], relstddev),
+      }
+
+   def compute_data(kind):
+      if not kind in Data.kinds:
+         raise NameError("Unknown data kind {}".format(kind))
+
+      if Data.kinds[kind].data:
+         return # already calculated
 
 
+      if Data.kinds[kind].type == "computed":
+
+         if not (Data.kinds[kind].args and Data.kinds[kind].func):
+            raise NameError("Computing data is not supported for kind {0}".format(kind))
+
+         compute_args = Data.kinds[kind].args
+         compute_func = Data.kinds[kind].func
+
+         for arg_kind in compute_args:
+            # calculate data for arg_kind
+            Data.compute(arg_kind)
+
+         if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
+            raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
+
+         Data.kinds[kind].data = {}
+         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.items():
+            Data.kinds[kind].data[sweep_dir_name] = {}
+            for run_size, model_run_data in model_sweep_data.items():
+               Data.kinds[kind].data[sweep_dir_name][run_size] = {}
+               for kernel_index, model_kernel_data in model_run_data.items():
+                  kernel_name = Data.kernels[kernel_index]
+                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
+                  for variant_index, model_variant_data in model_kernel_data.items():
+                     variant_name = Data.variants[variant_index]
+                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
+                     for tuning_index, model_val in model_variant_data.items():
+                        tuning_name = Data.tunings[tuning_index]
+
+                        args_val = ()
+                        for arg_kind in compute_args:
+                           if Data.kinds[arg_kind].type == "info":
+                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
+                           elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
+                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
+                           else:
+                              raise NameError("Invalid data kind {0}".format(arg_kind))
+                           args_val = args_val + (arg_val,)
+
+                        val = compute_func(*args_val)
+                        Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+
+      elif Data.kinds[kind].type == "run_size_reduced":
+
+         if not (Data.kinds[kind].func and Data.kinds[kind].args):
+            raise NameError("Reducing data is not supported for kind {0}".format(kind))
+
+         reduce_args = Data.kinds[kind].args
+         reduce_func = Data.kinds[kind].func
+
+         for arg_kind in reduce_args:
+            # calculate data for arg_kind
+            Data.compute(arg_kind)
+
+         if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
+            raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
+
+         Data.kinds[kind].data = {}
+         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.items():
+            Data.kinds[kind].data[sweep_dir_name] = {}
+            for run_size, model_run_data in model_sweep_data.items():
+               for kernel_index, model_kernel_data in model_run_data.items():
+                  kernel_name = Data.kernels[kernel_index]
+                  if not kernel_index in Data.kinds[kind].data[sweep_dir_name]:
+                     Data.kinds[kind].data[sweep_dir_name][kernel_index] = {}
+                  for variant_index, model_variant_data in model_kernel_data.items():
+                     variant_name = Data.variants[variant_index]
+                     if not variant_index in Data.kinds[kind].data[sweep_dir_name][kernel_index]:
+                        Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index] = {}
+                     for tuning_index, model_val in model_variant_data.items():
+                        tuning_name = Data.tunings[tuning_index]
+
+                        if not tuning_index in Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index]:
+                           args_val = ()
+                           for arg_kind in reduce_args:
+                              if Data.kinds[arg_kind].type == "info":
+                                 arg_val = []
+                              elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
+                                 arg_val = []
+                              elif Data.kinds[arg_kind].type == "run_size_reduced":
+                                 arg_val = Data.kinds[arg_kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
+                              else:
+                                 raise NameError("Invalid data kind {0}".format(arg_kind))
+                              args_val = args_val + (arg_val,)
+                           Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index] = args_val
+                        else:
+                           args_val = Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
+
+                        args_idx = 0
+                        for arg_kind in reduce_args:
+                           if Data.kinds[arg_kind].type == "info":
+                              args_val[args_idx].append(Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index])
+                           elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
+                              args_val[args_idx].append(Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index])
+                           elif Data.kinds[arg_kind].type == "run_size_reduced":
+                              pass
+                           else:
+                              raise NameError("Invalid data kind {0}".format(arg_kind))
+                           args_idx += 1
+
+         for sweep_dir_name, sweep_data in Data.kinds[kind].data.items():
+            for kernel_index, kernel_data in sweep_data.items():
+               for variant_index, variant_data in kernel_data.items():
+                  for tuning_index, args_val in variant_data.items():
+                     Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index] = reduce_func(*args_val)
+
+      else:
+         raise NameError("Unknown kind type {}".format(Data.kinds[kind].type))
+
+   def compute_templated_data(kind_template, template_args):
+      if kind_template in Data.kind_templates:
+         dataType = Data.kind_templates[kind_template].makeDataTree(template_args)
+         if not dataType.kind in Data.kinds:
+            Data.kinds[dataType.kind] = dataType
+            Data.compute(dataType.kind)
+      else:
+         raise NameError("Unkown kind template {}".format(kind_template))
+
+   def kind_template_scan(kind):
+
+      template_args = None
+
+      template_start_idx = kind.find("<")
+      template_end_idx = kind.rfind(">")
+
+      if template_start_idx == -1 or template_end_idx == -1:
+         return kind, template_args
+
+      kind_template = kind[:template_start_idx]
+      template_args = kind[template_start_idx+1:template_end_idx].split(",")
+
+      for i in range(0,len(template_args)):
+         template_args[i] = template_args[i].strip()
+
+      return (kind_template, template_args)
+
+   def compute(kind):
+      if kind in Data.kinds:
+         if not Data.kinds[kind].data:
+            Data.compute_data(kind)
+         return
+
+      kind_template, template_args = Data.kind_template_scan(kind)
+      if kind_template in Data.kind_templates:
+         Data.compute_templated_data(kind_template, template_args)
+         return
+
+      raise NameError("Unknown data kind {}".format(kind))
 
 
 
@@ -377,6 +581,7 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   Data.kinds[info_kind].data[sweep_dir_name][run_size][kernel_index] = val
                except ValueError:
                   pass # could not convert data to int
+
 
 def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
    # print(sweep_dir_name, sweep_subdir_timing_file_path, run_size)
@@ -467,105 +672,6 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                except ValueError:
                   pass # could not convert data to float
 
-def compute_data(kind):
-   if not kind in Data.kinds:
-      raise NameError("Unknown data kind {}".format(kind))
-
-   if Data.kinds[kind].data:
-      return # already calculated
-
-
-   if Data.kinds[kind].type == "computed":
-
-      if not (Data.kinds[kind].args and Data.kinds[kind].func):
-         raise NameError("Computing data is not supported for kind {0}".format(kind))
-
-      compute_args = Data.kinds[kind].args
-      compute_func = Data.kinds[kind].func
-
-      for arg_kind in compute_args:
-         # calculate data for arg_kind
-         compute_data(arg_kind)
-
-      model_kind = Data.model_kind
-      compute_data(model_kind)
-      if not model_kind in Data.kinds:
-         raise NameError("Model data not available {0}, no args".format(model_kind))
-
-      Data.kinds[kind].data = {}
-      for sweep_dir_name, model_sweep_data in Data.kinds[model_kind].data.items():
-         Data.kinds[kind].data[sweep_dir_name] = {}
-         for run_size, model_run_data in model_sweep_data.items():
-            Data.kinds[kind].data[sweep_dir_name][run_size] = {}
-            for kernel_index, model_kernel_data in model_run_data.items():
-               kernel_name = Data.kernels[kernel_index]
-               Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
-               for variant_index, model_variant_data in model_kernel_data.items():
-                  variant_name = Data.variants[variant_index]
-                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
-                  for tuning_index, model_val in model_variant_data.items():
-                     tuning_name = Data.tunings[tuning_index]
-
-                     args_val = ()
-                     for arg_kind in compute_args:
-                        if Data.kinds[arg_kind].type == "info":
-                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
-                        elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
-                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
-                        else:
-                           raise NameError("Invalid data kind {0}".format(arg_kind))
-                        args_val = args_val + (arg_val,)
-
-                     val = compute_func(*args_val)
-                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
-
-   elif Data.kinds[kind].type == "reduced":
-
-      if not ("func" in Data.kinds[kind] and "args" in Data.kinds[kind] and "axis" in Data.kinds[kind]):
-         raise NameError("Reducing data is not supported for kind {0}".format(kind))
-
-      reduce_axis = Data.kinds[kind].axis
-      reduce_args = Data.kinds[kind].args
-      reduce_func = Data.kinds[kind].func
-
-      for arg_kind in reduce_args:
-         # calculate data for arg_kind
-         reduce_data(arg_kind)
-
-      model_kind = Data.model_kind
-      reduce_data(model_kind)
-      if not model_kind in Data.kinds:
-         raise NameError("Model data not available {0}, no args".format(model_kind))
-
-      Data.kinds[kind].data = {}
-      for sweep_dir_name, model_sweep_data in Data.kinds[model_kind].data.items():
-         Data.kinds[kind].data[sweep_dir_name] = {}
-         for run_size, model_run_data in model_sweep_data.items():
-            Data.kinds[kind].data[sweep_dir_name][run_size] = {}
-            for kernel_index, model_kernel_data in model_run_data.items():
-               kernel_name = Data.kernels[kernel_index]
-               Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
-               for variant_index, model_variant_data in model_kernel_data.items():
-                  variant_name = Data.variants[variant_index]
-                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
-                  for tuning_index, model_val in model_variant_data.items():
-                     tuning_name = Data.tunings[tuning_index]
-
-                     args_val = ()
-                     for arg_kind in reduce_args:
-                        if Data.kinds[arg_kind].type == "info":
-                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
-                        elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "reduced":
-                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
-                        else:
-                           raise NameError("Invalid data kind {0}".format(arg_kind))
-                        args_val = args_val + (arg_val,)
-
-                     val = reduce_func(*args_val)
-                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
-
-   else:
-      raise NameError("Unknown kind type {}".format(Data.kinds[kind].type))
 
 def get_run_size_data(kind, kernel):
 
@@ -612,9 +718,6 @@ def get_run_size_data(kind, kernel):
 
    elif kind_meta.type == "data" or kind_meta.type == "computed":
 
-      if kind_meta.type == "computed":
-         compute_data(kind)
-
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
       kind_data = Data.kinds[kind].data
@@ -649,7 +752,6 @@ def get_run_size_data(kind, kernel):
       raise NameError("Unknown kind {} type {}".format(kind, kind_meta.type))
 
    return data
-
 
 
 def plot_data(outputfile_name, ykind):
@@ -726,40 +828,8 @@ def plot_data(outputfile_name, ykind):
       plt.savefig(fname, dpi=150.0)
       plt.clf()
 
-def print_data(kind):
-   print("printing {}".format(kind))
 
-   compute_data(kind)
 
-   type = None
-   if not kind in Data.kinds:
-      return
-
-   if Data.kinds[kind].type == "info":
-      kind_info = Data.kinds[kind].data
-      for sweep_dir_name, sweep_info in kind_info.items():
-         for run_size, run_info in sweep_info.items():
-            for kernel_index, val in run_info.items():
-               kernel_name = Data.kernels[kernel_index]
-               print("{} {} {} {}".format(sweep_dir_name, run_size, kernel_name, val))
-
-   elif Data.kinds[kind].type == "data" or \
-        Data.kinds[kind].type == "computed":
-      kind_data = Data.kinds[kind].data
-      for sweep_dir_name, sweep_data in kind_data.items():
-         for run_size, run_data in sweep_data.items():
-            for kernel_index, kernel_data in run_data.items():
-               kernel_name = Data.kernels[kernel_index]
-               for variant_index, variant_data in kernel_data.items():
-                  variant_name = Data.variants[variant_index]
-                  for tuning_index, val in variant_data.items():
-                     tuning_name = Data.tunings[tuning_index]
-                     print("{} {} {} {} {} {}".format(sweep_dir_name, run_size, kernel_name, variant_name, tuning_name, val))
-
-   elif Data.kinds[kind].type == "reduced":
-      raise NameError("Unsupported type {}".format(Data.kinds[kind].type))
-   else:
-      raise NameError("Unsupported type {}".format(Data.kinds[kind].type))
 
 def main(argv):
    sweep_dir_paths = []
@@ -791,17 +861,17 @@ def main(argv):
             def fo(arg):
                outputfile = arg
             handle_arg = fo
+         # multi arg options
          elif opt in ("-p", "--print"):
-            handle_num = 1
+            handle_num = -1
             def p(arg):
                print_kinds.append(arg)
             handle_arg = p
          elif opt in ("-g", "--graph"):
-            handle_num = 1
+            handle_num = -1
             def fg(arg):
                graph_kinds.append(arg)
             handle_arg = fg
-         # multi arg options
          elif opt in ("-k", "--kernels"):
             handle_num = -1
             def fk(arg):
@@ -912,10 +982,16 @@ def main(argv):
          Data.num_sweeps += 1
 
    kinds_string = ""
-   for kind in Data.kinds:
-      kinds_string += ", {}".format(kind)
+   for kindTree in Data.kinds.values():
+      kinds_string += ", {}".format(kindTree.kind)
    print("kinds")
    print("  {}".format(kinds_string[2:]))
+
+   kind_templates_string = ""
+   for kindTree_template in Data.kind_templates.values():
+      kind_templates_string += ", {}".format(kindTree_template.kind_template)
+   print("kind_templates")
+   print("  {}".format(kind_templates_string[2:]))
 
    sweeps_string = ""
    for v in range(0, Data.num_sweeps):
@@ -948,9 +1024,11 @@ def main(argv):
    print("  {}".format(tuning_string[2:]))
 
    for kind in print_kinds:
-      print_data(kind)
+      Data.compute(kind)
+      Data.kinds[kind].printData()
 
    for kind in graph_kinds:
+      Data.compute(kind)
       plot_data(outputfile, kind)
 
 if __name__ == "__main__":
