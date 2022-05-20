@@ -78,8 +78,8 @@ __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D
                                   const Index_type N){
   constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  Index_type col = threadIdx.x + blockIdx.x * blockDim.x + ii*(Ne*Ne); 
-  Index_type row = threadIdx.y + blockIdx.y * blockDim.y + ii*(Ne*Ne); 
+  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
   MAT_FUSED_MUL_ADD_BODY;
 }
 }
