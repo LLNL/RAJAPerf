@@ -67,8 +67,12 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
   constexpr Index_type Ne = m_Ne;
   constexpr Index_type NeNe = m_Ne * m_Ne;
 
-  dim3 gridDim (1, 1, 1);
-  dim3 blockDim(Ne, Ne, 1);
+  constexpr Index_type tile_size = gpu_block_size::sqrt(block_size);
+  dim3 blockDim(tile_size, tile_size);
+  dim3 gridDim(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(Ne, block_size)),
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(Ne, block_size)), 
+               static_cast<size_t>(1)); 
+
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
   MAT_FUSED_MUL_ADD_DATA_INIT;
@@ -104,9 +108,7 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_CUDA;
 
   } else if (vid == RAJA_CUDA) {
-    dim3 gridDim (1, 1, 1);
-    dim3 blockDim(Ne, Ne, 1);
-
+    
     MAT_FUSED_MUL_ADD_DATA_SETUP_CUDA;
 
     startTimer();
