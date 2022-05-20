@@ -7,6 +7,7 @@ import getopt
 import csv
 import matplotlib.pyplot as plt
 
+
 def normalize_color_tuple(t):
    len_t = 0.0
    for i in range(0, len(t)):
@@ -36,6 +37,7 @@ def color_mul(t, factor):
 
 def make_color_tuple(r, g, b):
    return (r/255.0, g/255.0, b/255.0)
+
 
 g_color_base_factor = 1.0
 g_color_lambda_factor = 0.7
@@ -82,174 +84,235 @@ g_timing_filename = "RAJAPerf-timing-Minimum.csv"
 g_runinfo_filename = "RAJAPerf-kernels.csv"
 g_timing_file_kind = "time(s)"
 
-# multi-dimensional array structured like this
-#   kind - time, bandwidth, etc (["info"])
-#     directory name - platform, compiler, etc
-#       run size - problem size, for g_run_sizes
-#         kernel index - for g_kernels
-g_info = { "Problem size": { },
-           "Reps": { },
-           "Iterations/rep": { },
-           "Kernels/rep": { },
-           "Bytes/rep": { },
-           "FLOPS/rep": { }
-         }
 
-# multi-dimensional array structured like this
-#   kind - time, bandwidth, etc (["data"])
-#     directory name - platform, compiler, etc
-#       run size - problem size, for g_run_sizes
-#         kernel index - for g_kernels
-#           variant index - for g_variants
-#             tuning index - for g_tunings
-g_data = { }
+def avg(vals):
+   avg_val = 0
+   for val in vals:
+      avg_val += val
+   avg_val /= len(vals)
+   return avg_val
 
-g_model_kind = "time(s)"
+def stddev(vals):
+   avg_val = avg(vals)
+   stddev_val = 0
+   for val in vals:
+      stddev_val += (val - avg_val)*(val - avg_val)
+   stddev_val /= len(vals)
+   stddev_val = math.sqrt(stddev_val)
+   return stddev_val
 
-# has info derivable from first kind "time(s)" which is read from files
-g_kinds = { "Problem size": { "type": "info" },
-            "Reps": { "type": "info" },
-            "Iterations/rep": { "type": "info" },
-            "Kernels/rep": { "type": "info" },
-            "Bytes/rep": { "type": "info" },
-            "FLOPS/rep": { "type": "info" },
 
-            "time(s)" : { "type": "data" },
+class Data:
 
-            "time(ms)": { "type": "computed",
-                          "args": ["time(s)"],
-                          "func": lambda t: t * 1000.0 },
-            "time(us)": { "type": "computed",
-                          "args": ["time(s)"],
-                          "func": lambda t: t * 1000000.0 },
-            "time(ns)": { "type": "computed",
-                          "args": ["time(s)"],
-                          "func": lambda t: t * 1000000000.0 },
+   num_sweeps = 0
+   sweeps = {}
+   sweep_markers = {}
 
-            "time/rep(s)":  { "type": "computed",
-                              "args": ["time(s)", "Reps"],
-                              "func": lambda t, r: t / r },
-            "time/rep(ms)": { "type": "computed",
-                              "args": ["time/rep(s)"],
-                              "func": lambda tpr: tpr * 1000.0 },
-            "time/rep(us)": { "type": "computed",
-                              "args": ["time/rep(s)"],
-                              "func": lambda tpr: tpr * 1000000.0 },
-            "time/rep(ns)": { "type": "computed",
-                              "args": ["time/rep(s)"],
-                              "func": lambda tpr: tpr * 1000000000.0 },
+   num_run_sizes = 0
+   run_sizes = {}
 
-            "time/it(s)":  { "type": "computed",
-                             "args": ["time/rep(s)", "Iterations/rep"],
-                             "func": lambda tpr, ipr: tpr / ipr },
-            "time/it(ms)": { "type": "computed",
-                             "args": ["time/it(s)"],
-                             "func": lambda tpi: tpi * 1000.0 },
-            "time/it(us)": { "type": "computed",
-                             "args": ["time/it(s)"],
-                             "func": lambda tpi: tpi * 1000000.0 },
-            "time/it(ns)": { "type": "computed",
-                             "args": ["time/it(s)"],
-                             "func": lambda tpi: tpi * 1000000000.0 },
+   num_kernels = 0
+   kernels = {}
+   include_kernels = {}
+   exclude_kernels = {}
 
-            "time/kernel(s)":  { "type": "computed",
-                                 "args": ["time/rep(s)", "Kernels/rep"],
-                                 "func": lambda tpr, kpr: tpr / kpr },
-            "time/kernel(ms)": { "type": "computed",
-                                 "args": ["time/kernel(s)"],
-                                 "func": lambda tpi: tpi * 1000.0 },
-            "time/kernel(us)": { "type": "computed",
-                                 "args": ["time/kernel(s)"],
-                                 "func": lambda tpi: tpi * 1000000.0 },
-            "time/kernel(ns)": { "type": "computed",
-                                 "args": ["time/kernel(s)"],
-                                 "func": lambda tpi: tpi * 1000000000.0 },
+   num_variants = 0
+   variants = {}
+   variant_colors = {}
+   include_variants = {}
+   exclude_variants = {}
 
-            "throughput(Problem size/s)":  { "type": "computed",
-                                             "args": ["time/rep(s)", "Problem size"],
-                                             "func": lambda tpr, ps: ps / tpr },
-            "throughput(KProblem size/s)": { "type": "computed",
-                                             "args": ["throughput(Problem size/s)"],
-                                             "func": lambda thr: thr / 1000.0 },
-            "throughput(MProblem size/s)": { "type": "computed",
-                                             "args": ["throughput(Problem size/s)"],
-                                             "func": lambda thr: thr / 1000000.0 },
-            "throughput(GProblem size/s)": { "type": "computed",
-                                             "args": ["throughput(Problem size/s)"],
-                                             "func": lambda thr: thr / 1000000000.0 },
-            "throughput(TProblem size/s)": { "type": "computed",
-                                             "args": ["throughput(Problem size/s)"],
-                                             "func": lambda thr: thr / 1000000000000.0 },
+   num_tunings = 0
+   tunings = {}
+   tuning_formats = {}
+   include_tunings = {}
+   exclude_tunings = {}
 
-            "bandwidth(B/s)":   { "type": "computed",
-                                  "args": ["time/rep(s)", "Bytes/rep"],
-                                  "func": lambda tpr, bpr: bpr / tpr },
-            "bandwidth(Kb/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1000.0 },
-            "bandwidth(MB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1000000.0 },
-            "bandwidth(GB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1000000000.0 },
-            "bandwidth(TB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1000000000000.0 },
+   # multi-dimensional array structured like this
+   #   kind - time, bandwidth, etc (["info"])
+   #     directory name - platform, compiler, etc
+   #       run size - problem size, for run_sizes
+   #         kernel index - for kernels
+   info = { "Problem size": { },
+            "Reps": { },
+            "Iterations/rep": { },
+            "Kernels/rep": { },
+            "Bytes/rep": { },
+            "FLOPS/rep": { }
+          }
+   num_info_axes = 3
+   info_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
+                 "run_size": 1,       1: "run_size",
+                 "kernel_index": 2,   2: "kernel_index", }
 
-            "bandwidth(B/s)":   { "type": "computed",
-                                  "args": ["time/rep(s)", "Bytes/rep"],
-                                  "func": lambda tpr, bpr: bpr / tpr },
-            "bandwidth(Kib/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1024.0 },
-            "bandwidth(MiB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1048576.0 },
-            "bandwidth(GiB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1073741824.0 },
-            "bandwidth(TiB/s)": { "type": "computed",
-                                  "args": ["bandwidth(B/s)"],
-                                  "func": lambda bps: bps / 1099511627776.0 },
+   # multi-dimensional array structured like this
+   #   kind - time, bandwidth, etc (["data"])
+   #     directory name - platform, compiler, etc
+   #       run size - problem size, for run_sizes
+   #         kernel index - for kernels
+   #           variant index - for variants
+   #             tuning index - for tunings
+   data = { }
+   num_data_axes = 5
+   data_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
+                 "run_size": 1,       1: "run_size",
+                 "kernel_index": 2,   2: "kernel_index",
+                 "variant_index": 3,  3: "variant_index",
+                 "tuning_index": 4,   4: "tuning_index", }
 
-            "FLOPS":  { "type": "computed",
-                        "args": ["time/rep(s)", "FLOPS/rep"],
-                        "func": lambda tpr, fpr: fpr / tpr },
-            "MFLOPS": { "type": "computed",
-                        "args": ["FLOPS"],
-                        "func": lambda fps: fps / 1000.0 },
-            "GFLOPS": { "type": "computed",
-                        "args": ["FLOPS"],
-                        "func": lambda fps: fps / 1000000.0 },
-            "TFLOPS": { "type": "computed",
-                        "args": ["FLOPS"],
-                        "func": lambda fps: fps / 1000000000.0 },
-         }
+   # multi-dimensional array structured like data but missing some dimensions
+   #   kind - time, bandwidth, etc (["data"])
+   #     directory name - platform, compiler, etc
+   #       run size - problem size, for run_sizes
+   #         kernel index - for kernels
+   #           variant index - for variants
+   #             tuning index - for tunings
+   reduced = { }
+   run_size_reduced_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
+                             "kernel_index": 1,   1: "kernel_index",
+                             "variant_index": 2,  2: "variant_index",
+                             "tuning_index": 3,   3: "tuning_index", }
 
-g_num_sweeps = 0
-g_sweeps = {}
-g_sweep_markers = {}
+   model_kind = "time(s)"
 
-g_num_run_sizes = 0
-g_run_sizes = {}
+   def DataTreeIterator0(data_tree):
+      assert(data_tree.num_axes == 0)
+      yield data_tree.data
 
-g_num_kernels = 0
-g_kernels = {}
-g_include_kernels = {}
-g_exclude_kernels = {}
+   def DataTreeIterator1(data_tree):
+      assert(data_tree.num_axes == 1)
+      assert(data_tree.data)
+      for k0 in data_tree.data.keys():
+         yield (k0,)
 
-g_num_variants = 0
-g_variants = {}
-g_variant_colors = {}
-g_include_variants = {}
-g_exclude_variants = {}
+   def DataTreeIterator2(data_tree):
+      assert(data_tree.num_axes == 2)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1 in v0.keys():
+            yield (k0, k1,)
 
-g_num_tunings = 0
-g_tunings = {}
-g_tuning_formats = {}
-g_include_tunings = {}
-g_exclude_tunings = {}
+   def DataTreeIterator3(data_tree):
+      assert(data_tree.num_axes == 3)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2 in v1.keys():
+               yield (k0, k1, k2,)
+
+   def DataTreeIterator4(data_tree):
+      assert(data_tree.num_axes == 4)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2, v2 in v1.items():
+               for k3 in v2.keys():
+                  yield (k0, k1, k2, k3,)
+
+   def DataTreeIterator5(data_tree):
+      assert(data_tree.num_axes == 5)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2, v2 in v1.items():
+               for k3, v3 in v2.items():
+                  for k4 in v3.keys():
+                     yield (k0, k1, k2, k3, k4,)
+
+   class DataTree:
+
+      def __init__(self, kind, type, axes, args=None, func=None):
+         self.kind = kind
+         self.type = type
+         self.axes = axes
+         self.num_axes = len(self.axes) / 2
+
+         self.args = args
+         self.func = func
+
+         if self.args:
+            self.num_args = len(self.args) / 2
+
+         self.data = None
+
+      def __iter__(self):
+         if self.num_axes == 0:
+            return DataTreeIterator0(self)
+         elif self.num_axes == 1:
+            return DataTreeIterator1(self)
+         elif self.num_axes == 2:
+            return DataTreeIterator2(self)
+         elif self.num_axes == 3:
+            return DataTreeIterator3(self)
+         elif self.num_axes == 4:
+            return DataTreeIterator4(self)
+         elif self.num_axes == 5:
+            return DataTreeIterator5(self)
+         else:
+            raise ValueError
+
+
+   # has info derivable from first kind "time(s)" which is read from files
+   kinds = { "Problem size":   DataTree("Problem size",   "info", info_axes),
+             "Reps":           DataTree("Reps",           "info", info_axes),
+             "Iterations/rep": DataTree("Iterations/rep", "info", info_axes),
+             "Kernels/rep":    DataTree("Kernels/rep",    "info", info_axes),
+             "Bytes/rep":      DataTree("Bytes/rep",      "info", info_axes),
+             "FLOPS/rep":      DataTree("FLOPS/rep",      "info", info_axes),
+
+             "time(s)": DataTree("time(s)", "data", data_axes),
+             "time(ms)": DataTree("time(ms)", "computed", data_axes, ["time(s)"], lambda t: t * 1000.0),
+             "time(us)": DataTree("time(us)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000.0),
+             "time(ns)": DataTree("time(ns)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000000.0),
+
+             "time/rep(s)": DataTree("time/rep(s)", "computed", data_axes, ["time(s)", "Reps"], lambda t, r: t / r),
+             "time/rep(ms)": DataTree("time/rep(ms)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000.0),
+             "time/rep(us)": DataTree("time/rep(us)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000.0),
+             "time/rep(ns)": DataTree("time/rep(ns)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000000.0),
+
+             "time/it(s)": DataTree("time/it(s)",  "computed", data_axes, ["time/rep(s)", "Iterations/rep"], lambda tpr, ipr: tpr / ipr),
+             "time/it(ms)": DataTree("time/it(ms)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000.0),
+             "time/it(us)": DataTree("time/it(us)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000.0),
+             "time/it(ns)": DataTree("time/it(ns)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000000.0),
+
+             "time/kernel(s)": DataTree("time/kernel(s)", "computed", data_axes, ["time/rep(s)", "Kernels/rep"], lambda tpr, kpr: tpr / kpr),
+             "time/kernel(ms)": DataTree("time/kernel(ms)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000.0),
+             "time/kernel(us)": DataTree("time/kernel(us)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000.0),
+             "time/kernel(ns)": DataTree("time/kernel(ns)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000000.0),
+
+             "throughput(Problem size/s)": DataTree("throughput(Problem size/s)", "computed", data_axes, ["time/rep(s)", "Problem size"], lambda tpr, ps: ps / tpr),
+             "throughput(Problem size/ms)": DataTree("throughput(Problem size/ms)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
+             "throughput(Problem size/us)": DataTree("throughput(Problem size/us)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
+             "throughput(Problem size/ns)": DataTree("throughput(Problem size/ns)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
+             "throughput(KProblem size/s)": DataTree("throughput(KProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
+             "throughput(MProblem size/s)": DataTree("throughput(MProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
+             "throughput(GProblem size/s)": DataTree("throughput(GProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
+             "throughput(TProblem size/s)": DataTree("throughput(TProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000000.0),
+
+             "bandwidth(B/s)": DataTree("bandwidth(B/s)", "computed", data_axes, ["time/rep(s)", "Bytes/rep"], lambda tpr, bpr: bpr / tpr),
+             "bandwidth(KB/s)": DataTree("bandwidth(KB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000.0),
+             "bandwidth(MB/s)": DataTree("bandwidth(MB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000.0),
+             "bandwidth(GB/s)": DataTree("bandwidth(GB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000.0),
+             "bandwidth(TB/s)": DataTree("bandwidth(TB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000000.0),
+             "bandwidth(KiB/s)": DataTree("bandwidth(KiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1024.0),
+             "bandwidth(MiB/s)": DataTree("bandwidth(MiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1048576.0),
+             "bandwidth(GiB/s)": DataTree("bandwidth(GiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1073741824.0),
+             "bandwidth(TiB/s)": DataTree("bandwidth(TiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1099511627776.0),
+
+             "FLOPS": DataTree("FLOPS", "computed", data_axes, ["time/rep(s)", "FLOPS/rep"], lambda tpr, fpr: fpr / tpr),
+             "KFLOPS": DataTree("KFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000.0),
+             "MFLOPS": DataTree("MFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000.0),
+             "GFLOPS": DataTree("GFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000.0),
+             "TFLOPS": DataTree("TFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000000.0),
+
+             "avg_time(s)": DataTree("avg_time(s)", "reduced", run_size_reduced_axes, ["time(s)"], avg),
+             "stddev_time(s)": DataTree("stddev_time(s)", "reduced", run_size_reduced_axes, ["time(s)"], stddev),
+
+           }
+
+
+
+
 
 def get_size_from_dir_name(sweep_subdir_name):
    # print(sweep_subdir_name)
@@ -269,39 +332,39 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
             for c in range(1, len(row)):
                info_kind = row[c].strip()
                # print(c, info_kind)
-               if not info_kind in g_kinds:
+               if not info_kind in Data.kinds:
+                  # add new kind to global data
                   print("Unknown kernel info {0}".format(info_kind))
-                  g_kinds[info_kind] = { "type": "info" }
+                  Data.kinds[info_kind] = Data.DataTree(info_kind, "info", Data.info_axes)
                if info_kind in c_to_info_kinds:
                   print("Repeated kernel info {0}".format(info_kind))
                   sys.exit(1)
-               if not info_kind in g_info:
-                  # add new kind to global data
-                  g_info[info_kind] = {}
-               if not sweep_dir_name in g_info[info_kind]:
+               if not Data.kinds[info_kind].data:
+                  # add data to kind
+                  Data.kinds[info_kind].data = {}
+               if not sweep_dir_name in Data.kinds[info_kind].data:
                   # add new sweep to global data
-                  g_info[info_kind][sweep_dir_name] = {}
-               if run_size in g_info[info_kind][sweep_dir_name]:
+                  Data.kinds[info_kind].data[sweep_dir_name] = {}
+               if run_size in Data.kinds[info_kind].data[sweep_dir_name]:
                   print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size))
                   sys.exit(1)
                else:
                   # add new size to global data
-                  g_info[info_kind][sweep_dir_name][run_size] = {}
+                  Data.kinds[info_kind].data[sweep_dir_name][run_size] = {}
                # make map of columns to names
                c_to_info_kinds[c] = info_kind
                c_to_info_kinds[info_kind] = c
          elif not ignore:
             kernel_index = -1
             kernel_name = row[0].strip()
-            if kernel_name in g_kernels:
-               kernel_index = g_kernels[kernel_name]
-            elif (len(g_include_kernels) == 0 or kernel_name in g_include_kernels) and (not kernel_name in g_exclude_kernels):
+            if kernel_name in Data.kernels:
+               kernel_index = Data.kernels[kernel_name]
+            elif (len(Data.include_kernels) == 0 or kernel_name in Data.include_kernels) and (not kernel_name in Data.exclude_kernels):
                # add kernel to global list
-               global g_num_kernels
-               kernel_index = g_num_kernels
-               g_num_kernels += 1
-               g_kernels[kernel_name]  = kernel_index
-               g_kernels[kernel_index] = kernel_name
+               kernel_index = Data.num_kernels
+               Data.num_kernels += 1
+               Data.kernels[kernel_name]  = kernel_index
+               Data.kernels[kernel_index] = kernel_name
             else:
                continue # skip this kernel
 
@@ -311,7 +374,7 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   # add data to global structure
                   val = int(row[c].strip())
                   # print(kernel_index, kernel_name, info_kind, val)
-                  g_info[info_kind][sweep_dir_name][run_size][kernel_index] = val
+                  Data.kinds[info_kind].data[sweep_dir_name][run_size][kernel_index] = val
                except ValueError:
                   pass # could not convert data to int
 
@@ -321,12 +384,14 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
       file_reader = csv.reader(file, delimiter=',')
 
       data_kind = g_timing_file_kind
-      if not data_kind in g_data:
-         g_data[data_kind] = {}
-      if not sweep_dir_name in g_data[data_kind]:
-         g_data[data_kind][sweep_dir_name] = {}
-      if not run_size in g_data[data_kind][sweep_dir_name]:
-         g_data[data_kind][sweep_dir_name][run_size] = {}
+      if not data_kind in Data.kinds:
+         raise NameError("Unknown kind {}".format(data_kind))
+      if not Data.kinds[data_kind].data:
+         Data.kinds[data_kind].data = {}
+      if not sweep_dir_name in Data.kinds[data_kind].data:
+         Data.kinds[data_kind].data[sweep_dir_name] = {}
+      if not run_size in Data.kinds[data_kind].data[sweep_dir_name]:
+         Data.kinds[data_kind].data[sweep_dir_name][run_size] = {}
       else:
          raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size))
 
@@ -338,58 +403,56 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             if len(c_to_variant_index) == 0:
                for c in range(1, len(row)):
                   variant_name = row[c].strip()
-                  if variant_name in g_variants:
+                  if variant_name in Data.variants:
                      pass
-                  elif (len(g_include_variants) == 0 or variant_name in g_include_variants) and (not variant_name in g_exclude_variants):
-                     global g_num_variants
-                     variant_index = g_num_variants
-                     g_num_variants += 1
-                     g_variants[variant_name]  = variant_index
-                     g_variants[variant_index] = variant_name
+                  elif (len(Data.include_variants) == 0 or variant_name in Data.include_variants) and (not variant_name in Data.exclude_variants):
+                     variant_index = Data.num_variants
+                     Data.num_variants += 1
+                     Data.variants[variant_name]  = variant_index
+                     Data.variants[variant_index] = variant_name
                      if variant_name in g_known_variants:
                         variant_color = g_known_variants[variant_name]["color"]
-                        g_variant_colors[variant_name] = variant_color
-                        g_variant_colors[variant_index] = variant_color
+                        Data.variant_colors[variant_name] = variant_color
+                        Data.variant_colors[variant_index] = variant_color
                      else:
                         print("Unknown variant {0}".format(variant_name))
                         sys.exit(1)
                   else:
-                     g_variants[variant_name]  = -1
+                     Data.variants[variant_name]  = -1
 
-                  c_to_variant_index[c] = g_variants[variant_name]
+                  c_to_variant_index[c] = Data.variants[variant_name]
             elif len(c_to_tuning_index) == 0:
                for c in range(1, len(row)):
                   tuning_name = row[c].strip()
-                  if tuning_name in g_tunings:
+                  if tuning_name in Data.tunings:
                      pass
-                  elif (len(g_include_tunings) == 0 or tuning_name in g_include_tunings) and (not tuning_name in g_exclude_tunings):
-                     global g_num_tunings
-                     tuning_index = g_num_tunings
-                     g_num_tunings += 1
-                     g_tunings[tuning_name]  = tuning_index
-                     g_tunings[tuning_index] = tuning_name
+                  elif (len(Data.include_tunings) == 0 or tuning_name in Data.include_tunings) and (not tuning_name in Data.exclude_tunings):
+                     tuning_index = Data.num_tunings
+                     Data.num_tunings += 1
+                     Data.tunings[tuning_name]  = tuning_index
+                     Data.tunings[tuning_index] = tuning_name
                      if tuning_name in g_known_tunings:
                         tuning_format = g_known_tunings[tuning_name]["format"]
-                        g_tuning_formats[tuning_name] = tuning_format
-                        g_tuning_formats[tuning_index] = tuning_format
+                        Data.tuning_formats[tuning_name] = tuning_format
+                        Data.tuning_formats[tuning_index] = tuning_format
                      else:
                         print("Unknown tuning {0}".format(tuning_name))
                         sys.exit(1)
                   else:
-                     g_tunings[tuning_name] = -1
-                  c_to_tuning_index[c] = g_tunings[tuning_name]
+                     Data.tunings[tuning_name] = -1
+                  c_to_tuning_index[c] = Data.tunings[tuning_name]
             else:
                print("Unknown row {0}".format(row))
                sys.exit(1);
          elif len(c_to_variant_index) > 0 and len(c_to_tuning_index) > 0:
             kernel_index = -1
             kernel_name = row[0].strip()
-            if kernel_name in g_kernels:
-               kernel_index = g_kernels[kernel_name]
+            if kernel_name in Data.kernels:
+               kernel_index = Data.kernels[kernel_name]
             else:
                continue # skip kernel
 
-            g_data[data_kind][sweep_dir_name][run_size][kernel_index] = {}
+            Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index] = {}
             for c in range(1, len(row)):
                variant_index = c_to_variant_index[c]
                tuning_index = c_to_tuning_index[c]
@@ -398,80 +461,121 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                try:
                   val = float(row[c].strip())
                   # print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
-                  if not variant_index in g_data[data_kind][sweep_dir_name][run_size][kernel_index]:
-                     g_data[data_kind][sweep_dir_name][run_size][kernel_index][variant_index] = {}
-                  g_data[data_kind][sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+                  if not variant_index in Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index]:
+                     Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
+                  Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
                except ValueError:
                   pass # could not convert data to float
 
 def compute_data(kind):
-   if not kind in g_kinds:
-      raise NameError("Unknown data kind {0}".format(kind))
+   if not kind in Data.kinds:
+      raise NameError("Unknown data kind {}".format(kind))
 
-   if g_kinds[kind]["type"] == "info":
-      if kind in g_info:
-         return # already calculated
-      else:
-         raise NameError("Invalid info kind {0}".format(kind))
-   elif g_kinds[kind]["type"] == "data":
-      if kind in g_data:
-         return # already calculated
+   if Data.kinds[kind].data:
+      return # already calculated
 
-   if not g_kinds[kind]["type"] == "computed":
-      raise NameError("Invalid data kind {0}".format(kind))
 
-   if not ("func" in g_kinds[kind] and "args" in g_kinds[kind]):
-      raise NameError("Computing data is not yet supported for kind {0}".format(kind))
+   if Data.kinds[kind].type == "computed":
 
-   compute_args = g_kinds[kind]["args"]
-   compute_func = g_kinds[kind]["func"]
+      if not (Data.kinds[kind].args and Data.kinds[kind].func):
+         raise NameError("Computing data is not supported for kind {0}".format(kind))
 
-   for arg_kind in compute_args:
-      # calculate data for arg_kind
-      compute_data(arg_kind)
+      compute_args = Data.kinds[kind].args
+      compute_func = Data.kinds[kind].func
 
-   model_kind = g_model_kind
-   compute_data(model_kind)
-   if not model_kind in g_data:
-      raise NameError("Model data not available {0}, no args".format(model_kind))
+      for arg_kind in compute_args:
+         # calculate data for arg_kind
+         compute_data(arg_kind)
 
-   g_data[kind] = {}
-   for sweep_dir_name, model_sweep_data in g_data[model_kind].items():
-      g_data[kind][sweep_dir_name] = {}
-      for run_size, model_run_data in model_sweep_data.items():
-         g_data[kind][sweep_dir_name][run_size] = {}
-         for kernel_index, model_kernel_data in model_run_data.items():
-            kernel_name = g_kernels[kernel_index]
-            g_data[kind][sweep_dir_name][run_size][kernel_index] = {}
-            for variant_index, model_variant_data in model_kernel_data.items():
-               variant_name = g_variants[variant_index]
-               g_data[kind][sweep_dir_name][run_size][kernel_index][variant_index] = {}
-               for tuning_index, model_val in model_variant_data.items():
-                  tuning_name = g_tunings[tuning_index]
+      model_kind = Data.model_kind
+      compute_data(model_kind)
+      if not model_kind in Data.kinds:
+         raise NameError("Model data not available {0}, no args".format(model_kind))
 
-                  args_val = ()
-                  for arg_kind in compute_args:
-                     if g_kinds[arg_kind]["type"] == "info":
-                        arg_val = g_info[arg_kind][sweep_dir_name][run_size][kernel_index]
-                     elif g_kinds[arg_kind]["type"] == "data" or g_kinds[arg_kind]["type"] == "computed":
-                        arg_val = g_data[arg_kind][sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
-                     else:
-                        raise NameError("Invalid data kind {0}".format(arg_kind))
-                     args_val = args_val + (arg_val,)
+      Data.kinds[kind].data = {}
+      for sweep_dir_name, model_sweep_data in Data.kinds[model_kind].data.items():
+         Data.kinds[kind].data[sweep_dir_name] = {}
+         for run_size, model_run_data in model_sweep_data.items():
+            Data.kinds[kind].data[sweep_dir_name][run_size] = {}
+            for kernel_index, model_kernel_data in model_run_data.items():
+               kernel_name = Data.kernels[kernel_index]
+               Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
+               for variant_index, model_variant_data in model_kernel_data.items():
+                  variant_name = Data.variants[variant_index]
+                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
+                  for tuning_index, model_val in model_variant_data.items():
+                     tuning_name = Data.tunings[tuning_index]
 
-                  val = compute_func(*args_val)
-                  g_data[kind][sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+                     args_val = ()
+                     for arg_kind in compute_args:
+                        if Data.kinds[arg_kind].type == "info":
+                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
+                        elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
+                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
+                        else:
+                           raise NameError("Invalid data kind {0}".format(arg_kind))
+                        args_val = args_val + (arg_val,)
 
+                     val = compute_func(*args_val)
+                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+
+   elif Data.kinds[kind].type == "reduced":
+
+      if not ("func" in Data.kinds[kind] and "args" in Data.kinds[kind] and "axis" in Data.kinds[kind]):
+         raise NameError("Reducing data is not supported for kind {0}".format(kind))
+
+      reduce_axis = Data.kinds[kind].axis
+      reduce_args = Data.kinds[kind].args
+      reduce_func = Data.kinds[kind].func
+
+      for arg_kind in reduce_args:
+         # calculate data for arg_kind
+         reduce_data(arg_kind)
+
+      model_kind = Data.model_kind
+      reduce_data(model_kind)
+      if not model_kind in Data.kinds:
+         raise NameError("Model data not available {0}, no args".format(model_kind))
+
+      Data.kinds[kind].data = {}
+      for sweep_dir_name, model_sweep_data in Data.kinds[model_kind].data.items():
+         Data.kinds[kind].data[sweep_dir_name] = {}
+         for run_size, model_run_data in model_sweep_data.items():
+            Data.kinds[kind].data[sweep_dir_name][run_size] = {}
+            for kernel_index, model_kernel_data in model_run_data.items():
+               kernel_name = Data.kernels[kernel_index]
+               Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
+               for variant_index, model_variant_data in model_kernel_data.items():
+                  variant_name = Data.variants[variant_index]
+                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
+                  for tuning_index, model_val in model_variant_data.items():
+                     tuning_name = Data.tunings[tuning_index]
+
+                     args_val = ()
+                     for arg_kind in reduce_args:
+                        if Data.kinds[arg_kind].type == "info":
+                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
+                        elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "reduced":
+                           arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
+                        else:
+                           raise NameError("Invalid data kind {0}".format(arg_kind))
+                        args_val = args_val + (arg_val,)
+
+                     val = reduce_func(*args_val)
+                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+
+   else:
+      raise NameError("Unknown kind type {}".format(Data.kinds[kind].type))
 
 def get_run_size_data(kind, kernel):
 
-   if not kind in g_kinds:
+   if not kind in Data.kinds:
       raise NameError("Unknown kind {}".format(kind))
 
    kernel_index = kernel
    if isinstance(kernel, str):
-      if kernel in g_kernels:
-         kernel_index = g_kernels[kernel]
+      if kernel in Data.kernels:
+         kernel_index = Data.kernels[kernel]
       else:
          raise NameError("Unknown kernel {}".format(kernel))
    elif isinstance(kernel, int):
@@ -479,18 +583,18 @@ def get_run_size_data(kind, kernel):
    else:
       raise NameError("Unknown kernel {}".format(kernel))
 
-   if not kernel_index in g_kernels:
+   if not kernel_index in Data.kernels:
       raise NameError("Unknown kernel {}".format(kernel_index))
-   kernel_name = g_kernels[kernel_index]
+   kernel_name = Data.kernels[kernel_index]
 
    data = {}
 
-   kind_meta = g_kinds[kind]
-   if kind_meta["type"] == "info":
+   kind_meta = Data.kinds[kind]
+   if kind_meta.type == "info":
 
-      if not kind in g_info:
+      if not kind in Data.kinds:
          raise NameError("Unknown info kind {}".format(kind))
-      kind_info = g_info[kind]
+      kind_info = Data.kinds[kind].data
 
       for sweep_dir_name, sweep_info in kind_info.items():
 
@@ -506,14 +610,14 @@ def get_run_size_data(kind, kernel):
             val = run_info[kernel_index]
             data[sweep_dir_name][kind]["data"].append(val)
 
-   elif kind_meta["type"] == "data" or kind_meta["type"] == "computed":
+   elif kind_meta.type == "data" or kind_meta.type == "computed":
 
-      if kind_meta["type"] == "computed":
+      if kind_meta.type == "computed":
          compute_data(kind)
 
-      if not kind in g_data:
+      if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
-      kind_data = g_data[kind]
+      kind_data = Data.kinds[kind].data
 
       for sweep_dir_name, sweep_data in kind_data.items():
 
@@ -527,9 +631,9 @@ def get_run_size_data(kind, kernel):
             kernel_data = run_data[kernel_index]
 
             for variant_index, variant_data in kernel_data.items():
-               variant_name = g_variants[variant_index]
+               variant_name = Data.variants[variant_index]
                for tuning_index, val in variant_data.items():
-                  tuning_name = g_tunings[tuning_index]
+                  tuning_name = Data.tunings[tuning_index]
 
                   data_name = "{}-{}".format(variant_name, tuning_name)
 
@@ -542,14 +646,16 @@ def get_run_size_data(kind, kernel):
                   data[sweep_dir_name][data_name]["data"].append(val)
 
    else:
-      raise NameError("Unknown kind {} type {}".format(kind, kind_meta["type"]))
+      raise NameError("Unknown kind {} type {}".format(kind, kind_meta.type))
 
    return data
 
-def plot_data(outputfile_name, ykind):
-   print(outputfile_name, ykind)
 
-   if not ykind in g_kinds:
+
+def plot_data(outputfile_name, ykind):
+   print("plotting {} {}".format(outputfile_name, ykind))
+
+   if not ykind in Data.kinds:
       raise NameError("Unknown kind {}".format(ykind))
 
    ylabel = ykind
@@ -561,15 +667,15 @@ def plot_data(outputfile_name, ykind):
    xscale = "log"
    xlim = None
 
-   for kernel_index in range(0, g_num_kernels):
-      kernel_name = g_kernels[kernel_index]
+   for kernel_index in range(0, Data.num_kernels):
+      kernel_name = Data.kernels[kernel_index]
 
       xaxes = get_run_size_data(xkind, kernel_index)
       yaxes = get_run_size_data(ykind, kernel_index)
 
-      for sweep_index in range(0, g_num_sweeps):
-         sweep_dir_name = g_sweeps[sweep_index]
-         sweep_marker = g_sweep_markers[sweep_index]
+      for sweep_index in range(0, Data.num_sweeps):
+         sweep_dir_name = Data.sweeps[sweep_index]
+         sweep_marker = Data.sweep_markers[sweep_index]
 
          if not sweep_dir_name in xaxes:
             raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
@@ -584,8 +690,8 @@ def plot_data(outputfile_name, ykind):
             if ydata["type"] == "data":
                variant_index = ydata["variant"]
                tuning_index = ydata["tuning"]
-               ycolor = g_variant_colors[variant_index]
-               yformat = "{}{}".format(sweep_marker, g_tuning_formats[tuning_index])
+               ycolor = Data.variant_colors[variant_index]
+               yformat = "{}{}".format(sweep_marker, Data.tuning_formats[tuning_index])
 
             if data_name in xaxes[sweep_dir_name]:
                xaxis = xaxes[sweep_dir_name][data_name]["data"]
@@ -621,31 +727,39 @@ def plot_data(outputfile_name, ykind):
       plt.clf()
 
 def print_data(kind):
-   print(kind)
+   print("printing {}".format(kind))
 
-   if kind in g_info:
-      kind_info = g_info[kind]
+   compute_data(kind)
+
+   type = None
+   if not kind in Data.kinds:
+      return
+
+   if Data.kinds[kind].type == "info":
+      kind_info = Data.kinds[kind].data
       for sweep_dir_name, sweep_info in kind_info.items():
-         print(sweep_dir_name)
          for run_size, run_info in sweep_info.items():
-            print(run_size)
             for kernel_index, val in run_info.items():
-               kernel_name = g_kernels[kernel_index]
-               print(kernel_name, val)
+               kernel_name = Data.kernels[kernel_index]
+               print("{} {} {} {}".format(sweep_dir_name, run_size, kernel_name, val))
 
-   if kind in g_data:
-      kind_data = g_data[kind]
+   elif Data.kinds[kind].type == "data" or \
+        Data.kinds[kind].type == "computed":
+      kind_data = Data.kinds[kind].data
       for sweep_dir_name, sweep_data in kind_data.items():
-         print(sweep_dir_name)
          for run_size, run_data in sweep_data.items():
-            print(run_size)
             for kernel_index, kernel_data in run_data.items():
-               kernel_name = g_kernels[kernel_index]
+               kernel_name = Data.kernels[kernel_index]
                for variant_index, variant_data in kernel_data.items():
-                  variant_name = g_variants[variant_index]
+                  variant_name = Data.variants[variant_index]
                   for tuning_index, val in variant_data.items():
-                     tuning_name = g_tunings[tuning_index]
-                     print(kernel_name, variant_name, tuning_name, val)
+                     tuning_name = Data.tunings[tuning_index]
+                     print("{} {} {} {} {} {}".format(sweep_dir_name, run_size, kernel_name, variant_name, tuning_name, val))
+
+   elif Data.kinds[kind].type == "reduced":
+      raise NameError("Unsupported type {}".format(Data.kinds[kind].type))
+   else:
+      raise NameError("Unsupported type {}".format(Data.kinds[kind].type))
 
 def main(argv):
    sweep_dir_paths = []
@@ -691,32 +805,32 @@ def main(argv):
          elif opt in ("-k", "--kernels"):
             handle_num = -1
             def fk(arg):
-               g_include_kernels[arg] = arg
+               Data.include_kernels[arg] = arg
             handle_arg = fk
          elif opt in ("-ek", "--exclude-kernels"):
             handle_num = -1
             def fek(arg):
-               g_exclude_kernels[arg] = arg
+               Data.exclude_kernels[arg] = arg
             handle_arg = fek
          elif opt in ("-v", "--variants"):
             handle_num = -1
             def fv(arg):
-               g_include_variants[arg] = arg
+               Data.include_variants[arg] = arg
             handle_arg = fv
          elif opt in ("-ev", "--exclude-variants"):
             handle_num = -1
             def fev(arg):
-               g_exclude_variants[arg] = arg
+               Data.exclude_variants[arg] = arg
             handle_arg = fev
          elif opt in ("-t", "--tunings"):
             handle_num = -1
             def ft(arg):
-               g_include_tunings[arg] = arg
+               Data.include_tunings[arg] = arg
             handle_arg = ft
          elif opt in ("-et", "--exclude-tunings"):
             handle_num = -1
             def fet(arg):
-               g_exclude_tunings[arg] = arg
+               Data.exclude_tunings[arg] = arg
             handle_arg = fet
 
          if handle_num == 0:
@@ -764,11 +878,10 @@ def main(argv):
             try:
                run_size = get_size_from_dir_name(sweep_subdir_name)
 
-               if not str(run_size) in g_run_sizes:
-                  global g_num_run_sizes
-                  g_run_sizes[g_num_run_sizes] = run_size
-                  g_run_sizes[str(run_size)] = g_num_run_sizes
-                  g_num_run_sizes += 1
+               if not str(run_size) in Data.run_sizes:
+                  Data.run_sizes[Data.num_run_sizes] = run_size
+                  Data.run_sizes[str(run_size)] = Data.num_run_sizes
+                  Data.num_run_sizes += 1
 
                sweep_subdir_timing_file_path = ""
                sweep_subdir_runinfo_file_path = ""
@@ -790,48 +903,47 @@ def main(argv):
                pass # could not convert data to int
 
       if got_something:
-         global g_num_sweeps
-         if sweep_dir_name in g_sweeps:
+         if sweep_dir_name in Data.sweeps:
             raise NameError("Repeated sweep_dir_name {}".format(sweep_dir_name))
-         g_sweeps[g_num_sweeps] = sweep_dir_name
-         if g_num_sweeps >= len(g_markers):
+         Data.sweeps[Data.num_sweeps] = sweep_dir_name
+         if Data.num_sweeps >= len(g_markers):
             raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
-         g_sweep_markers[g_num_sweeps] = g_markers[g_num_sweeps]
-         g_num_sweeps += 1
+         Data.sweep_markers[Data.num_sweeps] = g_markers[Data.num_sweeps]
+         Data.num_sweeps += 1
 
    kinds_string = ""
-   for kind in g_kinds:
+   for kind in Data.kinds:
       kinds_string += ", {}".format(kind)
    print("kinds")
    print("  {}".format(kinds_string[2:]))
 
    sweeps_string = ""
-   for v in range(0, g_num_sweeps):
-      sweeps_string += ", {}".format(g_sweeps[v])
+   for v in range(0, Data.num_sweeps):
+      sweeps_string += ", {}".format(Data.sweeps[v])
    print("sweeps")
    print("  {}".format(sweeps_string[2:]))
 
    run_sizes_string = ""
-   for v in range(0, g_num_run_sizes):
-      run_sizes_string += ", {}".format(g_run_sizes[v])
+   for v in range(0, Data.num_run_sizes):
+      run_sizes_string += ", {}".format(Data.run_sizes[v])
    print("run_sizes")
    print("  {}".format(run_sizes_string[2:]))
 
    kernel_string = ""
-   for v in range(0, g_num_kernels):
-      kernel_string += ", {}".format(g_kernels[v])
+   for v in range(0, Data.num_kernels):
+      kernel_string += ", {}".format(Data.kernels[v])
    print("kernels")
    print("  {}".format(kernel_string[2:]))
 
    variant_string = ""
-   for v in range(0, g_num_variants):
-      variant_string += ", {}".format(g_variants[v])
+   for v in range(0, Data.num_variants):
+      variant_string += ", {}".format(Data.variants[v])
    print("variants")
    print("  {}".format(variant_string[2:]))
 
    tuning_string = ""
-   for v in range(0, g_num_tunings):
-      tuning_string += ", {}".format(g_tunings[v])
+   for v in range(0, Data.num_tunings):
+      tuning_string += ", {}".format(Data.tunings[v])
    print("tunings")
    print("  {}".format(tuning_string[2:]))
 
