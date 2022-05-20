@@ -39,7 +39,7 @@ template < Index_type block_size >
 __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
-  constexpr int Ne = 16;
+  constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x + ii*(Ne*Ne);
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y + ii*(Ne*Ne);
@@ -51,7 +51,7 @@ template <  Index_type block_size, typename Lambda >
 __launch_bounds__(block_size)
 __global__ void mat_fused_lam(Index_type N, Lambda body)
 {
-  constexpr int Ne = 16;
+  constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
