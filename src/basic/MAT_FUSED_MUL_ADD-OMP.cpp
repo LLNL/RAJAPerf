@@ -34,7 +34,7 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     startTimer();
 
-    Index_type ii_end = (N/(Ne*Ne);
+    Index_type ii_end = (N/(Ne*Ne));
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
     #pragma omp parallel for
     for(Index_type ii = 0; ii != ii_end; ++ii){
