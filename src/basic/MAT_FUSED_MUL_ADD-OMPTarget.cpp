@@ -25,21 +25,21 @@ namespace basic {
   const size_t threads_per_team = 256;
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_OMP_TARGET           \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-  const Index_type N = m_N;                        \
-  constexpr Index_type Ne = m_Ne;                  \
-  constexpr Index_type NeNe = m_Ne * m_Ne;         \
-  allocAndInitOpenMPDeviceData(A, m_A, N, did, hid);            \
-  allocAndInitOpenMPDeviceData(B, m_B, N, did, hid);            \
+  int hid = omp_get_initial_device();                     \
+  int did = omp_get_default_device();                     \
+  const Index_type N = m_N;                               \
+  constexpr Index_type Ne = m_Ne;                         \
+  constexpr Index_type NeNe = m_Ne * m_Ne;                \
+  allocAndInitOpenMPDeviceData(A, m_A, N, did, hid);      \
+  allocAndInitOpenMPDeviceData(B, m_B, N, did, hid);      \
   allocAndInitOpenMPDeviceData(D, m_D, N, did, hid);			  
 
 #define MAT_FUSED_MUL_ADD_DATA_TEARDOWN_OMP_TARGET        \
-  getOpenMPDeviceData(m_A, A, N, hid, did);                     \
-  getOpenMPDeviceData(m_B, B, N, hid, did);                     \
-  getOpenMPDeviceData(m_D, D, N, hid, did);                     \
-  deallocOpenMPDeviceData(A, did);                         \
-  deallocOpenMPDeviceData(B, did);                         \
+  getOpenMPDeviceData(m_A, A, N, hid, did);               \
+  getOpenMPDeviceData(m_B, B, N, hid, did);               \
+  getOpenMPDeviceData(m_D, D, N, hid, did);               \
+  deallocOpenMPDeviceData(A, did);                        \
+  deallocOpenMPDeviceData(B, did);                        \
   deallocOpenMPDeviceData(D, did);
 
 
