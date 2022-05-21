@@ -20,8 +20,8 @@ namespace basic {
 MAT_FUSED_MUL_ADD::MAT_FUSED_MUL_ADD(const RunParams &params)
     : KernelBase(rajaperf::Basic_MAT_FUSED_MUL_ADD, params)
 {
-  m_N_default = 1024;
-  setDefaultProblemSize(m_N_default);
+  m_N_default = 1000;
+  setDefaultProblemSize(m_N_default*m_N_default);
   setDefaultReps(5);
 
   //Make sure problem target size is divisible by 16*16
