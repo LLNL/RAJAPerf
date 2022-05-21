@@ -137,10 +137,7 @@ enum KernelID {
 //
 // Apps kernels...
 //
-<<<<<<< HEAD
   Apps_CONVECTION3DPA,
-=======
->>>>>>> 78348cb9 (reverting formatting changes)
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
@@ -158,10 +155,7 @@ enum KernelID {
 //
 // Algorithm kernels...
 //
-<<<<<<< HEAD
   Algorithm_SCAN,
-=======
->>>>>>> 78348cb9 (reverting formatting changes)
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
@@ -409,7 +403,7 @@ auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
   // The boundaries parameter pack contains the array dimenions;
   // An allocation is implicitly made here
   device_view_type device_data_copy("StringName", boundaries...);
-
+#endif
 }  // closing brace for rajaperf namespace
 
 #endif  // closing endif for header file include guard

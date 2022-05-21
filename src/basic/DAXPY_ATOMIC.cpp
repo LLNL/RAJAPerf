@@ -55,6 +55,10 @@ DAXPY_ATOMIC::DAXPY_ATOMIC(const RunParams& params)
   setVariantDefined( Kokkos_Lambda );
 }
 
+DAXPY_ATOMIC::~DAXPY_ATOMIC()
+{
+}
+
 void DAXPY_ATOMIC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
