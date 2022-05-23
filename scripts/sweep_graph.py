@@ -3,6 +3,7 @@
 import math
 import os
 import sys
+import re
 import getopt
 import csv
 import matplotlib.pyplot as plt
@@ -85,12 +86,14 @@ g_runinfo_filename = "RAJAPerf-kernels.csv"
 g_timing_file_kind = "time(s)"
 
 
-def avg(vals):
-   avg_val = 0
+def sum(vals):
+   sum_val = 0
    for val in vals:
-      avg_val += val
-   avg_val /= len(vals)
-   return avg_val
+      sum_val += val
+   return sum_val
+
+def avg(vals):
+   return sum(vals) / len(vals)
 
 def stddev(vals):
    avg_val = avg(vals)
@@ -109,6 +112,142 @@ def relstddev(vals):
    stddev_val /= len(vals)
    stddev_val = math.sqrt(stddev_val)
    return stddev_val / abs(avg_val)
+
+# returns (intercept, slope, correlation_coefficient)
+def linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum):
+   assert(n>0)
+   if n == 1:
+      slope = 0.0
+      intercept = ysum
+      correlation_coefficient = 1.0
+   else:
+      slope = (n*xysum - xsum*ysum) / (n*x2sum - xsum*xsum)
+      intercept = (ysum - slope*xsum)/n
+      correlation_coefficient = (n*xysum - xsum*ysum) / math.sqrt((n*x2sum - xsum*xsum)*(n*y2sum - ysum*ysum))
+   return (intercept, slope, correlation_coefficient)
+
+# returns (intercept, slope, correlation_coefficient)
+def linearRegression(xvals, yvals):
+   assert(len(xvals) == len(yvals))
+   n = len(xvals)
+   xsum = sum(xvals)
+   ysum = sum(yvals)
+   x2sum = sum([x*x for x in xvals])
+   y2sum = sum([y*y for y in yvals])
+   xysum = sum([xvals[i]*yvals[i] for i in range(0, n)])
+   return linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum)
+
+def eval_linearRegression(xval, lr_vals):
+   return lr_vals[0] + lr_vals[1]*xval
+
+# returns (intercept, slope, correlation_coefficient)
+def linearRegression_loglog(xvals, yvals):
+   assert(len(xvals) == len(yvals))
+   xlogvals = [math.log(x, 2) for x in xvals]
+   ylogvals = [math.log(y, 2) for y in yvals]
+   return linearRegression(xlogvals, ylogvals)
+
+def eval_linearRegression_loglog(xval, lr_vals):
+   return math.pow(2, lr_vals[0])*math.pow(xval, lr_vals[1])
+
+
+# returns (intercept, slope, correlation_coefficient)
+def segmented_linearRegression_partialRegression(i, n, xvals, yvals, sums, LR):
+   sums[0] += xvals[i]
+   sums[1] += yvals[i]
+   sums[2] += xvals[i]*xvals[i]
+   sums[3] += yvals[i]*yvals[i]
+   sums[4] += xvals[i]*yvals[i]
+   xsum = sums[0]
+   ysum = sums[1]
+   x2sum = sums[2]
+   y2sum = sums[3]
+   xysum = sums[4]
+   LR[i] = linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum)
+
+# returns ([break points...], [linear regressions...], correlation_coefficient)
+def segmented_linearRegression_helper(ret, i, n, xvals, yvals, denom, LR_left, LR_right):
+   lr_vals_left = None
+   lr_vals_right = None
+   break_point = math.inf
+
+   if i > 0:
+      lr_vals_left = LR_left[i-1]
+   if i < n:
+      lr_vals_right = LR_right[i]
+      break_point = xvals[i]
+
+   numer = 0.0
+   for j in range(0, n):
+      xval = xvals[j]
+      yval = yvals[j]
+      lr_vals = None
+      if xval < break_point:
+         lr_vals = lr_vals_left
+      else:
+         lr_vals = lr_vals_right
+      lr_yval = eval_linearRegression(xval, lr_vals)
+      numer += (yval - lr_yval)*(yval - lr_yval)
+
+   correlation_coefficient = 1.0 - numer / denom
+   if correlation_coefficient > ret[2]:
+      ret[0] = [break_point,]
+      ret[1] = [lr_vals_left, lr_vals_right,]
+      ret[2] = correlation_coefficient
+
+# returns ([break points...], [linear regressions...], correlation_coefficient)
+def segmented_linearRegression(xvals, yvals):
+   assert(len(xvals) == len(yvals))
+   N = len(xvals)
+
+   LR_left = []
+   LR_right = []
+   for i in range(0, N):
+      LR_left.append(None)
+      LR_right.append(None)
+
+   sums = [0.0, 0.0, 0.0, 0.0, 0.0]
+   for ii in range(0, N):
+      i = N-ii-1
+      n = ii+1
+      segmented_linearRegression_partialRegression(i, n, xvals, yvals, sums, LR_right)
+
+   sums = [0.0, 0.0, 0.0, 0.0, 0.0]
+   for i in range(0, N):
+      n = i+1
+      segmented_linearRegression_partialRegression(i, n, xvals, yvals, sums, LR_left)
+
+   yavg = avg(yvals)
+   denom = sum([(y-yavg)*(y-yavg) for y in yvals])
+   ret = [[], [], -math.inf]
+   for i in range(0, N+1):
+      segmented_linearRegression_helper(ret, i, N, xvals, yvals, denom, LR_left, LR_right)
+
+   return (*ret,)
+
+def find_segment(xval, break_points):
+   break_i = len(break_points)
+   for i in range(0, len(break_points)):
+      break_point = break_points[i]
+      if xval < break_point:
+         break_i = i
+         break
+   return break_i
+
+def eval_segmented_linearRegression(xval, slr_vals):
+   break_i = find_segment(xval, slr_vals[0])
+   return eval_linearRegression(xval, slr_vals[1][break_i])
+
+# returns ([break points...], [linear regressions...], correlation_coefficient)
+def segmented_linearRegression_loglog(xvals, yvals):
+   assert(len(xvals) == len(yvals))
+   xlogvals = [math.log(x, 2) for x in xvals]
+   ylogvals = [math.log(y, 2) for y in yvals]
+   return segmented_linearRegression(xlogvals, ylogvals)
+
+def eval_segmented_linearRegression_loglog(xval, slr_vals):
+   break_i = find_segment(math.log(xval, 2), slr_vals[0])
+   return eval_linearRegression_loglog(xval, slr_vals[1][break_i])
 
 
 class Data:
@@ -215,8 +354,9 @@ class Data:
 
    class DataTree:
 
-      def __init__(self, kind, type, axes, args=None, func=None):
+      def __init__(self, kind, label, type, axes, args=None, func=None):
          self.kind = kind
+         self.label = label
          self.type = type
          self.axes = axes
          self.num_axes = len(self.axes) / 2
@@ -286,77 +426,117 @@ class Data:
 
    class DataTreeTemplate:
 
-      def __init__(self, kind_template, type, axes, arg_templates, func):
+      def __init__(self, kind_template, label_template, type, axes, arg_templates, func):
          self.kind_template = kind_template
+         self.label_template = label_template
          self.type = type
          self.axes = axes
          self.arg_templates = arg_templates
          self.func = func
 
+      def getKind(self, template_args):
+         return self.kind_template.format(*template_args)
+
+      def getLabel(self, template_args):
+         arg_labels = [Data.kinds[arg_kind].label for arg_kind in template_args]
+         return self.label_template.format(*arg_labels)
+
+      def getArgs(self, template_args):
+         return [ arg.format(*template_args) for arg in self.arg_templates ]
+
       def makeDataTree(self, template_args):
-         kind = self.kind_template.format(*template_args)
-         args = [ arg.format(*template_args) for arg in self.arg_templates ]
-         return Data.DataTree(kind, self.type, self.axes, args, self.func)
+         kind = self.getKind(template_args)
+         label = self.getLabel(template_args)
+         args = self.getArgs(template_args)
+         return Data.DataTree(kind, label, self.type, self.axes, args, self.func)
 
    # has info derivable from first kind "time(s)" which is read from files
-   kinds = { "Problem size":   DataTree("Problem size",   "info", info_axes),
-             "Reps":           DataTree("Reps",           "info", info_axes),
-             "Iterations/rep": DataTree("Iterations/rep", "info", info_axes),
-             "Kernels/rep":    DataTree("Kernels/rep",    "info", info_axes),
-             "Bytes/rep":      DataTree("Bytes/rep",      "info", info_axes),
-             "FLOPS/rep":      DataTree("FLOPS/rep",      "info", info_axes),
+   kinds = { "Problem size":   DataTree("Problem size",   "Problem size", "info", info_axes),
+             "Reps":           DataTree("Reps",           "Reps",         "info", info_axes),
+             "Iterations/rep": DataTree("Iterations/rep", "Iterations",   "info", info_axes),
+             "Kernels/rep":    DataTree("Kernels/rep",    "Kernels",      "info", info_axes),
+             "Bytes/rep":      DataTree("Bytes/rep",      "Bytes",        "info", info_axes),
+             "FLOPS/rep":      DataTree("FLOPS/rep",      "FLOPS",        "info", info_axes),
 
-             "time(s)": DataTree("time(s)", "data", data_axes),
-             "time(ms)": DataTree("time(ms)", "computed", data_axes, ["time(s)"], lambda t: t * 1000.0),
-             "time(us)": DataTree("time(us)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000.0),
-             "time(ns)": DataTree("time(ns)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000000.0),
+             "time(s)": DataTree("time(s)", "time(s)", "data", data_axes),
+             "time(ms)": DataTree("time(ms)", "time(ms)", "computed", data_axes, ["time(s)"], lambda t: t * 1000.0),
+             "time(us)": DataTree("time(us)", "time(us)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000.0),
+             "time(ns)": DataTree("time(ns)", "time(ns)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000000.0),
 
-             "time/rep(s)": DataTree("time/rep(s)", "computed", data_axes, ["time(s)", "Reps"], lambda t, r: t / r),
-             "time/rep(ms)": DataTree("time/rep(ms)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000.0),
-             "time/rep(us)": DataTree("time/rep(us)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000.0),
-             "time/rep(ns)": DataTree("time/rep(ns)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000000.0),
+             "time/rep(s)": DataTree("time/rep(s)", "time(s)", "computed", data_axes, ["time(s)", "Reps"], lambda t, r: t / r),
+             "time/rep(ms)": DataTree("time/rep(ms)", "time(ms)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000.0),
+             "time/rep(us)": DataTree("time/rep(us)", "time(us)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000.0),
+             "time/rep(ns)": DataTree("time/rep(ns)", "time(ns)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000000.0),
 
-             "time/it(s)": DataTree("time/it(s)",  "computed", data_axes, ["time/rep(s)", "Iterations/rep"], lambda tpr, ipr: tpr / ipr),
-             "time/it(ms)": DataTree("time/it(ms)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000.0),
-             "time/it(us)": DataTree("time/it(us)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000.0),
-             "time/it(ns)": DataTree("time/it(ns)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000000.0),
+             "time/it(s)": DataTree("time/it(s)", "time(s)", "computed", data_axes, ["time/rep(s)", "Iterations/rep"], lambda tpr, ipr: tpr / ipr),
+             "time/it(ms)": DataTree("time/it(ms)", "time(ms)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000.0),
+             "time/it(us)": DataTree("time/it(us)", "time(us)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000.0),
+             "time/it(ns)": DataTree("time/it(ns)", "time(ns)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000000.0),
 
-             "time/kernel(s)": DataTree("time/kernel(s)", "computed", data_axes, ["time/rep(s)", "Kernels/rep"], lambda tpr, kpr: tpr / kpr),
-             "time/kernel(ms)": DataTree("time/kernel(ms)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000.0),
-             "time/kernel(us)": DataTree("time/kernel(us)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000.0),
-             "time/kernel(ns)": DataTree("time/kernel(ns)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000000.0),
+             "time/kernel(s)": DataTree("time/kernel(s)", "time(s)", "computed", data_axes, ["time/rep(s)", "Kernels/rep"], lambda tpr, kpr: tpr / kpr),
+             "time/kernel(ms)": DataTree("time/kernel(ms)", "time(ms)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000.0),
+             "time/kernel(us)": DataTree("time/kernel(us)", "time(us)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000.0),
+             "time/kernel(ns)": DataTree("time/kernel(ns)", "time(ns)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000000.0),
 
-             "throughput(Problem size/s)": DataTree("throughput(Problem size/s)", "computed", data_axes, ["time/rep(s)", "Problem size"], lambda tpr, ps: ps / tpr),
-             "throughput(Problem size/ms)": DataTree("throughput(Problem size/ms)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
-             "throughput(Problem size/us)": DataTree("throughput(Problem size/us)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
-             "throughput(Problem size/ns)": DataTree("throughput(Problem size/ns)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
-             "throughput(KProblem size/s)": DataTree("throughput(KProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
-             "throughput(MProblem size/s)": DataTree("throughput(MProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
-             "throughput(GProblem size/s)": DataTree("throughput(GProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
-             "throughput(TProblem size/s)": DataTree("throughput(TProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000000.0),
+             "throughput(Problem size/s)": DataTree("throughput(Problem size/s)", "throughput(Problem size/s)", "computed", data_axes, ["time/rep(s)", "Problem size"], lambda tpr, ps: ps / tpr),
+             "throughput(Problem size/ms)": DataTree("throughput(Problem size/ms)", "throughput(Problem size/ms)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
+             "throughput(Problem size/us)": DataTree("throughput(Problem size/us)", "throughput(Problem size/us)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
+             "throughput(Problem size/ns)": DataTree("throughput(Problem size/ns)", "throughput(Problem size/ns)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
+             "throughput(KProblem size/s)": DataTree("throughput(KProblem size/s)", "throughput(KProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
+             "throughput(MProblem size/s)": DataTree("throughput(MProblem size/s)", "throughput(MProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
+             "throughput(GProblem size/s)": DataTree("throughput(GProblem size/s)", "throughput(GProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
+             "throughput(TProblem size/s)": DataTree("throughput(TProblem size/s)", "throughput(TProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000000.0),
 
-             "bandwidth(B/s)": DataTree("bandwidth(B/s)", "computed", data_axes, ["time/rep(s)", "Bytes/rep"], lambda tpr, bpr: bpr / tpr),
-             "bandwidth(KB/s)": DataTree("bandwidth(KB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000.0),
-             "bandwidth(MB/s)": DataTree("bandwidth(MB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000.0),
-             "bandwidth(GB/s)": DataTree("bandwidth(GB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000.0),
-             "bandwidth(TB/s)": DataTree("bandwidth(TB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000000.0),
-             "bandwidth(KiB/s)": DataTree("bandwidth(KiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1024.0),
-             "bandwidth(MiB/s)": DataTree("bandwidth(MiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1048576.0),
-             "bandwidth(GiB/s)": DataTree("bandwidth(GiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1073741824.0),
-             "bandwidth(TiB/s)": DataTree("bandwidth(TiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1099511627776.0),
+             "bandwidth(B/s)": DataTree("bandwidth(B/s)", "bandwidth(B/s)", "computed", data_axes, ["time/rep(s)", "Bytes/rep"], lambda tpr, bpr: bpr / tpr),
+             "bandwidth(KB/s)": DataTree("bandwidth(KB/s)", "bandwidth(KB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000.0),
+             "bandwidth(MB/s)": DataTree("bandwidth(MB/s)", "bandwidth(MB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000.0),
+             "bandwidth(GB/s)": DataTree("bandwidth(GB/s)", "bandwidth(GB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000.0),
+             "bandwidth(TB/s)": DataTree("bandwidth(TB/s)", "bandwidth(TB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000000.0),
+             "bandwidth(KiB/s)": DataTree("bandwidth(KiB/s)", "bandwidth(KiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1024.0),
+             "bandwidth(MiB/s)": DataTree("bandwidth(MiB/s)", "bandwidth(MiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1048576.0),
+             "bandwidth(GiB/s)": DataTree("bandwidth(GiB/s)", "bandwidth(GiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1073741824.0),
+             "bandwidth(TiB/s)": DataTree("bandwidth(TiB/s)", "bandwidth(TiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1099511627776.0),
 
-             "FLOPS": DataTree("FLOPS", "computed", data_axes, ["time/rep(s)", "FLOPS/rep"], lambda tpr, fpr: fpr / tpr),
-             "KFLOPS": DataTree("KFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000.0),
-             "MFLOPS": DataTree("MFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000.0),
-             "GFLOPS": DataTree("GFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000.0),
-             "TFLOPS": DataTree("TFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000000.0),
+             "FLOPS": DataTree("FLOPS", "FLOPS", "computed", data_axes, ["time/rep(s)", "FLOPS/rep"], lambda tpr, fpr: fpr / tpr),
+             "KFLOPS": DataTree("KFLOPS", "KFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000.0),
+             "MFLOPS": DataTree("MFLOPS", "MFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000.0),
+             "GFLOPS": DataTree("GFLOPS", "GFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000.0),
+             "TFLOPS": DataTree("TFLOPS", "TFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000000.0),
 
       }
 
    kind_templates = {
-             "avg": DataTreeTemplate("avg<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], avg),
-             "stddev": DataTreeTemplate("stddev<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], stddev),
-             "relstddev": DataTreeTemplate("relstddev<{0}>", "run_size_reduced", run_size_reduced_axes, ["{0}"], relstddev),
+             "min": DataTreeTemplate("min<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], min),
+             "max": DataTreeTemplate("max<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], max),
+             "sum": DataTreeTemplate("sum<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], sum),
+             "avg": DataTreeTemplate("avg<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], avg),
+             "stddev": DataTreeTemplate("stddev<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], stddev),
+             "relstddev": DataTreeTemplate("relstddev<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], relstddev),
+
+             "_LR": DataTreeTemplate("_LR<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], linearRegression),
+             "LR_intercept": DataTreeTemplate("LR_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[0]),
+             "LR_slope": DataTreeTemplate("LR_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[1]),
+             "LR_correlationCoefficient": DataTreeTemplate("LR_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[2]),
+             "LR": DataTreeTemplate("LR<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR<{0}>"], eval_linearRegression),
+
+             "_LR_log": DataTreeTemplate("_LR_log<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], linearRegression_loglog),
+             "LR_log_intercept": DataTreeTemplate("LR_log_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[0]),
+             "LR_log_slope": DataTreeTemplate("LR_log_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[1]),
+             "LR_log_correlationCoefficient": DataTreeTemplate("LR_log_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[2]),
+             "LR_log": DataTreeTemplate("LR_log<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR_log<{0}>"], eval_linearRegression_loglog),
+
+             "_LR2": DataTreeTemplate("_LR2<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], segmented_linearRegression),
+             "LR2_intercept": DataTreeTemplate("LR2_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[0]),
+             "LR2_slope": DataTreeTemplate("LR2_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[1]),
+             "LR2_correlationCoefficient": DataTreeTemplate("LR2_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[2]),
+             "LR2": DataTreeTemplate("LR2<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR2<{0}>"], eval_segmented_linearRegression),
+
+             "_LR2_log": DataTreeTemplate("_LR2_log<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], segmented_linearRegression_loglog),
+             "LR2_log_intercept": DataTreeTemplate("LR2_log_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[0]),
+             "LR2_log_slope": DataTreeTemplate("LR2_log_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[1]),
+             "LR2_log_correlationCoefficient": DataTreeTemplate("LR2_log_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[2]),
+             "LR2_log": DataTreeTemplate("LR2_log<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR2_log<{0}>"], eval_segmented_linearRegression_loglog),
+
       }
 
    def compute_data(kind):
@@ -402,6 +582,8 @@ class Data:
                               arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
                            elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
                               arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
+                           elif Data.kinds[arg_kind].type == "run_size_reduced":
+                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
                            else:
                               raise NameError("Invalid data kind {0}".format(arg_kind))
                            args_val = args_val + (arg_val,)
@@ -478,10 +660,13 @@ class Data:
 
    def compute_templated_data(kind_template, template_args):
       if kind_template in Data.kind_templates:
-         dataType = Data.kind_templates[kind_template].makeDataTree(template_args)
-         if not dataType.kind in Data.kinds:
-            Data.kinds[dataType.kind] = dataType
-            Data.compute(dataType.kind)
+         kind = Data.kind_templates[kind_template].getKind(template_args)
+         if not kind in Data.kinds:
+            # compute args first to ensure arg kinds exist
+            for arg_kind in Data.kind_templates[kind_template].getArgs(template_args):
+               Data.compute(arg_kind)
+            Data.kinds[kind] = Data.kind_templates[kind_template].makeDataTree(template_args)
+            Data.compute(kind)
       else:
          raise NameError("Unkown kind template {}".format(kind_template))
 
@@ -754,55 +939,62 @@ def get_run_size_data(kind, kernel):
    return data
 
 
-def plot_data(outputfile_name, ykind):
-   print("plotting {} {}".format(outputfile_name, ykind))
+def plot_data(outputfile_name, ykinds):
+   print("plotting {} {}".format(outputfile_name, ykinds))
 
-   if not ykind in Data.kinds:
-      raise NameError("Unknown kind {}".format(ykind))
-
-   ylabel = ykind
+   ylabel = None
    yscale = "log"
    ylim = None
 
    xkind = "Problem size"
-   xlabel = xkind
+   xlabel = Data.kinds[xkind].label
    xscale = "log"
    xlim = None
+
+   for ykind in ykinds:
+      if not ykind in Data.kinds:
+         raise NameError("Unknown kind {}".format(ykind))
+      if not ylabel:
+         ylabel = Data.kinds[ykind].label
+      elif ylabel != Data.kinds[ykind].label:
+         raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
 
    for kernel_index in range(0, Data.num_kernels):
       kernel_name = Data.kernels[kernel_index]
 
-      xaxes = get_run_size_data(xkind, kernel_index)
-      yaxes = get_run_size_data(ykind, kernel_index)
+      for ykind in ykinds:
 
-      for sweep_index in range(0, Data.num_sweeps):
-         sweep_dir_name = Data.sweeps[sweep_index]
-         sweep_marker = Data.sweep_markers[sweep_index]
+         xaxes = get_run_size_data(xkind, kernel_index)
+         yaxes = get_run_size_data(ykind, kernel_index)
 
-         if not sweep_dir_name in xaxes:
-            raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
+         for sweep_index in range(0, Data.num_sweeps):
+            sweep_dir_name = Data.sweeps[sweep_index]
+            sweep_marker = Data.sweep_markers[sweep_index]
 
-         for data_name, ydata in yaxes[sweep_dir_name].items():
+            if not sweep_dir_name in xaxes:
+               raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
 
-            yname = "{} {}".format(data_name, sweep_dir_name)
-            yformat = "{}-".format(sweep_marker)
-            ycolor = (0.0, 0.0, 0.0, 1.0)
-            yaxis = ydata["data"]
+            for data_name, ydata in yaxes[sweep_dir_name].items():
 
-            if ydata["type"] == "data":
-               variant_index = ydata["variant"]
-               tuning_index = ydata["tuning"]
-               ycolor = Data.variant_colors[variant_index]
-               yformat = "{}{}".format(sweep_marker, Data.tuning_formats[tuning_index])
+               yname = "{} {} {}".format(Data.kinds[ykind].kind, data_name, sweep_dir_name)
+               yformat = "{}-".format(sweep_marker)
+               ycolor = (0.0, 0.0, 0.0, 1.0)
+               yaxis = ydata["data"]
 
-            if data_name in xaxes[sweep_dir_name]:
-               xaxis = xaxes[sweep_dir_name][data_name]["data"]
-            elif xkind in xaxes[sweep_dir_name]:
-               xaxis = xaxes[sweep_dir_name][xkind]["data"]
-            else:
-               raise NameError("Unknown xaxis for {}".format(data_name))
+               if ydata["type"] == "data":
+                  variant_index = ydata["variant"]
+                  tuning_index = ydata["tuning"]
+                  ycolor = Data.variant_colors[variant_index]
+                  yformat = "{}{}".format(sweep_marker, Data.tuning_formats[tuning_index])
 
-            plt.plot(xaxis,yaxis,yformat,color=ycolor,label=yname)
+               if data_name in xaxes[sweep_dir_name]:
+                  xaxis = xaxes[sweep_dir_name][data_name]["data"]
+               elif xkind in xaxes[sweep_dir_name]:
+                  xaxis = xaxes[sweep_dir_name][xkind]["data"]
+               else:
+                  raise NameError("Unknown xaxis for {}".format(data_name))
+
+               plt.plot(xaxis,yaxis,yformat,color=ycolor,label=yname)
 
       fname = "{}_{}.png".format(outputfile_name, kernel_name)
       gname = "{}".format(kernel_name)
@@ -859,6 +1051,7 @@ def main(argv):
          if opt in ("-o", "--output"):
             handle_num = 1
             def fo(arg):
+               nonlocal outputfile
                outputfile = arg
             handle_arg = fo
          # multi arg options
@@ -1027,9 +1220,10 @@ def main(argv):
       Data.compute(kind)
       Data.kinds[kind].printData()
 
-   for kind in graph_kinds:
-      Data.compute(kind)
-      plot_data(outputfile, kind)
+   if len(graph_kinds) > 0:
+      for kind in graph_kinds:
+         Data.compute(kind)
+      plot_data(outputfile, graph_kinds)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
