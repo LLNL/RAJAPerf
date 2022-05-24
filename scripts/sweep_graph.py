@@ -268,6 +268,7 @@ class Data:
    num_sweeps = 0
    sweeps = {}
    sweep_markers = {}
+   exclude_sweeps = {}
 
    num_run_sizes = 0
    run_sizes = {}
@@ -1274,6 +1275,11 @@ def main(argv):
             def fet(arg):
                Data.exclude_tunings[arg] = arg
             handle_arg = fet
+         elif opt in ("-es", "--exclude-sweeps"):
+            handle_num = -1
+            def fes(arg):
+               Data.exclude_sweeps[arg] = arg
+            handle_arg = fes
 
          if handle_num == 0:
             print(help_string)
@@ -1309,6 +1315,9 @@ def main(argv):
    for sweep_dir_path in sweep_dir_paths:
       sweep_dir_name = os.path.basename(sweep_dir_path)
       # print(sweep_dir_name, sweep_dir_path)
+
+      if sweep_dir_name in Data.exclude_sweeps:
+         continue
 
       got_something = False
 
