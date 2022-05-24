@@ -175,13 +175,20 @@ def segmented_linearRegression_partialRegression(i, n, xvals, yvals, sums, LR):
 def segmented_linearRegression_helper(ret, i, n, xvals, yvals, denom, LR_left, LR_right):
    lr_vals_left = None
    lr_vals_right = None
-   break_point = math.inf
+   break_point = None
 
-   if i > 0:
-      lr_vals_left = LR_left[i-1]
-   if i < n:
+   if i == 0:
       lr_vals_right = LR_right[i]
-      break_point = xvals[i]
+      break_point = xvals[i] - 1.0
+   elif i > 0 and i < n:
+      lr_vals_left = LR_left[i-1]
+      lr_vals_right = LR_right[i]
+      break_point = (xvals[i-1] + xvals[i]) / 2.0
+   elif i == n:
+      lr_vals_left = LR_left[i-1]
+      break_point = xvals[i-1] + 1.0
+   else:
+      assert(0)
 
    numer = 0.0
    for j in range(0, n):
