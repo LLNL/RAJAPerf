@@ -85,6 +85,55 @@ g_timing_filename = "RAJAPerf-timing-Minimum.csv"
 g_runinfo_filename = "RAJAPerf-kernels.csv"
 g_timing_file_kind = "time(s)"
 
+# Kernels sorted into categories based on performance bottlenecks
+
+g_known_kernel_groups = {
+   "bandwidth": {
+      "kind": "bandwidth(GiB/s)",
+      "kernels": [ "Basic_DAXPY", "Basic_DAXPY_ATOMIC", "Basic_INIT3",
+                   "Basic_INIT_VIEW1D", "Basic_INIT_VIEW1D_OFFSET",
+                   "Basic_MULADDSUB", "Lcals_DIFF_PREDICT", "Lcals_EOS",
+                   "Lcals_FIRST_DIFF", "Lcals_FIRST_SUM", "Lcals_GEN_LIN_RECUR",
+                   "Lcals_HYDRO_1D", "Lcals_PLANCKIAN", "Lcals_TRIDIAG_ELIM",
+                   "Polybench_JACOBI_1D", "Stream_ADD", "Stream_COPY",
+                   "Stream_MUL", "Stream_TRIAD",
+
+                   "Basic_IF_QUAD", "Basic_INDEXLIST", "Basic_INDEXLIST_3LOOP",
+                   "Basic_NESTED_INIT", "Lcals_HYDRO_2D", "Lcals_INT_PREDICT",
+                   "Polybench_FDTD_2D", "Polybench_HEAT_3D",
+                   "Polybench_JACOBI_2D", "Stream_DOT", "Apps_CONVECTION3DPA",
+                   "Apps_DEL_DOT_VEC_2D", "Apps_DIFFUSION3DPA", "Apps_ENERGY",
+                   "Apps_FIR", "Apps_MASS3DPA", "Apps_NODAL_ACCUMULATION_3D",
+                   "Apps_PRESSURE", "Apps_VOL3D", "Algorithm_SCAN",
+                   "Algorithm_REDUCE_SUM", ],
+   },
+   "flops": {
+      "kind": "GFLOPS",
+      "kernels": [ "Basic_MAT_MAT_SHARED", "Polybench_2MM", "Polybench_3MM",
+                   "Polybench_GEMM",
+
+                   "Polybench_HEAT_3D", "Apps_CONVECTION3DPA",
+                   "Apps_DEL_DOT_VEC_2D", "Apps_DIFFUSION3DPA", "Apps_FIR",
+                   "Apps_MASS3DPA", "Apps_VOL3D", ],
+   },
+   "reduce": {
+      "kind": "throughput(GProblem size/s)",
+      "kernels": [ "Basic_PI_REDUCE", "Basic_REDUCE3_INT", "Basic_REDUCE_STRUCT",
+                   "Basic_TRAP_INT", "Lcals_FIRST_MIN", "Stream_DOT",
+                   "Algorithm_REDUCE_SUM", ]
+   },
+   "other": {
+      "kind": "throughput(GProblem size/s)",
+      "kernels": [ "Polybench_ADI", "Polybench_ATAX", "Polybench_FLOYD_WARSHALL",
+                   "Polybench_GEMVER", "Polybench_GESUMMV", "Polybench_MVT",
+                   "Apps_LTIMES", "Apps_LTIMES_NOVIEW", "Algorithm_SORT",
+                   "Algorithm_SORTPAIRS", ]
+   },
+   "launch_bound": {
+      "kind": "time/rep(us)",
+      "kernels": [ "Apps_HALOEXCHANGE", "Apps_HALOEXCHANGE_FUSED", ]
+   },
+   }
 
 def first(vals):
    return vals[0]
@@ -272,6 +321,9 @@ class Data:
 
    num_run_sizes = 0
    run_sizes = {}
+
+   include_kernel_groups = {}
+   exclude_kernel_groups = {}
 
    num_kernels = 0
    kernels = {}
@@ -1245,6 +1297,16 @@ def main(argv):
             def fg(arg):
                graph_kinds.append(arg)
             handle_arg = fg
+         elif opt in ("-kg", "--kernel-groups"):
+            handle_num = -1
+            def fkg(arg):
+               Data.include_kernel_groups[arg] = arg
+            handle_arg = fkg
+         elif opt in ("-ekg", "--exclude-kernel-groups"):
+            handle_num = -1
+            def fekg(arg):
+               Data.exclude_kernel_groups[arg] = arg
+            handle_arg = fekg
          elif opt in ("-k", "--kernels"):
             handle_num = -1
             def fk(arg):
@@ -1308,6 +1370,22 @@ def main(argv):
       else:
          sweep_dir_paths.append(opt)
       i += 1
+
+   for kernel_group in Data.include_kernel_groups.keys():
+      if kernel_group in g_known_kernel_groups:
+         for kernel_name in g_known_kernel_groups[kernel_group]["kernels"]:
+            Data.include_kernels[kernel_name] = kernel_name
+      else:
+         print("Unknown kernel group {}".format(kernel_group))
+         sys.exit(2)
+
+   for kernel_group in Data.exclude_kernel_groups.keys():
+      if kernel_group in g_known_kernel_groups:
+         for kernel_name in g_known_kernel_groups[kernel_group]["kernels"]:
+            Data.exclude_kernels[kernel_name] = kernel_name
+      else:
+         print("Unknown kernel group {}".format(kernel_group))
+         sys.exit(2)
 
    print("Input directories are \"{0}\"".format(sweep_dir_paths))
    print("Output file is \"{0}\"".format(outputfile))
@@ -1385,6 +1463,12 @@ def main(argv):
       run_sizes_string += ", {}".format(Data.run_sizes[v])
    print("run_sizes")
    print("  {}".format(run_sizes_string[2:]))
+
+   kernel_groups_string = ""
+   for kernel_group in g_known_kernel_groups:
+      kernel_groups_string += ", {}".format(kernel_group)
+   print("kernel groups")
+   print("  {}".format(kernel_groups_string[2:]))
 
    kernel_string = ""
    for v in range(0, Data.num_kernels):
