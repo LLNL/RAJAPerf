@@ -86,6 +86,12 @@ g_runinfo_filename = "RAJAPerf-kernels.csv"
 g_timing_file_kind = "time(s)"
 
 
+def first(vals):
+   return vals[0]
+
+def last(vals):
+   return vals[len(vals)-1]
+
 def sum(vals):
    sum_val = 0
    for val in vals:
@@ -506,6 +512,9 @@ class Data:
       }
 
    kind_templates = {
+             "first": DataTreeTemplate("first<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], first),
+             "last": DataTreeTemplate("last<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], last),
+
              "min": DataTreeTemplate("min<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], min),
              "max": DataTreeTemplate("max<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], max),
              "sum": DataTreeTemplate("sum<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], sum),
@@ -858,7 +867,7 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                   pass # could not convert data to float
 
 
-def get_run_size_data(kind, kernel):
+def get_plot_data(kind, kernel):
 
    if not kind in Data.kinds:
       raise NameError("Unknown kind {}".format(kind))
@@ -933,14 +942,43 @@ def get_run_size_data(kind, kernel):
 
                   data[sweep_dir_name][data_name]["data"].append(val)
 
+   elif kind_meta.type == "run_size_reduced":
+
+      if not kind in Data.kinds:
+         raise NameError("Unknown data kind {}".format(kind))
+      kind_data = Data.kinds[kind].data
+
+      for sweep_dir_name, sweep_data in kind_data.items():
+
+         data[sweep_dir_name] = {}
+
+         if not kernel_index in sweep_data:
+            raise NameError("Unknown info kernel_index {}".format(kernel_index))
+
+         kernel_data = sweep_data[kernel_index]
+
+         for variant_index, variant_data in kernel_data.items():
+            variant_name = Data.variants[variant_index]
+            for tuning_index, val in variant_data.items():
+               tuning_name = Data.tunings[tuning_index]
+
+               data_name = "{}-{}".format(variant_name, tuning_name)
+
+               if not data_name in data[sweep_dir_name]:
+                  data[sweep_dir_name][data_name] = {"type": "data",
+                                                     "variant": variant_index,
+                                                     "tuning": tuning_index,
+                                                     "data": [] }
+
+               data[sweep_dir_name][data_name]["data"].append(val)
+
    else:
       raise NameError("Unknown kind {} type {}".format(kind, kind_meta.type))
 
    return data
 
 
-def plot_data(outputfile_name, ykinds):
-   print("plotting {} {}".format(outputfile_name, ykinds))
+def plot_data_problem_sizes(outputfile_name, ykinds):
 
    ylabel = None
    yscale = "log"
@@ -964,8 +1002,8 @@ def plot_data(outputfile_name, ykinds):
 
       for ykind in ykinds:
 
-         xaxes = get_run_size_data(xkind, kernel_index)
-         yaxes = get_run_size_data(ykind, kernel_index)
+         xaxes = get_plot_data(xkind, kernel_index)
+         yaxes = get_plot_data(ykind, kernel_index)
 
          for sweep_index in range(0, Data.num_sweeps):
             sweep_dir_name = Data.sweeps[sweep_index]
@@ -1019,6 +1057,140 @@ def plot_data(outputfile_name, ykinds):
 
       plt.savefig(fname, dpi=150.0)
       plt.clf()
+
+def plot_data_kernels(outputfile_name, ykinds):
+
+   gname = None
+
+   xlabel = "Kernel"
+   xscale = None
+   xlim = None
+
+   ylabel = None
+   yscale = None
+   ylim = None
+   ywidth = None
+
+   for ykind in ykinds:
+      if gname:
+         gname = "{} {}".format(gname, ykind)
+      else:
+         gname = "{}".format(ykind)
+      if not ykind in Data.kinds:
+         raise NameError("Unknown kind {}".format(ykind))
+      if not ylabel:
+         ylabel = Data.kinds[ykind].label
+      elif ylabel != Data.kinds[ykind].label:
+         raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
+
+   kernel_data = { "kernel_names": [],
+                   "kernel_centers": [],
+                   "ynames": {},
+                   "ydata": {}, }
+
+   for kernel_index in range(0, Data.num_kernels):
+      kernel_name = Data.kernels[kernel_index]
+
+      kernel_data["kernel_names"].append(kernel_name)
+      kernel_data["kernel_centers"].append(kernel_index)
+
+      for ykind in ykinds:
+
+         yaxes = get_plot_data(ykind, kernel_index)
+
+         for sweep_index in range(0, Data.num_sweeps):
+            sweep_dir_name = Data.sweeps[sweep_index]
+
+            if not sweep_dir_name in yaxes:
+               raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
+
+            for data_name, ydata in yaxes[sweep_dir_name].items():
+               assert(len(ydata["data"]) == 1)
+
+               yname = "{} {}".format(data_name, sweep_dir_name)
+               if len(ykinds) > 1:
+                  yname = "{} {}".format(Data.kinds[ykind].kind, yname)
+
+               ycolor = (0.0, 0.0, 0.0, 1.0)
+
+               if ydata["type"] == "data":
+                  variant_index = ydata["variant"]
+                  # tuning_index = ydata["tuning"]
+                  ycolor = Data.variant_colors[variant_index]
+
+               if not yname in kernel_data["ynames"]:
+                  kernel_data["ynames"][yname] = len(kernel_data["ynames"])
+                  kernel_data["ydata"][yname] = { "color": ycolor,
+                                                  "data": [], }
+
+               # pad with 0s if find missing data
+               while len(kernel_data["ydata"][yname]["data"])+1 < len(kernel_data["kernel_names"]):
+                  kernel_data["ydata"][yname]["data"].append(0.0)
+
+               kernel_data["ydata"][yname]["data"].append(ydata["data"][0])
+
+   num_xticks = len(kernel_data["kernel_centers"])
+   plt.figure(figsize=(max(num_xticks*0.5, 4), 6,))
+
+   y_n = len(kernel_data["ydata"])
+   ywidth = 1.0 / (y_n+1)
+   for yname in kernel_data["ynames"]:
+
+      y_i = kernel_data["ynames"][yname]
+      ydata = kernel_data["ydata"][yname]
+
+      xaxis = [c + (y_i+1)/(y_n+1) - 0.5 for c in kernel_data["kernel_centers"]]
+      yaxis = ydata["data"]
+
+      # pad with 0s if find missing data
+      while len(yaxis) < len(kernel_data["kernel_names"]):
+         yaxis.append(0.0)
+
+      ycolor = ydata["color"]
+
+      plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor) # ,edgecolor="grey")
+
+   fname = "{}.png".format(outputfile_name)
+   if not gname:
+      gname = "{}".format("bar")
+
+   xticks = kernel_data["kernel_centers"]
+   xtick_names = kernel_data["kernel_names"]
+
+   if ylabel:
+      plt.ylabel(ylabel)
+   if yscale:
+      plt.yscale(yscale)
+   if ylim:
+      plt.ylim(ylim)
+
+   if xlabel:
+      plt.xlabel(xlabel)
+   if xscale:
+      plt.xscale(xscale)
+   if xlim:
+      plt.xlim(xlim)
+
+   plt.xticks(xticks, xtick_names, rotation=90)
+
+   plt.title(gname)
+   plt.legend()
+   plt.grid(True)
+
+   plt.savefig(fname, dpi=150.0, bbox_inches="tight")
+   plt.clf()
+
+def plot_data(outputfile_name, ykinds):
+   print("plotting {} {}".format(outputfile_name, ykinds))
+
+   func = None
+   for ykind in ykinds:
+      if Data.kinds[ykind].type == "run_size_reduced":
+         func = plot_data_kernels
+      else:
+         func = plot_data_problem_sizes
+
+   func(outputfile_name, ykinds)
 
 
 
