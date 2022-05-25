@@ -182,7 +182,7 @@ def linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum):
    return (intercept, slope, correlation_coefficient)
 
 # returns (intercept, slope, correlation_coefficient)
-def linearRegression(xvals, yvals):
+def linearRegression(yvals, xvals):
    assert(len(xvals) == len(yvals))
    n = len(xvals)
    xsum = sum(xvals)
@@ -192,17 +192,17 @@ def linearRegression(xvals, yvals):
    xysum = sum([xvals[i]*yvals[i] for i in range(0, n)])
    return linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum)
 
-def eval_linearRegression(xval, lr_vals):
+def eval_linearRegression(lr_vals, xval):
    return lr_vals[0] + lr_vals[1]*xval
 
 # returns (intercept, slope, correlation_coefficient)
-def linearRegression_loglog(xvals, yvals):
+def linearRegression_loglog(yvals, xvals):
    assert(len(xvals) == len(yvals))
    xlogvals = [math.log(x, 2) for x in xvals]
    ylogvals = [math.log(y, 2) for y in yvals]
-   return linearRegression(xlogvals, ylogvals)
+   return linearRegression(ylogvals, xlogvals)
 
-def eval_linearRegression_loglog(xval, lr_vals):
+def eval_linearRegression_loglog(lr_vals, xval):
    return math.pow(2, lr_vals[0])*math.pow(xval, lr_vals[1])
 
 
@@ -248,7 +248,7 @@ def segmented_linearRegression_helper(ret, i, n, xvals, yvals, denom, LR_left, L
          lr_vals = lr_vals_left
       else:
          lr_vals = lr_vals_right
-      lr_yval = eval_linearRegression(xval, lr_vals)
+      lr_yval = eval_linearRegression(lr_vals, xval)
       numer += (yval - lr_yval)*(yval - lr_yval)
 
    correlation_coefficient = 1.0 - numer / denom
@@ -258,7 +258,7 @@ def segmented_linearRegression_helper(ret, i, n, xvals, yvals, denom, LR_left, L
       ret[2] = correlation_coefficient
 
 # returns ([break points...], [linear regressions...], correlation_coefficient)
-def segmented_linearRegression(xvals, yvals):
+def segmented_linearRegression(yvals, xvals):
    assert(len(xvals) == len(yvals))
    N = len(xvals)
 
@@ -287,7 +287,7 @@ def segmented_linearRegression(xvals, yvals):
 
    return (*ret,)
 
-def find_segment(xval, break_points):
+def find_segment(break_points, xval):
    break_i = len(break_points)
    for i in range(0, len(break_points)):
       break_point = break_points[i]
@@ -296,20 +296,20 @@ def find_segment(xval, break_points):
          break
    return break_i
 
-def eval_segmented_linearRegression(xval, slr_vals):
-   break_i = find_segment(xval, slr_vals[0])
-   return eval_linearRegression(xval, slr_vals[1][break_i])
+def eval_segmented_linearRegression(slr_vals, xval):
+   break_i = find_segment(slr_vals[0], xval)
+   return eval_linearRegression(slr_vals[1][break_i], xval)
 
 # returns ([break points...], [linear regressions...], correlation_coefficient)
-def segmented_linearRegression_loglog(xvals, yvals):
+def segmented_linearRegression_loglog(yvals, xvals):
    assert(len(xvals) == len(yvals))
    xlogvals = [math.log(x, 2) for x in xvals]
    ylogvals = [math.log(y, 2) for y in yvals]
-   return segmented_linearRegression(xlogvals, ylogvals)
+   return segmented_linearRegression(ylogvals, xlogvals)
 
-def eval_segmented_linearRegression_loglog(xval, slr_vals):
-   break_i = find_segment(math.log(xval, 2), slr_vals[0])
-   return eval_linearRegression_loglog(xval, slr_vals[1][break_i])
+def eval_segmented_linearRegression_loglog(slr_vals, xval):
+   break_i = find_segment(slr_vals[0], math.log(xval, 2))
+   return eval_linearRegression_loglog(slr_vals[1][break_i], xval)
 
 
 class Data:
@@ -368,7 +368,7 @@ class Data:
          print("Unknown tuning {0}".format(tuning_name))
          sys.exit(1)
 
-
+   num_axes = 5
    axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
             "run_size": 1,       1: "run_size",
             "kernel_index": 2,   2: "kernel_index",
@@ -423,17 +423,18 @@ class Data:
 
 
 
-   def MultiAxesTreeIterator0(data_tree):
+   def MultiAxesTreeKeyGenerator0(data_tree):
       assert(len(data_tree.axes) == 0)
-      yield {}
+      if False:
+         yield {}
 
-   def MultiAxesTreeIterator1(data_tree):
+   def MultiAxesTreeKeyGenerator1(data_tree):
       assert(len(data_tree.axes) == 1)
       assert(data_tree.data)
       for k0 in data_tree.data.keys():
          yield {data_tree.axes[0]: k0,}
 
-   def MultiAxesTreeIterator2(data_tree):
+   def MultiAxesTreeKeyGenerator2(data_tree):
       assert(len(data_tree.axes) == 2)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -441,7 +442,7 @@ class Data:
             yield {data_tree.axes[0]: k0,
                    data_tree.axes[1]: k1,}
 
-   def MultiAxesTreeIterator3(data_tree):
+   def MultiAxesTreeKeyGenerator3(data_tree):
       assert(len(data_tree.axes) == 3)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -451,7 +452,7 @@ class Data:
                       data_tree.axes[1]: k1,
                       data_tree.axes[2]: k2,}
 
-   def MultiAxesTreeIterator4(data_tree):
+   def MultiAxesTreeKeyGenerator4(data_tree):
       assert(len(data_tree.axes) == 4)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -463,7 +464,7 @@ class Data:
                          data_tree.axes[2]: k2,
                          data_tree.axes[3]: k3,}
 
-   def MultiAxesTreeIterator5(data_tree):
+   def MultiAxesTreeKeyGenerator5(data_tree):
       assert(len(data_tree.axes) == 5)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
@@ -477,11 +478,67 @@ class Data:
                             data_tree.axes[3]: k3,
                             data_tree.axes[4]: k4,}
 
+   def MultiAxesTreeItemGenerator0(data_tree):
+      assert(len(data_tree.axes) == 0)
+      if False:
+         yield ({},None,)
+
+   def MultiAxesTreeItemGenerator1(data_tree):
+      assert(len(data_tree.axes) == 1)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         yield ({data_tree.axes[0]: k0,}, v0,)
+
+   def MultiAxesTreeItemGenerator2(data_tree):
+      assert(len(data_tree.axes) == 2)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            yield ({data_tree.axes[0]: k0,
+                    data_tree.axes[1]: k1,}, v1,)
+
+   def MultiAxesTreeItemGenerator3(data_tree):
+      assert(len(data_tree.axes) == 3)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2, v2 in v1.items():
+               yield ({data_tree.axes[0]: k0,
+                       data_tree.axes[1]: k1,
+                       data_tree.axes[2]: k2,}, v2,)
+
+   def MultiAxesTreeItemGenerator4(data_tree):
+      assert(len(data_tree.axes) == 4)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2, v2 in v1.items():
+               for k3, v3 in v2.items():
+                  yield ({data_tree.axes[0]: k0,
+                          data_tree.axes[1]: k1,
+                          data_tree.axes[2]: k2,
+                          data_tree.axes[3]: k3,}, v3,)
+
+   def MultiAxesTreeItemGenerator5(data_tree):
+      assert(len(data_tree.axes) == 5)
+      assert(data_tree.data)
+      for k0, v0 in data_tree.data.items():
+         for k1, v1 in v0.items():
+            for k2, v2 in v1.items():
+               for k3, v3 in v2.items():
+                  for k4, v4 in v3.items():
+                     yield ({data_tree.axes[0]: k0,
+                             data_tree.axes[1]: k1,
+                             data_tree.axes[2]: k2,
+                             data_tree.axes[3]: k3,
+                             data_tree.axes[4]: k4,}, v4,)
+
    class MultiAxesTree:
       # axes is an array of axis_indices in the depth order they occur in the tree
       # indices is a dictionary of axis_indices to indices
 
       def __init__(self, axes):
+         assert(axes)
          self.axes = axes
          self.data = {}
 
@@ -541,43 +598,79 @@ class Data:
             buf = "{} {}".format(buf, Data.get_index_name(axis_index, index))
          print("{} {}".format(buf, data))
 
-      def __iter__(self):
+      def keys(self):
          assert(self.data != None)
          if len(self.axes) == 0:
-            return Data.MultiAxesTreeIterator0(self)
+            return Data.MultiAxesTreeKeyGenerator0(self)
          elif len(self.axes) == 1:
-            return Data.MultiAxesTreeIterator1(self)
+            return Data.MultiAxesTreeKeyGenerator1(self)
          elif len(self.axes) == 2:
-            return Data.MultiAxesTreeIterator2(self)
+            return Data.MultiAxesTreeKeyGenerator2(self)
          elif len(self.axes) == 3:
-            return Data.MultiAxesTreeIterator3(self)
+            return Data.MultiAxesTreeKeyGenerator3(self)
          elif len(self.axes) == 4:
-            return Data.MultiAxesTreeIterator4(self)
+            return Data.MultiAxesTreeKeyGenerator4(self)
          elif len(self.axes) == 5:
-            return Data.MultiAxesTreeIterator5(self)
+            return Data.MultiAxesTreeKeyGenerator5(self)
          else:
             raise ValueError
+
+      def items(self):
+         assert(self.data != None)
+         if len(self.axes) == 0:
+            return Data.MultiAxesTreeItemGenerator0(self)
+         elif len(self.axes) == 1:
+            return Data.MultiAxesTreeItemGenerator1(self)
+         elif len(self.axes) == 2:
+            return Data.MultiAxesTreeItemGenerator2(self)
+         elif len(self.axes) == 3:
+            return Data.MultiAxesTreeItemGenerator3(self)
+         elif len(self.axes) == 4:
+            return Data.MultiAxesTreeItemGenerator4(self)
+         elif len(self.axes) == 5:
+            return Data.MultiAxesTreeItemGenerator5(self)
+         else:
+            raise ValueError
+
+      def __iter__(self):
+         return self.keys()
 
 
    class DataTree:
 
-      def __init__(self, kind, label, type, axes, args=None, func=None):
+      def __init__(self, kind, label, model_kind=None, axes=None, args=None, func=None):
          self.kind = kind
          self.label = label
-         self.type = type
          self.axes = axes
-         self.num_axes = len(self.axes)
-
          self.args = args
          self.func = func
-
-         if self.args:
-            self.num_args = len(self.args) / 2
-
+         self.model_kind = model_kind
+         if not self.model_kind and self.args:
+            self.model_kind = self.args[0]
          self.data = None
 
-      def makeData(self):
+      def makeData(self, axes=None):
+         if not self.axes:
+            if axes:
+               self.axes = axes
+            elif self.model_kind and self.model_kind in Data.kinds:
+               self.axes = Data.kinds[self.model_kind].axes
+         assert(self.axes)
          self.data = Data.MultiAxesTree(self.axes)
+
+      def sameAxes(self, other_axes):
+         if len(self.axes) != len(other_axes):
+            return False
+         for axis_index in other_axes:
+            if not axis_index in self.axes:
+               return False
+         return True
+
+      def missingAxes(self, other_axes):
+         for axis_index in other_axes:
+            if not axis_index in self.axes:
+               return True
+         return False
 
       def check(self, axes_index):
          return self.data.check(axes_index)
@@ -587,6 +680,12 @@ class Data:
 
       def set(self, axes_index, val):
          return self.data.set(axes_index, val)
+
+      def keys(self):
+         return self.data.keys()
+
+      def items(self):
+         return self.data.items()
 
       def __iter__(self):
          return iter(self.data)
@@ -598,124 +697,152 @@ class Data:
             print("printData {}: empty".format(self.kind))
             return
 
-         for axes_index in self.data:
-            self.data.print(axes_index)
+         for axes_index, val in self.data.items():
+            buf = " "
+            for axis_index, index in axes_index.items():
+               buf = "{} {}".format(buf, Data.get_index_name(axis_index, index))
+            print("{} {}".format(buf, val))
 
    class DataTreeTemplate:
 
-      def __init__(self, kind_template, label_template, type, axes, arg_templates, func):
+      def __init__(self, kind_template, label_template,
+                   combined_axis=None, model_kind=None, args=None, func=None):
          self.kind_template = kind_template
          self.label_template = label_template
-         self.type = type
-         self.axes = axes
-         self.arg_templates = arg_templates
+         self.combined_axis_template = combined_axis
+         self.model_kind_template = model_kind
+         self.arg_templates = args
          self.func = func
 
       def getKind(self, template_args):
          return self.kind_template.format(*template_args)
 
       def getLabel(self, template_args):
-         arg_labels = [Data.kinds[arg_kind].label for arg_kind in template_args]
+         arg_labels = [arg_kind in Data.kinds and Data.kinds[arg_kind].label or None for arg_kind in template_args]
          return self.label_template.format(*arg_labels)
 
       def getArgs(self, template_args):
          return [ arg.format(*template_args) for arg in self.arg_templates ]
 
+      def getCombinedAxis(self, template_args):
+         return self.combined_axis_template.format(*template_args)
+
+      def getModelKind(self, args, template_args):
+         assert(len(args) > 0)
+         model_kind = args[0]
+         if self.model_kind_template:
+            model_kind = self.model_kind_template.format(*template_args)
+         return model_kind
+
+      def getAxes(self, model_kind, template_args):
+         model_axes = Data.kinds[model_kind].axes
+         combined_axis_index = None
+         if self.combined_axis_template:
+            combined_axis_name = self.getCombinedAxis(template_args)
+            combined_axis_index = Data.axes[combined_axis_name]
+         axes = []
+         for axis_index in model_axes:
+            if axis_index != combined_axis_index:
+               axes.append(axis_index)
+         return axes
+
       def makeDataTree(self, template_args):
          kind = self.getKind(template_args)
          label = self.getLabel(template_args)
          args = self.getArgs(template_args)
-         return Data.DataTree(kind, label, self.type, self.axes, args, self.func)
+         model_kind = self.getModelKind(args, template_args)
+         axes = self.getAxes(model_kind, template_args)
+         return Data.DataTree(kind, label, model_kind=model_kind, axes=axes, args=args, func=self.func)
 
    # has info derivable from first kind "time(s)" which is read from files
-   kinds = { "Problem size":   DataTree("Problem size",   "Problem size", "info", info_axes),
-             "Reps":           DataTree("Reps",           "Reps",         "info", info_axes),
-             "Iterations/rep": DataTree("Iterations/rep", "Iterations",   "info", info_axes),
-             "Kernels/rep":    DataTree("Kernels/rep",    "Kernels",      "info", info_axes),
-             "Bytes/rep":      DataTree("Bytes/rep",      "Bytes",        "info", info_axes),
-             "FLOPS/rep":      DataTree("FLOPS/rep",      "FLOPS",        "info", info_axes),
+   kinds = { "Problem size":   DataTree("Problem size",   "Problem size", axes=info_axes),
+             "Reps":           DataTree("Reps",           "Reps",         axes=info_axes),
+             "Iterations/rep": DataTree("Iterations/rep", "Iterations",   axes=info_axes),
+             "Kernels/rep":    DataTree("Kernels/rep",    "Kernels",      axes=info_axes),
+             "Bytes/rep":      DataTree("Bytes/rep",      "Bytes",        axes=info_axes),
+             "FLOPS/rep":      DataTree("FLOPS/rep",      "FLOPS",        axes=info_axes),
 
-             "time(s)": DataTree("time(s)", "time(s)", "data", data_axes),
-             "time(ms)": DataTree("time(ms)", "time(ms)", "computed", data_axes, ["time(s)"], lambda t: t * 1000.0),
-             "time(us)": DataTree("time(us)", "time(us)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000.0),
-             "time(ns)": DataTree("time(ns)", "time(ns)", "computed", data_axes, ["time(s)"], lambda t: t * 1000000000.0),
+             "time(s)": DataTree("time(s)", "time(s)", axes=data_axes),
 
-             "time/rep(s)": DataTree("time/rep(s)", "time(s)", "computed", data_axes, ["time(s)", "Reps"], lambda t, r: t / r),
-             "time/rep(ms)": DataTree("time/rep(ms)", "time(ms)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000.0),
-             "time/rep(us)": DataTree("time/rep(us)", "time(us)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000.0),
-             "time/rep(ns)": DataTree("time/rep(ns)", "time(ns)", "computed", data_axes, ["time/rep(s)"], lambda tpr: tpr * 1000000000.0),
+             "time(ms)": DataTree("time(ms)", "time(ms)", args=["time(s)"], func=lambda t: t * 1000.0),
+             "time(us)": DataTree("time(us)", "time(us)", args=["time(s)"], func=lambda t: t * 1000000.0),
+             "time(ns)": DataTree("time(ns)", "time(ns)", args=["time(s)"], func=lambda t: t * 1000000000.0),
 
-             "time/it(s)": DataTree("time/it(s)", "time(s)", "computed", data_axes, ["time/rep(s)", "Iterations/rep"], lambda tpr, ipr: tpr / ipr),
-             "time/it(ms)": DataTree("time/it(ms)", "time(ms)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000.0),
-             "time/it(us)": DataTree("time/it(us)", "time(us)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000.0),
-             "time/it(ns)": DataTree("time/it(ns)", "time(ns)", "computed", data_axes, ["time/it(s)"], lambda tpi: tpi * 1000000000.0),
+             "time/rep(s)": DataTree("time/rep(s)", "time(s)", args=["time(s)", "Reps"], func=lambda t, r: t / r),
+             "time/rep(ms)": DataTree("time/rep(ms)", "time(ms)", args=["time/rep(s)"], func=lambda tpr: tpr * 1000.0),
+             "time/rep(us)": DataTree("time/rep(us)", "time(us)", args=["time/rep(s)"], func=lambda tpr: tpr * 1000000.0),
+             "time/rep(ns)": DataTree("time/rep(ns)", "time(ns)", args=["time/rep(s)"], func=lambda tpr: tpr * 1000000000.0),
 
-             "time/kernel(s)": DataTree("time/kernel(s)", "time(s)", "computed", data_axes, ["time/rep(s)", "Kernels/rep"], lambda tpr, kpr: tpr / kpr),
-             "time/kernel(ms)": DataTree("time/kernel(ms)", "time(ms)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000.0),
-             "time/kernel(us)": DataTree("time/kernel(us)", "time(us)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000.0),
-             "time/kernel(ns)": DataTree("time/kernel(ns)", "time(ns)", "computed", data_axes, ["time/kernel(s)"], lambda tpk: tpk * 1000000000.0),
+             "time/it(s)": DataTree("time/it(s)", "time(s)", args=["time/rep(s)", "Iterations/rep"], func=lambda tpr, ipr: tpr / ipr),
+             "time/it(ms)": DataTree("time/it(ms)", "time(ms)", args=["time/it(s)"], func=lambda tpi: tpi * 1000.0),
+             "time/it(us)": DataTree("time/it(us)", "time(us)", args=["time/it(s)"], func=lambda tpi: tpi * 1000000.0),
+             "time/it(ns)": DataTree("time/it(ns)", "time(ns)", args=["time/it(s)"], func=lambda tpi: tpi * 1000000000.0),
 
-             "throughput(Problem size/s)": DataTree("throughput(Problem size/s)", "throughput(Problem size/s)", "computed", data_axes, ["time/rep(s)", "Problem size"], lambda tpr, ps: ps / tpr),
-             "throughput(Problem size/ms)": DataTree("throughput(Problem size/ms)", "throughput(Problem size/ms)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
-             "throughput(Problem size/us)": DataTree("throughput(Problem size/us)", "throughput(Problem size/us)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
-             "throughput(Problem size/ns)": DataTree("throughput(Problem size/ns)", "throughput(Problem size/ns)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
-             "throughput(KProblem size/s)": DataTree("throughput(KProblem size/s)", "throughput(KProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000.0),
-             "throughput(MProblem size/s)": DataTree("throughput(MProblem size/s)", "throughput(MProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000.0),
-             "throughput(GProblem size/s)": DataTree("throughput(GProblem size/s)", "throughput(GProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000.0),
-             "throughput(TProblem size/s)": DataTree("throughput(TProblem size/s)", "throughput(TProblem size/s)", "computed", data_axes, ["throughput(Problem size/s)"], lambda thr: thr / 1000000000000.0),
+             "time/kernel(s)": DataTree("time/kernel(s)", "time(s)", args=["time/rep(s)", "Kernels/rep"], func=lambda tpr, kpr: tpr / kpr),
+             "time/kernel(ms)": DataTree("time/kernel(ms)", "time(ms)", args=["time/kernel(s)"], func=lambda tpk: tpk * 1000.0),
+             "time/kernel(us)": DataTree("time/kernel(us)", "time(us)", args=["time/kernel(s)"], func=lambda tpk: tpk * 1000000.0),
+             "time/kernel(ns)": DataTree("time/kernel(ns)", "time(ns)", args=["time/kernel(s)"], func=lambda tpk: tpk * 1000000000.0),
 
-             "bandwidth(B/s)": DataTree("bandwidth(B/s)", "bandwidth(B/s)", "computed", data_axes, ["time/rep(s)", "Bytes/rep"], lambda tpr, bpr: bpr / tpr),
-             "bandwidth(KB/s)": DataTree("bandwidth(KB/s)", "bandwidth(KB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000.0),
-             "bandwidth(MB/s)": DataTree("bandwidth(MB/s)", "bandwidth(MB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000.0),
-             "bandwidth(GB/s)": DataTree("bandwidth(GB/s)", "bandwidth(GB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000.0),
-             "bandwidth(TB/s)": DataTree("bandwidth(TB/s)", "bandwidth(TB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1000000000000.0),
-             "bandwidth(KiB/s)": DataTree("bandwidth(KiB/s)", "bandwidth(KiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1024.0),
-             "bandwidth(MiB/s)": DataTree("bandwidth(MiB/s)", "bandwidth(MiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1048576.0),
-             "bandwidth(GiB/s)": DataTree("bandwidth(GiB/s)", "bandwidth(GiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1073741824.0),
-             "bandwidth(TiB/s)": DataTree("bandwidth(TiB/s)", "bandwidth(TiB/s)", "computed", data_axes, ["bandwidth(B/s)"], lambda bps: bps / 1099511627776.0),
+             "throughput(Problem size/s)": DataTree("throughput(Problem size/s)", "throughput(Problem size/s)", args=["time/rep(s)", "Problem size"], func=lambda tpr, ps: ps / tpr),
+             "throughput(Problem size/ms)": DataTree("throughput(Problem size/ms)", "throughput(Problem size/ms)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000.0),
+             "throughput(Problem size/us)": DataTree("throughput(Problem size/us)", "throughput(Problem size/us)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000000.0),
+             "throughput(Problem size/ns)": DataTree("throughput(Problem size/ns)", "throughput(Problem size/ns)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000000000.0),
+             "throughput(KProblem size/s)": DataTree("throughput(KProblem size/s)", "throughput(KProblem size/s)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000.0),
+             "throughput(MProblem size/s)": DataTree("throughput(MProblem size/s)", "throughput(MProblem size/s)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000000.0),
+             "throughput(GProblem size/s)": DataTree("throughput(GProblem size/s)", "throughput(GProblem size/s)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000000000.0),
+             "throughput(TProblem size/s)": DataTree("throughput(TProblem size/s)", "throughput(TProblem size/s)", args=["throughput(Problem size/s)"], func=lambda thr: thr / 1000000000000.0),
 
-             "FLOPS": DataTree("FLOPS", "FLOPS", "computed", data_axes, ["time/rep(s)", "FLOPS/rep"], lambda tpr, fpr: fpr / tpr),
-             "KFLOPS": DataTree("KFLOPS", "KFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000.0),
-             "MFLOPS": DataTree("MFLOPS", "MFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000.0),
-             "GFLOPS": DataTree("GFLOPS", "GFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000.0),
-             "TFLOPS": DataTree("TFLOPS", "TFLOPS", "computed", data_axes, ["FLOPS"], lambda fps: fps / 1000000000000.0),
+             "bandwidth(B/s)": DataTree("bandwidth(B/s)", "bandwidth(B/s)", args=["time/rep(s)", "Bytes/rep"], func=lambda tpr, bpr: bpr / tpr),
+             "bandwidth(KB/s)": DataTree("bandwidth(KB/s)", "bandwidth(KB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1000.0),
+             "bandwidth(MB/s)": DataTree("bandwidth(MB/s)", "bandwidth(MB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1000000.0),
+             "bandwidth(GB/s)": DataTree("bandwidth(GB/s)", "bandwidth(GB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1000000000.0),
+             "bandwidth(TB/s)": DataTree("bandwidth(TB/s)", "bandwidth(TB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1000000000000.0),
+             "bandwidth(KiB/s)": DataTree("bandwidth(KiB/s)", "bandwidth(KiB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1024.0),
+             "bandwidth(MiB/s)": DataTree("bandwidth(MiB/s)", "bandwidth(MiB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1048576.0),
+             "bandwidth(GiB/s)": DataTree("bandwidth(GiB/s)", "bandwidth(GiB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1073741824.0),
+             "bandwidth(TiB/s)": DataTree("bandwidth(TiB/s)", "bandwidth(TiB/s)", args=["bandwidth(B/s)"], func=lambda bps: bps / 1099511627776.0),
+
+             "FLOPS": DataTree("FLOPS", "FLOPS", args=["time/rep(s)", "FLOPS/rep"], func=lambda tpr, fpr: fpr / tpr),
+             "KFLOPS": DataTree("KFLOPS", "KFLOPS", args=["FLOPS"], func=lambda fps: fps / 1000.0),
+             "MFLOPS": DataTree("MFLOPS", "MFLOPS", args=["FLOPS"], func=lambda fps: fps / 1000000.0),
+             "GFLOPS": DataTree("GFLOPS", "GFLOPS", args=["FLOPS"], func=lambda fps: fps / 1000000000.0),
+             "TFLOPS": DataTree("TFLOPS", "TFLOPS", args=["FLOPS"], func=lambda fps: fps / 1000000000000.0),
 
       }
 
    kind_templates = {
-             "first": DataTreeTemplate("first<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], first),
-             "last": DataTreeTemplate("last<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], last),
+             "first": DataTreeTemplate("first<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=first),
+             "last": DataTreeTemplate("last<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=last),
+             "min": DataTreeTemplate("min<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=min),
+             "max": DataTreeTemplate("max<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=max),
+             "sum": DataTreeTemplate("sum<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=sum),
+             "avg": DataTreeTemplate("avg<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=avg),
+             "stddev": DataTreeTemplate("stddev<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=stddev),
+             "relstddev": DataTreeTemplate("relstddev<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=relstddev),
 
-             "min": DataTreeTemplate("min<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], min),
-             "max": DataTreeTemplate("max<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], max),
-             "sum": DataTreeTemplate("sum<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], sum),
-             "avg": DataTreeTemplate("avg<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], avg),
-             "stddev": DataTreeTemplate("stddev<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], stddev),
-             "relstddev": DataTreeTemplate("relstddev<{0}>", "{0}", "run_size_reduced", run_size_reduced_axes, ["{0}"], relstddev),
+             "_LR": DataTreeTemplate("_LR<{0}>", "intercept, slope, correlation coefficient", combined_axis="run_size", args=["{0}", "Problem size"], func=linearRegression),
+             "LR_intercept": DataTreeTemplate("LR_intercept<{0}>", "intercept", args=["_LR<{0}>"], func=lambda lr: lr[0]),
+             "LR_slope": DataTreeTemplate("LR_slope<{0}>", "slope", args=["_LR<{0}>"], func=lambda lr: lr[1]),
+             "LR_correlationCoefficient": DataTreeTemplate("LR_correlationCoefficient<{0}>", "correlation coefficient", args=["_LR<{0}>"], func=lambda lr: lr[2]),
+             "LR": DataTreeTemplate("LR<{0}>", "{0}", model_kind="{0}", args=["_LR<{0}>", "Problem size"], func=eval_linearRegression),
 
-             "_LR": DataTreeTemplate("_LR<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], linearRegression),
-             "LR_intercept": DataTreeTemplate("LR_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[0]),
-             "LR_slope": DataTreeTemplate("LR_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[1]),
-             "LR_correlationCoefficient": DataTreeTemplate("LR_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR<{0}>"], lambda lr: lr[2]),
-             "LR": DataTreeTemplate("LR<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR<{0}>"], eval_linearRegression),
+             "_LR_log": DataTreeTemplate("_LR_log<{0}>", "intercept, slope, correlation coefficient", combined_axis="run_size", args=["{0}", "Problem size"], func=linearRegression_loglog),
+             "LR_log_intercept": DataTreeTemplate("LR_log_intercept<{0}>", "intercept", args=["_LR_log<{0}>"], func=lambda lr: lr[0]),
+             "LR_log_slope": DataTreeTemplate("LR_log_slope<{0}>", "slope", args=["_LR_log<{0}>"], func=lambda lr: lr[1]),
+             "LR_log_correlationCoefficient": DataTreeTemplate("LR_log_correlationCoefficient<{0}>", "correlation coefficient", args=["_LR_log<{0}>"], func=lambda lr: lr[2]),
+             "LR_log": DataTreeTemplate("LR_log<{0}>", "{0}", model_kind="{0}", args=["_LR_log<{0}>", "Problem size"], func=eval_linearRegression_loglog),
 
-             "_LR_log": DataTreeTemplate("_LR_log<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], linearRegression_loglog),
-             "LR_log_intercept": DataTreeTemplate("LR_log_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[0]),
-             "LR_log_slope": DataTreeTemplate("LR_log_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[1]),
-             "LR_log_correlationCoefficient": DataTreeTemplate("LR_log_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR_log<{0}>"], lambda lr: lr[2]),
-             "LR_log": DataTreeTemplate("LR_log<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR_log<{0}>"], eval_linearRegression_loglog),
+             "_LR2": DataTreeTemplate("_LR2<{0}>", "intercept, slope, correlation coefficient", combined_axis="run_size", args=["{0}", "Problem size"], func=segmented_linearRegression),
+             "LR2_intercept": DataTreeTemplate("LR2_intercept<{0}>", "intercept", args=["_LR2<{0}>"], func=lambda lr: lr[0]),
+             "LR2_slope": DataTreeTemplate("LR2_slope<{0}>", "slope", args=["_LR2<{0}>"], func=lambda lr: lr[1]),
+             "LR2_correlationCoefficient": DataTreeTemplate("LR2_correlationCoefficient<{0}>", "correlation coefficient", args=["_LR2<{0}>"], func=lambda lr: lr[2]),
+             "LR2": DataTreeTemplate("LR2<{0}>", "{0}", model_kind="{0}", args=["_LR2<{0}>", "Problem size"], func=eval_segmented_linearRegression),
 
-             "_LR2": DataTreeTemplate("_LR2<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], segmented_linearRegression),
-             "LR2_intercept": DataTreeTemplate("LR2_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[0]),
-             "LR2_slope": DataTreeTemplate("LR2_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[1]),
-             "LR2_correlationCoefficient": DataTreeTemplate("LR2_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR2<{0}>"], lambda lr: lr[2]),
-             "LR2": DataTreeTemplate("LR2<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR2<{0}>"], eval_segmented_linearRegression),
-
-             "_LR2_log": DataTreeTemplate("_LR2_log<{0}>", "intercept, slope, correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["Problem size", "{0}"], segmented_linearRegression_loglog),
-             "LR2_log_intercept": DataTreeTemplate("LR2_log_intercept<{0}>", "intercept", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[0]),
-             "LR2_log_slope": DataTreeTemplate("LR2_log_slope<{0}>", "slope", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[1]),
-             "LR2_log_correlationCoefficient": DataTreeTemplate("LR2_log_correlationCoefficient<{0}>", "correlation coefficient", "run_size_reduced", run_size_reduced_axes, ["_LR2_log<{0}>"], lambda lr: lr[2]),
-             "LR2_log": DataTreeTemplate("LR2_log<{0}>", "{0}", "computed", data_axes, ["Problem size", "_LR2_log<{0}>"], eval_segmented_linearRegression_loglog),
+             "_LR2_log": DataTreeTemplate("_LR2_log<{0}>", "intercept, slope, correlation coefficient", combined_axis="run_size", args=["{0}", "Problem size"], func=segmented_linearRegression_loglog),
+             "LR2_log_intercept": DataTreeTemplate("LR2_log_intercept<{0}>", "intercept", args=["_LR2_log<{0}>"], func=lambda lr: lr[0]),
+             "LR2_log_slope": DataTreeTemplate("LR2_log_slope<{0}>", "slope", args=["_LR2_log<{0}>"], func=lambda lr: lr[1]),
+             "LR2_log_correlationCoefficient": DataTreeTemplate("LR2_log_correlationCoefficient<{0}>", "correlation coefficient", args=["_LR2_log<{0}>"], func=lambda lr: lr[2]),
+             "LR2_log": DataTreeTemplate("LR2_log<{0}>", "{0}", model_kind="{0}", args=["_LR2_log<{0}>", "Problem size"], func=eval_segmented_linearRegression_loglog),
 
       }
 
@@ -723,106 +850,59 @@ class Data:
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
 
-      if Data.kinds[kind].data:
+      datatree = Data.kinds[kind]
+      if datatree.data:
          return # already calculated
 
+      if not (datatree.model_kind and datatree.args and datatree.func):
+         raise NameError("Computing data is not supported for kind {0}".format(kind))
 
-      if Data.kinds[kind].type == "computed":
+      model_kind = datatree.model_kind
+      compute_args = datatree.args
+      compute_func = datatree.func
 
-         if not (Data.kinds[kind].args and Data.kinds[kind].func):
-            raise NameError("Computing data is not supported for kind {0}".format(kind))
+      if model_kind != kind:
+         Data.compute(model_kind)
 
-         compute_args = Data.kinds[kind].args
-         compute_func = Data.kinds[kind].func
+      arg_datatrees = ()
+      for arg_kind in compute_args:
+         # calculate data for arg_kind
+         Data.compute(arg_kind)
+         arg_datatree = Data.kinds[arg_kind]
+         arg_datatrees = arg_datatrees + (arg_datatree,)
 
-         for arg_kind in compute_args:
-            # calculate data for arg_kind
-            Data.compute(arg_kind)
+      if (not model_kind in Data.kinds) or (not Data.kinds[model_kind].data):
+         raise NameError("Model data not available {0}, no args".format(model_kind))
 
-         if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
-            raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
+      datatree.makeData()
 
-         Data.kinds[kind].makeData()
-         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.data.items():
-            for run_size, model_run_data in model_sweep_data.items():
-               for kernel_index, model_kernel_data in model_run_data.items():
-                  kernel_name = Data.kernels[kernel_index]
-                  for variant_index, model_variant_data in model_kernel_data.items():
-                     variant_name = Data.variants[variant_index]
-                     for tuning_index, model_val in model_variant_data.items():
-                        tuning_name = Data.tunings[tuning_index]
+      use_lists = ()
+      for arg_datatree in arg_datatrees:
+         use_list = datatree.missingAxes(arg_datatree.axes)
+         use_lists = use_lists + (use_list,)
 
-                        axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
-                                       Data.axes["run_size"]: run_size,
-                                       Data.axes["kernel_index"]: kernel_index,
-                                       Data.axes["variant_index"]: variant_index,
-                                       Data.axes["tuning_index"]: tuning_index, }
+      for axes_index in Data.kinds[model_kind]:
 
-                        args_val = ()
-                        for arg_kind in compute_args:
-                           arg_val = Data.kinds[arg_kind].get(axes_index)
-                           args_val = args_val + (arg_val,)
+         if not datatree.check(axes_index):
+            args_val = ()
+            for i in range(0, len(arg_datatrees)):
+               arg_datatree = arg_datatrees[i]
+               arg_val = arg_datatree.get(axes_index)
+               if use_lists[i]:
+                  arg_val = [arg_val,]
+               args_val = args_val + (arg_val,)
+            datatree.set(axes_index, args_val)
+         else:
+            args_val = datatree.get(axes_index)
+            for i in range(0, len(arg_datatrees)):
+               if use_lists[i]:
+                  arg_datatree = arg_datatrees[i]
+                  arg_val = arg_datatree.get(axes_index)
+                  args_val[i].append(arg_val)
 
-                        val = compute_func(*args_val)
-                        Data.kinds[kind].set(axes_index, val)
-
-      elif Data.kinds[kind].type == "run_size_reduced":
-
-         if not (Data.kinds[kind].func and Data.kinds[kind].args):
-            raise NameError("Reducing data is not supported for kind {0}".format(kind))
-
-         reduce_args = Data.kinds[kind].args
-         reduce_func = Data.kinds[kind].func
-
-         for arg_kind in reduce_args:
-            # calculate data for arg_kind
-            Data.compute(arg_kind)
-
-         if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
-            raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
-
-         Data.kinds[kind].makeData()
-         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.data.items():
-            for run_size, model_run_data in model_sweep_data.items():
-               for kernel_index, model_kernel_data in model_run_data.items():
-                  kernel_name = Data.kernels[kernel_index]
-                  for variant_index, model_variant_data in model_kernel_data.items():
-                     variant_name = Data.variants[variant_index]
-                     for tuning_index, model_val in model_variant_data.items():
-                        tuning_name = Data.tunings[tuning_index]
-
-                        axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
-                                       Data.axes["run_size"]: run_size,
-                                       Data.axes["kernel_index"]: kernel_index,
-                                       Data.axes["variant_index"]: variant_index,
-                                       Data.axes["tuning_index"]: tuning_index, }
-
-                        if not Data.kinds[kind].check(axes_index):
-                           args_val = ()
-                           for arg_kind in reduce_args:
-                              if Data.kinds[arg_kind].type == "run_size_reduced":
-                                 arg_val = Data.kinds[arg_kind].get(axes_index)
-                              else:
-                                 arg_val = []
-                              args_val = args_val + (arg_val,)
-                           Data.kinds[kind].set(axes_index, args_val)
-                        else:
-                           args_val = Data.kinds[kind].get(axes_index)
-
-                        args_idx = 0
-                        for arg_kind in reduce_args:
-                           if Data.kinds[arg_kind].type == "run_size_reduced":
-                              pass
-                           else:
-                              args_val[args_idx].append(Data.kinds[arg_kind].get(axes_index))
-                           args_idx += 1
-
-         for axes_index in Data.kinds[kind]:
-            args_val = Data.kinds[kind].get(axes_index)
-            Data.kinds[kind].set(axes_index, reduce_func(*args_val))
-
-      else:
-         raise NameError("Unknown kind type {}".format(Data.kinds[kind].type))
+      for axes_index, args_val in datatree.items():
+         val = compute_func(*args_val)
+         datatree.set(axes_index, val)
 
    def compute_templated_data(kind_template, template_args):
       if kind_template in Data.kind_templates:
@@ -838,21 +918,50 @@ class Data:
 
    def kind_template_scan(kind):
 
-      template_args = None
+      kind_prefix = None
 
-      template_start_idx = kind.find("<")
-      template_end_idx = kind.rfind(">")
+      template_args = []
 
-      if template_start_idx == -1 or template_end_idx == -1:
-         return kind, template_args
+      template_arg_start_idx = -1
 
-      kind_template = kind[:template_start_idx]
-      template_args = kind[template_start_idx+1:template_end_idx].split(",")
+      template_depth = 0
+      index_depth = 0
+
+      for i in range(0, len(kind)):
+         c = kind[i]
+         if c == "<" or c == "[":
+            if template_depth == 0 and index_depth == 0:
+               template_arg_start_idx = i+1
+               if not kind_prefix:
+                  kind_prefix = kind[:i]
+            if c == "<":
+               template_depth += 1
+            elif c == "[":
+               index_depth += 1
+         elif c == ",":
+            if template_depth == 0 and index_depth == 1 or \
+               template_depth == 1 and index_depth == 0:
+               template_args.append(kind[template_arg_start_idx:i])
+               template_arg_start_idx = i+1
+         elif c == ">" or c == "]":
+            if c == ">":
+               template_depth -= 1
+            elif c == "]":
+               index_depth -= 1
+            if template_depth == 0 and index_depth == 0:
+               template_args.append(kind[template_arg_start_idx:i])
+               template_arg_start_idx = -1
+      assert(template_arg_start_idx == -1)
+      assert(template_depth == 0)
+      assert(index_depth == 0)
+
+      if not kind_prefix:
+         kind_prefix = kind
 
       for i in range(0,len(template_args)):
          template_args[i] = template_args[i].strip()
 
-      return (kind_template, template_args)
+      return (kind_prefix, template_args)
 
    def compute(kind):
       if kind in Data.kinds:
@@ -1041,7 +1150,7 @@ def get_plot_data(kind, kernel):
    data = {}
 
    kind_data = Data.kinds[kind]
-   if kind_data.type == "info":
+   if kind_data.sameAxes(Data.info_axes):
 
       kind_info = kind_data.data.data
 
@@ -1059,7 +1168,7 @@ def get_plot_data(kind, kernel):
             val = run_info[kernel_index]
             data[sweep_dir_name][kind]["data"].append(val)
 
-   elif kind_data.type == "data" or kind_data.type == "computed":
+   elif kind_data.sameAxes(Data.data_axes):
 
       kind_data = kind_data.data.data
 
@@ -1089,7 +1198,7 @@ def get_plot_data(kind, kernel):
 
                   data[sweep_dir_name][data_name]["data"].append(val)
 
-   elif kind_data.type == "run_size_reduced":
+   elif kind_data.sameAxes(Data.run_size_reduced_axes):
 
       kind_data = kind_data.data.data
 
@@ -1118,7 +1227,7 @@ def get_plot_data(kind, kernel):
                data[sweep_dir_name][data_name]["data"].append(val)
 
    else:
-      raise NameError("Unknown kind {} type {}".format(kind, kind_data.type))
+      raise NameError("Unknown kind {} axes {}".format(kind, kind_data))
 
    return data
 
@@ -1330,7 +1439,7 @@ def plot_data(outputfile_name, ykinds):
 
    func = None
    for ykind in ykinds:
-      if Data.kinds[ykind].type == "run_size_reduced":
+      if Data.kinds[ykind].sameAxes(Data.run_size_reduced_axes):
          func = plot_data_kernels
       else:
          func = plot_data_problem_sizes
@@ -1538,6 +1647,12 @@ def main(argv):
       kind_templates_string += ", {}".format(kindTree_template.kind_template)
    print("kind_templates")
    print("  {}".format(kind_templates_string[2:]))
+
+   axes_string = ""
+   for v in range(0, Data.num_axes):
+      axes_string += ", {}".format(Data.axes[v])
+   print("axes")
+   print("  {}".format(axes_string[2:]))
 
    sweeps_string = ""
    for v in range(0, Data.num_sweeps):
