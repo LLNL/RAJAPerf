@@ -68,9 +68,7 @@ g_known_variants = { "Base_Seq": {"color": color_mul(g_color_seq, g_color_base_f
                      "Lambda_HIP": {"color": color_mul(g_color_hip, g_color_lambda_factor)},
                      "RAJA_HIP": {"color": color_mul(g_color_hip, g_color_raja_factor)}
                    }
-g_best_tuning_name = "best"
-g_known_tunings =  { g_best_tuning_name: {"format": "-"},
-                     "default": {"format": "-"},
+g_known_tunings =  { "default": {"format": "-"},
                      "block_25": {"format": "-"},
                      "block_32": {"format": ":"},
                      "block_64": {"format": "-."},
@@ -338,7 +336,6 @@ class Data:
    include_variants = {}
    exclude_variants = {}
 
-   use_best_tuning = False
    num_tunings = 0
    tunings = {}
    tuning_formats = {}
@@ -984,13 +981,8 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                   if tuning_name in Data.tunings:
                      tuning_index = Data.tunings[tuning_name]
                   elif (len(Data.include_tunings) == 0 or tuning_name in Data.include_tunings) and (not tuning_name in Data.exclude_tunings):
-                     if Data.use_best_tuning:
-                        if not g_best_tuning_name in Data.tunings:
-                           Data.add_tuning(g_best_tuning_name)
-                        tuning_index = Data.tunings[g_best_tuning_name]
-                     else:
-                        Data.add_tuning(tuning_name)
-                        tuning_index = Data.tunings[tuning_name]
+                     Data.add_tuning(tuning_name)
+                     tuning_index = Data.tunings[tuning_name]
                   else:
                      tuning_index = -1
                   c_to_tuning_index[c] = tuning_index
@@ -1006,7 +998,6 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             else:
                continue # skip kernel
 
-            Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index] = {}
             for c in range(1, len(row)):
                variant_index = c_to_variant_index[c]
                tuning_index = c_to_tuning_index[c]
@@ -1022,12 +1013,7 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                try:
                   val = float(row[c].strip())
                   # print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
-                  if not variant_index in Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index]:
-                     Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
-                  if Data.use_best_tuning and tuning_index in Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index][variant_index]:
-                     Data.kinds[data_kind].set(axes_index, min(val, Data.kinds[data_kind].get(axes_index)))
-                  else:
-                     Data.kinds[data_kind].set(axes_index, val)
+                  Data.kinds[data_kind].set(axes_index, val)
                except ValueError:
                   pass # could not convert data to float
 
@@ -1383,9 +1369,6 @@ def main(argv):
          if opt in ("-h", "--help"):
             print(help_string)
             sys.exit()
-         elif opt in ("-ubt", "--use-best-tuning"):
-            handle_num = 0
-            Data.use_best_tuning = True
          # single arg options
          if opt in ("-o", "--output"):
             handle_num = 1
