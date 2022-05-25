@@ -360,50 +360,6 @@ std::ostream& getNullStream();
 template < typename... Ts >
 inline void ignore_unused(Ts&&...) { }
 
-#if defined(RUN_KOKKOS)
-template <class PointedAt, size_t NumBoundaries>
-struct PointerOfNdimensions;
 
-template <class PointedAt>
-struct PointerOfNdimensions<PointedAt, 0> {
-  using type = PointedAt;
-};
-
-template <class PointedAt, size_t NumBoundaries>
-struct PointerOfNdimensions {
-  using type =
-      typename PointerOfNdimensions<PointedAt, NumBoundaries - 1>::type *;
-};
-
-// This templated function is used to wrap pointers
-// (declared and defined in RAJAPerf Suite kernels) in Kokkos Views
-//
-template <class PointedAt, class... Boundaries>
-auto getViewFromPointer(PointedAt *kokkos_ptr, Boundaries... boundaries)
-    -> typename Kokkos::View<
-       typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
-       typename Kokkos::DefaultExecutionSpace::memory_space>
-
-{
-
-  using host_view_type = typename Kokkos::View<
-      typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
-      typename Kokkos::DefaultHostExecutionSpace::memory_space>;
-
-  using device_view_type = typename Kokkos::View<
-      typename PointerOfNdimensions<PointedAt, sizeof...(Boundaries)>::type,
-      typename Kokkos::DefaultExecutionSpace::memory_space>;
-
-
-  using mirror_view_type = typename device_view_type::HostMirror;
-
-
-  host_view_type pointer_holder(kokkos_ptr, boundaries...);
-
-  // The boundaries parameter pack contains the array dimenions;
-  // An allocation is implicitly made here
-  device_view_type device_data_copy("StringName", boundaries...);
-#endif
 }  // closing brace for rajaperf namespace
-
 #endif  // closing endif for header file include guard

@@ -14,7 +14,7 @@
 namespace rajaperf {
 namespace basic {
 
-void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid) {
+void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
   const Index_type iend = getActualProblemSize() + 1;

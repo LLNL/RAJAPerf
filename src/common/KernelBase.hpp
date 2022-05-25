@@ -231,7 +231,7 @@ public:
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 #if defined(RUN_KOKKOS)
-  virtual void runKokkosVariant(VariantID vid) = 0;
+  virtual void runKokkosVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
 
 protected:

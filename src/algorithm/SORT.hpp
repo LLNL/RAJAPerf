@@ -54,6 +54,10 @@ public:
   {
     getCout() << "\n  SORT : Unknown OMP Target variant id = " << vid << std::endl;
   }
+  void runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+  {
+    getCout() << "\n  SORT : Unknown Kokkos variant id = " << vid << std::endl;
+  }
 
 private:
   static const size_t default_gpu_block_size = 0;

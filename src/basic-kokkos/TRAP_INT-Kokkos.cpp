@@ -26,7 +26,7 @@ Real_type trap_int_func(Real_type x, Real_type y, Real_type xp, Real_type yp) {
   return denom;
 }
 
-void TRAP_INT::runKokkosVariant(VariantID vid) {
+void TRAP_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();

@@ -25,9 +25,7 @@
 #include "basic/INIT3.hpp"
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
-#ifndef RUN_KOKKOS
 #include "basic/MAT_MAT_SHARED.hpp"
-#endif
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"

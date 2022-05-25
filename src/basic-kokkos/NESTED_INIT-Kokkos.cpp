@@ -14,7 +14,7 @@
 namespace rajaperf {
 namespace basic {
 
-void NESTED_INIT::runKokkosVariant(VariantID vid) {
+void NESTED_INIT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
 
   NESTED_INIT_DATA_SETUP;
