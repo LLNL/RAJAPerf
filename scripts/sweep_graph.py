@@ -1040,12 +1040,10 @@ def get_plot_data(kind, kernel):
 
    data = {}
 
-   kind_meta = Data.kinds[kind]
-   if kind_meta.type == "info":
+   kind_data = Data.kinds[kind]
+   if kind_data.type == "info":
 
-      if not kind in Data.kinds:
-         raise NameError("Unknown info kind {}".format(kind))
-      kind_info = Data.kinds[kind].data.data
+      kind_info = kind_data.data.data
 
       for sweep_dir_name, sweep_info in kind_info.items():
 
@@ -1061,11 +1059,9 @@ def get_plot_data(kind, kernel):
             val = run_info[kernel_index]
             data[sweep_dir_name][kind]["data"].append(val)
 
-   elif kind_meta.type == "data" or kind_meta.type == "computed":
+   elif kind_data.type == "data" or kind_data.type == "computed":
 
-      if not kind in Data.kinds:
-         raise NameError("Unknown data kind {}".format(kind))
-      kind_data = Data.kinds[kind].data.data
+      kind_data = kind_data.data.data
 
       for sweep_dir_name, sweep_data in kind_data.items():
 
@@ -1093,11 +1089,9 @@ def get_plot_data(kind, kernel):
 
                   data[sweep_dir_name][data_name]["data"].append(val)
 
-   elif kind_meta.type == "run_size_reduced":
+   elif kind_data.type == "run_size_reduced":
 
-      if not kind in Data.kinds:
-         raise NameError("Unknown data kind {}".format(kind))
-      kind_data = Data.kinds[kind].data.data
+      kind_data = kind_data.data.data
 
       for sweep_dir_name, sweep_data in kind_data.items():
 
@@ -1124,7 +1118,7 @@ def get_plot_data(kind, kernel):
                data[sweep_dir_name][data_name]["data"].append(val)
 
    else:
-      raise NameError("Unknown kind {} type {}".format(kind, kind_meta.type))
+      raise NameError("Unknown kind {} type {}".format(kind, kind_data.type))
 
    return data
 
