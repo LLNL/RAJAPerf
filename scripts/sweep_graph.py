@@ -68,7 +68,9 @@ g_known_variants = { "Base_Seq": {"color": color_mul(g_color_seq, g_color_base_f
                      "Lambda_HIP": {"color": color_mul(g_color_hip, g_color_lambda_factor)},
                      "RAJA_HIP": {"color": color_mul(g_color_hip, g_color_raja_factor)}
                    }
-g_known_tunings =  { "default": {"format": "-"},
+g_best_tuning_name = "best"
+g_known_tunings =  { g_best_tuning_name: {"format": "-"},
+                     "default": {"format": "-"},
                      "block_25": {"format": "-"},
                      "block_32": {"format": ":"},
                      "block_64": {"format": "-."},
@@ -336,19 +338,67 @@ class Data:
    include_variants = {}
    exclude_variants = {}
 
+   use_best_tuning = False
    num_tunings = 0
    tunings = {}
    tuning_formats = {}
    include_tunings = {}
    exclude_tunings = {}
 
+   def add_variant(variant_name):
+      variant_index = Data.num_variants
+      Data.num_variants += 1
+      Data.variants[variant_name]  = variant_index
+      Data.variants[variant_index] = variant_name
+      if variant_name in g_known_variants:
+         variant_color = g_known_variants[variant_name]["color"]
+         Data.variant_colors[variant_name] = variant_color
+         Data.variant_colors[variant_index] = variant_color
+      else:
+         print("Unknown variant {0}".format(variant_name))
+         sys.exit(1)
+
+   def add_tuning(tuning_name):
+      tuning_index = Data.num_tunings
+      Data.num_tunings += 1
+      Data.tunings[tuning_name]  = tuning_index
+      Data.tunings[tuning_index] = tuning_name
+      if tuning_name in g_known_tunings:
+         tuning_format = g_known_tunings[tuning_name]["format"]
+         Data.tuning_formats[tuning_name] = tuning_format
+         Data.tuning_formats[tuning_index] = tuning_format
+      else:
+         print("Unknown tuning {0}".format(tuning_name))
+         sys.exit(1)
+
+
+   axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
+            "run_size": 1,       1: "run_size",
+            "kernel_index": 2,   2: "kernel_index",
+            "variant_index": 3,  3: "variant_index",
+            "tuning_index": 4,   4: "tuning_index", }
+
+   def get_index_name(axis_index, index):
+      if axis_index == Data.axes["sweep_dir_name"]:
+         return index # Data.sweeps[index]
+      elif axis_index == Data.axes["run_size"]:
+         return index;
+      elif axis_index == Data.axes["kernel_index"]:
+         return Data.kernels[index]
+      elif axis_index == Data.axes["variant_index"]:
+         return Data.variants[index]
+      elif axis_index == Data.axes["tuning_index"]:
+         return Data.tunings[index]
+      else:
+         raise NameError("Unknown axis index {}".format(axis_index))
+
    # multi-dimensional array structured like this
    #     directory name - platform, compiler, etc
    #       run size - problem size, for run_sizes
    #         kernel index - for kernels
-   info_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
-                 "run_size": 1,       1: "run_size",
-                 "kernel_index": 2,   2: "kernel_index", }
+   info_axes = [ axes["sweep_dir_name"],
+                 axes["run_size"],
+                 axes["kernel_index"], ]
 
    # multi-dimensional array structured like this
    #     directory name - platform, compiler, etc
@@ -356,67 +406,161 @@ class Data:
    #         kernel index - for kernels
    #           variant index - for variants
    #             tuning index - for tunings
-   data_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
-                 "run_size": 1,       1: "run_size",
-                 "kernel_index": 2,   2: "kernel_index",
-                 "variant_index": 3,  3: "variant_index",
-                 "tuning_index": 4,   4: "tuning_index", }
+   data_axes = [ axes["sweep_dir_name"],
+                 axes["run_size"],
+                 axes["kernel_index"],
+                 axes["variant_index"],
+                 axes["tuning_index"], ]
 
    # multi-dimensional array structured like data but missing some dimensions
    #     directory name - platform, compiler, etc
    #       kernel index - for kernels
    #         variant index - for variants
    #           tuning index - for tunings
-   run_size_reduced_axes = { "sweep_dir_name": 0, 0: "sweep_dir_name",
-                             "kernel_index": 1,   1: "kernel_index",
-                             "variant_index": 2,  2: "variant_index",
-                             "tuning_index": 3,   3: "tuning_index", }
+   run_size_reduced_axes = [ axes["sweep_dir_name"],
+                             axes["kernel_index"],
+                             axes["variant_index"],
+                             axes["tuning_index"], ]
 
    data_model_kind = "time(s)"
 
-   def DataTreeIterator0(self, data_tree):
-      assert(data_tree.num_axes == 0)
-      yield data_tree.data
 
-   def DataTreeIterator1(self, data_tree):
-      assert(data_tree.num_axes == 1)
+
+   def MultiAxesTreeIterator0(data_tree):
+      assert(len(data_tree.axes) == 0)
+      yield {}
+
+   def MultiAxesTreeIterator1(data_tree):
+      assert(len(data_tree.axes) == 1)
       assert(data_tree.data)
       for k0 in data_tree.data.keys():
-         yield (k0,)
+         yield {data_tree.axes[0]: k0,}
 
-   def DataTreeIterator2(self, data_tree):
-      assert(data_tree.num_axes == 2)
+   def MultiAxesTreeIterator2(data_tree):
+      assert(len(data_tree.axes) == 2)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
          for k1 in v0.keys():
-            yield (k0, k1,)
+            yield {data_tree.axes[0]: k0,
+                   data_tree.axes[1]: k1,}
 
-   def DataTreeIterator3(self, data_tree):
-      assert(data_tree.num_axes == 3)
+   def MultiAxesTreeIterator3(data_tree):
+      assert(len(data_tree.axes) == 3)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
          for k1, v1 in v0.items():
             for k2 in v1.keys():
-               yield (k0, k1, k2,)
+               yield {data_tree.axes[0]: k0,
+                      data_tree.axes[1]: k1,
+                      data_tree.axes[2]: k2,}
 
-   def DataTreeIterator4(self, data_tree):
-      assert(data_tree.num_axes == 4)
+   def MultiAxesTreeIterator4(data_tree):
+      assert(len(data_tree.axes) == 4)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
          for k1, v1 in v0.items():
             for k2, v2 in v1.items():
                for k3 in v2.keys():
-                  yield (k0, k1, k2, k3,)
+                  yield {data_tree.axes[0]: k0,
+                         data_tree.axes[1]: k1,
+                         data_tree.axes[2]: k2,
+                         data_tree.axes[3]: k3,}
 
-   def DataTreeIterator5(self, data_tree):
-      assert(data_tree.num_axes == 5)
+   def MultiAxesTreeIterator5(data_tree):
+      assert(len(data_tree.axes) == 5)
       assert(data_tree.data)
       for k0, v0 in data_tree.data.items():
          for k1, v1 in v0.items():
             for k2, v2 in v1.items():
                for k3, v3 in v2.items():
                   for k4 in v3.keys():
-                     yield (k0, k1, k2, k3, k4,)
+                     yield {data_tree.axes[0]: k0,
+                            data_tree.axes[1]: k1,
+                            data_tree.axes[2]: k2,
+                            data_tree.axes[3]: k3,
+                            data_tree.axes[4]: k4,}
+
+   class MultiAxesTree:
+      # axes is an array of axis_indices in the depth order they occur in the tree
+      # indices is a dictionary of axis_indices to indices
+
+      def __init__(self, axes):
+         self.axes = axes
+         self.data = {}
+
+      def check(self, axes_index):
+         data = self.data
+         for axis_index in self.axes:
+            if not axis_index in axes_index:
+               axis_name = Data.axes[axis_index]
+               raise NameError("Missing axis {}".format(axis_name))
+            index = axes_index[axis_index]
+            if not index in data:
+               return False
+            data = data[index]
+         return True
+
+      def get(self, axes_index):
+         data = self.data
+         for axis_index in self.axes:
+            if not axis_index in axes_index:
+               axis_name = Data.axes[axis_index]
+               raise NameError("Missing axis {}".format(axis_name))
+            index = axes_index[axis_index]
+            if not index in data:
+               raise NameError("Missing index {}".format(index))
+            data = data[index]
+         return data
+
+      def set(self, axes_index, val):
+         data = self.data
+         for i in range(0, len(self.axes)-1):
+            axis_index = self.axes[i]
+            if not axis_index in axes_index:
+               axis_name = Data.axes[axis_index]
+               raise NameError("Missing axis {}".format(axis_name))
+            index = axes_index[axis_index]
+            if not index in data:
+               data[index] = {}
+            data = data[index]
+         axis_index = self.axes[len(self.axes)-1]
+         if not axis_index in axes_index:
+            axis_name = Data.axes[axis_index]
+            raise NameError("Missing axis {}".format(axis_name))
+         index = axes_index[axis_index]
+         data[index] = val
+
+      def print(self, axes_index):
+         data = self.data
+         buf = " " # leading two spaces
+         for axis_index in self.axes:
+            if not axis_index in axes_index:
+               axis_name = Data.axes[axis_index]
+               raise NameError("Missing axis {}".format(axis_name))
+            index = axes_index[axis_index]
+            if not index in data:
+               raise NameError("Missing index {}".format(index))
+            data = data[index]
+            buf = "{} {}".format(buf, Data.get_index_name(axis_index, index))
+         print("{} {}".format(buf, data))
+
+      def __iter__(self):
+         assert(self.data != None)
+         if len(self.axes) == 0:
+            return Data.MultiAxesTreeIterator0(self)
+         elif len(self.axes) == 1:
+            return Data.MultiAxesTreeIterator1(self)
+         elif len(self.axes) == 2:
+            return Data.MultiAxesTreeIterator2(self)
+         elif len(self.axes) == 3:
+            return Data.MultiAxesTreeIterator3(self)
+         elif len(self.axes) == 4:
+            return Data.MultiAxesTreeIterator4(self)
+         elif len(self.axes) == 5:
+            return Data.MultiAxesTreeIterator5(self)
+         else:
+            raise ValueError
+
 
    class DataTree:
 
@@ -425,7 +569,7 @@ class Data:
          self.label = label
          self.type = type
          self.axes = axes
-         self.num_axes = len(self.axes) / 2
+         self.num_axes = len(self.axes)
 
          self.args = args
          self.func = func
@@ -435,60 +579,30 @@ class Data:
 
          self.data = None
 
+      def makeData(self):
+         self.data = Data.MultiAxesTree(self.axes)
+
+      def check(self, axes_index):
+         return self.data.check(axes_index)
+
+      def get(self, axes_index):
+         return self.data.get(axes_index)
+
+      def set(self, axes_index, val):
+         return self.data.set(axes_index, val)
+
       def __iter__(self):
-         if self.num_axes == 0:
-            return Data.DataTreeIterator0(self)
-         elif self.num_axes == 1:
-            return Data.DataTreeIterator1(self)
-         elif self.num_axes == 2:
-            return Data.DataTreeIterator2(self)
-         elif self.num_axes == 3:
-            return Data.DataTreeIterator3(self)
-         elif self.num_axes == 4:
-            return Data.DataTreeIterator4(self)
-         elif self.num_axes == 5:
-            return Data.DataTreeIterator5(self)
-         else:
-            raise ValueError
+         return iter(self.data)
 
       def printData(self):
-         if self.data:
+         if self.data.data:
             print("printData {}:".format(self.kind))
          else:
             print("printData {}: empty".format(self.kind))
             return
 
-         if self.type == "info":
-            for sweep_dir_name, sweep_info in self.data.items():
-               for run_size, run_info in sweep_info.items():
-                  for kernel_index, val in run_info.items():
-                     kernel_name = Data.kernels[kernel_index]
-                     print("{} {} {} {}".format(sweep_dir_name, run_size, kernel_name, val))
-
-         elif self.type == "data" or \
-              self.type == "computed":
-            for sweep_dir_name, sweep_data in self.data.items():
-               for run_size, run_data in sweep_data.items():
-                  for kernel_index, kernel_data in run_data.items():
-                     kernel_name = Data.kernels[kernel_index]
-                     for variant_index, variant_data in kernel_data.items():
-                        variant_name = Data.variants[variant_index]
-                        for tuning_index, val in variant_data.items():
-                           tuning_name = Data.tunings[tuning_index]
-                           print("{} {} {} {} {} {}".format(sweep_dir_name, run_size, kernel_name, variant_name, tuning_name, val))
-
-         elif self.type == "run_size_reduced":
-            for sweep_dir_name, sweep_data in self.data.items():
-               for kernel_index, kernel_data in sweep_data.items():
-                  kernel_name = Data.kernels[kernel_index]
-                  for variant_index, variant_data in kernel_data.items():
-                     variant_name = Data.variants[variant_index]
-                     for tuning_index, val in variant_data.items():
-                        tuning_name = Data.tunings[tuning_index]
-                        print("{} {} {} {} {}".format(sweep_dir_name, kernel_name, variant_name, tuning_name, val))
-
-         else:
-            raise NameError("Can not print type {}".format(self.type))
+         for axes_index in self.data:
+            self.data.print(axes_index)
 
    class DataTreeTemplate:
 
@@ -631,34 +745,29 @@ class Data:
          if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
             raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
 
-         Data.kinds[kind].data = {}
-         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.items():
-            Data.kinds[kind].data[sweep_dir_name] = {}
+         Data.kinds[kind].makeData()
+         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.data.items():
             for run_size, model_run_data in model_sweep_data.items():
-               Data.kinds[kind].data[sweep_dir_name][run_size] = {}
                for kernel_index, model_kernel_data in model_run_data.items():
                   kernel_name = Data.kernels[kernel_index]
-                  Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index] = {}
                   for variant_index, model_variant_data in model_kernel_data.items():
                      variant_name = Data.variants[variant_index]
-                     Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
                      for tuning_index, model_val in model_variant_data.items():
                         tuning_name = Data.tunings[tuning_index]
 
+                        axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
+                                       Data.axes["run_size"]: run_size,
+                                       Data.axes["kernel_index"]: kernel_index,
+                                       Data.axes["variant_index"]: variant_index,
+                                       Data.axes["tuning_index"]: tuning_index, }
+
                         args_val = ()
                         for arg_kind in compute_args:
-                           if Data.kinds[arg_kind].type == "info":
-                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index]
-                           elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
-                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index]
-                           elif Data.kinds[arg_kind].type == "run_size_reduced":
-                              arg_val = Data.kinds[arg_kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
-                           else:
-                              raise NameError("Invalid data kind {0}".format(arg_kind))
+                           arg_val = Data.kinds[arg_kind].get(axes_index)
                            args_val = args_val + (arg_val,)
 
                         val = compute_func(*args_val)
-                        Data.kinds[kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+                        Data.kinds[kind].set(axes_index, val)
 
       elif Data.kinds[kind].type == "run_size_reduced":
 
@@ -675,54 +784,45 @@ class Data:
          if (not Data.data_model_kind in Data.kinds) or (not Data.kinds[Data.data_model_kind].data):
             raise NameError("Model data not available {0}, no args".format(Data.data_model_kind))
 
-         Data.kinds[kind].data = {}
-         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.items():
-            Data.kinds[kind].data[sweep_dir_name] = {}
+         Data.kinds[kind].makeData()
+         for sweep_dir_name, model_sweep_data in Data.kinds[Data.data_model_kind].data.data.items():
             for run_size, model_run_data in model_sweep_data.items():
                for kernel_index, model_kernel_data in model_run_data.items():
                   kernel_name = Data.kernels[kernel_index]
-                  if not kernel_index in Data.kinds[kind].data[sweep_dir_name]:
-                     Data.kinds[kind].data[sweep_dir_name][kernel_index] = {}
                   for variant_index, model_variant_data in model_kernel_data.items():
                      variant_name = Data.variants[variant_index]
-                     if not variant_index in Data.kinds[kind].data[sweep_dir_name][kernel_index]:
-                        Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index] = {}
                      for tuning_index, model_val in model_variant_data.items():
                         tuning_name = Data.tunings[tuning_index]
 
-                        if not tuning_index in Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index]:
+                        axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
+                                       Data.axes["run_size"]: run_size,
+                                       Data.axes["kernel_index"]: kernel_index,
+                                       Data.axes["variant_index"]: variant_index,
+                                       Data.axes["tuning_index"]: tuning_index, }
+
+                        if not Data.kinds[kind].check(axes_index):
                            args_val = ()
                            for arg_kind in reduce_args:
-                              if Data.kinds[arg_kind].type == "info":
-                                 arg_val = []
-                              elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
-                                 arg_val = []
-                              elif Data.kinds[arg_kind].type == "run_size_reduced":
-                                 arg_val = Data.kinds[arg_kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
+                              if Data.kinds[arg_kind].type == "run_size_reduced":
+                                 arg_val = Data.kinds[arg_kind].get(axes_index)
                               else:
-                                 raise NameError("Invalid data kind {0}".format(arg_kind))
+                                 arg_val = []
                               args_val = args_val + (arg_val,)
-                           Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index] = args_val
+                           Data.kinds[kind].set(axes_index, args_val)
                         else:
-                           args_val = Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index]
+                           args_val = Data.kinds[kind].get(axes_index)
 
                         args_idx = 0
                         for arg_kind in reduce_args:
-                           if Data.kinds[arg_kind].type == "info":
-                              args_val[args_idx].append(Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index])
-                           elif Data.kinds[arg_kind].type == "data" or Data.kinds[arg_kind].type == "computed":
-                              args_val[args_idx].append(Data.kinds[arg_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index])
-                           elif Data.kinds[arg_kind].type == "run_size_reduced":
+                           if Data.kinds[arg_kind].type == "run_size_reduced":
                               pass
                            else:
-                              raise NameError("Invalid data kind {0}".format(arg_kind))
+                              args_val[args_idx].append(Data.kinds[arg_kind].get(axes_index))
                            args_idx += 1
 
-         for sweep_dir_name, sweep_data in Data.kinds[kind].data.items():
-            for kernel_index, kernel_data in sweep_data.items():
-               for variant_index, variant_data in kernel_data.items():
-                  for tuning_index, args_val in variant_data.items():
-                     Data.kinds[kind].data[sweep_dir_name][kernel_index][variant_index][tuning_index] = reduce_func(*args_val)
+         for axes_index in Data.kinds[kind]:
+            args_val = Data.kinds[kind].get(axes_index)
+            Data.kinds[kind].set(axes_index, reduce_func(*args_val))
 
       else:
          raise NameError("Unknown kind type {}".format(Data.kinds[kind].type))
@@ -799,16 +899,16 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   sys.exit(1)
                if not Data.kinds[info_kind].data:
                   # add data to kind
-                  Data.kinds[info_kind].data = {}
-               if not sweep_dir_name in Data.kinds[info_kind].data:
+                  Data.kinds[info_kind].makeData()
+               if not sweep_dir_name in Data.kinds[info_kind].data.data:
                   # add new sweep to global data
-                  Data.kinds[info_kind].data[sweep_dir_name] = {}
-               if run_size in Data.kinds[info_kind].data[sweep_dir_name]:
+                  Data.kinds[info_kind].data.data[sweep_dir_name] = {}
+               if run_size in Data.kinds[info_kind].data.data[sweep_dir_name]:
                   print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size))
                   sys.exit(1)
                else:
                   # add new size to global data
-                  Data.kinds[info_kind].data[sweep_dir_name][run_size] = {}
+                  Data.kinds[info_kind].data.data[sweep_dir_name][run_size] = {}
                # make map of columns to names
                c_to_info_kinds[c] = info_kind
                c_to_info_kinds[info_kind] = c
@@ -832,7 +932,12 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   # add data to global structure
                   val = int(row[c].strip())
                   # print(kernel_index, kernel_name, info_kind, val)
-                  Data.kinds[info_kind].data[sweep_dir_name][run_size][kernel_index] = val
+
+                  axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
+                                 Data.axes["run_size"]: run_size,
+                                 Data.axes["kernel_index"]: kernel_index, }
+
+                  Data.kinds[info_kind].set(axes_index, val)
                except ValueError:
                   pass # could not convert data to int
 
@@ -846,11 +951,11 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
       if not data_kind in Data.kinds:
          raise NameError("Unknown kind {}".format(data_kind))
       if not Data.kinds[data_kind].data:
-         Data.kinds[data_kind].data = {}
-      if not sweep_dir_name in Data.kinds[data_kind].data:
-         Data.kinds[data_kind].data[sweep_dir_name] = {}
-      if not run_size in Data.kinds[data_kind].data[sweep_dir_name]:
-         Data.kinds[data_kind].data[sweep_dir_name][run_size] = {}
+         Data.kinds[data_kind].makeData()
+      if not sweep_dir_name in Data.kinds[data_kind].data.data:
+         Data.kinds[data_kind].data.data[sweep_dir_name] = {}
+      if not run_size in Data.kinds[data_kind].data.data[sweep_dir_name]:
+         Data.kinds[data_kind].data.data[sweep_dir_name][run_size] = {}
       else:
          raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size))
 
@@ -862,44 +967,34 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             if len(c_to_variant_index) == 0:
                for c in range(1, len(row)):
                   variant_name = row[c].strip()
+                  variant_index = -1
                   if variant_name in Data.variants:
-                     pass
+                     variant_index = Data.variants[variant_name]
                   elif (len(Data.include_variants) == 0 or variant_name in Data.include_variants) and (not variant_name in Data.exclude_variants):
-                     variant_index = Data.num_variants
-                     Data.num_variants += 1
-                     Data.variants[variant_name]  = variant_index
-                     Data.variants[variant_index] = variant_name
-                     if variant_name in g_known_variants:
-                        variant_color = g_known_variants[variant_name]["color"]
-                        Data.variant_colors[variant_name] = variant_color
-                        Data.variant_colors[variant_index] = variant_color
-                     else:
-                        print("Unknown variant {0}".format(variant_name))
-                        sys.exit(1)
+                     Data.add_variant(variant_name)
+                     variant_index = Data.variants[variant_name]
                   else:
-                     Data.variants[variant_name]  = -1
+                     variant_index = -1
+                  c_to_variant_index[c] = variant_index
 
-                  c_to_variant_index[c] = Data.variants[variant_name]
             elif len(c_to_tuning_index) == 0:
                for c in range(1, len(row)):
                   tuning_name = row[c].strip()
+                  tuning_index = None
                   if tuning_name in Data.tunings:
-                     pass
+                     tuning_index = Data.tunings[tuning_name]
                   elif (len(Data.include_tunings) == 0 or tuning_name in Data.include_tunings) and (not tuning_name in Data.exclude_tunings):
-                     tuning_index = Data.num_tunings
-                     Data.num_tunings += 1
-                     Data.tunings[tuning_name]  = tuning_index
-                     Data.tunings[tuning_index] = tuning_name
-                     if tuning_name in g_known_tunings:
-                        tuning_format = g_known_tunings[tuning_name]["format"]
-                        Data.tuning_formats[tuning_name] = tuning_format
-                        Data.tuning_formats[tuning_index] = tuning_format
+                     if Data.use_best_tuning:
+                        if not g_best_tuning_name in Data.tunings:
+                           Data.add_tuning(g_best_tuning_name)
+                        tuning_index = Data.tunings[g_best_tuning_name]
                      else:
-                        print("Unknown tuning {0}".format(tuning_name))
-                        sys.exit(1)
+                        Data.add_tuning(tuning_name)
+                        tuning_index = Data.tunings[tuning_name]
                   else:
-                     Data.tunings[tuning_name] = -1
-                  c_to_tuning_index[c] = Data.tunings[tuning_name]
+                     tuning_index = -1
+                  c_to_tuning_index[c] = tuning_index
+
             else:
                print("Unknown row {0}".format(row))
                sys.exit(1);
@@ -911,18 +1006,28 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
             else:
                continue # skip kernel
 
-            Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index] = {}
+            Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index] = {}
             for c in range(1, len(row)):
                variant_index = c_to_variant_index[c]
                tuning_index = c_to_tuning_index[c]
                if variant_index < 0 or tuning_index < 0:
                   continue # ignore data
+
+               axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
+                              Data.axes["run_size"]: run_size,
+                              Data.axes["kernel_index"]: kernel_index,
+                              Data.axes["variant_index"]: variant_index,
+                              Data.axes["tuning_index"]: tuning_index, }
+
                try:
                   val = float(row[c].strip())
                   # print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
-                  if not variant_index in Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index]:
-                     Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
-                  Data.kinds[data_kind].data[sweep_dir_name][run_size][kernel_index][variant_index][tuning_index] = val
+                  if not variant_index in Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index]:
+                     Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index][variant_index] = {}
+                  if Data.use_best_tuning and tuning_index in Data.kinds[data_kind].data.data[sweep_dir_name][run_size][kernel_index][variant_index]:
+                     Data.kinds[data_kind].set(axes_index, min(val, Data.kinds[data_kind].get(axes_index)))
+                  else:
+                     Data.kinds[data_kind].set(axes_index, val)
                except ValueError:
                   pass # could not convert data to float
 
@@ -954,7 +1059,7 @@ def get_plot_data(kind, kernel):
 
       if not kind in Data.kinds:
          raise NameError("Unknown info kind {}".format(kind))
-      kind_info = Data.kinds[kind].data
+      kind_info = Data.kinds[kind].data.data
 
       for sweep_dir_name, sweep_info in kind_info.items():
 
@@ -974,7 +1079,7 @@ def get_plot_data(kind, kernel):
 
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
-      kind_data = Data.kinds[kind].data
+      kind_data = Data.kinds[kind].data.data
 
       for sweep_dir_name, sweep_data in kind_data.items():
 
@@ -1006,7 +1111,7 @@ def get_plot_data(kind, kernel):
 
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
-      kind_data = Data.kinds[kind].data
+      kind_data = Data.kinds[kind].data.data
 
       for sweep_dir_name, sweep_data in kind_data.items():
 
@@ -1272,13 +1377,15 @@ def main(argv):
          sys.exit(2)
       elif opt[0] == "-":
 
+         handle_num = None
+         handle_arg = None
          # no arg options
          if opt in ("-h", "--help"):
             print(help_string)
             sys.exit()
-
-         handle_num = 0
-         handle_arg = None
+         elif opt in ("-ubt", "--use-best-tuning"):
+            handle_num = 0
+            Data.use_best_tuning = True
          # single arg options
          if opt in ("-o", "--output"):
             handle_num = 1
@@ -1343,10 +1450,12 @@ def main(argv):
                Data.exclude_sweeps[arg] = arg
             handle_arg = fes
 
-         if handle_num == 0:
+         # error unknown opt
+         if handle_num == None:
             print(help_string)
             sys.exit(2)
 
+         # fixed num args
          elif handle_num > 0:
             if not i+handle_num < len(argv):
                print("Missing option to {}".format(opt))
@@ -1359,7 +1468,8 @@ def main(argv):
                handle_arg(arg)
             i += handle_num
 
-         else:
+         # unfixed num args
+         elif handle_num < 0:
             while i+1 < len(argv):
                arg = argv[i+1]
                if arg[0] == "-":
