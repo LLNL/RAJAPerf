@@ -533,6 +533,62 @@ class Data:
                              data_tree.axes[3]: k3,
                              data_tree.axes[4]: k4,}, v4,)
 
+   def MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
+                                                axes_index, leftover_axes_index,
+                                                val, depth):
+      if data_tree.axes[depth] in partial_axes_index:
+         key = partial_axes_index[data_tree.axes[depth]]
+         val = val[key]
+         axes_index[data_tree.axes[depth]] = key
+         if depth+1 == len(data_tree.axes):
+            yield (axes_index.copy(), leftover_axes_index.copy(), val,)
+         else:
+            gen = Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
+               axes_index, leftover_axes_index, val, depth+1)
+            for yld in gen:
+               yield yld
+      else:
+         for key, val in val.items():
+            axes_index[data_tree.axes[depth]] = key
+            leftover_axes_index[data_tree.axes[depth]] = key
+            if depth+1 == len(data_tree.axes):
+               yield (axes_index.copy(), leftover_axes_index.copy(), val,)
+            else:
+               gen = Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
+                  axes_index, leftover_axes_index, val, depth+1)
+               for yld in gen:
+                  yield yld
+
+   def MultiAxesTreePartialItemGenerator0(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 0)
+      if False:
+         yield ({},None,)
+
+   def MultiAxesTreePartialItemGenerator1(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 1)
+      assert(data_tree.data)
+      return Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index, {}, {}, data_tree.data, 0)
+
+   def MultiAxesTreePartialItemGenerator2(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 2)
+      assert(data_tree.data)
+      return Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index, {}, {}, data_tree.data, 0)
+
+   def MultiAxesTreePartialItemGenerator3(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 3)
+      assert(data_tree.data)
+      return Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index, {}, {}, data_tree.data, 0)
+
+   def MultiAxesTreePartialItemGenerator4(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 4)
+      assert(data_tree.data)
+      return Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index, {}, {}, data_tree.data, 0)
+
+   def MultiAxesTreePartialItemGenerator5(data_tree, partial_axes_index):
+      assert(len(data_tree.axes) == 5)
+      assert(data_tree.data)
+      return Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index, {}, {}, data_tree.data, 0)
+
    class MultiAxesTree:
       # axes is an array of axis_indices in the depth order they occur in the tree
       # indices is a dictionary of axis_indices to indices
@@ -584,19 +640,38 @@ class Data:
          index = axes_index[axis_index]
          data[index] = val
 
-      def print(self, axes_index):
-         data = self.data
-         buf = " " # leading two spaces
+      def indexName(self, axes_index):
+         name = ""
+         for axis_index, index in axes_index.items():
+            if name:
+               name = "{} {}".format(name, Data.get_index_name(axis_index, index))
+            else:
+               name = Data.get_index_name(axis_index, index)
+         return name
+
+      def axesString(self):
+         axes_names = ""
          for axis_index in self.axes:
-            if not axis_index in axes_index:
-               axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
-            index = axes_index[axis_index]
-            if not index in data:
-               raise NameError("Missing index {}".format(index))
-            data = data[index]
-            buf = "{} {}".format(buf, Data.get_index_name(axis_index, index))
-         print("{} {}".format(buf, data))
+            if axes_names:
+               axes_names = "{}, {}".format(axes_names, Data.axes[axis_index])
+            else:
+               axes_names = "[{}".format(Data.axes[axis_index])
+         return "{}]".format(axes_names)
+
+      def dataString(self):
+         buf = ""
+         for axes_index, val in self.data.items():
+            index_buf = " "
+            for axis_index, index in axes_index.items():
+               index_buf = "{} {}".format(index_buf, Data.get_index_name(axis_index, index))
+            buf += "{} {}".format(buf, val)
+         return buf
+
+      def __repr__(self):
+         return "MultiAxesTree({}):\n{}".format(self.axesString(), self.dataString())
+
+      def __str__(self):
+         return "MultiAxesTree({})".format(self.axesString())
 
       def keys(self):
          assert(self.data != None)
@@ -632,6 +707,28 @@ class Data:
          else:
             raise ValueError
 
+      def partial_match_items(self, partial_axes_index):
+         assert(self.data != None)
+         num_matching_indices = 0
+         for axis_index in  self.axes:
+            if axis_index in partial_axes_index:
+               num_matching_indices += 1
+         assert(num_matching_indices == len(partial_axes_index))
+         if len(self.axes) == 0:
+            return Data.MultiAxesTreePartialItemGenerator0(self, partial_axes_index)
+         elif len(self.axes) == 1:
+            return Data.MultiAxesTreePartialItemGenerator1(self, partial_axes_index)
+         elif len(self.axes) == 2:
+            return Data.MultiAxesTreePartialItemGenerator2(self, partial_axes_index)
+         elif len(self.axes) == 3:
+            return Data.MultiAxesTreePartialItemGenerator3(self, partial_axes_index)
+         elif len(self.axes) == 4:
+            return Data.MultiAxesTreePartialItemGenerator4(self, partial_axes_index)
+         elif len(self.axes) == 5:
+            return Data.MultiAxesTreePartialItemGenerator5(self, partial_axes_index)
+         else:
+            raise ValueError
+
       def __iter__(self):
          return self.keys()
 
@@ -658,13 +755,16 @@ class Data:
          assert(self.axes)
          self.data = Data.MultiAxesTree(self.axes)
 
-      def sameAxes(self, other_axes):
-         if len(self.axes) != len(other_axes):
-            return False
+      def hasAxes(self, other_axes):
          for axis_index in other_axes:
             if not axis_index in self.axes:
                return False
          return True
+
+      def sameAxes(self, other_axes):
+         if len(self.axes) != len(other_axes):
+            return False
+         self.hasAxes(other_axes)
 
       def missingAxes(self, other_axes):
          for axis_index in other_axes:
@@ -687,21 +787,26 @@ class Data:
       def items(self):
          return self.data.items()
 
+      def partial_match_items(self, partial_axes_index):
+         return self.data.partial_match_items(partial_axes_index)
+
       def __iter__(self):
          return iter(self.data)
 
-      def printData(self):
-         if self.data.data:
-            print("printData {}:".format(self.kind))
-         else:
-            print("printData {}: empty".format(self.kind))
-            return
+      def indexName(self, axes_index):
+         return self.data.indexName(axes_index)
 
-         for axes_index, val in self.data.items():
-            buf = " "
-            for axis_index, index in axes_index.items():
-               buf = "{} {}".format(buf, Data.get_index_name(axis_index, index))
-            print("{} {}".format(buf, val))
+      def axesString(self):
+         return self.data.axesString()
+
+      def dataString(self):
+         return self.data.dataString()
+
+      def __repr__(self):
+         return "DataTree({} {} {}):\n{}".format(self.kind, self.label, self.axesString(), self.dataString())
+
+      def __str__(self):
+         return "DataTree({} {} {})".format(self.kind, self.label, self.axesString())
 
    class DataTreeTemplate:
 
@@ -1127,118 +1232,35 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                   pass # could not convert data to float
 
 
-def get_plot_data(kind, kernel):
+def get_plot_data(kind, partial_axes_index):
 
    if not kind in Data.kinds:
       raise NameError("Unknown kind {}".format(kind))
 
-   kernel_index = kernel
-   if isinstance(kernel, str):
-      if kernel in Data.kernels:
-         kernel_index = Data.kernels[kernel]
-      else:
-         raise NameError("Unknown kernel {}".format(kernel))
-   elif isinstance(kernel, int):
-      kernel_index = kernel
-   else:
-      raise NameError("Unknown kernel {}".format(kernel))
-
-   if not kernel_index in Data.kernels:
-      raise NameError("Unknown kernel {}".format(kernel_index))
-   kernel_name = Data.kernels[kernel_index]
-
-   data = {}
-
    kind_data = Data.kinds[kind]
-   if kind_data.sameAxes(Data.info_axes):
 
-      kind_info = kind_data.data.data
+   assert(kind_data.hasAxes(partial_axes_index))
 
-      for sweep_dir_name, sweep_info in kind_info.items():
-
-         data[sweep_dir_name] = {}
-         data[sweep_dir_name][kind] = {"type": "info",
-                                       "data": [] }
-
-         for run_size, run_info in sweep_info.items():
-
-            if not kernel_index in run_info:
-               raise NameError("Unknown info kernel_index {}".format(kernel_index))
-
-            val = run_info[kernel_index]
-            data[sweep_dir_name][kind]["data"].append(val)
-
-   elif kind_data.sameAxes(Data.data_axes):
-
-      kind_data = kind_data.data.data
-
-      for sweep_dir_name, sweep_data in kind_data.items():
-
-         data[sweep_dir_name] = {}
-
-         for run_size, run_data in sweep_data.items():
-
-            if not kernel_index in run_data:
-               raise NameError("Unknown info kernel_index {}".format(kernel_index))
-
-            kernel_data = run_data[kernel_index]
-
-            for variant_index, variant_data in kernel_data.items():
-               variant_name = Data.variants[variant_index]
-               for tuning_index, val in variant_data.items():
-                  tuning_name = Data.tunings[tuning_index]
-
-                  data_name = "{}-{}".format(variant_name, tuning_name)
-
-                  if not data_name in data[sweep_dir_name]:
-                     data[sweep_dir_name][data_name] = {"type": "data",
-                                                        "variant": variant_index,
-                                                        "tuning": tuning_index,
-                                                        "data": [] }
-
-                  data[sweep_dir_name][data_name]["data"].append(val)
-
-   elif kind_data.sameAxes(Data.run_size_reduced_axes):
-
-      kind_data = kind_data.data.data
-
-      for sweep_dir_name, sweep_data in kind_data.items():
-
-         data[sweep_dir_name] = {}
-
-         if not kernel_index in sweep_data:
-            raise NameError("Unknown info kernel_index {}".format(kernel_index))
-
-         kernel_data = sweep_data[kernel_index]
-
-         for variant_index, variant_data in kernel_data.items():
-            variant_name = Data.variants[variant_index]
-            for tuning_index, val in variant_data.items():
-               tuning_name = Data.tunings[tuning_index]
-
-               data_name = "{}-{}".format(variant_name, tuning_name)
-
-               if not data_name in data[sweep_dir_name]:
-                  data[sweep_dir_name][data_name] = {"type": "data",
-                                                     "variant": variant_index,
-                                                     "tuning": tuning_index,
-                                                     "data": [] }
-
-               data[sweep_dir_name][data_name]["data"].append(val)
-
-   else:
-      raise NameError("Unknown kind {} axes {}".format(kind, kind_data))
+   data = []
+   for axes_index, leftover_axes_index, value in kind_data.partial_match_items(partial_axes_index):
+      index_name = kind_data.indexName(leftover_axes_index)
+      data.append({ "name": index_name,
+                    "axes_index": leftover_axes_index,
+                    "data": [value] })
 
    return data
 
 
-def plot_data_problem_sizes(outputfile_name, ykinds):
+def plot_data_split_line(outputfile_name, split_axis, xkind, ykinds):
+   print("plotting {} {} {} {}".format(outputfile_name, split_axis, xkind, ykinds))
+
+   assert(split_axis == "kernel_index")
+   assert(xkind == "Problem size")
 
    ylabel = None
    yscale = "log"
    ylim = None
 
-   xkind = "Problem size"
    xlabel = Data.kinds[xkind].label
    xscale = "log"
    xlim = None
@@ -1312,7 +1334,10 @@ def plot_data_problem_sizes(outputfile_name, ykinds):
       plt.savefig(fname, dpi=150.0)
       plt.clf()
 
-def plot_data_kernels(outputfile_name, ykinds):
+def plot_data_bar(outputfile_name, xaxis, ykinds):
+   print("plotting {} {} {}".format(outputfile_name, xaxis, ykinds))
+
+   assert(xaxis == "kernel_index")
 
    gname = None
 
@@ -1340,6 +1365,7 @@ def plot_data_kernels(outputfile_name, ykinds):
    kernel_data = { "kernel_names": [],
                    "kernel_centers": [],
                    "ynames": {},
+                   "ycolor": {},
                    "ydata": {}, }
 
    for kernel_index in range(0, Data.num_kernels):
@@ -1350,38 +1376,33 @@ def plot_data_kernels(outputfile_name, ykinds):
 
       for ykind in ykinds:
 
-         yaxes = get_plot_data(ykind, kernel_index)
+         axes_index = { Data.axes["kernel_index"]: kernel_index }
 
-         for sweep_index in range(0, Data.num_sweeps):
-            sweep_dir_name = Data.sweeps[sweep_index]
+         ydata_list = get_plot_data(ykind, axes_index)
 
-            if not sweep_dir_name in yaxes:
-               raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
+         for ydata in ydata_list:
 
-            for data_name, ydata in yaxes[sweep_dir_name].items():
-               assert(len(ydata["data"]) == 1)
+            assert(len(ydata["data"]) == 1)
 
-               yname = "{} {}".format(data_name, sweep_dir_name)
-               if len(ykinds) > 1:
-                  yname = "{} {}".format(Data.kinds[ykind].kind, yname)
+            yname = ydata["name"]
+            if len(ykinds) > 1:
+               yname = "{} {}".format(Data.kinds[ykind].kind, yname)
 
-               ycolor = (0.0, 0.0, 0.0, 1.0)
+            ycolor = (0.0, 0.0, 0.0, 1.0)
+            if Data.axes["variant_index"] in ydata["axes_index"]:
+               variant_index = ydata["axes_index"][Data.axes["variant_index"]]
+               ycolor = Data.variant_colors[variant_index]
 
-               if ydata["type"] == "data":
-                  variant_index = ydata["variant"]
-                  # tuning_index = ydata["tuning"]
-                  ycolor = Data.variant_colors[variant_index]
+            if not yname in kernel_data["ynames"]:
+               kernel_data["ynames"][yname] = len(kernel_data["ynames"])
+               kernel_data["ycolor"][yname] = ycolor
+               kernel_data["ydata"][yname] = []
 
-               if not yname in kernel_data["ynames"]:
-                  kernel_data["ynames"][yname] = len(kernel_data["ynames"])
-                  kernel_data["ydata"][yname] = { "color": ycolor,
-                                                  "data": [], }
+            # pad with 0s if find missing data
+            while len(kernel_data["ydata"][yname])+1 < len(kernel_data["kernel_names"]):
+               kernel_data["ydata"][yname].append(0.0)
 
-               # pad with 0s if find missing data
-               while len(kernel_data["ydata"][yname]["data"])+1 < len(kernel_data["kernel_names"]):
-                  kernel_data["ydata"][yname]["data"].append(0.0)
-
-               kernel_data["ydata"][yname]["data"].append(ydata["data"][0])
+            kernel_data["ydata"][yname].append(ydata["data"][0])
 
    num_xticks = len(kernel_data["kernel_centers"])
    plt.figure(figsize=(max(num_xticks*0.5, 4), 6,))
@@ -1391,16 +1412,14 @@ def plot_data_kernels(outputfile_name, ykinds):
    for yname in kernel_data["ynames"]:
 
       y_i = kernel_data["ynames"][yname]
-      ydata = kernel_data["ydata"][yname]
+      ycolor = kernel_data["ycolor"][yname]
+      yaxis = kernel_data["ydata"][yname]
 
       xaxis = [c + (y_i+1)/(y_n+1) - 0.5 for c in kernel_data["kernel_centers"]]
-      yaxis = ydata["data"]
 
       # pad with 0s if find missing data
       while len(yaxis) < len(kernel_data["kernel_names"]):
          yaxis.append(0.0)
-
-      ycolor = ydata["color"]
 
       plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor) # ,edgecolor="grey")
 
@@ -1434,20 +1453,6 @@ def plot_data_kernels(outputfile_name, ykinds):
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
    plt.clf()
 
-def plot_data(outputfile_name, ykinds):
-   print("plotting {} {}".format(outputfile_name, ykinds))
-
-   func = None
-   for ykind in ykinds:
-      if Data.kinds[ykind].sameAxes(Data.run_size_reduced_axes):
-         func = plot_data_kernels
-      else:
-         func = plot_data_problem_sizes
-
-   func(outputfile_name, ykinds)
-
-
-
 
 def main(argv):
    sweep_dir_paths = []
@@ -1456,7 +1461,8 @@ def main(argv):
    runinfo_filename = g_runinfo_filename
    timing_filename = g_timing_filename
    print_kinds = []
-   graph_kinds = []
+   split_line_graph_kind_lists = []
+   bar_graph_kind_lists = []
 
    i = 0
    while i < len(argv):
@@ -1485,11 +1491,18 @@ def main(argv):
             def p(arg):
                print_kinds.append(arg)
             handle_arg = p
-         elif opt in ("-g", "--graph"):
+         elif opt in ("-slg", "--split-line-graphs"):
             handle_num = -1
-            def fg(arg):
-               graph_kinds.append(arg)
-            handle_arg = fg
+            split_line_graph_kind_lists.append([])
+            def fslg(arg):
+               split_line_graph_kind_lists[len(split_line_graph_kind_lists)-1].append(arg)
+            handle_arg = fslg
+         elif opt in ("-bg", "--bar-graph"):
+            handle_num = -1
+            bar_graph_kind_lists.append([])
+            def fbg(arg):
+               bar_graph_kind_lists[len(bar_graph_kind_lists)-1].append(arg)
+            handle_arg = fbg
          elif opt in ("-kg", "--kernel-groups"):
             handle_num = -1
             def fkg(arg):
@@ -1692,12 +1705,18 @@ def main(argv):
 
    for kind in print_kinds:
       Data.compute(kind)
-      Data.kinds[kind].printData()
+      print("Print Data {}:".format(Data.kinds[kind].kind))
+      print(Data.kinds[kind].dataString())
 
-   if len(graph_kinds) > 0:
-      for kind in graph_kinds:
+   for kind_list in split_line_graph_kind_lists:
+      for kind in kind_list:
          Data.compute(kind)
-      plot_data(outputfile, graph_kinds)
+      plot_data_split_line(outputfile, "kernel_index", "Problem size", kind_list)
+
+   for kind_list in bar_graph_kind_lists:
+      for kind in kind_list:
+         Data.compute(kind)
+      plot_data_bar(outputfile, "kernel_index", kind_list)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
