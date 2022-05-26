@@ -176,9 +176,9 @@ def linearRegression_helper(n, xsum, ysum, x2sum, y2sum, xysum):
       intercept = ysum
       correlation_coefficient = 1.0
    else:
-      slope = (n*xysum - xsum*ysum) / (n*x2sum - xsum*xsum)
+      slope = (n*xysum - xsum*ysum) / ((n*x2sum - xsum*xsum)+1e-80)
       intercept = (ysum - slope*xsum)/n
-      correlation_coefficient = (n*xysum - xsum*ysum) / math.sqrt((n*x2sum - xsum*xsum)*(n*y2sum - ysum*ysum))
+      correlation_coefficient = (n*xysum - xsum*ysum) / (math.sqrt((n*x2sum - xsum*xsum)*(n*y2sum - ysum*ysum))+1e-80)
    return (intercept, slope, correlation_coefficient)
 
 # returns (intercept, slope, correlation_coefficient)
