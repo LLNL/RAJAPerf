@@ -1250,68 +1250,122 @@ def get_plot_data(kind, partial_axes_index):
 
    return data
 
+def get_plot_data2(xkind, ykind, partial_axes_index):
 
-def plot_data_split_line(outputfile_name, split_axis, xkind, ykinds):
-   print("plotting {} {} {} {}".format(outputfile_name, split_axis, xkind, ykinds))
+   if not ykind in Data.kinds:
+      raise NameError("Unknown kind {}".format(ykind))
+   if not xkind in Data.kinds:
+      raise NameError("Unknown kind {}".format(xkind))
 
-   assert(split_axis == "kernel_index")
-   assert(xkind == "Problem size")
+   ykind_data = Data.kinds[ykind]
+   xkind_data = Data.kinds[xkind]
 
-   ylabel = None
-   yscale = "log"
-   ylim = None
+   assert(ykind_data.hasAxes(partial_axes_index))
+   assert(xkind_data.hasAxes(partial_axes_index))
 
-   xlabel = Data.kinds[xkind].label
-   xscale = "log"
-   xlim = None
+   data = []
+   for axes_index, leftover_axes_index, yvalue in ykind_data.partial_match_items(partial_axes_index):
+      index_name = ykind_data.indexName(leftover_axes_index)
+      xvalue = xkind_data.get(axes_index)
+      data.append({ "name": index_name,
+                    "axes_index": leftover_axes_index,
+                    "ydata": [yvalue],
+                    "xdata": [xvalue] })
 
-   for ykind in ykinds:
-      if not ykind in Data.kinds:
-         raise NameError("Unknown kind {}".format(ykind))
-      if not ylabel:
-         ylabel = Data.kinds[ykind].label
-      elif ylabel != Data.kinds[ykind].label:
-         raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
+   return data
 
-   for kernel_index in range(0, Data.num_kernels):
-      kernel_name = Data.kernels[kernel_index]
+
+def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds):
+   print("plotting {} {} {} {}".format(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds))
+
+   assert(split_axis_name == "kernel_index")
+   for split_index in range(0, Data.num_kernels):
+      split_name = Data.kernels[split_index]
+
+      ylabel = None
+      yscale = "log"
+      ylim = None
+
+      xlabel = Data.kinds[xkind].label
+      xscale = "log"
+      xlim = None
+
+      gname = None
+      if len(ykinds) == 1:
+         gname = "{}".format(ykinds[0])
 
       for ykind in ykinds:
+         if gname:
+            gname = "{} {}".format(gname, ykind)
+         else:
+            gname = "{}".format(ykind)
+         if not ykind in Data.kinds:
+            raise NameError("Unknown kind {}".format(ykind))
+         if not ylabel:
+            ylabel = Data.kinds[ykind].label
+         elif ylabel != Data.kinds[ykind].label:
+            raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
 
-         xaxes = get_plot_data(xkind, kernel_index)
-         yaxes = get_plot_data(ykind, kernel_index)
+         split_data = { "ynames": [],
+                        "ycolor": {},
+                        "yformat": {},
+                        "ydata": {},
+                        "xdata": {}, }
 
-         for sweep_index in range(0, Data.num_sweeps):
-            sweep_dir_name = Data.sweeps[sweep_index]
-            sweep_marker = Data.sweep_markers[sweep_index]
 
-            if not sweep_dir_name in xaxes:
-               raise NameError("Unknown sweep_dir_name {}".format(sweep_dir_name))
+         assert(xaxis_name == "run_size")
+         for x_i in range(0, Data.num_run_sizes):
+            x_index = Data.run_sizes[x_i]
 
-            for data_name, ydata in yaxes[sweep_dir_name].items():
+            axes_index = { Data.axes[split_axis_name]: split_index,
+                           Data.axes[xaxis_name]: x_index  }
 
-               yname = "{} {} {}".format(Data.kinds[ykind].kind, data_name, sweep_dir_name)
-               yformat = "{}-".format(sweep_marker)
-               ycolor = (0.0, 0.0, 0.0, 1.0)
-               yaxis = ydata["data"]
+            data_list = get_plot_data2(xkind, ykind, axes_index)
 
-               if ydata["type"] == "data":
-                  variant_index = ydata["variant"]
-                  tuning_index = ydata["tuning"]
-                  ycolor = Data.variant_colors[variant_index]
-                  yformat = "{}{}".format(sweep_marker, Data.tuning_formats[tuning_index])
+            for data in data_list:
+               yname = data["name"]
 
-               if data_name in xaxes[sweep_dir_name]:
-                  xaxis = xaxes[sweep_dir_name][data_name]["data"]
-               elif xkind in xaxes[sweep_dir_name]:
-                  xaxis = xaxes[sweep_dir_name][xkind]["data"]
-               else:
-                  raise NameError("Unknown xaxis for {}".format(data_name))
+               if not yname in split_data["ydata"]:
 
-               plt.plot(xaxis,yaxis,yformat,color=ycolor,label=yname)
+                  ycolor = (0.0, 0.0, 0.0, 1.0)
+                  if Data.axes["variant_index"] in data["axes_index"]:
+                     variant_index = data["axes_index"][Data.axes["variant_index"]]
+                     ycolor = Data.variant_colors[variant_index]
 
-      fname = "{}_{}.png".format(outputfile_name, kernel_name)
-      gname = "{}".format(kernel_name)
+                  ymarker = ""
+                  if Data.axes["sweep_dir_name"] in data["axes_index"]:
+                     sweep_dir_name = data["axes_index"][Data.axes["sweep_dir_name"]]
+                     sweep_index = Data.sweeps[sweep_dir_name]
+                     ymarker = Data.sweep_markers[sweep_index]
+
+                  yformat = "{}-".format(ymarker)
+                  if Data.axes["tuning_index"] in data["axes_index"]:
+                     tuning_index = data["axes_index"][Data.axes["tuning_index"]]
+                     yformat = "{}{}".format(ymarker, Data.tuning_formats[tuning_index])
+
+                  split_data["ynames"].append(yname)
+                  split_data["ycolor"][yname] = ycolor
+                  split_data["yformat"][yname] = yformat
+                  split_data["ydata"][yname] = []
+                  split_data["xdata"][yname] = []
+
+               split_data["ydata"][yname].append(data["ydata"][0])
+               split_data["xdata"][yname].append(data["xdata"][0])
+
+         for yname in split_data["ynames"]:
+
+            ycolor = split_data["ycolor"][yname]
+            yformat = split_data["yformat"][yname]
+            ydata = split_data["ydata"][yname]
+            xdata = split_data["xdata"][yname]
+
+            if len(ykinds) > 1:
+               yname = "{} {}".format(Data.kinds[ykind].kind, yname)
+
+            plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
+
+      fname = "{}_{}.png".format(outputfile_name, split_name)
+      gname = "{}".format(split_name)
 
       if ylabel:
          plt.ylabel(ylabel)
@@ -1374,9 +1428,9 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
       kernel_data["kernel_names"].append(kernel_name)
       kernel_data["kernel_centers"].append(kernel_index)
 
-      for ykind in ykinds:
+      axes_index = { Data.axes["kernel_index"]: kernel_index }
 
-         axes_index = { Data.axes["kernel_index"]: kernel_index }
+      for ykind in ykinds:
 
          ydata_list = get_plot_data(ykind, axes_index)
 
@@ -1644,6 +1698,7 @@ def main(argv):
          if sweep_dir_name in Data.sweeps:
             raise NameError("Repeated sweep_dir_name {}".format(sweep_dir_name))
          Data.sweeps[Data.num_sweeps] = sweep_dir_name
+         Data.sweeps[sweep_dir_name] = Data.num_sweeps
          if Data.num_sweeps >= len(g_markers):
             raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
          Data.sweep_markers[Data.num_sweeps] = g_markers[Data.num_sweeps]
@@ -1711,7 +1766,7 @@ def main(argv):
    for kind_list in split_line_graph_kind_lists:
       for kind in kind_list:
          Data.compute(kind)
-      plot_data_split_line(outputfile, "kernel_index", "Problem size", kind_list)
+      plot_data_split_line(outputfile, "kernel_index", "run_size", "Problem size", kind_list)
 
    for kind_list in bar_graph_kind_lists:
       for kind in kind_list:
