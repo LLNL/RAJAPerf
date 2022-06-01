@@ -359,6 +359,24 @@ class Data:
    include_tunings = {}
    exclude_tunings = {}
 
+   def add_sweep(sweep_name):
+      sweep_index = Data.num_sweeps
+      Data.num_sweeps += 1
+      Data.sweeps[sweep_name] = sweep_index
+      Data.sweeps[sweep_index] = sweep_name
+
+   def add_run_size(run_size_name):
+      run_size_index = Data.num_run_sizes
+      Data.num_run_sizes += 1
+      Data.run_sizes[run_size_name] = run_size_index
+      Data.run_sizes[run_size_index] = run_size_name
+
+   def add_kernel(kernel_name):
+      kernel_index = Data.num_kernels
+      Data.num_kernels += 1
+      Data.kernels[kernel_name] = kernel_index
+      Data.kernels[kernel_index] = kernel_name
+
    def add_variant(variant_name):
       variant_index = Data.num_variants
       Data.num_variants += 1
@@ -392,11 +410,17 @@ class Data:
             "variant_index": 3,  3: "variant_index",
             "tuning_index": 4,   4: "tuning_index", }
 
+   def get_axis_name(axis_index):
+      if axis_index in Data.axes:
+         return Data.axes[axis_index]
+      else:
+         raise NameError("Unknown axis index {}".format(axis_index))
+
    def get_index_name(axis_index, index):
       if axis_index == Data.axes["sweep_dir_name"]:
-         return index # Data.sweeps[index]
+         return Data.sweeps[index]
       elif axis_index == Data.axes["run_size"]:
-         return index;
+         return Data.run_sizes[index]
       elif axis_index == Data.axes["kernel_index"]:
          return Data.kernels[index]
       elif axis_index == Data.axes["variant_index"]:
@@ -405,6 +429,36 @@ class Data:
          return Data.tunings[index]
       else:
          raise NameError("Unknown axis index {}".format(axis_index))
+
+   def get_axis_index_str(axis_index, index):
+      return "{}:{}".format(Data.get_axis_name(axis_index), Data.get_index_name(axis_index, index))
+
+   def get_axes_index_str(axes_index):
+      name = "{"
+      for axis_index, index in axes_index.items():
+         name = "{}{},".format(name, Data.get_axis_index_str(axis_index, index))
+      return "{}}}".format(name)
+
+   def get_axis_index(axis_name, index_name):
+      if axis_name == "sweep_dir_name":
+         return {Data.axes[axis_name]: Data.sweeps[index_name],}
+      elif axis_name == "run_size":
+         return {Data.axes[axis_name]: Data.run_sizes[index_name],}
+      elif axis_name == "kernel_index":
+         return {Data.axes[axis_name]: Data.kernels[index_name],}
+      elif axis_name == "variant_index":
+         return {Data.axes[axis_name]: Data.variants[index_name],}
+      elif axis_name == "tuning_index":
+         return {Data.axes[axis_name]: Data.tunings[index_name],}
+      else:
+         raise NameError("Unknown axis name {}".format(axis_name))
+
+   def axes_difference(axes, partial_axes_index):
+      new_axes = []
+      for axis_index in axes:
+         if not axis_index in partial_axes_index:
+            new_axes.append(axis_index)
+      return new_axes
 
    # multi-dimensional array structured like this
    #     directory name - platform, compiler, etc
@@ -555,15 +609,21 @@ class Data:
                                                 val, depth):
       if data_tree.axes[depth] in partial_axes_index:
          key = partial_axes_index[data_tree.axes[depth]]
-         val = val[key]
-         axes_index[data_tree.axes[depth]] = key
-         if depth+1 == len(data_tree.axes):
-            yield (axes_index.copy(), leftover_axes_index.copy(), val,)
+         if key in val:
+            val = val[key]
+            axes_index[data_tree.axes[depth]] = key
+            if depth+1 == len(data_tree.axes):
+               yield (axes_index.copy(), leftover_axes_index.copy(), val,)
+            else:
+               gen = Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
+                  axes_index, leftover_axes_index, val, depth+1)
+               for yld in gen:
+                  yield yld
          else:
-            gen = Data.MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
-               axes_index, leftover_axes_index, val, depth+1)
-            for yld in gen:
-               yield yld
+            # print(data_tree, partial_axes_index,
+            #       axes_index, leftover_axes_index,
+            #       key, val, depth)
+            raise NameError("invalid index {} {}".format(Data.get_axes_index_str(axes_index), Data.get_axis_index_str(data_tree.axes[depth], key)))
       else:
          for key, val in val.items():
             axes_index[data_tree.axes[depth]] = key
@@ -851,9 +911,18 @@ class Data:
 
       def getModelKind(self, args, template_args):
          assert(len(args) > 0)
-         model_kind = args[0]
+         model_kind = None
+         # choose model_kind with most axes
+         for kind in args:
+            if kind in Data.kinds:
+               if not model_kind:
+                  model_kind = kind
+               elif len(Data.kinds[kind].axes) > len(Data.kinds[model_kind].axes):
+                  model_kind = kind
+         # use chosen model_kind
          if self.model_kind_template:
             model_kind = self.model_kind_template.format(*template_args)
+         assert(model_kind)
          return model_kind
 
       def getAxes(self, model_kind, template_args):
@@ -969,6 +1038,7 @@ class Data:
       }
 
    def compute_data(kind):
+      # print("compute_data", kind)
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
 
@@ -1026,7 +1096,40 @@ class Data:
          val = compute_func(*args_val)
          datatree.set(axes_index, val)
 
+   def compute_index(kind_preindex, index_args):
+      # print("compute_index", kind_preindex, index_args)
+      Data.compute(kind_preindex)
+      datatree_preindex = Data.kinds[kind_preindex]
+
+      # extract axes and indices
+      partial_axis_index = {}
+      for index_str in index_args:
+         index_list = index_str.split("::")
+         if len(index_list) != 2:
+            raise NameError("Expected valid index <axis>::<index>: {}".format(index_str))
+         axis_name = index_list[0].strip()
+         index_name = index_list[1].strip()
+         partial_axis_index.update(Data.get_axis_index(axis_name, index_name))
+
+      kind = "{}[{}]".format(kind_preindex, ",".join(index_args))
+
+      datatree = None
+      if kind in Data.kinds:
+         datatree = Data.kinds[kind]
+         if datatree.data:
+            return
+      else:
+         axes = Data.axes_difference(datatree_preindex.axes, partial_axis_index)
+         datatree = Data.DataTree(kind, datatree_preindex.label, axes=axes)
+         Data.kinds[kind] = datatree
+
+      datatree.makeData()
+
+      for axes_index, partial_axes_index, value in datatree_preindex.partial_match_items(partial_axis_index):
+         datatree.set(partial_axes_index, value)
+
    def compute_templated_data(kind_template, template_args):
+      # print("compute_templated_data", kind_template, template_args)
       if kind_template in Data.kind_templates:
          kind = Data.kind_templates[kind_template].getKind(template_args)
          if not kind in Data.kinds:
@@ -1039,73 +1142,98 @@ class Data:
          raise NameError("Unkown kind template {}".format(kind_template))
 
    def kind_template_scan(kind):
+      # print("kind_template_scan", kind)
 
       kind_prefix = None
 
       template_args = []
-
-      template_arg_start_idx = -1
+      index_args = []
 
       template_depth = 0
       index_depth = 0
 
-      for i in range(0, len(kind)):
+      arg_end_idx = -1
+
+      # look through string backwards to find indexing or templating
+      for i_forward in range(0, len(kind)):
+         i = len(kind) - i_forward - 1
          c = kind[i]
-         if c == "<" or c == "[":
+         if c == ">" or c == "]":
             if template_depth == 0 and index_depth == 0:
-               template_arg_start_idx = i+1
-               if not kind_prefix:
-                  kind_prefix = kind[:i]
-            if c == "<":
+               arg_end_idx = i
+            if c == ">":
                template_depth += 1
-            elif c == "[":
+            elif c == "]":
                index_depth += 1
          elif c == ",":
-            if template_depth == 0 and index_depth == 1 or \
-               template_depth == 1 and index_depth == 0:
-               template_args.append(kind[template_arg_start_idx:i])
-               template_arg_start_idx = i+1
-         elif c == ">" or c == "]":
-            if c == ">":
+            if template_depth == 1 and index_depth == 0:
+               template_args.append(kind[i+1:arg_end_idx].strip())
+               arg_end_idx = i
+            elif template_depth == 0 and index_depth == 1:
+               index_args.append(kind[i+1:arg_end_idx].strip())
+               arg_end_idx = i
+         elif c == "<" or c == "[":
+            if template_depth == 1 and index_depth == 0:
+               template_args.append(kind[i+1:arg_end_idx].strip())
+               arg_end_idx = -1
+            elif template_depth == 0 and index_depth == 1:
+               index_args.append(kind[i+1:arg_end_idx].strip())
+               arg_end_idx = -1
+            if c == "<":
                template_depth -= 1
-            elif c == "]":
+            elif c == "[":
                index_depth -= 1
             if template_depth == 0 and index_depth == 0:
-               template_args.append(kind[template_arg_start_idx:i])
-               template_arg_start_idx = -1
-      assert(template_arg_start_idx == -1)
+               if not kind_prefix:
+                  kind_prefix = kind[:i].strip()
+                  break
+      assert(arg_end_idx == -1)
       assert(template_depth == 0)
       assert(index_depth == 0)
+      assert(kind_prefix)
 
-      if not kind_prefix:
-         kind_prefix = kind
+      # reverse lists
+      for i in range(0, len(template_args)//2):
+         i_rev = len(template_args) - i - 1
+         template_args[i], template_args[i_rev] = template_args[i_rev], template_args[i]
+      for i in range(0, len(index_args)//2):
+         i_rev = len(index_args) - i - 1
+         index_args[i], index_args[i_rev] = index_args[i_rev], index_args[i]
 
-      for i in range(0,len(template_args)):
-         template_args[i] = template_args[i].strip()
-
-      return (kind_prefix, template_args)
+      return (kind_prefix, template_args, index_args)
 
    def compute(kind):
       if kind in Data.kinds:
          if not Data.kinds[kind].data:
             Data.compute_data(kind)
-         return
-
-      kind_template, template_args = Data.kind_template_scan(kind)
-      if kind_template in Data.kind_templates:
-         Data.compute_templated_data(kind_template, template_args)
-         return
-
-      raise NameError("Unknown data kind {}".format(kind))
+         else:
+            pass
+      else:
+         kind_template, template_args, index_args = Data.kind_template_scan(kind)
+         # print("Data.kind_template_scan", kind_template, template_args, index_args)
+         if template_args:
+            if kind_template in Data.kind_templates:
+               Data.compute_templated_data(kind_template, template_args)
+            else:
+               raise NameError("Unknown data kind template {}".format(kind))
+         elif index_args:
+            Data.compute_index(kind_template, index_args)
+         else:
+            raise NameError("Unknown data kind {}".format(kind))
 
 
 
 def get_size_from_dir_name(sweep_subdir_name):
    # print(sweep_subdir_name)
-   return int(sweep_subdir_name.replace("SIZE_", ""));
+   run_size_name = sweep_subdir_name.replace("SIZE_", "")
+   try:
+      run_size = int(run_size_name)
+      return str(run_size)
+   except ValueError:
+      raise NameError("Expected SIZE_<run_size>".format(sweep_subdir_name))
 
-def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
-   # print(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size)
+def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index):
+   # print(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
    with open(sweep_subdir_runinfo_file_path, "r") as file:
       file_reader = csv.reader(file, delimiter=',')
 
@@ -1128,15 +1256,17 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                if not Data.kinds[info_kind].data:
                   # add data to kind
                   Data.kinds[info_kind].makeData()
-               if not sweep_dir_name in Data.kinds[info_kind].data.data:
+               if not sweep_index in Data.kinds[info_kind].data.data:
                   # add new sweep to global data
-                  Data.kinds[info_kind].data.data[sweep_dir_name] = {}
-               if run_size in Data.kinds[info_kind].data.data[sweep_dir_name]:
-                  print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size))
+                  Data.kinds[info_kind].data.data[sweep_index] = {}
+               if run_size_index in Data.kinds[info_kind].data.data[sweep_index]:
+                  sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
+                  run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
+                  print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size_name))
                   sys.exit(1)
                else:
                   # add new size to global data
-                  Data.kinds[info_kind].data.data[sweep_dir_name][run_size] = {}
+                  Data.kinds[info_kind].data.data[sweep_index][run_size_index] = {}
                # make map of columns to names
                c_to_info_kinds[c] = info_kind
                c_to_info_kinds[info_kind] = c
@@ -1147,10 +1277,8 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                kernel_index = Data.kernels[kernel_name]
             elif (len(Data.include_kernels) == 0 or kernel_name in Data.include_kernels) and (not kernel_name in Data.exclude_kernels):
                # add kernel to global list
-               kernel_index = Data.num_kernels
-               Data.num_kernels += 1
-               Data.kernels[kernel_name]  = kernel_index
-               Data.kernels[kernel_index] = kernel_name
+               Data.add_kernel(kernel_name)
+               kernel_index = Data.kernels[kernel_name]
             else:
                continue # skip this kernel
 
@@ -1161,8 +1289,8 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   val = int(row[c].strip())
                   # print(kernel_index, kernel_name, info_kind, val)
 
-                  axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
-                                 Data.axes["run_size"]: run_size,
+                  axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
+                                 Data.axes["run_size"]: run_size_index,
                                  Data.axes["kernel_index"]: kernel_index, }
 
                   Data.kinds[info_kind].set(axes_index, val)
@@ -1170,8 +1298,8 @@ def read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size):
                   pass # could not convert data to int
 
 
-def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
-   # print(sweep_dir_name, sweep_subdir_timing_file_path, run_size)
+def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index):
+   # print(sweep_index, sweep_subdir_timing_file_path, run_size_index)
    with open(sweep_subdir_timing_file_path, "r") as file:
       file_reader = csv.reader(file, delimiter=',')
 
@@ -1180,12 +1308,14 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
          raise NameError("Unknown kind {}".format(data_kind))
       if not Data.kinds[data_kind].data:
          Data.kinds[data_kind].makeData()
-      if not sweep_dir_name in Data.kinds[data_kind].data.data:
-         Data.kinds[data_kind].data.data[sweep_dir_name] = {}
-      if not run_size in Data.kinds[data_kind].data.data[sweep_dir_name]:
-         Data.kinds[data_kind].data.data[sweep_dir_name][run_size] = {}
+      if not sweep_index in Data.kinds[data_kind].data.data:
+         Data.kinds[data_kind].data.data[sweep_index] = {}
+      if not run_size_index in Data.kinds[data_kind].data.data[sweep_index]:
+         Data.kinds[data_kind].data.data[sweep_index][run_size_index] = {}
       else:
-         raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size))
+         sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
+         run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
+         raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size_name))
 
       c_to_variant_index = {}
       c_to_tuning_index = {}
@@ -1235,8 +1365,8 @@ def read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size):
                if variant_index < 0 or tuning_index < 0:
                   continue # ignore data
 
-               axes_index = { Data.axes["sweep_dir_name"]: sweep_dir_name,
-                              Data.axes["run_size"]: run_size,
+               axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
+                              Data.axes["run_size"]: run_size_index,
                               Data.axes["kernel_index"]: kernel_index,
                               Data.axes["variant_index"]: variant_index,
                               Data.axes["tuning_index"]: tuning_index, }
@@ -1291,48 +1421,55 @@ def get_plot_data2(xkind, ykind, partial_axes_index):
 
    return data
 
+g_gname = None
+
+g_ylabel = None
+g_yscale = None
+g_ylim = None
+
+g_xlabel = None
+g_xscale = None
+g_xlim = None
+
+g_hbin_size = None
 
 def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds):
-   print("plotting {} {} {} {}".format(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds))
+   # print("plotting {} {} {} {}".format(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds))
 
    assert(split_axis_name == "kernel_index")
    for split_index in range(0, Data.num_kernels):
       split_name = Data.kernels[split_index]
 
-      ylabel = None
-      yscale = "log"
-      ylim = None
+      ylabel = g_ylabel
+      yscale = g_yscale or "log"
+      ylim = g_ylim
 
-      xlabel = Data.kinds[xkind].label
-      xscale = "log"
-      xlim = None
+      xlabel = g_xlabel or Data.kinds[xkind].label
+      xscale = g_xscale or "log"
+      xlim = g_xlim
 
-      gname = None
-      if len(ykinds) == 1:
-         gname = "{}".format(ykinds[0])
+      gname = g_gname
+
+      split_data = { "ynames": [],
+                     "ycolor": {},
+                     "yformat": {},
+                     "ydata": {},
+                     "xdata": {}, }
 
       for ykind in ykinds:
          if gname:
-            gname = "{} {}".format(gname, ykind)
+            gname = "{}\n{}".format(gname, ykind)
          else:
             gname = "{}".format(ykind)
          if not ykind in Data.kinds:
             raise NameError("Unknown kind {}".format(ykind))
          if not ylabel:
             ylabel = Data.kinds[ykind].label
-         elif ylabel != Data.kinds[ykind].label:
+         elif (not g_ylabel) and ylabel != Data.kinds[ykind].label:
             raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
 
-         split_data = { "ynames": [],
-                        "ycolor": {},
-                        "yformat": {},
-                        "ydata": {},
-                        "xdata": {}, }
-
-
          assert(xaxis_name == "run_size")
-         for x_i in range(0, Data.num_run_sizes):
-            x_index = Data.run_sizes[x_i]
+         for x_index in range(0, Data.num_run_sizes):
 
             axes_index = { Data.axes[split_axis_name]: split_index,
                            Data.axes[xaxis_name]: x_index  }
@@ -1351,8 +1488,7 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
 
                   ymarker = ""
                   if Data.axes["sweep_dir_name"] in data["axes_index"]:
-                     sweep_dir_name = data["axes_index"][Data.axes["sweep_dir_name"]]
-                     sweep_index = Data.sweeps[sweep_dir_name]
+                     sweep_index = data["axes_index"][Data.axes["sweep_dir_name"]]
                      ymarker = Data.sweep_markers[sweep_index]
 
                   yformat = "{}-".format(ymarker)
@@ -1369,20 +1505,32 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
                split_data["ydata"][yname].append(data["ydata"][0])
                split_data["xdata"][yname].append(data["xdata"][0])
 
-         for yname in split_data["ynames"]:
-
-            ycolor = split_data["ycolor"][yname]
-            yformat = split_data["yformat"][yname]
-            ydata = split_data["ydata"][yname]
-            xdata = split_data["xdata"][yname]
-
-            if len(ykinds) > 1:
-               yname = "{} {}".format(Data.kinds[ykind].kind, yname)
-
-            plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
-
       fname = "{}_{}.png".format(outputfile_name, split_name)
-      gname = "{}".format(split_name)
+      if gname:
+         gname = "{}\n{}".format(split_name, gname)
+      else:
+         gname = "{}".format(split_name)
+
+      print("Plotting {}:".format(fname))
+
+      for yname in split_data["ynames"]:
+
+         ycolor = split_data["ycolor"][yname]
+         yformat = split_data["yformat"][yname]
+         ydata = split_data["ydata"][yname]
+         xdata = split_data["xdata"][yname]
+
+         if yname in g_series_reformat and "format" in g_series_reformat[yname]:
+            yformat = g_series_reformat[yname]["format"]
+         if yname in g_series_reformat and "color" in g_series_reformat[yname]:
+            ycolor = g_series_reformat[yname]["color"]
+
+         print("  series \"{}\" format \"{}\" color \"{}\"".format(yname, yformat, ycolor))
+
+         if len(ykinds) > 1:
+            yname = "{} {}".format(Data.kinds[ykind].kind, yname)
+
+         plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
 
       if ylabel:
          plt.ylabel(ylabel)
@@ -1406,31 +1554,30 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
       plt.clf()
 
 def plot_data_bar(outputfile_name, xaxis, ykinds):
-   print("plotting {} {} {}".format(outputfile_name, xaxis, ykinds))
+   # print("plotting {} {} {}".format(outputfile_name, xaxis, ykinds))
 
    assert(xaxis == "kernel_index")
 
-   gname = None
+   gname = g_gname
 
-   xlabel = "Kernel"
-   xscale = None
-   xlim = None
+   xlabel = g_xlabel or "Kernel"
+   xscale = g_xscale
+   xlim = g_xlim
 
-   ylabel = None
-   yscale = None
-   ylim = None
-   ywidth = None
+   ylabel = g_ylabel
+   yscale = g_yscale
+   ylim = g_ylim
 
    for ykind in ykinds:
       if gname:
-         gname = "{} {}".format(gname, ykind)
+         gname = "{}\n{}".format(gname, ykind)
       else:
          gname = "{}".format(ykind)
       if not ykind in Data.kinds:
          raise NameError("Unknown kind {}".format(ykind))
       if not ylabel:
          ylabel = Data.kinds[ykind].label
-      elif ylabel != Data.kinds[ykind].label:
+      elif (not g_ylabel) and ylabel != Data.kinds[ykind].label:
          raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in ykinds]))
 
    kernel_data = { "kernel_names": [],
@@ -1475,6 +1622,12 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
 
             kernel_data["ydata"][yname].append(ydata["data"][0])
 
+   fname = "{}.png".format(outputfile_name)
+   if not gname:
+      gname = "{}".format("bar")
+
+   print("Plotting {}:".format(fname))
+
    num_xticks = len(kernel_data["kernel_centers"])
    plt.figure(figsize=(max(num_xticks*0.5, 4), 6,))
 
@@ -1486,17 +1639,18 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
       ycolor = kernel_data["ycolor"][yname]
       yaxis = kernel_data["ydata"][yname]
 
+      if yname in g_series_reformat and "color" in g_series_reformat[yname]:
+         ycolor = g_series_reformat[yname]["color"]
+
+      print("  series \"{}\" color \"{}\"".format(yname, ycolor))
+
       xaxis = [c + (y_i+1)/(y_n+1) - 0.5 for c in kernel_data["kernel_centers"]]
 
       # pad with 0s if find missing data
       while len(yaxis) < len(kernel_data["kernel_names"]):
          yaxis.append(0.0)
 
-      plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor) # ,edgecolor="grey")
-
-   fname = "{}.png".format(outputfile_name)
-   if not gname:
-      gname = "{}".format("bar")
+      plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor,zorder=3) # ,edgecolor="grey")
 
    xticks = kernel_data["kernel_centers"]
    xtick_names = kernel_data["kernel_names"]
@@ -1519,7 +1673,10 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
 
    plt.title(gname)
    plt.legend()
-   plt.grid(True)
+   plt.grid(True, zorder=0)
+
+   plt.savefig(fname, dpi=150.0, bbox_inches="tight")
+   plt.clf()
 
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
    plt.clf()
@@ -1556,6 +1713,69 @@ def main(argv):
                nonlocal outputfile
                outputfile = arg
             handle_arg = fo
+         elif opt in ("-gname", "--graph-name"):
+            handle_num = 1
+            def gn(arg):
+               global g_gname
+               g_gname = arg
+            handle_arg = gn
+         elif opt in ("-ylabel", "--y-axis-label"):
+            handle_num = 1
+            def yl(arg):
+               global g_ylabel
+               g_ylabel = arg
+            handle_arg = yl
+         elif opt in ("-yscale", "--y-axis-scale"):
+            handle_num = 1
+            def ys(arg):
+               global g_yscale
+               g_yscale = arg
+            handle_arg = ys
+         elif opt in ("-xlabel", "--x-axis-label"):
+            handle_num = 1
+            def xl(arg):
+               global g_xlabel
+               g_xlabel = arg
+            handle_arg = xl
+         elif opt in ("-xscale", "--x-axis-scale"):
+            handle_num = 1
+            def xs(arg):
+               global g_xscale
+               g_xscale = arg
+            handle_arg = xs
+         elif opt in ("-hbin", "--histogram-bin-size"):
+            handle_num = 1
+            def hbin(arg):
+               global g_hbin_size
+               g_hbin_size = float(arg)
+            handle_arg = hbin
+         # two arg options
+         elif opt in ("-ylim", "--y-axis-limit"):
+            handle_num = 2
+            def yl(ymin, ymax):
+               global g_ylim
+               g_ylim = (float(ymin), float(ymax))
+            handle_arg = yl
+         elif opt in ("-xlim", "--x-axis-limit"):
+            handle_num = 2
+            def xl(xmin, xmax):
+               global g_xlim
+               g_xlim = (float(xmin), float(xmax))
+            handle_arg = xl
+         elif opt in ("--recolor"):
+            handle_num = 2
+            def recolor(series_name, color_str):
+               if not series_name in g_series_reformat:
+                  g_series_reformat[series_name] = {}
+               g_series_reformat[series_name]["color"] = make_color_tuple_str(color_str)
+            handle_arg = recolor
+         elif opt in ("--reformat"):
+            handle_num = 2
+            def reformat(series_name, format_str):
+               if not series_name in g_series_reformat:
+                  g_series_reformat[series_name] = {}
+               g_series_reformat[series_name]["format"] = format_str
+            handle_arg = reformat
          # multi arg options
          elif opt in ("-p", "--print"):
             handle_num = -1
@@ -1679,49 +1899,39 @@ def main(argv):
       if sweep_dir_name in Data.exclude_sweeps:
          continue
 
-      got_something = False
+      if sweep_dir_name in Data.sweeps:
+         raise NameError("Repeated sweep_dir_name {}".format(sweep_dir_name))
+      Data.add_sweep(sweep_dir_name)
+      sweep_index = Data.sweeps[sweep_dir_name]
+      if sweep_index >= len(g_markers):
+         raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
+      Data.sweep_markers[sweep_index] = g_markers[sweep_index]
 
       for r0,sweep_subdir_names,f0 in os.walk(sweep_dir_path):
          for sweep_subdir_name in sweep_subdir_names:
             sweep_subdir_path = os.path.join(sweep_dir_path, sweep_subdir_name)
             # print(sweep_dir_name, sweep_subdir_path)
 
-            try:
-               run_size = get_size_from_dir_name(sweep_subdir_name)
+            run_size_name = get_size_from_dir_name(sweep_subdir_name)
 
-               if not str(run_size) in Data.run_sizes:
-                  Data.run_sizes[Data.num_run_sizes] = run_size
-                  Data.run_sizes[str(run_size)] = Data.num_run_sizes
-                  Data.num_run_sizes += 1
+            if not run_size_name in Data.run_sizes:
+               Data.add_run_size(run_size_name)
+            run_size_index = Data.run_sizes[run_size_name]
 
-               sweep_subdir_timing_file_path = ""
-               sweep_subdir_runinfo_file_path = ""
-               for r1,d1,sweep_subdir_file_names in os.walk(sweep_subdir_path):
-                  for sweep_subdir_file_name in sweep_subdir_file_names:
-                     sweep_subdir_file_path = os.path.join(sweep_subdir_path, sweep_subdir_file_name)
-                     if sweep_subdir_file_name == timing_filename:
-                        sweep_subdir_timing_file_path = sweep_subdir_file_path
-                     elif sweep_subdir_file_name == runinfo_filename:
-                        sweep_subdir_runinfo_file_path = sweep_subdir_file_path
+            sweep_subdir_timing_file_path = ""
+            sweep_subdir_runinfo_file_path = ""
+            for r1,d1,sweep_subdir_file_names in os.walk(sweep_subdir_path):
+               for sweep_subdir_file_name in sweep_subdir_file_names:
+                  sweep_subdir_file_path = os.path.join(sweep_subdir_path, sweep_subdir_file_name)
+                  if sweep_subdir_file_name == timing_filename:
+                     sweep_subdir_timing_file_path = sweep_subdir_file_path
+                  elif sweep_subdir_file_name == runinfo_filename:
+                     sweep_subdir_runinfo_file_path = sweep_subdir_file_path
 
-               if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
-                  # print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
-                  read_runinfo_file(sweep_dir_name, sweep_subdir_runinfo_file_path, run_size)
-                  read_timing_file(sweep_dir_name, sweep_subdir_timing_file_path, run_size)
-                  got_something = True
-            except ValueError:
-               print("Couldn't get run size from \"{0}\"".format(sweep_subdir_name))
-               pass # could not convert data to int
-
-      if got_something:
-         if sweep_dir_name in Data.sweeps:
-            raise NameError("Repeated sweep_dir_name {}".format(sweep_dir_name))
-         Data.sweeps[Data.num_sweeps] = sweep_dir_name
-         Data.sweeps[sweep_dir_name] = Data.num_sweeps
-         if Data.num_sweeps >= len(g_markers):
-            raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
-         Data.sweep_markers[Data.num_sweeps] = g_markers[Data.num_sweeps]
-         Data.num_sweeps += 1
+            if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
+               # print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
+               read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
+               read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
    kinds_string = ""
    for kindTree in Data.kinds.values():
@@ -1778,16 +1988,18 @@ def main(argv):
    print("  {}".format(tuning_string[2:]))
 
    for kind in print_kinds:
+      print("Print Data {}:".format(kind))
       Data.compute(kind)
-      print("Print Data {}:".format(Data.kinds[kind].kind))
       print(Data.kinds[kind].dataString())
 
    for kind_list in split_line_graph_kind_lists:
+      print("Plot split line graph {}:".format(kind_list))
       for kind in kind_list:
          Data.compute(kind)
       plot_data_split_line(outputfile, "kernel_index", "run_size", "Problem size", kind_list)
 
    for kind_list in bar_graph_kind_lists:
+      print("Plot bar graph {}:".format(kind_list))
       for kind in kind_list:
          Data.compute(kind)
       plot_data_bar(outputfile, "kernel_index", kind_list)
