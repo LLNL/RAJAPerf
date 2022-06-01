@@ -36,18 +36,31 @@ def color_mul(t, factor):
       new_t += (t[i]*factor,)
    return clamp_tuple(new_t)
 
-def make_color_tuple(r, g, b):
+def make_color_tuple_rgb(r, g, b):
    return (r/255.0, g/255.0, b/255.0)
+
+def make_color_tuple_str(color_str):
+   color_str = color_str.strip()
+   if len(color_str) < 2 or color_str[0] != "(" or color_str[len(color_str)-1] != ")":
+      raise NameError("Expected a tuple of 3 floats in [0-1]")
+   color_str = color_str[1:len(color_str)-1]
+   rgb = color_str.split(",")
+   if len(rgb) != 3:
+      raise NameError("Expected a tuple of 3 floats in [0-1]")
+   r = float(rgb[0].strip())
+   g = float(rgb[1].strip())
+   b = float(rgb[2].strip())
+   return clamp_tuple((r, g, b))
 
 
 g_color_base_factor = 1.0
 g_color_lambda_factor = 0.7
 g_color_raja_factor = 0.4
-g_color_seq = normalize_color_tuple(make_color_tuple(204, 119, 34)) # ocre
-g_color_omp = normalize_color_tuple(make_color_tuple(0, 115, 125)) # omp teal
-g_color_ompt = normalize_color_tuple(make_color_tuple(125, 10, 0)) # omp teal compliment
-g_color_cuda = normalize_color_tuple(make_color_tuple(118, 185, 0)) # nvidia green
-g_color_hip = normalize_color_tuple(make_color_tuple(237, 28, 36)) # amd red
+g_color_seq = normalize_color_tuple(make_color_tuple_rgb(204, 119, 34)) # ocre
+g_color_omp = normalize_color_tuple(make_color_tuple_rgb(0, 115, 125)) # omp teal
+g_color_ompt = normalize_color_tuple(make_color_tuple_rgb(125, 10, 0)) # omp teal compliment
+g_color_cuda = normalize_color_tuple(make_color_tuple_rgb(118, 185, 0)) # nvidia green
+g_color_hip = normalize_color_tuple(make_color_tuple_rgb(237, 28, 36)) # amd red
 g_known_variants = { "Base_Seq": {"color": color_mul(g_color_seq, g_color_base_factor)},
                      "Lambda_Seq": {"color": color_mul(g_color_seq, g_color_lambda_factor)},
                      "RAJA_Seq": {"color": color_mul(g_color_seq, g_color_raja_factor)},
@@ -80,6 +93,10 @@ g_known_tunings =  { "default": {"format": "-"},
                      "rocprim": {"format": ":"}
                    }
 g_markers = [ "o", "s", "+", "x", "*", "d", "h", "p", "8" ]
+
+# reformat or color series
+# formatted as series_name: dictionary of "color": color, "format": format
+g_series_reformat = {}
 
 g_timing_filename = "RAJAPerf-timing-Minimum.csv"
 g_runinfo_filename = "RAJAPerf-kernels.csv"
