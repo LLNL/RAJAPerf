@@ -8,6 +8,13 @@ import getopt
 import csv
 import matplotlib.pyplot as plt
 
+def make_tuple_str(astr):
+   astr = astr.strip()
+   if len(astr) < 2 or astr[0] != "(" or astr[len(astr)-1] != ")":
+      return None
+   astr = astr[1:len(astr)-1]
+   atup = astr.split(",")
+   return tuple((a.strip() for a in atup))
 
 def normalize_color_tuple(t):
    len_t = 0.0
@@ -40,11 +47,7 @@ def make_color_tuple_rgb(r, g, b):
    return (r/255.0, g/255.0, b/255.0)
 
 def make_color_tuple_str(color_str):
-   color_str = color_str.strip()
-   if len(color_str) < 2 or color_str[0] != "(" or color_str[len(color_str)-1] != ")":
-      raise NameError("Expected a tuple of 3 floats in [0-1]")
-   color_str = color_str[1:len(color_str)-1]
-   rgb = color_str.split(",")
+   rgb = make_tuple_str(color_str)
    if len(rgb) != 3:
       raise NameError("Expected a tuple of 3 floats in [0-1]")
    r = float(rgb[0].strip())
@@ -1432,6 +1435,8 @@ def get_plot_data2(xkind, ykind, partial_axes_index):
 
 g_gname = None
 
+g_lloc = 'best'
+
 g_ylabel = None
 g_yscale = None
 g_ylim = None
@@ -1448,6 +1453,8 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
    assert(split_axis_name == "kernel_index")
    for split_index in range(0, Data.num_kernels):
       split_name = Data.kernels[split_index]
+
+      lloc = g_lloc
 
       ylabel = g_ylabel
       yscale = g_yscale or "log"
@@ -1556,7 +1563,7 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
          plt.xlim(xlim)
 
       plt.title(gname)
-      plt.legend()
+      plt.legend(loc=lloc)
       plt.grid(True)
 
       plt.savefig(fname, dpi=150.0)
@@ -1568,6 +1575,8 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
    assert(xaxis == "kernel_index")
 
    gname = g_gname
+
+   lloc = g_lloc
 
    xlabel = g_xlabel or "Kernel"
    xscale = g_xscale
@@ -1681,7 +1690,7 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
    plt.xticks(xticks, xtick_names, rotation=90)
 
    plt.title(gname)
-   plt.legend()
+   plt.legend(loc=lloc)
    plt.grid(True, zorder=0)
 
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
@@ -1694,6 +1703,8 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
    assert(haxis == "kernel_index")
 
    gname = g_gname
+
+   lloc = g_lloc
 
    hbin_size = g_hbin_size
    hbin_max = None
@@ -1847,7 +1858,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
       plt.xlim(xlim)
 
    plt.title(gname)
-   plt.legend()
+   plt.legend(loc=lloc)
    plt.grid(True, zorder=0)
 
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
@@ -1892,6 +1903,19 @@ def main(argv):
                global g_gname
                g_gname = arg
             handle_arg = gn
+         elif opt in ("-lloc", "--legend-location"):
+            handle_num = 1
+            def gll(arg):
+               global g_lloc
+               atup = make_tuple_str(arg)
+               if not atup:
+                  g_lloc = arg
+               elif len(atup) == 2:
+                  g_lloc = (float(atup[0]), float(atup[1]),)
+               else:
+                  print("Expected a string or tuple of 2 numbers: {}".format(arg))
+                  sys.exit(2)
+            handle_arg = gll
          elif opt in ("-ylabel", "--y-axis-label"):
             handle_num = 1
             def yl(arg):
