@@ -62,7 +62,7 @@ public:
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
   void runKokkosVariant(VariantID vid, size_t)
   {
-     getCout() << "\n INDEXLIST : Unknown Kokkos variant id = " << vid << std::endl;
+     getCout() << "\n INDEXLIST : Unimplemented Kokkos variant id = " << vid << std::endl;
   }
 
   void setCudaTuningDefinitions(VariantID vid);

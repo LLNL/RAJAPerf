@@ -88,7 +88,7 @@ public:
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
   void runKokkosVariant(VariantID vid, size_t)
   {
-     getCout() << "\n REDUCE_STRUCT : Unknown Kokkos variant id = " << vid << std::endl;
+     getCout() << "\n REDUCE_STRUCT : Unimplemented Kokkos variant id = " << vid << std::endl;
   }
 
 
