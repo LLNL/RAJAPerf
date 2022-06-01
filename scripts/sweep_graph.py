@@ -1687,6 +1687,169 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
    plt.clf()
 
+
+def plot_data_histogram(outputfile_name, haxis, hkinds):
+   # print("plotting {} {} {}".format(outputfile_name, haxis, hkinds))
+
+   assert(haxis == "kernel_index")
+
+   gname = g_gname
+
+   hbin_size = g_hbin_size
+   hbin_max = None
+   hbin_min = None
+
+   xlabel = g_xlabel
+   xscale = g_xscale
+   xlim = g_xlim
+
+   ylabel = g_ylabel or "Number"
+   yscale = g_yscale
+   ylim = g_ylim
+
+   for ykind in hkinds:
+      if gname:
+         gname = "{}\n{}".format(gname, ykind)
+      else:
+         gname = "{}".format(ykind)
+      if not ykind in Data.kinds:
+         raise NameError("Unknown kind {}".format(ykind))
+      if not xlabel:
+         xlabel = Data.kinds[ykind].label
+      elif (not g_xlabel) and xlabel != Data.kinds[ykind].label:
+         raise NameError("kinds use different labels {}".format([Data.kinds[_ykind].label for _ykind in hkinds]))
+
+   if not hbin_size:
+
+      hdata_all = []
+
+      for kernel_index in range(0, Data.num_kernels):
+         kernel_name = Data.kernels[kernel_index]
+
+         axes_index = { Data.axes["kernel_index"]: kernel_index }
+
+         for ykind in hkinds:
+
+            hdata_list = get_plot_data(ykind, axes_index)
+
+            for hdata in hdata_list:
+
+               assert(len(hdata["data"]) == 1)
+               hdata_all.append(hdata["data"][0])
+
+      hdata_all.sort()
+
+      num_hdata = len(hdata_all)
+      i_Q1 = math.floor(num_hdata * 0.25)
+      i_Q3 = math.floor(num_hdata * 0.75)
+      hdata_Q1 = hdata_all[i_Q1]
+      hdata_Q3 = hdata_all[i_Q3]
+      iqr = hdata_Q3 - hdata_Q1
+
+      hbin_size = 2.0 * iqr / num_hdata**(1.0/3.0)
+
+      if hbin_size > 1.0:
+         hbin_size = math.floor(hbin_size)
+      elif hbin_size > 0.0:
+         hbin_size = 1.0 / math.ceil(1.0 / hbin_size)
+      else:
+         hbin_size = 1.0
+
+   kernel_data = { "hnames": {},
+                   "hcolor": {},
+                   "hbins": {}, }
+
+   for kernel_index in range(0, Data.num_kernels):
+      kernel_name = Data.kernels[kernel_index]
+
+      axes_index = { Data.axes["kernel_index"]: kernel_index }
+
+      for ykind in hkinds:
+
+         hdata_list = get_plot_data(ykind, axes_index)
+
+         for hdata in hdata_list:
+
+            assert(len(hdata["data"]) == 1)
+
+            hname = hdata["name"]
+            if len(hkinds) > 1:
+               hname = "{} {}".format(Data.kinds[ykind].kind, hname)
+
+            hcolor = (0.0, 0.0, 0.0, 1.0)
+            if Data.axes["variant_index"] in hdata["axes_index"]:
+               variant_index = hdata["axes_index"][Data.axes["variant_index"]]
+               hcolor = Data.variant_colors[variant_index]
+
+            if not hname in kernel_data["hnames"]:
+               kernel_data["hnames"][hname] = len(kernel_data["hnames"])
+               kernel_data["hcolor"][hname] = hcolor
+               kernel_data["hbins"][hname] = {}
+
+            hbin = math.floor(hdata["data"][0] / hbin_size)
+
+            if hbin_max == None or hbin > hbin_max:
+               hbin_max = hbin
+            if hbin_min == None or hbin < hbin_min:
+               hbin_min = hbin
+
+            if not hbin in kernel_data["hbins"][hname]:
+               kernel_data["hbins"][hname][hbin] = 0
+            kernel_data["hbins"][hname][hbin] += 1
+
+   fname = "{}.png".format(outputfile_name)
+   if not gname:
+      gname = "{}".format("histogram")
+
+   print("Plotting {}:".format(fname))
+
+   num_xticks = hbin_max - hbin_min + 1
+   if xlim:
+      num_xticks = math.ceil((xlim[1] - xlim[0]) / hbin_size)
+   plt.figure(figsize=(max(num_xticks*0.5, 4), 6,))
+
+   h_n = len(kernel_data["hnames"])
+   hwidth = hbin_size / h_n
+   print(h_n, hwidth, hbin_size)
+   for hname in kernel_data["hnames"]:
+
+      h_i = kernel_data["hnames"][hname]
+      xoffset = hbin_size * ((h_i+1)/(h_n+1) - 0.5)
+      hcolor = kernel_data["hcolor"][hname]
+      hbins = kernel_data["hbins"][hname]
+
+      if hname in g_series_reformat and "color" in g_series_reformat[hname]:
+         hcolor = g_series_reformat[hname]["color"]
+
+      print("  series \"{}\" color \"{}\" offset {}".format(hname, hcolor, xoffset))
+
+      xaxis = []
+      haxis = []
+      for i, hval in hbins.items():
+         xval = (i + 0.5) * hbin_size + xoffset
+         xaxis.append(xval)
+         haxis.append(hval)
+
+      plt.bar(xaxis,haxis,label=hname,width=hwidth,color=hcolor,zorder=3) # ,edgecolor="grey")
+
+   if ylabel:
+      plt.ylabel(ylabel)
+   if yscale:
+      plt.yscale(yscale)
+   if ylim:
+      plt.ylim(ylim)
+
+   if xlabel:
+      plt.xlabel(xlabel)
+   if xscale:
+      plt.xscale(xscale)
+   if xlim:
+      plt.xlim(xlim)
+
+   plt.title(gname)
+   plt.legend()
+   plt.grid(True, zorder=0)
+
    plt.savefig(fname, dpi=150.0, bbox_inches="tight")
    plt.clf()
 
@@ -1700,6 +1863,7 @@ def main(argv):
    print_kinds = []
    split_line_graph_kind_lists = []
    bar_graph_kind_lists = []
+   histogram_graph_kind_lists = []
 
    i = 0
    while i < len(argv):
@@ -1803,6 +1967,12 @@ def main(argv):
             def fbg(arg):
                bar_graph_kind_lists[len(bar_graph_kind_lists)-1].append(arg)
             handle_arg = fbg
+         elif opt in ("-hg", "--histogram-graph"):
+            handle_num = -1
+            histogram_graph_kind_lists.append([])
+            def fhg(arg):
+               histogram_graph_kind_lists[len(histogram_graph_kind_lists)-1].append(arg)
+            handle_arg = fhg
          elif opt in ("-kg", "--kernel-groups"):
             handle_num = -1
             def fkg(arg):
@@ -2012,6 +2182,12 @@ def main(argv):
       for kind in kind_list:
          Data.compute(kind)
       plot_data_bar(outputfile, "kernel_index", kind_list)
+
+   for kind_list in histogram_graph_kind_lists:
+      print("Plot histogram graph {}:".format(kind_list))
+      for kind in kind_list:
+         Data.compute(kind)
+      plot_data_histogram(outputfile, "kernel_index", kind_list)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
