@@ -1625,20 +1625,22 @@ def main(argv):
             print(help_string)
             sys.exit(2)
 
-         # fixed num args
+         # fixed num args, handled together
          elif handle_num > 0:
             if not i+handle_num < len(argv):
                print("Missing option to {}".format(opt))
                sys.exit(2)
+            args = []
             for h in range(1, handle_num+1):
                arg = argv[i+h]
                if arg[0] == "-":
                   print("Missing option to {}".format(opt))
                   sys.exit(2)
-               handle_arg(arg)
+               args.append(arg)
+            handle_arg(*args)
             i += handle_num
 
-         # unfixed num args
+         # unfixed num args, handled one-by-one
          elif handle_num < 0:
             while i+1 < len(argv):
                arg = argv[i+1]
