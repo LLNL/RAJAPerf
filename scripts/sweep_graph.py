@@ -1668,7 +1668,7 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
       while len(yaxis) < len(kernel_data["kernel_names"]):
          yaxis.append(0.0)
 
-      plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor,zorder=3) # ,edgecolor="grey")
+      plt.bar(xaxis,yaxis,label=yname,width=ywidth,color=ycolor,zorder=2) # ,edgecolor="grey")
 
    xticks = kernel_data["kernel_centers"]
    xtick_names = kernel_data["kernel_names"]
@@ -1841,7 +1841,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
          xaxis.append(xval)
          haxis.append(hval)
 
-      plt.bar(xaxis,haxis,label=hname,width=hwidth,color=hcolor,zorder=3) # ,edgecolor="grey")
+      plt.bar(xaxis,haxis,label=hname,width=hwidth,color=hcolor,zorder=2) # ,edgecolor="grey")
 
    if ylabel:
       plt.ylabel(ylabel)
