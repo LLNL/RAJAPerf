@@ -1002,14 +1002,23 @@ class Data:
       }
 
    kind_templates = {
-             "first": DataTreeTemplate("first<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=first),
-             "last": DataTreeTemplate("last<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=last),
-             "min": DataTreeTemplate("min<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=min),
-             "max": DataTreeTemplate("max<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=max),
-             "sum": DataTreeTemplate("sum<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=sum),
-             "avg": DataTreeTemplate("avg<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=avg),
-             "stddev": DataTreeTemplate("stddev<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=stddev),
-             "relstddev": DataTreeTemplate("relstddev<{0}>[{1}]", "{0}", combined_axis="{1}", args=["{0}"], func=relstddev),
+             "log10": DataTreeTemplate("log10<{0}>", "log10({0})", args=["{0}",], func=lambda val: math.log(val, 10)),
+             "log2": DataTreeTemplate("log2<{0}>", "log2({0})", args=["{0}",], func=lambda val: math.log(val, 2)),
+             "ln": DataTreeTemplate("ln<{0}>", "ln({0})", args=["{0}",], func=lambda val: math.log(val)),
+
+             "add": DataTreeTemplate("add<{0},{1}>", "{0} + {1}", args=["{0}", "{1}"], func=lambda lhs, rhs: lhs + rhs),
+             "sub": DataTreeTemplate("sub<{0},{1}>", "{0} - {1}", args=["{0}", "{1}"], func=lambda lhs, rhs: lhs - rhs),
+             "mul": DataTreeTemplate("mul<{0},{1}>", "{0} * {1}", args=["{0}", "{1}"], func=lambda lhs, rhs: lhs * rhs),
+             "div": DataTreeTemplate("div<{0},{1}>", "{0} / {1}", args=["{0}", "{1}"], func=lambda lhs, rhs: lhs / rhs),
+
+             "first": DataTreeTemplate("first<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=first),
+             "last": DataTreeTemplate("last<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=last),
+             "min": DataTreeTemplate("min<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=min),
+             "max": DataTreeTemplate("max<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=max),
+             "sum": DataTreeTemplate("sum<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=sum),
+             "avg": DataTreeTemplate("avg<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=avg),
+             "stddev": DataTreeTemplate("stddev<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=stddev),
+             "relstddev": DataTreeTemplate("relstddev<{0},{1}>", "{0}", combined_axis="{1}", args=["{0}"], func=relstddev),
 
              "_LR": DataTreeTemplate("_LR<{0}>", "intercept, slope, correlation coefficient", combined_axis="run_size", args=["{0}", "Problem size"], func=linearRegression),
              "LR_intercept": DataTreeTemplate("LR_intercept<{0}>", "intercept", args=["_LR<{0}>"], func=lambda lr: lr[0]),
