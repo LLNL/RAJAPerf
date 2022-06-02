@@ -80,8 +80,8 @@ namespace basic
     atomicAdd( xsum, pxsum[ 0 ] ); \
     atomicMin( xmin, pxmin[ 0 ] ); \
     atomicMax( xmax, pxmax[ 0 ] ); \
-  \
-    atomicAdd( xsum, pysum[ 0 ] ); \
+    \
+    atomicAdd( ysum, pysum[ 0 ] ); \
     atomicMin( ymin, pymin[ 0 ] ); \
     atomicMax( ymax, pymax[ 0 ] ); \
   }
