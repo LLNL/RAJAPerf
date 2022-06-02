@@ -30,40 +30,45 @@ namespace stream
   deallocHipDeviceData(a); \
   deallocHipDeviceData(b);
 
+#define DOT_BODY_HIP(atomicAdd) \
+  \
+  HIP_DYNAMIC_SHARED( Real_type, pdot) \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  pdot[ threadIdx.x ] = dprod_init; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    pdot[ threadIdx.x ] += a[ i ] * b[i]; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( dprod, pdot[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend)
 {
-  HIP_DYNAMIC_SHARED( Real_type, pdot)
+  DOT_BODY_HIP(::atomicAdd)
+}
 
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  pdot[ threadIdx.x ] = dprod_init;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    pdot[ threadIdx.x ] += a[ i ] * b[i];
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    //atomicAdd(dprod, pdot[ 0 ] );
-    RAJA::atomicAdd(RAJA::hip_atomic{}, dprod, pdot[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dprod += pdot[ 0 ];
-  }
-#endif
-
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void dot_unsafe(Real_ptr a, Real_ptr b,
+                    Real_ptr dprod, Real_type dprod_init,
+                    Index_type iend)
+{
+  DOT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
 }
 
 
@@ -132,7 +137,97 @@ void DOT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Hip)
+template < size_t block_size >
+void DOT::runHipVariantUnsafe(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type iend = getActualProblemSize();
+
+  DOT_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    DOT_DATA_SETUP_HIP;
+
+    Real_ptr dprod;
+    allocAndInitHipDeviceData(dprod, &m_dot_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dprod, &m_dot_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((dot_unsafe<block_size>), dim3(grid_size), dim3(block_size),
+                                            sizeof(Real_type)*block_size, 0,
+                         a, b, dprod, m_dot_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lprod;
+      Real_ptr plprod = &lprod;
+      getHipDeviceData(plprod, dprod, 1);
+      m_dot += lprod;
+
+    }
+    stopTimer();
+
+    DOT_DATA_TEARDOWN_HIP;
+
+    deallocHipDeviceData(dprod);
+
+  } else {
+     getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void DOT::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runHipVariantImpl<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          if (tune_idx == t) {
+            runHipVariantUnsafe<block_size>(vid);
+          }
+          t += 1;
+        }
+      });
+    }
+  }
+}
+
+void DOT::setHipTuningDefinitions(VariantID vid)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+        }
+      });
+    }
+  }
+}
 
 } // end namespace stream
 } // end namespace rajaperf

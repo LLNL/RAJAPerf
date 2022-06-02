@@ -41,6 +41,30 @@ Real_type trap_int_func(Real_type x,
 
 #define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
 
+#define TRAP_INT_BODY_HIP(atomicAdd) \
+  \
+  HIP_DYNAMIC_SHARED( Real_type, psumx) \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  psumx[ threadIdx.x ] = 0.0; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    Real_type x = x0 + i*h; \
+    Real_type val = trap_int_func(x, y, xp, yp); \
+    psumx[ threadIdx.x ] += val; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( sumx, psumx[ 0 ] ); \
+  }
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -50,37 +74,19 @@ __global__ void trapint(Real_type x0, Real_type xp,
                         Real_ptr sumx,
                         Index_type iend)
 {
-  HIP_DYNAMIC_SHARED( Real_type, psumx)
-
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  psumx[ threadIdx.x ] = 0.0;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    Real_type x = x0 + i*h;
-    Real_type val = trap_int_func(x, y, xp, yp);
-    psumx[ threadIdx.x ] += val;
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( sumx, psumx[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *sumx += psumx[ 0 ];
-  }
-#endif
-
+  TRAP_INT_BODY_HIP(::atomicAdd)
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void trapint_unsafe(Real_type x0, Real_type xp,
+                        Real_type y, Real_type yp,
+                        Real_type h,
+                        Real_ptr sumx,
+                        Index_type iend)
+{
+  TRAP_INT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+}
 
 
 template < size_t block_size >
@@ -150,7 +156,99 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Hip)
+template < size_t block_size >
+void TRAP_INT::runHipVariantUnsafe(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type iend = getActualProblemSize();
+
+  TRAP_INT_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    TRAP_INT_DATA_SETUP_HIP;
+
+    Real_ptr sumx;
+    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(sumx, &m_sumx_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((trapint_unsafe<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0, x0, xp,
+                                                y, yp,
+                                                h,
+                                                sumx,
+                                                iend);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsumx;
+      Real_ptr plsumx = &lsumx;
+      getHipDeviceData(plsumx, sumx, 1);
+      m_sumx += lsumx * h;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(sumx);
+
+    TRAP_INT_DATA_TEARDOWN_HIP;
+
+  } else {
+     getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void TRAP_INT::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runHipVariantImpl<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          if (tune_idx == t) {
+            runHipVariantUnsafe<block_size>(vid);
+          }
+          t += 1;
+        }
+      });
+    }
+  }
+}
+
+void TRAP_INT::setHipTuningDefinitions(VariantID vid)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+        }
+      });
+    }
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf

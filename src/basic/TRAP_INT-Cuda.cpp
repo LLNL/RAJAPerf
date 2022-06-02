@@ -41,6 +41,30 @@ Real_type trap_int_func(Real_type x,
 
 #define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
+#define TRAP_INT_BODY_CUDA(atomicAdd) \
+  \
+  extern __shared__ Real_type psumx[ ]; \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  psumx[ threadIdx.x ] = 0.0; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    Real_type x = x0 + i*h; \
+    Real_type val = trap_int_func(x, y, xp, yp); \
+    psumx[ threadIdx.x ] += val; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( sumx, psumx[ 0 ] ); \
+  }
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -50,35 +74,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
                         Real_ptr sumx,
                         Index_type iend)
 {
-  extern __shared__ Real_type psumx[ ];
-
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  psumx[ threadIdx.x ] = 0.0;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    Real_type x = x0 + i*h;
-    Real_type val = trap_int_func(x, y, xp, yp);
-    psumx[ threadIdx.x ] += val;
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( sumx, psumx[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *sumx += psumx[ 0 ];
-  }
-#endif
-
+  TRAP_INT_BODY_CUDA(::atomicAdd)
 }
 
 

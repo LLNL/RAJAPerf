@@ -21,41 +21,47 @@ namespace rajaperf
 namespace basic
 {
 
+#define PI_REDUCE_BODY_HIP(atomicAdd) \
+  \
+  HIP_DYNAMIC_SHARED(Real_type, ppi); \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  ppi[ threadIdx.x ] = pi_init; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    double x = (double(i) + 0.5) * dx; \
+    ppi[ threadIdx.x ] += dx / (1.0 + x * x); \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( dpi, ppi[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pi_reduce(Real_type dx,
                           Real_ptr dpi, Real_type pi_init,
                           Index_type iend)
 {
-  HIP_DYNAMIC_SHARED(Real_type, ppi);
-
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  ppi[ threadIdx.x ] = pi_init;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    double x = (double(i) + 0.5) * dx;
-    ppi[ threadIdx.x ] += dx / (1.0 + x * x);
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd(RAJA::hip_atomic{}, dpi, ppi[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) i{
-    *dpi += ppi[ 0 ];
-  }
-#endif
+  PI_REDUCE_BODY_HIP(::atomicAdd)
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void pi_reduce_unsafe(Real_type dx,
+                          Real_ptr dpi, Real_type pi_init,
+                          Index_type iend)
+{
+  PI_REDUCE_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+}
 
 
 template < size_t block_size >
@@ -116,7 +122,95 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_REDUCE, Hip)
+template < size_t block_size >
+void PI_REDUCE::runHipVariantUnsafe(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  PI_REDUCE_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    Real_ptr dpi;
+    allocAndInitHipDeviceData(dpi, &m_pi_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dpi, &m_pi_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (pi_reduce_unsafe<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          dx, dpi, m_pi_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lpi;
+      Real_ptr plpi = &lpi;
+      getHipDeviceData(plpi, dpi, 1);
+
+      m_pi = 4.0 * lpi;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dpi);
+
+  } else {
+     getCout() << "\n  PI_REDUCE : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void PI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runHipVariantImpl<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          if (tune_idx == t) {
+            runHipVariantUnsafe<block_size>(vid);
+          }
+          t += 1;
+        }
+      });
+    }
+  }
+}
+
+void PI_REDUCE::setHipTuningDefinitions(VariantID vid)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    }
+  });
+  if (vid == Base_HIP) {
+    if (have_unsafe_atomics) {
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+        }
+      });
+    }
+  }
+}
 
 } // end namespace basic
 } // end namespace rajaperf

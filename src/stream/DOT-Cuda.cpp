@@ -30,39 +30,36 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
+#define DOT_BODY_CUDA(atomicAdd) \
+  \
+  extern __shared__ Real_type pdot[ ]; \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  pdot[ threadIdx.x ] = dprod_init; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    pdot[ threadIdx.x ] += a[ i ] * b[i]; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( dprod, pdot[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
                     Index_type iend)
 {
-  extern __shared__ Real_type pdot[ ];
-
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  pdot[ threadIdx.x ] = dprod_init;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    pdot[ threadIdx.x ] += a[ i ] * b[i];
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( dprod, pdot[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dprod += pdot[ 0 ];
-  }
-#endif
-
+  DOT_BODY_CUDA(::atomicAdd)
 }
 
 

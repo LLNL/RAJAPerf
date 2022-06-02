@@ -93,6 +93,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantUnsafe(VariantID vid);
 
   struct points{
     Int_type N;
