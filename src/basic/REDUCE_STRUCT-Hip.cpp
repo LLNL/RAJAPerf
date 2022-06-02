@@ -97,9 +97,9 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_type init_max,
                               Index_type iend)
 {
-  REDUCE_STRUCT_BODY_HIP(RAJA::atomicAdd<RAJA::hip_atomic>,
-                         RAJA::atomicMin<RAJA::hip_atomic>,
-                         RAJA::atomicMax<RAJA::hip_atomic>)
+  REDUCE_STRUCT_BODY_HIP(::atomicAdd,
+                         ::atomicMin,
+                         ::atomicMax)
 }
 
 template < size_t block_size >

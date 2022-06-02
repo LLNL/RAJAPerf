@@ -98,7 +98,9 @@ __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_type init_max,
                               Index_type iend)
 {
-  REDUCE_STRUCT_BODY_CUDA(::atomicAdd, ::atomicMin, ::atomicMax)
+  REDUCE_STRUCT_BODY_CUDA(::atomicAdd,
+                          ::atomicMin,
+                          ::atomicMax)
 }
 
 template < size_t block_size >
