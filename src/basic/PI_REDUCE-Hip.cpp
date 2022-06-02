@@ -76,17 +76,17 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr dpi;
-    allocAndInitHipDeviceData(dpi, &m_pi_init, 1);
+    allocAndInitHipDeviceData(dpi, &pi_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dpi, &m_pi_init, 1);
+      initHipDeviceData(dpi, &pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
-                          sizeof(Real_type)*block_size, 0,
-                          dx, dpi, m_pi_init, iend );
+      hipLaunchKernelGGL( (pi_reduce<block_size>),
+          grid_size, block_size, sizeof(Real_type)*block_size, 0,
+          dx, dpi, pi_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lpi;
@@ -105,7 +105,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> pi(m_pi_init);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> pi(pi_init);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -126,7 +126,6 @@ template < size_t block_size >
 void PI_REDUCE::runHipVariantUnsafe(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   PI_REDUCE_DATA_SETUP;
@@ -134,17 +133,17 @@ void PI_REDUCE::runHipVariantUnsafe(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr dpi;
-    allocAndInitHipDeviceData(dpi, &m_pi_init, 1);
+    allocAndInitHipDeviceData(dpi, &pi_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dpi, &m_pi_init, 1);
+      initHipDeviceData(dpi, &pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (pi_reduce_unsafe<block_size>), dim3(grid_size), dim3(block_size),
                           sizeof(Real_type)*block_size, 0,
-                          dx, dpi, m_pi_init, iend );
+                          dx, dpi, pi_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lpi;

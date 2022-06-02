@@ -42,7 +42,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type pi = m_pi_init;
+      Real_type pi = pi_init;
 
       #pragma omp target device( did ) map(tofrom:pi)
       #pragma omp teams distribute parallel for reduction(+:pi) \
@@ -61,7 +61,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(pi_init);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),

@@ -24,7 +24,8 @@
 #define RAJAPerf_Basic_PI_REDUCE_HPP
 
 #define PI_REDUCE_DATA_SETUP \
-  Real_type dx = m_dx;
+  Real_type dx = m_dx; \
+  Real_type pi_init = m_pi_init;
 
 #define PI_REDUCE_BODY \
   double x = (double(i) + 0.5) * dx; \

@@ -35,7 +35,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type pi = m_pi_init;
+        Real_type pi = pi_init;
 
         #pragma omp parallel for reduction(+:pi)
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -60,7 +60,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type pi = m_pi_init;
+        Real_type pi = pi_init;
 
         #pragma omp parallel for reduction(+:pi)
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -80,7 +80,7 @@ void PI_REDUCE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(m_pi_init);
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> pi(pi_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend),

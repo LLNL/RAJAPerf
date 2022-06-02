@@ -63,17 +63,17 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr dpi;
-    allocAndInitCudaDeviceData(dpi, &m_pi_init, 1);
+    allocAndInitCudaDeviceData(dpi, &pi_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dpi, &m_pi_init, 1);
+      initCudaDeviceData(dpi, &pi_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       pi_reduce<block_size><<<grid_size, block_size,
                   sizeof(Real_type)*block_size>>>( dx,
-                                                   dpi, m_pi_init,
+                                                   dpi, pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -93,7 +93,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> pi(m_pi_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> pi(pi_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

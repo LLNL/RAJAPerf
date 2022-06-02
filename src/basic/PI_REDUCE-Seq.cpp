@@ -33,7 +33,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type pi = m_pi_init;
+        Real_type pi = pi_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           PI_REDUCE_BODY;
@@ -58,7 +58,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type pi = m_pi_init;
+        Real_type pi = pi_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           pi += pireduce_base_lam(i);
@@ -77,7 +77,7 @@ void PI_REDUCE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(m_pi_init);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> pi(pi_init);
 
         RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
