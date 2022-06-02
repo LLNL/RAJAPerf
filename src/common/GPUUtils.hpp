@@ -16,11 +16,11 @@
 
 #include "rajaperf_config.hpp"
 
-
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDACC__)
 // Add implementation of double precision atomic add using CAS loop
 // taken from CUDA C++ Programming Guide
 // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions
+#if defined(__CUDA_ARCH__)
 #if __CUDA_ARCH__ < 600
 __device__ __forceinline__ double atomicAdd(double* address, double val)
 {
@@ -39,6 +39,7 @@ __device__ __forceinline__ double atomicAdd(double* address, double val)
 
   return __longlong_as_double(old);
 }
+#endif
 #endif
 
 __device__ __forceinline__ double atomicMin(double* address, double val)
