@@ -175,6 +175,56 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 
     deallocHipDeviceData(mem);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    REDUCE_STRUCT_DATA_SETUP_HIP;
+
+    Real_ptr mem;
+    allocHipDeviceData(mem,6);
+    Real_ptr xsum = mem + 0;
+    Real_ptr xmin = mem + 1;
+    Real_ptr xmax = mem + 2;
+    Real_ptr ysum = mem + 3;
+    Real_ptr ymin = mem + 4;
+    Real_ptr ymax = mem + 5;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
+
+      auto reduce_struct_lambda = [=] __device__ () {
+          REDUCE_STRUCT_BODY_HIP(::atomicAdd,
+                                 ::atomicMin,
+                                 ::atomicMax)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(reduce_struct_lambda)>),
+                         dim3(grid_size), dim3(block_size),
+                         6*sizeof(Real_type)*block_size, 0,
+                         reduce_struct_lambda);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      Real_ptr plmem = &lmem[0];
+      getHipDeviceData(plmem, mem, 6);
+
+      points.SetCenter(lmem[0]/iend, lmem[3]/iend);
+      points.SetXMin(lmem[1]);
+      points.SetXMax(lmem[2]);
+      points.SetYMin(lmem[4]);
+      points.SetYMax(lmem[5]);
+      m_points=points;
+
+    }
+    stopTimer();
+
+    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
+
+    deallocHipDeviceData(mem);
+
   } else if ( vid == RAJA_HIP ) {
 
     REDUCE_STRUCT_DATA_SETUP_HIP;
@@ -269,6 +319,56 @@ void REDUCE_STRUCT::runHipVariantUnsafe(VariantID vid)
 
     deallocHipDeviceData(mem);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    REDUCE_STRUCT_DATA_SETUP_HIP;
+
+    Real_ptr mem;
+    allocHipDeviceData(mem,6);
+    Real_ptr xsum = mem + 0;
+    Real_ptr xmin = mem + 1;
+    Real_ptr xmax = mem + 2;
+    Real_ptr ysum = mem + 3;
+    Real_ptr ymin = mem + 4;
+    Real_ptr ymax = mem + 5;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
+
+      auto reduce_struct_lambda = [=] __device__ () {
+          REDUCE_STRUCT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd,
+                                 ::atomicMin,
+                                 ::atomicMax)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(reduce_struct_lambda)>),
+                         dim3(grid_size), dim3(block_size),
+                         6*sizeof(Real_type)*block_size, 0,
+                         reduce_struct_lambda);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      Real_ptr plmem = &lmem[0];
+      getHipDeviceData(plmem, mem, 6);
+
+      points.SetCenter(lmem[0]/iend, lmem[3]/iend);
+      points.SetXMin(lmem[1]);
+      points.SetXMax(lmem[2]);
+      points.SetYMin(lmem[4]);
+      points.SetYMax(lmem[5]);
+      m_points=points;
+
+    }
+    stopTimer();
+
+    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
+
+    deallocHipDeviceData(mem);
+
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -288,7 +388,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
       t += 1;
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
@@ -312,7 +412,7 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
       addVariantTuningName(vid, "block_"+std::to_string(block_size));
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||

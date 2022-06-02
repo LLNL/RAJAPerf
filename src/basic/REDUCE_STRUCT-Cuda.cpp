@@ -159,6 +159,55 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
 
     deallocCudaDeviceData(mem);
 
+  } else if ( vid == Lambda_CUDA ) {
+
+    REDUCE_STRUCT_DATA_SETUP_CUDA;
+
+    Real_ptr mem;
+    allocCudaDeviceData(mem,6);
+    Real_ptr xsum = mem + 0;
+    Real_ptr xmin = mem + 1;
+    Real_ptr xmax = mem + 2;
+    Real_ptr ysum = mem + 3;
+    Real_ptr ymin = mem + 4;
+    Real_ptr ymax = mem + 5;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      auto reduce_struct_lambda = [=] __device__ () {
+        REDUCE_STRUCT_BODY_CUDA(::atomicAdd,
+                                ::atomicMin,
+                                ::atomicMax)
+      };
+
+      lambda_cuda<block_size><<<grid_size, block_size,
+                                6*sizeof(Real_type)*block_size>>>(
+          reduce_struct_lambda);
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      Real_ptr plmem = &lmem[0];
+      getCudaDeviceData(plmem, mem, 6);
+
+      points.SetCenter(lmem[0]/iend,
+                       lmem[3]/iend);
+      points.SetXMin(lmem[1]);
+      points.SetXMax(lmem[2]);
+      points.SetYMin(lmem[4]);
+      points.SetYMax(lmem[5]);
+      m_points=points;
+
+    }
+    stopTimer();
+
+    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
+
+    deallocCudaDeviceData(mem);
+
   } else if ( vid == RAJA_CUDA ) {
 
     REDUCE_STRUCT_DATA_SETUP_CUDA;
