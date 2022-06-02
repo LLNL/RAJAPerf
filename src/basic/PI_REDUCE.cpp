@@ -47,9 +47,11 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 

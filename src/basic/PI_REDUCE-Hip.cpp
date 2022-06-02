@@ -100,6 +100,37 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
 
     deallocHipDeviceData(dpi);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    Real_ptr dpi;
+    allocAndInitHipDeviceData(dpi, &pi_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dpi, &pi_init, 1);
+
+      auto reduce_pi_lambda = [=] __device__ () {
+          PI_REDUCE_BODY_HIP(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( ((lambda_hip<block_size, decltype(reduce_pi_lambda)>)),
+          grid_size, block_size, sizeof(Real_type)*block_size, 0,
+          reduce_pi_lambda );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lpi;
+      Real_ptr plpi = &lpi;
+      getHipDeviceData(plpi, dpi, 1);
+
+      m_pi = 4.0 * lpi;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dpi);
+
   } else if ( vid == RAJA_HIP ) {
 
     startTimer();
@@ -157,6 +188,37 @@ void PI_REDUCE::runHipVariantUnsafe(VariantID vid)
 
     deallocHipDeviceData(dpi);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    Real_ptr dpi;
+    allocAndInitHipDeviceData(dpi, &pi_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dpi, &pi_init, 1);
+
+      auto reduce_pi_lambda = [=] __device__ () {
+          PI_REDUCE_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( ((lambda_hip<block_size, decltype(reduce_pi_lambda)>)),
+          grid_size, block_size, sizeof(Real_type)*block_size, 0,
+          reduce_pi_lambda );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lpi;
+      Real_ptr plpi = &lpi;
+      getHipDeviceData(plpi, dpi, 1);
+
+      m_pi = 4.0 * lpi;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dpi);
+
   } else {
      getCout() << "\n  PI_REDUCE : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -175,7 +237,7 @@ void PI_REDUCE::runHipVariant(VariantID vid, size_t tune_idx)
       t += 1;
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
@@ -199,7 +261,7 @@ void PI_REDUCE::setHipTuningDefinitions(VariantID vid)
       addVariantTuningName(vid, "block_"+std::to_string(block_size));
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||

@@ -92,6 +92,35 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
 
     deallocCudaDeviceData(dpi);
 
+  } else if ( vid == Lambda_CUDA ) {
+
+    Real_ptr dpi;
+    allocAndInitCudaDeviceData(dpi, &pi_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initCudaDeviceData(dpi, &pi_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda<block_size><<<grid_size, block_size,
+                                sizeof(Real_type)*block_size>>>(
+        [=] __device__ () {
+          PI_REDUCE_BODY_CUDA(::atomicAdd)
+      });
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lpi;
+      Real_ptr plpi = &lpi;
+      getCudaDeviceData(plpi, dpi, 1);
+
+      m_pi = 4.0 * lpi;
+
+    }
+    stopTimer();
+
+    deallocCudaDeviceData(dpi);
+
   } else if ( vid == RAJA_CUDA ) {
 
     startTimer();
