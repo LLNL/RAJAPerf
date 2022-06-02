@@ -38,10 +38,15 @@
 
 
 #define REDUCE_STRUCT_DATA_SETUP \
+  Real_ptr x = m_x; \
+  Real_ptr y = m_y; \
+  Real_type init_sum = m_init_sum; \
+  Real_type init_min = m_init_min; \
+  Real_type init_max = m_init_max; \
   points points; \
-  points.N = getActualProblemSize(); \
-  points.x = m_x; \
-  points.y = m_y; \
+  points.N = iend; \
+  points.x = x; \
+  points.y = y; \
 
 #define REDUCE_STRUCT_BODY  \
   xsum += points.x[i] ; \
@@ -96,7 +101,7 @@ public:
   template < size_t block_size >
   void runHipVariantUnsafe(VariantID vid);
 
-  struct points{
+  struct points {
     Int_type N;
     Real_ptr x, y;
 
@@ -116,7 +121,7 @@ public:
     Real_type center[2] = {0.0,0.0};
     Real_type xmin, xmax;
     Real_type ymin, ymax;
-    }; 
+  };
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;

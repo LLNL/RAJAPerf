@@ -23,13 +23,15 @@ namespace basic
 
   
 #define REDUCE_STRUCT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(points.x, m_x, points.N); \
-  allocAndInitCudaDeviceData(points.y, m_y, points.N); \
+  allocAndInitCudaDeviceData(x, m_x, iend); \
+  allocAndInitCudaDeviceData(y, m_y, iend); \
+  points.x = x; \
+  points.y = y;
   
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(points.x); \
-  deallocCudaDeviceData(points.y);
+  deallocCudaDeviceData(x); \
+  deallocCudaDeviceData(y);
 
 #define REDUCE_STRUCT_BODY_CUDA(atomicAdd, atomicMin, atomicMax) \
   \
@@ -43,14 +45,14 @@ namespace basic
   Real_type* pymax = (Real_type*)&shared[ 5 * blockDim.x ]; \
   \
   Index_type i = blockIdx.x * blockDim.x + threadIdx.x; \
+  pxsum[ threadIdx.x ] = init_sum; \
+  pxmin[ threadIdx.x ] = init_min; \
+  pxmax[ threadIdx.x ] = init_max; \
   \
-  pxsum[ threadIdx.x ] = m_init_sum; \
-  pxmin[ threadIdx.x ] = m_init_min; \
-  pxmax[ threadIdx.x ] = m_init_max; \
   \
-  pysum[ threadIdx.x ] = m_init_sum; \
-  pymin[ threadIdx.x ] = m_init_min; \
-  pymax[ threadIdx.x ] = m_init_max; \
+  pysum[ threadIdx.x ] = init_sum; \
+  pymin[ threadIdx.x ] = init_min; \
+  pymax[ threadIdx.x ] = init_max; \
   \
   for ( ; i < iend ; i += gridDim.x * blockDim.x ) { \
     pxsum[ threadIdx.x ] += x[ i ]; \
@@ -91,9 +93,9 @@ __launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
                               Real_ptr xsum, Real_ptr xmin, Real_ptr xmax,
                               Real_ptr ysum, Real_ptr ymin, Real_ptr ymax,
-                              Real_type m_init_sum,
-                              Real_type m_init_min,
-                              Real_type m_init_max,
+                              Real_type init_sum,
+                              Real_type init_min,
+                              Real_type init_max,
                               Index_type iend)
 {
   REDUCE_STRUCT_BODY_CUDA(::atomicAdd, ::atomicMin, ::atomicMax)
@@ -112,8 +114,14 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
 
     REDUCE_STRUCT_DATA_SETUP_CUDA;
 
-    Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
+    Real_ptr mem;
     allocCudaDeviceData(mem,6);
+    Real_ptr xsum = mem + 0;
+    Real_ptr xmin = mem + 1;
+    Real_ptr xmax = mem + 2;
+    Real_ptr ysum = mem + 3;
+    Real_ptr ymin = mem + 4;
+    Real_ptr ymax = mem + 5;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,18 +131,19 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
                                                             
       reduce_struct<block_size><<<grid_size, block_size,
                                   6*sizeof(Real_type)*block_size>>>(
-        points.x, points.y,
-        mem, mem+1, mem+2,    // xcenter,xmin,xmax
-        mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
-        m_init_sum, m_init_min, m_init_max,
-        points.N);
+          x, y,
+          xsum, xmin, xmax,
+          ysum, ymin, ymax,
+          init_sum, init_min, init_max,
+          iend);
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
       Real_ptr plmem = &lmem[0];
       getCudaDeviceData(plmem, mem, 6);
 
-      points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
+      points.SetCenter(lmem[0]/iend,
+                       lmem[3]/iend);
       points.SetXMin(lmem[1]);
       points.SetXMax(lmem[2]);
       points.SetYMin(lmem[4]);
@@ -155,20 +164,20 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum(m_init_sum);
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> ysum(m_init_sum);
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin(m_init_min); 
-      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> ymin(m_init_min);
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(m_init_max); 
-      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(m_init_max);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> xsum(init_sum);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> ysum(init_sum);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> xmin(init_min);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Real_type> ymin(init_min);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(init_max);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(init_max);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_STRUCT_BODY_RAJA;
       });
 
-      points.SetCenter((xsum.get()/(points.N)),
-                       (ysum.get()/(points.N)));
+      points.SetCenter((xsum.get()/(iend)),
+                       (ysum.get()/(iend)));
       points.SetXMin((xmin.get())); 
       points.SetXMax((xmax.get()));
       points.SetYMin((ymin.get())); 

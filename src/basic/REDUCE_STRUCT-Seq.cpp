@@ -34,9 +34,9 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
  
-        Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
-        Real_type xmin = m_init_min; Real_type ymin = m_init_min;
-        Real_type xmax = m_init_max; Real_type ymax = m_init_max;
+        Real_type xsum = init_sum; Real_type ysum = init_sum;
+        Real_type xmin = init_min; Real_type ymin = init_min;
+        Real_type xmax = init_max; Real_type ymax = init_max;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE_STRUCT_BODY;
@@ -69,9 +69,9 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type xsum = m_init_sum; Real_type ysum = m_init_sum;
-        Real_type xmin = m_init_min; Real_type ymin = m_init_min;
-        Real_type xmax = m_init_max; Real_type ymax = m_init_max; 
+        Real_type xsum = init_sum; Real_type ysum = init_sum;
+        Real_type xmin = init_min; Real_type ymin = init_min;
+        Real_type xmax = init_max; Real_type ymax = init_max;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           xsum += reduce_struct_x_base_lam(i);
@@ -100,12 +100,12 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(m_init_sum);
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(m_init_sum);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(m_init_min);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> ymin(m_init_min);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(m_init_max);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(m_init_max);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(init_sum);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(init_sum);
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(init_min);
+        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> ymin(init_min);
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(init_max);
+        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(init_max);
 
         RAJA::forall<RAJA::loop_exec>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
