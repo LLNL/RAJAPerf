@@ -346,6 +346,9 @@ std::ostream& getNullStream();
  *******************************************************************************
  */
 template < typename... Ts >
+#if defined(__CUDACC__) || defined(__HIPCC__)
+__host__ __device__
+#endif
 inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace

@@ -35,37 +35,42 @@ namespace algorithm
 #define REDUCE_SUM_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(x);
 
+#define REDUCE_SUM_BODY_HIP(atomicAdd)  \
+  HIP_DYNAMIC_SHARED(Real_type, psum); \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  psum[ threadIdx.x ] = sum_init; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    psum[ threadIdx.x ] += x[i]; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( dsum, psum[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
                            Index_type iend)
 {
-  HIP_DYNAMIC_SHARED(Real_type, psum);
+  REDUCE_SUM_BODY_HIP(::atomicAdd)
+}
 
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  psum[ threadIdx.x ] = sum_init;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    psum[ threadIdx.x ] += x[i];
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::hip_atomic>( dsum, psum[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dsum += psum[ 0 ];
-  }
-#endif
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_unsafe(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  REDUCE_SUM_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
 }
 
 
@@ -230,11 +235,60 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
 }
 
-void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantUnsafe(VariantID vid)
 {
+  const Index_type run_reps = getRunReps();
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_SUM_DATA_SETUP;
+
   if ( vid == Base_HIP ) {
 
-    size_t t = 0;
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipDeviceData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dsum, &m_sum_init, 1);
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_unsafe<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          x, dsum, m_sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsum;
+      Real_ptr plsum = &lsum;
+      getHipDeviceData(plsum, dsum, 1);
+
+      m_sum = lsum;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+
+  size_t t = 0;
+
+  if ( vid == Base_HIP ) {
 
     if (tune_idx == t) {
 
@@ -261,9 +315,28 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
     });
 
-  } else if ( vid == RAJA_HIP ) {
+    if (have_unsafe_atomics) {
 
-    size_t t = 0;
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          if (tune_idx == t) {
+
+            runHipVariantUnsafe<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
+
+      });
+
+    }
+
+  } else if ( vid == RAJA_HIP ) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -292,6 +365,8 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
 void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
 {
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+
   if ( vid == Base_HIP ) {
 
 #if defined(__HIPCC__)
@@ -310,6 +385,21 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
       }
 
     });
+
+    if (have_unsafe_atomics) {
+
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+
+        }
+
+      });
+
+    }
 
   } else if ( vid == RAJA_HIP ) {
 

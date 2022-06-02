@@ -16,6 +16,117 @@
 
 #include "rajaperf_config.hpp"
 
+
+#if defined(__CUDA_ARCH__)
+// Add implementation of double precision atomic add using CAS loop
+// taken from CUDA C++ Programming Guide
+// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions
+#if __CUDA_ARCH__ < 600
+__device__ __forceinline__ double atomicAdd(double* address, double val)
+{
+  unsigned long long int* address_as_ull =
+                            (unsigned long long int*)address;
+  unsigned long long int old = *address_as_ull, assumed;
+
+  do {
+    assumed = old;
+    old = atomicCAS(address_as_ull, assumed,
+                    __double_as_longlong(val +
+                           __longlong_as_double(assumed)));
+
+  // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+  } while (assumed != old);
+
+  return __longlong_as_double(old);
+}
+#endif
+
+__device__ __forceinline__ double atomicMin(double* address, double val)
+{
+  unsigned long long int* address_as_ull =
+                            (unsigned long long int*)address;
+  unsigned long long int old = *address_as_ull, assumed;
+
+  if (val < __longlong_as_double(old)) {
+    do {
+      assumed = old;
+      old = atomicCAS(address_as_ull, assumed,
+                      __double_as_longlong(val));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old && val < __longlong_as_double(old));
+  } else if (isnan(val)) {
+    old = atomicExch(address_as_ull, __double_as_longlong(val));
+  }
+
+  return __longlong_as_double(old);
+}
+
+__device__ __forceinline__ double atomicMax(double* address, double val)
+{
+  unsigned long long int* address_as_ull =
+                            (unsigned long long int*)address;
+  unsigned long long int old = *address_as_ull, assumed;
+
+  if (val > __longlong_as_double(old)) {
+    do {
+      assumed = old;
+      old = atomicCAS(address_as_ull, assumed,
+                      __double_as_longlong(val));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old && val > __longlong_as_double(old));
+  } else if (isnan(val)) {
+    old = atomicExch(address_as_ull, __double_as_longlong(val));
+  }
+
+  return __longlong_as_double(old);
+}
+
+__device__ __forceinline__ float atomicMin(float* address, float val)
+{
+  unsigned int* address_as_ui =
+                            (unsigned int*)address;
+  unsigned int old = *address_as_ui, assumed;
+
+  if (val < __int_as_float(old)) {
+    do {
+      assumed = old;
+      old = atomicCAS(address_as_ui, assumed,
+                      __float_as_int(val));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old && val < __int_as_float(old));
+  } else if (isnan(val)) {
+    old = atomicExch(address_as_ui, __float_as_int(val));
+  }
+
+  return __int_as_float(old);
+}
+
+__device__ __forceinline__ float atomicMax(float* address, float val)
+{
+  unsigned int* address_as_ui =
+                            (unsigned int*)address;
+  unsigned int old = *address_as_ui, assumed;
+
+  if (val > __int_as_float(old)) {
+    do {
+      assumed = old;
+      old = atomicCAS(address_as_ui, assumed,
+                      __float_as_int(val));
+
+    // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+    } while (assumed != old && val > __int_as_float(old));
+  } else if (isnan(val)) {
+    old = atomicExch(address_as_ui, __float_as_int(val));
+  }
+
+  return __int_as_float(old);
+}
+#endif
+
+
 namespace rajaperf
 {
 

@@ -27,6 +27,47 @@ namespace rajaperf
 {
 
 /*!
+ * \brief Get hip arch name.
+ */
+inline std::string getHipArchName()
+{
+  int dev = -1;
+  hipDeviceProp_t devProp;
+  hipErrchk(hipGetDevice(&dev));
+  hipErrchk(hipGetDeviceProperties(&devProp, dev));
+  return devProp.gcnArchName;
+}
+
+#if defined(__gfx90a__)
+// NOTE: this will only be defined while compiling device code
+#define RAJAPERF_HIP_unsafeAtomicAdd \
+  ::unsafeAtomicAdd
+#else
+#define RAJAPERF_HIP_unsafeAtomicAdd \
+  ignore_unused
+#endif
+
+/*!
+ * \brief Check if compiled code with unsafe atomics.
+ */
+inline bool haveHipUnsafeAtomics()
+{
+  std::string hipArch = getHipArchName();
+#if defined(RP_USE_DOUBLE)
+  if (hipArch.find("gfx90a") == 0) {
+    return true;
+  }
+#endif
+#if defined(RP_USE_FLOAT)
+  if (hipArch.find("gfx90a") == 0) {
+    return true;
+  }
+#endif
+  return false;
+}
+
+
+/*!
  * \brief Simple forall hip kernel that runs a lambda.
  */
 template < typename Lambda >

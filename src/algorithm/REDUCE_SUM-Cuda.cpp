@@ -30,37 +30,34 @@ namespace algorithm
 #define REDUCE_SUM_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
+#define REDUCE_SUM_BODY_CUDA(atomicAdd)  \
+  extern __shared__ Real_type psum[ ]; \
+  \
+  Index_type i = blockIdx.x * block_size + threadIdx.x; \
+  \
+  psum[ threadIdx.x ] = sum_init; \
+  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+    psum[ threadIdx.x ] += x[i]; \
+  } \
+  __syncthreads(); \
+  \
+  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( dsum, psum[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
                            Index_type iend)
 {
-  extern __shared__ Real_type psum[ ];
-
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
-
-  psum[ threadIdx.x ] = sum_init;
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
-    psum[ threadIdx.x ] += x[i];
-  }
-  __syncthreads();
-
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-    }
-     __syncthreads();
-  }
-
-#if 1 // serialized access to shared data;
-  if ( threadIdx.x == 0 ) {
-    RAJA::atomicAdd<RAJA::cuda_atomic>( dsum, psum[ 0 ] );
-  }
-#else // this doesn't work due to data races
-  if ( threadIdx.x == 0 ) {
-    *dsum += psum[ 0 ];
-  }
-#endif
+  REDUCE_SUM_BODY_CUDA(::atomicAdd)
 }
 
 
