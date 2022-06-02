@@ -45,17 +45,16 @@ Real_type trap_int_func(Real_type x,
   \
   extern __shared__ Real_type psumx[ ]; \
   \
-  Index_type i = blockIdx.x * block_size + threadIdx.x; \
-  \
   psumx[ threadIdx.x ] = 0.0; \
-  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
     Real_type x = x0 + i*h; \
     Real_type val = trap_int_func(x, y, xp, yp); \
     psumx[ threadIdx.x ] += val; \
   } \
   __syncthreads(); \
   \
-  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+  for ( int i = block_size / 2; i > 0; i /= 2 ) { \
     if ( threadIdx.x < i ) { \
       psumx[ threadIdx.x ] += psumx[ threadIdx.x + i ]; \
     } \

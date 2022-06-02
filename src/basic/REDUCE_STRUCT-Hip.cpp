@@ -46,14 +46,13 @@ namespace basic
   pxsum[ threadIdx.x ] = init_sum; \
   pxmin[ threadIdx.x ] = init_min; \
   pxmax[ threadIdx.x ] = init_max; \
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x; \
   \
   pysum[ threadIdx.x ] = init_sum; \
   pymin[ threadIdx.x ] = init_min; \
   pymax[ threadIdx.x ] = init_max; \
   \
-  \
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) { \
+  for ( Index_type i = blockIdx.x * blockDim.x + threadIdx.x; \
+        i < iend ; i += gridDim.x * blockDim.x ) { \
     pxsum[ threadIdx.x ] += x[ i ]; \
     pxmin[ threadIdx.x ] = RAJA_MIN( pxmin[ threadIdx.x ], x[ i ] ); \
     pxmax[ threadIdx.x ] = RAJA_MAX( pxmax[ threadIdx.x ], x[ i ] ); \
@@ -64,7 +63,7 @@ namespace basic
   } \
   __syncthreads(); \
   \
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) { \
+  for ( unsigned i = blockDim.x / 2u; i > 0u; i /= 2u ) { \
     if ( threadIdx.x < i ) { \
       pxsum[ threadIdx.x ] += pxsum[ threadIdx.x + i ]; \
       pxmin[ threadIdx.x ] = RAJA_MIN( pxmin[ threadIdx.x ], pxmin[ threadIdx.x + i ] ); \

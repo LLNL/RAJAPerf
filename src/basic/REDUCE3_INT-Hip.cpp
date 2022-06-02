@@ -40,20 +40,21 @@ __global__ void reduce3int(Int_ptr vec,
   Int_type* pmin = (Int_type*)&psum[ 1 * block_size ];
   Int_type* pmax = (Int_type*)&psum[ 2 * block_size ];
 
-  Index_type i = blockIdx.x * block_size + threadIdx.x;
+
 
   psum[ threadIdx.x ] = vsum_init;
   pmin[ threadIdx.x ] = vmin_init;
   pmax[ threadIdx.x ] = vmax_init;
 
-  for ( ; i < iend ; i += gridDim.x * block_size ) {
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x;
+        i < iend ; i += gridDim.x * block_size ) {
     psum[ threadIdx.x ] += vec[ i ];
     pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
     pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
   }
   __syncthreads();
 
-  for ( i = block_size / 2; i > 0; i /= 2 ) {
+  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) {
     if ( threadIdx.x < i ) {
       psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
       pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );

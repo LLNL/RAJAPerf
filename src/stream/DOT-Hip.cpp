@@ -34,15 +34,14 @@ namespace stream
   \
   HIP_DYNAMIC_SHARED( Real_type, pdot) \
   \
-  Index_type i = blockIdx.x * block_size + threadIdx.x; \
-  \
   pdot[ threadIdx.x ] = dprod_init; \
-  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
     pdot[ threadIdx.x ] += a[ i ] * b[i]; \
   } \
   __syncthreads(); \
   \
-  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
     if ( threadIdx.x < i ) { \
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ]; \
     } \

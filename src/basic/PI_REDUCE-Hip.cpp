@@ -25,16 +25,16 @@ namespace basic
   \
   HIP_DYNAMIC_SHARED(Real_type, ppi); \
   \
-  Index_type i = blockIdx.x * block_size + threadIdx.x; \
-  \
   ppi[ threadIdx.x ] = pi_init; \
-  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+  \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
     double x = (double(i) + 0.5) * dx; \
     ppi[ threadIdx.x ] += dx / (1.0 + x * x); \
   } \
   __syncthreads(); \
   \
-  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
     if ( threadIdx.x < i ) { \
       ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ]; \
     } \

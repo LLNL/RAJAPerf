@@ -33,15 +33,14 @@ namespace algorithm
 #define REDUCE_SUM_BODY_CUDA(atomicAdd)  \
   extern __shared__ Real_type psum[ ]; \
   \
-  Index_type i = blockIdx.x * block_size + threadIdx.x; \
-  \
   psum[ threadIdx.x ] = sum_init; \
-  for ( ; i < iend ; i += gridDim.x * block_size ) { \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
     psum[ threadIdx.x ] += x[i]; \
   } \
   __syncthreads(); \
   \
-  for ( i = block_size / 2; i > 0; i /= 2 ) { \
+  for ( int i = block_size / 2; i > 0; i /= 2 ) { \
     if ( threadIdx.x < i ) { \
       psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
     } \
