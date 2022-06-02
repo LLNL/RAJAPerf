@@ -48,7 +48,25 @@ __global__ void nodal_accumulation_3d(Real_ptr vol,
    Index_type i = ii + ibegin;
    if (i < iend) {
      NODAL_ACCUMULATION_3D_BODY_INDEX;
-     NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::hip_atomic);
+     NODAL_ACCUMULATION_3D_BODY_ATOMIC(::atomicAdd);
+   }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void nodal_accumulation_3d_unsafe(Real_ptr vol,
+                      Real_ptr x0, Real_ptr x1,
+                      Real_ptr x2, Real_ptr x3,
+                      Real_ptr x4, Real_ptr x5,
+                      Real_ptr x6, Real_ptr x7,
+                      Index_ptr real_zones,
+                      Index_type ibegin, Index_type iend)
+{
+   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = ii + ibegin;
+   if (i < iend) {
+     NODAL_ACCUMULATION_3D_BODY_INDEX;
+     NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJAPERF_HIP_unsafeAtomicAdd);
    }
 }
 
@@ -100,7 +118,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         zones, [=] __device__ (Index_type i) {
-          NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::hip_atomic);
+          NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::hip_atomic>);
       });
 
     }
@@ -113,7 +131,163 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Hip)
+template < size_t block_size >
+void NODAL_ACCUMULATION_3D::runHipVariantUnsafe(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = m_domain->n_real_zones;
+
+  NODAL_ACCUMULATION_3D_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
+
+    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((nodal_accumulation_3d_unsafe<block_size>), dim3(grid_size), dim3(block_size), 0, 0, vol,
+                                       x0, x1, x2, x3, x4, x5, x6, x7,
+                                       real_zones,
+                                       ibegin, iend);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
+
+  } else {
+     getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
+  }
+}
+
+void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+
+  size_t t = 0;
+
+  if ( vid == Base_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runHipVariantImpl<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+    if (have_unsafe_atomics) {
+
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          if (tune_idx == t) {
+
+            runHipVariantUnsafe<block_size>(vid);
+
+          }
+
+          t += 1;
+
+        }
+
+      });
+
+    }
+
+  } else if ( vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runHipVariantImpl<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+void NODAL_ACCUMULATION_3D::setHipTuningDefinitions(VariantID vid)
+{
+  bool have_unsafe_atomics = haveHipUnsafeAtomics();
+
+  if ( vid == Base_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+      }
+
+    });
+
+    if (have_unsafe_atomics) {
+
+      seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+        if (run_params.numValidGPUBlockSize() == 0u ||
+            run_params.validGPUBlockSize(block_size)) {
+
+          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+
+        }
+
+      });
+
+    }
+
+  } else if ( vid == RAJA_HIP ) {
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+
+      }
+
+    });
+
+  }
+
+}
 
 } // end namespace apps
 } // end namespace rajaperf

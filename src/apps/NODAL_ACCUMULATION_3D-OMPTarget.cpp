@@ -107,7 +107,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPER
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         zones, [=](Index_type i) {
-        NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::omp_atomic);
+        NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::omp_atomic>);
       });
 
     }

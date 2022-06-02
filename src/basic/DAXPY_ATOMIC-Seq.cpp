@@ -71,7 +71,7 @@ void DAXPY_ATOMIC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
         RAJA::forall<RAJA::simd_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
-            DAXPY_ATOMIC_RAJA_BODY(RAJA::seq_atomic);
+            DAXPY_ATOMIC_BODY_ATOMIC(RAJA::atomicAdd<RAJA::seq_atomic>)
         });
 
       }

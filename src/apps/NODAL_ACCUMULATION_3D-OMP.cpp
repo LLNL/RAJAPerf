@@ -117,7 +117,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
                                                working_res);
 
       auto nodal_accumulation_3d_lam = [=](Index_type i) {
-                                         NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::omp_atomic);
+                                         NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::omp_atomic>);
                                        };
 
       startTimer();

@@ -77,7 +77,7 @@ void NODAL_ACCUMULATION_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_
                                                working_res);
 
       auto nodal_accumulation_3d_lam = [=](Index_type i) {
-                         NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::seq_atomic);
+                         NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::seq_atomic>);
                        };
 
       startTimer();

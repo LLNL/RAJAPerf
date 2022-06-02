@@ -38,7 +38,7 @@ __global__ void daxpy_atomic(Real_ptr y, Real_ptr x,
 {
    Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i < iend) {
-     DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
+     DAXPY_ATOMIC_BODY_ATOMIC(::atomicAdd)
    }
 }
 
@@ -79,7 +79,7 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
-        DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
+          DAXPY_ATOMIC_BODY_ATOMIC(::atomicAdd)
       });
       cudaErrchk( cudaGetLastError() );
 
@@ -97,7 +97,7 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        DAXPY_ATOMIC_RAJA_BODY(RAJA::cuda_atomic);
+        DAXPY_ATOMIC_BODY_ATOMIC(RAJA::atomicAdd<RAJA::cuda_atomic>)
       });
 
     }

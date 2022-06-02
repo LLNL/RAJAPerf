@@ -28,6 +28,15 @@
   Real_ptr pi = m_pi;
 
 
+#define PI_ATOMIC_BODY \
+  double x = (double(i) + 0.5) * dx; \
+  *pi += dx / (1.0 + x * x);
+
+#define PI_ATOMIC_BODY_ATOMIC(atomicAdd) \
+  double x = (double(i) + 0.5) * dx; \
+  atomicAdd(pi, dx / (1.0 + x * x));
+
+
 #include "common/KernelBase.hpp"
 
 namespace rajaperf
@@ -61,6 +70,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantUnsafe(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

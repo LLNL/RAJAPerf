@@ -82,8 +82,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
         *pi = m_pi_init;
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-            double x = (double(i) + 0.5) * dx;
-            RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
+            PI_ATOMIC_BODY_ATOMIC(RAJA::atomicAdd<RAJA::omp_atomic>)
         });
         *pi *= 4.0;
 

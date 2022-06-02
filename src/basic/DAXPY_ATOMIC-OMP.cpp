@@ -75,7 +75,7 @@ void DAXPY_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          DAXPY_ATOMIC_RAJA_BODY(RAJA::omp_atomic);
+          DAXPY_ATOMIC_BODY_ATOMIC(RAJA::atomicAdd<RAJA::omp_atomic>)
         });
 
       }

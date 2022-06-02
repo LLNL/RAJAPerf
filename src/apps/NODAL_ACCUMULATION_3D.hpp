@@ -54,17 +54,17 @@
   x6[i] += val; \
   x7[i] += val;
 
-#define NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(policy) \
+#define NODAL_ACCUMULATION_3D_BODY_ATOMIC(atomicAdd) \
   Real_type val = 0.125 * vol[i]; \
   \
-  RAJA::atomicAdd<policy>(&x0[i], val); \
-  RAJA::atomicAdd<policy>(&x1[i], val); \
-  RAJA::atomicAdd<policy>(&x2[i], val); \
-  RAJA::atomicAdd<policy>(&x3[i], val); \
-  RAJA::atomicAdd<policy>(&x4[i], val); \
-  RAJA::atomicAdd<policy>(&x5[i], val); \
-  RAJA::atomicAdd<policy>(&x6[i], val); \
-  RAJA::atomicAdd<policy>(&x7[i], val);
+  atomicAdd(&x0[i], val); \
+  atomicAdd(&x1[i], val); \
+  atomicAdd(&x2[i], val); \
+  atomicAdd(&x3[i], val); \
+  atomicAdd(&x4[i], val); \
+  atomicAdd(&x5[i], val); \
+  atomicAdd(&x6[i], val); \
+  atomicAdd(&x7[i], val);
 
 
 
@@ -102,6 +102,8 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantUnsafe(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
