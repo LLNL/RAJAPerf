@@ -33,7 +33,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sum = m_sum_init;
+        Real_type sum = sum_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE_SUM_BODY;
@@ -57,7 +57,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sum = m_sum_init;
+        Real_type sum = sum_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           sum += reduce_sum_base_lam(i);
@@ -76,7 +76,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(m_sum_init);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(sum_init);
 
         RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {

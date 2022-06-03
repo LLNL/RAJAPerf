@@ -23,7 +23,8 @@
 #define RAJAPerf_Algorithm_REDUCE_SUM_HPP
 
 #define REDUCE_SUM_DATA_SETUP \
-  Real_ptr x = m_x;
+  Real_ptr x = m_x; \
+  Real_type sum_init = m_sum_init;
 
 #define REDUCE_SUM_STD_ARGS  \
   x + ibegin, x + iend

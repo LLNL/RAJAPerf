@@ -51,7 +51,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type sum = m_sum_init;
+      Real_type sum = sum_init;
 
       #pragma omp target is_device_ptr(x) device( did ) map(tofrom:sum)
       #pragma omp teams distribute parallel for reduction(+:sum) \
@@ -74,7 +74,7 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sum(sum_init);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),

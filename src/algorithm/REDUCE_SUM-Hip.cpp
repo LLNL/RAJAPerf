@@ -100,7 +100,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                 temp_storage_bytes,
                                 x+ibegin,
                                 sum_storage,
-                                m_sum_init,
+                                sum_init,
                                 len,
                                 rocprim::plus<Real_type>(),
                                 stream));
@@ -111,7 +111,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                           sum_storage,
                                           len,
                                           ::cub::Sum(),
-                                          m_sum_init,
+                                          sum_init,
                                           stream));
 #endif
 
@@ -130,7 +130,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                   temp_storage_bytes,
                                   x+ibegin,
                                   sum_storage,
-                                  m_sum_init,
+                                  sum_init,
                                   len,
                                   rocprim::plus<Real_type>(),
                                   stream));
@@ -141,7 +141,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
                                             sum_storage,
                                             len,
                                             ::cub::Sum(),
-                                            m_sum_init,
+                                            sum_init,
                                             stream));
 #endif
 
@@ -184,12 +184,12 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &m_sum_init, 1);
+      initHipDeviceData(dsum, &sum_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
                           sizeof(Real_type)*block_size, 0,
-                          x, dsum, m_sum_init, iend );
+                          x, dsum, sum_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lsum;
@@ -212,7 +212,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(sum_init);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -252,12 +252,12 @@ void REDUCE_SUM::runHipVariantUnsafe(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &m_sum_init, 1);
+      initHipDeviceData(dsum, &sum_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (reduce_sum_unsafe<block_size>), dim3(grid_size), dim3(block_size),
                           sizeof(Real_type)*block_size, 0,
-                          x, dsum, m_sum_init, iend );
+                          x, dsum, sum_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lsum;

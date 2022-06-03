@@ -88,7 +88,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
                                            sum_storage,
                                            len,
                                            ::cub::Sum(),
-                                           m_sum_init,
+                                           sum_init,
                                            stream));
 
     // Allocate temporary storage
@@ -107,7 +107,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
                                              sum_storage,
                                              len,
                                              ::cub::Sum(),
-                                             m_sum_init,
+                                             sum_init,
                                              stream));
 
       cudaErrchk(cudaStreamSynchronize(stream));
@@ -149,12 +149,12 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dsum, &m_sum_init, 1);
+      initCudaDeviceData(dsum, &sum_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       reduce_sum<block_size><<<grid_size, block_size,
                   sizeof(Real_type)*block_size>>>( x,
-                                                   dsum, m_sum_init,
+                                                   dsum, sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -178,7 +178,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sum(m_sum_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sum(sum_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
