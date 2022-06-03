@@ -35,10 +35,9 @@ __global__ void pi_reduce(Real_type dx,
 
 
 template < size_t block_size >
-void PI_REDUCE::runCudaVariantAtomic(VariantID vid)
+void PI_REDUCE::runCudaVariantReduceAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   PI_REDUCE_DATA_SETUP;
@@ -100,7 +99,20 @@ void PI_REDUCE::runCudaVariantAtomic(VariantID vid)
 
     deallocCudaDeviceData(dpi);
 
-  } else if ( vid == RAJA_CUDA ) {
+  } else {
+     getCout() << "\n  PI_REDUCE : Unknown Cuda variant id = " << vid << std::endl;
+  }
+}
+template < size_t block_size >
+void PI_REDUCE::runCudaVariantReduce(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  PI_REDUCE_DATA_SETUP;
+
+  if ( vid == RAJA_CUDA ) {
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -125,25 +137,46 @@ void PI_REDUCE::runCudaVariantAtomic(VariantID vid)
 void PI_REDUCE::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      if (tune_idx == t) {
-        runCudaVariantAtomic<block_size>(vid);
+  if (vid == Base_CUDA || vid == Lambda_CUDA) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (tune_idx == t) {
+          runCudaVariantReduceAtomic<block_size>(vid);
+        }
+        t += 1;
       }
-      t += 1;
-    }
-  });
+    });
+  } else if ( vid == RAJA_CUDA ) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (tune_idx == t) {
+          runCudaVariantReduce<block_size>(vid);
+        }
+        t += 1;
+      }
+    });
+  }
 }
 
 void PI_REDUCE::setCudaTuningDefinitions(VariantID vid)
 {
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
-    }
-  });
+  if (vid == Base_CUDA || vid == Lambda_CUDA) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
+      }
+    });
+  } else if ( vid == RAJA_CUDA ) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuningName(vid, "reduce_"+std::to_string(block_size));
+      }
+    });
+  }
 }
 
 } // end namespace basic

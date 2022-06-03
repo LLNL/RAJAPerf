@@ -72,10 +72,9 @@ __global__ void reduce_struct_unsafe(Real_ptr x, Real_ptr y,
 
 
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantAtomic(VariantID vid)
+void REDUCE_STRUCT::runHipVariantReduceAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   REDUCE_STRUCT_DATA_SETUP;
@@ -178,38 +177,6 @@ void REDUCE_STRUCT::runHipVariantAtomic(VariantID vid)
 
     deallocHipDeviceData(mem);
 
-  } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_STRUCT_DATA_SETUP_HIP;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(init_sum);
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> ysum(init_sum);
-      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(init_min);
-      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> ymin(init_min);
-      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(init_max);
-      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(init_max);
-
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-          REDUCE_STRUCT_BODY_RAJA;
-      });
-
-      points.SetCenter((xsum.get()/(iend)),
-                       (ysum.get()/(iend)));
-      points.SetXMin((xmin.get())); 
-      points.SetXMax((xmax.get()));
-      points.SetYMin((ymin.get())); 
-      points.SetYMax((ymax.get()));
-      m_points=points;
-
-    }
-    stopTimer();
-
-    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -217,7 +184,7 @@ void REDUCE_STRUCT::runHipVariantAtomic(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantUnsafeAtomic(VariantID vid)
+void REDUCE_STRUCT::runHipVariantReduceUnsafeAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
@@ -328,52 +295,116 @@ void REDUCE_STRUCT::runHipVariantUnsafeAtomic(VariantID vid)
 
 }
 
+template < size_t block_size >
+void REDUCE_STRUCT::runHipVariantReduce(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_STRUCT_DATA_SETUP;
+
+  if ( vid == RAJA_HIP ) {
+
+    REDUCE_STRUCT_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> xsum(init_sum);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> ysum(init_sum);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> xmin(init_min);
+      RAJA::ReduceMin<RAJA::hip_reduce, Real_type> ymin(init_min);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(init_max);
+      RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(init_max);
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
+      });
+
+      points.SetCenter((xsum.get()/(iend)),
+                       (ysum.get()/(iend)));
+      points.SetXMin((xmin.get()));
+      points.SetXMax((xmax.get()));
+      points.SetYMin((ymin.get()));
+      points.SetYMax((ymax.get()));
+      m_points=points;
+
+    }
+    stopTimer();
+
+    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
+
+  } else {
+     getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;
+  }
+
+}
+
 void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
 {
   bool have_unsafe_atomics = haveHipUnsafeAtomics();
   size_t t = 0;
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      if (tune_idx == t) {
-        runHipVariantAtomic<block_size>(vid);
-      }
-      t += 1;
-    }
-  });
   if (vid == Base_HIP || vid == Lambda_HIP) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (tune_idx == t) {
+          runHipVariantReduceAtomic<block_size>(vid);
+        }
+        t += 1;
+      }
+    });
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
           if (tune_idx == t) {
-            runHipVariantUnsafeAtomic<block_size>(vid);
+            runHipVariantReduceUnsafeAtomic<block_size>(vid);
           }
           t += 1;
         }
       });
     }
+  } else if ( vid == RAJA_HIP ) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        if (tune_idx == t) {
+          runHipVariantReduce<block_size>(vid);
+        }
+        t += 1;
+      }
+    });
   }
 }
 
 void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
 {
   bool have_unsafe_atomics = haveHipUnsafeAtomics();
-  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-    if (run_params.numValidGPUBlockSize() == 0u ||
-        run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
-    }
-  });
   if (vid == Base_HIP || vid == Lambda_HIP) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
+      }
+    });
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
-          addVariantTuningName(vid, "unsafeAtomic_"+std::to_string(block_size));
+          addVariantTuningName(vid, "reduceUnsafeAtomic_"+std::to_string(block_size));
         }
       });
     }
+  } else if ( vid == RAJA_HIP ) {
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+        addVariantTuningName(vid, "reduce_"+std::to_string(block_size));
+      }
+    });
   }
 }
 
