@@ -67,11 +67,11 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantAtomic(VariantID vid);
+  void runCudaVariantSumAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantAtomic(VariantID vid);
+  void runHipVariantSumAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantUnsafeAtomic(VariantID vid);
+  void runHipVariantSumUnsafeAtomic(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
