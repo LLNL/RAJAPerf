@@ -48,6 +48,14 @@
   points.x = x; \
   points.y = y; \
 
+#define REDUCE_STRUCT_VALS  \
+  Real_type val0 = x[i] ; \
+  Real_type val1 = val0 ; \
+  Real_type val2 = val0 ; \
+  Real_type val3 = y[i] ; \
+  Real_type val4 = val3 ; \
+  Real_type val5 = val3 ;
+
 #define REDUCE_STRUCT_BODY  \
   xsum += points.x[i] ; \
   xmin = RAJA_MIN(xmin, points.x[i]) ; \
@@ -63,7 +71,6 @@
   ysum += points.y[i] ; \
   ymin.min(points.y[i]) ; \
   ymax.max(points.y[i]) ;
-
 
 #include "common/KernelBase.hpp"
 

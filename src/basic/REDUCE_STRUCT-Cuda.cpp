@@ -34,58 +34,12 @@ namespace basic
   deallocCudaDeviceData(y);
 
 #define REDUCE_STRUCT_BODY_CUDA(atomicAdd, atomicMin, atomicMax) \
-  \
-  extern __shared__ Real_type shared[]; \
-  Real_type* pxsum = (Real_type*)&shared[ 0 * blockDim.x ]; \
-  Real_type* pxmin = (Real_type*)&shared[ 1 * blockDim.x ]; \
-  Real_type* pxmax = (Real_type*)&shared[ 2 * blockDim.x ]; \
-  \
-  Real_type* pysum = (Real_type*)&shared[ 3 * blockDim.x ]; \
-  Real_type* pymin = (Real_type*)&shared[ 4 * blockDim.x ]; \
-  Real_type* pymax = (Real_type*)&shared[ 5 * blockDim.x ]; \
-  \
-  pxsum[ threadIdx.x ] = init_sum; \
-  pxmin[ threadIdx.x ] = init_min; \
-  pxmax[ threadIdx.x ] = init_max; \
-  \
-  pysum[ threadIdx.x ] = init_sum; \
-  pymin[ threadIdx.x ] = init_min; \
-  pymax[ threadIdx.x ] = init_max; \
-  \
-  for ( Index_type i = blockIdx.x * blockDim.x + threadIdx.x; \
-        i < iend ; i += gridDim.x * blockDim.x ) { \
-    pxsum[ threadIdx.x ] += x[ i ]; \
-    pxmin[ threadIdx.x ] = RAJA_MIN( pxmin[ threadIdx.x ], x[ i ] ); \
-    pxmax[ threadIdx.x ] = RAJA_MAX( pxmax[ threadIdx.x ], x[ i ] ); \
-    \
-    pysum[ threadIdx.x ] += y[ i ]; \
-    pymin[ threadIdx.x ] = RAJA_MIN( pymin[ threadIdx.x ], y[ i ] ); \
-    pymax[ threadIdx.x ] = RAJA_MAX( pymax[ threadIdx.x ], y[ i ] ); \
-  } \
-  __syncthreads(); \
-  \
-  for ( int i = blockDim.x / 2; i > 0; i /= 2 ) { \
-    if ( threadIdx.x < i ) { \
-      pxsum[ threadIdx.x ] += pxsum[ threadIdx.x + i ]; \
-      pxmin[ threadIdx.x ] = RAJA_MIN( pxmin[ threadIdx.x ], pxmin[ threadIdx.x + i ] ); \
-      pxmax[ threadIdx.x ] = RAJA_MAX( pxmax[ threadIdx.x ], pxmax[ threadIdx.x + i ] ); \
-      \
-      pysum[ threadIdx.x ] += pysum[ threadIdx.x + i ]; \
-      pymin[ threadIdx.x ] = RAJA_MIN( pymin[ threadIdx.x ], pymin[ threadIdx.x + i ] ); \
-      pymax[ threadIdx.x ] = RAJA_MAX( pymax[ threadIdx.x ], pymax[ threadIdx.x + i ] ); \
-    } \
-     __syncthreads(); \
-  } \
-  \
-  if ( threadIdx.x == 0 ) { \
-    atomicAdd( xsum, pxsum[ 0 ] ); \
-    atomicMin( xmin, pxmin[ 0 ] ); \
-    atomicMax( xmax, pxmax[ 0 ] ); \
-    \
-    atomicAdd( ysum, pysum[ 0 ] ); \
-    atomicMin( ymin, pymin[ 0 ] ); \
-    atomicMax( ymax, pymax[ 0 ] ); \
-  }
+  RAJAPERF_REDUCE_6_CUDA(Real_type, REDUCE_STRUCT_VALS, xsum, init_sum, RAJAPERF_ADD_OP, atomicAdd, \
+                                                        xmin, init_min, RAJAPERF_MIN_OP, atomicMin, \
+                                                        xmax, init_max, RAJAPERF_MAX_OP, atomicMax, \
+                                                        ysum, init_sum, RAJAPERF_ADD_OP, atomicAdd, \
+                                                        ymin, init_min, RAJAPERF_MIN_OP, atomicMin, \
+                                                        ymax, init_max, RAJAPERF_MAX_OP, atomicMax)
 
 template < size_t block_size >
 __launch_bounds__(block_size)

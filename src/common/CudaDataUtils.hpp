@@ -256,6 +256,62 @@ void deallocCudaPinnedData(T& pptr)
     atomicOp2( dst2, _shmem2[ 0 ] ); \
   }
 
+#define RAJAPERF_REDUCE_6_CUDA(type, make_vals, dst0, init0, op0, atomicOp0, \
+                                                dst1, init1, op1, atomicOp1, \
+                                                dst2, init2, op2, atomicOp2, \
+                                                dst3, init3, op3, atomicOp3, \
+                                                dst4, init4, op4, atomicOp4, \
+                                                dst5, init5, op5, atomicOp5) \
+  \
+  extern __shared__ type _shmem[ ]; \
+  \
+  type* _shmem0 = _shmem + 0 * block_size; \
+  type* _shmem1 = _shmem + 1 * block_size; \
+  type* _shmem2 = _shmem + 2 * block_size; \
+  type* _shmem3 = _shmem + 3 * block_size; \
+  type* _shmem4 = _shmem + 4 * block_size; \
+  type* _shmem5 = _shmem + 5 * block_size; \
+  \
+  _shmem0[ threadIdx.x ] = init0; \
+  _shmem1[ threadIdx.x ] = init1; \
+  _shmem2[ threadIdx.x ] = init2; \
+  _shmem3[ threadIdx.x ] = init3; \
+  _shmem4[ threadIdx.x ] = init4; \
+  _shmem5[ threadIdx.x ] = init5; \
+  \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
+    make_vals; \
+    _shmem0[ threadIdx.x ] = op0(_shmem0[ threadIdx.x ], val0); \
+    _shmem1[ threadIdx.x ] = op1(_shmem1[ threadIdx.x ], val1); \
+    _shmem2[ threadIdx.x ] = op2(_shmem2[ threadIdx.x ], val2); \
+    _shmem3[ threadIdx.x ] = op3(_shmem3[ threadIdx.x ], val3); \
+    _shmem4[ threadIdx.x ] = op4(_shmem4[ threadIdx.x ], val4); \
+    _shmem5[ threadIdx.x ] = op5(_shmem5[ threadIdx.x ], val5); \
+  } \
+  __syncthreads(); \
+  \
+  for ( int i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      _shmem0[ threadIdx.x ] = op0(_shmem0[ threadIdx.x ], _shmem0[ threadIdx.x + i ]); \
+      _shmem1[ threadIdx.x ] = op1(_shmem1[ threadIdx.x ], _shmem1[ threadIdx.x + i ]); \
+      _shmem2[ threadIdx.x ] = op2(_shmem2[ threadIdx.x ], _shmem2[ threadIdx.x + i ]); \
+      _shmem3[ threadIdx.x ] = op3(_shmem3[ threadIdx.x ], _shmem3[ threadIdx.x + i ]); \
+      _shmem4[ threadIdx.x ] = op4(_shmem4[ threadIdx.x ], _shmem4[ threadIdx.x + i ]); \
+      _shmem5[ threadIdx.x ] = op5(_shmem5[ threadIdx.x ], _shmem5[ threadIdx.x + i ]); \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicOp0( dst0, _shmem0[ 0 ] ); \
+    atomicOp1( dst1, _shmem1[ 0 ] ); \
+    atomicOp2( dst2, _shmem2[ 0 ] ); \
+    atomicOp3( dst3, _shmem3[ 0 ] ); \
+    atomicOp4( dst4, _shmem4[ 0 ] ); \
+    atomicOp5( dst5, _shmem5[ 0 ] ); \
+  }
+
 #endif // RAJA_ENABLE_CUDA
 
 #endif  // closing endif for header file include guard
