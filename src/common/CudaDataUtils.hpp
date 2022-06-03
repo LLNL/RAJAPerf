@@ -195,11 +195,15 @@ void deallocCudaPinnedData(T& pptr)
 
 
 #if defined(__CUDACC__)
-// Add implementation of double precision atomic add using CAS loop
-// taken from CUDA C++ Programming Guide
-// https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions
 #if defined(__CUDA_ARCH__)
 #if __CUDA_ARCH__ < 600
+/*!
+ * \brief Implementation of double atomicAdd using CAS loop.
+ *
+ * Exists when hardware atomic is not available.
+ * Taken from CUDA C++ Programming Guide
+ * https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#atomic-functions
+ */
 __device__ __forceinline__ double atomicAdd(double* address, double val)
 {
   unsigned long long int* address_as_ull =
@@ -220,6 +224,9 @@ __device__ __forceinline__ double atomicAdd(double* address, double val)
 #endif
 #endif
 
+/*!
+ * \brief Implementation of double atomicMin using CAS loop.
+ */
 __device__ __forceinline__ double atomicMin(double* address, double val)
 {
   unsigned long long int* address_as_ull =
@@ -241,6 +248,9 @@ __device__ __forceinline__ double atomicMin(double* address, double val)
   return __longlong_as_double(old);
 }
 
+/*!
+ * \brief Implementation of double atomicMax using CAS loop.
+ */
 __device__ __forceinline__ double atomicMax(double* address, double val)
 {
   unsigned long long int* address_as_ull =
@@ -262,6 +272,9 @@ __device__ __forceinline__ double atomicMax(double* address, double val)
   return __longlong_as_double(old);
 }
 
+/*!
+ * \brief Implementation of float atomicMin using CAS loop.
+ */
 __device__ __forceinline__ float atomicMin(float* address, float val)
 {
   unsigned int* address_as_ui =
@@ -283,6 +296,9 @@ __device__ __forceinline__ float atomicMin(float* address, float val)
   return __int_as_float(old);
 }
 
+/*!
+ * \brief Implementation of float atomicMax using CAS loop.
+ */
 __device__ __forceinline__ float atomicMax(float* address, float val)
 {
   unsigned int* address_as_ui =
@@ -306,6 +322,10 @@ __device__ __forceinline__ float atomicMax(float* address, float val)
 #endif
 
 
+/*!
+ * \brief Implementation of a single reduction using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_1_CUDA(type, make_val, dst, init, op, atomicOp) \
   \
   extern __shared__ type _shmem[ ]; \
@@ -330,6 +350,10 @@ __device__ __forceinline__ float atomicMax(float* address, float val)
     atomicOp( dst, _shmem[ 0 ] ); \
   }
 
+/*!
+ * \brief Implementation of three reductions using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_3_CUDA(type, make_vals, dst0, init0, op0, atomicOp0, \
                                                 dst1, init1, op1, atomicOp1, \
                                                 dst2, init2, op2, atomicOp2) \
@@ -368,6 +392,10 @@ __device__ __forceinline__ float atomicMax(float* address, float val)
     atomicOp2( dst2, _shmem2[ 0 ] ); \
   }
 
+/*!
+ * \brief Implementation of six reductions using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_6_CUDA(type, make_vals, dst0, init0, op0, atomicOp0, \
                                                 dst1, init1, op1, atomicOp1, \
                                                 dst2, init2, op2, atomicOp2, \

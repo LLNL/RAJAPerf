@@ -222,6 +222,10 @@ void deallocHipPinnedData(T& pptr)
 }  // closing brace for rajaperf namespace
 
 
+/*!
+ * \brief Implementation of a single reduction using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_1_HIP(type, make_val, dst, init, op, atomicOp) \
   \
   HIP_DYNAMIC_SHARED(type, _shmem); \
@@ -246,6 +250,10 @@ void deallocHipPinnedData(T& pptr)
     atomicOp( dst, _shmem[ 0 ] ); \
   }
 
+/*!
+ * \brief Implementation of three reductions using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_3_HIP(type, make_vals, dst0, init0, op0, atomicOp0, \
                                                dst1, init1, op1, atomicOp1, \
                                                dst2, init2, op2, atomicOp2) \
@@ -284,6 +292,10 @@ void deallocHipPinnedData(T& pptr)
     atomicOp2( dst2, _shmem2[ 0 ] ); \
   }
 
+/*!
+ * \brief Implementation of six reductions using a block reduction in
+ *        dynamic shared memory and combining block reductions using atomics.
+ */
 #define RAJAPERF_REDUCE_6_HIP(type, make_vals, dst0, init0, op0, atomicOp0, \
                                                dst1, init1, op1, atomicOp1, \
                                                dst2, init2, op2, atomicOp2, \
