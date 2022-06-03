@@ -219,7 +219,6 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
-
 }  // closing brace for rajaperf namespace
 
 
