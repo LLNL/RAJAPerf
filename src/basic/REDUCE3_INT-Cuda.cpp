@@ -27,6 +27,39 @@ namespace basic
 #define REDUCE3_INT_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(vec);
 
+#define REDUCE3_INT_BODY_CUDA(atomicAdd, atomicMin, atomicMax) \
+  \
+  extern __shared__ Int_type psum[ ]; \
+  Int_type* pmin = (Int_type*)&psum[ 1 * block_size ]; \
+  Int_type* pmax = (Int_type*)&psum[ 2 * block_size ]; \
+  \
+  psum[ threadIdx.x ] = vsum_init; \
+  pmin[ threadIdx.x ] = vmin_init; \
+  pmax[ threadIdx.x ] = vmax_init; \
+  \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
+    psum[ threadIdx.x ] += vec[ i ]; \
+    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] ); \
+    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] ); \
+  } \
+  __syncthreads(); \
+  \
+  for ( int i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
+      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] ); \
+      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] ); \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicAdd( vsum, psum[ 0 ] ); \
+    atomicMin( vmin, pmin[ 0 ] ); \
+    atomicMax( vmax, pmax[ 0 ] ); \
+  }
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce3int(Int_ptr vec,
@@ -35,36 +68,9 @@ __global__ void reduce3int(Int_ptr vec,
                            Int_ptr vmax, Int_type vmax_init,
                            Index_type iend)
 {
-  extern __shared__ Int_type psum[ ];
-  Int_type* pmin = (Int_type*)&psum[ 1 * block_size ];
-  Int_type* pmax = (Int_type*)&psum[ 2 * block_size ];
-
-  psum[ threadIdx.x ] = vsum_init;
-  pmin[ threadIdx.x ] = vmin_init;
-  pmax[ threadIdx.x ] = vmax_init;
-
-  for ( Index_type i = blockIdx.x * block_size + threadIdx.x;
-        i < iend ; i += gridDim.x * block_size ) {
-    psum[ threadIdx.x ] += vec[ i ];
-    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
-    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
-  }
-  __syncthreads();
-
-  for ( int i = block_size / 2; i > 0; i /= 2 ) {
-    if ( threadIdx.x < i ) {
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
-      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
-      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
-    }
-     __syncthreads();
-  }
-
-  if ( threadIdx.x == 0 ) {
-    ::atomicAdd( vsum, psum[ 0 ] );
-    ::atomicMin( vmin, pmin[ 0 ] );
-    ::atomicMax( vmax, pmax[ 0 ] );
-  }
+  REDUCE3_INT_BODY_CUDA(::atomicAdd,
+                        ::atomicMin,
+                        ::atomicMax)
 }
 
 
@@ -107,6 +113,54 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
                                                     vmin, vmin_init,
                                                     vmax, vmax_init,
                                                     iend );
+      cudaErrchk( cudaGetLastError() );
+
+      Int_type lmem[3];
+      Int_ptr plmem = &lmem[0];
+      getCudaDeviceData(plmem, vmem, 3);
+      m_vsum += lmem[0];
+      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
+
+    }
+    stopTimer();
+
+    REDUCE3_INT_DATA_TEARDOWN_CUDA;
+
+    deallocCudaDeviceData(vmem);
+    deallocCudaPinnedData(vmem_init);
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    REDUCE3_INT_DATA_SETUP_CUDA;
+
+    Int_ptr vmem_init;
+    allocCudaPinnedData(vmem_init, 3);
+
+    Int_ptr vmem;
+    allocCudaDeviceData(vmem, 3);
+    Int_ptr vsum = vmem + 0;
+    Int_ptr vmin = vmem + 1;
+    Int_ptr vmax = vmem + 2;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      vmem_init[0] = vsum_init;
+      vmem_init[1] = vmin_init;
+      vmem_init[2] = vmax_init;
+      cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
+                                   cudaMemcpyHostToDevice ) );
+
+      auto reduce3int_lambda = [=] __device__ () {
+        REDUCE3_INT_BODY_CUDA(::atomicAdd,
+                              ::atomicMin,
+                              ::atomicMax)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda<block_size><<<grid_size, block_size,
+                   3*sizeof(Int_type)*block_size>>>(reduce3int_lambda);
       cudaErrchk( cudaGetLastError() );
 
       Int_type lmem[3];
