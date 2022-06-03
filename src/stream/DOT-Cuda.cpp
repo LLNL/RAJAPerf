@@ -100,6 +100,39 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
     deallocCudaDeviceData(dprod);
 
+  } else if ( vid == Lambda_CUDA ) {
+
+    DOT_DATA_SETUP_CUDA;
+
+    Real_ptr dprod;
+    allocAndInitCudaDeviceData(dprod, &dot_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initCudaDeviceData(dprod, &dot_init, 1);
+
+      auto dot_lam = [=] __device__ () {
+        DOT_BODY_CUDA(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
+          dot_lam );
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lprod;
+      Real_ptr plprod = &lprod;
+      getCudaDeviceData(plprod, dprod, 1);
+      m_dot += lprod;
+
+    }
+    stopTimer();
+
+    DOT_DATA_TEARDOWN_CUDA;
+
+    deallocCudaDeviceData(dprod);
+
   } else if ( vid == RAJA_CUDA ) {
 
     DOT_DATA_SETUP_CUDA;

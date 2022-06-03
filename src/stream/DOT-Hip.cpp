@@ -110,6 +110,40 @@ void DOT::runHipVariantImpl(VariantID vid)
 
     deallocHipDeviceData(dprod);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    DOT_DATA_SETUP_HIP;
+
+    Real_ptr dprod;
+    allocAndInitHipDeviceData(dprod, &dot_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dprod, &dot_init, 1);
+
+      auto dot_lam = [=] __device__ () {
+        DOT_BODY_HIP(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(dot_lam)>),
+          dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,
+          dot_lam );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lprod;
+      Real_ptr plprod = &lprod;
+      getHipDeviceData(plprod, dprod, 1);
+      m_dot += lprod;
+
+    }
+    stopTimer();
+
+    DOT_DATA_TEARDOWN_HIP;
+
+    deallocHipDeviceData(dprod);
+
   } else if ( vid == RAJA_HIP ) {
 
     DOT_DATA_SETUP_HIP;
@@ -174,6 +208,40 @@ void DOT::runHipVariantUnsafe(VariantID vid)
 
     deallocHipDeviceData(dprod);
 
+  } else if ( vid == Lambda_HIP ) {
+
+    DOT_DATA_SETUP_HIP;
+
+    Real_ptr dprod;
+    allocAndInitHipDeviceData(dprod, &dot_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dprod, &dot_init, 1);
+
+      auto dot_lam = [=] __device__ () {
+        DOT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(dot_lam)>),
+          dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,
+          dot_lam );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lprod;
+      Real_ptr plprod = &lprod;
+      getHipDeviceData(plprod, dprod, 1);
+      m_dot += lprod;
+
+    }
+    stopTimer();
+
+    DOT_DATA_TEARDOWN_HIP;
+
+    deallocHipDeviceData(dprod);
+
   } else {
      getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -192,7 +260,7 @@ void DOT::runHipVariant(VariantID vid, size_t tune_idx)
       t += 1;
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
@@ -216,7 +284,7 @@ void DOT::setHipTuningDefinitions(VariantID vid)
       addVariantTuningName(vid, "block_"+std::to_string(block_size));
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
