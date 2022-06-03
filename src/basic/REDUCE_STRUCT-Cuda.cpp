@@ -60,6 +60,7 @@ template < size_t block_size >
 void REDUCE_STRUCT::runCudaVariantReduceAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   REDUCE_STRUCT_DATA_SETUP;
@@ -160,6 +161,38 @@ void REDUCE_STRUCT::runCudaVariantReduceAtomic(VariantID vid)
 
     deallocCudaDeviceData(mem);
 
+  } else if ( vid == RAJA_CUDA ) {
+
+    REDUCE_STRUCT_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> xsum(init_sum);
+      RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> ysum(init_sum);
+      RAJA::ReduceMin<RAJA::cuda_reduce_atomic, Real_type> xmin(init_min);
+      RAJA::ReduceMin<RAJA::cuda_reduce_atomic, Real_type> ymin(init_min);
+      RAJA::ReduceMax<RAJA::cuda_reduce_atomic, Real_type> xmax(init_max);
+      RAJA::ReduceMax<RAJA::cuda_reduce_atomic, Real_type> ymax(init_max);
+
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_STRUCT_BODY_RAJA;
+      });
+
+      points.SetCenter((xsum.get()/(iend)),
+                       (ysum.get()/(iend)));
+      points.SetXMin((xmin.get()));
+      points.SetXMax((xmax.get()));
+      points.SetYMin((ymin.get()));
+      points.SetYMax((ymax.get()));
+      m_points=points;
+
+    }
+    stopTimer();
+
+    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
+
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown CUDA variant id = " << vid << std::endl;
   }
@@ -216,17 +249,16 @@ void REDUCE_STRUCT::runCudaVariantReduce(VariantID vid)
 void REDUCE_STRUCT::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
-  if (vid == Base_CUDA || vid == Lambda_CUDA) {
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-        if (tune_idx == t) {
-          runCudaVariantReduceAtomic<block_size>(vid);
-        }
-        t += 1;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runCudaVariantReduceAtomic<block_size>(vid);
       }
-    });
-  } else if ( vid == RAJA_CUDA ) {
+      t += 1;
+    }
+  });
+  if ( vid == RAJA_CUDA ) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
@@ -241,14 +273,13 @@ void REDUCE_STRUCT::runCudaVariant(VariantID vid, size_t tune_idx)
 
 void REDUCE_STRUCT::setCudaTuningDefinitions(VariantID vid)
 {
-  if (vid == Base_CUDA || vid == Lambda_CUDA) {
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-        addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
-      }
-    });
-  } else if ( vid == RAJA_CUDA ) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
+    }
+  });
+  if ( vid == RAJA_CUDA ) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {

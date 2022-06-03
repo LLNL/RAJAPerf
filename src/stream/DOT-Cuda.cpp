@@ -47,6 +47,7 @@ template < size_t block_size >
 void DOT::runCudaVariantReduceAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   DOT_DATA_SETUP;
@@ -113,6 +114,27 @@ void DOT::runCudaVariantReduceAtomic(VariantID vid)
 
     deallocCudaDeviceData(dprod);
 
+  } else if ( vid == RAJA_CUDA ) {
+
+    DOT_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+       RAJA::ReduceSum<RAJA::cuda_reduce_atomic, Real_type> dot(dot_init);
+
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+         DOT_BODY;
+       });
+
+       m_dot += static_cast<Real_type>(dot.get());
+
+    }
+    stopTimer();
+
+    DOT_DATA_TEARDOWN_CUDA;
+
   } else {
      getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
   }
@@ -156,17 +178,16 @@ void DOT::runCudaVariantReduce(VariantID vid)
 void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
-  if (vid == Base_CUDA || vid == Lambda_CUDA) {
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-        if (tune_idx == t) {
-          runCudaVariantReduceAtomic<block_size>(vid);
-        }
-        t += 1;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runCudaVariantReduceAtomic<block_size>(vid);
       }
-    });
-  } else if ( vid == RAJA_CUDA ) {
+      t += 1;
+    }
+  });
+  if ( vid == RAJA_CUDA ) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
@@ -181,14 +202,13 @@ void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
 
 void DOT::setCudaTuningDefinitions(VariantID vid)
 {
-  if (vid == Base_CUDA || vid == Lambda_CUDA) {
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-        addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
-      }
-    });
-  } else if ( vid == RAJA_CUDA ) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
+    }
+  });
+  if ( vid == RAJA_CUDA ) {
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
