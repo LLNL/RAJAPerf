@@ -28,37 +28,9 @@ namespace basic
   deallocHipDeviceData(vec);
 
 #define REDUCE3_INT_BODY_HIP(atomicAdd, atomicMin, atomicMax) \
-  \
-  HIP_DYNAMIC_SHARED( Int_type, psum) \
-  Int_type* pmin = (Int_type*)&psum[ 1 * block_size ]; \
-  Int_type* pmax = (Int_type*)&psum[ 2 * block_size ]; \
-  \
-  psum[ threadIdx.x ] = vsum_init; \
-  pmin[ threadIdx.x ] = vmin_init; \
-  pmax[ threadIdx.x ] = vmax_init; \
-  \
-  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
-        i < iend ; i += gridDim.x * block_size ) { \
-    psum[ threadIdx.x ] += vec[ i ]; \
-    pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] ); \
-    pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] ); \
-  } \
-  __syncthreads(); \
-  \
-  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
-    if ( threadIdx.x < i ) { \
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
-      pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] ); \
-      pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] ); \
-    } \
-     __syncthreads(); \
-  } \
-  \
-  if ( threadIdx.x == 0 ) { \
-    atomicAdd( vsum, psum[ 0 ] ); \
-    atomicMin( vmin, pmin[ 0 ] ); \
-    atomicMax( vmax, pmax[ 0 ] ); \
-  }
+  RAJAPERF_REDUCE_3_HIP(Int_type, REDUCE3_INT_VALS, vsum, vsum_init, RAJAPERF_ADD_OP, atomicAdd, \
+                                                    vmin, vmin_init, RAJAPERF_MIN_OP, atomicMin, \
+                                                    vmax, vmax_init, RAJAPERF_MAX_OP, atomicMax)
 
 template < size_t block_size >
 __launch_bounds__(block_size)

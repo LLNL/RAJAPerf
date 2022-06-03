@@ -36,6 +36,11 @@
   Int_type vmin_init = m_vmin_init; \
   Int_type vmax_init = m_vmax_init;
 
+#define REDUCE3_INT_VALS  \
+  Int_type val0 = vec[i] ; \
+  Int_type val1 = val0 ; \
+  Int_type val2 = val0 ;
+
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \
   vmin = RAJA_MIN(vmin, vec[i]) ; \
