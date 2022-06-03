@@ -113,7 +113,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
+void REDUCE_SUM::runCudaVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -239,7 +239,7 @@ void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
 
       if (tune_idx == t) {
 
-        runCudaVariantBlock<block_size>(vid);
+        runCudaVariantAtomic<block_size>(vid);
 
       }
 
@@ -264,7 +264,7 @@ void REDUCE_SUM::setCudaTuningDefinitions(VariantID vid)
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
 
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
 
     }
 

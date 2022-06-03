@@ -148,7 +148,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantBlock(VariantID vid)
+void REDUCE_SUM::runHipVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -253,7 +253,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_SUM::runHipVariantUnsafe(VariantID vid)
+void REDUCE_SUM::runHipVariantUnsafeAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
@@ -360,7 +360,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
       if (tune_idx == t) {
 
-        runHipVariantBlock<block_size>(vid);
+        runHipVariantAtomic<block_size>(vid);
 
       }
 
@@ -381,7 +381,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
           if (tune_idx == t) {
 
-            runHipVariantUnsafe<block_size>(vid);
+            runHipVariantUnsafeAtomic<block_size>(vid);
 
           }
 
@@ -416,7 +416,7 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
 
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
 
     }
 
@@ -431,7 +431,7 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
 
-          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+          addVariantTuningName(vid, "unsafeAtomic_"+std::to_string(block_size));
 
         }
 

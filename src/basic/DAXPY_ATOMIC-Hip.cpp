@@ -56,7 +56,7 @@ __global__ void daxpy_atomic_unsafe(Real_ptr y, Real_ptr x,
 
 
 template < size_t block_size >
-void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
+void DAXPY_ATOMIC::runHipVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -125,7 +125,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
 }
 
 template < size_t block_size >
-void DAXPY_ATOMIC::runHipVariantUnsafe(VariantID vid)
+void DAXPY_ATOMIC::runHipVariantUnsafeAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -184,7 +184,7 @@ void DAXPY_ATOMIC::runHipVariant(VariantID vid, size_t tune_idx)
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
       if (tune_idx == t) {
-        runHipVariantImpl<block_size>(vid);
+        runHipVariantAtomic<block_size>(vid);
       }
       t += 1;
     }
@@ -195,7 +195,7 @@ void DAXPY_ATOMIC::runHipVariant(VariantID vid, size_t tune_idx)
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
           if (tune_idx == t) {
-            runHipVariantUnsafe<block_size>(vid);
+            runHipVariantUnsafeAtomic<block_size>(vid);
           }
           t += 1;
         }
@@ -210,7 +210,7 @@ void DAXPY_ATOMIC::setHipTuningDefinitions(VariantID vid)
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
     }
   });
   if (vid == Base_HIP || vid == Lambda_HIP) {
@@ -218,7 +218,7 @@ void DAXPY_ATOMIC::setHipTuningDefinitions(VariantID vid)
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
-          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+          addVariantTuningName(vid, "unsafeAtomic_"+std::to_string(block_size));
         }
       });
     }

@@ -54,7 +54,7 @@ __global__ void nodal_accumulation_3d(Real_ptr vol,
 
 
 template < size_t block_size >
-void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
+void NODAL_ACCUMULATION_3D::runCudaVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -138,7 +138,43 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Cuda)
+void NODAL_ACCUMULATION_3D::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      if (tune_idx == t) {
+
+        runCudaVariantAtomic<block_size>(vid);
+
+      }
+
+      t += 1;
+
+    }
+
+  });
+
+}
+
+void NODAL_ACCUMULATION_3D::setCudaTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
+
+    }
+
+  });
+
+}
 
 } // end namespace apps
 } // end namespace rajaperf

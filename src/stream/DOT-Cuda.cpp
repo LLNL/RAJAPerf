@@ -44,7 +44,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 
 
 template < size_t block_size >
-void DOT::runCudaVariantImpl(VariantID vid)
+void DOT::runCudaVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -140,7 +140,29 @@ void DOT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Cuda)
+void DOT::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runCudaVariantAtomic<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+}
+
+void DOT::setCudaTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
+    }
+  });
+}
 
 } // end namespace stream
 } // end namespace rajaperf

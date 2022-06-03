@@ -48,7 +48,7 @@ __global__ void reduce3int(Int_ptr vec,
 
 
 template < size_t block_size >
-void REDUCE3_INT::runHipVariantImpl(VariantID vid)
+void REDUCE3_INT::runHipVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -181,7 +181,29 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Hip)
+void REDUCE3_INT::runHipVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runHipVariantAtomic<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+}
+
+void REDUCE3_INT::setHipTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
+    }
+  });
+}
 
 } // end namespace basic
 } // end namespace rajaperf

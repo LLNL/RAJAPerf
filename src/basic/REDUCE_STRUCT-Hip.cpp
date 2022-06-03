@@ -72,7 +72,7 @@ __global__ void reduce_struct_unsafe(Real_ptr x, Real_ptr y,
 
 
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
+void REDUCE_STRUCT::runHipVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -217,7 +217,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 }
 
 template < size_t block_size >
-void REDUCE_STRUCT::runHipVariantUnsafe(VariantID vid)
+void REDUCE_STRUCT::runHipVariantUnsafeAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = getActualProblemSize();
@@ -336,7 +336,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
       if (tune_idx == t) {
-        runHipVariantImpl<block_size>(vid);
+        runHipVariantAtomic<block_size>(vid);
       }
       t += 1;
     }
@@ -347,7 +347,7 @@ void REDUCE_STRUCT::runHipVariant(VariantID vid, size_t tune_idx)
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
           if (tune_idx == t) {
-            runHipVariantUnsafe<block_size>(vid);
+            runHipVariantUnsafeAtomic<block_size>(vid);
           }
           t += 1;
         }
@@ -362,7 +362,7 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
     if (run_params.numValidGPUBlockSize() == 0u ||
         run_params.validGPUBlockSize(block_size)) {
-      addVariantTuningName(vid, "block_"+std::to_string(block_size));
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
     }
   });
   if (vid == Base_HIP || vid == Lambda_HIP) {
@@ -370,7 +370,7 @@ void REDUCE_STRUCT::setHipTuningDefinitions(VariantID vid)
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
             run_params.validGPUBlockSize(block_size)) {
-          addVariantTuningName(vid, "unsafe_"+std::to_string(block_size));
+          addVariantTuningName(vid, "unsafeAtomic_"+std::to_string(block_size));
         }
       });
     }

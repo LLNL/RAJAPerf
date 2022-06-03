@@ -102,11 +102,11 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantUnsafe(VariantID vid);
+  void runHipVariantUnsafeAtomic(VariantID vid);
 
   struct points {
     Int_type N;

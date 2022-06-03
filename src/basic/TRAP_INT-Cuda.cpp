@@ -58,7 +58,7 @@ __global__ void trapint(Real_type x0, Real_type xp,
 
 
 template < size_t block_size >
-void TRAP_INT::runCudaVariantImpl(VariantID vid)
+void TRAP_INT::runCudaVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -158,7 +158,29 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Cuda)
+void TRAP_INT::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runCudaVariantAtomic<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+}
+
+void TRAP_INT::setCudaTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
+    }
+  });
+}
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -42,7 +42,7 @@ __global__ void pi_atomic(Real_ptr pi,
 
 
 template < size_t block_size >
-void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
+void PI_ATOMIC::runCudaVariantAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -122,7 +122,29 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_ATOMIC, Cuda)
+void PI_ATOMIC::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
+        runCudaVariantAtomic<block_size>(vid);
+      }
+      t += 1;
+    }
+  });
+}
+
+void PI_ATOMIC::setCudaTuningDefinitions(VariantID vid)
+{
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "atomic_"+std::to_string(block_size));
+    }
+  });
+}
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -68,11 +68,11 @@ public:
   void runCudaVariantCub(VariantID vid);
   void runHipVariantRocprim(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantBlock(VariantID vid);
+  void runCudaVariantAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantBlock(VariantID vid);
+  void runHipVariantAtomic(VariantID vid);
   template < size_t block_size >
-  void runHipVariantUnsafe(VariantID vid);
+  void runHipVariantUnsafeAtomic(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;
