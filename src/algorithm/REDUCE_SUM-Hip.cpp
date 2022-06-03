@@ -151,6 +151,7 @@ template < size_t block_size >
 void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
   REDUCE_SUM_DATA_SETUP;
@@ -219,6 +220,27 @@ void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
     stopTimer();
 
     deallocHipDeviceData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP ) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::ReduceSum<RAJA::hip_reduce_atomic, Real_type> sum(sum_init);
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          REDUCE_SUM_BODY;
+      });
+
+      m_sum = sum.get();
+
+    }
+    stopTimer();
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -369,24 +391,24 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
   }
 
-  if ( vid == Base_HIP || vid == Lambda_HIP ) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
 
-        if (tune_idx == t) {
-
-          runHipVariantReduceAtomic<block_size>(vid);
-
-        }
-
-        t += 1;
+        runHipVariantReduceAtomic<block_size>(vid);
 
       }
 
-    });
+      t += 1;
+
+    }
+
+  });
+
+  if ( vid == Base_HIP || vid == Lambda_HIP ) {
 
     if (have_unsafe_atomics) {
 
@@ -446,18 +468,18 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
 
   }
 
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
+
+    }
+
+  });
+
   if ( vid == Base_HIP || vid == Lambda_HIP ) {
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        addVariantTuningName(vid, "reduceAtomic_"+std::to_string(block_size));
-
-      }
-
-    });
 
     if (have_unsafe_atomics) {
 
