@@ -120,6 +120,39 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
     TRAP_INT_DATA_TEARDOWN_CUDA;
 
+  } else if ( vid == Lambda_CUDA ) {
+
+    TRAP_INT_DATA_SETUP_CUDA;
+
+    Real_ptr sumx;
+    allocAndInitCudaDeviceData(sumx, &sumx_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initCudaDeviceData(sumx, &sumx_init, 1);
+
+      auto trapint_lam = [=] __device__ () {
+        TRAP_INT_BODY_CUDA(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda<block_size><<<grid_size, block_size,
+                sizeof(Real_type)*block_size>>>(trapint_lam);
+      cudaErrchk( cudaGetLastError() );
+
+      Real_type lsumx;
+      Real_ptr plsumx = &lsumx;
+      getCudaDeviceData(plsumx, sumx, 1);
+      m_sumx += lsumx * h;
+
+    }
+    stopTimer();
+
+    deallocCudaDeviceData(sumx);
+
+    TRAP_INT_DATA_TEARDOWN_CUDA;
+
   } else if ( vid == RAJA_CUDA ) {
 
     TRAP_INT_DATA_SETUP_CUDA;

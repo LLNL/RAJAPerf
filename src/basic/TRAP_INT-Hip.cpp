@@ -129,6 +129,40 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
 
     TRAP_INT_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    TRAP_INT_DATA_SETUP_HIP;
+
+    Real_ptr sumx;
+    allocAndInitHipDeviceData(sumx, &sumx_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(sumx, &sumx_init, 1);
+
+      auto trapint_lam = [=] __device__ () {
+        TRAP_INT_BODY_HIP(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(trapint_lam)>),
+          dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,
+          trapint_lam);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsumx;
+      Real_ptr plsumx = &lsumx;
+      getHipDeviceData(plsumx, sumx, 1);
+      m_sumx += lsumx * h;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(sumx);
+
+    TRAP_INT_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     TRAP_INT_DATA_SETUP_HIP;
@@ -195,6 +229,40 @@ void TRAP_INT::runHipVariantUnsafe(VariantID vid)
 
     TRAP_INT_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    TRAP_INT_DATA_SETUP_HIP;
+
+    Real_ptr sumx;
+    allocAndInitHipDeviceData(sumx, &sumx_init, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(sumx, &sumx_init, 1);
+
+      auto trapint_lam = [=] __device__ () {
+        TRAP_INT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip<block_size, decltype(trapint_lam)>),
+          dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0,
+          trapint_lam);
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsumx;
+      Real_ptr plsumx = &lsumx;
+      getHipDeviceData(plsumx, sumx, 1);
+      m_sumx += lsumx * h;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(sumx);
+
+    TRAP_INT_DATA_TEARDOWN_HIP;
+
   } else {
      getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -213,7 +281,7 @@ void TRAP_INT::runHipVariant(VariantID vid, size_t tune_idx)
       t += 1;
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
@@ -237,7 +305,7 @@ void TRAP_INT::setHipTuningDefinitions(VariantID vid)
       addVariantTuningName(vid, "block_"+std::to_string(block_size));
     }
   });
-  if (vid == Base_HIP) {
+  if (vid == Base_HIP || vid == Lambda_HIP) {
     if (have_unsafe_atomics) {
       seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
         if (run_params.numValidGPUBlockSize() == 0u ||
