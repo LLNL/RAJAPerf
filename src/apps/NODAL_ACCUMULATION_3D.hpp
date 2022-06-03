@@ -40,31 +40,31 @@
   Index_ptr real_zones = m_domain->real_zones;
 
 #define NODAL_ACCUMULATION_3D_BODY_INDEX \
-  Index_type i = real_zones[ii];
+  Index_type zone = real_zones[ii];
 
 #define NODAL_ACCUMULATION_3D_BODY \
-  Real_type val = 0.125 * vol[i]; \
+  Real_type val = 0.125 * vol[zone]; \
   \
-  x0[i] += val; \
-  x1[i] += val; \
-  x2[i] += val; \
-  x3[i] += val; \
-  x4[i] += val; \
-  x5[i] += val; \
-  x6[i] += val; \
-  x7[i] += val;
+  x0[zone] += val; \
+  x1[zone] += val; \
+  x2[zone] += val; \
+  x3[zone] += val; \
+  x4[zone] += val; \
+  x5[zone] += val; \
+  x6[zone] += val; \
+  x7[zone] += val;
 
 #define NODAL_ACCUMULATION_3D_BODY_ATOMIC(atomicAdd) \
-  Real_type val = 0.125 * vol[i]; \
+  Real_type val = 0.125 * vol[zone]; \
   \
-  atomicAdd(&x0[i], val); \
-  atomicAdd(&x1[i], val); \
-  atomicAdd(&x2[i], val); \
-  atomicAdd(&x3[i], val); \
-  atomicAdd(&x4[i], val); \
-  atomicAdd(&x5[i], val); \
-  atomicAdd(&x6[i], val); \
-  atomicAdd(&x7[i], val);
+  atomicAdd(&x0[zone], val); \
+  atomicAdd(&x1[zone], val); \
+  atomicAdd(&x2[zone], val); \
+  atomicAdd(&x3[zone], val); \
+  atomicAdd(&x4[zone], val); \
+  atomicAdd(&x5[zone], val); \
+  atomicAdd(&x6[zone], val); \
+  atomicAdd(&x7[zone], val);
 
 
 

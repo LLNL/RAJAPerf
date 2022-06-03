@@ -44,24 +44,24 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           NODAL_ACCUMULATION_3D_BODY_INDEX;
 
-          Real_type val = 0.125 * vol[i];
+          Real_type val = 0.125 * vol[zone];
 
           #pragma omp atomic
-          x0[i] += val;
+          x0[zone] += val;
           #pragma omp atomic
-          x1[i] += val;
+          x1[zone] += val;
           #pragma omp atomic
-          x2[i] += val;
+          x2[zone] += val;
           #pragma omp atomic
-          x3[i] += val;
+          x3[zone] += val;
           #pragma omp atomic
-          x4[i] += val;
+          x4[zone] += val;
           #pragma omp atomic
-          x5[i] += val;
+          x5[zone] += val;
           #pragma omp atomic
-          x6[i] += val;
+          x6[zone] += val;
           #pragma omp atomic
-          x7[i] += val;
+          x7[zone] += val;
         }
 
       }
@@ -75,24 +75,24 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
       auto nodal_accumulation_3d_lam = [=](Index_type ii) {
             NODAL_ACCUMULATION_3D_BODY_INDEX;
 
-            Real_type val = 0.125 * vol[i];
+            Real_type val = 0.125 * vol[zone];
 
             #pragma omp atomic
-            x0[i] += val;
+            x0[zone] += val;
             #pragma omp atomic
-            x1[i] += val;
+            x1[zone] += val;
             #pragma omp atomic
-            x2[i] += val;
+            x2[zone] += val;
             #pragma omp atomic
-            x3[i] += val;
+            x3[zone] += val;
             #pragma omp atomic
-            x4[i] += val;
+            x4[zone] += val;
             #pragma omp atomic
-            x5[i] += val;
+            x5[zone] += val;
             #pragma omp atomic
-            x6[i] += val;
+            x6[zone] += val;
             #pragma omp atomic
-            x7[i] += val;
+            x7[zone] += val;
           };
 
       startTimer();
@@ -116,7 +116,7 @@ void NODAL_ACCUMULATION_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUS
                                                m_domain->n_real_zones,
                                                working_res);
 
-      auto nodal_accumulation_3d_lam = [=](Index_type i) {
+      auto nodal_accumulation_3d_lam = [=](Index_type zone) {
                                          NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::omp_atomic>);
                                        };
 

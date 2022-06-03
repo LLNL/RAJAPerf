@@ -43,11 +43,10 @@ __global__ void nodal_accumulation_3d(Real_ptr vol,
                       Real_ptr x4, Real_ptr x5,
                       Real_ptr x6, Real_ptr x7,
                       Index_ptr real_zones,
-                      Index_type ibegin, Index_type iend)
+                      Index_type iend)
 {
    Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
-   Index_type i = ii + ibegin;
-   if (i < iend) {
+   if (ii < iend) {
      NODAL_ACCUMULATION_3D_BODY_INDEX;
      NODAL_ACCUMULATION_3D_BODY_ATOMIC(::atomicAdd);
    }
@@ -77,7 +76,7 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
       nodal_accumulation_3d<block_size><<<grid_size, block_size>>>(vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        real_zones,
-                                       ibegin, iend);
+                                       iend);
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -100,7 +99,7 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
-        zones, [=] __device__ (Index_type i) {
+        zones, [=] __device__ (Index_type zone) {
           NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJA::atomicAdd<RAJA::cuda_atomic>);
       });
 
