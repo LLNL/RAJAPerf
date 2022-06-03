@@ -90,22 +90,25 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
 
     Int_ptr vmem;
     allocHipDeviceData(vmem, 3);
+    Int_ptr vsum = vmem + 0;
+    Int_ptr vmin = vmem + 1;
+    Int_ptr vmax = vmem + 2;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
+      vmem_init[0] = vsum_init;
+      vmem_init[1] = vmin_init;
+      vmem_init[2] = vmax_init;
       hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
                                  hipMemcpyHostToDevice ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
                                                     vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
+                                                    vsum, vsum_init,
+                                                    vmin, vmin_init,
+                                                    vmax, vmax_init,
                                                     iend );
       hipErrchk( hipGetLastError() );
 
@@ -131,9 +134,9 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::hip_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::hip_reduce, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<RAJA::hip_reduce, Int_type> vsum(vsum_init);
+      RAJA::ReduceMin<RAJA::hip_reduce, Int_type> vmin(vmin_init);
+      RAJA::ReduceMax<RAJA::hip_reduce, Int_type> vmax(vmax_init);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

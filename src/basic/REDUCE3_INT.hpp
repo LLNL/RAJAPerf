@@ -32,6 +32,9 @@
 
 #define REDUCE3_INT_DATA_SETUP \
   Int_ptr vec = m_vec; \
+  Int_type vsum_init = m_vsum_init; \
+  Int_type vmin_init = m_vmin_init; \
+  Int_type vmax_init = m_vmax_init;
 
 #define REDUCE3_INT_BODY  \
   vsum += vec[i] ; \

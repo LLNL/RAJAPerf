@@ -34,9 +34,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
+        Int_type vsum = vsum_init;
+        Int_type vmin = vmin_init;
+        Int_type vmax = vmax_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE3_INT_BODY;
@@ -62,9 +62,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
+        Int_type vsum = vsum_init;
+        Int_type vmin = vmin_init;
+        Int_type vmax = vmax_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           vsum += reduce3_base_lam(i);
@@ -87,9 +87,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(m_vsum_init);
-        RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
-        RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
+        RAJA::ReduceSum<RAJA::seq_reduce, Int_type> vsum(vsum_init);
+        RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(vmin_init);
+        RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(vmax_init);
 
         RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {

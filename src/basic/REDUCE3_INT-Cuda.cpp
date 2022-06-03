@@ -87,22 +87,25 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
 
     Int_ptr vmem;
     allocCudaDeviceData(vmem, 3);
+    Int_ptr vsum = vmem + 0;
+    Int_ptr vmin = vmem + 1;
+    Int_ptr vmax = vmem + 2;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      vmem_init[0] = m_vsum_init;
-      vmem_init[1] = m_vmin_init;
-      vmem_init[2] = m_vmax_init;
+      vmem_init[0] = vsum_init;
+      vmem_init[1] = vmin_init;
+      vmem_init[2] = vmax_init;
       cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
                                    cudaMemcpyHostToDevice ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       reduce3int<block_size><<<grid_size, block_size,
                    3*sizeof(Int_type)*block_size>>>(vec,
-                                                    vmem + 0, m_vsum_init,
-                                                    vmem + 1, m_vmin_init,
-                                                    vmem + 2, m_vmax_init,
+                                                    vsum, vsum_init,
+                                                    vmin, vmin_init,
+                                                    vmax, vmax_init,
                                                     iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -128,9 +131,9 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(m_vsum_init);
-      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
-      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
+      RAJA::ReduceSum<RAJA::cuda_reduce, Int_type> vsum(vsum_init);
+      RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(vmin_init);
+      RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(vmax_init);
 
       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

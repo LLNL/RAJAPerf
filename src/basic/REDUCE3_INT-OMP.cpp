@@ -36,9 +36,9 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
+        Int_type vsum = vsum_init;
+        Int_type vmin = vmin_init;
+        Int_type vmax = vmax_init;
 
         #pragma omp parallel for reduction(+:vsum), \
                                  reduction(min:vmin), \
@@ -66,9 +66,9 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Int_type vsum = m_vsum_init;
-        Int_type vmin = m_vmin_init;
-        Int_type vmax = m_vmax_init;
+        Int_type vsum = vsum_init;
+        Int_type vmin = vmin_init;
+        Int_type vmax = vmax_init;
 
         #pragma omp parallel for reduction(+:vsum), \
                                  reduction(min:vmin), \
@@ -94,9 +94,9 @@ void REDUCE3_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(m_vsum_init);
-        RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(m_vmin_init);
-        RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(m_vmax_init);
+        RAJA::ReduceSum<RAJA::omp_reduce, Int_type> vsum(vsum_init);
+        RAJA::ReduceMin<RAJA::omp_reduce, Int_type> vmin(vmin_init);
+        RAJA::ReduceMax<RAJA::omp_reduce, Int_type> vmax(vmax_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
