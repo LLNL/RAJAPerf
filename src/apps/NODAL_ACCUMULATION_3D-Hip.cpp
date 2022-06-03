@@ -100,6 +100,33 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
     NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
+
+    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto nodal_accumulation_3d_lambda = [=] __device__ (Index_type ii) {
+        NODAL_ACCUMULATION_3D_BODY_INDEX;
+        NODAL_ACCUMULATION_3D_BODY_ATOMIC(::atomicAdd);
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(nodal_accumulation_3d_lambda)>),
+                                       dim3(grid_size), dim3(block_size), 0, 0,
+                                       ibegin, iend,
+                                       nodal_accumulation_3d_lambda);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
@@ -160,6 +187,33 @@ void NODAL_ACCUMULATION_3D::runHipVariantUnsafe(VariantID vid)
 
     NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
+
+    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto nodal_accumulation_3d_lambda = [=] __device__ (Index_type ii) {
+        NODAL_ACCUMULATION_3D_BODY_INDEX;
+        NODAL_ACCUMULATION_3D_BODY_ATOMIC(RAJAPERF_HIP_unsafeAtomicAdd);
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(nodal_accumulation_3d_lambda)>),
+                                       dim3(grid_size), dim3(block_size), 0, 0,
+                                       ibegin, iend,
+                                       nodal_accumulation_3d_lambda);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
+
   } else {
      getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -171,24 +225,24 @@ void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid, size_t tune_idx)
 
   size_t t = 0;
 
-  if ( vid == Base_HIP ) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
+      if (tune_idx == t) {
 
-        if (tune_idx == t) {
-
-          runHipVariantImpl<block_size>(vid);
-
-        }
-
-        t += 1;
+        runHipVariantImpl<block_size>(vid);
 
       }
 
-    });
+      t += 1;
+
+    }
+
+  });
+
+  if ( vid == Base_HIP || vid == Lambda_HIP ) {
 
     if (have_unsafe_atomics) {
 
@@ -211,29 +265,6 @@ void NODAL_ACCUMULATION_3D::runHipVariant(VariantID vid, size_t tune_idx)
 
     }
 
-  } else if ( vid == RAJA_HIP ) {
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        if (tune_idx == t) {
-
-          runHipVariantImpl<block_size>(vid);
-
-        }
-
-        t += 1;
-
-      }
-
-    });
-
-  } else {
-
-    getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;
-
   }
 
 }
@@ -242,18 +273,18 @@ void NODAL_ACCUMULATION_3D::setHipTuningDefinitions(VariantID vid)
 {
   bool have_unsafe_atomics = haveHipUnsafeAtomics();
 
-  if ( vid == Base_HIP ) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    }
 
-      }
+  });
 
-    });
+  if ( vid == Base_HIP || vid == Lambda_HIP ) {
 
     if (have_unsafe_atomics) {
 
@@ -269,19 +300,6 @@ void NODAL_ACCUMULATION_3D::setHipTuningDefinitions(VariantID vid)
       });
 
     }
-
-  } else if ( vid == RAJA_HIP ) {
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
-
-      }
-
-    });
 
   }
 

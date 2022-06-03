@@ -63,9 +63,11 @@ NODAL_ACCUMULATION_3D::NODAL_ACCUMULATION_3D(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 }
 

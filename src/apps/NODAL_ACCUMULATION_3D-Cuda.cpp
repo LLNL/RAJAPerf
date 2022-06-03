@@ -84,6 +84,31 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
     NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
 
+  } else if ( vid == Lambda_CUDA ) {
+
+    NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
+
+    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto nodal_accumulation_3d_lambda = [=] __device__ (Index_type ii) {
+        NODAL_ACCUMULATION_3D_BODY_INDEX;
+        NODAL_ACCUMULATION_3D_BODY_ATOMIC(::atomicAdd);
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+          ibegin, iend, nodal_accumulation_3d_lambda);
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
+
   } else if ( vid == RAJA_CUDA ) {
 
     NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
