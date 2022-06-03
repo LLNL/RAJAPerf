@@ -63,7 +63,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type sumx = m_sumx_init;
+      Real_type sumx = sumx_init;
 
       #pragma omp target teams distribute parallel for map(tofrom: sumx) reduction(+:sumx) \
                          thread_limit(threads_per_team) schedule(static, 1)
@@ -86,7 +86,7 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(sumx_init);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {

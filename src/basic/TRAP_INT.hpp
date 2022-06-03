@@ -34,7 +34,8 @@
   Real_type xp = m_xp; \
   Real_type y = m_y; \
   Real_type yp = m_yp; \
-  Real_type h = m_h;
+  Real_type h = m_h; \
+  Real_type sumx_init = m_sumx_init;
 
 #define TRAP_INT_BODY \
   Real_type x = x0 + i*h; \

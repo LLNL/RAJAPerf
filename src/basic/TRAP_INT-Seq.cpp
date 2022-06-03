@@ -47,7 +47,7 @@ void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sumx = m_sumx_init;
+        Real_type sumx = sumx_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           TRAP_INT_BODY;
@@ -72,7 +72,7 @@ void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sumx = m_sumx_init;
+        Real_type sumx = sumx_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           sumx += trapint_base_lam(i);
@@ -91,7 +91,7 @@ void TRAP_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
+        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(sumx_init);
 
         RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {

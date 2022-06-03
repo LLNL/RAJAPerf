@@ -49,7 +49,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sumx = m_sumx_init;
+        Real_type sumx = sumx_init;
 
         #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -74,7 +74,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Real_type sumx = m_sumx_init;
+        Real_type sumx = sumx_init;
 
         #pragma omp parallel for reduction(+:sumx)
         for (Index_type i = ibegin; i < iend; ++i ) {
@@ -94,7 +94,7 @@ void TRAP_INT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(m_sumx_init);
+        RAJA::ReduceSum<RAJA::omp_reduce, Real_type> sumx(sumx_init);
 
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {

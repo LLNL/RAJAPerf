@@ -102,12 +102,12 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     TRAP_INT_DATA_SETUP_HIP;
 
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocAndInitHipDeviceData(sumx, &sumx_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(sumx, &m_sumx_init, 1);
+      initHipDeviceData(sumx, &sumx_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0, x0, xp,
@@ -136,7 +136,7 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sumx(m_sumx_init);
+      RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sumx(sumx_init);
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -168,12 +168,12 @@ void TRAP_INT::runHipVariantUnsafe(VariantID vid)
     TRAP_INT_DATA_SETUP_HIP;
 
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocAndInitHipDeviceData(sumx, &sumx_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(sumx, &m_sumx_init, 1);
+      initHipDeviceData(sumx, &sumx_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((trapint_unsafe<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0, x0, xp,
