@@ -22,6 +22,9 @@
   Real_ptr b = m_b; \
   Real_type dot_init = m_dot_init;
 
+#define DOT_VAL  \
+  Real_type val = a[i] * b[i] ;
+
 #define DOT_BODY  \
   dot += a[i] * b[i] ;
 

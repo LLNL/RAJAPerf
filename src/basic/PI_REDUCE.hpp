@@ -27,6 +27,10 @@
   Real_type dx = m_dx; \
   Real_type pi_init = m_pi_init;
 
+#define PI_REDUCE_VAL \
+  double x = (double(i) + 0.5) * dx; \
+  double val = dx / (1.0 + x * x);
+
 #define PI_REDUCE_BODY \
   double x = (double(i) + 0.5) * dx; \
   pi += dx / (1.0 + x * x);

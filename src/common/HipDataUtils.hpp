@@ -222,6 +222,31 @@ void deallocHipPinnedData(T& pptr)
 
 }  // closing brace for rajaperf namespace
 
+
+#define RAJAPERF_REDUCE_1_HIP(type, make_val, dst, init, op, atomicOp) \
+  \
+  HIP_DYNAMIC_SHARED(type, _shmem); \
+  \
+  _shmem[ threadIdx.x ] = init; \
+  \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
+    make_val; \
+    _shmem[ threadIdx.x ] = op(_shmem[ threadIdx.x ], val); \
+  } \
+  __syncthreads(); \
+  \
+  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
+    if ( threadIdx.x < i ) { \
+      _shmem[ threadIdx.x ] = op(_shmem[ threadIdx.x ], _shmem[ threadIdx.x + i ]); \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicOp( dst, _shmem[ 0 ] ); \
+  }
+
 #endif // RAJA_ENABLE_HIP
 
 #endif  // closing endif for header file include guard

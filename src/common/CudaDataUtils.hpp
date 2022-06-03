@@ -193,6 +193,31 @@ void deallocCudaPinnedData(T& pptr)
 
 }  // closing brace for rajaperf namespace
 
+
+#define RAJAPERF_REDUCE_1_CUDA(type, make_val, dst, init, op, atomicOp) \
+  \
+  extern __shared__ type _shmem[ ]; \
+  \
+  _shmem[ threadIdx.x ] = init; \
+  \
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
+        i < iend ; i += gridDim.x * block_size ) { \
+    make_val; \
+    _shmem[ threadIdx.x ] = op(_shmem[ threadIdx.x ], val); \
+  } \
+  __syncthreads(); \
+  \
+  for ( int i = block_size / 2; i > 0; i /= 2 ) { \
+    if ( threadIdx.x < i ) { \
+      _shmem[ threadIdx.x ] = op(_shmem[ threadIdx.x ], _shmem[ threadIdx.x + i ]); \
+    } \
+     __syncthreads(); \
+  } \
+  \
+  if ( threadIdx.x == 0 ) { \
+    atomicOp( dst, _shmem[ 0 ] ); \
+  }
+
 #endif // RAJA_ENABLE_CUDA
 
 #endif  // closing endif for header file include guard

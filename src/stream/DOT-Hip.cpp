@@ -31,26 +31,7 @@ namespace stream
   deallocHipDeviceData(b);
 
 #define DOT_BODY_HIP(atomicAdd) \
-  \
-  HIP_DYNAMIC_SHARED( Real_type, pdot) \
-  \
-  pdot[ threadIdx.x ] = dot_init; \
-  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
-        i < iend ; i += gridDim.x * block_size ) { \
-    pdot[ threadIdx.x ] += a[ i ] * b[i]; \
-  } \
-  __syncthreads(); \
-  \
-  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
-    if ( threadIdx.x < i ) { \
-      pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ]; \
-    } \
-     __syncthreads(); \
-  } \
-  \
-  if ( threadIdx.x == 0 ) { \
-    atomicAdd( dprod, pdot[ 0 ] ); \
-  }
+  RAJAPERF_REDUCE_1_HIP(Real_type, DOT_VAL, dprod, dot_init, RAJAPERF_ADD_OP, atomicAdd)
 
 template < size_t block_size >
 __launch_bounds__(block_size)

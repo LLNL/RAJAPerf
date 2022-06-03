@@ -306,4 +306,19 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
     });                                                                        \
   }
 
+
+#define RAJAPERF_ADD(lhs, rhs) \
+  ( (lhs) + (rhs) )
+#define RAJAPERF_MIN(lhs, rhs) \
+  ( (lhs) < (rhs) ? (lhs) : (rhs) )
+#define RAJAPERF_MAX(lhs, rhs) \
+  ( (rhs) < (lhs) ? (lhs) : (rhs) )
+
+#define RAJAPERF_ADD_OP \
+  RAJAPERF_ADD
+#define RAJAPERF_MIN_OP \
+  RAJAPERF_MIN
+#define RAJAPERF_MAX_OP \
+  RAJAPERF_MAX
+
 #endif  // closing endif for header file include guard

@@ -29,6 +29,9 @@
 #define REDUCE_SUM_STD_ARGS  \
   x + ibegin, x + iend
 
+#define REDUCE_SUM_VAL \
+  Real_type val = x[i];
+
 #define REDUCE_SUM_BODY \
   sum += x[i];
 

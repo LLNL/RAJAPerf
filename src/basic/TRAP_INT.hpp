@@ -37,6 +37,10 @@
   Real_type h = m_h; \
   Real_type sumx_init = m_sumx_init;
 
+#define TRAP_INT_VAL \
+  Real_type x = x0 + i*h; \
+  Real_type val = trap_int_func(x, y, xp, yp);
+
 #define TRAP_INT_BODY \
   Real_type x = x0 + i*h; \
   sumx += trap_int_func(x, y, xp, yp);

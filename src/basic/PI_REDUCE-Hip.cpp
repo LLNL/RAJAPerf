@@ -22,28 +22,7 @@ namespace basic
 {
 
 #define PI_REDUCE_BODY_HIP(atomicAdd) \
-  \
-  HIP_DYNAMIC_SHARED(Real_type, ppi); \
-  \
-  ppi[ threadIdx.x ] = pi_init; \
-  \
-  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
-        i < iend ; i += gridDim.x * block_size ) { \
-    double x = (double(i) + 0.5) * dx; \
-    ppi[ threadIdx.x ] += dx / (1.0 + x * x); \
-  } \
-  __syncthreads(); \
-  \
-  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
-    if ( threadIdx.x < i ) { \
-      ppi[ threadIdx.x ] += ppi[ threadIdx.x + i ]; \
-    } \
-     __syncthreads(); \
-  } \
-  \
-  if ( threadIdx.x == 0 ) { \
-    atomicAdd( dpi, ppi[ 0 ] ); \
-  }
+  RAJAPERF_REDUCE_1_HIP(Real_type, PI_REDUCE_VAL, dpi, pi_init, RAJAPERF_ADD_OP, atomicAdd)
 
 template < size_t block_size >
 __launch_bounds__(block_size)

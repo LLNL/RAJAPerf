@@ -35,26 +35,8 @@ namespace algorithm
 #define REDUCE_SUM_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(x);
 
-#define REDUCE_SUM_BODY_HIP(atomicAdd)  \
-  HIP_DYNAMIC_SHARED(Real_type, psum); \
-  \
-  psum[ threadIdx.x ] = sum_init; \
-  for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
-        i < iend ; i += gridDim.x * block_size ) { \
-    psum[ threadIdx.x ] += x[i]; \
-  } \
-  __syncthreads(); \
-  \
-  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) { \
-    if ( threadIdx.x < i ) { \
-      psum[ threadIdx.x ] += psum[ threadIdx.x + i ]; \
-    } \
-     __syncthreads(); \
-  } \
-  \
-  if ( threadIdx.x == 0 ) { \
-    atomicAdd( dsum, psum[ 0 ] ); \
-  }
+#define REDUCE_SUM_BODY_HIP(atomicAdd) \
+  RAJAPERF_REDUCE_1_HIP(Real_type, REDUCE_SUM_VAL, dsum, sum_init, RAJAPERF_ADD_OP, atomicAdd)
 
 template < size_t block_size >
 __launch_bounds__(block_size)
