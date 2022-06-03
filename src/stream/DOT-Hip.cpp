@@ -34,7 +34,7 @@ namespace stream
   \
   HIP_DYNAMIC_SHARED( Real_type, pdot) \
   \
-  pdot[ threadIdx.x ] = dprod_init; \
+  pdot[ threadIdx.x ] = dot_init; \
   for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
         i < iend ; i += gridDim.x * block_size ) { \
     pdot[ threadIdx.x ] += a[ i ] * b[i]; \
@@ -55,7 +55,7 @@ namespace stream
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
-                    Real_ptr dprod, Real_type dprod_init,
+                    Real_ptr dprod, Real_type dot_init,
                     Index_type iend)
 {
   DOT_BODY_HIP(::atomicAdd)
@@ -64,7 +64,7 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot_unsafe(Real_ptr a, Real_ptr b,
-                    Real_ptr dprod, Real_type dprod_init,
+                    Real_ptr dprod, Real_type dot_init,
                     Index_type iend)
 {
   DOT_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
@@ -85,17 +85,17 @@ void DOT::runHipVariantImpl(VariantID vid)
     DOT_DATA_SETUP_HIP;
 
     Real_ptr dprod;
-    allocAndInitHipDeviceData(dprod, &m_dot_init, 1);
+    allocAndInitHipDeviceData(dprod, &dot_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dprod, &m_dot_init, 1);
+      initHipDeviceData(dprod, &dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
                                             sizeof(Real_type)*block_size, 0,
-                         a, b, dprod, m_dot_init, iend );
+                         a, b, dprod, dot_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;
@@ -117,7 +117,7 @@ void DOT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> dot(m_dot_init);
+       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> dot(dot_init);
 
        RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -149,17 +149,17 @@ void DOT::runHipVariantUnsafe(VariantID vid)
     DOT_DATA_SETUP_HIP;
 
     Real_ptr dprod;
-    allocAndInitHipDeviceData(dprod, &m_dot_init, 1);
+    allocAndInitHipDeviceData(dprod, &dot_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dprod, &m_dot_init, 1);
+      initHipDeviceData(dprod, &dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((dot_unsafe<block_size>), dim3(grid_size), dim3(block_size),
                                             sizeof(Real_type)*block_size, 0,
-                         a, b, dprod, m_dot_init, iend );
+                         a, b, dprod, dot_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;

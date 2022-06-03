@@ -34,7 +34,7 @@ namespace stream
   \
   extern __shared__ Real_type pdot[ ]; \
   \
-  pdot[ threadIdx.x ] = dprod_init; \
+  pdot[ threadIdx.x ] = dot_init; \
   for ( Index_type i = blockIdx.x * block_size + threadIdx.x; \
         i < iend ; i += gridDim.x * block_size ) { \
     pdot[ threadIdx.x ] += a[ i ] * b[i]; \
@@ -55,7 +55,7 @@ namespace stream
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
-                    Real_ptr dprod, Real_type dprod_init,
+                    Real_ptr dprod, Real_type dot_init,
                     Index_type iend)
 {
   DOT_BODY_CUDA(::atomicAdd)
@@ -76,16 +76,16 @@ void DOT::runCudaVariantImpl(VariantID vid)
     DOT_DATA_SETUP_CUDA;
 
     Real_ptr dprod;
-    allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
+    allocAndInitCudaDeviceData(dprod, &dot_init, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dprod, &m_dot_init, 1);
+      initCudaDeviceData(dprod, &dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
-          a, b, dprod, m_dot_init, iend );
+          a, b, dprod, dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
@@ -107,7 +107,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
+       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(dot_init);
 
        RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {

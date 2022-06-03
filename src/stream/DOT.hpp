@@ -19,7 +19,8 @@
 
 #define DOT_DATA_SETUP \
   Real_ptr a = m_a; \
-  Real_ptr b = m_b;
+  Real_ptr b = m_b; \
+  Real_type dot_init = m_dot_init;
 
 #define DOT_BODY  \
   dot += a[i] * b[i] ;

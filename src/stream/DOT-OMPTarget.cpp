@@ -52,7 +52,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Real_type dot = m_dot_init;
+      Real_type dot = dot_init;
 
       #pragma omp target is_device_ptr(a, b) device( did ) map(tofrom:dot)
       #pragma omp teams distribute parallel for reduction(+:dot) \
@@ -75,7 +75,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(m_dot_init);
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> dot(dot_init);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
