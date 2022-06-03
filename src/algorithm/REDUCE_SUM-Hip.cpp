@@ -205,6 +205,42 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipDeviceData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dsum, &sum_init, 1);
+
+      auto reduce_sum_lambda = [=] __device__ () {
+        REDUCE_SUM_BODY_HIP(::atomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (lambda_hip<block_size, decltype(reduce_sum_lambda)>),
+                          dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          reduce_sum_lambda );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsum;
+      Real_ptr plsum = &lsum;
+      getHipDeviceData(plsum, dsum, 1);
+
+      m_sum = lsum;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
   } else if ( vid == RAJA_HIP ) {
 
     REDUCE_SUM_DATA_SETUP_HIP;
@@ -273,6 +309,42 @@ void REDUCE_SUM::runHipVariantUnsafe(VariantID vid)
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == Lambda_HIP ) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipDeviceData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      initHipDeviceData(dsum, &sum_init, 1);
+
+      auto reduce_sum_lambda = [=] __device__ () {
+        REDUCE_SUM_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (lambda_hip<block_size, decltype(reduce_sum_lambda)>),
+                          dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          reduce_sum_lambda );
+      hipErrchk( hipGetLastError() );
+
+      Real_type lsum;
+      Real_ptr plsum = &lsum;
+      getHipDeviceData(plsum, dsum, 1);
+
+      m_sum = lsum;
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
   } else {
 
     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
@@ -297,22 +369,26 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
     t += 1;
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+  }
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-        if (tune_idx == t) {
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
 
-          runHipVariantBlock<block_size>(vid);
+      if (tune_idx == t) {
 
-        }
-
-        t += 1;
+        runHipVariantBlock<block_size>(vid);
 
       }
 
-    });
+      t += 1;
+
+    }
+
+  });
+
+  if ( vid == Base_HIP || vid == Lambda_HIP ) {
 
     if (have_unsafe_atomics) {
 
@@ -335,29 +411,6 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
     }
 
-  } else if ( vid == RAJA_HIP ) {
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        if (tune_idx == t) {
-
-          runHipVariantBlock<block_size>(vid);
-
-        }
-
-        t += 1;
-
-      }
-
-    });
-
-  } else {
-
-    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
-
   }
 
 }
@@ -374,16 +427,20 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
     addVariantTuningName(vid, "cub");
 #endif
 
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+  }
 
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
 
-      }
+      addVariantTuningName(vid, "block_"+std::to_string(block_size));
 
-    });
+    }
+
+  });
+
+  if ( vid == Base_HIP || vid == Lambda_HIP ) {
 
     if (have_unsafe_atomics) {
 
@@ -399,19 +456,6 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
       });
 
     }
-
-  } else if ( vid == RAJA_HIP ) {
-
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
-
-      if (run_params.numValidGPUBlockSize() == 0u ||
-          run_params.validGPUBlockSize(block_size)) {
-
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));
-
-      }
-
-    });
 
   }
 
