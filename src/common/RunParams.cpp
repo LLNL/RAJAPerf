@@ -46,6 +46,10 @@ RunParams::RunParams(int argc, char** argv)
    invalid_variant_input(),
    exclude_variant_input(),
    invalid_exclude_variant_input(),
+   tuning_input(),
+   invalid_tuning_input(),
+   exclude_tuning_input(),
+   invalid_exclude_tuning_input(),
    feature_input(),
    invalid_feature_input(),
    exclude_feature_input(),
@@ -142,6 +146,24 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_exclude_variant_input = ";
   for (size_t j = 0; j < invalid_exclude_variant_input.size(); ++j) {
     str << "\n\t" << invalid_exclude_variant_input[j];
+  }
+
+  str << "\n tuning_input = ";
+  for (size_t j = 0; j < tuning_input.size(); ++j) {
+    str << "\n\t" << tuning_input[j];
+  }
+  str << "\n invalid_tuning_input = ";
+  for (size_t j = 0; j < invalid_tuning_input.size(); ++j) {
+    str << "\n\t" << invalid_tuning_input[j];
+  }
+
+  str << "\n exclude_tuning_input = ";
+  for (size_t j = 0; j < exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << exclude_tuning_input[j];
+  }
+  str << "\n invalid_exclude_tuning_input = ";
+  for (size_t j = 0; j < invalid_exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_tuning_input[j];
   }
 
   str << "\n feature_input = ";
@@ -424,6 +446,38 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( std::string(argv[i]) == std::string("--tunings") ||
+                std::string(argv[i]) == std::string("-t") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          tuning_input.push_back(opt);
+          ++i;
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--exclude-tunings") ||
+                std::string(argv[i]) == std::string("-et") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_tuning_input.push_back(opt);
+          ++i;
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--features") ||
                 std::string(argv[i]) == std::string("-f") ) {
 
@@ -620,13 +674,25 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (names of variants to run)\n";
   str << "\t\t Examples...\n"
       << "\t\t --variants RAJA_CUDA (run all RAJA_CUDA kernel variants)\n"
-      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
+      << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and RAJA_CUDA variants)\n\n";
 
   str << "\t --exclude-variants, -ev <space-separated strings> [Default is exclude none]\n"
       << "\t      (names of variants to exclude)\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
-      << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
+      << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and RAJA_CUDA variants)\n\n";
+
+  str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
+      << "\t      (names of tunings to run)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --tunings default (run all default kernel tunings)\n"
+      << "\t\t -t block_256 reduce_256 (run block_256 and reduce_256 tunings)\n\n";
+
+  str << "\t --exclude-tunings, -et <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of tunings to exclude)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-tunings default (exclude all default kernel tunings)\n"
+      << "\t\t -et block_256 reduce_256 (exclude block_256 and reduce_256 tunings)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
