@@ -147,22 +147,29 @@ void KernelBase::setVariantDefined(VariantID vid)
 
 void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
-  running_variant = vid;
-  running_tuning = tune_idx;
+  if (tune_idx < getNumVariantTunings(vid)) {
 
-  resetTimer();
+    running_variant = vid;
+    running_tuning = tune_idx;
 
-  resetDataInitCount();
-  this->setUp(vid, tune_idx);
+    resetTimer();
 
-  this->runKernel(vid, tune_idx);
+    resetDataInitCount();
+    this->setUp(vid, tune_idx);
 
-  this->updateChecksum(vid, tune_idx);
+    this->runKernel(vid, tune_idx);
 
-  this->tearDown(vid, tune_idx);
+    this->updateChecksum(vid, tune_idx);
 
-  running_variant = NumVariants;
-  running_tuning = getUnknownTuningIdx();
+    this->tearDown(vid, tune_idx);
+
+    running_variant = NumVariants;
+    running_tuning = getUnknownTuningIdx();
+
+  } else {
+    getCout() << "\n  " << getName()
+              << " : Unknown vid = " << vid << ", tuning idx = " << tune_idx << std::endl;
+  }
 }
 
 void KernelBase::recordExecTime()

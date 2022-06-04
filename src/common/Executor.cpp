@@ -127,6 +127,7 @@ void Executor::setupSuite()
 
   using Slist = list<string>;
   using Svector = vector<string>;
+  using Sset = set<string>;
   using COvector = vector<RunParams::CombinerOpt>;
   using KIDset = set<KernelID>;
   using VIDset = set<VariantID>;
@@ -614,39 +615,173 @@ void Executor::setupSuite()
       }
 
       //
-      // Make a single ordering of tuning names for each variant across kernels.
+      // Determine tunings to execute from input.
+      // tuning_names_order_map will be non-duplicated ordered map of tuning
+      // names to order idx to run.
+      // variant_tuning_names_order_map will be the same for each variant.
+      //
+      std::unordered_map<std::string, size_t> tuning_names_order_map;
+      std::unordered_map<std::string, size_t> variant_tuning_names_order_map[NumVariants];
+
+      //
+      // Record tuning names and remember ordering for each variant across kernels.
+      // Note the +1 to leave space for the "default" tuning
       //
       for (VariantID vid : variant_ids) {
-        std::unordered_map<std::string, size_t> tuning_names_order_map;
         for (const KernelBase* kernel : kernels) {
           for (std::string const& tuning_name :
                kernel->getVariantTuningNames(vid)) {
             if (tuning_names_order_map.find(tuning_name) ==
                 tuning_names_order_map.end()) {
               tuning_names_order_map.emplace(
-                  tuning_name, tuning_names_order_map.size());
+                  tuning_name, tuning_names_order_map.size()+1);
+            }
+            if (variant_tuning_names_order_map[vid].find(tuning_name) ==
+                variant_tuning_names_order_map[vid].end()) {
+              variant_tuning_names_order_map[vid].emplace(
+                  tuning_name, variant_tuning_names_order_map[vid].size()+1);
             }
           }
         }
-        tuning_names[vid].resize(tuning_names_order_map.size());
-        for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-          tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
-        }
         // reorder to put "default" first
-        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
-        if (default_order_iter != tuning_names_order_map.end()) {
-          size_t default_idx = default_order_iter->second;
-          std::string default_name = std::move(tuning_names[vid][default_idx]);
-          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
-          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+        auto default_order_iter = variant_tuning_names_order_map[vid].find(KernelBase::getDefaultTuningName());
+        if (default_order_iter != variant_tuning_names_order_map[vid].end()) {
+          default_order_iter->second = 0;
+        }
+      }
+      // reorder to put "default" first
+      auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+      if (default_order_iter != tuning_names_order_map.end()) {
+        default_order_iter->second = 0;
+      }
+
+      //
+      // Parse the excluded tuning into a set for easy lookup
+      //
+      const Svector& exclude_tuning_names = run_params.getExcludeTuningInput();
+
+      Sset exclude_tun;
+
+      if ( !exclude_tuning_names.empty() ) {
+
+        //
+        // Parse input to determine which tunings to exclude.
+        //
+        // Assemble invalid input for warning message.
+        //
+
+        Svector invalid;
+
+        for (std::string const& exclude_tuning_name : exclude_tuning_names) {
+
+          if (tuning_names_order_map.find(exclude_tuning_name) !=
+              tuning_names_order_map.end()) {
+            exclude_tun.emplace(exclude_tuning_name);
+          } else {
+            invalid.push_back(exclude_tuning_name);
+          }
+        }
+
+        run_params.setInvalidExcludeTuningInput(invalid);
+
+      }
+
+      //
+      // Determine tunings to execute from input.
+      // Remove excluded tunings from tuning_names_order_map.
+      //
+      const Svector& include_tuning_names = run_params.getTuningInput();
+
+      if ( include_tuning_names.empty() ) {
+
+        //
+        // No tunings specified in input options, run all available.
+        // Also, set reference tuning if specified.
+        //
+        for (auto var_tun_it = tuning_names_order_map.begin();
+             var_tun_it != tuning_names_order_map.end(); ) {
+          std::string const& tuning_name = var_tun_it->first;
+
+          if (exclude_tun.find(tuning_name) != exclude_tun.end()) {
+            var_tun_it = tuning_names_order_map.erase(var_tun_it);
+          } else {
+            ++var_tun_it;
+          }
+        }
+
+      } else {
+
+        //
+        // Parse input to determine which tunings to run:
+        //   - tunings to run will be the intersection of available tunings
+        //     and those specified in input
+        //
+        // Assemble invalid input for warning message.
+        //
+
+        Svector invalid;
+
+        std::unordered_map<std::string, size_t> include_tuning_names_order_map;
+
+        for (std::string include_tuning_name : include_tuning_names) {
+
+          auto order_it = tuning_names_order_map.find(include_tuning_name);
+          if (order_it != tuning_names_order_map.end()) {
+            if (exclude_tun.find(include_tuning_name) == exclude_tun.end()) {
+              include_tuning_names_order_map.emplace(*order_it);
+            }
+          } else {
+            invalid.push_back(include_tuning_name);
+          }
+        }
+
+        tuning_names_order_map = include_tuning_names_order_map;
+
+        run_params.setInvalidTuningInput(invalid);
+
+      }
+
+      //
+      // Fill variant_tuning_names using tunings still in
+      // tuning_names_order_map and order from variant_tuning_names_order_map.
+      //
+      for (VariantID vid : variant_ids) {
+        std::map<size_t, std::string> variant_tuning_names_order;
+        for (auto const& tuning_name_idx_pair : variant_tuning_names_order_map[vid]) {
+          if (tuning_names_order_map.find(tuning_name_idx_pair.first) !=
+              tuning_names_order_map.end()) {
+            variant_tuning_names_order.emplace(
+                tuning_name_idx_pair.second, tuning_name_idx_pair.first);
+          }
+        }
+        for (auto const& idx_tuning_name_pair : variant_tuning_names_order) {
+          variant_tuning_names[vid].emplace_back(idx_tuning_name_pair.second);
         }
       }
 
       //
-      // If we've gotten to this point, we have good input to run.
+      // Fill tuning_names using tunings still in
+      // tuning_names_order_map and order from tuning_names_order_map.
       //
-      if ( run_params.getInputState() != RunParams::DryRun &&
-           run_params.getInputState() != RunParams::CheckRun ) {
+      std::map<size_t, std::string> variant_tuning_names_order;
+      for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
+        variant_tuning_names_order.emplace(
+            tuning_name_idx_pair.second, tuning_name_idx_pair.first);
+      }
+      for (auto const& idx_tuning_name_pair : variant_tuning_names_order) {
+        tuning_names.emplace(idx_tuning_name_pair.second);
+      }
+
+      if ( !(run_params.getInvalidTuningInput().empty()) ||
+           !(run_params.getInvalidExcludeTuningInput().empty()) ) {
+
+        run_params.setInputState(RunParams::BadInput);
+
+      } else if ( run_params.getInputState() != RunParams::DryRun &&
+                  run_params.getInputState() != RunParams::CheckRun ) {
+        //
+        // If we've gotten to this point, we have good input to run.
+        //
         run_params.setInputState(RunParams::PerfRun);
       }
 
@@ -718,8 +853,9 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\nVariants and Tunings"
         << "\n--------\n";
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      for (std::string const& tuning_name : tuning_names[variant_ids[iv]]) {
-        str << getVariantName(variant_ids[iv]) << "-" << tuning_name<< endl;
+      std::string const& variant_name = getVariantName(variant_ids[iv]);
+      for (std::string const& tuning_name : variant_tuning_names[variant_ids[iv]]) {
+        str << variant_name << "-" << tuning_name<< endl;
       }
     }
 
@@ -908,17 +1044,24 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
-    for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
+    for (std::string const& tuning_name : kernel->getVariantTuningNames(vid)) {
 
-      if ( run_params.showProgress() ) {
-        getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
+      if (tuning_names.find(tuning_name) != tuning_names.end()) {
+
+        if ( run_params.showProgress() ) {
+          getCout() << "     Running " << tuning_name << " tuning";
+        }
+        kernel->execute(vid, tuning_name);
+        if ( run_params.showProgress() ) {
+          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+        }
+
+      } else {
+        if ( run_params.showProgress() ) {
+          getCout() << "     Skipping " << tuning_name << " tuning" << endl;
+        }
       }
-      kernel->execute(vid, tune_idx);
-      if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
-      }
-    }
+    } // loop over tunings
   } // loop over variants
 }
 
@@ -1010,7 +1153,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
     vector<std::vector<size_t>> vartuncol_width(variant_ids.size());
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
       size_t var_width = max(prec+2, getVariantName(variant_ids[iv]).size());
-      for (std::string const& tuning_name : tuning_names[variant_ids[iv]]) {
+      for (std::string const& tuning_name : variant_tuning_names[variant_ids[iv]]) {
         vartuncol_width[iv].emplace_back(max(var_width, tuning_name.size()));
       }
     }
@@ -1025,7 +1168,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
     //
 
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      for (size_t it = 0; it < tuning_names[variant_ids[iv]].size(); ++it) {
+      for (size_t it = 0; it < variant_tuning_names[variant_ids[iv]].size(); ++it) {
         file << sepchr;
       }
     }
@@ -1036,7 +1179,7 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
     //
     file <<left<< setw(kercol_width) << kernel_col_name;
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      for (size_t it = 0; it < tuning_names[variant_ids[iv]].size(); ++it) {
+      for (size_t it = 0; it < variant_tuning_names[variant_ids[iv]].size(); ++it) {
         file << sepchr <<left<< setw(vartuncol_width[iv][it])
              << getVariantName(variant_ids[iv]);
       }
@@ -1048,9 +1191,9 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
     //
     file <<left<< setw(kercol_width) << kernel_col_name;
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
-      for (size_t it = 0; it < tuning_names[variant_ids[iv]].size(); ++it) {
+      for (size_t it = 0; it < variant_tuning_names[variant_ids[iv]].size(); ++it) {
         file << sepchr <<left<< setw(vartuncol_width[iv][it])
-             << tuning_names[variant_ids[iv]][it];
+             << variant_tuning_names[variant_ids[iv]][it];
       }
     }
     file << endl;
@@ -1063,8 +1206,8 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
       file <<left<< setw(kercol_width) << kern->getName();
       for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
         VariantID vid = variant_ids[iv];
-        for (size_t it = 0; it < tuning_names[variant_ids[iv]].size(); ++it) {
-          std::string const& tuning_name = tuning_names[variant_ids[iv]][it];
+        for (size_t it = 0; it < variant_tuning_names[variant_ids[iv]].size(); ++it) {
+          std::string const& tuning_name = variant_tuning_names[variant_ids[iv]][it];
           file << sepchr <<right<< setw(vartuncol_width[iv][it]);
           if ( (mode == CSVRepMode::Speedup) &&
                (!kern->hasVariantTuningDefined(reference_vid, reference_tune_idx) ||
@@ -1117,8 +1260,8 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
         const string& variant_name = getVariantName(vid);
         // num variants and tuning
         // Includes the PM baseline and the variants and tunings to compared to it
-        fom_group_ncols[ifg] += tuning_names[vid].size();
-        for (const string& tuning_name : tuning_names[vid]) {
+        fom_group_ncols[ifg] += variant_tuning_names[vid].size();
+        for (const string& tuning_name : variant_tuning_names[vid]) {
           fom_col_width = max(fom_col_width, variant_name.size()+1+tuning_name.size());
         }
       }
@@ -1176,7 +1319,7 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
       for (size_t gv = 0; gv < group.variants.size(); ++gv) {
         VariantID vid = group.variants[gv];
         string variant_name = getVariantName(vid);
-        for (const string& tuning_name : tuning_names[vid]) {
+        for (const string& tuning_name : variant_tuning_names[vid]) {
           file << sepchr <<left<< setw(fom_col_width)
                << (variant_name+"-"+tuning_name) << pass;
         }
@@ -1207,7 +1350,7 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
         for (size_t gv = 0; gv < group.variants.size(); ++gv) {
           VariantID vid = group.variants[gv];
 
-          for (const string& tuning_name : tuning_names[vid]) {
+          for (const string& tuning_name : variant_tuning_names[vid]) {
 
             size_t tune_idx = kern->getVariantTuningIndex(vid, tuning_name);
 
@@ -1289,7 +1432,7 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
         for (size_t gv = 0; gv < group.variants.size(); ++gv) {
           VariantID vid = group.variants[gv];
 
-          for (const string& tuning_name : tuning_names[vid]) {
+          for (const string& tuning_name : variant_tuning_names[vid]) {
 
             size_t tune_idx = kern->getVariantTuningIndex(vid, tuning_name);
 

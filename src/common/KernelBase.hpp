@@ -165,6 +165,8 @@ public:
   Checksum_type getChecksum(VariantID vid, size_t tune_idx) const { return checksum[vid].at(tune_idx); }
 
   void execute(VariantID vid, size_t tune_idx);
+  void execute(VariantID vid, std::string const& tuning_name)
+    { execute(vid, getVariantTuningIndex(vid, tuning_name)); }
 
   void synchronize()
   {

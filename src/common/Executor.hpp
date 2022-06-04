@@ -85,7 +85,8 @@ private:
   RunParams run_params;
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
-  std::vector<std::string> tuning_names[NumVariants];
+  std::set<std::string> tuning_names;
+  std::vector<std::string> variant_tuning_names[NumVariants];
 
   VariantID reference_vid;
   size_t    reference_tune_idx;
