@@ -227,14 +227,14 @@ std::string getArch()
 }
 bool builtinSupported()
 {
-	std::string hipArch = getArch();
+   std::string hipArch = getArch();
 #if defined(RP_USE_DOUBLE)
-	if (hipArch=="gfx90a") 
-		return true;
+   if (hipArch=="gfx90a") 
+      return true;
 #endif
 #if defined(RP_USE_FLOAT)
-	if (hipArch=="gfx90a" || hipArch=="gfx908")
-		return true;
+   if (hipArch=="gfx90a" || hipArch=="gfx908")
+      return true;
 #endif
 return false;
 }
@@ -244,7 +244,7 @@ void MAT_FUSED_MUL_ADD::runHipVariant(VariantID vid, size_t tune_idx)
   bool builtin_supported = builtinSupported();
 
    size_t t = 0;
-  if ( vid == Base_HIP  && builtin_supported) {
+   if ( vid == Base_HIP  && builtin_supported) {
 
     if (tune_idx == t) {
 
@@ -283,14 +283,14 @@ void MAT_FUSED_MUL_ADD::runHipVariant(VariantID vid, size_t tune_idx)
 
 void MAT_FUSED_MUL_ADD::setHipTuningDefinitions(VariantID vid)
 {
-  bool builtin_supported = builtinSupported();
-  if ( vid == Base_HIP ) {
+   bool builtin_supported = builtinSupported();
+   if ( vid == Base_HIP ) {
 
-  if (builtin_supported) {
-    addVariantTuningName(vid, "builtin");
-  }
-  }
-    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+   if (builtin_supported) {
+      addVariantTuningName(vid, "builtin");
+      }
+   }
+   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
