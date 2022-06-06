@@ -89,9 +89,9 @@ __global__ void mat_fused_lam(const Index_type N, Lambda body)
 {
 constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
-  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
-     body(ii,col,row);
+    Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+    Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+    body(ii,col,row);
    }
 }
 void MAT_FUSED_MUL_ADD::runHipVariantBuiltin(VariantID vid)
@@ -172,7 +172,7 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
       hipLaunchKernelGGL((mat_fused_lam<block_size, decltype(mat_fused_lamda)>),
                          dim3(gridDim), dim3(blockDim), 0, 0,
                          iend, mat_fused_lamda);      
-    hipErrchk( hipGetLastError() );
+      hipErrchk( hipGetLastError() );
     }
     stopTimer();
 
@@ -203,10 +203,10 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
         >
         >
       >;
-      RAJA::kernel<EXEC_POL>(RAJA::make_tuple(row_range, col_range, ii_range),
-    [=] RAJA_DEVICE (Index_type row, Index_type col, Index_type ii) {
-        MAT_FUSED_MUL_ADD_BODY;
-        });
+    RAJA::kernel<EXEC_POL>(RAJA::make_tuple(row_range, col_range, ii_range),
+      [=] RAJA_DEVICE (Index_type row, Index_type col, Index_type ii) {
+      MAT_FUSED_MUL_ADD_BODY;
+     });
     stopTimer();
 
     MAT_FUSED_MUL_ADD_DATA_TEARDOWN_HIP;

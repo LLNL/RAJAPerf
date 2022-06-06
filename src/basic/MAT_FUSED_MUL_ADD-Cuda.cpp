@@ -52,10 +52,10 @@ __global__ void mat_fused_lam(Index_type N, Lambda body)
 {
 constexpr Index_type Ne = 16;
 for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
-  Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
-  Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
-     body(ii,col,row);
-   }
+    Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
+    Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
+    body(ii,col,row);
+  }
 }
 template < size_t block_size >
 void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
