@@ -117,7 +117,7 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernel<
-        RAJA::statement::For<2, RAJA::hip_block_z_loop,
+        RAJA::statement::For<2, RAJA::cuda_block_z_loop,
           RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, RAJA::cuda_block_y_direct,
             RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, RAJA::cuda_block_x_direct,
               RAJA::statement::For<1, RAJA::cuda_thread_y_direct,
