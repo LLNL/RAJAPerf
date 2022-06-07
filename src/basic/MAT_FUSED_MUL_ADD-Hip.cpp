@@ -190,9 +190,9 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernel<
-        RAJA::statement::For<2, RAJA::loop_exec,
-          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, RAJA::hip_block_y_loop,
-            RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, RAJA::hip_block_x_loop,
+        RAJA::statement::For<2, RAJA::hip_block_z_loop,
+          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>, RAJA::hip_block_y_direct,
+            RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>, RAJA::hip_block_x_direct,
               RAJA::statement::For<1, RAJA::hip_thread_y_direct,
                 RAJA::statement::For<0, RAJA::hip_thread_x_direct,
                   RAJA::statement::Lambda<0>
