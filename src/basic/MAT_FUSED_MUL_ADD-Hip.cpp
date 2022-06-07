@@ -63,7 +63,7 @@ __global__ void mat_fused_mul_add_builtin(const Real_ptr A, const Real_ptr B, Re
     b_idx += 4*Ne; // move two rows down
   }
 
-  #pragma unroll 4
+  RAJAPERF_UNROLL(4)
   for(Index_type i = 0; i < 4; ++i){
     const Index_type d_idx =  threadIdx.x
       + Ne * (threadIdx.y + 4 * i); 
