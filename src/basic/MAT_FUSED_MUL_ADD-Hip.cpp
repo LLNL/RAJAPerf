@@ -217,17 +217,10 @@ void MAT_FUSED_MUL_ADD::runHipVariantImpl(VariantID vid)
   }
 }
 namespace{
-std::string getArch()
-{  
-  hipDeviceProp_t devProp;
-  hipGetDeviceProperties(&devProp, 0);
-  std::string gcnArchName(devProp.gcnArchName);
-  std::string hipArch = gcnArchName.substr(0, 6);
-  return hipArch;
-}
+
 bool builtinSupported()
 {
-   std::string hipArch = getArch();
+   std::string hipArch = getHipArch();
 #if defined(RP_USE_DOUBLE)
    if (hipArch=="gfx90a") 
       return true;

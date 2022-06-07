@@ -22,7 +22,6 @@
 
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 
-
 namespace rajaperf
 {
 
@@ -178,6 +177,14 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
+static std::string getHipArch()
+{  
+  hipDeviceProp_t devProp;
+  hipGetDeviceProperties(&devProp, 0);
+  std::string gcnArchName(devProp.gcnArchName);
+  std::string hipArch = gcnArchName.substr(0, 6);
+  return hipArch;
+}
 
 }  // closing brace for rajaperf namespace
 
