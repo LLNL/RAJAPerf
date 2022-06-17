@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "MULADDSUB.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 
 #include <iostream>
@@ -68,3 +69,4 @@ void MULADDSUB::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif
