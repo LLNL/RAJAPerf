@@ -10,10 +10,7 @@ include_directories(.)
 
 add_subdirectory(common)
 add_subdirectory(basic)
-
-# TODO: We will add Kokkos variants of kernel groups one by one
-# when all are done this difference is not needed anymore
-if(NOT ENABLE_KOKKOS)
+add_subdirectory(basic-kokkos)
 add_subdirectory(apps)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
@@ -24,21 +21,11 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
     polybench
     stream
     algorithm)
-endif()
-
-# TODO: Eventually Kokkos depends should be done via append_list
-if(ENABLE_KOKKOS)
-  add_subdirectory(basic-kokkos)
-  set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
-    common
-    basic
-    basic-kokkos
-    )
-endif()
 
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 

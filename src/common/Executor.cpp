@@ -20,10 +20,8 @@
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/INDEXLIST_3LOOP.hpp"
-#ifndef RUN_KOKKOS
 #include "algorithm/SORT.hpp"
 #include "apps/HALOEXCHANGE_FUSED.hpp"
-#endif
 
 #include <list>
 #include <vector>
@@ -858,10 +856,8 @@ void Executor::runSuite()
   warmup_kernels.push_back(makeKernel<basic::DAXPY>());
   warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
   warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-#ifndef RUN_KOKKOS
   warmup_kernels.push_back(makeKernel<algorithm::SORT>());
   warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
-#endif
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];

@@ -61,7 +61,6 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setVariantDefined(Lambda_HIP);
   setVariantDefined(RAJA_HIP);
 
-  setVariantDefined(Kokkos_Lambda);
 }
 
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}

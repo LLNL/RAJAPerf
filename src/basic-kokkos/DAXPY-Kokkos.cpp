@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DAXPY.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
@@ -65,3 +66,4 @@ void DAXPY::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

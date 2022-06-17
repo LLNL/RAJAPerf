@@ -89,9 +89,6 @@ enum KernelID {
   Basic_REDUCE3_INT,
   Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
-#ifdef RUN_KOKKOS // move this up to the point implemented with Kokkos
-  NumKernels,
-#endif
 
 //
 // Lcals kernels...
@@ -160,12 +157,7 @@ enum KernelID {
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
 
-#ifndef RUN_KOKKOS
   NumKernels // Keep this one last and NEVER comment out (!!)
-#else
-  KokkosDummy
-#endif
-
 };
 
 

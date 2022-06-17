@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "REDUCE3_INT.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 
 #include <iostream>
@@ -74,3 +75,4 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

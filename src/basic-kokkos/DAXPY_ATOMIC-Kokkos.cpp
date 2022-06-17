@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DAXPY_ATOMIC.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
@@ -66,3 +67,4 @@ void DAXPY_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

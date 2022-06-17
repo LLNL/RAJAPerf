@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT_VIEW1D_OFFSET.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 
 #include <iostream>
@@ -56,3 +57,4 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

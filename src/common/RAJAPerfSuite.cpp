@@ -159,9 +159,7 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT3"),
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
-  #ifndef RUN_KOKKOS
   std::string("Basic_MAT_MAT_SHARED"),
-  #endif
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
@@ -423,7 +421,7 @@ bool isVariantAvailable(VariantID vid)
 #endif
 
 #if defined(RUN_KOKKOS)
-  if (vid == Kokkos_Lambda) {
+  if ( vid == Kokkos_Lambda ) {
     ret_val = true;
   }
 #endif
@@ -479,6 +477,12 @@ bool isVariantGPU(VariantID vid)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda ) {
     ret_val = true;
   }
 #endif
@@ -580,7 +584,6 @@ KernelBase* getKernelObject(KernelID kid,
        break;
     }
 
-#ifndef RUN_KOKKOS
 //
 // Lcals kernels...
 //
@@ -788,8 +791,6 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new algorithm::REDUCE_SUM(run_params);
        break;
     }
-
-#endif
 
     default: {
       getCout() << "\n Unknown Kernel ID = " << kid << std::endl;

@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "IF_QUAD.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
@@ -73,3 +74,4 @@ void IF_QUAD::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT3.hpp"
+#if defined (RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
@@ -69,3 +70,4 @@ void INIT3::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif 

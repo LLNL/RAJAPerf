@@ -7,6 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "INIT_VIEW1D.hpp"
+#if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
@@ -54,3 +55,4 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
 } // end namespace basic
 } // end namespace rajaperf
+#endif

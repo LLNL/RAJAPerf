@@ -22,6 +22,6 @@ blt_add_library(
           REDUCE3_INT-Kokkos.cpp
           TRAP_INT-Kokkos.cpp
           DAXPY_ATOMIC-Kokkos.cpp
-  INCLUDES(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../basic)
+  INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../basic
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
