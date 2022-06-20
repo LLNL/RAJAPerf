@@ -78,11 +78,8 @@
 //
 // Apps kernels...
 //
-<<<<<<< HEAD
 #include "apps/BLOCK_DIAG_MAT_VEC.hpp"
-=======
 #include "apps/CONVECTION3DPA.hpp"
->>>>>>> develop
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
