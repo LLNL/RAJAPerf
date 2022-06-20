@@ -29,11 +29,17 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
+#define BLOCK_DIAG_MAT_VEC_DATA_INIT                                              					 \
+for(int ii = 0; ii != (N/(ndof*ndof); ++ii){												  					 \
+  for(int i = 0; i != ndof; ++i){ (&m_X[0][0])[i+(ii*ndof)] = i; }				  					 \
+  for(int i = 0; i != (ndof*ndof); ++i){ (&m_Me[0][0][0])[i+(ii*ndof*ndof)] = (ndof*ndof) - 1 - i; } \
+}
 
 #define BLOCK_DIAG_MAT_VEC_DATA_SETUP                                              \
-  Real_ptr Me = m_Me;                                                            \
-  Real_ptr X = m_X;                                                            \
+  Real_ptr Me = m_Me;                                                              \
+  Real_ptr X = m_X;                                                                \
   Real_ptr Y = m_Y;
+
 namespace rajaperf {
 class RunParams;
 
