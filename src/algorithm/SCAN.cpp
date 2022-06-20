@@ -31,11 +31,10 @@ SCAN::SCAN(const RunParams& params)
   setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getActualProblemSize() );
   setFLOPsPerRep(1 * getActualProblemSize());
 
-  Checksum_type actualProblemSize = getActualProblemSize();
   checksum_scale_factor = 1e-2 *
                  ( static_cast<Checksum_type>(getDefaultProblemSize()) /
                                               getActualProblemSize() ) /
-                 ( actualProblemSize * (actualProblemSize + 1) / 2 );
+                 getActualProblemSize();
 
   setUsesFeature(Scan);
 

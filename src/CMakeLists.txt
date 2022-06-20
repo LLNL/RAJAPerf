@@ -36,6 +36,9 @@ blt_add_executable(
   apps/BLOCK_DIAG_MAT_VEC.cpp
   apps/BLOCK_DIAG_MAT_VEC-Seq.cpp
   apps/BLOCK_DIAG_MAT_VEC-OMPTarget.cpp
+  apps/CONVECTION3DPA.cpp
+  apps/CONVECTION3DPA-Seq.cpp
+  apps/CONVECTION3DPA-OMPTarget.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp

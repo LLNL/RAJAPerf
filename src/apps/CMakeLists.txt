@@ -15,6 +15,12 @@ blt_add_library(
           BLOCK_DIAG_MAT_VEC-Cuda.cpp 
           BLOCK_DIAG_MAT_VEC-OMP.cpp 
           BLOCK_DIAG_MAT_VEC-OMPTarget.cpp 
+          CONVECTION3DPA.cpp
+          CONVECTION3DPA-Cuda.cpp
+          CONVECTION3DPA-Hip.cpp
+          CONVECTION3DPA-Seq.cpp
+          CONVECTION3DPA-OMP.cpp
+          CONVECTION3DPA-OMPTarget.cpp
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 

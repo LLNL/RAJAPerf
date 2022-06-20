@@ -73,7 +73,7 @@ void INDEXLIST::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 #endif
 
     default : {
-      std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
     }
 
   }

@@ -306,7 +306,7 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     INDEXLIST_DATA_TEARDOWN_HIP;
 
   } else {
-    std::cout << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
 

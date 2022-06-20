@@ -78,7 +78,11 @@
 //
 // Apps kernels...
 //
+<<<<<<< HEAD
 #include "apps/BLOCK_DIAG_MAT_VEC.hpp"
+=======
+#include "apps/CONVECTION3DPA.hpp"
+>>>>>>> develop
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
@@ -212,7 +216,11 @@ static const std::string KernelNames [] =
 //
 // Apps kernels...
 //
+<<<<<<< HEAD
   std::string("Apps_BLOCK_DIAG_MAT_VEC"),
+=======
+  std::string("Apps_CONVECTION3DPA"),
+>>>>>>> develop
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
@@ -703,6 +711,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
     case Apps_BLOCK_DIAG_MAT_VEC : {
        kernel = new apps::BLOCK_DIAG_MAT_VEC(run_params);
+	   break;
+	}
+    case Apps_CONVECTION3DPA : {
+       kernel = new apps::CONVECTION3DPA(run_params);
        break;
     }
     case Apps_COUPLE : {

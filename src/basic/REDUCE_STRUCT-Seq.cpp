@@ -112,12 +112,12 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
         REDUCE_STRUCT_BODY_RAJA;
         });
 
-      	points.SetCenter(static_cast<Real_type>(xsum.get()/(points.N)),
-                         static_cast<Real_type>(ysum.get()/(points.N)));
-	points.SetXMin(static_cast<Real_type>(xmin.get())); 
-        points.SetXMax(static_cast<Real_type>(xmax.get()));
-	points.SetYMin(static_cast<Real_type>(ymin.get())); 
-        points.SetYMax(static_cast<Real_type>(ymax.get()));
+      	points.SetCenter(xsum.get()/(points.N),
+                         ysum.get()/(points.N));
+        points.SetXMin(xmin.get());
+        points.SetXMax(xmax.get());
+        points.SetYMin(ymin.get());
+        points.SetYMax(ymax.get());
         m_points=points;
 
       }
@@ -128,7 +128,7 @@ void REDUCE_STRUCT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
     }
 
   }
