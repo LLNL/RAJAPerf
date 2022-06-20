@@ -213,11 +213,8 @@ static const std::string KernelNames [] =
 //
 // Apps kernels...
 //
-<<<<<<< HEAD
   std::string("Apps_BLOCK_DIAG_MAT_VEC"),
-=======
   std::string("Apps_CONVECTION3DPA"),
->>>>>>> develop
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
