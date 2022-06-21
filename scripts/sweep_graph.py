@@ -1509,6 +1509,7 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
 
       gname = g_gname
 
+      split_sweep_marker_indices = {} # sweep_index: marker_index
       split_data = { "ynames": [],
                      "ycolor": {},
                      "yformat": {},
@@ -1548,7 +1549,14 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
                   ymarker = ""
                   if Data.axes["sweep_dir_name"] in data["axes_index"]:
                      sweep_index = data["axes_index"][Data.axes["sweep_dir_name"]]
-                     ymarker = Data.sweep_markers[sweep_index]
+                     if not sweep_index in split_sweep_marker_indices:
+                        split_sweep_marker_indices[sweep_index] = 0
+                     sweep_marker_index = split_sweep_marker_indices[sweep_index]
+                     if sweep_marker_index+1 < len(Data.sweep_markers):
+                        split_sweep_marker_indices[sweep_index] += 1
+                     else:
+                        split_sweep_marker_indices[sweep_index] = 0
+                     ymarker = Data.sweep_markers[sweep_marker_index]
 
                   yformat = "{}-".format(ymarker)
                   if Data.axes["tuning_index"] in data["axes_index"]:
