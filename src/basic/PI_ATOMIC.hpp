@@ -27,6 +27,7 @@
   Real_type dx = m_dx; \
   Real_ptr pi = m_pi;
 
+
 #include "common/KernelBase.hpp"
 
 namespace rajaperf
@@ -61,8 +62,6 @@ public:
   void runCudaVariantImpl(VariantID vid);
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
-
-
 
 private:
   static const size_t default_gpu_block_size = 256;

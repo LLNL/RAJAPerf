@@ -20,9 +20,6 @@
 #include "Kokkos_Core.hpp"
 #endif // RUN_KOKKOS
 
-#include <ostream>
-#include <string>
-
 namespace rajaperf
 {
 
@@ -351,7 +348,5 @@ std::ostream& getNullStream();
  */
 template < typename... Ts >
 inline void ignore_unused(Ts&&...) { }
-
-
 }  // closing brace for rajaperf namespace
 #endif  // closing endif for header file include guard

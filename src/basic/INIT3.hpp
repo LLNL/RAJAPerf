@@ -64,9 +64,6 @@ public:
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
-  
-  
-
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
