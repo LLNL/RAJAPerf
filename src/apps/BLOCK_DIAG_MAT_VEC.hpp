@@ -10,7 +10,7 @@
 /// Block Diagonal Matrix-Vector Product
 /// reference implementation:
 ///
-/// for (Index_type e = 0; e < N; ++e) {
+/// for (Index_type e = 0; e < NE; ++e) {
 ///
 ///    for (Index_type c = 0; c < ndofs; ++c) {
 ///        Real_type dot = 0;
@@ -30,7 +30,7 @@
 #include "common/KernelBase.hpp"
 
 #define BLOCK_DIAG_MAT_VEC_DATA_INIT                                              					 \
-for(int ii = 0; ii != (N/(ndof*ndof); ++ii){												  					 \
+for(int ii = 0; ii != NE; ++ii){												  	     \
   for(int i = 0; i != ndof; ++i){ (&m_X[0][0])[i+(ii*ndof)] = i; }				  					 \
   for(int i = 0; i != (ndof*ndof); ++i){ (&m_Me[0][0][0])[i+(ii*ndof*ndof)] = (ndof*ndof) - 1 - i; } \
 }
@@ -39,6 +39,15 @@ for(int ii = 0; ii != (N/(ndof*ndof); ++ii){												  					 \
   Real_ptr Me = m_Me;                                                              \
   Real_ptr X = m_X;                                                                \
   Real_ptr Y = m_Y;
+
+#define BLOCK_DIAG_MAT_VEC_BODY                                             \
+    double dot = 0;                                                         \
+    for (int r = 0; r < ndof; ++r)                                          \
+    {                                                                       \
+       dot += (&Me[0][0][0])[r * ndof * 1 + c * 1 + (e*ndof*ndof)] *        \
+              (&X[0][0])[r * 1 + (e*ndof)];                                 \
+    }                                                                       \
+    (&Y[0][0])[c * 1 + (e*ndof)] = dot;
 
 namespace rajaperf {
 class RunParams;
@@ -78,6 +87,8 @@ private:
 
   Index_type m_N;
   Index_type m_N_default;
+  static constexpr Index_type m_ndof = 24;
+  Index_type m_NE;
 };
 
 } // end namespace apps

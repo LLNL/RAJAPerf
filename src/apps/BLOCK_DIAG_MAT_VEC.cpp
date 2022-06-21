@@ -64,10 +64,12 @@ BLOCK_DIAG_MAT_VEC::~BLOCK_DIAG_MAT_VEC() {}
 
 void BLOCK_DIAG_MAT_VEC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type N = m_N;
+  const Index_type ndof = m_ndof;
+  const Index_type NE = Index_type(N/(ndof*ndof));
 
-  allocAndInitDataConst(m_Me, N, 1.0, vid);
-  allocAndInitDataConst(m_X, N, 1.0, vid);
-  allocAndInitDataConst(m_Y, N, 0.0, vid);
+  allocAndInitDataConst(m_Me, ndof*ndof*NE, 1.0, vid);
+  allocAndInitDataConst(m_X, ndof*NE, 1.0, vid);
+  allocAndInitDataConst(m_Y, ndof*NE, 0.0, vid);
 }
 
 void BLOCK_DIAG_MAT_VEC::updateChecksum(VariantID vid, size_t tune_idx) {
