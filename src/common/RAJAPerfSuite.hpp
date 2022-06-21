@@ -16,15 +16,14 @@
 #include "RAJA/config.hpp"
 #include "rajaperf_config.hpp"
 
-#include <ostream>
 #include <string>
+#include <ostream>
 
 namespace rajaperf
 {
 
 class KernelBase;
 class RunParams;
-
 /*!
  *******************************************************************************
  *
