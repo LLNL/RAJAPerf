@@ -668,7 +668,8 @@ class Data:
             # print(data_tree, partial_axes_index,
             #       axes_index, leftover_axes_index,
             #       key, val, depth)
-            raise NameError("invalid index {} {}".format(Data.get_axes_index_str(axes_index), Data.get_axis_index_str(data_tree.axes[depth], key)))
+            # raise NameError("invalid index {} {}".format(Data.get_axes_index_str(axes_index), Data.get_axis_index_str(data_tree.axes[depth], key)))
+            pass
       else:
          for key, val in val.items():
             axes_index[data_tree.axes[depth]] = key
@@ -736,11 +737,11 @@ class Data:
          data = self.data
          for axis_index in self.axes:
             if not axis_index in axes_index:
-               axis_name = Data.axes[axis_index]
+               axis_name = Data.get_axis_name(axis_index)
                raise NameError("Missing axis {}".format(axis_name))
             index = axes_index[axis_index]
             if not index in data:
-               raise NameError("Missing index {}".format(index))
+               raise NameError("Missing index {}".format(Data.get_axis_index_str(axis_index, index)))
             data = data[index]
          return data
 
