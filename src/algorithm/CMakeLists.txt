@@ -35,5 +35,11 @@ blt_add_library(
           MEMSET-Cuda.cpp
           MEMSET-OMP.cpp
           MEMSET-OMPTarget.cpp
+          MEMCPY.cpp
+          MEMCPY-Seq.cpp
+          MEMCPY-Hip.cpp
+          MEMCPY-Cuda.cpp
+          MEMCPY-OMP.cpp
+          MEMCPY-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
