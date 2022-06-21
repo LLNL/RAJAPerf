@@ -100,6 +100,7 @@
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
 #include "algorithm/REDUCE_SUM.hpp"
+#include "algorithm/MEMSET.hpp"
 
 
 #include <iostream>
@@ -234,6 +235,7 @@ static const std::string KernelNames [] =
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
   std::string("Algorithm_REDUCE_SUM"),
+  std::string("Algorithm_MEMSET"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -789,6 +791,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Algorithm_REDUCE_SUM: {
        kernel = new algorithm::REDUCE_SUM(run_params);
+       break;
+    }
+    case Algorithm_MEMSET: {
+       kernel = new algorithm::MEMSET(run_params);
        break;
     }
 
