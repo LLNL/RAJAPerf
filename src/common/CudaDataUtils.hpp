@@ -136,6 +136,26 @@ void allocCudaDeviceData(T& dptr, int len)
 }
 
 /*!
+ * \brief Allocate CUDA reducer data array (rptr).
+ *
+ * Allocates memory that is accessible from the host and device.
+ */
+template <typename T>
+void allocCudaReducerData(T& rptr, int len)
+{
+  int dev = -1;
+  cudaErrchk( cudaGetDevice(&dev));
+  cudaErrchk( cudaMallocManaged( (void**)&rptr,
+              len * sizeof(typename std::remove_pointer<T>::type) ) );
+  cudaErrchk( cudaMemAdvise((const void*)rptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaMemAdviseSetPreferredLocation, dev ) );
+  cudaErrchk( cudaMemAdvise((const void*)rptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaMemAdviseSetAccessedBy, cudaCpuDeviceId ) );
+}
+
+/*!
  * \brief Allocate CUDA pinned data array (pptr).
  */
 template <typename T>
@@ -179,6 +199,16 @@ void deallocCudaDeviceData(T& dptr)
 {
   cudaErrchk( cudaFree( dptr ) );
   dptr = nullptr;
+}
+
+/*!
+ * \brief Free reducer data array.
+ */
+template <typename T>
+void deallocCudaReducerData(T& rptr)
+{
+  cudaErrchk( cudaFree( rptr ) );
+  rptr = nullptr;
 }
 
 /*!
@@ -321,6 +351,12 @@ __device__ __forceinline__ float atomicMax(float* address, float val)
 }
 #endif
 
+
+#define RAJAPERF_CUDA_WARP 32
+
+
+#define RAJAPERF_CUDA_SHFL_XOR(val, i) \
+    __shfl_xor_sync(0xffffffffu, val, i)
 
 /*!
  * \brief Implementation of a single reduction using a block reduction in

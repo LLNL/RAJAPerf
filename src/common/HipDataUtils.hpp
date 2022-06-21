@@ -144,6 +144,19 @@ __device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
+void memsetHipDeviceData(T& dptr, int val, int len)
+{
+  hipErrchk( hipMemset( dptr, val,
+                          len * sizeof(typename std::remove_pointer<T>::type) ) );
+}
+
+/*!
+ * \brief Copy given hptr (host) data to HIP device (dptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of propoer size for copy operation to succeed.
+ */
+template <typename T>
 void initHipDeviceData(T& dptr, const T hptr, int len)
 {
   hipErrchk( hipMemcpy( dptr, hptr,
@@ -160,6 +173,18 @@ template <typename T>
 void allocHipDeviceData(T& dptr, int len)
 {
   hipErrchk( hipMalloc( (void**)&dptr,
+              len * sizeof(typename std::remove_pointer<T>::type) ) );
+}
+
+/*!
+ * \brief Allocate HIP reducer data array (rptr).
+ *
+ * Allocates memory that is accessible from the host and device.
+ */
+template <typename T>
+void allocHipReducerData(T& rptr, int len)
+{
+  hipErrchk( hipMalloc( (void**)&rptr,
               len * sizeof(typename std::remove_pointer<T>::type) ) );
 }
 
@@ -210,6 +235,16 @@ void deallocHipDeviceData(T& dptr)
 }
 
 /*!
+ * \brief Free reducer data array.
+ */
+template <typename T>
+void deallocHipReducerData(T& rptr)
+{
+  hipErrchk( hipFree( rptr ) );
+  rptr = nullptr;
+}
+
+/*!
  * \brief Free pinned data array.
  */
 template <typename T>
@@ -221,6 +256,8 @@ void deallocHipPinnedData(T& pptr)
 
 }  // closing brace for rajaperf namespace
 
+
+#define RAJAPERF_HIP_WAVEFRONT 64
 
 /*!
  * \brief Implementation of a single reduction using a block reduction in

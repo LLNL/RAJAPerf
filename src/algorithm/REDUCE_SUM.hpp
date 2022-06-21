@@ -75,11 +75,15 @@ public:
   template < size_t block_size >
   void runCudaVariantReduce(VariantID vid);
   template < size_t block_size >
+  void runCudaVariantReduceExperimental(VariantID vid, size_t exp);
+  template < size_t block_size >
   void runHipVariantReduceAtomic(VariantID vid);
   template < size_t block_size >
   void runHipVariantReduceUnsafeAtomic(VariantID vid);
   template < size_t block_size >
   void runHipVariantReduce(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantReduceExperimental(VariantID vid, size_t exp);
 
 private:
   static const size_t default_gpu_block_size = 256;

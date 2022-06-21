@@ -54,6 +54,481 @@ __global__ void reduce_sum_unsafe(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   REDUCE_SUM_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
 }
 
+constexpr size_t num_hip_exp = 10;
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp0(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp1(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if ( threadIdx.x % RAJAPERF_HIP_WAVEFRONT == 0u ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp2(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if ( threadIdx.x % RAJAPERF_HIP_WAVEFRONT == 0u ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( &dsum[threadIdx.x / RAJAPERF_HIP_WAVEFRONT], val );
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp3(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    Real_type val = sum_init;
+    if ( i < iend ) {
+      val = x[i];
+    }
+
+    _shmem[ threadIdx.x ] = val;
+  }
+  __syncthreads();
+
+  for ( unsigned i = block_size / 2u; i > 0u; i /= 2u ) {
+    if ( threadIdx.x < i ) {
+      _shmem[ threadIdx.x ] = (_shmem[ threadIdx.x ] + _shmem[ threadIdx.x + i ]);
+    }
+     __syncthreads();
+  }
+
+  if ( threadIdx.x == 0 ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( dsum, _shmem[ 0 ] );
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp4(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    Real_type val = sum_init;
+    if ( i < iend ) {
+      val = x[i];
+    }
+
+    _shmem[ threadIdx.x ] = val;
+  }
+  __syncthreads();
+
+  for ( unsigned i = block_size / 2u; i >= RAJAPERF_HIP_WAVEFRONT; i /= 2u ) {
+    if ( threadIdx.x < i ) {
+      _shmem[ threadIdx.x ] = (_shmem[ threadIdx.x ] + _shmem[ threadIdx.x + i ]);
+    }
+     __syncthreads();
+  }
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+    Real_type val = _shmem[ threadIdx.x ];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp5(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    Real_type val = sum_init;
+    if ( i < iend ) {
+      val = x[i];
+    }
+
+    _shmem[ threadIdx.x ] = val;
+  }
+  __syncthreads();
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+
+    Real_type val = sum_init;
+    for ( unsigned i = 0; i < block_size; i += RAJAPERF_HIP_WAVEFRONT ) {
+      val = (val + _shmem[ threadIdx.x + i ]);
+    }
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp6(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  constexpr unsigned wavefront_shrink_factor = block_size / RAJAPERF_HIP_WAVEFRONT;
+  constexpr unsigned wavefront_shrink_size = RAJAPERF_HIP_WAVEFRONT / wavefront_shrink_factor;
+  const unsigned wavefront_idx = threadIdx.x / RAJAPERF_HIP_WAVEFRONT;
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if (wavefront_thread_idx < wavefront_shrink_size) {
+    _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+  }
+
+  __syncthreads();
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+    Real_type val = _shmem[ threadIdx.x ];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp7(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  for ( Index_type i = blockIdx.x * block_size + threadIdx.x;
+        i < iend ; i += gridDim.x * block_size ) {
+    val = (val + x[i]);
+  }
+
+  constexpr unsigned wavefront_shrink_factor = block_size / RAJAPERF_HIP_WAVEFRONT;
+  constexpr unsigned wavefront_shrink_size = RAJAPERF_HIP_WAVEFRONT / wavefront_shrink_factor;
+  const unsigned wavefront_idx = threadIdx.x / RAJAPERF_HIP_WAVEFRONT;
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if (wavefront_thread_idx < wavefront_shrink_size) {
+    _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+  }
+
+  __syncthreads();
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+    Real_type val = _shmem[ threadIdx.x ];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+  }
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp8(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                                unsigned* dcnt, Real_ptr dtmp, Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  constexpr unsigned wavefront_shrink_factor = block_size / RAJAPERF_HIP_WAVEFRONT;
+  constexpr unsigned wavefront_shrink_size = RAJAPERF_HIP_WAVEFRONT / wavefront_shrink_factor;
+  const unsigned wavefront_idx = threadIdx.x / RAJAPERF_HIP_WAVEFRONT;
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if (wavefront_thread_idx < wavefront_shrink_size) {
+    _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+  }
+
+  __syncthreads();
+
+  __shared__ unsigned reduction_block_idx;
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+    Real_type val = _shmem[ threadIdx.x ];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      dtmp[blockIdx.x] = val;
+      __threadfence();
+      reduction_block_idx = ::atomicInc(dcnt, gridDim.x-1);
+      __threadfence();
+    }
+  }
+
+  __syncthreads();
+
+  if (reduction_block_idx == gridDim.x-1) {
+
+    val = sum_init;
+    for ( unsigned i = threadIdx.x ; i < gridDim.x; i += block_size ) {
+      val = (val + dtmp[i]);
+    }
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if (wavefront_thread_idx < wavefront_shrink_size) {
+      _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+    }
+
+    __syncthreads();
+
+    if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+      Real_type val = _shmem[ threadIdx.x ];
+
+      for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+        val = (val + __shfl_xor(val, i));
+      }
+
+      if ( threadIdx.x == 0 ) {
+        dsum[0] = val;
+      }
+    }
+
+  }
+
+}
+
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp9(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                                unsigned* dcnt_grid, Real_ptr dtmp_grid,
+                                unsigned* dcnt_sub_grid, Real_ptr dtmp_sub_grid,
+                                unsigned num_sub_grids, unsigned last_sub_grid_size,
+                                Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  constexpr unsigned wavefront_shrink_factor = block_size / RAJAPERF_HIP_WAVEFRONT;
+  constexpr unsigned wavefront_shrink_size = RAJAPERF_HIP_WAVEFRONT / wavefront_shrink_factor;
+  const unsigned wavefront_idx = threadIdx.x / RAJAPERF_HIP_WAVEFRONT;
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  const unsigned grid_idx = blockIdx.x;
+  const unsigned grid_size = gridDim.x;
+  const unsigned sub_grid_idx = grid_idx / block_size;
+  constexpr unsigned full_sub_grid_size = block_size;
+  const unsigned sub_grid_size = ((grid_idx + last_sub_grid_size) < grid_size)
+                          ? block_size : last_sub_grid_size;
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  if (wavefront_thread_idx < wavefront_shrink_size) {
+    _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+  }
+
+  __syncthreads();
+
+  __shared__ unsigned reduction_idx;
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+    val = _shmem[ threadIdx.x ];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0 ) {
+      dtmp_grid[grid_idx] = val;
+      __threadfence();
+      reduction_idx = ::atomicInc(&dcnt_grid[sub_grid_idx], sub_grid_size-1);
+      __threadfence();
+    }
+  }
+
+  __syncthreads();
+
+  if (reduction_idx == sub_grid_size-1) {
+
+    val = sum_init;
+    if (threadIdx.x < sub_grid_size) {
+      val = dtmp_grid[threadIdx.x + sub_grid_idx * full_sub_grid_size];
+    }
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if (wavefront_thread_idx < wavefront_shrink_size) {
+      _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+    }
+
+    __syncthreads();
+
+    __shared__ unsigned reduction_idx;
+    if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+      val = _shmem[ threadIdx.x ];
+
+      for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+        val = (val + __shfl_xor(val, i));
+      }
+
+      if ( threadIdx.x == 0 ) {
+        dtmp_sub_grid[sub_grid_idx] = val;
+        __threadfence();
+        reduction_idx = ::atomicInc(dcnt_sub_grid, num_sub_grids-1);
+        __threadfence();
+      }
+    }
+
+    __syncthreads();
+
+    if (reduction_idx == num_sub_grids-1) {
+
+      val = sum_init;
+      for ( unsigned i = threadIdx.x ; i < num_sub_grids; i += block_size ) {
+        val = (val + dtmp_sub_grid[i]);
+      }
+
+      for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i >= wavefront_shrink_size; i /= 2u ) {
+        val = (val + __shfl_xor(val, i));
+      }
+
+      if (wavefront_thread_idx < wavefront_shrink_size) {
+        _shmem[ wavefront_thread_idx + wavefront_idx * wavefront_shrink_size ] = val;
+      }
+
+      __syncthreads();
+
+      if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT) {
+        val = _shmem[ threadIdx.x ];
+
+        for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+          val = (val + __shfl_xor(val, i));
+        }
+
+        if ( threadIdx.x == 0 ) {
+          dsum[0] = val;
+        }
+      }
+
+    }
+  }
+
+}
+
 
 void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 {
@@ -72,7 +547,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocHipPinnedData(sum_storage, 1);
+    allocHipReducerData(sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -135,7 +610,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Free temporary storage
     deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(sum_storage);
+    deallocHipReducerData(sum_storage);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -161,12 +636,12 @@ void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
     REDUCE_SUM_DATA_SETUP_HIP;
 
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocHipReducerData(dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &sum_init, 1);
+      dsum[0] = sum_init;
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
@@ -174,16 +649,14 @@ void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
                           x, dsum, sum_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
+      hipErrchk(hipStreamSynchronize(0));
 
-      m_sum = lsum;
+      m_sum = dsum[0];
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
+    deallocHipReducerData(dsum);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -192,12 +665,12 @@ void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
     REDUCE_SUM_DATA_SETUP_HIP;
 
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocHipReducerData(dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &sum_init, 1);
+      dsum[0] = sum_init;
 
       auto reduce_sum_lambda = [=] __device__ () {
         REDUCE_SUM_BODY_HIP(::atomicAdd)
@@ -210,16 +683,14 @@ void REDUCE_SUM::runHipVariantReduceAtomic(VariantID vid)
                           reduce_sum_lambda );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
+      hipErrchk(hipStreamSynchronize(0));
 
-      m_sum = lsum;
+      m_sum = dsum[0];
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
+    deallocHipReducerData(dsum);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -265,12 +736,12 @@ void REDUCE_SUM::runHipVariantReduceUnsafeAtomic(VariantID vid)
     REDUCE_SUM_DATA_SETUP_HIP;
 
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocHipReducerData(dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &sum_init, 1);
+      dsum[0] = sum_init;
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (reduce_sum_unsafe<block_size>), dim3(grid_size), dim3(block_size),
@@ -278,16 +749,14 @@ void REDUCE_SUM::runHipVariantReduceUnsafeAtomic(VariantID vid)
                           x, dsum, sum_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
+      hipErrchk(hipStreamSynchronize(0));
 
-      m_sum = lsum;
+      m_sum = dsum[0];
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
+    deallocHipReducerData(dsum);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -296,12 +765,12 @@ void REDUCE_SUM::runHipVariantReduceUnsafeAtomic(VariantID vid)
     REDUCE_SUM_DATA_SETUP_HIP;
 
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocHipReducerData(dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &sum_init, 1);
+      dsum[0] = sum_init;
 
       auto reduce_sum_lambda = [=] __device__ () {
         REDUCE_SUM_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
@@ -314,16 +783,14 @@ void REDUCE_SUM::runHipVariantReduceUnsafeAtomic(VariantID vid)
                           reduce_sum_lambda );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
+      hipErrchk(hipStreamSynchronize(0));
 
-      m_sum = lsum;
+      m_sum = dsum[0];
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
+    deallocHipReducerData(dsum);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
 
@@ -368,6 +835,360 @@ void REDUCE_SUM::runHipVariantReduce(VariantID vid)
   } else {
 
     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
+template < size_t block_size >
+void REDUCE_SUM::runHipVariantReduceExperimental(VariantID vid, size_t exp)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_SUM_DATA_SETUP;
+
+  if ( vid == Base_HIP && exp == 0) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp0<block_size>), dim3(grid_size), dim3(block_size),
+                          0, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 1) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp1<block_size>), dim3(grid_size), dim3(block_size),
+                          0, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 2) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, block_size / RAJAPERF_HIP_WAVEFRONT);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      for (size_t si = 0; si < block_size / RAJAPERF_HIP_WAVEFRONT; ++si) {
+        dsum[si] = sum_init;
+      }
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp2<block_size>), dim3(grid_size), dim3(block_size),
+                          0, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      Real_type sum = sum_init;
+      for (size_t si = 0; si < block_size / RAJAPERF_HIP_WAVEFRONT; ++si) {
+        sum += dsum[si];
+      }
+      m_sum = sum;
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 3) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp3<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 4) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp4<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 5) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp5<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*block_size, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 6) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (reduce_sum_exp6<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 7 ) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    int dev = 0;
+    hipDeviceProp_t deviceProp;
+    int blocks_per_multiProcessor = 0;
+    hipErrchk(hipGetDevice(&dev));
+    hipErrchk(hipGetDeviceProperties(&deviceProp, dev));
+    hipErrchk(hipOccupancyMaxActiveBlocksPerMultiprocessor(
+        &blocks_per_multiProcessor,
+        (reduce_sum_exp7<block_size>), block_size, sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT));
+    const size_t max_grid_size = deviceProp.multiProcessorCount*blocks_per_multiProcessor;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      const size_t grid_size = std::min(RAJA_DIVIDE_CEILING_INT(iend, block_size), max_grid_size);
+      hipLaunchKernelGGL( (reduce_sum_exp7<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 8) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    const size_t cnt_size = 1;
+    const size_t tmp_size = grid_size;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+    unsigned hcnt[cnt_size] = {0u};
+    unsigned* dcnt;
+    allocAndInitHipDeviceData(dcnt, hcnt, cnt_size);
+    Real_ptr dtmp;
+    allocHipDeviceData(dtmp, tmp_size);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp8<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init, dcnt, dtmp, iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dtmp);
+    deallocHipDeviceData(dcnt);
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 9) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    constexpr size_t full_sub_grid_size = block_size;
+    const size_t num_sub_grids = RAJA_DIVIDE_CEILING_INT(grid_size, full_sub_grid_size);
+    const size_t last_sub_grid_size = grid_size - (num_sub_grids - 1) * full_sub_grid_size;
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+    unsigned* dcnt_grid;
+    allocHipDeviceData(dcnt_grid, num_sub_grids);
+    memsetHipDeviceData(dcnt_grid, 0, num_sub_grids);
+    Real_ptr dtmp_grid;
+    allocHipDeviceData(dtmp_grid, grid_size);
+    unsigned* dcnt_sub_grid;
+    allocHipDeviceData(dcnt_sub_grid, 1);
+    memsetHipDeviceData(dcnt_sub_grid, 0, 1);
+    Real_ptr dtmp_sub_grid;
+    allocHipDeviceData(dtmp_sub_grid, num_sub_grids);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp9<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init,
+                          dcnt_grid, dtmp_grid,
+                          dcnt_sub_grid, dtmp_sub_grid,
+                          num_sub_grids, last_sub_grid_size,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipDeviceData(dtmp_sub_grid);
+    deallocHipDeviceData(dcnt_sub_grid);
+    deallocHipDeviceData(dtmp_grid);
+    deallocHipDeviceData(dcnt_grid);
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else {
+
+    getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << ", exp = " << exp << std::endl;
 
   }
 
@@ -452,6 +1273,35 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
 
   }
 
+  if ( vid == Base_HIP ) {
+
+    if (have_unsafe_atomics) {
+
+      for (size_t exp = 0; exp < num_hip_exp; ++exp) {
+
+        seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+          if (run_params.numValidGPUBlockSize() == 0u ||
+              run_params.validGPUBlockSize(block_size)) {
+
+            if (tune_idx == t) {
+
+              runHipVariantReduceExperimental<block_size>(vid, exp);
+
+            }
+
+            t += 1;
+
+          }
+
+        });
+
+      }
+
+    }
+
+  }
+
 }
 
 void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
@@ -508,6 +1358,29 @@ void REDUCE_SUM::setHipTuningDefinitions(VariantID vid)
       }
 
     });
+
+  }
+
+  if ( vid == Base_HIP ) {
+
+    if (have_unsafe_atomics) {
+
+      for (size_t exp = 0; exp < num_hip_exp; ++exp) {
+
+        seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+          if (run_params.numValidGPUBlockSize() == 0u ||
+              run_params.validGPUBlockSize(block_size)) {
+
+            addVariantTuningName(vid, "reduceExp"+std::to_string(exp)+"_"+std::to_string(block_size));
+
+          }
+
+        });
+
+      }
+
+    }
 
   }
 
