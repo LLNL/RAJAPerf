@@ -1029,6 +1029,9 @@ KernelBase* Executor::makeKernel()
 
 void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 {
+  size_t time_prec = 6;
+  size_t checksum_prec = 20;
+
   if ( run_params.showProgress() || print_kernel_name) {
     getCout()  << endl << "Run kernel -- " << kernel->getName() << endl;
   }
@@ -1053,7 +1056,9 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         }
         kernel->execute(vid, tuning_name);
         if ( run_params.showProgress() ) {
-          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+          getCout() << " -- " << showpoint << setprecision(time_prec) << kernel->getLastTime() << " sec.";
+          getCout() << " :: checksum " << showpoint << setprecision(checksum_prec) << kernel->getLastChecksum() << "";
+          getCout() << endl;
         }
 
       } else {

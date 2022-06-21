@@ -156,7 +156,8 @@ public:
     }
 
   // get runtime of executed variant/tuning
-  double getLastTime() const { return timer.elapsed(); }
+  double getLastTime() const { return latest_time; }
+  double getLastChecksum() const { return latest_checksum; }
 
   // get timers accumulated over npasses
   double getMinTime(VariantID vid, size_t tune_idx) const { return min_time[vid].at(tune_idx); }
@@ -277,6 +278,9 @@ private:
   std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
   std::vector<RAJA::Timer::ElapsedType> max_time[NumVariants];
   std::vector<RAJA::Timer::ElapsedType> tot_time[NumVariants];
+
+  RAJA::Timer::ElapsedType latest_time;
+  Checksum_type latest_checksum;
 };
 
 }  // closing brace for rajaperf namespace

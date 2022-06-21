@@ -163,6 +163,9 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 
     this->tearDown(vid, tune_idx);
 
+    latest_time = timer.elapsed();
+    latest_checksum = checksum[running_variant].at(running_tuning);
+
     running_variant = NumVariants;
     running_tuning = getUnknownTuningIdx();
 
