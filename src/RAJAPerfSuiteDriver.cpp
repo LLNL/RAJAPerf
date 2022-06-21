@@ -19,7 +19,7 @@
 #endif
 
 //------------------------------------------------------------------------------
-int main(int argc, char **argv) 
+int main(int argc, char** argv)
 {
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
   MPI_Init(&argc, &argv);
