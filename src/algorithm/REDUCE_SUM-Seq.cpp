@@ -18,7 +18,49 @@ namespace algorithm
 {
 
 
-void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void REDUCE_SUM::runSeqVariantKahan(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  REDUCE_SUM_DATA_SETUP;
+
+  switch ( vid ) {
+
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        Real_type sum = sum_init;
+        Real_type ckahan = 0.0;
+
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          Real_type y = x[i] - ckahan;
+          volatile Real_type t = sum + y;
+          volatile Real_type z = t - sum;
+          ckahan = z - y;
+          sum = t;
+        }
+
+        m_sum = sum;
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+    default : {
+      getCout() << "\n  REDUCE_SUM : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+}
+
+void REDUCE_SUM::runSeqVariantDefault(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -97,6 +139,44 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
     }
 
   }
+
+}
+
+void REDUCE_SUM::runSeqVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if ( vid == Base_Seq ) {
+
+    if (tune_idx == t) {
+
+      runSeqVariantKahan(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (tune_idx == t) {
+
+    runSeqVariantDefault(vid);
+
+  }
+
+  t += 1;
+
+}
+
+void REDUCE_SUM::setSeqTuningDefinitions(VariantID vid)
+{
+  if ( vid == Base_Seq ) {
+
+    addVariantTuningName(vid, "kahan");
+
+  }
+
+  addVariantTuningName(vid, "default");
 
 }
 

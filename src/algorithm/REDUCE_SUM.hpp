@@ -63,8 +63,11 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void runSeqVariantKahan(VariantID vid);
+  void runSeqVariantDefault(VariantID vid);
   void runCudaVariantCub(VariantID vid);
   void runHipVariantRocprim(VariantID vid);
   template < size_t block_size >
