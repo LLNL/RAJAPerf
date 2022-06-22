@@ -155,7 +155,6 @@ enum KernelID {
   Algorithm_REDUCE_SUM,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
-  
 };
 
 
