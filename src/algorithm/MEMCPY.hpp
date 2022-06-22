@@ -55,12 +55,17 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void runSeqVariantDefault(VariantID vid);
+  void runSeqVariantMemcpy(VariantID vid);
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
+  void runCudaVariantMemcpy(VariantID vid);
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
+  void runHipVariantMemcpy(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

@@ -18,7 +18,55 @@ namespace algorithm
 {
 
 
-void MEMCPY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MEMCPY::runSeqVariantMemcpy(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  MEMCPY_DATA_SETUP;
+
+  switch ( vid ) {
+
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        std::memcpy(MEMCPY_STD_ARGS);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+#if defined(RUN_RAJA_SEQ)
+    case RAJA_Seq : {
+
+      camp::resources::Host res = camp::resources::Host::get_default();
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        res.memcpy(MEMCPY_STD_ARGS);
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
+
+    default : {
+      getCout() << "\n  MEMCPY : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+}
+
+void MEMCPY::runSeqVariantDefault(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -86,6 +134,40 @@ void MEMCPY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   }
 
+}
+
+void MEMCPY::runSeqVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_Seq || vid == RAJA_Seq) {
+
+    if (tune_idx == t) {
+
+      runSeqVariantMemcpy(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (tune_idx == t) {
+
+    runSeqVariantDefault(vid);
+
+  }
+
+  t += 1;
+}
+
+void MEMCPY::setSeqTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_Seq || vid == RAJA_Seq) {
+    addVariantTuningName(vid, "memcpy");
+  }
+
+  addVariantTuningName(vid, "default");
 }
 
 } // end namespace algorithm
