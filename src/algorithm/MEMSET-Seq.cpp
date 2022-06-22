@@ -10,6 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <cstring>
 #include <iostream>
 
 namespace rajaperf
@@ -18,7 +19,55 @@ namespace algorithm
 {
 
 
-void MEMSET::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void MEMSET::runSeqVariantMemset(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  MEMSET_DATA_SETUP;
+
+  switch ( vid ) {
+
+    case Base_Seq : {
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        std::memset(MEMSET_STD_ARGS);
+
+      }
+      stopTimer();
+
+      break;
+    }
+
+#if defined(RUN_RAJA_SEQ)
+    case RAJA_Seq : {
+
+      camp::resources::Host res = camp::resources::Host::get_default();
+
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+        res.memset(MEMSET_STD_ARGS);
+
+      }
+      stopTimer();
+
+      break;
+    }
+#endif
+
+    default : {
+      getCout() << "\n  MEMSET : Unknown variant id = " << vid << std::endl;
+    }
+
+  }
+
+}
+
+void MEMSET::runSeqVariantDefault(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -86,6 +135,40 @@ void MEMSET::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   }
 
+}
+
+void MEMSET::runSeqVariant(VariantID vid, size_t tune_idx)
+{
+  size_t t = 0;
+
+  if (vid == Base_Seq || vid == RAJA_Seq) {
+
+    if (tune_idx == t) {
+
+      runSeqVariantMemset(vid);
+
+    }
+
+    t += 1;
+
+  }
+
+  if (tune_idx == t) {
+
+    runSeqVariantDefault(vid);
+
+  }
+
+  t += 1;
+}
+
+void MEMSET::setSeqTuningDefinitions(VariantID vid)
+{
+  if (vid == Base_Seq || vid == RAJA_Seq) {
+    addVariantTuningName(vid, "memset");
+  }
+
+  addVariantTuningName(vid, "default");
 }
 
 } // end namespace algorithm

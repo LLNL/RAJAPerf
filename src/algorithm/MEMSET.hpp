@@ -22,7 +22,7 @@
   Real_type val = m_val;
 
 #define MEMSET_STD_ARGS  \
-  x + ibegin, val, (iend-ibegin)*sizeof(Real_type)
+  x + ibegin, (int)val, (iend-ibegin)*sizeof(Real_type)
 
 #define MEMSET_BODY \
   x[i] = val;
@@ -55,12 +55,17 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
+  void setSeqTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
+  void runSeqVariantDefault(VariantID vid);
+  void runSeqVariantMemset(VariantID vid);
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
+  void runCudaVariantMemset(VariantID vid);
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
+  void runHipVariantMemset(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

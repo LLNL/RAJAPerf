@@ -40,6 +40,52 @@ __global__ void memset(Real_ptr x, Real_type val,
 }
 
 
+void MEMSET::runCudaVariantMemset(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  MEMSET_DATA_SETUP;
+
+  if ( vid == Base_CUDA ) {
+
+    MEMSET_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      cudaErrchk( cudaMemsetAsync(MEMSET_STD_ARGS, 0) );
+
+    }
+    stopTimer();
+
+    MEMSET_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    MEMSET_DATA_SETUP_CUDA;
+
+    camp::resources::Cuda res = camp::resources::Cuda::get_default();
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      res.memset(MEMSET_STD_ARGS);
+
+    }
+    stopTimer();
+
+    MEMSET_DATA_TEARDOWN_CUDA;
+
+  } else {
+
+    getCout() << "\n  MEMSET : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
+
 template < size_t block_size >
 void MEMSET::runCudaVariantBlock(VariantID vid)
 {
@@ -118,6 +164,18 @@ void MEMSET::runCudaVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
+  if (vid == Base_CUDA || vid == RAJA_CUDA) {
+
+    if (tune_idx == t) {
+
+      runCudaVariantMemset(vid);
+
+    }
+
+    t += 1;
+
+  }
+
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
     if (run_params.numValidGPUBlockSize() == 0u ||
@@ -138,6 +196,10 @@ void MEMSET::runCudaVariant(VariantID vid, size_t tune_idx)
 
 void MEMSET::setCudaTuningDefinitions(VariantID vid)
 {
+  if (vid == Base_CUDA || vid == RAJA_CUDA) {
+    addVariantTuningName(vid, "memset");
+  }
+
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
     if (run_params.numValidGPUBlockSize() == 0u ||

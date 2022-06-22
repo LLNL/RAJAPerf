@@ -39,6 +39,53 @@ __global__ void memset(Real_ptr x, Real_type val,
   }
 }
 
+
+void MEMSET::runHipVariantMemset(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  MEMSET_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    MEMSET_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      hipErrchk( hipMemsetAsync(MEMSET_STD_ARGS, 0) );
+
+    }
+    stopTimer();
+
+    MEMSET_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP ) {
+
+    MEMSET_DATA_SETUP_HIP;
+
+    camp::resources::Hip res = camp::resources::Hip::get_default();
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      res.memset(MEMSET_STD_ARGS);
+
+    }
+    stopTimer();
+
+    MEMSET_DATA_TEARDOWN_HIP;
+
+  } else {
+
+    getCout() << "\n  MEMSET : Unknown Hip variant id = " << vid << std::endl;
+
+  }
+
+}
+
 template < size_t block_size >
 void MEMSET::runHipVariantBlock(VariantID vid)
 {
@@ -117,6 +164,18 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
+  if (vid == Base_HIP || vid == RAJA_HIP) {
+
+    if (tune_idx == t) {
+
+      runHipVariantMemset(vid);
+
+    }
+
+    t += 1;
+
+  }
+
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
     if (run_params.numValidGPUBlockSize() == 0u ||
@@ -138,6 +197,9 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
 
 void MEMSET::setHipTuningDefinitions(VariantID vid)
 {
+  if (vid == Base_HIP || vid == RAJA_HIP) {
+    addVariantTuningName(vid, "memset");
+  }
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
