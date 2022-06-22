@@ -351,4 +351,5 @@ template < typename... Ts >
 inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace
+
 #endif  // closing endif for header file include guard
