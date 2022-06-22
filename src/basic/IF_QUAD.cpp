@@ -55,6 +55,8 @@ IF_QUAD::IF_QUAD(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 IF_QUAD::~IF_QUAD()

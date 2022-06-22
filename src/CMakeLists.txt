@@ -9,8 +9,9 @@
 include_directories(.)
 
 add_subdirectory(common)
-add_subdirectory(apps)
 add_subdirectory(basic)
+add_subdirectory(basic-kokkos)
+add_subdirectory(apps)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
@@ -20,6 +21,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
     polybench
     stream

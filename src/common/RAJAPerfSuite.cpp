@@ -274,6 +274,8 @@ static const std::string VariantNames [] =
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
 
+  std::string("Kokkos_Lambda"),
+
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -418,6 +420,12 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -469,6 +477,12 @@ bool isVariantGPU(VariantID vid)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda ) {
     ret_val = true;
   }
 #endif

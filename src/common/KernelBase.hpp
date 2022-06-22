@@ -90,6 +90,10 @@ public:
   virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+#if defined(RUN_KOKKOS)
+  virtual void setKokkosTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
+#endif
 
   //
   // Getter methods used to generate kernel execution summary
@@ -229,6 +233,12 @@ public:
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
+#endif
+#if defined(RUN_KOKKOS)
+  virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
+  {
+     getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
+  }
 #endif
 
 protected:

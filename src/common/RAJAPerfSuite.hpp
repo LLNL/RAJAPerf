@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels, variants, features, etc..
+/// Types and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -191,6 +191,8 @@ enum VariantID {
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
+
+  Kokkos_Lambda,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

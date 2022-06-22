@@ -129,6 +129,14 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
+// Required for running Kokkos
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+    setKokkosTuningDefinitions(vid);
+#endif
+    break;
+    }
 
     default : {
 #if 0
@@ -237,6 +245,12 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
       runHipVariant(vid, tune_idx);
 #endif
       break;
+    }
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+      runKokkosVariant(vid, tune_idx);
+#endif
     }
 
     default : {
