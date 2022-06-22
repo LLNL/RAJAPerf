@@ -45,9 +45,18 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 #if defined(RUN_RAJA_SEQ)
   case Lambda_Seq: {
 
+    auto mat_vec_lam = [=](Index_type e, Index_type c){
+        BLOCK_DIAG_MAT_VEC_BODY;
+        };
 
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
+  		for(Index_type e=0; e<NE; ++e) {                                                                                                                                                             
+  		    for (Index_type c=0; c<ndof; ++c)                                                                                                                                                               
+  		    {                                                                                                                                                                                          
+				mat_vec_lam(e,c);
+  		    }                                                                                                                                                                                          
+  		 }
     } // irep
     stopTimer();
 

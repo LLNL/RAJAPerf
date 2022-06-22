@@ -24,7 +24,8 @@ BLOCK_DIAG_MAT_VEC::BLOCK_DIAG_MAT_VEC(const RunParams &params)
   setDefaultProblemSize(m_N_default);
   setDefaultReps(5);
 
-  m_N = std::max(Index_type(getTargetProblemSize()), Index_type(1));
+  //Make sure problem target size is divisible by ndof
+  m_N = RAJA_DIVIDE_CEILING_INT(Index_type(getTargetProblemSize()),Index_type(m_ndof*m_ndof));  
 
   setActualProblemSize(m_N);
 
