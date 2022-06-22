@@ -24,6 +24,8 @@ namespace rajaperf
 
 class KernelBase;
 class RunParams;
+
+
 /*!
  *******************************************************************************
  *
