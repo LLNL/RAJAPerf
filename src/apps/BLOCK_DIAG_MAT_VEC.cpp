@@ -67,13 +67,13 @@ void BLOCK_DIAG_MAT_VEC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
   const Index_type ndof = m_ndof;
   const Index_type NE = Index_type(N/(ndof*ndof));
 
-  allocAndInitDataConst(m_Me, ndof*ndof*NE, 1.0, vid);
-  allocAndInitDataConst(m_X, ndof*NE, 1.0, vid);
+  allocAndInitDataConst(m_Me, ndof*ndof*NE, 0.0, vid);
+  allocAndInitDataConst(m_X, ndof*NE, 0.0, vid);
   allocAndInitDataConst(m_Y, ndof*NE, 0.0, vid);
 }
 
 void BLOCK_DIAG_MAT_VEC::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_X, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_Y, m_ndof*m_NE, checksum_scale_factor );
 }
 
 void BLOCK_DIAG_MAT_VEC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {

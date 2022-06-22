@@ -29,25 +29,26 @@
 #include "RAJA/RAJA.hpp"
 #include "common/KernelBase.hpp"
 
-#define BLOCK_DIAG_MAT_VEC_DATA_INIT                                              					 \
-for(int ii = 0; ii != NE; ++ii){												  	     \
-  for(int i = 0; i != ndof; ++i){ (&m_X[0][0])[i+(ii*ndof)] = i; }				  					 \
-  for(int i = 0; i != (ndof*ndof); ++i){ (&m_Me[0][0][0])[i+(ii*ndof*ndof)] = (ndof*ndof) - 1 - i; } \
+#define BLOCK_DIAG_MAT_VEC_DATA_INIT                                    \
+for(Index_type ii = 0; ii != NE; ++ii){									\
+  for(Index_type i = 0; i != ndof; ++i){ X[i+(ii*ndof)] = i; }			\
+  for(Index_type i = 0; i != (ndof*ndof); ++i){ Me[i+(ii*ndof*ndof)] =  \
+                             (ndof*ndof) - 1 - i; }                     \
 }
 
-#define BLOCK_DIAG_MAT_VEC_DATA_SETUP                                              \
-  Real_ptr Me = m_Me;                                                              \
-  Real_ptr X = m_X;                                                                \
+#define BLOCK_DIAG_MAT_VEC_DATA_SETUP                   \
+  Real_ptr Me = m_Me;                                   \
+  Real_ptr X = m_X;                                     \
   Real_ptr Y = m_Y;
 
-#define BLOCK_DIAG_MAT_VEC_BODY                                             \
-    double dot = 0;                                                         \
-    for (int r = 0; r < ndof; ++r)                                          \
-    {                                                                       \
-       dot += (&Me[0][0][0])[r * ndof * 1 + c * 1 + (e*ndof*ndof)] *        \
-              (&X[0][0])[r * 1 + (e*ndof)];                                 \
-    }                                                                       \
-    (&Y[0][0])[c * 1 + (e*ndof)] = dot;
+#define BLOCK_DIAG_MAT_VEC_BODY                         \
+    Real_type dot = 0;                                  \
+    for (Index_type r = 0; r < ndof; ++r)               \
+    {                                                   \
+       dot += Me[r * ndof + c + (e*ndof*ndof)] *        \
+              X[r + (e*ndof)];                          \
+    }                                                   \
+    Y[c + (e*ndof)] = dot;
 
 namespace rajaperf {
 class RunParams;

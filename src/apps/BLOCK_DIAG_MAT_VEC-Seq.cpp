@@ -16,9 +16,13 @@ namespace apps {
 void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 
   const Index_type run_reps = getRunReps();
-  const Index_type N = m_N;
+//  const Index_type N = m_N;
+  const Index_type NE = m_NE;
+  constexpr Index_type ndof = m_ndof;
 
   BLOCK_DIAG_MAT_VEC_DATA_SETUP;
+  
+  BLOCK_DIAG_MAT_VEC_DATA_INIT;
 
   switch (vid) {
 
@@ -26,6 +30,12 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+  		for(Index_type e=0; e<NE; ++e) {                                                                                                                                                             
+  		    for (Index_type c=0; c<ndof; ++c)                                                                                                                                                               
+  		    {                                                                                                                                                                                          
+				BLOCK_DIAG_MAT_VEC_BODY;
+  		    }                                                                                                                                                                                          
+  		 }
     } // number of iterations
     stopTimer();
 
