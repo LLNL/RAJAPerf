@@ -21,17 +21,17 @@ namespace basic {
 
 #define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
   const Index_type NN = m_N * m_N;                                             \
-  allocAndInitHipDeviceData(A, m_A, NN);                                       \
-  allocAndInitHipDeviceData(B, m_B, NN);                                       \
-  allocAndInitHipDeviceData(C, m_C, NN);
+  allocAndInitHipData(A, m_A, NN);                                       \
+  allocAndInitHipData(B, m_B, NN);                                       \
+  allocAndInitHipData(C, m_C, NN);
 
 #define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_A, A, NN);                                                \
-  getHipDeviceData(m_B, B, NN);                                                \
-  getHipDeviceData(m_C, C, NN);                                                \
-  deallocHipDeviceData(A);                                                     \
-  deallocHipDeviceData(B);                                                     \
-  deallocHipDeviceData(C);
+  getHipData(m_A, A, NN);                                                \
+  getHipData(m_B, B, NN);                                                \
+  getHipData(m_C, C, NN);                                                \
+  deallocHipData(A);                                                     \
+  deallocHipData(B);                                                     \
+  deallocHipData(C);
 
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)

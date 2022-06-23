@@ -22,10 +22,10 @@ namespace basic
 {
 
 #define REDUCE3_INT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(vec, m_vec, iend);
+  allocAndInitCudaData(vec, m_vec, iend);
 
 #define REDUCE3_INT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(vec);
+  deallocCudaData(vec);
 
 
 template < size_t block_size >

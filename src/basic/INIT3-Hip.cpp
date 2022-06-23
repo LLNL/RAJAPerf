@@ -22,21 +22,21 @@ namespace basic
 {
 
 #define INIT3_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(out1, m_out1, iend); \
-  allocAndInitHipDeviceData(out2, m_out2, iend); \
-  allocAndInitHipDeviceData(out3, m_out3, iend); \
-  allocAndInitHipDeviceData(in1, m_in1, iend); \
-  allocAndInitHipDeviceData(in2, m_in2, iend);
+  allocAndInitHipData(out1, m_out1, iend); \
+  allocAndInitHipData(out2, m_out2, iend); \
+  allocAndInitHipData(out3, m_out3, iend); \
+  allocAndInitHipData(in1, m_in1, iend); \
+  allocAndInitHipData(in2, m_in2, iend);
 
 #define INIT3_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out1, out1, iend); \
-  getHipDeviceData(m_out2, out2, iend); \
-  getHipDeviceData(m_out3, out3, iend); \
-  deallocHipDeviceData(out1); \
-  deallocHipDeviceData(out2); \
-  deallocHipDeviceData(out3); \
-  deallocHipDeviceData(in1); \
-  deallocHipDeviceData(in2);
+  getHipData(m_out1, out1, iend); \
+  getHipData(m_out2, out2, iend); \
+  getHipData(m_out3, out3, iend); \
+  deallocHipData(out1); \
+  deallocHipData(out2); \
+  deallocHipData(out3); \
+  deallocHipData(in1); \
+  deallocHipData(in2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

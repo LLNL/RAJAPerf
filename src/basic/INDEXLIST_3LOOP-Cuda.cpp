@@ -23,15 +23,15 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_CUDA \
   Index_type* counts; \
-  allocCudaDeviceData(counts, iend+1); \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(list, m_list, iend);
+  allocCudaData(counts, iend+1); \
+  allocAndInitCudaData(x, m_x, iend); \
+  allocAndInitCudaData(list, m_list, iend);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(counts); \
-  getCudaDeviceData(m_list, list, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(list);
+  deallocCudaData(counts); \
+  getCudaData(m_list, list, iend); \
+  deallocCudaData(x); \
+  deallocCudaData(list);
 
 
 template < size_t block_size >

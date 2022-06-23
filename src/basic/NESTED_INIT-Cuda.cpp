@@ -42,11 +42,11 @@ namespace basic
 
 
 #define NESTED_INIT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(array, m_array, m_array_length);
+  allocAndInitCudaData(array, m_array, m_array_length);
 
 #define NESTED_INIT_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_array, array, m_array_length); \
-  deallocCudaDeviceData(array);
+  getCudaData(m_array, array, m_array_length); \
+  deallocCudaData(array);
 
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
 __launch_bounds__(i_block_size*j_block_size*k_block_size)

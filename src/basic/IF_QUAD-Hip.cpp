@@ -22,20 +22,20 @@ namespace basic
 {
 
 #define IF_QUAD_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend); \
-  allocAndInitHipDeviceData(c, m_c, iend); \
-  allocAndInitHipDeviceData(x1, m_x1, iend); \
-  allocAndInitHipDeviceData(x2, m_x2, iend);
+  allocAndInitHipData(a, m_a, iend); \
+  allocAndInitHipData(b, m_b, iend); \
+  allocAndInitHipData(c, m_c, iend); \
+  allocAndInitHipData(x1, m_x1, iend); \
+  allocAndInitHipData(x2, m_x2, iend);
 
 #define IF_QUAD_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x1, x1, iend); \
-  getHipDeviceData(m_x2, x2, iend); \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b); \
-  deallocHipDeviceData(c); \
-  deallocHipDeviceData(x1); \
-  deallocHipDeviceData(x2);
+  getHipData(m_x1, x1, iend); \
+  getHipData(m_x2, x2, iend); \
+  deallocHipData(a); \
+  deallocHipData(b); \
+  deallocHipData(c); \
+  deallocHipData(x1); \
+  deallocHipData(x2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

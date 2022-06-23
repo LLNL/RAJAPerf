@@ -34,13 +34,13 @@ namespace basic
 
 
 #define INDEXLIST_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(list, m_list, iend);
+  allocAndInitHipData(x, m_x, iend); \
+  allocAndInitHipData(list, m_list, iend);
 
 #define INDEXLIST_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_list, list, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(list);
+  getHipData(m_list, list, iend); \
+  deallocHipData(x); \
+  deallocHipData(list);
 
 
 // perform a grid scan on val and returns the result at each thread

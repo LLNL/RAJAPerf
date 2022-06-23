@@ -22,20 +22,20 @@ namespace basic
 {
 
 #define IF_QUAD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend); \
-  allocAndInitCudaDeviceData(x1, m_x1, iend); \
-  allocAndInitCudaDeviceData(x2, m_x2, iend);
+  allocAndInitCudaData(a, m_a, iend); \
+  allocAndInitCudaData(b, m_b, iend); \
+  allocAndInitCudaData(c, m_c, iend); \
+  allocAndInitCudaData(x1, m_x1, iend); \
+  allocAndInitCudaData(x2, m_x2, iend);
 
 #define IF_QUAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, iend); \
-  getCudaDeviceData(m_x2, x2, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2);
+  getCudaData(m_x1, x1, iend); \
+  getCudaData(m_x2, x2, iend); \
+  deallocCudaData(a); \
+  deallocCudaData(b); \
+  deallocCudaData(c); \
+  deallocCudaData(x1); \
+  deallocCudaData(x2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

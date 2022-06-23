@@ -22,11 +22,11 @@ namespace basic
 {
 
 #define INIT_VIEW1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend);
+  allocAndInitHipData(a, m_a, iend);
 
 #define INIT_VIEW1D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_a, a, iend); \
-  deallocHipDeviceData(a);
+  getHipData(m_a, a, iend); \
+  deallocHipData(a);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

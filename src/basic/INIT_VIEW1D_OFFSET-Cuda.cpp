@@ -22,11 +22,11 @@ namespace basic
 {
 
 #define INIT_VIEW1D_OFFSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
+  allocAndInitCudaData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getActualProblemSize()); \
-  deallocCudaDeviceData(a);
+  getCudaData(m_a, a, getActualProblemSize()); \
+  deallocCudaData(a);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

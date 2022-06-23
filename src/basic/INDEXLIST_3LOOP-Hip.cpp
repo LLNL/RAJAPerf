@@ -23,15 +23,15 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
   Index_type* counts; \
-  allocHipDeviceData(counts, iend+1); \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(list, m_list, iend);
+  allocHipData(counts, iend+1); \
+  allocAndInitHipData(x, m_x, iend); \
+  allocAndInitHipData(list, m_list, iend);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(counts); \
-  getHipDeviceData(m_list, list, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(list);
+  deallocHipData(counts); \
+  getHipData(m_list, list, iend); \
+  deallocHipData(x); \
+  deallocHipData(list);
 
 
 template < size_t block_size >

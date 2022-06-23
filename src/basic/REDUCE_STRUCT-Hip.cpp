@@ -23,12 +23,12 @@ namespace basic
 
 
 #define REDUCE_STRUCT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(points.x, m_x, points.N); \
-  allocAndInitHipDeviceData(points.y, m_y, points.N); \
+  allocAndInitHipData(points.x, m_x, points.N); \
+  allocAndInitHipData(points.y, m_y, points.N); \
   
 #define REDUCE_STRUCT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(points.x); \
-  deallocHipDeviceData(points.y); 
+  deallocHipData(points.x); \
+  deallocHipData(points.y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

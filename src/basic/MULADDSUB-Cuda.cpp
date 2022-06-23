@@ -22,21 +22,21 @@ namespace basic
 {
 
 #define MULADDSUB_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(out1, m_out1, iend); \
-  allocAndInitCudaDeviceData(out2, m_out2, iend); \
-  allocAndInitCudaDeviceData(out3, m_out3, iend); \
-  allocAndInitCudaDeviceData(in1, m_in1, iend); \
-  allocAndInitCudaDeviceData(in2, m_in2, iend);
+  allocAndInitCudaData(out1, m_out1, iend); \
+  allocAndInitCudaData(out2, m_out2, iend); \
+  allocAndInitCudaData(out3, m_out3, iend); \
+  allocAndInitCudaData(in1, m_in1, iend); \
+  allocAndInitCudaData(in2, m_in2, iend);
 
 #define MULADDSUB_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, iend); \
-  getCudaDeviceData(m_out2, out2, iend); \
-  getCudaDeviceData(m_out3, out3, iend); \
-  deallocCudaDeviceData(out1); \
-  deallocCudaDeviceData(out2); \
-  deallocCudaDeviceData(out3); \
-  deallocCudaDeviceData(in1); \
-  deallocCudaDeviceData(in2);
+  getCudaData(m_out1, out1, iend); \
+  getCudaData(m_out2, out2, iend); \
+  getCudaData(m_out3, out3, iend); \
+  deallocCudaData(out1); \
+  deallocCudaData(out2); \
+  deallocCudaData(out3); \
+  deallocCudaData(in1); \
+  deallocCudaData(in2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

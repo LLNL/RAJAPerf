@@ -42,11 +42,11 @@ namespace basic
 
 
 #define NESTED_INIT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(array, m_array, m_array_length);
+  allocAndInitHipData(array, m_array, m_array_length);
 
 #define NESTED_INIT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_array, array, m_array_length); \
-  deallocHipDeviceData(array);
+  getHipData(m_array, array, m_array_length); \
+  deallocHipData(array);
 
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
   __launch_bounds__(i_block_size*j_block_size*k_block_size)

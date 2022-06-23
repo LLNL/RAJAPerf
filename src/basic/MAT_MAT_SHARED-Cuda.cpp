@@ -21,17 +21,17 @@ namespace basic {
 
 #define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
   const Index_type NN = m_N * m_N;                                             \
-  allocAndInitCudaDeviceData(A, m_A, NN);                                      \
-  allocAndInitCudaDeviceData(B, m_B, NN);                                      \
-  allocAndInitCudaDeviceData(C, m_C, NN);
+  allocAndInitCudaData(A, m_A, NN);                                      \
+  allocAndInitCudaData(B, m_B, NN);                                      \
+  allocAndInitCudaData(C, m_C, NN);
 
 #define MAT_MAT_SHARED_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_A, A, NN);                                               \
-  getCudaDeviceData(m_B, B, NN);                                               \
-  getCudaDeviceData(m_C, C, NN);                                               \
-  deallocCudaDeviceData(A);                                                    \
-  deallocCudaDeviceData(B);                                                    \
-  deallocCudaDeviceData(C);
+  getCudaData(m_A, A, NN);                                               \
+  getCudaData(m_B, B, NN);                                               \
+  getCudaData(m_C, C, NN);                                               \
+  deallocCudaData(A);                                                    \
+  deallocCudaData(B);                                                    \
+  deallocCudaData(C);
 
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)

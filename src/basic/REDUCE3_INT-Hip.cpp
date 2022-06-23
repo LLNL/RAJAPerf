@@ -22,10 +22,10 @@ namespace basic
 {
 
 #define REDUCE3_INT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(vec, m_vec, iend);
+  allocAndInitHipData(vec, m_vec, iend);
 
 #define REDUCE3_INT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(vec);
+  deallocHipData(vec);
 
 
 template < size_t block_size >

@@ -34,13 +34,13 @@ namespace basic
 
 
 #define INDEXLIST_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(list, m_list, iend);
+  allocAndInitCudaData(x, m_x, iend); \
+  allocAndInitCudaData(list, m_list, iend);
 
 #define INDEXLIST_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_list, list, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(list);
+  getCudaData(m_list, list, iend); \
+  deallocCudaData(x); \
+  deallocCudaData(list);
 
 
 // perform a grid scan on val and returns the result at each thread
