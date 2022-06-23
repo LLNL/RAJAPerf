@@ -96,6 +96,8 @@ void allocAndInitData(Complex_ptr& ptr, int len,
  */
 void allocData(Int_ptr& ptr, int len);
 ///
+void allocData(Index_type*& ptr, int len);
+///
 void allocData(Real_ptr& ptr, int len);
 ///
 void allocData(Complex_ptr& ptr, int len);
@@ -104,6 +106,8 @@ void allocData(Complex_ptr& ptr, int len);
  * \brief Free data arrays.
  */
 void deallocData(Int_ptr& ptr);
+///
+void deallocData(Index_type*& ptr);
 ///
 void deallocData(Real_ptr& ptr);
 ///

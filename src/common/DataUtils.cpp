@@ -7,6 +7,8 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DataUtils.hpp"
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
 
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
@@ -15,6 +17,13 @@
 
 namespace rajaperf
 {
+
+#if defined(RAJA_ENABLE_CUDA)
+CudaData cudaDataType = CudaData::device;
+#endif
+#if defined(RAJA_ENABLE_HIP)
+HipData hipDataType = HipData::device;
+#endif
 
 static int data_init_count = 0;
 
@@ -87,6 +96,12 @@ void allocData(Int_ptr& ptr, int len)
   // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Int_type[len];
 }
+///
+void allocData(Index_type*& ptr, int len)
+{
+  // Should we do this differently for alignment?? If so, change dealloc()
+  ptr = new Index_type[len];
+}
 
 void allocData(Real_ptr& ptr, int len)
 {
@@ -106,6 +121,14 @@ void allocData(Complex_ptr& ptr, int len)
  * Free data arrays of given type.
  */
 void deallocData(Int_ptr& ptr)
+{
+  if (ptr) {
+    delete [] ptr;
+    ptr = 0;
+  }
+}
+
+void deallocData(Index_type*& ptr)
 {
   if (ptr) {
     delete [] ptr;

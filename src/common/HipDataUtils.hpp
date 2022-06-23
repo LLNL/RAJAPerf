@@ -15,6 +15,7 @@
 #define RAJAPerf_HipDataUtils_HPP
 
 #include "RPTypes.hpp"
+#include <stdexcept>
 
 #if defined(RAJA_ENABLE_HIP)
 
@@ -123,6 +124,17 @@ void allocHipDeviceData(T& dptr, int len)
 }
 
 /*!
+ * \brief Allocate HIP managed data array (mptr).
+ */
+template <typename T>
+void allocHipManagedData(T& mptr, int len)
+{
+  hipErrchk( hipMallocManaged( (void**)&mptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipMemAttachGlobal ) );
+}
+
+/*!
  * \brief Allocate HIP pinned data array (pptr).
  */
 template <typename T>
@@ -169,6 +181,16 @@ void deallocHipDeviceData(T& dptr)
 }
 
 /*!
+ * \brief Free managed data array.
+ */
+template <typename T>
+void deallocHipManagedData(T& mptr)
+{
+  hipErrchk( hipFree( mptr ) );
+  mptr = nullptr;
+}
+
+/*!
  * \brief Free pinned data array.
  */
 template <typename T>
@@ -178,6 +200,119 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
+
+
+enum struct HipData : int
+{
+  host = 0,
+  pinned,
+  managed,
+  device
+};
+
+extern HipData hipDataType;
+
+
+/*!
+ * \brief Copy given hptr (host) data to HIP (cptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of proper size for copy operation to succeed.
+ */
+template <typename T>
+void initHipData(T& cptr, const T hptr, int len)
+{
+  hipErrchk( hipMemcpy( cptr, hptr,
+                          len * sizeof(typename std::remove_pointer<T>::type),
+                          hipMemcpyDefault ) );
+
+  incDataInitCount();
+}
+
+/*!
+ * \brief Allocate HIP data array (cptr).
+ */
+template <typename T>
+void allocHipData(T& cptr, int len)
+{
+  switch (hipDataType) {
+    case HipData::host:
+    {
+      allocData(cptr, len);
+    } break;
+    case HipData::pinned:
+    {
+      allocHipPinnedData(cptr, len);
+    } break;
+    case HipData::managed:
+    {
+      allocHipManagedData(cptr, len);
+    } break;
+    case HipData::device:
+    {
+      allocHipDeviceData(cptr, len);
+    } break;
+    default:
+    {
+      throw std::invalid_argument("allocHipData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Allocate HIP data array (cptr) and copy given hptr (host)
+ * data to HIP array.
+ */
+template <typename T>
+void allocAndInitHipData(T& cptr, const T hptr, int len)
+{
+  allocHipData(cptr, len);
+  initHipData(cptr, hptr, len);
+}
+
+/*!
+ * \brief Free Hip data array.
+ */
+template <typename T>
+void deallocHipData(T& cptr)
+{
+  switch (hipDataType) {
+    case HipData::host:
+    {
+      deallocData(cptr);
+    } break;
+    case HipData::pinned:
+    {
+      deallocHipPinnedData(cptr);
+    } break;
+    case HipData::managed:
+    {
+      deallocHipManagedData(cptr);
+    } break;
+    case HipData::device:
+    {
+      deallocHipDeviceData(cptr);
+    } break;
+    default:
+    {
+      throw std::invalid_argument("deallocHipData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Copy given cptr (HIP) data to host (hptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of propoer size for copy operation to succeed.
+ */
+template <typename T>
+void getHipData(T& hptr, const T cptr, int len)
+{
+  hipErrchk( hipMemcpy( hptr, cptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipMemcpyDefault ) );
+}
 
 }  // closing brace for rajaperf namespace
 

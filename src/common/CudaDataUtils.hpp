@@ -15,6 +15,7 @@
 #define RAJAPerf_CudaDataUtils_HPP
 
 #include "RPTypes.hpp"
+#include <stdexcept>
 
 #if defined(RAJA_ENABLE_CUDA)
 
@@ -136,6 +137,17 @@ void allocCudaDeviceData(T& dptr, int len)
 }
 
 /*!
+ * \brief Allocate CUDA managed data array (dptr).
+ */
+template <typename T>
+void allocCudaManagedData(T& mptr, int len)
+{
+  cudaErrchk( cudaMallocManaged( (void**)&mptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaMemAttachGlobal ) );
+}
+
+/*!
  * \brief Allocate CUDA pinned data array (pptr).
  */
 template <typename T>
@@ -182,6 +194,16 @@ void deallocCudaDeviceData(T& dptr)
 }
 
 /*!
+ * \brief Free managed data array.
+ */
+template <typename T>
+void deallocCudaManagedData(T& mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+  mptr = nullptr;
+}
+
+/*!
  * \brief Free pinned data array.
  */
 template <typename T>
@@ -189,6 +211,119 @@ void deallocCudaPinnedData(T& pptr)
 {
   cudaErrchk( cudaFreeHost( pptr ) );
   pptr = nullptr;
+}
+
+
+enum struct CudaData : int
+{
+  host = 0,
+  pinned,
+  managed,
+  device
+};
+
+extern CudaData cudaDataType;
+
+
+/*!
+ * \brief Copy given hptr (host) data to CUDA (cptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of proper size for copy operation to succeed.
+ */
+template <typename T>
+void initCudaData(T& cptr, const T hptr, int len)
+{
+  cudaErrchk( cudaMemcpy( cptr, hptr,
+                          len * sizeof(typename std::remove_pointer<T>::type),
+                          cudaMemcpyDefault ) );
+
+  incDataInitCount();
+}
+
+/*!
+ * \brief Allocate CUDA data array (cptr).
+ */
+template <typename T>
+void allocCudaData(T& cptr, int len)
+{
+  switch (cudaDataType) {
+    case CudaData::host:
+    {
+      allocData(cptr, len);
+    } break;
+    case CudaData::pinned:
+    {
+      allocCudaPinnedData(cptr, len);
+    } break;
+    case CudaData::managed:
+    {
+      allocCudaManagedData(cptr, len);
+    } break;
+    case CudaData::device:
+    {
+      allocCudaDeviceData(cptr, len);
+    } break;
+    default:
+    {
+      throw std::invalid_argument("allocCudaData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Allocate CUDA data array (cptr) and copy given hptr (host)
+ * data to CUDA array.
+ */
+template <typename T>
+void allocAndInitCudaData(T& cptr, const T hptr, int len)
+{
+  allocCudaData(cptr, len);
+  initCudaData(cptr, hptr, len);
+}
+
+/*!
+ * \brief Free Cuda data array.
+ */
+template <typename T>
+void deallocCudaData(T& cptr)
+{
+  switch (cudaDataType) {
+    case CudaData::host:
+    {
+      deallocData(cptr);
+    } break;
+    case CudaData::pinned:
+    {
+      deallocCudaPinnedData(cptr);
+    } break;
+    case CudaData::managed:
+    {
+      deallocCudaManagedData(cptr);
+    } break;
+    case CudaData::device:
+    {
+      deallocCudaDeviceData(cptr);
+    } break;
+    default:
+    {
+      throw std::invalid_argument("deallocCudaData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Copy given cptr (CUDA) data to host (hptr).
+ *
+ * Method assumes both host and device data arrays are allocated
+ * and of propoer size for copy operation to succeed.
+ */
+template <typename T>
+void getCudaData(T& hptr, const T cptr, int len)
+{
+  cudaErrchk( cudaMemcpy( hptr, cptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              cudaMemcpyDefault ) );
 }
 
 }  // closing brace for rajaperf namespace
