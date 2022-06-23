@@ -16,7 +16,6 @@ namespace apps {
 void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 
   const Index_type run_reps = getRunReps();
-//  const Index_type N = m_N;
   const Index_type NE = m_NE;
   constexpr Index_type ndof = m_ndof;
 
@@ -64,8 +63,16 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   }
 
   case RAJA_Seq: {
+    RAJA::RangeSegment c_range(0, ndof);
+    RAJA::RangeSegment e_range(0, NE);
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+		RAJA::forall<RAJA::loop_exec>( e_range, [=](int e) {
+			RAJA::forall<RAJA::loop_exec>( c_range, [=](int c) {
+				BLOCK_DIAG_MAT_VEC_BODY;
+			});	
+		});
     }  // loop over kernel reps
     stopTimer();
 
