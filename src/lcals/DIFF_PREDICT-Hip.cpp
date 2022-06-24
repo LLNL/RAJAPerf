@@ -22,13 +22,13 @@ namespace lcals
 {
 
 #define DIFF_PREDICT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(px, m_px, m_array_length); \
-  allocAndInitHipDeviceData(cx, m_cx, m_array_length);
+  allocAndInitHipData(px, m_px, m_array_length); \
+  allocAndInitHipData(cx, m_cx, m_array_length);
 
 #define DIFF_PREDICT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_px, px, m_array_length); \
-  deallocHipDeviceData(px); \
-  deallocHipDeviceData(cx);
+  getHipData(m_px, px, m_array_length); \
+  deallocHipData(px); \
+  deallocHipData(cx);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

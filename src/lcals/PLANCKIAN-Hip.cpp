@@ -23,19 +23,19 @@ namespace lcals
 {
 
 #define PLANCKIAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend); \
-  allocAndInitHipDeviceData(u, m_u, iend); \
-  allocAndInitHipDeviceData(v, m_v, iend); \
-  allocAndInitHipDeviceData(w, m_w, iend);
+  allocAndInitHipData(x, m_x, iend); \
+  allocAndInitHipData(y, m_y, iend); \
+  allocAndInitHipData(u, m_u, iend); \
+  allocAndInitHipData(v, m_v, iend); \
+  allocAndInitHipData(w, m_w, iend);
 
 #define PLANCKIAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_w, w, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(u); \
-  deallocHipDeviceData(v); \
-  deallocHipDeviceData(w);
+  getHipData(m_w, w, iend); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(u); \
+  deallocHipData(v); \
+  deallocHipData(w);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

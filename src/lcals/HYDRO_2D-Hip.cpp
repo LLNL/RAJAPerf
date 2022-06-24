@@ -41,33 +41,33 @@ namespace lcals
 
 
 #define HYDRO_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(zadat, m_za, m_array_length); \
-  allocAndInitHipDeviceData(zbdat, m_zb, m_array_length); \
-  allocAndInitHipDeviceData(zmdat, m_zm, m_array_length); \
-  allocAndInitHipDeviceData(zpdat, m_zp, m_array_length); \
-  allocAndInitHipDeviceData(zqdat, m_zq, m_array_length); \
-  allocAndInitHipDeviceData(zrdat, m_zr, m_array_length); \
-  allocAndInitHipDeviceData(zudat, m_zu, m_array_length); \
-  allocAndInitHipDeviceData(zvdat, m_zv, m_array_length); \
-  allocAndInitHipDeviceData(zzdat, m_zz, m_array_length); \
-  allocAndInitHipDeviceData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitHipDeviceData(zzoutdat, m_zzout, m_array_length);
+  allocAndInitHipData(zadat, m_za, m_array_length); \
+  allocAndInitHipData(zbdat, m_zb, m_array_length); \
+  allocAndInitHipData(zmdat, m_zm, m_array_length); \
+  allocAndInitHipData(zpdat, m_zp, m_array_length); \
+  allocAndInitHipData(zqdat, m_zq, m_array_length); \
+  allocAndInitHipData(zrdat, m_zr, m_array_length); \
+  allocAndInitHipData(zudat, m_zu, m_array_length); \
+  allocAndInitHipData(zvdat, m_zv, m_array_length); \
+  allocAndInitHipData(zzdat, m_zz, m_array_length); \
+  allocAndInitHipData(zroutdat, m_zrout, m_array_length); \
+  allocAndInitHipData(zzoutdat, m_zzout, m_array_length);
 
 
 #define HYDRO_2D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_zrout, zroutdat, m_array_length); \
-  getHipDeviceData(m_zzout, zzoutdat, m_array_length); \
-  deallocHipDeviceData(zadat); \
-  deallocHipDeviceData(zbdat); \
-  deallocHipDeviceData(zmdat); \
-  deallocHipDeviceData(zpdat); \
-  deallocHipDeviceData(zqdat); \
-  deallocHipDeviceData(zrdat); \
-  deallocHipDeviceData(zudat); \
-  deallocHipDeviceData(zvdat); \
-  deallocHipDeviceData(zzdat); \
-  deallocHipDeviceData(zroutdat); \
-  deallocHipDeviceData(zzoutdat);
+  getHipData(m_zrout, zroutdat, m_array_length); \
+  getHipData(m_zzout, zzoutdat, m_array_length); \
+  deallocHipData(zadat); \
+  deallocHipData(zbdat); \
+  deallocHipData(zmdat); \
+  deallocHipData(zpdat); \
+  deallocHipData(zqdat); \
+  deallocHipData(zrdat); \
+  deallocHipData(zudat); \
+  deallocHipData(zvdat); \
+  deallocHipData(zzdat); \
+  deallocHipData(zroutdat); \
+  deallocHipData(zzoutdat);
 
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)

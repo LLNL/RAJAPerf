@@ -22,17 +22,17 @@ namespace lcals
 {
 
 #define TRIDIAG_ELIM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(xout, m_xout, m_N); \
-  allocAndInitHipDeviceData(xin, m_xin, m_N); \
-  allocAndInitHipDeviceData(y, m_y, m_N); \
-  allocAndInitHipDeviceData(z, m_z, m_N);
+  allocAndInitHipData(xout, m_xout, m_N); \
+  allocAndInitHipData(xin, m_xin, m_N); \
+  allocAndInitHipData(y, m_y, m_N); \
+  allocAndInitHipData(z, m_z, m_N);
 
 #define TRIDIAG_ELIM_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_xout, xout, m_N); \
-  deallocHipDeviceData(xout); \
-  deallocHipDeviceData(xin); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z);
+  getHipData(m_xout, xout, m_N); \
+  deallocHipData(xout); \
+  deallocHipData(xin); \
+  deallocHipData(y); \
+  deallocHipData(z);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

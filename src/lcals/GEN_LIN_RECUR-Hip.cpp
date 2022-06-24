@@ -22,17 +22,17 @@ namespace lcals
 {
 
 #define GEN_LIN_RECUR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(b5, m_b5, m_N); \
-  allocAndInitHipDeviceData(stb5, m_stb5, m_N); \
-  allocAndInitHipDeviceData(sa, m_sa, m_N); \
-  allocAndInitHipDeviceData(sb, m_sb, m_N);
+  allocAndInitHipData(b5, m_b5, m_N); \
+  allocAndInitHipData(stb5, m_stb5, m_N); \
+  allocAndInitHipData(sa, m_sa, m_N); \
+  allocAndInitHipData(sb, m_sb, m_N);
 
 #define GEN_LIN_RECUR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_b5, b5, m_N); \
-  deallocHipDeviceData(b5); \
-  deallocHipDeviceData(stb5); \
-  deallocHipDeviceData(sa); \
-  deallocHipDeviceData(sb);
+  getHipData(m_b5, b5, m_N); \
+  deallocHipData(b5); \
+  deallocHipData(stb5); \
+  deallocHipData(sa); \
+  deallocHipData(sb);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

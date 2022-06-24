@@ -22,17 +22,17 @@ namespace lcals
 {
 
 #define TRIDIAG_ELIM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(xout, m_xout, m_N); \
-  allocAndInitCudaDeviceData(xin, m_xin, m_N); \
-  allocAndInitCudaDeviceData(y, m_y, m_N); \
-  allocAndInitCudaDeviceData(z, m_z, m_N);
+  allocAndInitCudaData(xout, m_xout, m_N); \
+  allocAndInitCudaData(xin, m_xin, m_N); \
+  allocAndInitCudaData(y, m_y, m_N); \
+  allocAndInitCudaData(z, m_z, m_N);
 
 #define TRIDIAG_ELIM_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_xout, xout, m_N); \
-  deallocCudaDeviceData(xout); \
-  deallocCudaDeviceData(xin); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z);
+  getCudaData(m_xout, xout, m_N); \
+  deallocCudaData(xout); \
+  deallocCudaData(xin); \
+  deallocCudaData(y); \
+  deallocCudaData(z);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

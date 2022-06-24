@@ -23,19 +23,19 @@ namespace lcals
 {
 
 #define PLANCKIAN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(u, m_u, iend); \
-  allocAndInitCudaDeviceData(v, m_v, iend); \
-  allocAndInitCudaDeviceData(w, m_w, iend);
+  allocAndInitCudaData(x, m_x, iend); \
+  allocAndInitCudaData(y, m_y, iend); \
+  allocAndInitCudaData(u, m_u, iend); \
+  allocAndInitCudaData(v, m_v, iend); \
+  allocAndInitCudaData(w, m_w, iend);
 
 #define PLANCKIAN_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_w, w, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(u); \
-  deallocCudaDeviceData(v); \
-  deallocCudaDeviceData(w);
+  getCudaData(m_w, w, iend); \
+  deallocCudaData(x); \
+  deallocCudaData(y); \
+  deallocCudaData(u); \
+  deallocCudaData(v); \
+  deallocCudaData(w);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

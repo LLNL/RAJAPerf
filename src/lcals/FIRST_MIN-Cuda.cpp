@@ -22,10 +22,10 @@ namespace lcals
 {
 
 #define FIRST_MIN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N);
+  allocAndInitCudaData(x, m_x, m_N);
 
 #define FIRST_MIN_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(x);
+  deallocCudaData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

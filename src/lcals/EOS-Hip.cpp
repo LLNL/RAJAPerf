@@ -22,17 +22,17 @@ namespace lcals
 {
 
 #define EOS_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length); \
-  allocAndInitHipDeviceData(u, m_u, m_array_length);
+  allocAndInitHipData(x, m_x, m_array_length); \
+  allocAndInitHipData(y, m_y, m_array_length); \
+  allocAndInitHipData(z, m_z, m_array_length); \
+  allocAndInitHipData(u, m_u, m_array_length);
 
 #define EOS_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
-  deallocHipDeviceData(u);
+  getHipData(m_x, x, m_array_length); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(z); \
+  deallocHipData(u);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

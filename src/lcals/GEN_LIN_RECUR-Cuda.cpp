@@ -22,17 +22,17 @@ namespace lcals
 {
 
 #define GEN_LIN_RECUR_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(b5, m_b5, m_N); \
-  allocAndInitCudaDeviceData(stb5, m_stb5, m_N); \
-  allocAndInitCudaDeviceData(sa, m_sa, m_N); \
-  allocAndInitCudaDeviceData(sb, m_sb, m_N);
+  allocAndInitCudaData(b5, m_b5, m_N); \
+  allocAndInitCudaData(stb5, m_stb5, m_N); \
+  allocAndInitCudaData(sa, m_sa, m_N); \
+  allocAndInitCudaData(sb, m_sb, m_N);
 
 #define GEN_LIN_RECUR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_b5, b5, m_N); \
-  deallocCudaDeviceData(b5); \
-  deallocCudaDeviceData(stb5); \
-  deallocCudaDeviceData(sa); \
-  deallocCudaDeviceData(sb);
+  getCudaData(m_b5, b5, m_N); \
+  deallocCudaData(b5); \
+  deallocCudaData(stb5); \
+  deallocCudaData(sa); \
+  deallocCudaData(sb);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

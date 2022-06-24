@@ -22,11 +22,11 @@ namespace lcals
 {
 
 #define INT_PREDICT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(px, m_px, m_array_length);
+  allocAndInitCudaData(px, m_px, m_array_length);
 
 #define INT_PREDICT_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_px, px, m_array_length); \
-  deallocCudaDeviceData(px);
+  getCudaData(m_px, px, m_array_length); \
+  deallocCudaData(px);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -22,15 +22,15 @@ namespace lcals
 {
 
 #define HYDRO_1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length);
+  allocAndInitCudaData(x, m_x, m_array_length); \
+  allocAndInitCudaData(y, m_y, m_array_length); \
+  allocAndInitCudaData(z, m_z, m_array_length);
 
 #define HYDRO_1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
+  getCudaData(m_x, x, m_array_length); \
+  deallocCudaData(x); \
+  deallocCudaData(y); \
+  deallocCudaData(z); \
 
 template < size_t block_size >
 __launch_bounds__(block_size)
