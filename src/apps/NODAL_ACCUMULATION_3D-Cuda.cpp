@@ -24,15 +24,15 @@ namespace apps
 {
 
 #define NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_nodal_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_zonal_array_length); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
+  allocAndInitCudaData(x, m_x, m_nodal_array_length); \
+  allocAndInitCudaData(vol, m_vol, m_zonal_array_length); \
+  allocAndInitCudaData(real_zones, m_domain->real_zones, iend);
 
 #define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_nodal_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(vol); \
-  deallocCudaDeviceData(real_zones);
+  getCudaData(m_x, x, m_nodal_array_length); \
+  deallocCudaData(x); \
+  deallocCudaData(vol); \
+  deallocCudaData(real_zones);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

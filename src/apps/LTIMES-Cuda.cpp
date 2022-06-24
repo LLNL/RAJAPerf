@@ -42,15 +42,15 @@ namespace apps
 
 
 #define LTIMES_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(phidat, m_phidat, m_philen); \
-  allocAndInitCudaDeviceData(elldat, m_elldat, m_elllen); \
-  allocAndInitCudaDeviceData(psidat, m_psidat, m_psilen);
+  allocAndInitCudaData(phidat, m_phidat, m_philen); \
+  allocAndInitCudaData(elldat, m_elldat, m_elllen); \
+  allocAndInitCudaData(psidat, m_psidat, m_psilen);
 
 #define LTIMES_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_phidat, phidat, m_philen); \
-  deallocCudaDeviceData(phidat); \
-  deallocCudaDeviceData(elldat); \
-  deallocCudaDeviceData(psidat);
+  getCudaData(m_phidat, phidat, m_philen); \
+  deallocCudaData(phidat); \
+  deallocCudaData(elldat); \
+  deallocCudaData(psidat);
 
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)

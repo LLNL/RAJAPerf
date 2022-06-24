@@ -20,21 +20,21 @@ namespace rajaperf {
 namespace apps {
 
 #define CONVECTION3DPA_DATA_SETUP_HIP                                         \
-  allocAndInitHipDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitHipDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitHipDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitHipDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitHipDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitHipDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
+  allocAndInitHipData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
+  allocAndInitHipData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
+  allocAndInitHipData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
+  allocAndInitHipData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
+  allocAndInitHipData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
+  allocAndInitHipData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
 
 #define CONVECTION3DPA_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocHipDeviceData(Basis);                                                \
-  deallocHipDeviceData(tBasis);                                               \
-  deallocHipDeviceData(dBasis);                                               \
-  deallocHipDeviceData(D);                                                    \
-  deallocHipDeviceData(X);                                                    \
-  deallocHipDeviceData(Y);
+  getHipData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
+  deallocHipData(Basis);                                                \
+  deallocHipData(tBasis);                                               \
+  deallocHipData(dBasis);                                               \
+  deallocHipData(D);                                                    \
+  deallocHipData(X);                                                    \
+  deallocHipData(Y);
 
 template < size_t block_size >
   __launch_bounds__(block_size)

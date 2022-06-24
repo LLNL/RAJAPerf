@@ -23,23 +23,23 @@ namespace apps
 
 #define HALOEXCHANGE_DATA_SETUP_HIP \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitHipDeviceData(vars[v], m_vars[v], m_var_size); \
+    allocAndInitHipData(vars[v], m_vars[v], m_var_size); \
   } \
   for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitHipDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
+    allocAndInitHipData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
+    allocAndInitHipData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
+    allocAndInitHipData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
   }
 
 #define HALOEXCHANGE_DATA_TEARDOWN_HIP \
   for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocHipDeviceData(unpack_index_lists[l]); \
-    deallocHipDeviceData(pack_index_lists[l]); \
-    deallocHipDeviceData(buffers[l]); \
+    deallocHipData(unpack_index_lists[l]); \
+    deallocHipData(pack_index_lists[l]); \
+    deallocHipData(buffers[l]); \
   } \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getHipDeviceData(m_vars[v], vars[v], m_var_size); \
-    deallocHipDeviceData(vars[v]); \
+    getHipData(m_vars[v], vars[v], m_var_size); \
+    deallocHipData(vars[v]); \
   }
 
 template < size_t block_size >

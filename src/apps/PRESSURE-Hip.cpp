@@ -22,19 +22,19 @@ namespace apps
 {
 
 #define PRESSURE_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(compression, m_compression, iend); \
-  allocAndInitHipDeviceData(bvc, m_bvc, iend); \
-  allocAndInitHipDeviceData(p_new, m_p_new, iend); \
-  allocAndInitHipDeviceData(e_old, m_e_old, iend); \
-  allocAndInitHipDeviceData(vnewc, m_vnewc, iend);
+  allocAndInitHipData(compression, m_compression, iend); \
+  allocAndInitHipData(bvc, m_bvc, iend); \
+  allocAndInitHipData(p_new, m_p_new, iend); \
+  allocAndInitHipData(e_old, m_e_old, iend); \
+  allocAndInitHipData(vnewc, m_vnewc, iend);
 
 #define PRESSURE_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_p_new, p_new, iend); \
-  deallocHipDeviceData(compression); \
-  deallocHipDeviceData(bvc); \
-  deallocHipDeviceData(p_new); \
-  deallocHipDeviceData(e_old); \
-  deallocHipDeviceData(vnewc);
+  getHipData(m_p_new, p_new, iend); \
+  deallocHipData(compression); \
+  deallocHipData(bvc); \
+  deallocHipData(p_new); \
+  deallocHipData(e_old); \
+  deallocHipData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

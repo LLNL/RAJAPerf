@@ -26,21 +26,21 @@ namespace apps
 {
 
 #define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(xdot, m_xdot, m_array_length); \
-  allocAndInitCudaDeviceData(ydot, m_ydot, m_array_length); \
-  allocAndInitCudaDeviceData(div, m_div, m_array_length); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
+  allocAndInitCudaData(x, m_x, m_array_length); \
+  allocAndInitCudaData(y, m_y, m_array_length); \
+  allocAndInitCudaData(xdot, m_xdot, m_array_length); \
+  allocAndInitCudaData(ydot, m_ydot, m_array_length); \
+  allocAndInitCudaData(div, m_div, m_array_length); \
+  allocAndInitCudaData(real_zones, m_domain->real_zones, iend);
 
 #define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_div, div, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(xdot); \
-  deallocCudaDeviceData(ydot); \
-  deallocCudaDeviceData(div); \
-  deallocCudaDeviceData(real_zones);
+  getCudaData(m_div, div, m_array_length); \
+  deallocCudaData(x); \
+  deallocCudaData(y); \
+  deallocCudaData(xdot); \
+  deallocCudaData(ydot); \
+  deallocCudaData(div); \
+  deallocCudaData(real_zones);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -23,19 +23,19 @@ namespace rajaperf {
 namespace apps {
 
 #define MASS3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                  \
-  allocAndInitCudaDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                \
-  allocAndInitCudaDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);   \
-  allocAndInitCudaDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);   \
-  allocAndInitCudaDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
+  allocAndInitCudaData(B, m_B, MPA_Q1D *MPA_D1D);                  \
+  allocAndInitCudaData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                \
+  allocAndInitCudaData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);   \
+  allocAndInitCudaData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);   \
+  allocAndInitCudaData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
 
 #define MASS3DPA_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);            \
-  deallocCudaDeviceData(B);                                              \
-  deallocCudaDeviceData(Bt);                                             \
-  deallocCudaDeviceData(D);                                              \
-  deallocCudaDeviceData(X);                                              \
-  deallocCudaDeviceData(Y);
+  getCudaData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);            \
+  deallocCudaData(B);                                              \
+  deallocCudaData(Bt);                                             \
+  deallocCudaData(D);                                              \
+  deallocCudaData(X);                                              \
+  deallocCudaData(Y);
 
 template < size_t block_size >
   __launch_bounds__(block_size)

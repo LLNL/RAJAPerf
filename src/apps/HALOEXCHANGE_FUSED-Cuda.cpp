@@ -23,24 +23,24 @@ namespace apps
 
 #define HALOEXCHANGE_FUSED_DATA_SETUP_CUDA \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitCudaDeviceData(vars[v], m_vars[v], m_var_size); \
+    allocAndInitCudaData(vars[v], m_vars[v], m_var_size); \
   } \
   for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitCudaDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitCudaDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitCudaDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
+    allocAndInitCudaData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
+    allocAndInitCudaData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
+    allocAndInitCudaData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
   }
 
 
 #define HALOEXCHANGE_FUSED_DATA_TEARDOWN_CUDA \
   for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocCudaDeviceData(unpack_index_lists[l]); \
-    deallocCudaDeviceData(pack_index_lists[l]); \
-    deallocCudaDeviceData(buffers[l]); \
+    deallocCudaData(unpack_index_lists[l]); \
+    deallocCudaData(pack_index_lists[l]); \
+    deallocCudaData(buffers[l]); \
   } \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getCudaDeviceData(m_vars[v], vars[v], m_var_size); \
-    deallocCudaDeviceData(vars[v]); \
+    getCudaData(m_vars[v], vars[v], m_var_size); \
+    deallocCudaData(vars[v]); \
   }
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA \

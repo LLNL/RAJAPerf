@@ -24,15 +24,15 @@ namespace apps
 {
 
 #define NODAL_ACCUMULATION_3D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_nodal_array_length); \
-  allocAndInitHipDeviceData(vol, m_vol, m_zonal_array_length); \
-  allocAndInitHipDeviceData(real_zones, m_domain->real_zones, iend);
+  allocAndInitHipData(x, m_x, m_nodal_array_length); \
+  allocAndInitHipData(vol, m_vol, m_zonal_array_length); \
+  allocAndInitHipData(real_zones, m_domain->real_zones, iend);
 
 #define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, m_nodal_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(vol); \
-  deallocHipDeviceData(real_zones);
+  getHipData(m_x, x, m_nodal_array_length); \
+  deallocHipData(x); \
+  deallocHipData(vol); \
+  deallocHipData(real_zones);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -24,17 +24,17 @@ namespace apps
 {
 
 #define VOL3D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length); \
-  allocAndInitHipDeviceData(vol, m_vol, m_array_length);
+  allocAndInitHipData(x, m_x, m_array_length); \
+  allocAndInitHipData(y, m_y, m_array_length); \
+  allocAndInitHipData(z, m_z, m_array_length); \
+  allocAndInitHipData(vol, m_vol, m_array_length);
 
 #define VOL3D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_vol, vol, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
-  deallocHipDeviceData(vol);
+  getHipData(m_vol, vol, m_array_length); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(z); \
+  deallocHipData(vol);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

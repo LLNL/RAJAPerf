@@ -20,21 +20,21 @@ namespace rajaperf {
 namespace apps {
 
 #define CONVECTION3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitCudaDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitCudaDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitCudaDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitCudaDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitCudaDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
+  allocAndInitCudaData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
+  allocAndInitCudaData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
+  allocAndInitCudaData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
+  allocAndInitCudaData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
+  allocAndInitCudaData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
+  allocAndInitCudaData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
 
 #define CONVECTION3DPA_DATA_TEARDOWN_CUDA                                       \
-  getCudaDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocCudaDeviceData(Basis);                                                \
-  deallocCudaDeviceData(tBasis);                                               \
-  deallocCudaDeviceData(dBasis);                                               \
-  deallocCudaDeviceData(D);                                                    \
-  deallocCudaDeviceData(X);                                                    \
-  deallocCudaDeviceData(Y);
+  getCudaData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
+  deallocCudaData(Basis);                                                \
+  deallocCudaData(tBasis);                                               \
+  deallocCudaData(dBasis);                                               \
+  deallocCudaData(D);                                                    \
+  deallocCudaData(X);                                                    \
+  deallocCudaData(Y);
 
 template < size_t block_size >
   __launch_bounds__(block_size)

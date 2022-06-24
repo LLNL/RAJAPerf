@@ -26,21 +26,21 @@ namespace apps
 {
 
 #define DEL_DOT_VEC_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(xdot, m_xdot, m_array_length); \
-  allocAndInitHipDeviceData(ydot, m_ydot, m_array_length); \
-  allocAndInitHipDeviceData(div, m_div, m_array_length); \
-  allocAndInitHipDeviceData(real_zones, m_domain->real_zones, iend);
+  allocAndInitHipData(x, m_x, m_array_length); \
+  allocAndInitHipData(y, m_y, m_array_length); \
+  allocAndInitHipData(xdot, m_xdot, m_array_length); \
+  allocAndInitHipData(ydot, m_ydot, m_array_length); \
+  allocAndInitHipData(div, m_div, m_array_length); \
+  allocAndInitHipData(real_zones, m_domain->real_zones, iend);
 
 #define DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_div, div, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(xdot); \
-  deallocHipDeviceData(ydot); \
-  deallocHipDeviceData(div); \
-  deallocHipDeviceData(real_zones);
+  getHipData(m_div, div, m_array_length); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(xdot); \
+  deallocHipData(ydot); \
+  deallocHipData(div); \
+  deallocHipData(real_zones);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

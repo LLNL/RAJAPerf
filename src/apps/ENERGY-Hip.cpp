@@ -22,40 +22,40 @@ namespace apps
 {
 
 #define ENERGY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(e_new, m_e_new, iend); \
-  allocAndInitHipDeviceData(e_old, m_e_old, iend); \
-  allocAndInitHipDeviceData(delvc, m_delvc, iend); \
-  allocAndInitHipDeviceData(p_new, m_p_new, iend); \
-  allocAndInitHipDeviceData(p_old, m_p_old, iend); \
-  allocAndInitHipDeviceData(q_new, m_q_new, iend); \
-  allocAndInitHipDeviceData(q_old, m_q_old, iend); \
-  allocAndInitHipDeviceData(work, m_work, iend); \
-  allocAndInitHipDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitHipDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitHipDeviceData(bvc, m_bvc, iend); \
-  allocAndInitHipDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitHipDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitHipDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitHipDeviceData(vnewc, m_vnewc, iend);
+  allocAndInitHipData(e_new, m_e_new, iend); \
+  allocAndInitHipData(e_old, m_e_old, iend); \
+  allocAndInitHipData(delvc, m_delvc, iend); \
+  allocAndInitHipData(p_new, m_p_new, iend); \
+  allocAndInitHipData(p_old, m_p_old, iend); \
+  allocAndInitHipData(q_new, m_q_new, iend); \
+  allocAndInitHipData(q_old, m_q_old, iend); \
+  allocAndInitHipData(work, m_work, iend); \
+  allocAndInitHipData(compHalfStep, m_compHalfStep, iend); \
+  allocAndInitHipData(pHalfStep, m_pHalfStep, iend); \
+  allocAndInitHipData(bvc, m_bvc, iend); \
+  allocAndInitHipData(pbvc, m_pbvc, iend); \
+  allocAndInitHipData(ql_old, m_ql_old, iend); \
+  allocAndInitHipData(qq_old, m_qq_old, iend); \
+  allocAndInitHipData(vnewc, m_vnewc, iend);
 
 #define ENERGY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_e_new, e_new, iend); \
-  getHipDeviceData(m_q_new, q_new, iend); \
-  deallocHipDeviceData(e_new); \
-  deallocHipDeviceData(e_old); \
-  deallocHipDeviceData(delvc); \
-  deallocHipDeviceData(p_new); \
-  deallocHipDeviceData(p_old); \
-  deallocHipDeviceData(q_new); \
-  deallocHipDeviceData(q_old); \
-  deallocHipDeviceData(work); \
-  deallocHipDeviceData(compHalfStep); \
-  deallocHipDeviceData(pHalfStep); \
-  deallocHipDeviceData(bvc); \
-  deallocHipDeviceData(pbvc); \
-  deallocHipDeviceData(ql_old); \
-  deallocHipDeviceData(qq_old); \
-  deallocHipDeviceData(vnewc);
+  getHipData(m_e_new, e_new, iend); \
+  getHipData(m_q_new, q_new, iend); \
+  deallocHipData(e_new); \
+  deallocHipData(e_old); \
+  deallocHipData(delvc); \
+  deallocHipData(p_new); \
+  deallocHipData(p_old); \
+  deallocHipData(q_new); \
+  deallocHipData(q_old); \
+  deallocHipData(work); \
+  deallocHipData(compHalfStep); \
+  deallocHipData(pHalfStep); \
+  deallocHipData(bvc); \
+  deallocHipData(pbvc); \
+  deallocHipData(ql_old); \
+  deallocHipData(qq_old); \
+  deallocHipData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -23,19 +23,19 @@ namespace rajaperf {
 namespace apps {
 
 #define MASS3DPA_DATA_SETUP_HIP                                           \
-  allocAndInitHipDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                    \
-  allocAndInitHipDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                  \
-  allocAndInitHipDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);     \
-  allocAndInitHipDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);     \
-  allocAndInitHipDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
+  allocAndInitHipData(B, m_B, MPA_Q1D *MPA_D1D);                    \
+  allocAndInitHipData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                  \
+  allocAndInitHipData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);     \
+  allocAndInitHipData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);     \
+  allocAndInitHipData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
 
 #define MASS3DPA_DATA_TEARDOWN_HIP                                        \
-  getHipDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);              \
-  deallocHipDeviceData(B);                                                \
-  deallocHipDeviceData(Bt);                                               \
-  deallocHipDeviceData(D);                                                \
-  deallocHipDeviceData(X);                                                \
-  deallocHipDeviceData(Y);
+  getHipData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);              \
+  deallocHipData(B);                                                \
+  deallocHipData(Bt);                                               \
+  deallocHipData(D);                                                \
+  deallocHipData(X);                                                \
+  deallocHipData(Y);
 
 template < size_t block_size >
   __launch_bounds__(block_size)

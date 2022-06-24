@@ -22,40 +22,40 @@ namespace apps
 {
 
 #define ENERGY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(e_new, m_e_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(delvc, m_delvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(p_old, m_p_old, iend); \
-  allocAndInitCudaDeviceData(q_new, m_q_new, iend); \
-  allocAndInitCudaDeviceData(q_old, m_q_old, iend); \
-  allocAndInitCudaDeviceData(work, m_work, iend); \
-  allocAndInitCudaDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitCudaDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitCudaDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitCudaDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
+  allocAndInitCudaData(e_new, m_e_new, iend); \
+  allocAndInitCudaData(e_old, m_e_old, iend); \
+  allocAndInitCudaData(delvc, m_delvc, iend); \
+  allocAndInitCudaData(p_new, m_p_new, iend); \
+  allocAndInitCudaData(p_old, m_p_old, iend); \
+  allocAndInitCudaData(q_new, m_q_new, iend); \
+  allocAndInitCudaData(q_old, m_q_old, iend); \
+  allocAndInitCudaData(work, m_work, iend); \
+  allocAndInitCudaData(compHalfStep, m_compHalfStep, iend); \
+  allocAndInitCudaData(pHalfStep, m_pHalfStep, iend); \
+  allocAndInitCudaData(bvc, m_bvc, iend); \
+  allocAndInitCudaData(pbvc, m_pbvc, iend); \
+  allocAndInitCudaData(ql_old, m_ql_old, iend); \
+  allocAndInitCudaData(qq_old, m_qq_old, iend); \
+  allocAndInitCudaData(vnewc, m_vnewc, iend);
 
 #define ENERGY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_e_new, e_new, iend); \
-  getCudaDeviceData(m_q_new, q_new, iend); \
-  deallocCudaDeviceData(e_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(delvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(p_old); \
-  deallocCudaDeviceData(q_new); \
-  deallocCudaDeviceData(q_old); \
-  deallocCudaDeviceData(work); \
-  deallocCudaDeviceData(compHalfStep); \
-  deallocCudaDeviceData(pHalfStep); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(pbvc); \
-  deallocCudaDeviceData(ql_old); \
-  deallocCudaDeviceData(qq_old); \
-  deallocCudaDeviceData(vnewc);
+  getCudaData(m_e_new, e_new, iend); \
+  getCudaData(m_q_new, q_new, iend); \
+  deallocCudaData(e_new); \
+  deallocCudaData(e_old); \
+  deallocCudaData(delvc); \
+  deallocCudaData(p_new); \
+  deallocCudaData(p_old); \
+  deallocCudaData(q_new); \
+  deallocCudaData(q_old); \
+  deallocCudaData(work); \
+  deallocCudaData(compHalfStep); \
+  deallocCudaData(pHalfStep); \
+  deallocCudaData(bvc); \
+  deallocCudaData(pbvc); \
+  deallocCudaData(ql_old); \
+  deallocCudaData(qq_old); \
+  deallocCudaData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

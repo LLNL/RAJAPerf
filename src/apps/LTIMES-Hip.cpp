@@ -41,15 +41,15 @@ namespace apps
 
 
 #define LTIMES_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(phidat, m_phidat, m_philen); \
-  allocAndInitHipDeviceData(elldat, m_elldat, m_elllen); \
-  allocAndInitHipDeviceData(psidat, m_psidat, m_psilen);
+  allocAndInitHipData(phidat, m_phidat, m_philen); \
+  allocAndInitHipData(elldat, m_elldat, m_elllen); \
+  allocAndInitHipData(psidat, m_psidat, m_psilen);
 
 #define LTIMES_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_phidat, phidat, m_philen); \
-  deallocHipDeviceData(phidat); \
-  deallocHipDeviceData(elldat); \
-  deallocHipDeviceData(psidat);
+  getHipData(m_phidat, phidat, m_philen); \
+  deallocHipData(phidat); \
+  deallocHipData(elldat); \
+  deallocHipData(psidat);
 
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)

@@ -24,17 +24,17 @@ namespace apps
 {
 
 #define VOL3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_array_length);
+  allocAndInitCudaData(x, m_x, m_array_length); \
+  allocAndInitCudaData(y, m_y, m_array_length); \
+  allocAndInitCudaData(z, m_z, m_array_length); \
+  allocAndInitCudaData(vol, m_vol, m_array_length);
 
 #define VOL3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_vol, vol, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(vol);
+  getCudaData(m_vol, vol, m_array_length); \
+  deallocCudaData(x); \
+  deallocCudaData(y); \
+  deallocCudaData(z); \
+  deallocCudaData(vol);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
