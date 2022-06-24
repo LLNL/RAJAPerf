@@ -78,6 +78,7 @@
 //
 // Apps kernels...
 //
+#include "apps/BLOCK_DIAG_MAT_VEC_REORDER.hpp"
 #include "apps/CONVECTION3DPA.hpp"
 #include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
@@ -212,6 +213,7 @@ static const std::string KernelNames [] =
 //
 // Apps kernels...
 //
+  std::string("Apps_BLOCK_DIAG_MAT_VEC_ORDER"),
   std::string("Apps_CONVECTION3DPA"),
   std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
@@ -715,6 +717,10 @@ KernelBase* getKernelObject(KernelID kid,
 //
 // Apps kernels...
 //
+    case Apps_BLOCK_DIAG_MAT_VEC_REORDER : {
+       kernel = new apps::BLOCK_DIAG_MAT_VEC(run_params);
+       break;
+    }
     case Apps_CONVECTION3DPA : {
        kernel = new apps::CONVECTION3DPA(run_params);
        break;

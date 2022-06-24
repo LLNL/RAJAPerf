@@ -9,6 +9,12 @@
 blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
+          BLOCK_DIAG_MAT_VEC.cpp 
+          BLOCK_DIAG_MAT_VEC-Seq.cpp 
+          BLOCK_DIAG_MAT_VEC-Hip.cpp 
+          BLOCK_DIAG_MAT_VEC-Cuda.cpp 
+          BLOCK_DIAG_MAT_VEC-OMP.cpp 
+          BLOCK_DIAG_MAT_VEC-OMPTarget.cpp 
           CONVECTION3DPA.cpp
           CONVECTION3DPA-Cuda.cpp
           CONVECTION3DPA-Hip.cpp

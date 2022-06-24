@@ -9,9 +9,8 @@
 include_directories(.)
 
 add_subdirectory(common)
-add_subdirectory(basic)
-add_subdirectory(basic-kokkos)
 add_subdirectory(apps)
+add_subdirectory(basic)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
@@ -21,7 +20,6 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
-    basic-kokkos
     lcals
     polybench
     stream
@@ -35,6 +33,9 @@ blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
+  apps/BLOCK_DIAG_MAT_VEC_REORDER.cpp
+  apps/BLOCK_DIAG_MAT_VEC_REORDER-Seq.cpp
+  apps/BLOCK_DIAG_MAT_VEC_REORDER-OMPTarget.cpp
   apps/CONVECTION3DPA.cpp
   apps/CONVECTION3DPA-Seq.cpp
   apps/CONVECTION3DPA-OMPTarget.cpp
