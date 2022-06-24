@@ -45,20 +45,20 @@ namespace polybench
 
 
 #define POLYBENCH_2MM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(tmp, m_tmp, m_ni * m_nj); \
-  allocAndInitHipDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitHipDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitHipDeviceData(C, m_C, m_nj * m_nl); \
-  allocAndInitHipDeviceData(D, m_D, m_ni * m_nl);
+  allocAndInitHipData(tmp, m_tmp, m_ni * m_nj); \
+  allocAndInitHipData(A, m_A, m_ni * m_nk); \
+  allocAndInitHipData(B, m_B, m_nk * m_nj); \
+  allocAndInitHipData(C, m_C, m_nj * m_nl); \
+  allocAndInitHipData(D, m_D, m_ni * m_nl);
 
 
 #define POLYBENCH_2MM_TEARDOWN_HIP \
-  getHipDeviceData(m_D, D, m_ni * m_nl); \
-  deallocHipDeviceData(tmp); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C); \
-  deallocHipDeviceData(D);
+  getHipData(m_D, D, m_ni * m_nl); \
+  deallocHipData(tmp); \
+  deallocHipData(A); \
+  deallocHipData(B); \
+  deallocHipData(C); \
+  deallocHipData(D);
 
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)

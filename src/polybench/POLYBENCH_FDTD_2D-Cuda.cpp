@@ -40,17 +40,17 @@ namespace polybench
 
 
 #define POLYBENCH_FDTD_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(hz, m_hz, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(ex, m_ex, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(ey, m_ey, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(fict, m_fict, m_tsteps);
+  allocAndInitCudaData(hz, m_hz, m_nx * m_ny); \
+  allocAndInitCudaData(ex, m_ex, m_nx * m_ny); \
+  allocAndInitCudaData(ey, m_ey, m_nx * m_ny); \
+  allocAndInitCudaData(fict, m_fict, m_tsteps);
 
 
 #define POLYBENCH_FDTD_2D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_hz, hz, m_nx * m_ny); \
-  deallocCudaDeviceData(ex); \
-  deallocCudaDeviceData(ey); \
-  deallocCudaDeviceData(fict);
+  getCudaData(m_hz, hz, m_nx * m_ny); \
+  deallocCudaData(ex); \
+  deallocCudaData(ey); \
+  deallocCudaData(fict);
 
 
 template < size_t block_size >

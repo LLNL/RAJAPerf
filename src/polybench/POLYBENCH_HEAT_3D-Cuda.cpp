@@ -41,16 +41,16 @@ namespace polybench
 
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_Ainit, m_N*m_N*m_N); \
-  allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N*m_N); \
+  allocAndInitCudaData(A, m_Ainit, m_N*m_N*m_N); \
+  allocAndInitCudaData(B, m_Binit, m_N*m_N*m_N); \
   static_assert(k_block_sz*j_block_sz*i_block_sz == block_size, "Invalid block_size");
 
 
 #define POLYBENCH_HEAT_3D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_A, A, m_N*m_N*m_N); \
-  getCudaDeviceData(m_B, B, m_N*m_N*m_N); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B);
+  getCudaData(m_A, A, m_N*m_N*m_N); \
+  getCudaData(m_B, B, m_N*m_N*m_N); \
+  deallocCudaData(A); \
+  deallocCudaData(B);
 
 
 template < size_t k_block_size, size_t j_block_size, size_t i_block_size >

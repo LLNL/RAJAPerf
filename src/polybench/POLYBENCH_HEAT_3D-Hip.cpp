@@ -41,16 +41,16 @@ namespace polybench
 
 
 #define POLYBENCH_HEAT_3D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_Ainit, m_N*m_N*m_N); \
-  allocAndInitHipDeviceData(B, m_Binit, m_N*m_N*m_N); \
+  allocAndInitHipData(A, m_Ainit, m_N*m_N*m_N); \
+  allocAndInitHipData(B, m_Binit, m_N*m_N*m_N); \
   static_assert(k_block_sz*j_block_sz*i_block_sz == block_size, "Invalid block_size");
 
 
 #define POLYBENCH_HEAT_3D_TEARDOWN_HIP \
-  getHipDeviceData(m_A, A, m_N*m_N*m_N); \
-  getHipDeviceData(m_B, B, m_N*m_N*m_N); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
+  getHipData(m_A, A, m_N*m_N*m_N); \
+  getHipData(m_B, B, m_N*m_N*m_N); \
+  deallocHipData(A); \
+  deallocHipData(B);
 
 
 template < size_t k_block_size, size_t j_block_size, size_t i_block_size >

@@ -50,24 +50,24 @@ namespace polybench
 
 
 #define POLYBENCH_3MM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitCudaDeviceData(C, m_C, m_nj * m_nm); \
-  allocAndInitCudaDeviceData(D, m_D, m_nm * m_nl); \
-  allocAndInitCudaDeviceData(E, m_E, m_ni * m_nj); \
-  allocAndInitCudaDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitCudaDeviceData(G, m_G, m_ni * m_nl);
+  allocAndInitCudaData(A, m_A, m_ni * m_nk); \
+  allocAndInitCudaData(B, m_B, m_nk * m_nj); \
+  allocAndInitCudaData(C, m_C, m_nj * m_nm); \
+  allocAndInitCudaData(D, m_D, m_nm * m_nl); \
+  allocAndInitCudaData(E, m_E, m_ni * m_nj); \
+  allocAndInitCudaData(F, m_F, m_nj * m_nl); \
+  allocAndInitCudaData(G, m_G, m_ni * m_nl);
 
 
 #define POLYBENCH_3MM_TEARDOWN_CUDA \
-  getCudaDeviceData(m_G, G, m_ni * m_nl); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B); \
-  deallocCudaDeviceData(C); \
-  deallocCudaDeviceData(D); \
-  deallocCudaDeviceData(E); \
-  deallocCudaDeviceData(F); \
-  deallocCudaDeviceData(G);
+  getCudaData(m_G, G, m_ni * m_nl); \
+  deallocCudaData(A); \
+  deallocCudaData(B); \
+  deallocCudaData(C); \
+  deallocCudaData(D); \
+  deallocCudaData(E); \
+  deallocCudaData(F); \
+  deallocCudaData(G);
 
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)

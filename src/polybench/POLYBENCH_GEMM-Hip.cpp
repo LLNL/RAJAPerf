@@ -40,16 +40,16 @@ namespace polybench
 
 
 #define POLYBENCH_GEMM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, ni*nk); \
-  allocAndInitHipDeviceData(B, m_B, nk*nj); \
-  allocAndInitHipDeviceData(C, m_C, ni*nj);
+  allocAndInitHipData(A, m_A, ni*nk); \
+  allocAndInitHipData(B, m_B, nk*nj); \
+  allocAndInitHipData(C, m_C, ni*nj);
 
 
 #define POLYBENCH_GEMM_TEARDOWN_HIP \
-  getHipDeviceData(m_C, C, ni*nj); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C);
+  getHipData(m_C, C, ni*nj); \
+  deallocHipData(A); \
+  deallocHipData(B); \
+  deallocHipData(C);
 
 
 template < size_t j_block_size, size_t i_block_size >

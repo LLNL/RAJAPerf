@@ -22,15 +22,15 @@ namespace polybench
 {
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_Ainit, m_N); \
-  allocAndInitCudaDeviceData(B, m_Binit, m_N);
+  allocAndInitCudaData(A, m_Ainit, m_N); \
+  allocAndInitCudaData(B, m_Binit, m_N);
 
 
 #define POLYBENCH_JACOBI_1D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_A, A, m_N); \
-  getCudaDeviceData(m_B, B, m_N); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B);
+  getCudaData(m_A, A, m_N); \
+  getCudaData(m_B, B, m_N); \
+  deallocCudaData(A); \
+  deallocCudaData(B);
 
 
 template < size_t block_size >

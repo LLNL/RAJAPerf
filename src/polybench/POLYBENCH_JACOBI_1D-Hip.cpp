@@ -22,15 +22,15 @@ namespace polybench
 {
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_Ainit, m_N); \
-  allocAndInitHipDeviceData(B, m_Binit, m_N);
+  allocAndInitHipData(A, m_Ainit, m_N); \
+  allocAndInitHipData(B, m_Binit, m_N);
 
 
 #define POLYBENCH_JACOBI_1D_TEARDOWN_HIP \
-  getHipDeviceData(m_A, A, m_N); \
-  getHipDeviceData(m_B, B, m_N); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
+  getHipData(m_A, A, m_N); \
+  getHipData(m_B, B, m_N); \
+  deallocHipData(A); \
+  deallocHipData(B);
 
 
 template < size_t block_size >

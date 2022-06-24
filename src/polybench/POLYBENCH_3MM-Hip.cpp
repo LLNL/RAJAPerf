@@ -50,24 +50,24 @@ namespace polybench
 
 
 #define POLYBENCH_3MM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitHipDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitHipDeviceData(C, m_C, m_nj * m_nm); \
-  allocAndInitHipDeviceData(D, m_D, m_nm * m_nl); \
-  allocAndInitHipDeviceData(E, m_E, m_ni * m_nj); \
-  allocAndInitHipDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitHipDeviceData(G, m_G, m_ni * m_nl);
+  allocAndInitHipData(A, m_A, m_ni * m_nk); \
+  allocAndInitHipData(B, m_B, m_nk * m_nj); \
+  allocAndInitHipData(C, m_C, m_nj * m_nm); \
+  allocAndInitHipData(D, m_D, m_nm * m_nl); \
+  allocAndInitHipData(E, m_E, m_ni * m_nj); \
+  allocAndInitHipData(F, m_F, m_nj * m_nl); \
+  allocAndInitHipData(G, m_G, m_ni * m_nl);
 
 
 #define POLYBENCH_3MM_TEARDOWN_HIP \
-  getHipDeviceData(m_G, G, m_ni * m_nl); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C); \
-  deallocHipDeviceData(D); \
-  deallocHipDeviceData(E); \
-  deallocHipDeviceData(F); \
-  deallocHipDeviceData(G);
+  getHipData(m_G, G, m_ni * m_nl); \
+  deallocHipData(A); \
+  deallocHipData(B); \
+  deallocHipData(C); \
+  deallocHipData(D); \
+  deallocHipData(E); \
+  deallocHipData(F); \
+  deallocHipData(G);
 
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)

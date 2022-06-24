@@ -22,21 +22,21 @@ namespace polybench
 {
 
 #define POLYBENCH_MVT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x1, m_x1, N); \
-  allocAndInitHipDeviceData(x2, m_x2, N); \
-  allocAndInitHipDeviceData(y1, m_y1, N); \
-  allocAndInitHipDeviceData(y2, m_y2, N); \
-  allocAndInitHipDeviceData(A, m_A, N * N);
+  allocAndInitHipData(x1, m_x1, N); \
+  allocAndInitHipData(x2, m_x2, N); \
+  allocAndInitHipData(y1, m_y1, N); \
+  allocAndInitHipData(y2, m_y2, N); \
+  allocAndInitHipData(A, m_A, N * N);
 
 
 #define POLYBENCH_MVT_TEARDOWN_HIP \
-  getHipDeviceData(m_x1, x1, N); \
-  getHipDeviceData(m_x2, x2, N); \
-  deallocHipDeviceData(x1); \
-  deallocHipDeviceData(x2); \
-  deallocHipDeviceData(y1); \
-  deallocHipDeviceData(y2); \
-  deallocHipDeviceData(A);
+  getHipData(m_x1, x1, N); \
+  getHipData(m_x2, x2, N); \
+  deallocHipData(x1); \
+  deallocHipData(x2); \
+  deallocHipData(y1); \
+  deallocHipData(y2); \
+  deallocHipData(A);
 
 
 template < size_t block_size >

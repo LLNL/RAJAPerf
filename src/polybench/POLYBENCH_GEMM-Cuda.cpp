@@ -40,16 +40,16 @@ namespace polybench
 
 
 #define POLYBENCH_GEMM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_A, ni*nk); \
-  allocAndInitCudaDeviceData(B, m_B, nk*nj); \
-  allocAndInitCudaDeviceData(C, m_C, ni*nj);
+  allocAndInitCudaData(A, m_A, ni*nk); \
+  allocAndInitCudaData(B, m_B, nk*nj); \
+  allocAndInitCudaData(C, m_C, ni*nj);
 
 
 #define POLYBENCH_GEMM_TEARDOWN_CUDA \
-  getCudaDeviceData(m_C, C, ni*nj); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B); \
-  deallocCudaDeviceData(C);
+  getCudaData(m_C, C, ni*nj); \
+  deallocCudaData(A); \
+  deallocCudaData(B); \
+  deallocCudaData(C);
 
 
 template < size_t j_block_size, size_t i_block_size >

@@ -22,18 +22,18 @@ namespace polybench
 {
 
 #define POLYBENCH_ADI_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(U, m_U, m_n * m_n); \
-  allocAndInitHipDeviceData(V, m_V, m_n * m_n); \
-  allocAndInitHipDeviceData(P, m_P, m_n * m_n); \
-  allocAndInitHipDeviceData(Q, m_Q, m_n * m_n);
+  allocAndInitHipData(U, m_U, m_n * m_n); \
+  allocAndInitHipData(V, m_V, m_n * m_n); \
+  allocAndInitHipData(P, m_P, m_n * m_n); \
+  allocAndInitHipData(Q, m_Q, m_n * m_n);
 
 
 #define POLYBENCH_ADI_TEARDOWN_HIP \
-  getHipDeviceData(m_U, U, m_n * m_n); \
-  deallocHipDeviceData(U); \
-  deallocHipDeviceData(V); \
-  deallocHipDeviceData(P); \
-  deallocHipDeviceData(Q);
+  getHipData(m_U, U, m_n * m_n); \
+  deallocHipData(U); \
+  deallocHipData(V); \
+  deallocHipData(P); \
+  deallocHipData(Q);
 
 
 template < size_t block_size >

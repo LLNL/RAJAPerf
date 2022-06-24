@@ -22,21 +22,21 @@ namespace polybench
 {
 
 #define POLYBENCH_MVT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x1, m_x1, N); \
-  allocAndInitCudaDeviceData(x2, m_x2, N); \
-  allocAndInitCudaDeviceData(y1, m_y1, N); \
-  allocAndInitCudaDeviceData(y2, m_y2, N); \
-  allocAndInitCudaDeviceData(A, m_A, N * N);
+  allocAndInitCudaData(x1, m_x1, N); \
+  allocAndInitCudaData(x2, m_x2, N); \
+  allocAndInitCudaData(y1, m_y1, N); \
+  allocAndInitCudaData(y2, m_y2, N); \
+  allocAndInitCudaData(A, m_A, N * N);
 
 
 #define POLYBENCH_MVT_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, N); \
-  getCudaDeviceData(m_x2, x2, N); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2); \
-  deallocCudaDeviceData(y1); \
-  deallocCudaDeviceData(y2); \
-  deallocCudaDeviceData(A);
+  getCudaData(m_x1, x1, N); \
+  getCudaData(m_x2, x2, N); \
+  deallocCudaData(x1); \
+  deallocCudaData(x2); \
+  deallocCudaData(y1); \
+  deallocCudaData(y2); \
+  deallocCudaData(A);
 
 
 template < size_t block_size >

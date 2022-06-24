@@ -40,28 +40,28 @@ namespace polybench
 
 
 #define POLYBENCH_GEMVER_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, m_n * m_n); \
-  allocAndInitHipDeviceData(u1, m_u1, m_n); \
-  allocAndInitHipDeviceData(v1, m_v1, m_n); \
-  allocAndInitHipDeviceData(u2, m_u2, m_n); \
-  allocAndInitHipDeviceData(v2, m_v2, m_n); \
-  allocAndInitHipDeviceData(w, m_w, m_n); \
-  allocAndInitHipDeviceData(x, m_x, m_n); \
-  allocAndInitHipDeviceData(y, m_y, m_n); \
-  allocAndInitHipDeviceData(z, m_z, m_n);
+  allocAndInitHipData(A, m_A, m_n * m_n); \
+  allocAndInitHipData(u1, m_u1, m_n); \
+  allocAndInitHipData(v1, m_v1, m_n); \
+  allocAndInitHipData(u2, m_u2, m_n); \
+  allocAndInitHipData(v2, m_v2, m_n); \
+  allocAndInitHipData(w, m_w, m_n); \
+  allocAndInitHipData(x, m_x, m_n); \
+  allocAndInitHipData(y, m_y, m_n); \
+  allocAndInitHipData(z, m_z, m_n);
 
 
 #define POLYBENCH_GEMVER_TEARDOWN_HIP \
-  getHipDeviceData(m_w, w, m_n); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(u1); \
-  deallocHipDeviceData(v1); \
-  deallocHipDeviceData(u2); \
-  deallocHipDeviceData(v2); \
-  deallocHipDeviceData(w); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z);
+  getHipData(m_w, w, m_n); \
+  deallocHipData(A); \
+  deallocHipData(u1); \
+  deallocHipData(v1); \
+  deallocHipData(u2); \
+  deallocHipData(v2); \
+  deallocHipData(w); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(z);
 
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)

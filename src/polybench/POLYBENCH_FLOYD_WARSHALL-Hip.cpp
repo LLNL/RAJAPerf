@@ -38,14 +38,14 @@ namespace polybench
 
 
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(pin, m_pin, m_N * m_N); \
-  allocAndInitHipDeviceData(pout, m_pout, m_N * m_N);
+  allocAndInitHipData(pin, m_pin, m_N * m_N); \
+  allocAndInitHipData(pout, m_pout, m_N * m_N);
 
 
 #define POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP \
-  getHipDeviceData(m_pout, pout, m_N * m_N); \
-  deallocHipDeviceData(pin); \
-  deallocHipDeviceData(pout);
+  getHipData(m_pout, pout, m_N * m_N); \
+  deallocHipData(pin); \
+  deallocHipData(pout);
 
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)

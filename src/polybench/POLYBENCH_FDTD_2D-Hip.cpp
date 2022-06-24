@@ -39,17 +39,17 @@ namespace polybench
                   static_cast<size_t>(1));
 
 #define POLYBENCH_FDTD_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(hz, m_hz, m_nx * m_ny); \
-  allocAndInitHipDeviceData(ex, m_ex, m_nx * m_ny); \
-  allocAndInitHipDeviceData(ey, m_ey, m_nx * m_ny); \
-  allocAndInitHipDeviceData(fict, m_fict, m_tsteps);
+  allocAndInitHipData(hz, m_hz, m_nx * m_ny); \
+  allocAndInitHipData(ex, m_ex, m_nx * m_ny); \
+  allocAndInitHipData(ey, m_ey, m_nx * m_ny); \
+  allocAndInitHipData(fict, m_fict, m_tsteps);
 
 
 #define POLYBENCH_FDTD_2D_TEARDOWN_HIP \
-  getHipDeviceData(m_hz, hz, m_nx * m_ny); \
-  deallocHipDeviceData(ex); \
-  deallocHipDeviceData(ey); \
-  deallocHipDeviceData(fict);
+  getHipData(m_hz, hz, m_nx * m_ny); \
+  deallocHipData(ex); \
+  deallocHipData(ey); \
+  deallocHipData(fict);
 
 
 template < size_t block_size >

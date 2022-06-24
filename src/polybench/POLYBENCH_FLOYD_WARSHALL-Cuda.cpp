@@ -38,14 +38,14 @@ namespace polybench
 
 
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(pin, m_pin, m_N * m_N); \
-  allocAndInitCudaDeviceData(pout, m_pout, m_N * m_N);
+  allocAndInitCudaData(pin, m_pin, m_N * m_N); \
+  allocAndInitCudaData(pout, m_pout, m_N * m_N);
 
 
 #define POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA \
-  getCudaDeviceData(m_pout, pout, m_N * m_N); \
-  deallocCudaDeviceData(pin); \
-  deallocCudaDeviceData(pout);
+  getCudaData(m_pout, pout, m_N * m_N); \
+  deallocCudaData(pin); \
+  deallocCudaData(pout);
 
 
 template < size_t j_block_size, size_t i_block_size >

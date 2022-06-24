@@ -22,18 +22,18 @@ namespace polybench
 {
 
 #define POLYBENCH_GESUMMV_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, N); \
-  allocAndInitHipDeviceData(y, m_y, N); \
-  allocAndInitHipDeviceData(A, m_A, N*N); \
-  allocAndInitHipDeviceData(B, m_B, N*N);
+  allocAndInitHipData(x, m_x, N); \
+  allocAndInitHipData(y, m_y, N); \
+  allocAndInitHipData(A, m_A, N*N); \
+  allocAndInitHipData(B, m_B, N*N);
 
 
 #define POLYBENCH_GESUMMV_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, N); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
+  getHipData(m_y, y, N); \
+  deallocHipData(x); \
+  deallocHipData(y); \
+  deallocHipData(A); \
+  deallocHipData(B);
 
 
 template < size_t block_size >

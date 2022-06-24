@@ -45,20 +45,20 @@ namespace polybench
 
 
 #define POLYBENCH_2MM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(tmp, m_tmp, m_ni * m_nj); \
-  allocAndInitCudaDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitCudaDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitCudaDeviceData(C, m_C, m_nj * m_nl); \
-  allocAndInitCudaDeviceData(D, m_D, m_ni * m_nl);
+  allocAndInitCudaData(tmp, m_tmp, m_ni * m_nj); \
+  allocAndInitCudaData(A, m_A, m_ni * m_nk); \
+  allocAndInitCudaData(B, m_B, m_nk * m_nj); \
+  allocAndInitCudaData(C, m_C, m_nj * m_nl); \
+  allocAndInitCudaData(D, m_D, m_ni * m_nl);
 
 
 #define POLYBENCH_2MM_TEARDOWN_CUDA \
-  getCudaDeviceData(m_D, D, m_ni * m_nl); \
-  deallocCudaDeviceData(tmp); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B); \
-  deallocCudaDeviceData(C); \
-  deallocCudaDeviceData(D);
+  getCudaData(m_D, D, m_ni * m_nl); \
+  deallocCudaData(tmp); \
+  deallocCudaData(A); \
+  deallocCudaData(B); \
+  deallocCudaData(C); \
+  deallocCudaData(D);
 
 
 template < size_t in_block_size, size_t out_block_size >

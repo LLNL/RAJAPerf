@@ -22,18 +22,18 @@ namespace polybench
 {
 
 #define POLYBENCH_ATAX_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(tmp, m_tmp, N); \
-  allocAndInitCudaDeviceData(y, m_y, N); \
-  allocAndInitCudaDeviceData(x, m_x, N); \
-  allocAndInitCudaDeviceData(A, m_A, N * N);
+  allocAndInitCudaData(tmp, m_tmp, N); \
+  allocAndInitCudaData(y, m_y, N); \
+  allocAndInitCudaData(x, m_x, N); \
+  allocAndInitCudaData(A, m_A, N * N);
 
 
 #define POLYBENCH_ATAX_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(tmp); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(A);
+  getCudaData(m_y, y, N); \
+  deallocCudaData(tmp); \
+  deallocCudaData(y); \
+  deallocCudaData(x); \
+  deallocCudaData(A);
 
 
 template < size_t block_size >

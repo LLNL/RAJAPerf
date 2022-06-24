@@ -40,28 +40,28 @@ namespace polybench
 
 
 #define POLYBENCH_GEMVER_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_A, m_n * m_n); \
-  allocAndInitCudaDeviceData(u1, m_u1, m_n); \
-  allocAndInitCudaDeviceData(v1, m_v1, m_n); \
-  allocAndInitCudaDeviceData(u2, m_u2, m_n); \
-  allocAndInitCudaDeviceData(v2, m_v2, m_n); \
-  allocAndInitCudaDeviceData(w, m_w, m_n); \
-  allocAndInitCudaDeviceData(x, m_x, m_n); \
-  allocAndInitCudaDeviceData(y, m_y, m_n); \
-  allocAndInitCudaDeviceData(z, m_z, m_n);
+  allocAndInitCudaData(A, m_A, m_n * m_n); \
+  allocAndInitCudaData(u1, m_u1, m_n); \
+  allocAndInitCudaData(v1, m_v1, m_n); \
+  allocAndInitCudaData(u2, m_u2, m_n); \
+  allocAndInitCudaData(v2, m_v2, m_n); \
+  allocAndInitCudaData(w, m_w, m_n); \
+  allocAndInitCudaData(x, m_x, m_n); \
+  allocAndInitCudaData(y, m_y, m_n); \
+  allocAndInitCudaData(z, m_z, m_n);
 
 
 #define POLYBENCH_GEMVER_TEARDOWN_CUDA \
-  getCudaDeviceData(m_w, w, m_n); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(u1); \
-  deallocCudaDeviceData(v1); \
-  deallocCudaDeviceData(u2); \
-  deallocCudaDeviceData(v2); \
-  deallocCudaDeviceData(w); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z);
+  getCudaData(m_w, w, m_n); \
+  deallocCudaData(A); \
+  deallocCudaData(u1); \
+  deallocCudaData(v1); \
+  deallocCudaData(u2); \
+  deallocCudaData(v2); \
+  deallocCudaData(w); \
+  deallocCudaData(x); \
+  deallocCudaData(y); \
+  deallocCudaData(z);
 
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
