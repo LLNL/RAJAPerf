@@ -22,15 +22,15 @@ namespace stream
 {
 
 #define ADD_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend); \
-  allocAndInitHipDeviceData(c, m_c, iend);
+  allocAndInitHipData(a, m_a, iend); \
+  allocAndInitHipData(b, m_b, iend); \
+  allocAndInitHipData(c, m_c, iend);
 
 #define ADD_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_c, c, iend); \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b); \
-  deallocHipDeviceData(c);
+  getHipData(m_c, c, iend); \
+  deallocHipData(a); \
+  deallocHipData(b); \
+  deallocHipData(c);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -23,12 +23,12 @@ namespace stream
 {
 
 #define DOT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend);
+  allocAndInitCudaData(a, m_a, iend); \
+  allocAndInitCudaData(b, m_b, iend);
 
 #define DOT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b);
+  deallocCudaData(a); \
+  deallocCudaData(b);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

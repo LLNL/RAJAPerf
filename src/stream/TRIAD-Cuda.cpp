@@ -22,15 +22,15 @@ namespace stream
 {
 
 #define TRIAD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
+  allocAndInitCudaData(a, m_a, iend); \
+  allocAndInitCudaData(b, m_b, iend); \
+  allocAndInitCudaData(c, m_c, iend);
 
 #define TRIAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
+  getCudaData(m_a, a, iend); \
+  deallocCudaData(a); \
+  deallocCudaData(b); \
+  deallocCudaData(c);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

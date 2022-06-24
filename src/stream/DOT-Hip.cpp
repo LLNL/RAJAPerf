@@ -23,12 +23,12 @@ namespace stream
 {
 
 #define DOT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend);
+  allocAndInitHipData(a, m_a, iend); \
+  allocAndInitHipData(b, m_b, iend);
 
 #define DOT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b);
+  deallocHipData(a); \
+  deallocHipData(b);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
