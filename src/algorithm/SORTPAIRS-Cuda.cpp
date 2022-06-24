@@ -22,14 +22,14 @@ namespace algorithm
 {
 
 #define SORTPAIRS_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend*run_reps); \
-  allocAndInitCudaDeviceData(i, m_i, iend*run_reps);
+  allocAndInitCudaData(x, m_x, iend*run_reps); \
+  allocAndInitCudaData(i, m_i, iend*run_reps);
 
 #define SORTPAIRS_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, iend*run_reps); \
-  getCudaDeviceData(m_i, i, iend*run_reps); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(i);
+  getCudaData(m_x, x, iend*run_reps); \
+  getCudaData(m_i, i, iend*run_reps); \
+  deallocCudaData(x); \
+  deallocCudaData(i);
 
 
 void SORTPAIRS::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

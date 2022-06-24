@@ -22,11 +22,11 @@ namespace algorithm
 {
 
 #define MEMSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
+  allocAndInitHipData(x, m_x, iend);
 
 #define MEMSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend); \
-  deallocHipDeviceData(x);
+  getHipData(m_x, x, iend); \
+  deallocHipData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

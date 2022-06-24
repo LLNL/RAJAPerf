@@ -25,10 +25,10 @@ namespace algorithm
 {
 
 #define REDUCE_SUM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend);
+  allocAndInitCudaData(x, m_x, iend);
 
 #define REDUCE_SUM_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(x);
+  deallocCudaData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

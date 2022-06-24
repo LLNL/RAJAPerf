@@ -22,11 +22,11 @@ namespace algorithm
 {
 
 #define MEMSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend);
+  allocAndInitCudaData(x, m_x, iend);
 
 #define MEMSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, iend); \
-  deallocCudaDeviceData(x);
+  getCudaData(m_x, x, iend); \
+  deallocCudaData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

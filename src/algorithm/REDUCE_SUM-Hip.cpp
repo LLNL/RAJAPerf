@@ -30,10 +30,10 @@ namespace algorithm
 {
 
 #define REDUCE_SUM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
+  allocAndInitHipData(x, m_x, iend);
 
 #define REDUCE_SUM_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
+  deallocHipData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

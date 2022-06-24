@@ -22,13 +22,13 @@ namespace algorithm
 {
 
 #define MEMCPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
+  allocAndInitHipData(x, m_x, iend); \
+  allocAndInitHipData(y, m_y, iend);
 
 #define MEMCPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
+  getHipData(m_y, y, iend); \
+  deallocHipData(x); \
+  deallocHipData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

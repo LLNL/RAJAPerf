@@ -22,14 +22,14 @@ namespace algorithm
 {
 
 #define SORTPAIRS_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend*run_reps); \
-  allocAndInitHipDeviceData(i, m_i, iend*run_reps);
+  allocAndInitHipData(x, m_x, iend*run_reps); \
+  allocAndInitHipData(i, m_i, iend*run_reps);
 
 #define SORTPAIRS_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend*run_reps); \
-  getHipDeviceData(m_i, i, iend*run_reps); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(i);
+  getHipData(m_x, x, iend*run_reps); \
+  getHipData(m_i, i, iend*run_reps); \
+  deallocHipData(x); \
+  deallocHipData(i);
 
 
 void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

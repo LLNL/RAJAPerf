@@ -30,13 +30,13 @@ namespace algorithm
 {
 
 #define SCAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
+  allocAndInitHipData(x, m_x, iend); \
+  allocAndInitHipData(y, m_y, iend);
 
 #define SCAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
+  getHipData(m_y, y, iend); \
+  deallocHipData(x); \
+  deallocHipData(y);
 
 
 void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

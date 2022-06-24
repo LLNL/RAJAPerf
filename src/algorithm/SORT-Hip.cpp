@@ -22,11 +22,11 @@ namespace algorithm
 {
 
 #define SORT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend*run_reps);
+  allocAndInitHipData(x, m_x, iend*run_reps);
 
 #define SORT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend*run_reps); \
-  deallocHipDeviceData(x);
+  getHipData(m_x, x, iend*run_reps); \
+  deallocHipData(x);
 
 
 void SORT::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

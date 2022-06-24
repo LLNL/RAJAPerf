@@ -22,13 +22,13 @@ namespace algorithm
 {
 
 #define MEMCPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
+  allocAndInitCudaData(x, m_x, iend); \
+  allocAndInitCudaData(y, m_y, iend);
 
 #define MEMCPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
+  getCudaData(m_y, y, iend); \
+  deallocCudaData(x); \
+  deallocCudaData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
