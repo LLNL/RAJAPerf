@@ -18,13 +18,6 @@
 namespace rajaperf
 {
 
-#if defined(RAJA_ENABLE_CUDA)
-CudaData cudaDataType = CudaData::device;
-#endif
-#if defined(RAJA_ENABLE_HIP)
-HipData hipDataType = HipData::device;
-#endif
-
 static int data_init_count = 0;
 
 /*

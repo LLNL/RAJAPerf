@@ -236,6 +236,60 @@ enum FeatureID {
 /*!
  *******************************************************************************
  *
+ * \brief Enumeration defining unique id for each (CUDA) Data memory space
+ * used in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct CudaData {
+
+  Host = 0,
+  Pinned,
+  Managed,
+  Device,
+
+  NumSpaces // Keep this one last and NEVER comment out (!!)
+
+};
+
+extern CudaData cudaDataSpace;
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each (HIP) Data memory space
+ * used in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct HipData {
+
+  Host = 0,
+  Pinned,
+  Managed,
+  Device,
+
+  NumSpaces // Keep this one last and NEVER comment out (!!)
+
+};
+
+extern HipData hipDataSpace;
+
+
+/*!
+ *******************************************************************************
+ *
  * \brief Return group name associated with GroupID enum value.
  *
  *******************************************************************************
@@ -301,6 +355,24 @@ bool isVariantGPU(VariantID vid);
  *******************************************************************************
  */
 const std::string& getFeatureName(FeatureID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return memory space name associated with CudaData enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getCudaDataName(CudaData cd);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return memory space name associated with HipData enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getHipDataName(HipData hd);
 
 /*!
  *******************************************************************************

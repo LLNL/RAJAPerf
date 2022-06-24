@@ -318,6 +318,60 @@ static const std::string FeatureNames [] =
 }; // END FeatureNames
 
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Cuda Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string CudaDataNames [] =
+{
+
+  std::string("Host"),
+  std::string("Pinned"),
+  std::string("Managed"),
+  std::string("Device"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
+
+CudaData cudaDataSpace = CudaData::Device;
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Hip Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF HIPDATA IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string HipDataNames [] =
+{
+
+  std::string("Host"),
+  std::string("Pinned"),
+  std::string("Managed"),
+  std::string("Device"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
+
+HipData hipDataSpace = HipData::Device;
+
+
 /*
  *******************************************************************************
  *
@@ -370,6 +424,7 @@ const std::string& getVariantName(VariantID vid)
 {
   return VariantNames[vid];
 }
+
 
 /*!
  *******************************************************************************
@@ -505,6 +560,33 @@ const std::string& getFeatureName(FeatureID fid)
 {
   return FeatureNames[fid];
 }
+
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with CudaData enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getCudaDataName(CudaData cd)
+{
+  return CudaDataNames[static_cast<int>(cd)];
+}
+
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with HipData enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getHipDataName(HipData hd)
+{
+  return HipDataNames[static_cast<int>(hd)];
+}
+
 
 /*
  *******************************************************************************

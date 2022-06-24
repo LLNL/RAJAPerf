@@ -19,6 +19,7 @@
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
@@ -214,17 +215,6 @@ void deallocCudaPinnedData(T& pptr)
 }
 
 
-enum struct CudaData : int
-{
-  host = 0,
-  pinned,
-  managed,
-  device
-};
-
-extern CudaData cudaDataType;
-
-
 /*!
  * \brief Copy given hptr (host) data to CUDA (cptr).
  *
@@ -247,20 +237,20 @@ void initCudaData(T& cptr, const T hptr, int len)
 template <typename T>
 void allocCudaData(T& cptr, int len)
 {
-  switch (cudaDataType) {
-    case CudaData::host:
+  switch (cudaDataSpace) {
+    case CudaData::Host:
     {
       allocData(cptr, len);
     } break;
-    case CudaData::pinned:
+    case CudaData::Pinned:
     {
       allocCudaPinnedData(cptr, len);
     } break;
-    case CudaData::managed:
+    case CudaData::Managed:
     {
       allocCudaManagedData(cptr, len);
     } break;
-    case CudaData::device:
+    case CudaData::Device:
     {
       allocCudaDeviceData(cptr, len);
     } break;
@@ -288,20 +278,20 @@ void allocAndInitCudaData(T& cptr, const T hptr, int len)
 template <typename T>
 void deallocCudaData(T& cptr)
 {
-  switch (cudaDataType) {
-    case CudaData::host:
+  switch (cudaDataSpace) {
+    case CudaData::Host:
     {
       deallocData(cptr);
     } break;
-    case CudaData::pinned:
+    case CudaData::Pinned:
     {
       deallocCudaPinnedData(cptr);
     } break;
-    case CudaData::managed:
+    case CudaData::Managed:
     {
       deallocCudaManagedData(cptr);
     } break;
-    case CudaData::device:
+    case CudaData::Device:
     {
       deallocCudaDeviceData(cptr);
     } break;

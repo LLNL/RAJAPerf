@@ -19,6 +19,7 @@
 
 #if defined(RAJA_ENABLE_HIP)
 
+#include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
@@ -201,18 +202,6 @@ void deallocHipPinnedData(T& pptr)
 }
 
 
-
-enum struct HipData : int
-{
-  host = 0,
-  pinned,
-  managed,
-  device
-};
-
-extern HipData hipDataType;
-
-
 /*!
  * \brief Copy given hptr (host) data to HIP (cptr).
  *
@@ -235,20 +224,20 @@ void initHipData(T& cptr, const T hptr, int len)
 template <typename T>
 void allocHipData(T& cptr, int len)
 {
-  switch (hipDataType) {
-    case HipData::host:
+  switch (hipDataSpace) {
+    case HipData::Host:
     {
       allocData(cptr, len);
     } break;
-    case HipData::pinned:
+    case HipData::Pinned:
     {
       allocHipPinnedData(cptr, len);
     } break;
-    case HipData::managed:
+    case HipData::Managed:
     {
       allocHipManagedData(cptr, len);
     } break;
-    case HipData::device:
+    case HipData::Device:
     {
       allocHipDeviceData(cptr, len);
     } break;
@@ -276,20 +265,20 @@ void allocAndInitHipData(T& cptr, const T hptr, int len)
 template <typename T>
 void deallocHipData(T& cptr)
 {
-  switch (hipDataType) {
-    case HipData::host:
+  switch (hipDataSpace) {
+    case HipData::Host:
     {
       deallocData(cptr);
     } break;
-    case HipData::pinned:
+    case HipData::Pinned:
     {
       deallocHipPinnedData(cptr);
     } break;
-    case HipData::managed:
+    case HipData::Managed:
     {
       deallocHipManagedData(cptr);
     } break;
-    case HipData::device:
+    case HipData::Device:
     {
       deallocHipDeviceData(cptr);
     } break;
