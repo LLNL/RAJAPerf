@@ -212,6 +212,8 @@ private:
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
+  void printCudaDataNames(std::ostream& str) const;
+  void printHipDataNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;

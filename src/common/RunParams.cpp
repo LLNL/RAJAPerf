@@ -108,6 +108,9 @@ void RunParams::print(std::ostream& str) const
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
 
+  str << "\n cuda memory space = " << getCudaDataName(cudaDataSpace);
+  str << "\n hip memory space = " << getHipDataName(hipDataSpace);
+
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
     str << "\n\t" << kernel_input[j];
@@ -203,6 +206,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-pv") ) {
 
       printVariantNames(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-cuda_memory_spaces") ||
+                opt == std::string("-pcms") ) {
+
+      printCudaDataNames(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-hip_memory_spaces") ||
+                opt == std::string("-pcms") ) {
+
+      printHipDataNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -424,6 +439,58 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( opt == std::string("--cuda_memory_space") ||
+                opt == std::string("-cms") ) {
+
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int cms = 0; cms < static_cast<int>(CudaData::NumSpaces); ++cms) {
+            if (getCudaDataName(static_cast<CudaData>(cms)) == opt) {
+              cudaDataSpace = static_cast<CudaData>(cms);
+              got_someting = true;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give --cuda_memory_space a valid cuda memory space"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
+      }
+
+    } else if ( opt == std::string("--hip_memory_space") ||
+                opt == std::string("-hms") ) {
+
+      bool got_someting = false;
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int hms = 0; hms < static_cast<int>(HipData::NumSpaces); ++hms) {
+            if (getHipDataName(static_cast<HipData>(hms)) == opt) {
+              hipDataSpace = static_cast<HipData>(hms);
+              got_someting = true;
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give --hip_memory_space a valid hip memory space"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--features") ||
                 std::string(argv[i]) == std::string("-f") ) {
 
@@ -554,6 +621,10 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
 
+  str << "\t --print-cuda_memory_spaces, -pcms (print names of cuda memory spaces)\n\n";
+
+  str << "\t --print-hip_memory_spaces, -pcms (print names of hip memory spaces)\n\n";
+
   str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
   str << "\t --print-feature-kernels, -pfk \n"
@@ -627,6 +698,18 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --cuda_memory_space, -cms <string> [Default is Device]\n"
+      << "\t      (names of memory space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda_memory_space Managed (run CUDA kernels with Managed memory)\n"
+      << "\t\t -cms Pinned (run CUDA kernels with Pinned memory)\n\n";
+
+  str << "\t --hip_memory_space, -hms <string> [Default is Device]\n"
+      << "\t      (names of memory space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip_memory_space Managed (run HIP kernels with Managed memory)\n"
+      << "\t\t -hms Pinned (run HIP kernels with Pinned memory)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
@@ -703,6 +786,28 @@ void RunParams::printVariantNames(std::ostream& str) const
   str << "\n-------------------\n";
   for (int vid = 0; vid < NumVariants; ++vid) {
     str << getVariantName(static_cast<VariantID>(vid)) << std::endl;
+  }
+  str.flush();
+}
+
+
+void RunParams::printCudaDataNames(std::ostream& str) const
+{
+  str << "\nAvailable cuda memory spaces:";
+  str << "\n-------------------\n";
+  for (int cms = 0; cms < static_cast<int>(CudaData::NumSpaces); ++cms) {
+    str << getCudaDataName(static_cast<CudaData>(cms)) << std::endl;
+  }
+  str.flush();
+}
+
+
+void RunParams::printHipDataNames(std::ostream& str) const
+{
+  str << "\nAvailable hip memory spaces:";
+  str << "\n-------------------\n";
+  for (int hms = 0; hms < static_cast<int>(HipData::NumSpaces); ++hms) {
+    str << getHipDataName(static_cast<HipData>(hms)) << std::endl;
   }
   str.flush();
 }
