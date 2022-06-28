@@ -42,7 +42,7 @@ __global__ void memcpy(Real_ptr x, Real_ptr y,
 }
 
 
-void MEMCPY::runHipVariantMemcpy(VariantID vid)
+void MEMCPY::runHipVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -170,7 +170,7 @@ void MEMCPY::runHipVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runHipVariantMemcpy(vid);
+      runHipVariantLibrary(vid);
 
     }
 
@@ -200,7 +200,7 @@ void MEMCPY::runHipVariant(VariantID vid, size_t tune_idx)
 void MEMCPY::setHipTuningDefinitions(VariantID vid)
 {
   if (vid == Base_HIP || vid == RAJA_HIP) {
-    addVariantTuningName(vid, "memcpy");
+    addVariantTuningName(vid, "library");
   }
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {

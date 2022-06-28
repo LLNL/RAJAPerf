@@ -40,7 +40,7 @@ __global__ void memset(Real_ptr x, Real_type val,
 }
 
 
-void MEMSET::runHipVariantMemset(VariantID vid)
+void MEMSET::runHipVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -168,7 +168,7 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runHipVariantMemset(vid);
+      runHipVariantLibrary(vid);
 
     }
 
@@ -198,7 +198,7 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
 void MEMSET::setHipTuningDefinitions(VariantID vid)
 {
   if (vid == Base_HIP || vid == RAJA_HIP) {
-    addVariantTuningName(vid, "memset");
+    addVariantTuningName(vid, "library");
   }
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {

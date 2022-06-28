@@ -40,7 +40,7 @@ __global__ void memset(Real_ptr x, Real_type val,
 }
 
 
-void MEMSET::runCudaVariantMemset(VariantID vid)
+void MEMSET::runCudaVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -168,7 +168,7 @@ void MEMSET::runCudaVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runCudaVariantMemset(vid);
+      runCudaVariantLibrary(vid);
 
     }
 
@@ -197,7 +197,7 @@ void MEMSET::runCudaVariant(VariantID vid, size_t tune_idx)
 void MEMSET::setCudaTuningDefinitions(VariantID vid)
 {
   if (vid == Base_CUDA || vid == RAJA_CUDA) {
-    addVariantTuningName(vid, "memset");
+    addVariantTuningName(vid, "library");
   }
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
