@@ -64,6 +64,7 @@ public:
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
   void runCudaVariantMemcpy(VariantID vid);
+
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
   void runHipVariantMemcpy(VariantID vid);
