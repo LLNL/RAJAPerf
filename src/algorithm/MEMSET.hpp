@@ -64,6 +64,7 @@ public:
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
   void runCudaVariantMemset(VariantID vid);
+
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
   void runHipVariantMemset(VariantID vid);
