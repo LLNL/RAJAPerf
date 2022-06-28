@@ -227,6 +227,12 @@ blt_add_executable(
   algorithm/REDUCE_SUM.cpp
   algorithm/REDUCE_SUM-Seq.cpp
   algorithm/REDUCE_SUM-OMPTarget.cpp
+  algorithm/MEMSET.cpp
+  algorithm/MEMSET-Seq.cpp
+  algorithm/MEMSET-OMPTarget.cpp
+  algorithm/MEMCPY.cpp
+  algorithm/MEMCPY-Seq.cpp
+  algorithm/MEMCPY-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

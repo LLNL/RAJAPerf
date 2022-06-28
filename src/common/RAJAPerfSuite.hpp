@@ -153,6 +153,8 @@ enum KernelID {
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
+  Algorithm_MEMSET,
+  Algorithm_MEMCPY,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
