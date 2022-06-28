@@ -19,7 +19,7 @@ namespace algorithm
 {
 
 
-void MEMSET::runSeqVariantMemset(VariantID vid)
+void MEMSET::runSeqVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -145,7 +145,7 @@ void MEMSET::runSeqVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runSeqVariantMemset(vid);
+      runSeqVariantLibrary(vid);
 
     }
 
@@ -165,7 +165,7 @@ void MEMSET::runSeqVariant(VariantID vid, size_t tune_idx)
 void MEMSET::setSeqTuningDefinitions(VariantID vid)
 {
   if (vid == Base_Seq || vid == RAJA_Seq) {
-    addVariantTuningName(vid, "memset");
+    addVariantTuningName(vid, "library");
   }
 
   addVariantTuningName(vid, "default");

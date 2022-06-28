@@ -18,7 +18,7 @@ namespace algorithm
 {
 
 
-void MEMCPY::runSeqVariantMemcpy(VariantID vid)
+void MEMCPY::runSeqVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -144,7 +144,7 @@ void MEMCPY::runSeqVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runSeqVariantMemcpy(vid);
+      runSeqVariantLibrary(vid);
 
     }
 
@@ -164,7 +164,7 @@ void MEMCPY::runSeqVariant(VariantID vid, size_t tune_idx)
 void MEMCPY::setSeqTuningDefinitions(VariantID vid)
 {
   if (vid == Base_Seq || vid == RAJA_Seq) {
-    addVariantTuningName(vid, "memcpy");
+    addVariantTuningName(vid, "library");
   }
 
   addVariantTuningName(vid, "default");

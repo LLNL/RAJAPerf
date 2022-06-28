@@ -42,7 +42,7 @@ __global__ void memcpy(Real_ptr x, Real_ptr y,
 }
 
 
-void MEMCPY::runCudaVariantMemcpy(VariantID vid)
+void MEMCPY::runCudaVariantLibrary(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -168,7 +168,7 @@ void MEMCPY::runCudaVariant(VariantID vid, size_t tune_idx)
 
     if (tune_idx == t) {
 
-      runCudaVariantMemcpy(vid);
+      runCudaVariantLibrary(vid);
 
     }
 
@@ -197,7 +197,7 @@ void MEMCPY::runCudaVariant(VariantID vid, size_t tune_idx)
 void MEMCPY::setCudaTuningDefinitions(VariantID vid)
 {
   if (vid == Base_CUDA || vid == RAJA_CUDA) {
-    addVariantTuningName(vid, "memcpy");
+    addVariantTuningName(vid, "library");
   }
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
