@@ -136,9 +136,9 @@ public:
     return false;
   }
 
-  CudaData getCudaDataSpace() const { return cudaDataSpace; }
+  CudaDataSpace getCudaDataSpace() const { return cudaDataSpace; }
 
-  HipData getHipDataSpace() const { return hipDataSpace; }
+  HipDataSpace getHipDataSpace() const { return hipDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -216,8 +216,8 @@ private:
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
-  void printCudaDataNames(std::ostream& str) const;
-  void printHipDataNames(std::ostream& str) const;
+  void printCudaDataSpaceNames(std::ostream& str) const;
+  void printHipDataSpaceNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
@@ -248,8 +248,8 @@ private:
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */
 
-  CudaData cudaDataSpace = CudaData::Device;
-  HipData hipDataSpace = HipData::Device;
+  CudaDataSpace cudaDataSpace = CudaDataSpace::Device;
+  HipDataSpace hipDataSpace = HipDataSpace::Device;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for

@@ -330,7 +330,7 @@ static const std::string FeatureNames [] =
  *
  *******************************************************************************
  */
-static const std::string CudaDataNames [] =
+static const std::string CudaDataSpaceNames [] =
 {
 
   std::string("Host"),
@@ -355,7 +355,7 @@ static const std::string CudaDataNames [] =
  *
  *******************************************************************************
  */
-static const std::string HipDataNames [] =
+static const std::string HipDataSpaceNames [] =
 {
 
   std::string("Host"),
@@ -561,26 +561,26 @@ const std::string& getFeatureName(FeatureID fid)
 /*
  *******************************************************************************
  *
- * Return memory space name associated with CudaData enum value.
+ * Return memory space name associated with CudaDataSpace enum value.
  *
  *******************************************************************************
  */
-const std::string& getCudaDataName(CudaData cd)
+const std::string& getCudaDataSpaceName(CudaDataSpace cd)
 {
-  return CudaDataNames[static_cast<int>(cd)];
+  return CudaDataSpaceNames[static_cast<int>(cd)];
 }
 
 
 /*
  *******************************************************************************
  *
- * Return memory space name associated with HipData enum value.
+ * Return memory space name associated with HipDataSpace enum value.
  *
  *******************************************************************************
  */
-const std::string& getHipDataName(HipData hd)
+const std::string& getHipDataSpaceName(HipDataSpace hd)
 {
-  return HipDataNames[static_cast<int>(hd)];
+  return HipDataSpaceNames[static_cast<int>(hd)];
 }
 
 

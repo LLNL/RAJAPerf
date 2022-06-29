@@ -191,7 +191,7 @@ public:
   }
 
 #if defined(RAJA_ENABLE_CUDA)
-  CudaData getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
+  CudaDataSpace getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
   template <typename T>
   void initCudaData(T& cptr, const T hptr, int len)
   {
@@ -220,7 +220,7 @@ public:
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
-  HipData getHipDataSpace() const { return run_params.getHipDataSpace(); }
+  HipDataSpace getHipDataSpace() const { return run_params.getHipDataSpace(); }
   template <typename T>
   void initHipData(T& cptr, const T hptr, int len)
   {

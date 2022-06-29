@@ -108,8 +108,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
 
-  str << "\n cuda memory space = " << getCudaDataName(cudaDataSpace);
-  str << "\n hip memory space = " << getHipDataName(hipDataSpace);
+  str << "\n cuda memory space = " << getCudaDataSpaceName(cudaDataSpace);
+  str << "\n hip memory space = " << getHipDataSpaceName(hipDataSpace);
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -211,13 +211,13 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     } else if ( opt == std::string("--print-cuda_memory_spaces") ||
                 opt == std::string("-pcms") ) {
 
-      printCudaDataNames(getCout());
+      printCudaDataSpaceNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-hip_memory_spaces") ||
                 opt == std::string("-pcms") ) {
 
-      printHipDataNames(getCout());
+      printHipDataSpaceNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -449,9 +449,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int cms = 0; cms < static_cast<int>(CudaData::NumSpaces); ++cms) {
-            if (getCudaDataName(static_cast<CudaData>(cms)) == opt) {
-              cudaDataSpace = static_cast<CudaData>(cms);
+          for (int cms = 0; cms < static_cast<int>(CudaDataSpace::NumSpaces); ++cms) {
+            if (getCudaDataSpaceName(static_cast<CudaDataSpace>(cms)) == opt) {
+              cudaDataSpace = static_cast<CudaDataSpace>(cms);
               got_someting = true;
               break;
             }
@@ -475,9 +475,9 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int hms = 0; hms < static_cast<int>(HipData::NumSpaces); ++hms) {
-            if (getHipDataName(static_cast<HipData>(hms)) == opt) {
-              hipDataSpace = static_cast<HipData>(hms);
+          for (int hms = 0; hms < static_cast<int>(HipDataSpace::NumSpaces); ++hms) {
+            if (getHipDataSpaceName(static_cast<HipDataSpace>(hms)) == opt) {
+              hipDataSpace = static_cast<HipDataSpace>(hms);
               got_someting = true;
               break;
             }
@@ -791,23 +791,23 @@ void RunParams::printVariantNames(std::ostream& str) const
 }
 
 
-void RunParams::printCudaDataNames(std::ostream& str) const
+void RunParams::printCudaDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable cuda memory spaces:";
   str << "\n-------------------\n";
-  for (int cms = 0; cms < static_cast<int>(CudaData::NumSpaces); ++cms) {
-    str << getCudaDataName(static_cast<CudaData>(cms)) << std::endl;
+  for (int cms = 0; cms < static_cast<int>(CudaDataSpace::NumSpaces); ++cms) {
+    str << getCudaDataSpaceName(static_cast<CudaDataSpace>(cms)) << std::endl;
   }
   str.flush();
 }
 
 
-void RunParams::printHipDataNames(std::ostream& str) const
+void RunParams::printHipDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable hip memory spaces:";
   str << "\n-------------------\n";
-  for (int hms = 0; hms < static_cast<int>(HipData::NumSpaces); ++hms) {
-    str << getHipDataName(static_cast<HipData>(hms)) << std::endl;
+  for (int hms = 0; hms < static_cast<int>(HipDataSpace::NumSpaces); ++hms) {
+    str << getHipDataSpaceName(static_cast<HipDataSpace>(hms)) << std::endl;
   }
   str.flush();
 }

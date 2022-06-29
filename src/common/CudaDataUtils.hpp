@@ -222,7 +222,7 @@ void deallocCudaPinnedData(T& pptr)
  * and of proper size for copy operation to succeed.
  */
 template <typename T>
-void initCudaData(CudaData, T& cptr, const T hptr, int len)
+void initCudaData(CudaDataSpace, T& cptr, const T hptr, int len)
 {
   cudaErrchk( cudaMemcpy( cptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
@@ -235,22 +235,22 @@ void initCudaData(CudaData, T& cptr, const T hptr, int len)
  * \brief Allocate CUDA data array (cptr).
  */
 template <typename T>
-void allocCudaData(CudaData cudaDataSpace, T& cptr, int len)
+void allocCudaData(CudaDataSpace cudaDataSpace, T& cptr, int len)
 {
   switch (cudaDataSpace) {
-    case CudaData::Host:
+    case CudaDataSpace::Host:
     {
       allocData(cptr, len);
     } break;
-    case CudaData::Pinned:
+    case CudaDataSpace::Pinned:
     {
       allocCudaPinnedData(cptr, len);
     } break;
-    case CudaData::Managed:
+    case CudaDataSpace::Managed:
     {
       allocCudaManagedData(cptr, len);
     } break;
-    case CudaData::Device:
+    case CudaDataSpace::Device:
     {
       allocCudaDeviceData(cptr, len);
     } break;
@@ -266,7 +266,7 @@ void allocCudaData(CudaData cudaDataSpace, T& cptr, int len)
  * data to CUDA array.
  */
 template <typename T>
-void allocAndInitCudaData(CudaData cudaDataSpace, T& cptr, const T hptr, int len)
+void allocAndInitCudaData(CudaDataSpace cudaDataSpace, T& cptr, const T hptr, int len)
 {
   allocCudaData(cudaDataSpace, cptr, len);
   initCudaData(cudaDataSpace, cptr, hptr, len);
@@ -276,22 +276,22 @@ void allocAndInitCudaData(CudaData cudaDataSpace, T& cptr, const T hptr, int len
  * \brief Free Cuda data array.
  */
 template <typename T>
-void deallocCudaData(CudaData cudaDataSpace, T& cptr)
+void deallocCudaData(CudaDataSpace cudaDataSpace, T& cptr)
 {
   switch (cudaDataSpace) {
-    case CudaData::Host:
+    case CudaDataSpace::Host:
     {
       deallocData(cptr);
     } break;
-    case CudaData::Pinned:
+    case CudaDataSpace::Pinned:
     {
       deallocCudaPinnedData(cptr);
     } break;
-    case CudaData::Managed:
+    case CudaDataSpace::Managed:
     {
       deallocCudaManagedData(cptr);
     } break;
-    case CudaData::Device:
+    case CudaDataSpace::Device:
     {
       deallocCudaDeviceData(cptr);
     } break;
@@ -309,7 +309,7 @@ void deallocCudaData(CudaData cudaDataSpace, T& cptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getCudaData(CudaData, T& hptr, const T cptr, int len)
+void getCudaData(CudaDataSpace, T& hptr, const T cptr, int len)
 {
   cudaErrchk( cudaMemcpy( hptr, cptr,
               len * sizeof(typename std::remove_pointer<T>::type),

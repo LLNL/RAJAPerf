@@ -246,7 +246,7 @@ enum FeatureID {
  *
  *******************************************************************************
  */
-enum struct CudaData {
+enum struct CudaDataSpace {
 
   Host = 0,
   Pinned,
@@ -271,7 +271,7 @@ enum struct CudaData {
  *
  *******************************************************************************
  */
-enum struct HipData {
+enum struct HipDataSpace {
 
   Host = 0,
   Pinned,
@@ -355,20 +355,20 @@ const std::string& getFeatureName(FeatureID vid);
 /*!
  *******************************************************************************
  *
- * \brief Return memory space name associated with CudaData enum value.
+ * \brief Return memory space name associated with CudaDataSpace enum value.
  *
  *******************************************************************************
  */
-const std::string& getCudaDataName(CudaData cd);
+const std::string& getCudaDataSpaceName(CudaDataSpace cd);
 
 /*!
  *******************************************************************************
  *
- * \brief Return memory space name associated with HipData enum value.
+ * \brief Return memory space name associated with HipDataSpace enum value.
  *
  *******************************************************************************
  */
-const std::string& getHipDataName(HipData hd);
+const std::string& getHipDataSpaceName(HipDataSpace hd);
 
 /*!
  *******************************************************************************

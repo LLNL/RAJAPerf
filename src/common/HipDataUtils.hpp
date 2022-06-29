@@ -209,7 +209,7 @@ void deallocHipPinnedData(T& pptr)
  * and of proper size for copy operation to succeed.
  */
 template <typename T>
-void initHipData(HipData, T& cptr, const T hptr, int len)
+void initHipData(HipDataSpace, T& cptr, const T hptr, int len)
 {
   hipErrchk( hipMemcpy( cptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
@@ -222,22 +222,22 @@ void initHipData(HipData, T& cptr, const T hptr, int len)
  * \brief Allocate HIP data array (cptr).
  */
 template <typename T>
-void allocHipData(HipData hipDataSpace, T& cptr, int len)
+void allocHipData(HipDataSpace hipDataSpace, T& cptr, int len)
 {
   switch (hipDataSpace) {
-    case HipData::Host:
+    case HipDataSpace::Host:
     {
       allocData(cptr, len);
     } break;
-    case HipData::Pinned:
+    case HipDataSpace::Pinned:
     {
       allocHipPinnedData(cptr, len);
     } break;
-    case HipData::Managed:
+    case HipDataSpace::Managed:
     {
       allocHipManagedData(cptr, len);
     } break;
-    case HipData::Device:
+    case HipDataSpace::Device:
     {
       allocHipDeviceData(cptr, len);
     } break;
@@ -253,7 +253,7 @@ void allocHipData(HipData hipDataSpace, T& cptr, int len)
  * data to HIP array.
  */
 template <typename T>
-void allocAndInitHipData(HipData hipDataSpace, T& cptr, const T hptr, int len)
+void allocAndInitHipData(HipDataSpace hipDataSpace, T& cptr, const T hptr, int len)
 {
   allocHipData(hipDataSpace, cptr, len);
   initHipData(hipDataSpace, cptr, hptr, len);
@@ -263,22 +263,22 @@ void allocAndInitHipData(HipData hipDataSpace, T& cptr, const T hptr, int len)
  * \brief Free Hip data array.
  */
 template <typename T>
-void deallocHipData(HipData hipDataSpace, T& cptr)
+void deallocHipData(HipDataSpace hipDataSpace, T& cptr)
 {
   switch (hipDataSpace) {
-    case HipData::Host:
+    case HipDataSpace::Host:
     {
       deallocData(cptr);
     } break;
-    case HipData::Pinned:
+    case HipDataSpace::Pinned:
     {
       deallocHipPinnedData(cptr);
     } break;
-    case HipData::Managed:
+    case HipDataSpace::Managed:
     {
       deallocHipManagedData(cptr);
     } break;
-    case HipData::Device:
+    case HipDataSpace::Device:
     {
       deallocHipDeviceData(cptr);
     } break;
@@ -296,7 +296,7 @@ void deallocHipData(HipData hipDataSpace, T& cptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getHipData(HipData, T& hptr, const T cptr, int len)
+void getHipData(HipDataSpace, T& hptr, const T cptr, int len)
 {
   hipErrchk( hipMemcpy( hptr, cptr,
               len * sizeof(typename std::remove_pointer<T>::type),
