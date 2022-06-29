@@ -14,6 +14,8 @@
 #include "common/DataUtils.hpp"
 #include "common/RunParams.hpp"
 #include "common/GPUUtils.hpp"
+#include "common/CudaDataUtils.hpp"
+#include "common/HipDataUtils.hpp"
 
 #include "RAJA/util/Timer.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
@@ -187,6 +189,64 @@ public:
     }
 #endif
   }
+
+#if defined(RAJA_ENABLE_CUDA)
+  CudaData getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
+  template <typename T>
+  void initCudaData(T& cptr, const T hptr, int len)
+  {
+    rajaperf::initCudaData(getCudaDataSpace(), cptr, hptr, len);
+  }
+  template <typename T>
+  void allocCudaData(T& cptr, int len)
+  {
+    rajaperf::allocCudaData(getCudaDataSpace(), cptr, len);
+  }
+  template <typename T>
+  void allocAndInitCudaData(T& cptr, const T hptr, int len)
+  {
+    rajaperf::allocAndInitCudaData(getCudaDataSpace(), cptr, hptr, len);
+  }
+  template <typename T>
+  void deallocCudaData(T& cptr)
+  {
+    rajaperf::deallocCudaData(getCudaDataSpace(), cptr);
+  }
+  template <typename T>
+  void getCudaData(T& hptr, const T cptr, int len)
+  {
+    rajaperf::getCudaData(getCudaDataSpace(), hptr, cptr, len);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  HipData getHipDataSpace() const { return run_params.getHipDataSpace(); }
+  template <typename T>
+  void initHipData(T& cptr, const T hptr, int len)
+  {
+    rajaperf::initHipData(getHipDataSpace(), cptr, hptr, len);
+  }
+  template <typename T>
+  void allocHipData(T& cptr, int len)
+  {
+    rajaperf::allocHipData(getHipDataSpace(), cptr, len);
+  }
+  template <typename T>
+  void allocAndInitHipData(T& cptr, const T hptr, int len)
+  {
+    rajaperf::allocAndInitHipData(getHipDataSpace(), cptr, hptr, len);
+  }
+  template <typename T>
+  void deallocHipData(T& cptr)
+  {
+    rajaperf::deallocHipData(getHipDataSpace(), cptr);
+  }
+  template <typename T>
+  void getHipData(T& hptr, const T cptr, int len)
+  {
+    rajaperf::getHipData(getHipDataSpace(), hptr, cptr, len);
+  }
+#endif
 
   void startTimer()
   {

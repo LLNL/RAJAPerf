@@ -257,8 +257,6 @@ enum struct CudaData {
 
 };
 
-extern CudaData cudaDataSpace;
-
 
 /*!
  *******************************************************************************
@@ -283,8 +281,6 @@ enum struct HipData {
   NumSpaces // Keep this one last and NEVER comment out (!!)
 
 };
-
-extern HipData hipDataSpace;
 
 
 /*!

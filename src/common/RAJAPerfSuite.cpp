@@ -342,8 +342,6 @@ static const std::string CudaDataNames [] =
 
 }; // END VariantNames
 
-CudaData cudaDataSpace = CudaData::Device;
-
 
 /*!
  *******************************************************************************
@@ -368,8 +366,6 @@ static const std::string HipDataNames [] =
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
-
-HipData hipDataSpace = HipData::Device;
 
 
 /*

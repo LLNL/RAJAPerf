@@ -209,7 +209,7 @@ void deallocHipPinnedData(T& pptr)
  * and of proper size for copy operation to succeed.
  */
 template <typename T>
-void initHipData(T& cptr, const T hptr, int len)
+void initHipData(HipData, T& cptr, const T hptr, int len)
 {
   hipErrchk( hipMemcpy( cptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
@@ -222,7 +222,7 @@ void initHipData(T& cptr, const T hptr, int len)
  * \brief Allocate HIP data array (cptr).
  */
 template <typename T>
-void allocHipData(T& cptr, int len)
+void allocHipData(HipData hipDataSpace, T& cptr, int len)
 {
   switch (hipDataSpace) {
     case HipData::Host:
@@ -253,17 +253,17 @@ void allocHipData(T& cptr, int len)
  * data to HIP array.
  */
 template <typename T>
-void allocAndInitHipData(T& cptr, const T hptr, int len)
+void allocAndInitHipData(HipData hipDataSpace, T& cptr, const T hptr, int len)
 {
-  allocHipData(cptr, len);
-  initHipData(cptr, hptr, len);
+  allocHipData(hipDataSpace, cptr, len);
+  initHipData(hipDataSpace, cptr, hptr, len);
 }
 
 /*!
  * \brief Free Hip data array.
  */
 template <typename T>
-void deallocHipData(T& cptr)
+void deallocHipData(HipData hipDataSpace, T& cptr)
 {
   switch (hipDataSpace) {
     case HipData::Host:
@@ -296,7 +296,7 @@ void deallocHipData(T& cptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getHipData(T& hptr, const T cptr, int len)
+void getHipData(HipData, T& hptr, const T cptr, int len)
 {
   hipErrchk( hipMemcpy( hptr, cptr,
               len * sizeof(typename std::remove_pointer<T>::type),

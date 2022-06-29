@@ -136,6 +136,10 @@ public:
     return false;
   }
 
+  CudaData getCudaDataSpace() const { return cudaDataSpace; }
+
+  HipData getHipDataSpace() const { return hipDataSpace; }
+
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -243,6 +247,9 @@ private:
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */
+
+  CudaData cudaDataSpace = CudaData::Device;
+  HipData hipDataSpace = HipData::Device;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for
