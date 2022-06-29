@@ -421,7 +421,6 @@ const std::string& getVariantName(VariantID vid)
   return VariantNames[vid];
 }
 
-
 /*!
  *******************************************************************************
  *
