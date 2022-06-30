@@ -21,7 +21,7 @@ BLOCK_DIAG_MAT_VEC::BLOCK_DIAG_MAT_VEC(const RunParams &params)
     : KernelBase(rajaperf::Apps_BLOCK_DIAG_MAT_VEC, params)
 {
   m_N_default = 1000;
-  setDefaultProblemSize(m_N_default);
+  setDefaultProblemSize(m_N_default*m_N_default);
   setDefaultReps(5);
 
   //Make sure problem target size is divisible by ndof
