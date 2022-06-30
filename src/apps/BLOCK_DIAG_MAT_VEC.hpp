@@ -30,9 +30,9 @@
 #include "common/KernelBase.hpp"
 
 #define BLOCK_DIAG_MAT_VEC_DATA_INIT                                    \
-for(Index_type ii = 0; ii != NE; ++ii){									\
-  for(Index_type i = 0; i != ndof; ++i){ X[i+(ii*ndof)] = i; }			\
-  for(Index_type i = 0; i != (ndof*ndof); ++i){ Me[i+(ii*ndof*ndof)] =  \
+for(Index_type e = 0; e != NE; ++e){									\
+for(Index_type i = 0; i != ndof; ++i){ X[i+(e*ndof)] = i; }				\
+for(Index_type i = 0; i != (ndof*ndof); ++i){ Me[i+(e*ndof*ndof)] =     \
                              (ndof*ndof) - 1 - i; }                     \
 }
 
