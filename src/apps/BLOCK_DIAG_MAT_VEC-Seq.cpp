@@ -16,7 +16,7 @@ namespace apps {
 void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 
   const Index_type run_reps = getRunReps();
-  const Index_type NE = m_NE;
+  const Index_type N = m_N;
   constexpr Index_type ndof = m_ndof;
 
   BLOCK_DIAG_MAT_VEC_DATA_SETUP;
@@ -29,7 +29,7 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-  		for(Index_type e=0; e<NE; ++e) {                                                                                                                                                             
+  		for(Index_type e=0; e<N; ++e) {                                                                                                                                                             
   		    for (Index_type c=0; c<ndof; ++c)                                                                                                                                                               
   		    {                                                                                                                                                                                          
 				BLOCK_DIAG_MAT_VEC_BODY;
@@ -50,7 +50,7 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
-  		for(Index_type e=0; e<NE; ++e) {                                                                                                                                                             
+  		for(Index_type e=0; e<N; ++e) {                                                                                                                                                             
   		    for (Index_type c=0; c<ndof; ++c)                                                                                                                                                               
   		    {                                                                                                                                                                                          
 				mat_vec_lam(e,c);
@@ -64,7 +64,7 @@ void BLOCK_DIAG_MAT_VEC::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   case RAJA_Seq: {
     RAJA::RangeSegment c_range(0, ndof);
-    RAJA::RangeSegment e_range(0, NE);
+    RAJA::RangeSegment e_range(0, N);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

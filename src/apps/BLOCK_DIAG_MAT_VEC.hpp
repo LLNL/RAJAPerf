@@ -10,7 +10,7 @@
 /// Block Diagonal Matrix-Vector Product
 /// reference implementation:
 ///
-/// for (Index_type e = 0; e < NE; ++e) {
+/// for (Index_type e = 0; e < N; ++e) {
 ///
 ///    for (Index_type c = 0; c < ndofs; ++c) {
 ///        Real_type dot = 0;
@@ -30,7 +30,7 @@
 #include "common/KernelBase.hpp"
 
 #define BLOCK_DIAG_MAT_VEC_DATA_INIT                                    \
-for(Index_type e = 0; e != NE; ++e){									\
+for(Index_type e = 0; e != N; ++e){									\
 for(Index_type i = 0; i != ndof; ++i){ X[i+(e*ndof)] = i; }				\
 for(Index_type i = 0; i != (ndof*ndof); ++i){ Me[i+(e*ndof*ndof)] =     \
                              (ndof*ndof) - 1 - i; }                     \
@@ -89,7 +89,6 @@ private:
   Index_type m_N;
   Index_type m_N_default;
   static constexpr Index_type m_ndof = 24;
-  Index_type m_NE;
 };
 
 } // end namespace apps

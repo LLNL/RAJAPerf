@@ -25,7 +25,7 @@ BLOCK_DIAG_MAT_VEC::BLOCK_DIAG_MAT_VEC(const RunParams &params)
   setDefaultReps(5);
 
   //Make sure problem target size is divisible by ndof
-  m_N = RAJA_DIVIDE_CEILING_INT(Index_type(getTargetProblemSize()),Index_type(m_ndof*m_ndof));  
+  m_N = RAJA_DIVIDE_CEILING_INT(Index_type(getTargetProblemSize()),Index_type(m_ndof*m_ndof)*Index_type(m_ndof*m_ndof));  
 
   setActualProblemSize(m_N);
 
@@ -66,15 +66,14 @@ BLOCK_DIAG_MAT_VEC::~BLOCK_DIAG_MAT_VEC() {}
 void BLOCK_DIAG_MAT_VEC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type N = m_N;
   const Index_type ndof = m_ndof;
-  const Index_type NE = Index_type(N/(ndof*ndof));
 
-  allocAndInitDataConst(m_Me, ndof*ndof*NE, 0.0, vid);
-  allocAndInitDataConst(m_X, ndof*NE, 0.0, vid);
-  allocAndInitDataConst(m_Y, ndof*NE, 0.0, vid);
+  allocAndInitDataConst(m_Me, ndof*ndof*N, 0.0, vid);
+  allocAndInitDataConst(m_X, ndof*N, 0.0, vid);
+  allocAndInitDataConst(m_Y, ndof*N, 0.0, vid);
 }
 
 void BLOCK_DIAG_MAT_VEC::updateChecksum(VariantID vid, size_t tune_idx) {
-  checksum[vid][tune_idx] += calcChecksum(m_Y, m_ndof*m_NE, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_Y, m_ndof*m_N, checksum_scale_factor );
 }
 
 void BLOCK_DIAG_MAT_VEC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
