@@ -124,6 +124,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runStdParVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
@@ -139,6 +140,8 @@ private:
 
   Index_type m_N;
   Index_type m_tsteps;
+
+  Real_type m_factor;
 
   Real_ptr m_A;
   Real_ptr m_B;

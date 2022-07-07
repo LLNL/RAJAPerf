@@ -88,5 +88,16 @@ blt_add_library(
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
           WIP-COUPLE.cpp
+          DEL_DOT_VEC_2D-StdPar.cpp 
+          ENERGY-StdPar.cpp
+          FIR-StdPar.cpp
+          HALOEXCHANGE-StdPar.cpp
+          HALOEXCHANGE_FUSED-StdPar.cpp
+          LTIMES-StdPar.cpp
+          LTIMES_NOVIEW-StdPar.cpp
+          MASS3DPA-StdPar.cpp
+          PRESSURE-StdPar.cpp 
+          VOL3D-StdPar.cpp
+          DIFFUSION3DPA-StdPar.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

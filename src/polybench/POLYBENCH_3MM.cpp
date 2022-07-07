@@ -86,6 +86,10 @@ POLYBENCH_3MM::POLYBENCH_3MM(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 POLYBENCH_3MM::~POLYBENCH_3MM()

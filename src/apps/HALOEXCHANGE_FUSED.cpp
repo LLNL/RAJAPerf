@@ -98,6 +98,10 @@ HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()

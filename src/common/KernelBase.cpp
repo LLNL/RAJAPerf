@@ -246,6 +246,22 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 #endif
       break;
     }
+
+    case Base_StdPar :
+    case Lambda_StdPar :
+    {
+      runStdParVariant(vid, tune_idx);
+      break;
+    }
+
+    case RAJA_StdPar :
+    {
+#if defined(RUN_RAJA_STDPAR)
+      runStdParVariant(vid, tune_idx);
+#endif
+      break;
+    }
+
     case Kokkos_Lambda :
     {
 #if defined(RUN_KOKKOS)

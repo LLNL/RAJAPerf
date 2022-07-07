@@ -74,5 +74,16 @@ blt_add_library(
           TRIDIAG_ELIM-Cuda.cpp
           TRIDIAG_ELIM-OMP.cpp
           TRIDIAG_ELIM-OMPTarget.cpp
+          DIFF_PREDICT-StdPar.cpp
+          EOS-StdPar.cpp
+          FIRST_DIFF-StdPar.cpp
+          FIRST_MIN-StdPar.cpp
+          FIRST_SUM-StdPar.cpp
+          GEN_LIN_RECUR-StdPar.cpp
+          HYDRO_1D-StdPar.cpp
+          HYDRO_2D-StdPar.cpp
+          INT_PREDICT-StdPar.cpp
+          PLANCKIAN-StdPar.cpp
+          TRIDIAG_ELIM-StdPar.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

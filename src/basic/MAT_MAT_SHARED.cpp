@@ -60,6 +60,10 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
   setVariantDefined(Base_HIP);
   setVariantDefined(Lambda_HIP);
   setVariantDefined(RAJA_HIP);
+
+  //setVariantDefined( Base_StdPar );
+  //setVariantDefined( Lambda_StdPar );
+  //setVariantDefined( RAJA_StdPar );
 }
 
 MAT_MAT_SHARED::~MAT_MAT_SHARED() {}

@@ -55,6 +55,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runStdParVariant(VariantID vid, size_t tune_idx);
   void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
