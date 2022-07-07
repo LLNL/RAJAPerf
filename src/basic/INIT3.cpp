@@ -52,6 +52,10 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+  setVariantDefined( RAJA_StdPar );
+
   setVariantDefined( Kokkos_Lambda );
 }
 

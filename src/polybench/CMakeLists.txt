@@ -86,5 +86,18 @@ blt_add_library(
           POLYBENCH_MVT-Cuda.cpp
           POLYBENCH_MVT-OMP.cpp
           POLYBENCH_MVT-OMPTarget.cpp
+          POLYBENCH_2MM-StdPar.cpp
+          POLYBENCH_3MM-StdPar.cpp
+          POLYBENCH_ADI-StdPar.cpp
+          POLYBENCH_ATAX-StdPar.cpp
+          POLYBENCH_FDTD_2D-StdPar.cpp
+          POLYBENCH_FLOYD_WARSHALL-StdPar.cpp
+          POLYBENCH_GEMM-StdPar.cpp
+          POLYBENCH_GEMVER-StdPar.cpp
+          POLYBENCH_GESUMMV-StdPar.cpp
+          POLYBENCH_HEAT_3D-StdPar.cpp
+          POLYBENCH_JACOBI_1D-StdPar.cpp
+          POLYBENCH_JACOBI_2D-StdPar.cpp
+          POLYBENCH_MVT-StdPar.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

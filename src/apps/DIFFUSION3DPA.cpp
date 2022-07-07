@@ -65,6 +65,8 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( RAJA_StdPar );
 }
 
 DIFFUSION3DPA::~DIFFUSION3DPA()
