@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,6 +22,7 @@ namespace algorithm
 
 void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -33,6 +36,7 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning needs parallel scan
         SCAN_PROLOGUE;
         for (Index_type i = ibegin; i < iend; ++i ) {
           SCAN_BODY;
@@ -44,26 +48,7 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case Lambda_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        SCAN_PROLOGUE;
-        auto scan_lam = [=, &scan_var](Index_type i) {
-                          SCAN_BODY;
-                        };
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          scan_lam(i);
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
@@ -84,6 +69,7 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   }
 
+#endif
 }
 
 } // end namespace algorithm

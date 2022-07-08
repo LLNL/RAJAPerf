@@ -14,18 +14,15 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <execution>
 
 #include <iostream>
 
 namespace rajaperf {
 namespace apps {
 
-void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
-
+void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
+{
 #if defined(RUN_STDPAR)
-
   const Index_type run_reps = getRunReps();
 
   DIFFUSION3DPA_DATA_SETUP;

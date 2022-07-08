@@ -19,8 +19,6 @@ typedef std::atomic<double> myAtomic;
 #endif
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <execution>
 
 #include <iostream>
 
