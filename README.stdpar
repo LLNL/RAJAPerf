@@ -78,6 +78,28 @@ terminate called after throwing an instance of 'thrust::system::system_error'
   what():  for_each: failed to synchronize: cudaErrorIllegalAddress: an illegal memory access was encountered
 Aborted (core dumped)
 
+Ouch...
+
+-------------------------------------------------------
+Polybench_FLOYD_WARSHALL
+........................................................
+Base_Seq-default           -166623.06893187693646      0.0000000000000000000
+Lambda_Seq-default         -166623.06893187693646      0.0000000000000000000
+RAJA_Seq-default           -166623.06893187693646      0.0000000000000000000
+Base_StdPar-default        -172966.42970694099014      6343.3607750640536835
+Lambda_StdPar-default      -170706.96338200639781      4083.8944501294613474
+
+Lambda_Seq has the bug too so just disable the Lambda versions...
+
+-------------------------------------------------------
+Basic_MAT_MAT_SHARED
+........................................................
+Base_Seq-default           1136.6199452543779141       0.0000000000000000000
+Lambda_Seq-default         -6.0464819976872759102e+32  6.0464819976872759102e+32
+RAJA_Seq-default           1136.6199452543779141       0.0000000000000000000
+Base_StdPar-default        1136.6199452543779141       0.0000000000000000000
+Lambda_StdPar-default      -6.0464819976872759102e+32  6.0464819976872759102e+32
+
 # Intel
 
 cmake .. -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_FLAGS="-std=c++20  -Wno-unused-parameter -Wno-deprecated-volatile -tbb" -DENABLE_STDPAR=1 && make -j8
