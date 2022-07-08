@@ -90,6 +90,8 @@ public:
   virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+  virtual void setStdParTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
 #if defined(RUN_KOKKOS)
   virtual void setKokkosTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
