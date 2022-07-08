@@ -254,7 +254,7 @@ void HALOEXCHANGE_FUSED::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n HALOEXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n HALOEXCHANGE_FUSED : Unknown variant id = " << vid << std::endl;
     }
 
   }

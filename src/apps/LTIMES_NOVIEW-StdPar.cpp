@@ -120,7 +120,7 @@ void LTIMES_NOVIEW::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n LTIMES_NOVIEW : Unknown variant id = " << vid << std::endl;
     }
 
   }

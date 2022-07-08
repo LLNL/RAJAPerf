@@ -11,6 +11,8 @@
 #include "RAJA/RAJA.hpp"
 
 #include <limits>
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf 
@@ -21,9 +23,14 @@ namespace basic
 
 void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto begin = counting_iterator<Index_type>(ibegin);
+  auto end   = counting_iterator<Index_type>(iend);
 
   REDUCE_STRUCT_DATA_SETUP;
 
@@ -38,8 +45,14 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
         Real_type xmin = m_init_min; Real_type ymin = m_init_min;
         Real_type xmax = m_init_max; Real_type ymax = m_init_max;
 
+#warning needs parallel
         for (Index_type i = ibegin; i < iend; ++i ) {
-          REDUCE_STRUCT_BODY;
+          xsum += points.x[i] ; \
+          xmin = RAJA_MIN(xmin, points.x[i]) ; \
+          xmax = RAJA_MAX(xmax, points.x[i]) ; \
+          ysum += points.y[i] ; \
+          ymin = RAJA_MIN(ymin, points.y[i]) ; \
+          ymax = RAJA_MAX(ymax, points.y[i]) ;
         }
 
         points.SetCenter(xsum/(points.N), ysum/(points.N));
@@ -55,7 +68,6 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto reduce_struct_x_base_lam = [=](Index_type i) -> Real_type {
@@ -73,6 +85,7 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
         Real_type xmin = m_init_min; Real_type ymin = m_init_min;
         Real_type xmax = m_init_max; Real_type ymax = m_init_max; 
 
+#warning needs parallel
         for (Index_type i = ibegin; i < iend; ++i ) {
           xsum += reduce_struct_x_base_lam(i);
           xmin = RAJA_MIN(xmin, reduce_struct_x_base_lam(i));
@@ -95,6 +108,7 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       startTimer();
@@ -133,6 +147,7 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
   }
 
+#endif
 }
 
 } // end namespace basic

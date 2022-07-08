@@ -111,7 +111,7 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }

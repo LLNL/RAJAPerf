@@ -89,7 +89,7 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 
     default : {
-      std::cout << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
     }
 
   }

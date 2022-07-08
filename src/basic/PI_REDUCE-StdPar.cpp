@@ -11,9 +11,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <numeric>
-#include <execution>
 
 #include <iostream>
 
@@ -106,7 +103,7 @@ void PI_REDUCE::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 
     default : {
-      std::cout << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_REDUCE : Unknown variant id = " << vid << std::endl;
     }
 
   }

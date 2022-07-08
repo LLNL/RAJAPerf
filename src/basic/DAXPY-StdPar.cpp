@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -11,12 +11,10 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <execution>
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -34,10 +32,6 @@ void DAXPY::runStdParVariant(VariantID vid, size_t tune_idx)
   auto end   = counting_iterator<Index_type>(iend);
 
   DAXPY_DATA_SETUP;
-
-  auto daxpy_lam = [=](Index_type i) {
-                     DAXPY_BODY;
-                   };
 
   switch ( vid ) {
 
@@ -59,6 +53,10 @@ void DAXPY::runStdParVariant(VariantID vid, size_t tune_idx)
     }
 
     case Lambda_StdPar : {
+
+      auto daxpy_lam = [=](Index_type i) {
+                         DAXPY_BODY;
+                       };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,7 +89,7 @@ void DAXPY::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 
     default : {
-      std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }
 
   }

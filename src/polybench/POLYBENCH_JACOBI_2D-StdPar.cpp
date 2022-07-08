@@ -164,7 +164,7 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  POLYBENCH_JACOBI_2D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown variant id = " << vid << std::endl;
     }
 
   }

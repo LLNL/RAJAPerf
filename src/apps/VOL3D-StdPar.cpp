@@ -98,7 +98,7 @@ void VOL3D::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  VOL3D : Unknown variant id = " << vid << std::endl;
     }
   }
 

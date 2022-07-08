@@ -66,7 +66,7 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
               {
                 NESTED_INIT_BODY;
-                //std::cout << i << "," << j << "," << k << ";" << idx << " PAR\n";
+                //getCout() << i << "," << j << "," << k << ";" << idx << " PAR\n";
               }
         });
 
@@ -138,7 +138,7 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
     }
 
   }

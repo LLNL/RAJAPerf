@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -27,9 +29,13 @@ namespace basic
 
 void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto begin = counting_iterator<Index_type>(ibegin);
+  auto end   = counting_iterator<Index_type>(iend);
 
   INDEXLIST_3LOOP_DATA_SETUP;
 
@@ -42,18 +48,21 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning needs parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         }
 
         Index_type count = 0;
 
+#warning needs parallel scan
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
 
+#warning needs parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_3LOOP_MAKE_LIST;
         }
@@ -68,7 +77,6 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       INDEXLIST_3LOOP_DATA_SETUP_StdPar;
@@ -84,18 +92,21 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning needs parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_conditional_lam(i);
         }
 
         Index_type count = 0;
 
+#warning needs parallel scan
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
 
+#warning needs parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_make_list_lam(i);
         }
@@ -110,6 +121,7 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       INDEXLIST_3LOOP_DATA_SETUP_StdPar;
@@ -154,6 +166,7 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   }
 
+#endif
 }
 
 } // end namespace basic

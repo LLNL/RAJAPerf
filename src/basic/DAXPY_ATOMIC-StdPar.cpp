@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,9 +22,14 @@ namespace basic
 
 void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto begin = counting_iterator<Index_type>(ibegin);
+  auto end   = counting_iterator<Index_type>(iend);
 
   DAXPY_ATOMIC_DATA_SETUP;
 
@@ -33,9 +40,11 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           DAXPY_ATOMIC_BODY;
-        }
+        });
 
       }
       stopTimer();
@@ -43,7 +52,6 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto daxpy_atomic_lam = [=](Index_type i) {
@@ -53,9 +61,11 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           daxpy_atomic_lam(i);
-        }
+        });
 
       }
       stopTimer();
@@ -63,12 +73,13 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       break;
     }
 
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
           RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             DAXPY_ATOMIC_RAJA_BODY(RAJA::seq_atomic);
@@ -87,6 +98,7 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
   }
 
+#endif
 }
 
 } // end namespace basic

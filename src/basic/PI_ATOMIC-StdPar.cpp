@@ -109,7 +109,7 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }
 
   }

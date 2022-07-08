@@ -91,7 +91,7 @@ void FIRST_SUM::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  FIRST_SUM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_SUM : Unknown variant id = " << vid << std::endl;
     }
 
   }

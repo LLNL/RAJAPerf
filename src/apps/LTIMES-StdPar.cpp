@@ -126,7 +126,7 @@ void LTIMES::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n LTIMES : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n LTIMES : Unknown variant id = " << vid << std::endl;
     }
 
   }
