@@ -10,6 +10,7 @@ blt_add_library(
   NAME algorithm
   SOURCES SCAN.cpp
           SCAN-Seq.cpp
+          SCAN-StdPar.cpp
           SCAN-Hip.cpp
           SCAN-Cuda.cpp
           SCAN-OMP.cpp
