@@ -33,12 +33,14 @@ blt_add_library(
           REDUCE_SUM-OMPTarget.cpp
           MEMSET.cpp
           MEMSET-Seq.cpp
+          MEMSET-StdPar.cpp
           MEMSET-Hip.cpp
           MEMSET-Cuda.cpp
           MEMSET-OMP.cpp
           MEMSET-OMPTarget.cpp
           MEMCPY.cpp
           MEMCPY-Seq.cpp
+          MEMCPY-StdPar.cpp
           MEMCPY-Hip.cpp
           MEMCPY-Cuda.cpp
           MEMCPY-OMP.cpp

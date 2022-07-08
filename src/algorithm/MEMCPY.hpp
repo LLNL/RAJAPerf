@@ -57,10 +57,13 @@ public:
   void runStdParVariant(VariantID vid, size_t tune_idx);
 
   void setSeqTuningDefinitions(VariantID vid);
+  void setStdParTuningDefinitions(VariantID vid);
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   void runSeqVariantDefault(VariantID vid);
   void runSeqVariantLibrary(VariantID vid);
+  void runStdParVariantDefault(VariantID vid);
+  void runStdParVariantLibrary(VariantID vid);
 
   template < size_t block_size >
   void runCudaVariantBlock(VariantID vid);
