@@ -28,6 +28,7 @@ blt_add_library(
           SORTPAIRS-OMP.cpp
           REDUCE_SUM.cpp
           REDUCE_SUM-Seq.cpp
+          REDUCE_SUM-StdPar.cpp
           REDUCE_SUM-Hip.cpp
           REDUCE_SUM-Cuda.cpp
           REDUCE_SUM-OMP.cpp
