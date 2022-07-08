@@ -56,7 +56,6 @@ FIRST_DIFF::FIRST_DIFF(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 FIRST_DIFF::~FIRST_DIFF()

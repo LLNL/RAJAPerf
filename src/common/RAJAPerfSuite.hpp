@@ -196,7 +196,6 @@ enum VariantID {
 
   Base_StdPar,
   Lambda_StdPar,
-  RAJA_StdPar,
 
   Kokkos_Lambda,
 

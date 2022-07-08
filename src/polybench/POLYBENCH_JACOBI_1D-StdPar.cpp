@@ -95,33 +95,6 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
-            poly_jacobi1d_lam1
-          );
-
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1}, 
-            poly_jacobi1d_lam2
-          );
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  POLYBENCH_JACOBI_1D : Unknown variant id = " << vid << std::endl;
     }

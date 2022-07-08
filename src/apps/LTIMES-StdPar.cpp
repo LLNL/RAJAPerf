@@ -84,45 +84,6 @@ void LTIMES::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      LTIMES_VIEWS_RANGES_RAJA;
-
-      auto ltimes_lam = [=](ID d, IZ z, IG g, IM m) {
-                          LTIMES_BODY_RAJA;
-                        };
-
-      using EXEC_POL = 
-        RAJA::KernelPolicy<
-          RAJA::statement::For<1, RAJA::loop_exec,       // z
-            RAJA::statement::For<2, RAJA::loop_exec,     // g
-              RAJA::statement::For<3, RAJA::loop_exec,   // m
-                RAJA::statement::For<0, RAJA::loop_exec, // d
-                  RAJA::statement::Lambda<0>
-                >
-              >
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
-                                                 IZRange(0, num_z),
-                                                 IGRange(0, num_g),
-                                                 IMRange(0, num_m)), 
-                                ltimes_lam
-                              );
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n LTIMES : Unknown variant id = " << vid << std::endl;
     }

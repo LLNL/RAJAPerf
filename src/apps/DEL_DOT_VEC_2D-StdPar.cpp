@@ -84,30 +84,6 @@ void DEL_DOT_VEC_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      camp::resources::Resource working_res{camp::resources::Host()};
-      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones, 
-                                               m_domain->n_real_zones, 
-                                               working_res);
-
-      auto deldotvec2d_lam = [=](Index_type i) {
-                               DEL_DOT_VEC_2D_BODY;
-                             };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  DEL_DOT_VEC_2D : Unknown variant id = " << vid << std::endl;
     }

@@ -23,7 +23,6 @@ namespace algorithm
 void MEMCPY::runStdParVariantLibrary(VariantID vid)
 {
 #if defined(RUN_STDPAR)
-
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -45,23 +44,6 @@ void MEMCPY::runStdParVariantLibrary(VariantID vid)
 
       break;
     }
-
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      camp::resources::Host res = camp::resources::Host::get_default();
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        res.memcpy(MEMCPY_STD_ARGS);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
 
     default : {
       getCout() << "\n  MEMCPY : Unknown variant id = " << vid << std::endl;
@@ -126,24 +108,6 @@ void MEMCPY::runStdParVariantDefault(VariantID vid)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-            MEMCPY_BODY;
-        });
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  MEMCPY : Unknown variant id = " << vid << std::endl;
     }
@@ -157,7 +121,7 @@ void MEMCPY::runStdParVariant(VariantID vid, size_t tune_idx)
 {
   size_t t = 0;
 
-  if (vid == Base_StdPar || vid == RAJA_StdPar) {
+  if (vid == Base_StdPar) {
 
     if (tune_idx == t) {
 
@@ -180,7 +144,7 @@ void MEMCPY::runStdParVariant(VariantID vid, size_t tune_idx)
 
 void MEMCPY::setStdParTuningDefinitions(VariantID vid)
 {
-  if (vid == Base_StdPar || vid == RAJA_StdPar) {
+  if (vid == Base_StdPar) {
     addVariantTuningName(vid, "library");
   }
 

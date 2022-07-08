@@ -73,25 +73,6 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
-          RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-            DAXPY_ATOMIC_RAJA_BODY(RAJA::seq_atomic);
-        });
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  DAXPY_ATOMIC : Unknown variant id = " << vid << std::endl;
     }

@@ -106,43 +106,6 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA; 
-
-      auto poly_floydwarshall_lam = [=](Index_type k, Index_type i, 
-                                        Index_type j) {
-                                      POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
-                                    };
-
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::For<2, RAJA::loop_exec,
-                RAJA::statement::Lambda<0>
-              >
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N},
-                                                 RAJA::RangeSegment{0, N}),
-          poly_floydwarshall_lam 
-        );
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown variant id = " << vid << std::endl;
     }

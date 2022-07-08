@@ -62,7 +62,6 @@ MASS3DPA::MASS3DPA(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Base_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 MASS3DPA::~MASS3DPA()

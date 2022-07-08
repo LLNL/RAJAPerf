@@ -65,7 +65,6 @@ POLYBENCH_MVT::POLYBENCH_MVT(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 POLYBENCH_MVT::~POLYBENCH_MVT()

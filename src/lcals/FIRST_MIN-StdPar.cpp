@@ -76,29 +76,6 @@ void FIRST_MIN::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceMinLoc<RAJA::seq_reduce, Real_type, Index_type> loc(
-                                                        m_xmin_init, m_initloc);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          FIRST_MIN_BODY_RAJA;
-        });
-
-        m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
     }
