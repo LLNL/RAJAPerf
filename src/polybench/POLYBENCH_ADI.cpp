@@ -66,7 +66,6 @@ POLYBENCH_ADI::POLYBENCH_ADI(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 POLYBENCH_ADI::~POLYBENCH_ADI()

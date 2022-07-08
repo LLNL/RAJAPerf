@@ -94,28 +94,6 @@ void TRAP_INT::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sumx(m_sumx_init);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          TRAP_INT_BODY;
-        });
-
-        m_sumx += static_cast<Real_type>(sumx.get()) * h;
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
     }

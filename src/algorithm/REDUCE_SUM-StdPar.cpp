@@ -78,28 +78,6 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(m_sum_init);
-
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-            REDUCE_SUM_BODY;
-        });
-
-        m_sum = sum.get();
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  REDUCE_SUM : Unknown variant id = " << vid << std::endl;
     }

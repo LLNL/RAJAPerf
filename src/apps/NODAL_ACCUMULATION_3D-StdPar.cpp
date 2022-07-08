@@ -73,30 +73,6 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      camp::resources::Resource working_res{camp::resources::Host()};
-      RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                               m_domain->n_real_zones,
-                                               working_res);
-
-      auto nodal_accumulation_3d_lam = [=](Index_type i) {
-                         NODAL_ACCUMULATION_3D_RAJA_ATOMIC_BODY(RAJA::seq_atomic);
-                       };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(zones, nodal_accumulation_3d_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown variant id = " << vid << std::endl;
     }

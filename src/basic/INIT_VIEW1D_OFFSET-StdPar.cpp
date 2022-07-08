@@ -73,28 +73,6 @@ void INIT_VIEW1D_OFFSET::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      INIT_VIEW1D_OFFSET_VIEW_RAJA;
-
-      auto initview1doffset_lam = [=](Index_type i) {
-                                    INIT_VIEW1D_OFFSET_BODY_RAJA;
-                                  };
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::simd_exec>(
-          RAJA::RangeSegment(ibegin, iend), initview1doffset_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid << std::endl;
     }

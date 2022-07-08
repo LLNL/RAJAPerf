@@ -108,39 +108,6 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> xsum(m_init_sum);
-        RAJA::ReduceSum<RAJA::seq_reduce, Real_type> ysum(m_init_sum);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> xmin(m_init_min);
-        RAJA::ReduceMin<RAJA::seq_reduce, Real_type> ymin(m_init_min);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> xmax(m_init_max);
-        RAJA::ReduceMax<RAJA::seq_reduce, Real_type> ymax(m_init_max);
-
-        RAJA::forall<RAJA::loop_exec>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-        REDUCE_STRUCT_BODY_RAJA;
-        });
-
-      	points.SetCenter(xsum.get()/(points.N),
-                         ysum.get()/(points.N));
-        points.SetXMin(xmin.get());
-        points.SetXMax(xmax.get());
-        points.SetYMin(ymin.get());
-        points.SetYMax(ymax.get());
-        m_points=points;
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  REDUCE_STRUCT : Unknown variant id = " << vid << std::endl;
     }

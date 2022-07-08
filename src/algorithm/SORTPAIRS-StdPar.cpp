@@ -72,21 +72,6 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::sort_pairs<RAJA::loop_exec>(RAJA_SORTPAIRS_ARGS);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  SORTPAIRS : Unknown variant id = " << vid << std::endl;
     }

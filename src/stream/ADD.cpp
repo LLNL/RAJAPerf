@@ -55,7 +55,6 @@ ADD::ADD(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 ADD::~ADD()

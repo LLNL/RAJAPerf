@@ -79,7 +79,6 @@ LTIMES_NOVIEW::LTIMES_NOVIEW(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 LTIMES_NOVIEW::~LTIMES_NOVIEW()

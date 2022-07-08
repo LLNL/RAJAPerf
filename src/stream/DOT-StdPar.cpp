@@ -78,28 +78,6 @@ void DOT::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::stdpar_reduce, Real_type> dot(m_dot_init);
-
-        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
-          RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
-          DOT_BODY;
-        });
-
-        m_dot += static_cast<Real_type>(dot.get());
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  DOT : Unknown variant id = " << vid << std::endl;
     }

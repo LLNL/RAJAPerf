@@ -88,29 +88,6 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::region<RAJA::seq_region>( [=]() {
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam1);
-
-          RAJA::forall<RAJA::loop_exec>(
-            RAJA::RangeSegment(ibegin, iend), pressure_lam2);
-
-        }); // end sequential region (for single-source code)
-
-      }
-      stopTimer(); 
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
     }

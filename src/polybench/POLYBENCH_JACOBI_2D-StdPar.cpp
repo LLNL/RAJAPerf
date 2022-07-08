@@ -112,55 +112,6 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      POLYBENCH_JACOBI_2D_VIEWS_RAJA;
-
-      auto poly_jacobi2d_lam1 = [=](Index_type i, Index_type j) {
-                                  POLYBENCH_JACOBI_2D_BODY1_RAJA;
-                                };
-      auto poly_jacobi2d_lam2 = [=](Index_type i, Index_type j) {
-                                  POLYBENCH_JACOBI_2D_BODY2_RAJA;
-                                };
-
-      using EXEC_POL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<0>
-            >
-          >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type t = 0; t < tsteps; ++t) {
-
-          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
-                                                   RAJA::RangeSegment{1, N-1}),
-
-            poly_jacobi2d_lam1,
-            poly_jacobi2d_lam2
-          );
-
-        }
-
-      }
-      stopTimer();
-
-      POLYBENCH_JACOBI_2D_DATA_RESET;
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown variant id = " << vid << std::endl;
     }

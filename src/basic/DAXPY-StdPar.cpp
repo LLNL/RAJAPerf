@@ -72,22 +72,6 @@ void DAXPY::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::stdpar_par_unseq_exec>(
-          RAJA::RangeSegment(ibegin, iend), daxpy_lam);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
     }

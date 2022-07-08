@@ -131,55 +131,6 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      HYDRO_2D_VIEWS_RAJA;
-
-      auto hydro2d_lam1 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY1_RAJA;
-                          };
-      auto hydro2d_lam2 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY2_RAJA;
-                          };
-      auto hydro2d_lam3 = [=] (Index_type k, Index_type j) {
-                            HYDRO_2D_BODY3_RAJA;
-                          };
-
-      using EXECPOL =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::Lambda<0>
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam1); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam2); 
-
-        RAJA::kernel<EXECPOL>(
-                     RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
-                                       RAJA::RangeSegment(jbeg, jend)),
-                     hydro2d_lam3); 
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  HYDRO_2D : Unknown variant id = " << vid << std::endl;
     }

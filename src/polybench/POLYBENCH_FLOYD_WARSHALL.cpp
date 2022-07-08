@@ -63,7 +63,6 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()

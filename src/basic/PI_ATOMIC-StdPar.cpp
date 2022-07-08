@@ -85,27 +85,6 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-   
-        *pi = m_pi_init;
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend), 
-          [=](Index_type i) {
-            double x = (double(i) + 0.5) * dx;
-            RAJA::atomicAdd<RAJA::seq_atomic>(pi, dx / (1.0 + x * x));
-        });
-        *pi *= 4.0;
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
     }

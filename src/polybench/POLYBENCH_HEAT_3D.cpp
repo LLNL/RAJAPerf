@@ -73,7 +73,6 @@ POLYBENCH_HEAT_3D::POLYBENCH_HEAT_3D(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 POLYBENCH_HEAT_3D::~POLYBENCH_HEAT_3D()

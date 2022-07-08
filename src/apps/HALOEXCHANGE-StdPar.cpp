@@ -121,53 +121,6 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      using EXEC_POL = RAJA::loop_exec;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
-          Int_ptr list = pack_index_lists[l];
-          Index_type  len  = pack_index_list_lengths[l];
-          for (Index_type v = 0; v < num_vars; ++v) {
-            Real_ptr var = vars[v];
-            auto haloexchange_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_PACK_BODY;
-                };
-            RAJA::forall<EXEC_POL>(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_pack_base_lam );
-            buffer += len;
-          }
-        }
-
-        for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
-          Int_ptr list = unpack_index_lists[l];
-          Index_type  len  = unpack_index_list_lengths[l];
-          for (Index_type v = 0; v < num_vars; ++v) {
-            Real_ptr var = vars[v];
-            auto haloexchange_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_UNPACK_BODY;
-                };
-            RAJA::forall<EXEC_POL>(
-                RAJA::TypedRangeSegment<Index_type>(0, len),
-                haloexchange_unpack_base_lam );
-            buffer += len;
-          }
-        }
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n HALOEXCHANGE : Unknown variant id = " << vid << std::endl;
     }

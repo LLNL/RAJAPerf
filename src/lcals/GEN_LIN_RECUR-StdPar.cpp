@@ -92,25 +92,6 @@ void GEN_LIN_RECUR::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(0, N), genlinrecur_lam1);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
     }

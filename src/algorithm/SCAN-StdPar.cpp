@@ -48,21 +48,6 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       break;
     }
 
-#ifdef RAJA_ENABLE_STDPAR
-    case RAJA_StdPar : {
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::exclusive_scan<RAJA::loop_exec>(RAJA_SCAN_ARGS);
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  SCAN : Unknown variant id = " << vid << std::endl;
     }

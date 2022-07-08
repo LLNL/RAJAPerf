@@ -54,7 +54,6 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 TRIDIAG_ELIM::~TRIDIAG_ELIM()

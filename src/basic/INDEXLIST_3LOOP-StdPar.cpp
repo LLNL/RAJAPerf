@@ -121,45 +121,6 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      INDEXLIST_3LOOP_DATA_SETUP_StdPar;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::ReduceSum<RAJA::loop_reduce, Index_type> len(0);
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-          counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
-        });
-
-        RAJA::exclusive_scan_inplace<RAJA::loop_exec>(
-            RAJA::make_span(counts+ibegin, iend+1-ibegin));
-
-        RAJA::forall<RAJA::loop_exec>(
-          RAJA::RangeSegment(ibegin, iend),
-          [=](Index_type i) {
-          if (counts[i] != counts[i+1]) {
-            list[counts[i]] = i;
-            len += 1;
-          }
-        });
-
-        m_len = len.get();
-
-      }
-      stopTimer();
-
-      INDEXLIST_3LOOP_DATA_TEARDOWN_StdPar;
-
-      break;
-    }
-#endif
-
     default : {
       getCout() << "\n  INDEXLIST_3LOOP : Unknown variant id = " << vid << std::endl;
     }

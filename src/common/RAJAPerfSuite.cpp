@@ -280,7 +280,6 @@ static const std::string VariantNames [] =
 
   std::string("Base_StdPar"),
   std::string("Lambda_StdPar"),
-  std::string("RAJA_StdPar"),
 
   std::string("Kokkos_Lambda"),
 
@@ -432,11 +431,6 @@ bool isVariantAvailable(VariantID vid)
        vid == Lambda_StdPar) {
     ret_val = true;
   }
-#if defined(RUN_RAJA_STDPAR)
-  if ( vid == RAJA_StdPar ) {
-    ret_val = true;
-  }
-#endif
 
 #if defined(RUN_KOKKOS)
   if ( vid == Kokkos_Lambda ) {
@@ -503,11 +497,6 @@ bool isVariantGPU(VariantID vid)
        vid == Lambda_StdPar) {
     ret_val = true;
   }
-#if defined(RUN_RAJA_STDPAR)
-  if ( vid == RAJA_StdPar ) {
-    ret_val = true;
-  }
-#endif
 
 #if defined(RUN_KOKKOS)
   if ( vid == Kokkos_Lambda ) {

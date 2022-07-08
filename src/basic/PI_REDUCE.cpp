@@ -54,7 +54,6 @@ PI_REDUCE::PI_REDUCE(const RunParams& params)
 
   setVariantDefined( Base_StdPar );
   setVariantDefined( Lambda_StdPar );
-  setVariantDefined( RAJA_StdPar );
 }
 
 PI_REDUCE::~PI_REDUCE()

@@ -105,36 +105,6 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
-    case RAJA_StdPar : {
-
-      using EXEC_POL = 
-        RAJA::KernelPolicy<
-          RAJA::statement::For<2, RAJA::loop_exec,    // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::For<0, RAJA::loop_exec,// i
-                RAJA::statement::Lambda<0>
-              >
-            >
-          >
-        >;
-
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
-                                                 RAJA::RangeSegment(0, nj),
-                                                 RAJA::RangeSegment(0, nk)),
-                                nestedinit_lam
-                              );
-
-      }
-      stopTimer();
-
-      break;
-    }
-#endif // RUN_RAJA_STDPAR
-
     default : {
       getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
     }
