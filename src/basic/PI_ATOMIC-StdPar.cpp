@@ -48,14 +48,16 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        myAtomic a_pi{m_pi_init};
+        //myAtomic a_pi{m_pi_init};
+        myAtomic * a_pi = new myAtomic; // i hate this
+        *a_pi = m_pi_init;
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=,&a_pi](Index_type i) {
+                       [=](Index_type i) {
           double x = (double(i) + 0.5) * dx;
-          a_pi = a_pi + dx / (1.0 + x * x);
+          *a_pi = *a_pi + dx / (1.0 + x * x);
         });
-        *pi = a_pi * 4.0;
+        *pi = *a_pi * 4.0;
 
       }
       stopTimer();
