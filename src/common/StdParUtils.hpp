@@ -30,6 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // This implementation was authored by David Olsen
 
+#include <algorithm>
+#include <execution>
 #include <type_traits>
 
 template <class T>
