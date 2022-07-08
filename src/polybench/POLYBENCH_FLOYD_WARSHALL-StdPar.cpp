@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-//#define USE_STDPAR_COLLAPSE 1
+#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
@@ -44,25 +44,25 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+        for (Index_type k = 0; k < N; ++k) {
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
-                       begin2, end2, [=](Index_type ki) {
-            const auto k  = ki / N;
-            const auto i  = ki % N;
+                       begin2, end2, [=](Index_type ji) {
+            const auto j  = ji / N;
+            const auto i  = ji % N;
 #else
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type k) {
-          std::for_each(begin, end,
-                        [=](Index_type i) {
+                       [=](Index_type i) {
+          std::for_each( begin, end,
+                         [=](Index_type j) {
 #endif
-            for (Index_type j = 0; j < N; ++j) { 
               POLYBENCH_FLOYD_WARSHALL_BODY;
-            }
+            });
 #ifndef USE_STDPAR_COLLAPSE
           });
 #endif
-        });
+        }
 
       }
       stopTimer();
@@ -80,25 +80,25 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+        for (Index_type k = 0; k < N; ++k) {
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each( std::execution::par_unseq,
-                       begin2, end2, [=](Index_type ki) {
-            const auto k  = ki / N;
-            const auto i  = ki % N;
+                       begin2, end2, [=](Index_type ji) {
+            const auto j  = ji / N;
+            const auto i  = ji % N;
 #else
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type k) {
-          std::for_each(begin, end,
-                        [=](Index_type i) {
+                       [=](Index_type i) {
+          std::for_each( begin, end,
+                         [=](Index_type j) {
 #endif
-            for (Index_type j = 0; j < N; ++j) {
               poly_floydwarshall_base_lam(k, i, j);
-            }
-#ifndef USE_STDPAR_COLLAPSE
           });
-#endif
+#ifndef USE_STDPAR_COLLAPSE
         });
+#endif
+       }
 
       }
       stopTimer();
