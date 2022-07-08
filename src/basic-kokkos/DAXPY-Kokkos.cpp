@@ -53,7 +53,7 @@ void DAXPY::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
     break;
   }
   default: {
-    std::cout << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  DAXPY : Unknown variant id = " << vid << std::endl;
   }
   }
 

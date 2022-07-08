@@ -46,7 +46,7 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   }
 
   default: {
-    std::cout << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
   }
   }
 

@@ -46,7 +46,7 @@ void INIT_VIEW1D_OFFSET::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_
   }
 
   default: {
-    std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid
+    getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown variant id = " << vid
               << std::endl;
   }
   }

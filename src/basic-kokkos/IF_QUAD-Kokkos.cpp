@@ -61,7 +61,7 @@ void IF_QUAD::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
   }
 
   default: {
-    std::cout << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
   }
   }
 
