@@ -6,6 +6,8 @@ cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAG
 
 cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
 
+## CPU
+
 ^ SORTPAIRS fails with sizefact 0.1 when _all_ kernels are run but not when SORTPAIRS or Algorithm are run by themselves
 
 Just disable the lambda one I guess...
@@ -57,6 +59,24 @@ Lambda_StdPar-default      39999973.379841439426       -7.4505805969238281250e-0
 Algorithm_REDUCE_SUM
 ........................................................
 RAJA_Seq-default           268294.10758353886195       1.5483237802982330322e-08
+
+## GPU
+
+Just disable parallel execution here...
+
+[ 99%] Linking CXX executable ../bin/raja-perf.exe
+nvlink error   : Undefined reference to '_ZSt28__throw_bad_array_new_lengthv' in '../lib/libapps.a:HALOEXCHANGE-StdPar.cpp.o'
+pgacclnk: child process exit status 2: /opt/nvidia/hpc_sdk/Linux_x86_64/22.5/compilers/bin/tools/nvdd
+make[2]: *** [src/CMakeFiles/raja-perf.exe.dir/build.make:109: bin/raja-perf.exe] Error 2
+make[1]: *** [CMakeFiles/Makefile2:1393: src/CMakeFiles/raja-perf.exe.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+
+Exclude this one until fixed...
+
+   Running Base_StdPar variant
+terminate called after throwing an instance of 'thrust::system::system_error'
+  what():  for_each: failed to synchronize: cudaErrorIllegalAddress: an illegal memory access was encountered
+Aborted (core dumped)
 
 # Intel
 
