@@ -17,6 +17,7 @@ blt_add_library(
           DAXPY-OMPTarget.cpp
           DAXPY_ATOMIC.cpp
           DAXPY_ATOMIC-Seq.cpp
+          DAXPY_ATOMIC-StdPar.cpp
           DAXPY_ATOMIC-Hip.cpp
           DAXPY_ATOMIC-Cuda.cpp
           DAXPY_ATOMIC-OMP.cpp

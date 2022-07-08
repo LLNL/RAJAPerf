@@ -13,6 +13,7 @@ blt_add_library(
           CONVECTION3DPA-Cuda.cpp
           CONVECTION3DPA-Hip.cpp
           CONVECTION3DPA-Seq.cpp
+          CONVECTION3DPA-StdPar.cpp
           CONVECTION3DPA-OMP.cpp
           CONVECTION3DPA-OMPTarget.cpp
           DEL_DOT_VEC_2D.cpp 
