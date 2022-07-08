@@ -105,6 +105,7 @@ blt_add_library(
           REDUCE3_INT-OMPTarget.cpp
           REDUCE_STRUCT.cpp
           REDUCE_STRUCT-Seq.cpp
+          REDUCE_STRUCT-StdPar.cpp
           REDUCE_STRUCT-Hip.cpp
           REDUCE_STRUCT-Cuda.cpp
           REDUCE_STRUCT-OMP.cpp
