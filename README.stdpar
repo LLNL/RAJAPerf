@@ -2,6 +2,9 @@
 cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAGS="-std=c++20 -Wno-volatile -Wno-unused-parameter" -DENABLE_STDPAR=1 && make -j8
 
 # NVC++
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
+
+^ SORTPAIRS fails with sizefact 0.1 when _all_ kernels are run but not when SORTPAIRS or Algorithm are run by themselves
 
 # Intel
 cmake .. -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_FLAGS="-std=c++20  -Wno-unused-parameter -Wno-deprecated-volatile -tbb" -DENABLE_STDPAR=1 && make -j8
