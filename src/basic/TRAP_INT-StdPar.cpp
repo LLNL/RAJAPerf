@@ -11,9 +11,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <numeric>
-#include <execution>
 
 #include <iostream>
 

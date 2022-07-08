@@ -10,8 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#include <algorithm>
-#include <execution>
+#include "common/StdParUtils.hpp"
 
 #include <iostream>
 

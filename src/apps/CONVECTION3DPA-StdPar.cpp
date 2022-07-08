@@ -10,15 +10,22 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf {
 namespace apps {
 
-void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+{
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
 
   CONVECTION3DPA_DATA_SETUP;
+
+  auto begin = counting_iterator<int>(0);
+  auto end   = counting_iterator<int>(NE);
 
   switch (vid) {
 
@@ -27,7 +34,9 @@ void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (int e = 0; e < NE; ++e) {
+      std::for_each( std::execution::par_unseq,
+                      begin, end,
+                      [=](int e) {
 
         CONVECTION3DPA_0_CPU;
 
@@ -118,7 +127,7 @@ void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
             }
           }
         }
-      } // element loop
+      }); // element loop
 
     }
     stopTimer();
@@ -126,7 +135,7 @@ void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     break;
   }
 
-#if defined(RUN_RAJA_SEQ)
+#if defined(RUN_RAJA_STDPAR)
   case RAJA_StdPar: {
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t>;
@@ -310,6 +319,7 @@ void CONVECTION3DPA::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     getCout() << "\n CONVECTION3DPA : Unknown StdPar variant id = " << vid
               << std::endl;
   }
+#endif
 }
 
 } // end namespace apps

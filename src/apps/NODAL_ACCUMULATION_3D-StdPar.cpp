@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include "AppsData.hpp"
 
 #include <iostream>
@@ -22,6 +24,7 @@ namespace apps
 
 void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = m_domain->n_real_zones;
@@ -37,6 +40,7 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning needs parallel for+atomic or reduce
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           NODAL_ACCUMULATION_3D_BODY_INDEX;
           NODAL_ACCUMULATION_3D_BODY;
@@ -48,7 +52,6 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto nodal_accumulation_3d_lam = [=](Index_type ii) {
@@ -59,6 +62,7 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning needs parallel for+atomic or reduce
         for (Index_type ii = ibegin ; ii < iend ; ++ii ) {
           nodal_accumulation_3d_lam(ii);
         }
@@ -69,6 +73,7 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
       break;
     }
 
+#if defined(RUN_RAJA_STDPAR)
     case RAJA_StdPar : {
 
       camp::resources::Resource working_res{camp::resources::Host()};
@@ -98,6 +103,7 @@ void NODAL_ACCUMULATION_3D::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUS
 
   }
 
+#endif
 }
 
 } // end namespace apps

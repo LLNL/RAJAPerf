@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,9 +22,13 @@ namespace algorithm
 
 void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
+
+  auto begin = counting_iterator<Index_type>(ibegin);
+  auto end   = counting_iterator<Index_type>(iend);
 
   REDUCE_SUM_DATA_SETUP;
 
@@ -35,6 +41,7 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         Real_type sum = m_sum_init;
 
+#warning needs parallel reduce
         for (Index_type i = ibegin; i < iend; ++i ) {
           REDUCE_SUM_BODY;
         }
@@ -47,7 +54,6 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto reduce_sum_base_lam = [=](Index_type i) {
@@ -59,6 +65,7 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         Real_type sum = m_sum_init;
 
+#warning needs parallel reduce
         for (Index_type i = ibegin; i < iend; ++i ) {
           sum += reduce_sum_base_lam(i);
         }
@@ -71,6 +78,7 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       break;
     }
 
+#ifdef RAJA_ENABLE_STDPAR
     case RAJA_StdPar : {
 
       startTimer();
@@ -98,6 +106,7 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
   }
 
+#endif
 }
 
 } // end namespace algorithm

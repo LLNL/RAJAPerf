@@ -11,12 +11,10 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <execution>
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
