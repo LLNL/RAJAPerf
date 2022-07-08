@@ -63,7 +63,7 @@ void SORT::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 
     default : {
-      std::cout << "\n  SORT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  SORT : Unknown variant id = " << vid << std::endl;
     }
 
   }

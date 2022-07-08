@@ -222,7 +222,7 @@ void MASS3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
 #endif // RUN_RAJA_STDPAR
 
   default:
-    std::cout << "\n MASS3DPA : Unknown StdPar variant id = " << vid << std::endl;
+    getCout() << "\n MASS3DPA : Unknown StdPar variant id = " << vid << std::endl;
   }
 #endif
 }

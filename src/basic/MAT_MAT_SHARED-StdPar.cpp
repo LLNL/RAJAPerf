@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -8,13 +8,16 @@
 
 #include "MAT_MAT_SHARED.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf {
 namespace basic {
 
-void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
-
+void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx)
+{
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
 
@@ -29,12 +32,11 @@ void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#warning need parallel for
       for (Index_type by = 0; by < Ny; ++by) {
         for (Index_type bx = 0; bx < Nx; ++bx) {
 
-          //Work around for when compiling with CLANG and HIP
-          //See notes in MAT_MAT_SHARED.hpp
-          MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU(TL_SZ)
+            MAT_MAT_SHARED_BODY_0(TL_SZ)
 
           for (Index_type ty = 0; ty < TL_SZ; ++ty) {
             for (Index_type tx = 0; tx < TL_SZ; ++tx) {
@@ -56,7 +58,7 @@ void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
               }
             }
 
-          } // Sequential loop
+          }
 
           for (Index_type ty = 0; ty < TL_SZ; ++ty) {
             for (Index_type tx = 0; tx < TL_SZ; ++tx) {
@@ -65,24 +67,21 @@ void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
           }
         }
       }
-
-    } // number of iterations
+    }
     stopTimer();
 
     break;
   }
 
-#if defined(RUN_RAJA_STDPAR)
   case Lambda_StdPar: {
 
 
     startTimer();
-    for (Index_type irep = 0; irep < run_reps; ++irep) {
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       auto outer_y = [&](Index_type by) {
         auto outer_x = [&](Index_type bx) {
-
-          MAT_MAT_SHARED_BODY_0_CLANG_HIP_CPU(TL_SZ)
+          MAT_MAT_SHARED_BODY_0(TL_SZ)
 
           auto inner_y_1 = [&](Index_type ty) {
             auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1(TL_SZ) };
@@ -143,16 +142,17 @@ void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
         }
       };
 
+#warning need parallel for
       for (Index_type by = 0; by < Ny; ++by) {
         outer_y(by);
       }
-
-    } // irep
+    }
     stopTimer();
 
     break;
   }
 
+#ifdef RAJA_ENABLE_STDPAR
   case RAJA_Sq: {
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t>;
@@ -241,13 +241,14 @@ void MAT_MAT_SHARED::runStdParVariant(VariantID vid, size_t tune_idx) {
 
     break;
   }
-#endif // RUN_RAJA_STDPAR
+#endif
 
   default: {
-    std::cout << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
+    getCout() << "\n  MAT_MAT_SHARED : Unknown variant id = " << vid
               << std::endl;
   }
   }
+#endif
 }
 
 } // end namespace basic

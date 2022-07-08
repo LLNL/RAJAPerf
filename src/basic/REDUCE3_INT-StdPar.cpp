@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,9 +12,6 @@
 
 #include <array>
 #include "common/StdParUtils.hpp"
-#include <algorithm>
-#include <numeric>
-#include <execution>
 
 #include <iostream>
 
@@ -129,7 +126,7 @@ void REDUCE3_INT::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }

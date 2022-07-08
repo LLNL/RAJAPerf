@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/StdParUtils.hpp"
+
 #include <iostream>
 
 namespace rajaperf
@@ -20,6 +22,7 @@ namespace basic
 
 void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
+#if defined(RUN_STDPAR)
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -35,6 +38,7 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
         Index_type count = 0;
 
+#warning needs parallel inscan
         for (Index_type i = ibegin; i < iend; ++i ) {
           INDEXLIST_BODY;
         }
@@ -47,7 +51,6 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       break;
     }
 
-#if defined(RUN_RAJA_STDPAR)
     case Lambda_StdPar : {
 
       auto indexlist_base_lam = [=](Index_type i, Index_type& count) {
@@ -59,6 +62,7 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
         Index_type count = 0;
 
+#warning needs parallel inscan
         for (Index_type i = ibegin; i < iend; ++i ) {
           indexlist_base_lam(i, count);
         }
@@ -70,7 +74,6 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
       break;
     }
-#endif
 
     default : {
       getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
@@ -78,6 +81,7 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   }
 
+#endif
 }
 
 } // end namespace basic

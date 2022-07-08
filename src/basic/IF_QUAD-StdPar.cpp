@@ -92,7 +92,7 @@ void IF_QUAD::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  IF_QUAD : Unknown variant id = " << vid << std::endl;
     }
 
   }

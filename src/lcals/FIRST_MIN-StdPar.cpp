@@ -102,7 +102,7 @@ void FIRST_MIN::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
     }
 
   }

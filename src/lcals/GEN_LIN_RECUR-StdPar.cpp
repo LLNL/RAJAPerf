@@ -114,7 +114,7 @@ void GEN_LIN_RECUR::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  GEN_LIN_RECUR : Unknown variant id = " << vid << std::endl;
     }
 
   }

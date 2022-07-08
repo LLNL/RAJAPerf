@@ -224,7 +224,7 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif // RUN_RAJA_STDPAR
 
     default : {
-      std::cout << "\nPOLYBENCH_ADI  Unknown variant id = " << vid << std::endl;
+      getCout() << "\nPOLYBENCH_ADI  Unknown variant id = " << vid << std::endl;
     }
 
   }
