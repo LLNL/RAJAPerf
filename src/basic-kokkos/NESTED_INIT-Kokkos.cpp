@@ -68,7 +68,7 @@ void NESTED_INIT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   }
 
   default: {
-    std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
   }
   }
 }
