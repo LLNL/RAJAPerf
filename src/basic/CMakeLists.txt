@@ -31,12 +31,14 @@ blt_add_library(
           IF_QUAD-OMPTarget.cpp
           INDEXLIST.cpp
           INDEXLIST-Seq.cpp
+          INDEXLIST-StdPar.cpp
           INDEXLIST-Hip.cpp
           INDEXLIST-Cuda.cpp
           INDEXLIST-OMP.cpp
           INDEXLIST-OMPTarget.cpp
           INDEXLIST_3LOOP.cpp
           INDEXLIST_3LOOP-Seq.cpp
+          INDEXLIST_3LOOP-StdPar.cpp
           INDEXLIST_3LOOP-Hip.cpp
           INDEXLIST_3LOOP-Cuda.cpp
           INDEXLIST_3LOOP-OMP.cpp
