@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,35 +21,31 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define FIRST_MIN_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_N);
 
 #define FIRST_MIN_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   minloc[ threadIdx.x ] = *dminloc;
 
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
     FIRST_MIN_BODY;
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       if ( minloc[ threadIdx.x + i].val < minloc[ threadIdx.x ].val ) {
         minloc[ threadIdx.x ] = minloc[ threadIdx.x + i];
@@ -66,7 +62,8 @@ __global__ void first_min(Real_ptr x,
 }
 
 
-void FIRST_MIN::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -89,7 +86,7 @@ void FIRST_MIN::runCudaVariant(VariantID vid)
                                cudaMemcpyHostToDevice ) );
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_min<<<grid_size, block_size,
+       first_min<block_size><<<grid_size, block_size,
                    sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
                                                    iend );
@@ -131,8 +128,9 @@ void FIRST_MIN::runCudaVariant(VariantID vid)
   } else {
      getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_MIN, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

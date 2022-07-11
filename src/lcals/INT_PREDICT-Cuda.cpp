@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define INT_PREDICT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(px, m_px, m_array_length);
 
@@ -34,6 +28,8 @@ namespace lcals
   getCudaDeviceData(m_px, px, m_array_length); \
   deallocCudaDeviceData(px);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void int_predict(Real_ptr px,
                             Real_type dm22, Real_type dm23, Real_type dm24,
                             Real_type dm25, Real_type dm26, Real_type dm27,
@@ -41,14 +37,15 @@ __global__ void int_predict(Real_ptr px,
                             const Index_type offset,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      INT_PREDICT_BODY;
    }
 }
 
 
-void INT_PREDICT::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void INT_PREDICT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -64,7 +61,7 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       int_predict<<<grid_size, block_size>>>( px,
+       int_predict<block_size><<<grid_size, block_size>>>( px,
                                                dm22, dm23, dm24, dm25,
                                                dm26, dm27, dm28, c0,
                                                offset,
@@ -97,6 +94,8 @@ void INT_PREDICT::runCudaVariant(VariantID vid)
      getCout() << "\n  INT_PREDICT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INT_PREDICT, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

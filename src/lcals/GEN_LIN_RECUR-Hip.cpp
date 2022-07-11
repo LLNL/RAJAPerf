@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define GEN_LIN_RECUR_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(b5, m_b5, m_N); \
   allocAndInitHipDeviceData(stb5, m_stb5, m_N); \
@@ -40,30 +34,35 @@ namespace lcals
   deallocHipDeviceData(sa); \
   deallocHipDeviceData(sb);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
                              Index_type N)
 {
-   Index_type k = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type k = blockIdx.x * block_size + threadIdx.x;
    if (k < N) {
      GEN_LIN_RECUR_BODY1;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void genlinrecur2(Real_ptr b5, Real_ptr stb5,
                              Real_ptr sa, Real_ptr sb,
                              Index_type kb5i,
                              Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i > 0 && i < N+1) {
      GEN_LIN_RECUR_BODY2;
    }
 }
 
 
-void GEN_LIN_RECUR::runHipVariant(VariantID vid)
+template < size_t block_size >
+void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -77,14 +76,14 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       hipLaunchKernelGGL(genlinrecur1, grid_size1, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur1<block_size>), grid_size1, block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        hipErrchk( hipGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       hipLaunchKernelGGL(genlinrecur1, grid_size2, block_size, 0, 0,
+       hipLaunchKernelGGL((genlinrecur2<block_size>), grid_size2, block_size, 0, 0,
                                                  b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
@@ -121,6 +120,8 @@ void GEN_LIN_RECUR::runHipVariant(VariantID vid)
      getCout() << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(GEN_LIN_RECUR, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -46,6 +46,29 @@ public:
   };
 
   /*!
+   * \brief Enumeration indicating state of combiner options requested
+   */
+  enum CombinerOpt {
+    Average,      /*!< option requesting average */
+    Minimum,      /*!< option requesting minimum */
+    Maximum       /*!< option requesting maximum */
+  };
+
+  static std::string CombinerOptToStr(CombinerOpt co)
+  {
+    switch (co) {
+      case CombinerOpt::Average:
+        return "Average";
+      case CombinerOpt::Minimum:
+        return "Minimum";
+      case CombinerOpt::Maximum:
+        return "Maximum";
+      default:
+        return "Unknown";
+    }
+  }
+
+  /*!
    * \brief Enumeration indicating how to interpret size input
    */
   enum SizeMeaning {
@@ -90,12 +113,28 @@ public:
 
   double getRepFactor() const { return rep_fact; }
 
+  const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
+  { return npasses_combiners; }
+  void setNpassesCombinerOpts( std::vector<CombinerOpt>& cvec )
+  { npasses_combiners = cvec; }
+
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
 
   double getSize() const { return size; }
 
   double getSizeFactor() const { return size_factor; }
+
+  size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
+  bool validGPUBlockSize(size_t block_size) const
+  {
+    for (size_t valid_block_size : gpu_block_sizes) {
+      if (valid_block_size == block_size) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -145,6 +184,13 @@ public:
   const std::vector<std::string>& getInvalidExcludeFeatureInput() const
                                   { return invalid_exclude_feature_input; }
 
+  const std::vector<std::string>& getNpassesCombinerOptInput() const
+                                  { return npasses_combiner_input; }
+  const std::vector<std::string>& getInvalidNpassesCombinerOptInput() const
+                                  { return invalid_npasses_combiner_input; }
+  void setInvalidNpassesCombinerOptInput( std::vector<std::string>& svec )
+                              { invalid_npasses_combiner_input = svec; }
+
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
@@ -178,11 +224,15 @@ private:
 
   int npasses;           /*!< Number of passes through suite  */
 
+  std::vector<CombinerOpt> npasses_combiners;  /*!< Combiners to use when
+                              outputting timer data */
+
   double rep_fact;       /*!< pct of default kernel reps to run */
 
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
+  std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */
@@ -208,6 +258,9 @@ private:
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
   std::vector<std::string> invalid_exclude_feature_input;
+
+  std::vector<std::string> npasses_combiner_input;
+  std::vector<std::string> invalid_npasses_combiner_input;
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */

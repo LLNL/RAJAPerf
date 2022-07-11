@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -68,7 +68,7 @@ POLYBENCH_MVT::~POLYBENCH_MVT()
 {
 }
 
-void POLYBENCH_MVT::setUp(VariantID vid)
+void POLYBENCH_MVT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_y1, m_N, vid);
@@ -78,13 +78,13 @@ void POLYBENCH_MVT::setUp(VariantID vid)
   allocAndInitDataConst(m_x2, m_N, 0.0, vid);
 }
 
-void POLYBENCH_MVT::updateChecksum(VariantID vid)
+void POLYBENCH_MVT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_x1, m_N, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_x2, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x1, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x2, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_MVT::tearDown(VariantID vid)
+void POLYBENCH_MVT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x1);

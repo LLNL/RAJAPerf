@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -25,8 +25,8 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
   setDefaultProblemSize( N_default-2 );
   setDefaultReps(100);
- 
-  m_N = getTargetProblemSize(); 
+
+  m_N = getTargetProblemSize();
   m_tsteps = 16;
 
 
@@ -34,13 +34,13 @@ POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
 
   setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
   setKernelsPerRep(m_tsteps * 2);
-  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * 
-                               (m_N-2) + 
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * 
-                               m_N +
-                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) * 
+  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
                                (m_N-2) +
-                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) * 
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               m_N +
+                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
                                m_N ) );
   setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
                                3 * (m_N-2) ) );
@@ -73,7 +73,7 @@ POLYBENCH_JACOBI_1D::~POLYBENCH_JACOBI_1D()
 {
 }
 
-void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
+void POLYBENCH_JACOBI_1D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_Ainit, m_N, vid);
@@ -82,13 +82,13 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
   allocAndInitDataConst(m_B, m_N, 0.0, vid);
 }
 
-void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid)
+void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_A, m_N, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_B, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_JACOBI_1D::tearDown(VariantID vid)
+void POLYBENCH_JACOBI_1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_A);

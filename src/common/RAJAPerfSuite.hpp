@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels, variants, features, etc..
+/// Types and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -71,7 +71,10 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_DAXPY = 0,
+  Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
+  Basic_INDEXLIST,
+  Basic_INDEXLIST_3LOOP,
   Basic_INIT3,
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
@@ -81,6 +84,7 @@ enum KernelID {
   Basic_PI_ATOMIC,
   Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
+  Basic_REDUCE_STRUCT,
   Basic_TRAP_INT,
 
 //
@@ -127,6 +131,7 @@ enum KernelID {
 //
 // Apps kernels...
 //
+  Apps_CONVECTION3DPA,
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
@@ -137,14 +142,19 @@ enum KernelID {
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DPA,
+  Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
 
 //
 // Algorithm kernels...
 //
+  Algorithm_SCAN,
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
+  Algorithm_REDUCE_SUM,
+  Algorithm_MEMSET,
+  Algorithm_MEMCPY,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -183,6 +193,8 @@ enum VariantID {
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
+
+  Kokkos_Lambda,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 
@@ -274,6 +286,16 @@ bool isVariantAvailable(VariantID vid);
 /*!
  *******************************************************************************
  *
+ * \brief Return true if variant associated with VariantID enum value runs
+ *        on the gpu.
+ *
+ *******************************************************************************
+ */
+bool isVariantGPU(VariantID vid);
+
+/*!
+ *******************************************************************************
+ *
  * \brief Return feature name associated with FeatureID enum value.
  *
  *******************************************************************************
@@ -319,6 +341,16 @@ std::ostream* makeNullStream();
  *******************************************************************************
  */
 std::ostream& getNullStream();
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Empty function used to squash compiler warnings for unused variables.
+ *
+ *******************************************************************************
+ */
+template < typename... Ts >
+inline void ignore_unused(Ts&&...) { }
 
 }  // closing brace for rajaperf namespace
 

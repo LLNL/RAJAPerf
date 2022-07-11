@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -58,7 +58,7 @@ PRESSURE::~PRESSURE()
 {
 }
 
-void PRESSURE::setUp(VariantID vid)
+void PRESSURE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_compression, getActualProblemSize(), vid);
   allocAndInitData(m_bvc, getActualProblemSize(), vid);
@@ -72,12 +72,12 @@ void PRESSURE::setUp(VariantID vid)
   initData(m_eosvmax);
 }
 
-void PRESSURE::updateChecksum(VariantID vid)
+void PRESSURE::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_p_new, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize());
 }
 
-void PRESSURE::tearDown(VariantID vid)
+void PRESSURE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

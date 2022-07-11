@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define ADD_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(a, m_a, iend); \
   allocAndInitHipDeviceData(b, m_b, iend); \
@@ -38,17 +32,20 @@ namespace stream
   deallocHipDeviceData(b); \
   deallocHipDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     ADD_BODY;
   }
 }
 
 
-void ADD::runHipVariant(VariantID vid)
+template < size_t block_size >
+void ADD::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -64,7 +61,7 @@ void ADD::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((add), dim3(grid_size), dim3(block_size), 0, 0,  c, a, b,
+      hipLaunchKernelGGL((add<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  c, a, b,
                                       iend );
       hipErrchk( hipGetLastError() );
 
@@ -85,7 +82,7 @@ void ADD::runHipVariant(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(add_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(add_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, add_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -115,6 +112,8 @@ void ADD::runHipVariant(VariantID vid)
      getCout() << "\n  ADD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf

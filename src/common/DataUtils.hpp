@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -31,7 +31,7 @@
 namespace rajaperf
 {
 
-  
+
 /*!
  * Reset counter for data initialization.
  */
@@ -45,7 +45,7 @@ void incDataInitCount();
 
 /*!
  * \brief Allocate and initialize Int_type data array.
- * 
+ *
  * Array is initialized using method initData(Int_ptr& ptr...) below.
  */
 void allocAndInitData(Int_ptr& ptr, int len,
@@ -61,8 +61,8 @@ void allocAndInitData(Real_ptr& ptr, int len,
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
- * 
- * Array entries are initialized using the method 
+ *
+ * Array entries are initialized using the method
  * initDataConst(Real_ptr& ptr...) below.
  */
 void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
@@ -91,6 +91,14 @@ void allocAndInitDataRandValue(Real_ptr& ptr, int len,
 void allocAndInitData(Complex_ptr& ptr, int len,
                       VariantID vid = NumVariants);
 
+/*!
+ * \brief Allocate data arrays.
+ */
+void allocData(Int_ptr& ptr, int len);
+///
+void allocData(Real_ptr& ptr, int len);
+///
+void allocData(Complex_ptr& ptr, int len);
 
 /*!
  * \brief Free data arrays.
@@ -104,9 +112,9 @@ void deallocData(Complex_ptr& ptr);
 
 /*!
  * \brief Initialize Int_type data array.
- * 
+ *
  * Array entries are randomly initialized to +/-1.
- * Then, two randomly-chosen entries are reset, one to 
+ * Then, two randomly-chosen entries are reset, one to
  * a value > 1, one to a value < -1.
  */
 void initData(Int_ptr& ptr, int len,
@@ -132,8 +140,8 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
 
 /*!
  * \brief Initialize Real_type data array with random sign.
- * 
- * Array entries are initialized in the same way as the method 
+ *
+ * Array entries are initialized in the same way as the method
  * initData(Real_ptr& ptr...) above, but with random sign.
  */
 void initDataRandSign(Real_ptr& ptr, int len,
@@ -150,7 +158,7 @@ void initDataRandValue(Real_ptr& ptr, int len,
 /*!
  * \brief Initialize Complex_type data array.
  *
- * Real and imaginary array entries are initialized in the same way as the 
+ * Real and imaginary array entries are initialized in the same way as the
  * method allocAndInitData(Real_ptr& ptr...) above.
  */
 void initData(Complex_ptr& ptr, int len,
@@ -159,7 +167,7 @@ void initData(Complex_ptr& ptr, int len,
 /*!
  * \brief Initialize Real_type scalar data.
  *
- * Data is set similarly to an array enttry in the method 
+ * Data is set similarly to an array enttry in the method
  * initData(Real_ptr& ptr...) above.
  */
 void initData(Real_type& d,
@@ -167,13 +175,16 @@ void initData(Real_type& d,
 
 /*!
  * \brief Calculate and return checksum for data arrays.
- * 
+ *
  * Checksums are computed as a weighted sum of array entries,
  * where weight is a simple function of elemtn index.
  *
  * Checksumn is multiplied by given scale factor.
  */
-long double calcChecksum(Real_ptr d, int len, 
+long double calcChecksum(Int_ptr d, int len,
+                         Real_type scale_factor = 1.0);
+///
+long double calcChecksum(Real_ptr d, int len,
                          Real_type scale_factor = 1.0);
 ///
 long double calcChecksum(Complex_ptr d, int len,

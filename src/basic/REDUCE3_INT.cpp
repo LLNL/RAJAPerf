@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -56,13 +56,15 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 REDUCE3_INT::~REDUCE3_INT()
 {
 }
 
-void REDUCE3_INT::setUp(VariantID vid)
+void REDUCE3_INT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_vec, getActualProblemSize(), vid);
 
@@ -74,14 +76,14 @@ void REDUCE3_INT::setUp(VariantID vid)
   m_vmax_init = std::numeric_limits<Int_type>::min();
 }
 
-void REDUCE3_INT::updateChecksum(VariantID vid)
+void REDUCE3_INT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += m_vsum;
-  checksum[vid] += m_vmin;
-  checksum[vid] += m_vmax;
+  checksum[vid][tune_idx] += m_vsum;
+  checksum[vid][tune_idx] += m_vmin;
+  checksum[vid][tune_idx] += m_vmax;
 }
 
-void REDUCE3_INT::tearDown(VariantID vid)
+void REDUCE3_INT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_vec);

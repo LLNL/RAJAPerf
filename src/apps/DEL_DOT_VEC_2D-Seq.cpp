@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,7 +22,7 @@ namespace apps
 {
 
 
-void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
+void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -76,7 +76,7 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid)
 
     case RAJA_Seq : {
 
-      camp::resources::Resource working_res{camp::resources::Host()};
+      camp::resources::Resource working_res{camp::resources::Host::get_default()};
       RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                                m_domain->n_real_zones,
                                                working_res);

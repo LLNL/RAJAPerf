@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define EOS_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
   allocAndInitCudaDeviceData(y, m_y, m_array_length); \
@@ -40,18 +34,21 @@ namespace lcals
   deallocCudaDeviceData(z); \
   deallocCudaDeviceData(u);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
                     Real_type q, Real_type r, Real_type t,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      EOS_BODY;
    }
 }
 
 
-void EOS::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void EOS::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -67,7 +64,7 @@ void EOS::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       eos<<<grid_size, block_size>>>( x, y, z, u,
+       eos<block_size><<<grid_size, block_size>>>( x, y, z, u,
                                        q, r, t,
                                        iend );
        cudaErrchk( cudaGetLastError() );
@@ -98,6 +95,8 @@ void EOS::runCudaVariant(VariantID vid)
      getCout() << "\n  EOS : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EOS, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

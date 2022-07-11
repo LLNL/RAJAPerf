@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,12 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 1024;
-
 
 #define HALOEXCHANGE_FUSED_DATA_SETUP_CUDA \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
@@ -77,6 +71,8 @@ namespace apps
   deallocCudaPinnedData(unpack_var_ptrs); \
   deallocCudaPinnedData(unpack_len_ptrs);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pack_list_ptrs,
                                         Real_ptr* pack_var_ptrs, Index_type* pack_len_ptrs)
 {
@@ -87,13 +83,15 @@ __global__ void haloexchange_fused_pack(Real_ptr* pack_buffer_ptrs, Int_ptr* pac
   Real_ptr   var    = pack_var_ptrs[j];
   Index_type len    = pack_len_ptrs[j];
 
-  for (Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+  for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
-       i += blockDim.x * gridDim.x) {
+       i += block_size * gridDim.x) {
     HALOEXCHANGE_FUSED_PACK_BODY;
   }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr* unpack_list_ptrs,
                                           Real_ptr* unpack_var_ptrs, Index_type* unpack_len_ptrs)
 {
@@ -104,15 +102,16 @@ __global__ void haloexchange_fused_unpack(Real_ptr* unpack_buffer_ptrs, Int_ptr*
   Real_ptr   var    = unpack_var_ptrs[j];
   Index_type len    = unpack_len_ptrs[j];
 
-  for (Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+  for (Index_type i = threadIdx.x + blockIdx.x * block_size;
        i < len;
-       i += blockDim.x * gridDim.x) {
+       i += block_size * gridDim.x) {
     HALOEXCHANGE_FUSED_UNPACK_BODY;
   }
 }
 
 
-void HALOEXCHANGE_FUSED::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -148,7 +147,7 @@ void HALOEXCHANGE_FUSED::runCudaVariant(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      haloexchange_fused_pack<<<pack_nblocks, pack_nthreads_per_block>>>(
+      haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block>>>(
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
       synchronize();
@@ -174,7 +173,7 @@ void HALOEXCHANGE_FUSED::runCudaVariant(VariantID vid)
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      haloexchange_fused_unpack<<<unpack_nblocks, unpack_nthreads_per_block>>>(
+      haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block>>>(
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
       synchronize();
@@ -270,6 +269,8 @@ void HALOEXCHANGE_FUSED::runCudaVariant(VariantID vid)
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HALOEXCHANGE_FUSED, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

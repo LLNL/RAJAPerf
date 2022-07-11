@@ -15,7 +15,7 @@
 namespace rajaperf {
 namespace basic {
 
-void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
+void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
   const Index_type run_reps = getRunReps();
@@ -39,11 +39,11 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
         for (Index_type by = 0; by < Ny; ++by) {
           for (Index_type bx = 0; bx < Nx; ++bx) {
 
-            MAT_MAT_SHARED_BODY_0
+            MAT_MAT_SHARED_BODY_0(TL_SZ)
 
             for (Index_type ty = 0; ty < TL_SZ; ++ty) {
               for (Index_type tx = 0; tx < TL_SZ; ++tx) {
-                MAT_MAT_SHARED_BODY_1
+                MAT_MAT_SHARED_BODY_1(TL_SZ)
               }
             }
 
@@ -52,21 +52,21 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
               for (Index_type ty = 0; ty < TL_SZ; ++ty) {
                 for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
-                  MAT_MAT_SHARED_BODY_2
+                  MAT_MAT_SHARED_BODY_2(TL_SZ)
                 }
               }
 
               for (Index_type ty = 0; ty < TL_SZ; ++ty) {
                 for (Index_type tx = 0; tx < TL_SZ; ++tx) {
 
-                  MAT_MAT_SHARED_BODY_3
+                  MAT_MAT_SHARED_BODY_3(TL_SZ)
                 }
               }
             }
 
             for (Index_type ty = 0; ty < TL_SZ; ++ty) {
               for (Index_type tx = 0; tx < TL_SZ; ++tx) {
-                MAT_MAT_SHARED_BODY_4
+                MAT_MAT_SHARED_BODY_4(TL_SZ)
               }
             }
           }
@@ -85,10 +85,10 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
 
       auto outer_y = [&](Index_type by) {
         auto outer_x = [&](Index_type bx) {
-          MAT_MAT_SHARED_BODY_0
+          MAT_MAT_SHARED_BODY_0(TL_SZ)
 
           auto inner_y_1 = [&](Index_type ty) {
-            auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1 };
+            auto inner_x_1 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_1(TL_SZ) };
 
             for (Index_type tx = 0; tx < TL_SZ; ++tx) {
               if (tx < TL_SZ)
@@ -104,7 +104,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
           for (Index_type k = 0; k < (TL_SZ + N - 1) / TL_SZ; ++k) {
 
             auto inner_y_2 = [&](Index_type ty) {
-              auto inner_x_2 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_2 };
+              auto inner_x_2 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_2(TL_SZ) };
 
               for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 inner_x_2(tx);
@@ -116,7 +116,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
             }
 
             auto inner_y_3 = [&](Index_type ty) {
-              auto inner_x_3 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_3 };
+              auto inner_x_3 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_3(TL_SZ) };
 
               for (Index_type tx = 0; tx < TL_SZ; ++tx) {
                 inner_x_3(tx);
@@ -129,7 +129,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
           }
 
           auto inner_y_4 = [&](Index_type ty) {
-            auto inner_x_4 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_4 };
+            auto inner_x_4 = [&](Index_type tx) { MAT_MAT_SHARED_BODY_4(TL_SZ) };
 
             for (Index_type tx = 0; tx < TL_SZ; ++tx) {
               inner_x_4(tx);
@@ -159,41 +159,21 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
   case RAJA_OpenMP: {
 
     //Currently Teams requires two policies if compiled with a device
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t
-#if defined(RAJA_DEVICE_ACTIVE)
-                                                   ,mms_device_launch
-#endif
-                                                   >;
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::omp_launch_t>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,mms_gpu_block_x_policy
-#endif
-                                           >;
+    using outer_x = RAJA::expt::LoopPolicy<RAJA::omp_for_exec>;
 
-    using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                           ,mms_gpu_block_y_policy
-#endif
-                                           >;
+    using outer_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                             ,mms_gpu_thread_x_policy
-#endif
-                                             >;
+    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec
-#if defined(RAJA_DEVICE_ACTIVE)
-                                             ,mms_gpu_thread_y_policy
-#endif
-                                             >;
+    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       //Grid is empty as the host does not need a compute grid to be specified
-      RAJA::expt::launch<launch_policy>(RAJA::expt::HOST, RAJA::expt::Grid(),
+      RAJA::expt::launch<launch_policy>(RAJA::expt::Grid(),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
           RAJA::expt::loop<outer_y>(ctx, RAJA::RangeSegment(0, Ny),
@@ -201,13 +181,13 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
               RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, Nx),
                 [&](Index_type bx) {
 
-                  MAT_MAT_SHARED_BODY_0
+                  MAT_MAT_SHARED_BODY_0(TL_SZ)
 
                   RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, TL_SZ),
                     [&](Index_type ty) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](Index_type tx) {
-                          MAT_MAT_SHARED_BODY_1
+                          MAT_MAT_SHARED_BODY_1(TL_SZ)
                         }
                       );  // RAJA::expt::loop<inner_x>
                     }
@@ -219,7 +199,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
                       [&](Index_type ty) {
                         RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
-                            MAT_MAT_SHARED_BODY_2
+                            MAT_MAT_SHARED_BODY_2(TL_SZ)
                           }
                         );  // RAJA::expt::loop<inner_x>
                       }
@@ -231,7 +211,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
                       [&](Index_type ty) {
                         RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                           [&](Index_type tx) {
-                            MAT_MAT_SHARED_BODY_3
+                            MAT_MAT_SHARED_BODY_3(TL_SZ)
                           }
                         );  // RAJA::expt::loop<inner_x>
                       }
@@ -245,7 +225,7 @@ void MAT_MAT_SHARED::runOpenMPVariant(VariantID vid) {
                     [&](Index_type ty) {
                       RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, TL_SZ),
                         [&](Index_type tx) {
-                          MAT_MAT_SHARED_BODY_4
+                          MAT_MAT_SHARED_BODY_4(TL_SZ)
                         }
                       );  // RAJA::expt::loop<inner_x>
                     }

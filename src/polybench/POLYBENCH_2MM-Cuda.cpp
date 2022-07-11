@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,13 +22,16 @@ namespace polybench
 {
 
 //
-// Define thread block size for CUDA execution
+// Define thread block shape for CUDA execution
 //
-constexpr size_t out_block_sz = 8;
-constexpr size_t in_block_sz = 32;
+#define in_block_sz (32)
+#define out_block_sz (block_size / in_block_sz)
+
+#define POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA \
+  in_block_sz, out_block_sz
 
 #define POLY_2MM_THREADS_PER_BLOCK_CUDA \
-  dim3 nthreads_per_block(in_block_sz, out_block_sz, 1);
+  dim3 nthreads_per_block(POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA, 1);
 
 #define POLY_2MM_1_NBLOCKS_CUDA \
   dim3 nblocks1(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, in_block_sz)), \
@@ -58,12 +61,14 @@ constexpr size_t in_block_sz = 32;
   deallocCudaDeviceData(D);
 
 
+template < size_t in_block_size, size_t out_block_size >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
                            Real_type alpha,
                            Index_type ni, Index_type nj, Index_type nk)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && j < nj ) {
     POLYBENCH_2MM_BODY1;
@@ -74,24 +79,27 @@ __global__ void poly_2mm_1(Real_ptr tmp, Real_ptr A, Real_ptr B,
   }
 }
 
-template< typename Lambda >
+template < size_t in_block_size, size_t out_block_size, typename Lambda >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_2mm_1_lam(Index_type ni, Index_type nj,
                                Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && j < nj ) {
     body(i, j);
   }
 }
 
+template < size_t in_block_size, size_t out_block_size >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
                            Real_type beta,
                            Index_type ni,  Index_type nl, Index_type nj)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && l < nl ) {
     POLYBENCH_2MM_BODY4;
@@ -102,12 +110,13 @@ __global__ void poly_2mm_2(Real_ptr tmp, Real_ptr C, Real_ptr D,
   }
 }
 
-template< typename Lambda >
+template < size_t in_block_size, size_t out_block_size, typename Lambda >
+__launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_2mm_2_lam(Index_type ni,  Index_type nl,
                                Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type l = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * out_block_size + threadIdx.y;
+  Index_type l = blockIdx.x * in_block_size + threadIdx.x;
 
   if ( i < ni && l < nl ) {
     body(i, l);
@@ -115,7 +124,8 @@ __global__ void poly_2mm_2_lam(Index_type ni,  Index_type nl,
 }
 
 
-void POLYBENCH_2MM::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -131,12 +141,14 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       POLY_2MM_THREADS_PER_BLOCK_CUDA;
 
       POLY_2MM_1_NBLOCKS_CUDA;
-      poly_2mm_1<<<nblocks1, nthreads_per_block>>>(tmp, A, B, alpha,
+      poly_2mm_1<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+                <<<nblocks1, nthreads_per_block>>>(tmp, A, B, alpha,
                                                    ni, nj, nk);
       cudaErrchk( cudaGetLastError() );
 
       POLY_2MM_2_NBLOCKS_CUDA;
-      poly_2mm_2<<<nblocks2, nthreads_per_block>>>(tmp, C, D, beta,
+      poly_2mm_2<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+                <<<nblocks2, nthreads_per_block>>>(tmp, C, D, beta,
                                                    ni, nl, nj);
       cudaErrchk( cudaGetLastError() );
 
@@ -155,7 +167,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       POLY_2MM_THREADS_PER_BLOCK_CUDA;
 
       POLY_2MM_1_NBLOCKS_CUDA;
-      poly_2mm_1_lam<<<nblocks1, nthreads_per_block>>>(ni, nj,
+      poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+                    <<<nblocks1, nthreads_per_block>>>(ni, nj,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_2MM_BODY1;
           for (Index_type k=0; k < nk; ++k) {
@@ -167,7 +180,8 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       POLY_2MM_2_NBLOCKS_CUDA;
-      poly_2mm_2_lam<<<nblocks2, nthreads_per_block>>>(ni, nl,
+      poly_2mm_2_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
+                    <<<nblocks2, nthreads_per_block>>>(ni, nl,
         [=] __device__ (Index_type i, Index_type l) {
           POLYBENCH_2MM_BODY4;
           for (Index_type j=0; j < nj; ++j) {
@@ -259,8 +273,9 @@ void POLYBENCH_2MM::runCudaVariant(VariantID vid)
   } else {
       getCout() << "\n  POLYBENCH_2MM : Unknown Cuda variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_2MM, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

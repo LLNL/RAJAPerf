@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -40,8 +40,7 @@ void incDataInitCount()
  */
 void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
 {
-  // Should we do this differently for alignment?? If so, change dealloc()
-  ptr = new Int_type[len];
+  allocData(ptr, len);
   initData(ptr, len, vid);
 }
 
@@ -50,44 +49,56 @@ void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
  */
 void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
 {
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
+  allocData(ptr, len);
   initData(ptr, len, vid);
 }
 
 void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
                            VariantID vid)
 {
-  (void) vid;
-
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
+  allocData(ptr, len);
   initDataConst(ptr, len, val, vid);
 }
 
 void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 {
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
+  allocData(ptr, len);
   initDataRandSign(ptr, len, vid);
 }
 
 void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid)
 {
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
+  allocData(ptr, len);
   initDataRandValue(ptr, len, vid);
 }
 
 void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 {
+  allocData(ptr, len);
+  initData(ptr, len, vid);
+}
+
+
+/*
+ * Allocate data arrays of given type.
+ */
+void allocData(Int_ptr& ptr, int len)
+{
+  // Should we do this differently for alignment?? If so, change dealloc()
+  ptr = new Int_type[len];
+}
+
+void allocData(Real_ptr& ptr, int len)
+{
+  ptr =
+    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
+                                           len*sizeof(Real_type));
+}
+
+void allocData(Complex_ptr& ptr, int len)
+{
   // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Complex_type[len];
-  initData(ptr, len, vid);
 }
 
 
@@ -322,18 +333,47 @@ void initData(Real_type& d, VariantID vid)
 /*
  * Calculate and return checksum for data arrays.
  */
-long double calcChecksum(const Real_ptr ptr, int len,
+long double calcChecksum(const Int_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
+  long double ckahan = 0.0;
   for (Index_type j = 0; j < len; ++j) {
-    tchk += (j+1)*ptr[j]*scale_factor;
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
       getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
+  tchk *= scale_factor;
+  return tchk;
+}
+
+long double calcChecksum(const Real_ptr ptr, int len,
+                         Real_type scale_factor)
+{
+  long double tchk = 0.0;
+  long double ckahan = 0.0;
+  for (Index_type j = 0; j < len; ++j) {
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * ptr[j];
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
+#if 0 // RDH DEBUG
+    if ( (j % 100) == 0 ) {
+      getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
+    }
+#endif
+  }
+  tchk *= scale_factor;
   return tchk;
 }
 
@@ -341,14 +381,21 @@ long double calcChecksum(const Complex_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
+  long double ckahan = 0.0;
   for (Index_type j = 0; j < len; ++j) {
-    tchk += (j+1)*(real(ptr[j])+imag(ptr[j]))*scale_factor;
+    long double x = (std::abs(std::sin(j+1.0))+0.5) * (real(ptr[j])+imag(ptr[j]));
+    long double y = x - ckahan;
+    volatile long double t = tchk + y;
+    volatile long double z = t - tchk;
+    ckahan = z - y;
+    tchk = t;
 #if 0 // RDH DEBUG
     if ( (j % 100) == 0 ) {
       getCout() << "j : tchk = " << j << " : " << tchk << std::endl;
     }
 #endif
   }
+  tchk *= scale_factor;
   return tchk;
 }
 

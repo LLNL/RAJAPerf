@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,15 +22,16 @@ namespace polybench
 {
 
   //
-  // Define thread block size for Hip execution
+  // Define thread block shape for Hip execution
   //
-  const size_t block_size = 256;
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
 
-  constexpr size_t j_block_sz = 32;
-  constexpr size_t i_block_sz = 8;
+#define FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  j_block_sz, i_block_sz
 
 #define FDTD_2D_THREADS_PER_BLOCK_HIP \
-  dim3 nthreads_per_block234(j_block_sz, i_block_sz, 1);
+  dim3 nthreads_per_block234(FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1);
 
 #define FDTD_2D_NBLOCKS_HIP \
   dim3 nblocks234(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ny, j_block_sz)), \
@@ -51,89 +52,101 @@ namespace polybench
   deallocHipDeviceData(fict);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
                               Index_type ny, Index_type t)
 {
-   Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type j = blockIdx.x * block_size + threadIdx.x;
 
    if (j < ny) {
      POLYBENCH_FDTD_2D_BODY1;
    }
 }
 
-template< typename Lambda >
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
 __global__ void poly_fdtd2d_1_lam(Index_type ny, Lambda body)
 {
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type j = blockIdx.x * block_size + threadIdx.x;
 
   if (j < ny) {
     body(j);
   }
 }
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_2(Real_ptr ey, Real_ptr hz,
                               Index_type nx, Index_type ny)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i > 0 && i < nx && j < ny) {
     POLYBENCH_FDTD_2D_BODY2;
   }
 }
 
-template< typename Lambda >
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_2_lam(Index_type nx, Index_type ny,
                                   Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i > 0 && i < nx && j < ny) {
     body(i, j);
   }
 }
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_3(Real_ptr ex, Real_ptr hz,
                               Index_type nx, Index_type ny)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i < nx && j > 0 && j < ny) {
     POLYBENCH_FDTD_2D_BODY3;
   }
 }
 
-template< typename Lambda >
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_3_lam(Index_type nx, Index_type ny,
                                   Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i < nx && j > 0 && j < ny) {
     body(i, j);
   }
 }
 
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_4(Real_ptr hz, Real_ptr ex, Real_ptr ey,
                               Index_type nx, Index_type ny)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i < nx-1 && j < ny-1) {
     POLYBENCH_FDTD_2D_BODY4;
   }
 }
 
-template< typename Lambda >
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_fdtd2d_4_lam(Index_type nx, Index_type ny,
                                   Lambda body)
 {
-  Index_type i = blockIdx.y * blockDim.y + threadIdx.y;
-  Index_type j = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
   if (i < nx-1 && j < ny-1) {
     body(i, j);
@@ -141,7 +154,8 @@ __global__ void poly_fdtd2d_4_lam(Index_type nx, Index_type ny,
 }
 
 
-void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -157,7 +171,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
       for (t = 0; t < tsteps; ++t) {
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
-        hipLaunchKernelGGL((poly_fdtd2d_1),
+        hipLaunchKernelGGL((poly_fdtd2d_1<block_size>),
                            dim3(grid_size1), dim3(block_size), 0, 0,
                            ey, fict, ny, t);
         hipErrchk( hipGetLastError() );
@@ -165,17 +179,17 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
         FDTD_2D_THREADS_PER_BLOCK_HIP;
         FDTD_2D_NBLOCKS_HIP;
 
-        hipLaunchKernelGGL((poly_fdtd2d_2),
+        hipLaunchKernelGGL((poly_fdtd2d_2<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            ey, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_fdtd2d_3),
+        hipLaunchKernelGGL((poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            ex, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_fdtd2d_4),
+        hipLaunchKernelGGL((poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            hz, ex, ey, nx, ny);
         hipErrchk( hipGetLastError() );
@@ -202,7 +216,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
           POLYBENCH_FDTD_2D_BODY1;
         };
 
-        hipLaunchKernelGGL(poly_fdtd2d_1_lam<decltype(poly_fdtd2d_1_lambda)>,
+        hipLaunchKernelGGL((poly_fdtd2d_1_lam<block_size, decltype(poly_fdtd2d_1_lambda)>),
           dim3(grid_size1), dim3(block_size), 0, 0,
           ny, poly_fdtd2d_1_lambda);
         hipErrchk( hipGetLastError() );
@@ -215,7 +229,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
             POLYBENCH_FDTD_2D_BODY2;
           };
 
-        hipLaunchKernelGGL((poly_fdtd2d_2_lam<decltype(poly_fdtd2d_2_lambda)>),
+        hipLaunchKernelGGL((poly_fdtd2d_2_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_2_lambda)>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            nx, ny, poly_fdtd2d_2_lambda);
         hipErrchk( hipGetLastError() );
@@ -225,7 +239,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
             POLYBENCH_FDTD_2D_BODY3;
           };
 
-        hipLaunchKernelGGL((poly_fdtd2d_3_lam<decltype(poly_fdtd2d_3_lambda)>),
+        hipLaunchKernelGGL((poly_fdtd2d_3_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_3_lambda)>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            nx, ny, poly_fdtd2d_3_lambda);
         hipErrchk( hipGetLastError() );
@@ -235,7 +249,7 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
             POLYBENCH_FDTD_2D_BODY4;
           };
 
-        hipLaunchKernelGGL((poly_fdtd2d_4_lam<decltype(poly_fdtd2d_4_lambda)>),
+        hipLaunchKernelGGL((poly_fdtd2d_4_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_4_lambda)>),
                            dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
                            nx, ny, poly_fdtd2d_4_lambda);
         hipErrchk( hipGetLastError() );
@@ -316,8 +330,9 @@ void POLYBENCH_FDTD_2D::runHipVariant(VariantID vid)
   } else {
       getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Hip variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_FDTD_2D, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,11 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 #define POLYBENCH_GESUMMV_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, N); \
   allocAndInitCudaDeviceData(y, m_y, N); \
@@ -41,12 +36,14 @@ namespace polybench
   deallocCudaDeviceData(B);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
                              Real_ptr A, Real_ptr B,
                              Real_type alpha, Real_type beta,
                              Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
    if (i < N) {
      POLYBENCH_GESUMMV_BODY1;
@@ -58,7 +55,8 @@ __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
 }
 
 
-void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -73,7 +71,7 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_gesummv<<<grid_size, block_size>>>(x, y,
+      poly_gesummv<block_size><<<grid_size, block_size>>>(x, y,
                                               A, B,
                                               alpha, beta,
                                               N);
@@ -137,8 +135,9 @@ void POLYBENCH_GESUMMV::runCudaVariant(VariantID vid)
   } else {
       getCout() << "\n  POLYBENCH_GESUMMV : Unknown Cuda variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

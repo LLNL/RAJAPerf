@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -62,23 +62,25 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 NESTED_INIT::~NESTED_INIT()
 {
 }
 
-void NESTED_INIT::setUp(VariantID vid)
+void NESTED_INIT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
 }
 
-void NESTED_INIT::updateChecksum(VariantID vid)
+void NESTED_INIT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_array, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_array, m_array_length);
 }
 
-void NESTED_INIT::tearDown(VariantID vid)
+void NESTED_INIT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   RAJA::free_aligned(m_array);

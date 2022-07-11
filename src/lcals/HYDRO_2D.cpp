@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -77,7 +77,7 @@ HYDRO_2D::~HYDRO_2D()
 {
 }
 
-void HYDRO_2D::setUp(VariantID vid)
+void HYDRO_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_zrout, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_zzout, m_array_length, 0.0, vid);
@@ -92,13 +92,13 @@ void HYDRO_2D::setUp(VariantID vid)
   allocAndInitData(m_zz, m_array_length, vid);
 }
 
-void HYDRO_2D::updateChecksum(VariantID vid)
+void HYDRO_2D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
-  checksum[vid] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_zzout, m_array_length, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_zrout, m_array_length, checksum_scale_factor );
 }
 
-void HYDRO_2D::tearDown(VariantID vid)
+void HYDRO_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_zrout);

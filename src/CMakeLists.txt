@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -16,8 +16,9 @@ if(RAJAPERF_USE_CALIPER)
 endif ()
 
 add_subdirectory(common)
-add_subdirectory(apps)
 add_subdirectory(basic)
+add_subdirectory(basic-kokkos)
+add_subdirectory(apps)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
@@ -27,6 +28,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
     polybench
     stream
@@ -40,6 +42,9 @@ blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
+  apps/CONVECTION3DPA.cpp
+  apps/CONVECTION3DPA-Seq.cpp
+  apps/CONVECTION3DPA-OMPTarget.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp
@@ -70,6 +75,9 @@ blt_add_executable(
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
+  apps/NODAL_ACCUMULATION_3D.cpp
+  apps/NODAL_ACCUMULATION_3D-Seq.cpp
+  apps/NODAL_ACCUMULATION_3D-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
@@ -77,9 +85,18 @@ blt_add_executable(
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
+  basic/DAXPY_ATOMIC.cpp
+  basic/DAXPY_ATOMIC-Seq.cpp
+  basic/DAXPY_ATOMIC-OMPTarget.cpp
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Seq.cpp
   basic/IF_QUAD-OMPTarget.cpp
+  basic/INDEXLIST.cpp
+  basic/INDEXLIST-Seq.cpp
+  basic/INDEXLIST-OMPTarget.cpp
+  basic/INDEXLIST_3LOOP.cpp
+  basic/INDEXLIST_3LOOP-Seq.cpp
+  basic/INDEXLIST_3LOOP-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp
@@ -107,6 +124,9 @@ blt_add_executable(
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
+  basic/REDUCE_STRUCT.cpp
+  basic/REDUCE_STRUCT-Seq.cpp
+  basic/REDUCE_STRUCT-OMPTarget.cpp
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
@@ -204,10 +224,22 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  algorithm/SCAN.cpp
+  algorithm/SCAN-Seq.cpp
+  algorithm/SCAN-OMPTarget.cpp
   algorithm/SORT.cpp
   algorithm/SORT-Seq.cpp
   algorithm/SORTPAIRS.cpp
   algorithm/SORTPAIRS-Seq.cpp
+  algorithm/REDUCE_SUM.cpp
+  algorithm/REDUCE_SUM-Seq.cpp
+  algorithm/REDUCE_SUM-OMPTarget.cpp
+  algorithm/MEMSET.cpp
+  algorithm/MEMSET-Seq.cpp
+  algorithm/MEMSET-OMPTarget.cpp
+  algorithm/MEMCPY.cpp
+  algorithm/MEMCPY-Seq.cpp
+  algorithm/MEMCPY-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,12 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define HALOEXCHANGE_DATA_SETUP_CUDA \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
@@ -48,20 +42,24 @@ namespace apps
     deallocCudaDeviceData(vars[v]); \
   }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                   Index_type len)
 {
-   Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+   Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
      HALOEXCHANGE_PACK_BODY;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
                                     Index_type len)
 {
-   Index_type i = threadIdx.x + blockIdx.x * blockDim.x;
+   Index_type i = threadIdx.x + blockIdx.x * block_size;
 
    if (i < len) {
      HALOEXCHANGE_UNPACK_BODY;
@@ -69,7 +67,8 @@ __global__ void haloexchange_unpack(Real_ptr buffer, Int_ptr list, Real_ptr var,
 }
 
 
-void HALOEXCHANGE::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -90,7 +89,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_pack<<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          haloexchange_pack<block_size><<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -105,7 +104,7 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_unpack<<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -169,6 +168,8 @@ void HALOEXCHANGE::runCudaVariant(VariantID vid)
      getCout() << "\n HALOEXCHANGE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HALOEXCHANGE, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

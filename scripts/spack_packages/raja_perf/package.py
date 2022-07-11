@@ -51,7 +51,7 @@ def get_spec_path(spec, package_name, path_replacements = {}, use_bin = False) :
     return path
 
 
-class RajaPerf(CMakePackage, CudaPackage):
+class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     """RAJAPerf Suite Framework."""
 
     homepage = "http://software.llnl.gov/RAJAPerf/"
@@ -59,35 +59,29 @@ class RajaPerf(CMakePackage, CudaPackage):
 
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
-    version('0.12.1', tag='v0.12.1', submodules="True")
-    version('0.12.0', tag='v0.12.0', submodules="True")
     version('0.11.0', tag='v0.11.0', submodules="True")
-    version('0.10.1', tag='v0.10.1', submodules="True")
     version('0.10.0', tag='v0.10.0', submodules="True")
     version('0.9.0', tag='v0.9.0', submodules="True")
     version('0.8.0', tag='v0.8.0', submodules="True")
     version('0.7.0', tag='v0.7.0', submodules="True")
     version('0.6.0', tag='v0.6.0', submodules="True")
-    version('0.5.3', tag='v0.5.3', submodules="True")
     version('0.5.2', tag='v0.5.2', submodules="True")
     version('0.5.1', tag='v0.5.1', submodules="True")
     version('0.5.0', tag='v0.5.0', submodules="True")
-    version('0.4.1', tag='v0.4.1', submodules="True")
     version('0.4.0', tag='v0.4.0', submodules="True")
 
     variant('openmp', default=True, description='Build OpenMP backend')
     variant('openmp_target', default=False, description='Build with OpenMP target support')
     variant('shared', default=False, description='Build Shared Libs')
     variant('libcpp', default=False, description='Uses libc++ instead of libstdc++')
-    variant('hip', default=False, description='Build with HIP support')
     variant('tests', default='basic', values=('none', 'basic', 'benchmarks'),
             multi=False, description='Tests to run')
 
-    depends_on('cmake@3.8:', type='build')
-    depends_on('cmake@3.9:', when='+cuda', type='build')
-    depends_on('hip', when='+hip')
+    depends_on('cmake@3.9:', type='build')
+    depends_on('blt@0.4.1', type='build', when='@main')
+    depends_on('blt@0.4.1:', type='build')
 
-    conflicts('+openmp', when='+hip')
+    conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
@@ -169,8 +163,8 @@ class RajaPerf(CMakePackage, CudaPackage):
         cfg.write("###################\n".format("#" * 60))
         cfg.write("# Generated host-config - Edit at own risk!\n")
         cfg.write("###################\n".format("#" * 60))
-        cfg.write("# Copyright (c) 2020, Lawrence Livermore National Security, LLC and\n")
-        cfg.write("# other Umpire Project Developers. See the top-level LICENSE file for\n")
+        cfg.write("# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC and\n")
+        cfg.write("# other RAJAPerf contributors. See the top-level LICENSE file for\n")
         cfg.write("# details.\n")
         cfg.write("#\n")
         cfg.write("# SPDX-License-Identifier: (BSD-3-Clause) \n")
@@ -250,27 +244,28 @@ class RajaPerf(CMakePackage, CudaPackage):
             cfg.write(cmake_cache_entry("CMAKE_CUDA_COMPILER",
                                         cudacompiler))
 
+            cfg.write(cmake_cache_string("BLT_CXX_STD", "c++14"))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             if ("xl" in cpp_compiler):
-                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O3 -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
+                cfg.write(cmake_cache_entry("CMAKE_CUDA_FLAGS", "-Xcompiler -O2 -Xcompiler -qstrict " +
+                                            "-Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi " + 
                                             "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh -Xcompiler -qsuppress=1500-029 " +
                                             "-Xcompiler -qsuppress=1500-036 -Xcompiler -qsuppress=1500-030"))
                 cuda_release_flags = "-O3"
                 cuda_reldebinf_flags = "-O3 -g"
                 cuda_debug_flags = "-O0 -g"
-                cfg.write(cmake_cache_string("BLT_CXX_STD", "c++14"))
-                cfg.write(cmake_cache_option("ENABLE_TESTS", False))
+
+            elif ("gcc" in cpp_compiler):
+                cuda_release_flags = "-O3 -Xcompiler -Ofast -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
+                cuda_reldebinf_flags = "-O3 -g -Xcompiler -Ofast -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
+                cuda_debug_flags = "-O0 -g -Xcompiler -O0 -Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
+            
             else:
                 cuda_release_flags = "-O3 -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_debug_flags = "-O0 -g -Xcompiler -O0 -Xcompiler -finline-functions"
-                cfg.write(cmake_cache_string("BLT_CXX_STD", "c++11"))
-                cfg.write(cmake_cache_option("ENABLE_TESTS", True))
                 
-            if ("clang" in cpp_compiler):
-                cfg.write(cmake_cache_string("BLT_CMAKE_IMPLICIT_LINK_DIRECTORIES_EXCLUDE", 
-                          "/usr/tce/packages/gcc/gcc-4.9.3/lib64;/usr/tce/packages/gcc/gcc-4.9.3/lib64/gcc/powerpc64le-unknown-linux-gnu/4.9.3"))
- 
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE", cuda_release_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO", cuda_reldebinf_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_DEBUG", cuda_debug_flags))
@@ -282,25 +277,31 @@ class RajaPerf(CMakePackage, CudaPackage):
         else:
             cfg.write(cmake_cache_option("ENABLE_CUDA", False))
 
-        if "+hip" in spec:
+        if "+rocm" in spec:
             cfg.write("#------------------{0}\n".format("-" * 60))
             cfg.write("# HIP\n")
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", True))
+            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
             cfg.write(cmake_cache_entry("HIP_ROOT_DIR",
                                         hip_root))
-            cfg.write(cmake_cache_entry("HIP_CLANG_PATH",
+            cfg.write(cmake_cache_entry("ROCM_ROOT_DIR",
+                                        rocm_root))
+            cfg.write(cmake_cache_entry("HIP_PATH",
                                         rocm_root + '/llvm/bin'))
-            cfg.write(cmake_cache_entry("HIP_HIPCC_FLAGS",
-                                        '--amdgpu-target=gfx906'))
-            cfg.write(cmake_cache_entry("HIP_RUNTIME_INCLUDE_DIRS",
-                                        "{0}/include;{0}/../hsa/include".format(hip_root)))
-            hip_link_flags = "-Wl,--disable-new-dtags -L{0}/lib -L{0}/../lib64 -L{0}/../lib -Wl,-rpath,{0}/lib:{0}/../lib:{0}/../lib64 -lamdhip64 -lhsakmt -lhsa-runtime64".format(hip_root)
+            cfg.write(cmake_cache_entry("CMAKE_HIP_ARCHITECTURES", 'gfx906'))
+
+            hipcc_flags = ['--amdgpu-target=gfx906']
+
+            cfg.write(cmake_cache_entry("HIP_HIPCC_FLAGS", ';'.join(hipcc_flags)))
+
+            #cfg.write(cmake_cache_entry("HIP_RUNTIME_INCLUDE_DIRS",
+            #                            "{0}/include;{0}/../hsa/include".format(hip_root)))
+            #hip_link_flags = "-Wl,--disable-new-dtags -L{0}/lib -L{0}/../lib64 -L{0}/../lib -Wl,-rpath,{0}/lib:{0}/../lib:{0}/../lib64 -lamdhip64 -lhsakmt -lhsa-runtime64".format(hip_root)
             if ('%gcc' in spec) or (using_toolchain):
                 if ('%gcc' in spec):
                     gcc_bin = os.path.dirname(self.compiler.cxx)
@@ -310,9 +311,9 @@ class RajaPerf(CMakePackage, CudaPackage):
                 cfg.write(cmake_cache_entry("HIP_CLANG_FLAGS",
                 "--gcc-toolchain={0}".format(gcc_prefix))) 
                 cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS",
-                hip_link_flags + " -Wl,-rpath {}/lib64".format(gcc_prefix)))
-            else:
-                cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
+                " -Wl,-rpath {}/lib64".format(gcc_prefix)))
+            #else:
+            #    cfg.write(cmake_cache_entry("CMAKE_EXE_LINKER_FLAGS", hip_link_flags))
 
         else:
             cfg.write(cmake_cache_option("ENABLE_HIP", False))
@@ -340,18 +341,8 @@ class RajaPerf(CMakePackage, CudaPackage):
         cfg.write(cmake_cache_option("BUILD_SHARED_LIBS","+shared" in spec))
         cfg.write(cmake_cache_option("ENABLE_OPENMP","+openmp" in spec))
 
-        # Note 1: Work around spack adding -march=ppc64le to SPACK_TARGET_ARGS
-        # which is used by the spack compiler wrapper.  This can go away when
-        # BLT removes -Werror from GTest flags
-        # Note 2: Tests are either built if variant is set, or if run-tests
-        # option is passed.
-        if ("+cuda" in spec) and (self.spec.satisfies('%clang target=ppc64le:')):
-            cfg.write(cmake_cache_option("ENABLE_TESTS",False))
-            if 'tests=benchmarks' in spec or not 'tests=none' in spec:
-                print("MSG: no testing supported on %clang target=ppc64le:")
-        else:
-            cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
+        cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
         #######################
         # Close and save

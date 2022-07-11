@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define MULADDSUB_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(out1, m_out1, iend); \
   allocAndInitHipDeviceData(out2, m_out2, iend); \
@@ -44,18 +38,22 @@ namespace basic
   deallocHipDeviceData(in1); \
   deallocHipDeviceData(in2);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3,
                           Real_ptr in1, Real_ptr in2,
                           Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     MULADDSUB_BODY;
   }
 }
 
 
-void MULADDSUB::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void MULADDSUB::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -71,7 +69,7 @@ void MULADDSUB::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((muladdsub), dim3(grid_size), dim3(block_size), 0, 0,
+      hipLaunchKernelGGL((muladdsub<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
           out1, out2, out3, in1, in2, iend );
       hipErrchk( hipGetLastError() );
 
@@ -92,7 +90,7 @@ void MULADDSUB::runHipVariant(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL(lambda_hip_forall<decltype(muladdsub_lambda)>,
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(muladdsub_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, muladdsub_lambda );
       hipErrchk( hipGetLastError() );
 
@@ -122,6 +120,8 @@ void MULADDSUB::runHipVariant(VariantID vid)
      getCout() << "\n  MULADDSUB : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MULADDSUB, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

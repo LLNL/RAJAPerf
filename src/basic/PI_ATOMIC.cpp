@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -53,25 +53,27 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 PI_ATOMIC::~PI_ATOMIC()
 {
 }
 
-void PI_ATOMIC::setUp(VariantID vid)
+void PI_ATOMIC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_dx = 1.0 / double(getActualProblemSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
 }
 
-void PI_ATOMIC::updateChecksum(VariantID vid)
+void PI_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += Checksum_type(*m_pi);
+  checksum[vid][tune_idx] += Checksum_type(*m_pi);
 }
 
-void PI_ATOMIC::tearDown(VariantID vid)
+void PI_ATOMIC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_pi);

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -55,7 +55,7 @@ PLANCKIAN::~PLANCKIAN()
 {
 }
 
-void PLANCKIAN::setUp(VariantID vid)
+void PLANCKIAN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitData(m_x, getActualProblemSize(), vid);
   allocAndInitData(m_y, getActualProblemSize(), vid);
@@ -64,12 +64,12 @@ void PLANCKIAN::setUp(VariantID vid)
   allocAndInitDataConst(m_w, getActualProblemSize(), 0.0, vid);
 }
 
-void PLANCKIAN::updateChecksum(VariantID vid)
+void PLANCKIAN::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_w, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_w, getActualProblemSize());
 }
 
-void PLANCKIAN::tearDown(VariantID vid)
+void PLANCKIAN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_x);

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define INIT3_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(out1, m_out1, iend); \
   allocAndInitCudaDeviceData(out2, m_out2, iend); \
@@ -44,18 +38,22 @@ namespace basic
   deallocCudaDeviceData(in1); \
   deallocCudaDeviceData(in2);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3,
                       Real_ptr in1, Real_ptr in2,
                       Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     INIT3_BODY;
   }
 }
 
 
-void INIT3::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void INIT3::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -71,7 +69,7 @@ void INIT3::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      init3<<<grid_size, block_size>>>( out1, out2, out3, in1, in2,
+      init3<block_size><<<grid_size, block_size>>>( out1, out2, out3, in1, in2,
                                         iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -88,7 +86,7 @@ void INIT3::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT3_BODY;
       });
@@ -120,6 +118,8 @@ void INIT3::runCudaVariant(VariantID vid)
      getCout() << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

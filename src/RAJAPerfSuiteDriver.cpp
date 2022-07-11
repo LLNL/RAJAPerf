@@ -1,10 +1,14 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+#ifdef RUN_KOKKOS
+#include <Kokkos_Core.hpp>
+#endif
 
 #include "common/Executor.hpp"
 
@@ -23,6 +27,9 @@ int main( int argc, char** argv )
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
   rajaperf::getCout() << "\n\nRunning with " << num_ranks << " MPI ranks..." << std::endl;
+#endif
+#ifdef RUN_KOKKOS
+  Kokkos::initialize(argc, argv);
 #endif
 
   // STEP 1: Create suite executor object
@@ -43,6 +50,9 @@ int main( int argc, char** argv )
 
   rajaperf::getCout() << "\n\nDONE!!!...." << std::endl;
 
+#ifdef RUN_KOKKOS
+  Kokkos::finalize();
+#endif
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
   MPI_Finalize();
 #endif
