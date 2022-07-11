@@ -359,9 +359,16 @@ static const std::string HipDataSpaceNames [] =
 {
 
   std::string("Host"),
+  std::string("HostAdviseFine"),
+  std::string("HostAdviseCoarse"),
   std::string("Pinned"),
+  std::string("PinnedFine"),
+  std::string("PinnedCoarse"),
   std::string("Managed"),
+  std::string("ManagedAdviseFine"),
+  std::string("ManagedAdviseCoarse"),
   std::string("Device"),
+  std::string("DeviceFine"),
 
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 

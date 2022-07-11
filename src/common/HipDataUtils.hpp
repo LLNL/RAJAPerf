@@ -99,6 +99,16 @@ __device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
 }
 
 /*!
+ * \brief Get current hip device.
+ */
+inline int getHipDevice()
+{
+  int device = hipInvalidDeviceId;
+  hipErrchk( hipGetDevice( &device ) );
+  return device;
+}
+
+/*!
  * \brief Copy given hptr (host) data to HIP device (dptr).
  *
  * Method assumes both host and device data arrays are allocated
@@ -125,6 +135,17 @@ void allocHipDeviceData(T& dptr, int len)
 }
 
 /*!
+ * \brief Allocate HIP fine-grained device data array (dfptr).
+ */
+template <typename T>
+void allocHipDeviceFineData(T& dfptr, int len)
+{
+  hipErrchk( hipExtMallocWithFlags( (void**)&dfptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipDeviceMallocFinegrained ) );
+}
+
+/*!
  * \brief Allocate HIP managed data array (mptr).
  */
 template <typename T>
@@ -144,6 +165,39 @@ void allocHipPinnedData(T& pptr, int len)
   hipErrchk( hipHostMalloc( (void**)&pptr,
               len * sizeof(typename std::remove_pointer<T>::type),
               hipHostMallocMapped ) );
+}
+
+/*!
+ * \brief Allocate HIP fine-grained pinned data array (pfptr).
+ */
+template <typename T>
+void allocHipPinnedFineData(T& pfptr, int len)
+{
+  hipErrchk( hipHostMalloc( (void**)&pfptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipHostMallocMapped | hipHostMallocCoherent ) );
+}
+
+/*!
+ * \brief Allocate HIP coarse-grained pinned data array (pcptr).
+ */
+template <typename T>
+void allocHipPinnedCoarseData(T& pcptr, int len)
+{
+  hipErrchk( hipHostMalloc( (void**)&pcptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              hipHostMallocMapped | hipHostMallocNonCoherent ) );
+}
+
+/*!
+ * \brief Apply mem advice to HIP data array (ptr).
+ */
+template <typename T>
+void adviseHipData(T& ptr, int len, hipMemoryAdvise advice, int device)
+{
+  hipErrchk( hipMemAdvise( (void*)ptr,
+              len * sizeof(typename std::remove_pointer<T>::type),
+              advice, device ) );
 }
 
 /*!
@@ -225,21 +279,54 @@ template <typename T>
 void allocHipData(HipDataSpace hipDataSpace, T& cptr, int len)
 {
   switch (hipDataSpace) {
+
     case HipDataSpace::Host:
     {
       allocData(cptr, len);
+    } break;
+    case HipDataSpace::HostAdviseFine:
+    {
+      allocData(cptr, len);
+      adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+    } break;
+    case HipDataSpace::HostAdviseCoarse:
+    {
+      allocData(cptr, len);
+      adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
     } break;
     case HipDataSpace::Pinned:
     {
       allocHipPinnedData(cptr, len);
     } break;
+    case HipDataSpace::PinnedFine:
+    {
+      allocHipPinnedFineData(cptr, len);
+    } break;
+    case HipDataSpace::PinnedCoarse:
+    {
+      allocHipPinnedCoarseData(cptr, len);
+    } break;
     case HipDataSpace::Managed:
     {
       allocHipManagedData(cptr, len);
     } break;
+    case HipDataSpace::ManagedAdviseFine:
+    {
+      allocHipManagedData(cptr, len);
+      adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+    } break;
+    case HipDataSpace::ManagedAdviseCoarse:
+    {
+      allocHipManagedData(cptr, len);
+      adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
+    } break;
     case HipDataSpace::Device:
     {
       allocHipDeviceData(cptr, len);
+    } break;
+    case HipDataSpace::DeviceFine:
+    {
+      allocHipDeviceFineData(cptr, len);
     } break;
     default:
     {
@@ -267,18 +354,25 @@ void deallocHipData(HipDataSpace hipDataSpace, T& cptr)
 {
   switch (hipDataSpace) {
     case HipDataSpace::Host:
+    case HipDataSpace::HostAdviseFine:
+    case HipDataSpace::HostAdviseCoarse:
     {
       deallocData(cptr);
     } break;
     case HipDataSpace::Pinned:
+    case HipDataSpace::PinnedFine:
+    case HipDataSpace::PinnedCoarse:
     {
       deallocHipPinnedData(cptr);
     } break;
     case HipDataSpace::Managed:
+    case HipDataSpace::ManagedAdviseFine:
+    case HipDataSpace::ManagedAdviseCoarse:
     {
       deallocHipManagedData(cptr);
     } break;
     case HipDataSpace::Device:
+    case HipDataSpace::DeviceFine:
     {
       deallocHipDeviceData(cptr);
     } break;

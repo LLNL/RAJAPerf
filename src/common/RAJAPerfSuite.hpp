@@ -274,9 +274,16 @@ enum struct CudaDataSpace {
 enum struct HipDataSpace {
 
   Host = 0,
+  HostAdviseFine,
+  HostAdviseCoarse,
   Pinned,
+  PinnedFine,
+  PinnedCoarse,
   Managed,
+  ManagedAdviseFine,
+  ManagedAdviseCoarse,
   Device,
+  DeviceFine,
 
   NumSpaces // Keep this one last and NEVER comment out (!!)
 
