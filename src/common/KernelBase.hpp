@@ -38,7 +38,7 @@
 #include <adiak.hpp>
 
 #define CALI_START \
-    if(doCaliperTiming) { \
+    if (doCaliperTiming) { \
       std::string kstr = getName(); \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
@@ -48,7 +48,7 @@
     }
 
 #define CALI_STOP \
-    if(doCaliperTiming) { \
+    if (doCaliperTiming) { \
       std::string kstr = getName(); \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
@@ -56,10 +56,14 @@
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
     }
+
 #else
+
 #define CALI_START
 #define CALI_STOP
+
 #endif
+
 namespace rajaperf {
 
 /*!
