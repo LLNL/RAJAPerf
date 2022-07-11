@@ -43,6 +43,7 @@ namespace rajaperf {
 
 using namespace std;
 
+#ifdef RAJAPERF_USE_CALIPER
 vector<string> split(const string str, const string regex_str)
 {
   regex regexz(regex_str);
@@ -51,6 +52,7 @@ vector<string> split(const string str, const string regex_str)
                        sregex_token_iterator() );
   return list;
 }
+#endif
 
 
 namespace {
@@ -108,6 +110,8 @@ void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
 }
 
 #endif
+
+} // close unnamed namespace 
 
 
 Executor::Executor(int argc, char** argv)
