@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#define USE_STDPAR_COLLAPSE 1
+//#define USE_STDPAR_COLLAPSE 1
 
 namespace rajaperf 
 {
