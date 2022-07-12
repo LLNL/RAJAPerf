@@ -49,7 +49,7 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
         std::for_each( std::execution::par_unseq,
                        begin, end,
                        [=](Index_type i) {
-#if __cpp_lib_atomic_ref
+#if 0 //__cpp_lib_atomic_ref
           auto px = std::atomic_ref<Real_type>(&x[i]);
           auto py = std::atomic_ref<Real_type>(&y[i]);
           py += a * px;
