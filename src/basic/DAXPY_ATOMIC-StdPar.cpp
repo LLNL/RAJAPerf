@@ -13,6 +13,12 @@
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
+#include <atomic>
+
+#if defined(NVCXX_GPU_ENABLED)
+// this is required to get NVC++ to compile CUDA atomics in StdPar
+#include <openacc.h>
+#endif
 
 namespace rajaperf
 {
@@ -41,9 +47,23 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
-          DAXPY_ATOMIC_BODY;
+                       begin, end,
+                       [=](Index_type i) {
+#if __cpp_lib_atomic_ref
+          auto px = std::atomic_ref<Real_type>(&x[i]);
+          auto py = std::atomic_ref<Real_type>(&y[i]);
+          py += a * px;
+#elif defined(_OPENMP)
+          #pragma omp atomic
+          y[i] += a * x[i];
+#elif defined(_OPENACC)
+          #pragma acc atomic
+          y[i] += a * x[i];
+#elif defined(NVCXX_GPU_ENABLED)
+          atomicaddd(&y[i],a * x[i]);
+#else
+#error No atomic
+#endif
         });
 
       }
@@ -55,15 +75,16 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
     case Lambda_StdPar : {
 
       auto daxpy_atomic_lam = [=](Index_type i) {
-                     DAXPY_ATOMIC_BODY;
-                   };
+                         #pragma omp atomic
+                         y[i] += a * x[i] ;
+                       };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+                       begin, end,
+                       [=](Index_type i) {
           daxpy_atomic_lam(i);
         });
 

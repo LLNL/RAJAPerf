@@ -44,8 +44,8 @@ void REDUCE3_INT::runStdParVariant(VariantID vid, size_t tune_idx)
         typedef std::array<Int_type,3> Reduce_type;
         Reduce_type result =
         std::transform_reduce( std::execution::par_unseq,
-                                      begin, end,
-                                      Reduce_type{m_vsum_init,m_vmin_init,m_vmax_init},
+                               begin, end,
+                               Reduce_type{m_vsum_init,m_vmin_init,m_vmax_init},
                         [=](Reduce_type a, Reduce_type b) -> Reduce_type {
                              auto plus = a[0] + b[0];
                              auto min  = std::min(a[1],b[1]);
@@ -61,8 +61,8 @@ void REDUCE3_INT::runStdParVariant(VariantID vid, size_t tune_idx)
         );
 
         m_vsum += result[0];
-        m_vmin = RAJA_MIN(m_vmin, result[1]);
-        m_vmax = RAJA_MAX(m_vmax, result[2]);
+        m_vmin = std::min(m_vmin, result[1]);
+        m_vmax = std::max(m_vmax, result[2]);
 
       }
       stopTimer();
@@ -85,13 +85,13 @@ void REDUCE3_INT::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type i = ibegin; i < iend; ++i ) {
           vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
+          vmin = std::min(vmin, init3_base_lam(i));
+          vmax = std::max(vmax, init3_base_lam(i));
         }
 
         m_vsum += vsum;
-        m_vmin = RAJA_MIN(m_vmin, vmin);
-        m_vmax = RAJA_MAX(m_vmax, vmax);
+        m_vmin = std::min(m_vmin, vmin);
+        m_vmax = std::max(m_vmax, vmax);
 
       }
       stopTimer();

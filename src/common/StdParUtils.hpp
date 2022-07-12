@@ -28,6 +28,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#if defined(__NVCOMPILER_CUDA__) || defined(_NVHPC_STDPAR_CUDA)
+#define USE_STDPAR_COLLAPSE
+#define NVCXX_GPU_ENABLED
+#endif
+
 // This implementation was authored by David Olsen
 
 #include <algorithm>

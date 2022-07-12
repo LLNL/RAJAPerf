@@ -91,6 +91,18 @@ RAJA_Seq-default           1136.6199452543779141       0.0000000000000000000
 Base_StdPar-default        1136.6199452543779141       0.0000000000000000000
 Lambda_StdPar-default      -6.0464819976872759102e+32  6.0464819976872759102e+32
 
+SORTPAIRS emplace_back not supported on GPU...
+
+nvlink error   : Undefined reference to '_ZSt20__throw_length_errorPKc' in '../lib/libalgorithm.a:SORTPAIRS-StdPar.cpp.o'
+nvlink error   : Undefined reference to '_ZSt20__throw_length_errorPKc' in '../lib/libalgorithm.a:SORTPAIRS-StdPar.cpp.o'
+
+SORTPAIRS write out to {x,i} bad...
+
+   Running Base_StdPar variant
+terminate called after throwing an instance of 'thrust::system::system_error'
+  what():  for_each: failed to synchronize: cudaErrorIllegalAddress: an illegal memory access was encountered
+Aborted (core dumped)
+
 # Intel
 
 cmake .. -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_FLAGS="-std=c++20  -Wno-unused-parameter -Wno-deprecated-volatile -tbb" -DENABLE_STDPAR=1 && make -j8
