@@ -38,10 +38,15 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
         Index_type count = 0;
 
+#if 0
 #warning needs parallel inscan
         for (Index_type i = ibegin; i < iend; ++i ) {
-          INDEXLIST_BODY;
+          if ( x[i] < 0.0 ) {
+            list[count++] = i;
+          }
         }
+#else
+#endif
 
         m_len = count;
 
