@@ -51,6 +51,9 @@ REDUCE_SUM::REDUCE_SUM(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  //setVariantDefined( Lambda_StdPar ); // exists but is not interesting
 }
 
 REDUCE_SUM::~REDUCE_SUM()
