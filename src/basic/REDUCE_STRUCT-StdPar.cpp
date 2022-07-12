@@ -45,17 +45,6 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
         Real_type xmin = m_init_min; Real_type ymin = m_init_min;
         Real_type xmax = m_init_max; Real_type ymax = m_init_max;
 
-#if 0
-#warning needs parallel
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          xsum += points.x[i] ;
-          xmin = std::min(xmin, points.x[i]) ;
-          xmax = std::max(xmax, points.x[i]) ;
-          ysum += points.y[i] ;
-          ymin = std::min(ymin, points.y[i]) ;
-          ymax = std::max(ymax, points.y[i]) ;
-        }
-#else
         using Reduce_type =  std::array<Real_type,6>;
         Reduce_type result =
         std::transform_reduce( std::execution::par_unseq,
@@ -79,7 +68,7 @@ void REDUCE_STRUCT::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
                         }
         );
-#endif
+
         xsum = result[0];
         xmin = result[1];
         xmax = result[2];
