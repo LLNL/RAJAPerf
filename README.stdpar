@@ -4,7 +4,10 @@ cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAG
 
 # NVC++
 
-cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
+
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_supress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
+
 
 ## CPU
 
