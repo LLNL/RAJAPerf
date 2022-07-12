@@ -6,6 +6,8 @@ cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAG
 
 cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
 
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_supress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
+
 ## CPU
 
 ^ SORTPAIRS fails with sizefact 0.1 when _all_ kernels are run but not when SORTPAIRS or Algorithm are run by themselves
