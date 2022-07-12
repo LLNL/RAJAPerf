@@ -93,21 +93,33 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          for (Index_type i = 1; i < N-1; ++i ) {
-            for (Index_type j = 1; j < N-1; ++j ) {
-              for (Index_type k = 1; k < N-1; ++k ) {
+          std::for_each( std::execution::par_unseq,
+                         begin, end,
+                         [=](Index_type i) {
+            std::for_each( std::execution::unseq,
+                           begin, end,
+                           [=](Index_type j) {
+              std::for_each( std::execution::unseq,
+                           begin, end,
+                           [=](Index_type k) {
                 poly_heat3d_base_lam1(i, j, k);
-              }
-            }
-          }
+              });
+            });
+          });
 
-          for (Index_type i = 1; i < N-1; ++i ) {
-            for (Index_type j = 1; j < N-1; ++j ) {
-              for (Index_type k = 1; k < N-1; ++k ) {
+          std::for_each( std::execution::par_unseq,
+                         begin, end,
+                         [=](Index_type i) {
+            std::for_each( std::execution::unseq,
+                           begin, end,
+                           [=](Index_type j) {
+              std::for_each( std::execution::unseq,
+                           begin, end,
+                           [=](Index_type k) {
                 poly_heat3d_base_lam2(i, j, k);
-              }
-            }
-          }
+              });
+            });
+          });
 
         }
 
