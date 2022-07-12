@@ -51,7 +51,7 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
         //myAtomic a_pi{m_pi_init};
         myAtomic * a_pi = new myAtomic; // i hate this
         *a_pi = m_pi_init;
-        std::for_each( std::execution::par_unseq,
+        std::for_each( std::execution::par,
                        begin, end,
                        [=](Index_type i) {
           double x = (double(i) + 0.5) * dx;
@@ -65,9 +65,10 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
+#if 0
     case Lambda_StdPar : {
 
-      auto piatomic_base_lam = [=](Index_type i, myAtomic &a_pi) {
+      auto piatomic_base_lam = [=](Index_type i, myAtomic * a_pi) {
                                  double x = (double(i) + 0.5) * dx;
                                  a_pi = a_pi + dx / (1.0 + x * x);
                                };
@@ -75,17 +76,22 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        myAtomic a_pi{m_pi_init};
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        //myAtomic a_pi{m_pi_init};
+        myAtomic * a_pi = new myAtomic; // i hate this
+        *a_pi = m_pi_init;
+        std::for_each( std::execution::par,
+                       begin, end,
+                       [=](Index_type i) {
           piatomic_base_lam(i,a_pi);
-        }
-        *pi = a_pi * 4.0;
+        });
+        *pi = *a_pi * 4.0;
 
       }
       stopTimer();
 
       break;
     }
+#endif
 
     default : {
       getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
