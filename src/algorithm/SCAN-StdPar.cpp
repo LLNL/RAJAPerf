@@ -37,8 +37,10 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         std::exclusive_scan(
-#ifndef NVCXX_GPU_ENABLED
+#ifdef NVCXX_GPU_ENABLED
 // GPU implementation is wrong
+                             std::execution::seq,
+#else
                              std::execution::par_unseq,
 #endif
                              x+ibegin, x+iend, y, (Real_type)0 );
