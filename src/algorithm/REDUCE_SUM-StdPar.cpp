@@ -41,10 +41,9 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         Real_type sum = m_sum_init;
 
-#warning needs parallel reduce
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          REDUCE_SUM_BODY;
-        }
+        sum += std::reduce( std::execution::par_unseq,
+                            x+ibegin, x+iend,
+                            Real_type(0), std::plus<Real_type>() );
 
         m_sum = sum;
 
@@ -65,10 +64,9 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
         Real_type sum = m_sum_init;
 
-#warning needs parallel reduce
-        for (Index_type i = ibegin; i < iend; ++i ) {
-          sum += reduce_sum_base_lam(i);
-        }
+        sum += std::transform_reduce( std::execution::par_unseq,
+                                      begin, end,
+                                      Real_type(0), std::plus<Real_type>(), reduce_sum_base_lam);
 
         m_sum = sum;
 
