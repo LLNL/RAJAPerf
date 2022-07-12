@@ -50,6 +50,7 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
         //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
         std::for_each(
 #ifndef NVCXX_GPU_ENABLED
+// GPU implementation crashes
                        std::execution::par_unseq,
 #endif
                        begin,end,
@@ -66,6 +67,7 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
         //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
         std::for_each( 
 #ifndef NVCXX_GPU_ENABLED
+// GPU implementation crashes
                        std::execution::par_unseq,
 #endif
                        begin,end,
