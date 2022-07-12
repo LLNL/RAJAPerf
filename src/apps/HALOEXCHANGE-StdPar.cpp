@@ -38,9 +38,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( //std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type l) {
+        std::for_each( std::execution::par_unseq,
+                       begin, end,
+                       [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -53,9 +53,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
           }
         });
 
-        std::for_each( //std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type l) {
+        std::for_each( std::execution::par_unseq,
+                       begin, end,
+                       [=](Index_type l) {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -79,7 +79,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( //std::execution::par_unseq,
+        std::for_each( std::execution::par_unseq,
                        begin, end,
                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
@@ -97,7 +97,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
           }
         });
 
-        std::for_each( //std::execution::par_unseq,
+        std::for_each( std::execution::par_unseq,
                        begin, end,
                        [=](Index_type l) {
           Real_ptr buffer = buffers[l];
