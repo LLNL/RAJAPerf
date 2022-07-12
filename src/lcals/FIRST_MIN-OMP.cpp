@@ -36,12 +36,12 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp declare reduction(minloc : MyMinLoc : \
+        //#pragma omp declare reduction(minloc : MyMinLoc : \
                                       omp_out = MinLoc_compare(omp_out, omp_in))
 
         FIRST_MIN_MINLOC_INIT;
 
-        #pragma omp parallel for reduction(minloc:mymin)
+        //#pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIRST_MIN_BODY;
         }
@@ -63,12 +63,12 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp declare reduction(minloc : MyMinLoc : \
+        //#pragma omp declare reduction(minloc : MyMinLoc : \
                                       omp_out = MinLoc_compare(omp_out, omp_in))
 
         FIRST_MIN_MINLOC_INIT;
 
-        #pragma omp parallel for reduction(minloc:mymin)
+        //#pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
           if ( firstmin_base_lam(i) < mymin.val ) {
             mymin.val = x[i];
