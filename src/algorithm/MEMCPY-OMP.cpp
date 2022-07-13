@@ -48,7 +48,7 @@ void MEMCPY::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     case Lambda_OpenMP : {
 
-      auto memset_lambda = [=](Index_type i) {
+      auto memcpy_lambda = [=](Index_type i) {
                              MEMCPY_BODY;
                            };
 
@@ -57,7 +57,7 @@ void MEMCPY::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
         #pragma omp parallel for
         for (Index_type i = ibegin; i < iend; ++i ) {
-          memset_lambda(i);
+          memcpy_lambda(i);
         }
 
       }

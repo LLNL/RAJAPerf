@@ -94,7 +94,7 @@ void MEMCPY::runSeqVariantDefault(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto memset_lambda = [=](Index_type i) {
+      auto memcpy_lambda = [=](Index_type i) {
                              MEMCPY_BODY;
                            };
 
@@ -102,7 +102,7 @@ void MEMCPY::runSeqVariantDefault(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          memset_lambda(i);
+          memcpy_lambda(i);
         }
 
       }
