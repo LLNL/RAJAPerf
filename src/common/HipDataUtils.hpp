@@ -22,6 +22,7 @@
 
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 
+
 namespace rajaperf
 {
 
