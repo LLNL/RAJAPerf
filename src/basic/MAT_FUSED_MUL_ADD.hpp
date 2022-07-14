@@ -7,12 +7,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Compute D = A x B + C, where
 // Inputs:
-// A: N/(Ne*Ne) Ne x Ne matrices
-// B: N/(Ne*Ne) Ne x Ne matrices
+// A: N_Elem x (Ne x Ne) matrices
+// B: N_Elem x (Ne x Ne) matrices
 // Ouput:
 // D: N/(Ne*Ne) Ne x Ne matrices
 // All square row-major matrices, C is ignored.
-//for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+//for(Index_type ii = 0; ii != N_Elem; ++ii){
 //      for(Index_type row = 0; row != Ne; ++row){
 //        for(Index_type col = 0; col != Ne; ++col){
 //            MAT_FUSED_MUL_ADD_BODY;
@@ -26,9 +26,9 @@
 #include "common/KernelBase.hpp"
 
 #define MAT_FUSED_MUL_ADD_DATA_INIT                                                  \
-for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){                                     \
-	for(Index_type i = 0; i != NeNe; ++i){ m_A[i+(ii*NeNe)] = i; }               \
-	for(Index_type i = 0; i != NeNe; ++i){ m_B[i+(ii*NeNe)] = NeNe - 1 - i; }    \
+for(Index_type ii = 0; ii != N_Elem; ++ii){                                     \
+	for(Index_type i = 0; i != Ne*Ne; ++i){ m_A[i+(ii*Ne*Ne)] = i; }               \
+	for(Index_type i = 0; i != Ne*Ne; ++i){ m_B[i+(ii*Ne*Ne)] = (Ne*Ne) - 1 - i; }    \
 } 
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP                                                 \

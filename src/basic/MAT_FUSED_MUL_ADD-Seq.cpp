@@ -18,7 +18,7 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
   constexpr Index_type Ne = m_Ne;
-  constexpr Index_type NeNe = m_Ne * m_Ne;
+  const Index_type N_Elem = N/(Ne*Ne);
 
   MAT_FUSED_MUL_ADD_DATA_SETUP;
 
@@ -29,7 +29,7 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-        for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+        for(Index_type ii = 0; ii != N_Elem; ++ii){
               for(Index_type row = 0; row != Ne; ++row){
                 for(Index_type col = 0; col != Ne; ++col){
                     MAT_FUSED_MUL_ADD_BODY;
@@ -52,7 +52,7 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     startTimer();
     for (Index_type irep = 0; irep < run_reps; ++irep) {
-        for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+        for(Index_type ii = 0; ii != N_Elem; ++ii){
               for(Index_type row = 0; row != Ne; ++row){
                 for(Index_type col = 0; col != Ne; ++col){
                     mat_fused_lam(ii,row,col);
@@ -69,7 +69,7 @@ void MAT_FUSED_MUL_ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   case RAJA_Seq: {
     RAJA::RangeSegment row_range(0, Ne);
     RAJA::RangeSegment col_range(0, Ne);    
-    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    RAJA::RangeSegment ii_range(0, N_Elem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

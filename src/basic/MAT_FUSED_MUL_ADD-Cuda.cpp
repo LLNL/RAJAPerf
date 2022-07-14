@@ -40,7 +40,8 @@ __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
 constexpr Index_type Ne = 16;
-for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+const Index_Type N_Elem = N/(Ne*Ne);
+for(Index_type ii = 0; ii != N_Elem; ++ii){
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x;
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y;
   MAT_FUSED_MUL_ADD_BODY;
@@ -51,7 +52,8 @@ __launch_bounds__(block_size)
 __global__ void mat_fused_lam(Index_type N, Lambda body)
 {
 constexpr Index_type Ne = 16;
-for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){  
+const Index_Type N_Elem = N/(Ne*Ne);
+for(Index_type ii = 0; ii != N_Elem; ++ii){  
     Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
     Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
     body(ii,col,row);
@@ -62,8 +64,8 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
+  const Index_Type N_Elem = N/(Ne*Ne);
   constexpr Index_type Ne = m_Ne;
-  constexpr Index_type NeNe = m_Ne * m_Ne;
 
   constexpr Index_type block_x = gpu_block_size::sqrt(block_size);
   constexpr Index_type block_y = gpu_block_size::sqrt(block_size);
@@ -113,7 +115,7 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
     startTimer();
     RAJA::RangeSegment row_range(0, Ne);
     RAJA::RangeSegment col_range(0, Ne);
-    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    RAJA::RangeSegment ii_range(0, N_Elem);
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernel<

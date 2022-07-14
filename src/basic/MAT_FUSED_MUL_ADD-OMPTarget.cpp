@@ -29,7 +29,7 @@ namespace basic {
   int did = omp_get_default_device();                     \
   const Index_type N = m_N;                               \
   constexpr Index_type Ne = m_Ne;                         \
-  constexpr Index_type NeNe = m_Ne * m_Ne;                \
+  const Index_type N_Elem = (N/(Ne*Ne);                   \
   allocAndInitOpenMPDeviceData(A, m_A, N, did, hid);      \
   allocAndInitOpenMPDeviceData(B, m_B, N, did, hid);      \
   allocAndInitOpenMPDeviceData(D, m_D, N, did, hid);			  
@@ -61,7 +61,7 @@ void MAT_FUSED_MUL_ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
       #pragma omp target is_device_ptr(A, B, D) device( did )
       #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
-      for(Index_type ii = 0; ii != (N/(Ne*Ne)); ++ii){
+      for(Index_type ii = 0; ii != N_Elem; ++ii){
         for(Index_type row = 0; row != Ne; ++row){
             for(Index_type col = 0; col != Ne; ++col){
             MAT_FUSED_MUL_ADD_BODY;
@@ -80,7 +80,7 @@ void MAT_FUSED_MUL_ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
 
     RAJA::RangeSegment row_range(0, Ne);
     RAJA::RangeSegment col_range(0, Ne);    
-    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    RAJA::RangeSegment ii_range(0, N_Elem);
 
 
     using EXEC_POL =
