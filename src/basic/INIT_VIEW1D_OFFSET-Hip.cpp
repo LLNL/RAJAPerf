@@ -81,7 +81,7 @@ void INIT_VIEW1D_OFFSET::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(initview1d_offset_lambda)>),
+      hipLaunchKernelGGL((lambda_hip_forall_1D<block_size, decltype(initview1d_offset_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, initview1d_offset_lambda);
       hipErrchk( hipGetLastError() );
 

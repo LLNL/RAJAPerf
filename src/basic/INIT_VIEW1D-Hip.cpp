@@ -80,7 +80,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(initview1d_lambda)>),
+      hipLaunchKernelGGL((lambda_hip_forall_1D<block_size, decltype(initview1d_lambda)>),
         grid_size, block_size, 0, 0, ibegin, iend, initview1d_lambda);
       hipErrchk( hipGetLastError() );
 

@@ -87,7 +87,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(atomic_pi_lambda)>),
+      hipLaunchKernelGGL((lambda_hip_forall_1D<block_size, decltype(atomic_pi_lambda)>),
           grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
