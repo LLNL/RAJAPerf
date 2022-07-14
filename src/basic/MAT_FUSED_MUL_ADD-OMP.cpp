@@ -76,7 +76,7 @@ void MAT_FUSED_MUL_ADD::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
  
     RAJA::RangeSegment row_range(0, Ne);
     RAJA::RangeSegment col_range(0, Ne);    
-    RAJA::RangeSegment ii_range(0, (N/(Ne*Ne)));
+    RAJA::RangeSegment ii_range(0, N_Elem);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
