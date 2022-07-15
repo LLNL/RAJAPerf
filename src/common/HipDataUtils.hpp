@@ -30,7 +30,7 @@ namespace rajaperf
  * \brief Simple forall hip kernel that runs a lambda.
  */
 template < typename Lambda >
-__global__ void lambda_hip_forall_1D(Index_type ibegin, Index_type iend, Lambda body)
+__global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda body)
 {
   Index_type i = ibegin + blockIdx.x * blockDim.x + threadIdx.x;
   if (i < iend) {
@@ -40,7 +40,7 @@ __global__ void lambda_hip_forall_1D(Index_type ibegin, Index_type iend, Lambda 
 ///
 template < size_t block_size, typename Lambda >
 __launch_bounds__(block_size)
-__global__ void lambda_hip_forall_1D(Index_type ibegin, Index_type iend, Lambda body)
+__global__ void lambda_hip_forall(Index_type ibegin, Index_type iend, Lambda body)
 {
   Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {

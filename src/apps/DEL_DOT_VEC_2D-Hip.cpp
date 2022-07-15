@@ -122,7 +122,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL((lambda_hip_forall_1D<block_size, decltype(deldotvec2d_lambda)>),
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(deldotvec2d_lambda)>),
         grid_size, block_size, 0, 0,
         0, iend, deldotvec2d_lambda);
       hipErrchk( hipGetLastError() );
