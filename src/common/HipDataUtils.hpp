@@ -178,7 +178,7 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
-static std::string getHipArch()
+static inline std::string getHipArch()
 {  
   hipDeviceProp_t devProp;
   hipGetDeviceProperties(&devProp, 0);
