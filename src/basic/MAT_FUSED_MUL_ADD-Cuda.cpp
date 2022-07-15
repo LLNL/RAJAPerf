@@ -21,10 +21,10 @@ namespace basic {
 
 #define MAT_FUSED_MUL_ADD_DATA_SETUP_CUDA           \
   const Index_type N = m_N;                         \
-  const Index_type Ne = m_Ne;                       \
   allocAndInitCudaDeviceData(A, m_A, N);            \
   allocAndInitCudaDeviceData(B, m_B, N);            \
-  allocAndInitCudaDeviceData(D, m_D, N);			
+  allocAndInitCudaDeviceData(D, m_D, N);			   
+
 
 #define MAT_FUSED_MUL_ADD_DATA_TEARDOWN_CUDA        \
   getCudaDeviceData(m_A, A, N);                     \
@@ -40,7 +40,7 @@ __launch_bounds__(block_size)
 __global__ void mat_fused_mul_add(const Real_ptr A, const Real_ptr B, Real_ptr D,
                                   Index_type N){
 constexpr Index_type Ne = 16;
-const Index_Type N_Elem = N/(Ne*Ne);
+const Index_type N_Elem = N/(Ne*Ne);
 for(Index_type ii = 0; ii != N_Elem; ++ii){
   Index_type col = threadIdx.x + blockIdx.x * blockDim.x;
   Index_type row = threadIdx.y + blockIdx.y * blockDim.y;
@@ -52,7 +52,7 @@ __launch_bounds__(block_size)
 __global__ void mat_fused_lam(Index_type N, Lambda body)
 {
 constexpr Index_type Ne = 16;
-const Index_Type N_Elem = N/(Ne*Ne);
+const Index_type N_Elem = N/(Ne*Ne);
 for(Index_type ii = 0; ii != N_Elem; ++ii){  
     Index_type col = threadIdx.x + blockIdx.x * blockDim.x; 
     Index_type row = threadIdx.y + blockIdx.y * blockDim.y; 
@@ -64,8 +64,8 @@ void MAT_FUSED_MUL_ADD::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type N = m_N;
-  const Index_Type N_Elem = N/(Ne*Ne);
-  constexpr Index_type Ne = m_Ne;
+  constexpr Index_type Ne = 16;
+  const Index_type N_Elem = N/(Ne*Ne);
 
   constexpr Index_type block_x = gpu_block_size::sqrt(block_size);
   constexpr Index_type block_y = gpu_block_size::sqrt(block_size);
