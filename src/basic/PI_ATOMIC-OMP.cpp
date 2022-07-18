@@ -31,6 +31,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   switch ( vid ) {
 
     case Base_OpenMP : {
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
