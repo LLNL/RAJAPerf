@@ -54,7 +54,7 @@ __global__ void reduce_sum_unsafe(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   REDUCE_SUM_BODY_HIP(RAJAPERF_HIP_unsafeAtomicAdd)
 }
 
-constexpr size_t num_hip_exp = 10;
+constexpr size_t num_hip_exp = 15;
 
 // block gets per thread values
 // grid reduction (non-reproduceable)
@@ -592,6 +592,230 @@ __global__ void reduce_sum_exp9(Real_ptr x, Real_ptr dsum, Real_type sum_init,
     }
   }
 
+}
+
+// block gets per thread values
+// warp reduction (non-reproduceable)
+//     warps reduce their warp-worth of values to a single value using atomics in shmem
+// grid reduction (non-reproduceable)
+//     one thread per warp atomically adds into a single location
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp10(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  const unsigned wavefront_idx = threadIdx.x / RAJAPERF_HIP_WAVEFRONT;
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  if ( wavefront_thread_idx == 0u ) {
+    _shmem[wavefront_idx] = sum_init;
+  }
+
+  RAJAPERF_HIP_unsafeAtomicAdd(&_shmem[wavefront_idx], val);
+
+  if ( wavefront_thread_idx == 0u ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( dsum, _shmem[wavefront_idx] );
+  }
+}
+
+// block gets per thread values
+// block reduction (non-reproduceable)
+//     blocks reduce their block-worth of values to a single value using atomics in shmem
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp11(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  if ( threadIdx.x == 0u ) {
+    _shmem[0] = sum_init;
+  }
+
+  __syncthreads();
+
+  RAJAPERF_HIP_unsafeAtomicAdd(&_shmem[0], val);
+
+  __syncthreads();
+
+  if ( threadIdx.x == 0u ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( dsum, _shmem[0] );
+  }
+}
+
+// block gets per thread values
+// block reduction (non-reproduceable)
+//     warps reduce their warp-worth of values to a single value using shfl instructions
+//     warps reduce their single values to a single value using atomics in shmem
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp12(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+    val = (val + __shfl_xor(val, i));
+  }
+
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  if ( threadIdx.x == 0u ) {
+    _shmem[0] = sum_init;
+  }
+
+  __syncthreads();
+
+  if (wavefront_thread_idx == 0u) {
+    RAJAPERF_HIP_unsafeAtomicAdd(&_shmem[0], val);
+  }
+
+  __syncthreads();
+
+  if ( threadIdx.x == 0u ) {
+    RAJAPERF_HIP_unsafeAtomicAdd( dsum, _shmem[0] );
+  }
+}
+
+// block gets per thread values
+// block reduction (non-reproduceable)
+//     warps reduce their warp-worth of values to a warp-worth of values using atomics in shmem
+//     one warp reduces its values to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp13(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT ) {
+    _shmem[threadIdx.x] = sum_init;
+  }
+
+  __syncthreads();
+
+  RAJAPERF_HIP_unsafeAtomicAdd(&_shmem[wavefront_thread_idx], val);
+
+  __syncthreads();
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT ) {
+
+    val = _shmem[threadIdx.x];
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0u ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+
+  }
+}
+
+// block gets per thread values
+// block reduction (non-reproduceable)
+//     warps reduce their warp-worth of values to a warp-worth of values using atomics in shmem
+//     one warp reduces its values to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void reduce_sum_exp14(Real_ptr x, Real_ptr dsum, Real_type sum_init,
+                           Index_type iend)
+{
+  HIP_DYNAMIC_SHARED(Real_type, _shmem);
+
+  Real_type val = sum_init;
+  {
+    Index_type i = blockIdx.x * block_size + threadIdx.x;
+
+    if ( i < iend ) {
+      val = x[i];
+    }
+  }
+
+  if (block_size > RAJAPERF_HIP_WAVEFRONT) {
+
+    const unsigned wavefront_thread_idx = threadIdx.x % RAJAPERF_HIP_WAVEFRONT;
+
+    if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT ) {
+      _shmem[threadIdx.x] = val;
+    }
+
+    __syncthreads();
+
+    if ( !(threadIdx.x < RAJAPERF_HIP_WAVEFRONT) ) {
+      RAJAPERF_HIP_unsafeAtomicAdd(&_shmem[wavefront_thread_idx], val);
+    }
+
+    __syncthreads();
+
+    if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT ) {
+
+      val = _shmem[threadIdx.x];
+
+    }
+
+  }
+
+  if ( threadIdx.x < RAJAPERF_HIP_WAVEFRONT ) {
+
+    for ( unsigned i = RAJAPERF_HIP_WAVEFRONT / 2u; i > 0u; i /= 2u ) {
+      val = (val + __shfl_xor(val, i));
+    }
+
+    if ( threadIdx.x == 0u ) {
+      RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
+    }
+
+  }
 }
 
 
@@ -1247,6 +1471,162 @@ void REDUCE_SUM::runHipVariantReduceExperimental(VariantID vid, size_t exp)
     deallocHipDeviceData(dcnt_sub_grid);
     deallocHipDeviceData(dtmp_grid);
     deallocHipDeviceData(dcnt_grid);
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 10) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t num_warps = RAJA_DIVIDE_CEILING_INT(block_size, RAJAPERF_HIP_WAVEFRONT);
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp10<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*num_warps, 0,
+                          x, dsum, sum_init,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 11) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp11<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type), 0,
+                          x, dsum, sum_init,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 12) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp12<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type), 0,
+                          x, dsum, sum_init,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 13) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp13<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
+    deallocHipReducerData(dsum);
+
+    REDUCE_SUM_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Base_HIP && exp == 14) {
+
+    REDUCE_SUM_DATA_SETUP_HIP;
+
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+    Real_ptr dsum;
+    allocHipReducerData(dsum, 1);
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      dsum[0] = sum_init;
+
+      hipLaunchKernelGGL( (reduce_sum_exp14<block_size>), dim3(grid_size), dim3(block_size),
+                          sizeof(Real_type)*RAJAPERF_HIP_WAVEFRONT, 0,
+                          x, dsum, sum_init,
+                          iend );
+      hipErrchk( hipGetLastError() );
+
+      hipErrchk(hipStreamSynchronize(0));
+
+      m_sum = dsum[0];
+
+    }
+    stopTimer();
+
     deallocHipReducerData(dsum);
 
     REDUCE_SUM_DATA_TEARDOWN_HIP;
