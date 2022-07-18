@@ -286,13 +286,21 @@ void allocHipData(HipDataSpace hipDataSpace, T& cptr, int len)
     } break;
     case HipDataSpace::HostAdviseFine:
     {
+#ifdef RAJAPERF_USE_MEMADVISE_COARSE
       allocData(cptr, len);
       adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+#else
+      throw std::invalid_argument("allocHipData : HostAdviseFine not available with this hip version");
+#endif
     } break;
     case HipDataSpace::HostAdviseCoarse:
     {
+#ifdef RAJAPERF_USE_MEMADVISE_COARSE
       allocData(cptr, len);
       adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
+#else
+      throw std::invalid_argument("allocHipData : HostAdviseCoarse not available with this hip version");
+#endif
     } break;
     case HipDataSpace::Pinned:
     {
@@ -312,13 +320,21 @@ void allocHipData(HipDataSpace hipDataSpace, T& cptr, int len)
     } break;
     case HipDataSpace::ManagedAdviseFine:
     {
+#ifdef RAJAPERF_USE_MEMADVISE_COARSE
       allocHipManagedData(cptr, len);
       adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+#else
+      throw std::invalid_argument("allocHipData : ManagedAdviseFine not available with this hip version");
+#endif
     } break;
     case HipDataSpace::ManagedAdviseCoarse:
     {
+#ifdef RAJAPERF_USE_MEMADVISE_COARSE
       allocHipManagedData(cptr, len);
       adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
+#else
+      throw std::invalid_argument("allocHipData : ManagedAdviseCoarse not available with this hip version");
+#endif
     } break;
     case HipDataSpace::Device:
     {
