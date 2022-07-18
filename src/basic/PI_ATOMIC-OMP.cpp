@@ -70,6 +70,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
       }
       stopTimer();
+
       break;
     }
 
