@@ -56,6 +56,9 @@ __global__ void reduce_sum_unsafe(Real_ptr x, Real_ptr dsum, Real_type sum_init,
 
 constexpr size_t num_hip_exp = 10;
 
+// block gets per thread values
+// grid reduction (non-reproduceable)
+//     threads atomically add into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp0(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -76,6 +79,11 @@ __global__ void reduce_sum_exp0(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   RAJAPERF_HIP_unsafeAtomicAdd( dsum, val );
 }
 
+// block gets per thread values
+// warp reduction (reproduceable)
+//     warps reduce to single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per warp atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp1(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -102,6 +110,11 @@ __global__ void reduce_sum_exp1(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// warp reduction (reproduceable)
+//     warps reduce to a single value using shfl instructions
+// partial grid reduction (block_size/warp_size parts) (non-reproduceable)
+//     one thread per warp atomically adds into a location per warp
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp2(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -128,6 +141,11 @@ __global__ void reduce_sum_exp2(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     blocks reduce to a single value using binary reduction tree in shmem
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp3(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -159,6 +177,12 @@ __global__ void reduce_sum_exp3(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     blocks reduce to a warp-worth of values using binary reduction tree in shmem
+//     one warp per block reduces to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp4(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -198,6 +222,12 @@ __global__ void reduce_sum_exp4(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     one warp per block reduces the block-worth of values to warp-worth of values using a warp stride loop in shmem
+//     one warp per block reduces to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp5(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -234,6 +264,13 @@ __global__ void reduce_sum_exp5(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     warps in block reduce the block-worth of values to warp-worth of values using shfl instructions
+//         and shmem to transfer into a single warp
+//     one warp per block reduces to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp6(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -278,6 +315,13 @@ __global__ void reduce_sum_exp6(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values using a grid-stride loop to collect multiple values per thread
+// block reduction (reproduceable)
+//     warps in block reduce the block-worth of values to warp-worth of values using shfl instructions
+//         and shmem to transfer into a single warp
+//     one warp per block reduces to a single value using shfl instructions
+// grid reduction (non-reproduceable)
+//     one thread per block atomically adds into a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp7(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -319,6 +363,15 @@ __global__ void reduce_sum_exp7(Real_ptr x, Real_ptr dsum, Real_type sum_init,
   }
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     warps in block reduce the block-worth of values to warp-worth of values using shfl instructions
+//         and shmem to transfer into a single warp
+//     one warp per block reduces to a single value using shfl instructions
+//     one thread per block writes to "block array"
+// grid reduction (reproduceable)
+//     last block reduces the "block array" using above block reduction method
+//     one thread writes to a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp8(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -401,6 +454,18 @@ __global__ void reduce_sum_exp8(Real_ptr x, Real_ptr dsum, Real_type sum_init,
 
 }
 
+// block gets per thread values
+// block reduction (reproduceable)
+//     warps in block reduce the block-worth of values to warp-worth of values using shfl instructions
+//         and then shmem to transfer into a single warp
+//     one warp per block reduces to a single value using shfl instructions
+//     one thread per block writes to "block grid array"
+// sub-grid reduction (grid_size / block_size parts) (reproduceable)
+//     last block in every block_size number of blocks reduces the "block grid array" using above block reduction method
+//     one thread writes to "block array"
+// grid reduction (reproduceable)
+//     last block reduces the "block array" using above block reduction method
+//     one thread writes to a single location
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum_exp9(Real_ptr x, Real_ptr dsum, Real_type sum_init,
