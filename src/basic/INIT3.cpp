@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,13 +51,15 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 INIT3::~INIT3()
 {
 }
 
-void INIT3::setUp(VariantID vid)
+void INIT3::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_out1, getActualProblemSize(), 0.0, vid);
   allocAndInitDataConst(m_out2, getActualProblemSize(), 0.0, vid);
@@ -66,14 +68,14 @@ void INIT3::setUp(VariantID vid)
   allocAndInitData(m_in2, getActualProblemSize(), vid);
 }
 
-void INIT3::updateChecksum(VariantID vid)
+void INIT3::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize());
 }
 
-void INIT3::tearDown(VariantID vid)
+void INIT3::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_out1);

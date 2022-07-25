@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,13 +13,13 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
-void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
+
+void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -111,7 +111,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
-          RAJA::make_tuple(static_cast<Real_type>(0.0), 
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
 
           poly_gesummv_lam1,
@@ -126,12 +126,12 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

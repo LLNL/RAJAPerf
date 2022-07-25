@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define COPY_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(c, m_c, iend);
@@ -36,17 +30,20 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     COPY_BODY;
   }
 }
 
 
-void COPY::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void COPY::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -62,7 +59,7 @@ void COPY::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      copy<<<grid_size, block_size>>>( c, a,
+      copy<block_size><<<grid_size, block_size>>>( c, a,
                                        iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -79,7 +76,7 @@ void COPY::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         COPY_BODY;
       });
@@ -108,10 +105,11 @@ void COPY::runCudaVariant(VariantID vid)
     COPY_DATA_TEARDOWN_CUDA;
 
   } else {
-      std::cout << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;
+      getCout() << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(COPY, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

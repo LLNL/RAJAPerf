@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,24 +52,26 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 INIT_VIEW1D_OFFSET::~INIT_VIEW1D_OFFSET()
 {
 }
 
-void INIT_VIEW1D_OFFSET::setUp(VariantID vid)
+void INIT_VIEW1D_OFFSET::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_a, getActualProblemSize(), 0.0, vid);
   m_val = 0.00000123;
 }
 
-void INIT_VIEW1D_OFFSET::updateChecksum(VariantID vid)
+void INIT_VIEW1D_OFFSET::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize());
 }
 
-void INIT_VIEW1D_OFFSET::tearDown(VariantID vid)
+void INIT_VIEW1D_OFFSET::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_a);

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define REDUCE3_INT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(vec, m_vec, iend);
 
@@ -34,6 +28,8 @@ namespace basic
   deallocHipDeviceData(vec);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void reduce3int(Int_ptr vec,
                            Int_ptr vsum, Int_type vsum_init,
                            Int_ptr vmin, Int_type vmin_init,
@@ -41,23 +37,23 @@ __global__ void reduce3int(Int_ptr vec,
                            Index_type iend)
 {
   HIP_DYNAMIC_SHARED( Int_type, psum)
-  Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
-  Int_type* pmax = (Int_type*)&psum[ 2 * blockDim.x ];
+  Int_type* pmin = (Int_type*)&psum[ 1 * block_size ];
+  Int_type* pmax = (Int_type*)&psum[ 2 * block_size ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   psum[ threadIdx.x ] = vsum_init;
   pmin[ threadIdx.x ] = vmin_init;
   pmax[ threadIdx.x ] = vmax_init;
 
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     psum[ threadIdx.x ] += vec[ i ];
     pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
     pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
       pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
@@ -82,7 +78,9 @@ __global__ void reduce3int(Int_ptr vec,
 }
 
 
-void REDUCE3_INT::runHipVariant(VariantID vid)
+
+template < size_t block_size >
+void REDUCE3_INT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -110,7 +108,7 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
                                  hipMemcpyHostToDevice ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce3int), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
+      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
                                                     vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,
@@ -159,9 +157,11 @@ void REDUCE3_INT::runHipVariant(VariantID vid)
     REDUCE3_INT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  REDUCE3_INT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE3_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

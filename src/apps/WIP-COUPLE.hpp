@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -161,16 +161,16 @@ public:
 
   ~COUPLE();
 
-  void setUp(VariantID vid);
-  void runKernel(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void runKernel(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid) {(void) vid;}
-  void runOpenMPVariant(VariantID vid) {(void) vid;}
-  void runCudaVariant(VariantID vid) {(void) vid;}
-  void runHipVariant(VariantID vid) {(void) vid;}
-  void runOpenMPTargetVariant(VariantID vid) {(void) vid;}
+  void runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
+  void runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
+  void runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
+  void runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
+  void runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
 
 private:
   Complex_ptr m_t0;

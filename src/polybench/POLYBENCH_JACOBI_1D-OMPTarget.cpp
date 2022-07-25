@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//  
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_JACOBI_1D.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -41,7 +41,7 @@ namespace polybench
   deallocOpenMPDeviceData(B, did);
 
 
-void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -55,7 +55,7 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       for (Index_type t = 0; t < tsteps; ++t) {
-       
+
         #pragma omp target is_device_ptr(A,B) device( did )
         #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
         for (Index_type i = 1; i < N-1; ++i ) {
@@ -101,7 +101,7 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_JACOBI_1D_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_JACOBI_1D : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_JACOBI_1D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -110,4 +110,4 @@ void POLYBENCH_JACOBI_1D::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

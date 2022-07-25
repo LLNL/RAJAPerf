@@ -1,12 +1,17 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+#include "RAJAPerfSuite.hpp"
 #include "OutputUtils.hpp"
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#include <mpi.h>
+#endif
 
 #include<cstdlib>
 #include<iostream>
@@ -26,9 +31,9 @@ namespace rajaperf
  */
 std::string recursiveMkdir(const std::string& in_path)
 {
-  std::string dir;
-
   std::string path = in_path;
+
+  // remove leading "." or "./"
   if ( !path.empty() ) {
     if ( path.at(0) == '.' ) {
       if ( path.length() > 2 && path.at(1) == '/' ) {
@@ -40,6 +45,16 @@ std::string recursiveMkdir(const std::string& in_path)
   }
 
   if ( path.empty() ) return std::string();
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  // Processes wait for rank 0 to make the directories before proceeding
+  if (rank != 0) {
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+#endif
 
 // ----------------------------------------
   std::string outpath = path;
@@ -72,7 +87,7 @@ std::string recursiveMkdir(const std::string& in_path)
    */
   if (pos >= 0) {
     if (!S_ISDIR(status.st_mode)) {
-      std::cout << "Cannot create directories in path = " << path
+      getCout() << "Cannot create directories in path = " << path
                 << "\n    because some intermediate item in path exists and"
                 << "is NOT a directory" << std::endl;
        outpath = std::string();
@@ -88,7 +103,7 @@ std::string recursiveMkdir(const std::string& in_path)
    */
   if ( !outpath.empty() && pos < 0) {
     if (mkdir(path_buf, mode) != 0) {
-      std::cout << "   Cannot create directory  = "
+      getCout() << "   Cannot create directory  = "
                 << path_buf << std::endl;
       outpath = std::string();
     }
@@ -113,7 +128,7 @@ std::string recursiveMkdir(const std::string& in_path)
       /* make directory if not at end of path */
       if (pos < length) {
         if (mkdir(path_buf, mode) != 0) {
-          std::cout << "   Cannot create directory  = "
+          getCout() << "   Cannot create directory  = "
                     << path_buf << std::endl;
           outpath = std::string();
         }
@@ -123,6 +138,13 @@ std::string recursiveMkdir(const std::string& in_path)
   }
 
   delete[] path_buf;
+
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  // Rank 0 lets the other processes know it made the directories
+  if (rank == 0) {
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+#endif
 
   return outpath;
 }

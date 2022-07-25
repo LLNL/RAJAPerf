@@ -1,7 +1,7 @@
 [comment]: # (#################################################################)
-[comment]: # (Copyright 2017-2021, Lawrence Livermore National Security, LLC)
+[comment]: # (Copyright 2017-2022, Lawrence Livermore National Security, LLC)
 [comment]: # (and RAJA Performance Suite project contributors.)
-[comment]: # (See the RAJA/LICENSE file for details.)
+[comment]: # (See the RAJAPerf/LICENSE file for details.)
 [comment]: #
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
@@ -12,28 +12,40 @@ RAJA Performance Suite
 
 [![Build Status](https://travis-ci.org/LLNL/RAJAPerf.svg?branch=develop)](https://travis-ci.org/LLNL/RAJAPerf)
 
-The RAJA Performance Suite is designed to explore performance of loop-based 
+The RAJA Performance Suite is designed to explore performance of loop-based
 computational kernels found in HPC applications. Specifically, it can be
-used to assess and monitor runtime performance of kernels implemented using 
-[RAJA] C++ performance portability abstractions and compare those to variants 
-implemented using common parallel programming models, such as OpenMP and CUDA, 
+used to assess and monitor runtime performance of kernels implemented using
+[RAJA] C++ performance portability abstractions and compare those to variants
+implemented using common parallel programming models, such as OpenMP and CUDA,
 directly. Some important terminology used in the Suite includes:
 
   * `Kernel` is a distinct loop-based computation that appears in the Suite in
-    multiple variants (or implementations), each of which performs the same 
+    multiple variants (or implementations), each of which performs the same
     computation.
-  * `Variant` is a particular implementation of a kernel in the Suite, 
+  * `Variant` is an implementation or set of implementations of a kernel in the
+    Suite that share the same approach/abstraction and programming model,
     such as baseline OpenMP, RAJA OpenMP, etc.
+  * `Tuning` is a particular implementation of a variant of a kernel in the
+    Suite, such as gpu block size 128, gpu block size 256, etc.
   * `Group` is a collection of kernels in the Suite that are grouped together
-    because they originate from the same source, such as a specific benchmark 
+    because they originate from the same source, such as a specific benchmark
     suite.
 
 Each kernel in the Suite appears in multiple RAJA and non-RAJA (i.e., baseline)
-variants using parallel programming models that RAJA supports. The kernels 
-originate from various HPC benchmark suites and applications. For example,
-the "Stream" group contains kernels from the Babel Stream benchmark, the "Apps"
-group contains kernels extracted from real scientific computing applications,
-and so forth.
+variants using parallel programming models that RAJA supports. Some kernels have
+multiple tunings of a variant to explore some of the parametrization that the
+programming model supports. The kernels originate from various HPC benchmark
+suites and applications. For example, the "Stream" group contains kernels from
+the Babel Stream benchmark, the "Apps" group contains kernels extracted from
+real scientific computing applications, and so forth.
+
+The suite can be run as a single process or with multiple processes when
+configured with MPI support. Running with MPI in the same configuration used
+by an hpc app allows the suite to gather performance data that is more relevant
+for that hpc app than performance data gathered running single process. For
+example running sequentially with one MPI rank per core vs running sequentially
+with a single process yields different performance results on most multi-core
+CPUs.
 
 * * *
 
@@ -53,7 +65,7 @@ Table of Contents
 
 # Building the Suite
 
-To build the Suite, you must first obtain a copy of the source code by cloning 
+To build the Suite, you must first obtain a copy of the source code by cloning
 the GitHub repository. For example,
 
 ```
@@ -62,13 +74,13 @@ the GitHub repository. For example,
 > git clone --recursive https://github.com/llnl/RAJAPerf.git
 ```
 
-The repository will reside in a `RAJAPerf` sub-directory in the directory into 
+The repository will reside in a `RAJAPerf` sub-directory in the directory into
 which is was cloned.
 
-The Performance Suite has two Git submodules, [RAJA] and the CMake-based [BLT] 
+The Performance Suite has two Git submodules, [RAJA] and the CMake-based [BLT]
 build system. The `--recursive` option tells Git to clone the submodules
 as well as any submodules that they use. If you switch to a different branch
-in your working copy of the repository, you should update the submodules to 
+in your working copy of the repository, you should update the submodules to
 make sure you have the right versions of them for the branch. For example,
 
 ```
@@ -77,18 +89,18 @@ make sure you have the right versions of them for the branch. For example,
 > git submodule update --recursive
 ```
 
-Note that the `--recursive` option will update submodules within submodules, 
+Note that the `--recursive` option will update submodules within submodules,
 similar to usage with the `git clone` as described above.
 
 RAJA and the Performance Suite are built together using the same CMake
 configuration. For convenience, we include scripts in the `scripts`
-directory that invoke corresponding configuration files (CMake cache files) 
-in the RAJA submodule. For example, the `scripts/lc-builds` directory 
+directory that invoke corresponding configuration files (CMake cache files)
+in the RAJA submodule. For example, the `scripts/lc-builds` directory
 contains scripts that show how we build code for testing on platforms in
-the Lawrence Livermore Computing Center. Each build script creates a 
-descriptively-named build space directory in the top-level Performance Suite 
-directory and runs CMake with a configuration appropriate for the platform and 
-compilers used. After CMake completes, enter the build directory and type 
+the Lawrence Livermore Computing Center. Each build script creates a
+descriptively-named build space directory in the top-level Performance Suite
+directory and runs CMake with a configuration appropriate for the platform and
+compilers used. After CMake completes, enter the build directory and type
 `make` (or `make -j <N>` for a parallel build using N processor cores; if you
 omit the number of cores, the code will build in parallel using all available
 cores on the node you are running on) to compile the code. For example,
@@ -99,7 +111,7 @@ cores on the node you are running on) to compile the code. For example,
 > make -j
 ```
 
-The build scripts and associated CMake `host-config` files in RAJA are 
+The build scripts and associated CMake `host-config` files in RAJA are
 useful sources of information for building the Suite on various platforms.
 For example, they show how to enable specific back-end kernel variants and
 compiler options we use for testing.
@@ -116,42 +128,88 @@ options from there. For example, :
 
 The provided configurations will only build the Performance Suite code by
 default; i.e., it will not build any RAJA test or example codes. If you
-want to build the RAJA tests, for example, to verify your build of RAJA is 
+want to build the RAJA tests, for example, to verify your build of RAJA is
 working properly, just pass the `-DENABLE_TESTS=On` option to CMake, either
-on the command line if you run CMake directly or edit the script you are 
+on the command line if you run CMake directly or edit the script you are
 running to do this. Then, when the build completes, you can type `make test`
 to run the RAJA tests.
 
+## Building with MPI
+
+Some of the provided configurations will build the Performance Suite with
+MPI support enabled. For example,
+
+```
+> ./scripts/blueos_spectrum_nvcc_clang.sh rolling-release 10.2.89 sm_70 10.0.1
+> cd build_lc_blueos-spectrumrolling-release-nvcc10.2.89-sm_70-clang10.0.1
+> make -j
+```
+
+In general MPI support can be enabled by passing the `-DENABLE_MPI=On` option
+to CMake and providing a mpi compiler wrapper via the
+`-DMPI_CXX_COMPILER=/path/to/mpic++` option to CMake in addition to other CMake
+options. For example,
+
+```
+> mkdir my-mpi-build
+> cd my-mpi-build
+> cmake -DENABLE_MPI=On -DMPI_CXX_COMPILER=/path/to/mpic++ <cmake args> ../
+> make -j
+```
+
+## Building with specific GPU block size tunings
+
+Some of the provided configurations will build the Performance Suite with
+GPU support enabled. This will build with the default GPU block size tuning for
+each kernel. For example,
+
+```
+> ./scripts/blueos_nvcc_clang.sh 10.2.89 sm_70 10.0.1
+> cd build_lc_blueos-nvcc10.2.89-sm_70-clang10.0.1
+> make -j
+```
+
+Using a specific set of GPU block sizes is done by by passing the
+`-DRAJA_PERFSUITE_GPU_BLOCKSIZES=<list,of,block,sizes>` option to CMake via the
+`-DMPI_CXX_COMPILER=/path/to/mpic++` option to CMake in addition to other CMake
+options. For example,
+
+```
+> mkdir my-gpu-build
+> cd my-gpu-build
+> cmake -DRAJA_PERFSUITE_GPU_BLOCKSIZES=64,128,256,512,1024 <cmake args> ../
+> make -j
+```
 
 * * *
 
 # Running the Suite
 
-The Suite is run by invoking the executable in the `bin` sub-directory in the 
+The Suite is run by invoking the executable in the `bin` sub-directory in the
 build space directory. For example, if you provide no command line options,
 
 ```
 > ./bin/raja-perf.exe
 ```
 
-the entire Suite (all kernels and variants) will execute in their default 
-configurations. How the Suite will run and some details about each kernel 
+the entire Suite (all kernels and variants) will execute in their default
+configurations. How the Suite will run and some details about each kernel
 will appear on the screen before it is run. Kernel detail information will
 also appear in a run report file generated in your run directory
-after the Suite executes. You can pass the ''--dryrun'' option along with 
+after the Suite executes. You can pass the ''--dryrun'' option along with
 any other runtime options to see a summary of how the Suite will execute
 without actually running it.
 
 The Suite can be run in a variety of ways via options passed to the executable.
-For example, you can run subsets of kernels and variants by specifying 
-variants, groups, or individual kernels explicitly. Other configuration 
-options to set problem sizes, number of times each kernel is run, etc. can 
-also be specified. You build the code once and use scripts or other mechanisms 
+For example, you can run subsets of kernels and variants by specifying
+variants, groups, or individual kernels explicitly. Other configuration
+options to set problem sizes, number of times each kernel is run, etc. can
+also be specified. You build the code once and use scripts or other mechanisms
 to run the Suite in different ways for analyses you want to perform.
 
 All options appear in a 'long form' with a double hyphen prefix (i.e., '--').
-Some options are available in a one or two character 'short form' with a 
-single hyphen prefix (i.e., '-') for convenience. To see available options 
+Some options are available in a one or two character 'short form' with a
+single hyphen prefix (i.e., '-') for convenience. To see available options
 along with a brief description of each, pass the `--help` or `-h` option:
 
 ```
@@ -164,31 +222,47 @@ or
 > ./bin/raja-perf.exe -h
 ```
 
-Lastly, the program will generate a summary of provided input if it is given 
+Lastly, the program will generate a summary of provided input if it is given
 input that the code does not know how to parse. Ill-formed input will be noted
-in the summary output. Hopefully, this will make it easy for users to correct 
+in the summary output. Hopefully, this will make it easy for users to correct
 erroneous usage, such as mis-spelled option names.
+
+## Running with MPI
+
+Running the Suite with MPI is as simple as running any other MPI application.
+For example,
+
+```
+> srun -n 2 ./bin/raja-perf.exe
+```
+the entire Suite (all kernels and variants) will execute in their default
+configurations on each of the 2 ranks. The kernel information output shows how
+each kernel is run on each rank. The total problem size across all MPI ranks
+can be calculated by multiplying the number of MPI ranks by the problem
+size in the kernel information. Timing is reported on rank 0 and is gathered
+by doing an MPI barrier, starting the timer, running the kernel repetitions,
+doing an MPI barrier, and then stopping the timer.
 
 ## Important note
 
- * The OpenMP target offload variants of the kernels in the Suite are a 
+ * The OpenMP target offload variants of the kernels in the Suite are a
    work-in-progress since the RAJA OpenMP target offload back-end is also
-   a work-in-progress. If you configure them to build, they can be run with 
-   the executable `./bin/raja-perf-omptarget.exe` which is distinct from 
+   a work-in-progress. If you configure them to build, they can be run with
+   the executable `./bin/raja-perf-omptarget.exe` which is distinct from
    the one described above. At the time the OpenMP target offload variants were
    developed, it was not possible for them to co-exist in the same executable
    as the CUDA variants, for example. In the future, the build system may
-   be reworked so that the OpenMP target variants can be run from the same 
+   be reworked so that the OpenMP target variants can be run from the same
    executable as the other variants.
 
 * * *
 
 # Generated output
 
-When the Suite is run, several output files are generated that contain 
-data describing the run. The file names start with the file prefix 
+When the Suite is run, several output files are generated that contain
+data describing the run. The file names start with the file prefix
 provided via a command line option in the output directory, also specified
-on the command line. If no such options are provided, files will be located 
+on the command line. If no such options are provided, files will be located
 in the current run directory and be named `RAJAPerf-*`, where '*' is a string
 indicating the contents of the file.
 
@@ -201,14 +275,14 @@ Currently, there are five files generated:
 5. Kernel -- Basic information about each kernel that is run, which is the same
 for each variant of the kernel that is run. See description of output information below.
 
-All output files are text files. Other than the checksum file, all are in 
+All output files are text files. Other than the checksum file, all are in
 'csv' format for easy processing by common tools and generating plots.
 
 ## Kernel information definitions
 
-Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'' file, which includes the following:
+Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'' file. This information is for each process individually, so when running with MPI the total problem size aggregated across all ranks is the number of ranks times the problem size shown in the kernel information. Kernel information includes the following:
 
-1. Kernel name -- Format is group name followed by kernel name, separated by an underscore. 
+1. Kernel name -- Format is group name followed by kernel name, separated by an underscore.
 2. Feature -- RAJA feature(s) exercised in RAJA variants of kernel.
 3. Problem size -- Size of the problem represented by a kernel. Please see notes below for more information.
 4. Reps -- Number of times a kernel runs in a single pass through the Suite.
@@ -219,38 +293,41 @@ Information about kernels that are run is located in the ''RAJAPerf-kernels.csv'
 
 ### Notes about 'problem size'
 
- * The Suite uses three notions of problem size for each kernel: 'default', 
-   'target', and 'actual'. Default is the 'default' problem size defined for a 
-   kernel and the size that will be run if no runtime options are 
+ * Problem size is always output per process/MPI rank. To get the total problem
+   size across all ranks when running with MPI multiply the problem size by
+   the number of MPI ranks.
+ * The Suite uses three notions of problem size for each kernel: 'default',
+   'target', and 'actual'. Default is the 'default' problem size defined for a
+   kernel and the size that will be run if no runtime options are
    provided to run a different size. Target is the desired problem size to run
    based on default settings and alterations to that if input is provided to
-   change the default. Actual is the problem size that is run based on how 
+   change the default. Actual is the problem size that is run based on how
    each kernel calculates this.
  * The concept of problem size is subjective and can be interpreted differently
-   depending on the kernel structure and what one is trying to measure. For 
-   example, problem size could refer to the amount of data needed to be stored 
-   in memory to run the problem, or it could refer to the amount of parallel 
-   work that is possible, etc. 
- * We employ the following, admittedly loose definition, which depends on the 
-   particular kernel structure. Of all the 'loop structures' (e.g., single 
-   loop, nested loops, etc.) that are run for a kernel (note that some kernels 
-   run multiple loops, possibly with different sizes or loop structures), 
-   problem size refers to the size of the data set required to generate the 
-   kernel result. The interpretation of this and the definition of problem 
-   size for each kernel in the suite is determined by the kernel developer 
+   depending on the kernel structure and what one is trying to measure. For
+   example, problem size could refer to the amount of data needed to be stored
+   in memory to run the problem, or it could refer to the amount of parallel
+   work that is possible, etc.
+ * We employ the following, admittedly loose definition, which depends on the
+   particular kernel structure. Of all the 'loop structures' (e.g., single
+   loop, nested loops, etc.) that are run for a kernel (note that some kernels
+   run multiple loops, possibly with different sizes or loop structures),
+   problem size refers to the size of the data set required to generate the
+   kernel result. The interpretation of this and the definition of problem
+   size for each kernel in the suite is determined by the kernel developer
    and team discussion.
 
-Here are a few examples to give a better sense of how we determine problem 
+Here are a few examples to give a better sense of how we determine problem
 size for various kernels in the Suite.
 
 Vector addition.
 ```cpp
 for (int i = 0; i < 0; i < N; ++i) {
-  c[i] = a[i] + b[i]; 
+  c[i] = a[i] + b[i];
 }
 ```
-The problem size for this kernel is 'N', the loop length. Note that this 
-happens to match the size of the vectors a, b, c and the total amount of 
+The problem size for this kernel is 'N', the loop length. Note that this
+happens to match the size of the vectors a, b, c and the total amount of
 parallel work in the kernel. This is common for simple, data parallel kernels.
 
 Matrix-vector multiplication.
@@ -268,7 +345,7 @@ work is N_r, the number of rows in the matrix and the length of the vector b.
 
 Matrix-matrix multiplication.
 ```cpp
-for (int i = 0; i < N_i; ++i) {  
+for (int i = 0; i < N_i; ++i) {
   for (int j = 0; j < N_j; ++j) {
     A[i][j] = 0;
     for (int k = 0; k < N_k; ++k) {
@@ -279,19 +356,19 @@ for (int i = 0; i < N_i; ++i) {
 ```
 Here, we are multiplying matrix B (N_i x N_k) and matrix C (N_k x N_j) and
 storing the result in matrix A (N_i X N_j). Problem size could be chosen to
-be the maximum number of entries in matrix B or C. We choose the size of 
-matrix A (N_i * N_j), which is more closely aligned with the number of 
-independent operations (i.e., the amount of parallel work) in the kernels. 
+be the maximum number of entries in matrix B or C. We choose the size of
+matrix A (N_i * N_j), which is more closely aligned with the number of
+independent operations (i.e., the amount of parallel work) in the kernels.
 
 
 * * *
 
-# Adding kernels and variants
+# Adding kernels, variants, and Tunings
 
-This section describes how to add new kernels and/or variants to the Suite.
-*Group* and *feature* modifications are not required unless a new group or
-exercised RAJA feature is added when a new kernel is introduced. The 
-information in this section also provides insight into how the performance 
+This section describes how to add new kernels, variants and/or tunings to the
+Suite. *Group* and *feature* modifications are not required unless a new group
+or exercised RAJA feature is added when a new kernel is introduced. The
+information in this section also provides insight into how the performance
 Suite operates.
 
 It is essential that the appropriate targets are updated in the appropriate
@@ -302,7 +379,7 @@ be compiled.
 
 Adding a new kernel to the Suite involves three main steps:
 
-1. Add a unique kernel ID and a unique kernel name to the Suite. 
+1. Add a unique kernel ID and a unique kernel name to the Suite.
 2. If the kernel is part of a new kernel group or exercises a new RAJA feature, also add a unique group ID and name for the group. Similarly, if a new RAJA
 feature is exercised by a new kernel.
 3. Implement a kernel class that contains all operations needed to run it, with source files organized as described below.
@@ -311,14 +388,14 @@ These steps are described in the following sections.
 
 ### Add the kernel ID and name
 
-Two key pieces of information identify a kernel: the group in which it 
+Two key pieces of information identify a kernel: the group in which it
 resides and the name of the kernel itself. For concreteness, we describe
-how to add a kernel "FOO" that lives in the kernel group "Basic". The files 
+how to add a kernel "FOO" that lives in the kernel group "Basic". The files
 `RAJAPerfSuite.hpp` and `RAJAPerfSuite.cpp` in the `src/common` directory
-define enumeration values and arrays of string names for the kernels, 
-respectively. 
+define enumeration values and arrays of string names for the kernels,
+respectively.
 
-First, add an enumeration value identifier for the kernel, that is unique 
+First, add an enumeration value identifier for the kernel, that is unique
 among all kernels, in the enum 'KernelID' in the header file `RAJAPerfSuite.hpp`:
 
 ```cpp
@@ -332,7 +409,7 @@ enum KernelID {
 Note: the enumeration value for the kernel is the group name followed
 by the kernel name, separated by an underscore. It is important to follow
 this convention so that the kernel works properly with the Performance
-Suite machinery. 
+Suite machinery.
 
 Second, add the kernel name to the array of strings `KernelNames` in the file
 `RAJAPerfSuite.cpp`:
@@ -357,7 +434,7 @@ and IDs in alphabetical order to make the organization clear.
 ### Add new group if needed
 
 If a kernel is added as part of a new group of kernels in the Suite, a
-new value must be added to the `GroupID` enum in the header file 
+new value must be added to the `GroupID` enum in the header file
 `RAJAPerfSuite.hpp` and an associated group string name must be added to
 the `GroupNames` array of strings in the file `RAJAPerfSuite.cpp`. Again,
 the enumeration values and items in the string array must be kept
@@ -368,32 +445,32 @@ Adding a new RAJA feature is similar.
 
 ### Add the kernel class
 
-Each kernel in the Suite is implemented in a class whose header and 
+Each kernel in the Suite is implemented in a class whose header and
 implementation files live in the directory named for the group
 in which the kernel lives. The kernel class is responsible for implementing
-all operations needed to manage data, execute, and record execution timing and 
-checksum information for each variant of the kernel. To properly plug in to 
-the Performance Suite framework, the kernel class must be a subclass of the
-`KernelBase` base class that defines the interface for kernels in the Suite.
+all operations needed to manage data, execute, and record execution timing and
+checksum information for each variant and tuning of the kernel. To properly plug
+in to the Performance Suite framework, the kernel class must be a subclass of
+the `KernelBase` base class that defines the interface for kernels in the Suite.
 
-Continuing with our example, we add a 'FOO' class header file `FOO.hpp`, 
-and multiple implementation files described in the following sections: 
+Continuing with our example, we add a 'FOO' class header file `FOO.hpp`,
+and multiple implementation files described in the following sections:
 
   * `FOO.cpp` contains the methods to setup and teardown the memory for the
-    'FOO' kernel, and compute and record a checksum on the result after it 
-    executes. It also specifies kernel information in the kernel class 
+    'FOO' kernel, and compute and record a checksum on the result after it
+    executes. It also specifies kernel information in the kernel class
     constructor.
-  * `FOO-Seq.cpp` contains sequential CPU variants of the kernel.
-  * `FOO-OMP.cpp` contains OpenMP CPU multithreading variants of the kernel.
-  * `FOO-OMPTarget.cpp` contains OpenMP target offload variants of the kernel.
-  * `FOO-Cuda.cpp` contains CUDA GPU variants of the kernel.
-  * `FOO-Hip.cpp` contains HIP GPU variants of the kernel.
+  * `FOO-Seq.cpp` contains sequential CPU variants and tunings of the kernel.
+  * `FOO-OMP.cpp` contains OpenMP CPU multithreading variants and tunings of the kernel.
+  * `FOO-OMPTarget.cpp` contains OpenMP target offload variants and tunings of the kernel.
+  * `FOO-Cuda.cpp` contains CUDA GPU variants and tunings of the kernel.
+  * `FOO-Hip.cpp` contains HIP GPU variants and tunings of the kernel.
 
 All kernels in the Suite follow the same implementation pattern. Inspect the
 files for any kernel to understand the overall organization.
-  
+
 Note: if a new execution back-end variant is added that is not listed here,
-that variant should go in the file `FOO-<backend-name>.cpp`. Keeping the 
+that variant should go in the file `FOO-<backend-name>.cpp`. Keeping the
 back-end variants in separate files helps to understand compiler optimizations
 when looking at generated assembly code, for example.
 
@@ -403,7 +480,7 @@ Here is what a header file for the FOO kernel object should look like:
 
 ```cpp
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -421,11 +498,11 @@ Here is what a header file for the FOO kernel object should look like:
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf  
+namespace rajaperf
 {
 class RunParams; // Forward declaration for ctor arg.
 
-namespace basic   
+namespace basic
 {
 
 class FOO : public KernelBase
@@ -436,15 +513,15 @@ public:
 
   ~FOO();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tuning_idx);
+  void updateChecksum(VariantID vid, size_t tuning_idx);
+  void tearDown(VariantID vid, size_t tuning_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid); 
+  void runSeqVariant(VariantID vid, size_t tuning_idx);
+  void runOpenMPVariant(VariantID vid, size_t tuning_idx);
+  void runCudaVariant(VariantID vid, size_t tuning_idx);
+  void runHipVariant(VariantID vid, size_t tuning_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tuning_idx);
 
 private:
   // Kernel-specific data (pointers, scalars, etc.) as needed...
@@ -457,39 +534,39 @@ private:
 ```
 
 The kernel object header has a uniquely-named header file include guard and
-the class is nested within the `rajaperf` and `basic` namespaces. The 
+the class is nested within the `rajaperf` and `basic` namespaces. The
 constructor takes a reference to a `RunParams` object, which contains the
-input parameters for running the Suite -- we'll say more about this later. 
-The methods that take a variant ID argument must be provided as they are
-pure virtual in the KernelBase class. Their names are descriptive of what they
-do and we'll provide more details about them when we describe the class 
-implementation next.
+input parameters for running the Suite -- we'll say more about this later.
+The methods that take a variant ID and tuning index arguments must be provided
+as they are pure virtual in the KernelBase class. Their names are descriptive of
+what they do and we'll provide more details about them when we describe the
+class implementation next.
 
 #### Kernel class implementation
 
-Each kernel in the Suite follows a similar implementation pattern for 
-consistency and ease of analysis and understanding. Here, we describe several 
-key steps and conventions that must be followed to ensure that all kernels 
+Each kernel in the Suite follows a similar implementation pattern for
+consistency and ease of analysis and understanding. Here, we describe several
+key steps and conventions that must be followed to ensure that all kernels
 interact with the performance Suite machinery in the same way:
 
 1. Initialize the `KernelBase` class object with `KernelID` and `RunParams` object passed to the FOO class constructor.
-2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase`` class. See the *.cpp file for any existing kernel in the suite for examples of how this is done.
+2. In the class constructor, define kernel information. This includes: default problem size, default run repetition count, iterations per rep, kernels per rep, bytes per rep, FLOPs per rep, the RAJA features used by the kernel, and kernel variants defined (i.e., implemented) by calling the appropriate members in the `KernelBase` class. See the *.cpp file for any existing kernel in the suite for examples of how this is done. Note that tuning names are added in step 6.
 3. Implement data allocation and initialization operations for each kernel variant in the `setUp` method.
 4. Compute the checksum for each variant in the `updateChecksum` method.
 5. Deallocate and reset any data that will be allocated and/or initialized in subsequent kernel executions in the `tearDown` method.
-6. Implement kernel execution for the associated variants in the `run*Variant` methods in the proper source files.
+6. Implement kernel execution for the associated variants and tunings in the `run*Variant` methods in the proper source files. Add tuning names for the tunings of each variant by overriding the `KernelBase` methods `set*TuningDefinitions`. Note that this is not necessary if there is only one tuning.
 
 ##### Constructor and destructor
 
 It is important to note that there will only be one instance of each kernel
-class created by the program. Thus, each kernel class constructor and 
-destructor must only perform operations that are not specific to any kernel 
+class created by the program. Thus, each kernel class constructor and
+destructor must only perform operations that are not specific to any kernel
 variant.
 
 The constructor must pass the kernel ID and RunParams object to the base
 class `KernelBase` constructor. The body of the constructor must also call
-base class methods to set kernel information described above. Note that 
-the arguments passed to each method are specific to each kernel, in general. 
+base class methods to set kernel information described above. Note that
+the arguments passed to each method are specific to each kernel, in general.
 This code snippets shows a typical way this looks for a simple single for-loop
 data parallel kernel.
 
@@ -502,11 +579,11 @@ FOO::FOO(const RunParams& params)
                                    // to generate an execution run time value
 
   setActualProblemSize( getTargetProblemSize() );  // actual problem size may
-                                                   // be different than the 
+                                                   // be different than the
                                                    // default size based on
                                                    // user-provided run time
                                                    // options
- 
+
   setItsPerRep( getActualProblemSize() );
   setKernelsPerRep(1);
   setBytesPerRep( ... );  // value set based on data read and written when
@@ -531,32 +608,34 @@ owned by the class object as needed. Often, it is empty.
 
 ##### setUp() method
 
-The `setUp()` method is responsible for allocating and initializing data 
-necessary to run the kernel for the variant specified by its variant ID 
+The `setUp()` method is responsible for allocating and initializing data
+necessary to run the kernel for the variant specified by its variant ID
 argument. For example, a baseline variant may have aligned data allocation
 to help enable SIMD optimizations, an OpenMP variant may initialize arrays
-following a pattern of "first touch" based on how memory and threads are 
-mapped to CPU cores, a CUDA variant may initialize data in host memory, 
+following a pattern of "first touch" based on how memory and threads are
+mapped to CPU cores, a CUDA variant may initialize data in host memory,
 which will be copied to device memory when a CUDA variant executes, etc.
 
 It is important to use the same data allocation and initialization operations
 for all kernel variants so that checksums can be compared at the end of a run.
 
-Note: to simplify these operations and help ensure consistency, there exist 
+Note: to simplify these operations and help ensure consistency, there exist
 utility methods to allocate, initialize, deallocate, and copy data, and compute
 checksums defined in the `DataUtils.hpp` `CudaDataUtils.hpp`,
 `OpenMPTargetDataUtils.hpp`, etc. header files in the `common` directory.
 
 ##### run methods
 
-Which files contain which 'run' methods and associated variant implementations 
-is described above. Each method takes a variant ID argument which identifies
-the variant to be run. Each method is also responsible for calling base class 
-methods to start and stop execution timers when a loop variant is run. A 
-typical kernel execution code section may look like:
+Which files contain which 'run' methods and associated variant and tuning
+implementations is described above. Each method takes a variant ID argument
+which identifies the variant to be run and a tuning index which identifies
+the tuning of the variant to run. Note that the tuning index can be ignored
+when there is only one tuning. Each method is also responsible for calling base
+class methods to start and stop execution timers when a loop variant is run.
+A typical kernel execution code section may look like:
 
 ```cpp
-void Foo::runSeqVariant(VariantID vid)
+void Foo::runSeqVariant(VariantID vid, size_t /*tuning_idx*/)
 {
   const Index_type run_reps = getRunReps();
   // ...
@@ -573,7 +652,7 @@ void Foo::runSeqVariant(VariantID vid)
       }
       stopTimer();
 
-      break; 
+      break;
     }
 
 #if defined(RUN_RAJA_SEQ)
@@ -582,7 +661,7 @@ void Foo::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        // Implementation of Lambda_Seq kernel variant... 
+        // Implementation of Lambda_Seq kernel variant...
 
       }
       stopTimer();
@@ -605,7 +684,7 @@ void Foo::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  <kernel-name> : Unknown variant id = " << vid << std::endl;
     }
 
   }
@@ -617,61 +696,66 @@ pattern will ensure all new additions are consistent.
 
 Important notes:
 
-  * As mentioned earlier, there are multiple source files for each kernel.  
-    The reason for this is that it makes it easier to apply unique compiler 
-    flags to different variants and to manage compilation and linking issues 
-    that arise when some kernel variants are combined in the same translation 
+  * As mentioned earlier, there are multiple source files for each kernel.
+    The reason for this is that it makes it easier to apply unique compiler
+    flags to different variants and to manage compilation and linking issues
+    that arise when some kernel variants are combined in the same translation
     unit.
 
-  * For convenience, we make heavy use of macros to define data declarations 
+  * For convenience, we make heavy use of macros to define data declarations
     and kernel bodies in the Suite. While seemingly cryptic, this significantly
     reduces the amount of redundant code required to implement multiple variants
-    for each kernel and make sure things are the same as much as possible. The 
-    kernel class implementation files in the Suite provide many examples of 
+    for each kernel and make sure things are the same as much as possible. The
+    kernel class implementation files in the Suite provide many examples of
     the basic pattern we use.
+
+  * We also use macros to define some methods used with GPU block size tunings.
+    While seemingly cryptic, this significantly reduces the amount of redundant
+    code required to implement calling and naming each of the multiple tunings
+    for each kernel and make sure things are the same as much as possible.
 
 ##### updateChecksum() method
 
 The `updateChecksum()` method is responsible for adding the checksum
-for the current kernel (based on the data the kernel computes) to the 
-checksum value for the variant of the kernel just executed, which is held 
-in the KernelBase base class object. 
+for the current kernel (based on the data the kernel computes) to the
+checksum value for the variant and tuning of the kernel just executed, which is
+held in the KernelBase base class object.
 
 It is important that the checksum be computed in the same way for
-each variant of the kernel so that checksums for different variants can be 
-compared to help identify differences, and potential errors in 
+each variant of the kernel so that checksums for different variants can be
+compared to help identify differences, and potential errors in
 implementations, compiler optimizations, programming model execution, etc.
 
-Note: to simplify checksum computations and help ensure consistency, there 
+Note: to simplify checksum computations and help ensure consistency, there
 are methods to compute checksums, a weighted sum of array values for example,
 are defined in the `DataUtils.hpp` header file in the `common` directory.
 
 ##### tearDown() method
 
 The `tearDown()` method frees and/or resets all kernel data that is
-allocated and/or initialized in the `setUp()` method execution to prepare for 
+allocated and/or initialized in the `setUp()` method execution to prepare for
 other kernel variants run subsequently.
 
 
 ### Add object construction operation
 
-The `Executor` class in the `common` directory is responsible for creating 
-kernel objects for the kernels to be run based on the Suite input options. 
-To ensure a new kernel object will be created properly, add a call to its 
-class constructor based on its `KernelID` in the `getKernelObject()` 
+The `Executor` class in the `common` directory is responsible for creating
+kernel objects for the kernels to be run based on the Suite input options.
+To ensure a new kernel object will be created properly, add a call to its
+class constructor based on its `KernelID` in the `getKernelObject()`
 method in the `RAJAPerfSuite.cpp` file.
 
-  
+
 ## Adding a variant
 
 Each variant in the RAJA Performance Suite is identified by an enumeration
 value and a string name. Adding a new variant requires adding these two
-items similarly to adding those for a kernel as described above. 
+items similarly to adding those for a kernel as described above.
 
 ### Add the variant ID and name
 
-First, add an enumeration value identifier for the variant, that is unique 
-among all variants, in the enum 'VariantID' in the header file 
+First, add an enumeration value identifier for the variant, that is unique
+among all variants, in the enum 'VariantID' in the header file
 `RAJAPerfSuite.hpp`:
 
 ```cpp
@@ -702,13 +786,22 @@ and matching one-to-one).
 
 ### Add kernel variant implementations
 
-In the classes containing kernels to which the new variant applies, 
-add implementations for the variant in the setup, kernel execution, 
-checksum computation, and teardown methods as needed. Also, make sure to 
-define the variant for those kernels in the kernel class constructors by 
-calling `setVariantDefined(NewVariant)` so that the variant can be run. 
-These operations are described in earlier sections for adding a new kernel 
+In the classes containing kernels to which the new variant applies,
+add implementations for the variant in the setup, kernel execution,
+checksum computation, and teardown methods as needed. Also, make sure to
+define the variant for those kernels in the kernel class constructors by
+calling `setVariantDefined(NewVariant)` so that the variant can be run.
+These operations are described in earlier sections for adding a new kernel
 above.
+
+### Add kernel tuning implementations
+
+In the classes containing kernels to which the new tuning applies,
+add implementations for the tuning in the kernel execution and tuning naming
+methods as needed. Note that the tuning indices are determined by the order that
+the tuning names are added in the `set*TuningDefinitions` method. Therefore
+the `run*Variant` methods should have similar logic in order to run the correct
+tuning based on the index.
 
 * * *
 
@@ -722,20 +815,20 @@ RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentat
 
 # Contributions
 
-The RAJA Performance Suite is a work-in-progress, with new kernels and variants 
-added as new features and back-end support are developed in RAJA. We encourage 
-interested parties to contribute to it so that C++ compiler optimizations and 
-support for programming models like RAJA continue to improve. 
+The RAJA Performance Suite is a work-in-progress, with new kernels and variants
+added as new features and back-end support are developed in RAJA. We encourage
+interested parties to contribute to it so that C++ compiler optimizations and
+support for programming models like RAJA continue to improve.
 
 The Suite developers follow the [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/) development model. Folks wishing to contribute to the Suite,
-should include their work in a feature branch created from the Performance 
-Suite `develop` branch. Then, create a pull request with the `develop` branch 
-as the destination when it is ready to be reviewed. The `develop` branch 
+should include their work in a feature branch created from the Performance
+Suite `develop` branch. Then, create a pull request with the `develop` branch
+as the destination when it is ready to be reviewed. The `develop` branch
 contains the latest work in RAJA Performance Suite. Periodically, we merge the
 develop branch into the `main` branch and tag a new release.
 
-If you would like to contribute to the RAJA Performance Suite, or have 
-questions about doing so, please contact the maintainer of the Suite listed 
+If you would like to contribute to the RAJA Performance Suite, or have
+questions about doing so, please contact the maintainer of the Suite listed
 below.
 
 * * *
@@ -746,7 +839,7 @@ The primary developer/maintainer of the RAJA Performance Suite:
 
   * Rich Hornung (hornung1@llnl.gov)
 
-Please see the {RAJA Performance Suite Contributors Page](https://github.com/LLNL/RAJAPerf/graphs/contributors), to see the full list of contributors to the 
+Please see the {RAJA Performance Suite Contributors Page](https://github.com/LLNL/RAJAPerf/graphs/contributors), to see the full list of contributors to the
 project.
 
 * * *
@@ -785,18 +878,18 @@ text in the license header:
 
 # External Packages
 
-The RAJA Performance Suite has some external dependencies, which are included 
+The RAJA Performance Suite has some external dependencies, which are included
 as Git submodules. These packages are covered by various permissive licenses.
 A summary listing follows. See the license included with each package for
 full details.
 
-PackageName: BLT  
-PackageHomePage: https://github.com/LLNL/blt/  
+PackageName: BLT
+PackageHomePage: https://github.com/LLNL/blt/
 PackageLicenseDeclared: BSD-3-Clause
 
-PackageName: RAJA  
-PackageHomePage: http://github.com/LLNL/RAJA/  
-PackageLicenseDeclared: BSD-3-Clause 
+PackageName: RAJA
+PackageHomePage: http://github.com/LLNL/RAJA/
+PackageLicenseDeclared: BSD-3-Clause
 
 * * *
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -213,7 +213,7 @@ Index_type NE = m_NE;
         double(*QDD)[MD1][MD1] = (double(*)[MD1][MD1])sm1;
 
 #define MASS3DPA_1 \
-  RAJA_UNROLL(MD1) \
+  RAJAPERF_UNROLL(MD1) \
 for (int dz = 0; dz< MPA_D1D; ++dz) { \
 Xsmem[dz][dy][dx] = X_(dx, dy, dz, e); \
 }
@@ -224,18 +224,18 @@ Xsmem[dz][dy][dx] = X_(dx, dy, dz, e); \
 // 2 * MPA_D1D * MPA_D1D * MPA_D1D * MPA_Q1D
 #define MASS3DPA_3 \
   double u[MPA_D1D]; \
-RAJA_UNROLL(MD1) \
+RAJAPERF_UNROLL(MD1) \
 for (int dz = 0; dz < MPA_D1D; dz++) { \
 u[dz] = 0; \
 } \
-RAJA_UNROLL(MD1) \
+RAJAPERF_UNROLL(MD1) \
 for (int dx = 0; dx < MPA_D1D; ++dx) { \
-RAJA_UNROLL(MD1) \
+RAJAPERF_UNROLL(MD1) \
 for (int dz = 0; dz < MPA_D1D; ++dz) { \
 u[dz] += Xsmem[dz][dy][dx] * Bsmem[qx][dx]; \
 } \
 } \
-RAJA_UNROLL(MD1) \
+RAJAPERF_UNROLL(MD1) \
 for (int dz = 0; dz < MPA_D1D; ++dz) { \
 DDQ[dz][dy][qx] = u[dz]; \
 }
@@ -243,18 +243,18 @@ DDQ[dz][dy][qx] = u[dz]; \
 //2 * MPA_D1D * MPA_D1D * MPA_Q1D * MPA_Q1D
 #define MASS3DPA_4 \
             double u[MPA_D1D]; \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dz = 0; dz < MPA_D1D; dz++) { \
               u[dz] = 0; \
             } \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dy = 0; dy < MPA_D1D; ++dy) { \
-              RAJA_UNROLL(MD1) \
+              RAJAPERF_UNROLL(MD1) \
               for (int dz = 0; dz < MPA_D1D; dz++) { \
                 u[dz] += DDQ[dz][dy][qx] * Bsmem[qy][dy]; \
               } \
             } \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dz = 0; dz < MPA_D1D; dz++) { \
               DQQ[dz][qy][qx] = u[dz]; \
             }
@@ -262,18 +262,18 @@ DDQ[dz][dy][qx] = u[dz]; \
 //2 * MPA_D1D * MPA_Q1D * MPA_Q1D * MPA_Q1D + MPA_Q1D * MPA_Q1D * MPA_Q1D
 #define MASS3DPA_5 \
             double u[MPA_Q1D]; \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qz = 0; qz < MPA_Q1D; qz++) { \
               u[qz] = 0; \
             } \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dz = 0; dz < MPA_D1D; ++dz) { \
-              RAJA_UNROLL(MQ1) \
+              RAJAPERF_UNROLL(MQ1) \
               for (int qz = 0; qz < MPA_Q1D; qz++) { \
                 u[qz] += DQQ[dz][qy][qx] * Bsmem[qz][dz]; \
               } \
             } \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qz = 0; qz < MPA_Q1D; qz++) { \
               QQQ[qz][qy][qx] = u[qz] * D_(qx, qy, qz, e); \
             }
@@ -284,18 +284,18 @@ DDQ[dz][dy][qx] = u[dz]; \
 //2 * MPA_Q1D * MPA_Q1D * MPA_Q1D * MPA_D1D
 #define MASS3DPA_7 \
   double u[MPA_Q1D]; \
-RAJA_UNROLL(MQ1) \
+RAJAPERF_UNROLL(MQ1) \
 for (int qz = 0; qz < MPA_Q1D; ++qz) { \
   u[qz] = 0; \
  } \
-RAJA_UNROLL(MQ1) \
+RAJAPERF_UNROLL(MQ1) \
 for (int qx = 0; qx < MPA_Q1D; ++qx) { \
-  RAJA_UNROLL(MQ1) \
+  RAJAPERF_UNROLL(MQ1) \
     for (int qz = 0; qz < MPA_Q1D; ++qz) { \
       u[qz] += QQQ[qz][qy][qx] * Btsmem[dx][qx]; \
     } \
  } \
-RAJA_UNROLL(MQ1) \
+RAJAPERF_UNROLL(MQ1) \
 for (int qz = 0; qz < MPA_Q1D; ++qz) { \
   QQD[qz][qy][dx] = u[qz]; \
  }
@@ -303,18 +303,18 @@ for (int qz = 0; qz < MPA_Q1D; ++qz) { \
 // 2 * MPA_Q1D * MPA_Q1D * MPA_D1D * MPA_D1D
 #define MASS3DPA_8 \
             double u[MPA_Q1D]; \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qz = 0; qz < MPA_Q1D; ++qz) { \
               u[qz] = 0; \
             } \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qy = 0; qy < MPA_Q1D; ++qy) { \
-              RAJA_UNROLL(MQ1) \
+              RAJAPERF_UNROLL(MQ1) \
               for (int qz = 0; qz < MPA_Q1D; ++qz) { \
                 u[qz] += QQD[qz][qy][dx] * Btsmem[dy][qy]; \
               } \
             } \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qz = 0; qz < MPA_Q1D; ++qz) { \
               QDD[qz][dy][dx] = u[qz]; \
             }
@@ -322,36 +322,22 @@ for (int qz = 0; qz < MPA_Q1D; ++qz) { \
 //2 * MPA_Q1D * MPA_D1D * MPA_D1D * MPA_D1D + MPA_D1D * MPA_D1D * MPA_D1D
 #define MASS3DPA_9 \
             double u[MPA_D1D]; \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dz = 0; dz < MPA_D1D; ++dz) { \
               u[dz] = 0; \
             } \
-            RAJA_UNROLL(MQ1) \
+            RAJAPERF_UNROLL(MQ1) \
             for (int qz = 0; qz < MPA_Q1D; ++qz) { \
-              RAJA_UNROLL(MD1) \
+              RAJAPERF_UNROLL(MD1) \
               for (int dz = 0; dz < MPA_D1D; ++dz) { \
                 u[dz] += QDD[qz][dy][dx] * Btsmem[dz][qz]; \
               } \
             } \
-            RAJA_UNROLL(MD1) \
+            RAJAPERF_UNROLL(MD1) \
             for (int dz = 0; dz < MPA_D1D; ++dz) { \
               Y_(dx, dy, dz, e) += u[dz]; \
             }
 
-
-#if defined(RAJA_ENABLE_CUDA)
-  using m3d_device_launch = RAJA::expt::cuda_launch_t<true>;
-  using m3d_gpu_block_x_policy = RAJA::cuda_block_x_direct;
-  using m3d_gpu_thread_x_policy = RAJA::cuda_thread_x_loop;
-  using m3d_gpu_thread_y_policy = RAJA::cuda_thread_y_loop;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  using m3d_device_launch = RAJA::expt::hip_launch_t<true>;
-  using m3d_gpu_block_x_policy = RAJA::hip_block_x_direct;
-  using m3d_gpu_thread_x_policy = RAJA::hip_thread_x_loop;
-  using m3d_gpu_thread_y_policy = RAJA::hip_thread_y_loop;
-#endif
 
 namespace rajaperf
 {
@@ -368,17 +354,26 @@ public:
 
   ~MASS3DPA();
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = MPA_Q1D * MPA_Q1D;
+  using gpu_block_sizes_type = gpu_block_size::list_type<default_gpu_block_size>;
 
   Real_ptr m_B;
   Real_ptr m_Bt;

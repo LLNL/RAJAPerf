@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -13,13 +13,13 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
 
 
-void FIR::runOpenMPVariant(VariantID vid)
+void FIR::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -37,7 +37,7 @@ void FIR::runOpenMPVariant(VariantID vid)
   auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
-  
+
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -87,12 +87,12 @@ void FIR::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  FIR : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  FIR : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

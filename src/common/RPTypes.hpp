@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -17,7 +17,7 @@
 
 //
 // Only one of the following (double or float) should be defined.
-// 
+//
 #define RP_USE_DOUBLE
 //#undef RP_USE_DOUBLE
 
@@ -41,7 +41,7 @@ namespace rajaperf
  *
  * \brief Type used for indexing in all kernel repetition loops.
  *
- * It is volatile to ensure that kernels will not be optimized away by 
+ * It is volatile to ensure that kernels will not be optimized away by
  * compilers, which can happen in some circumstances.
  *
  ******************************************************************************
@@ -81,6 +81,8 @@ using Int_ptr = Int_type*;
  ******************************************************************************
  */
 using Checksum_type = long double;
+///
+#define Checksum_MPI_type MPI_LONG_DOUBLE
 
 
 /*!

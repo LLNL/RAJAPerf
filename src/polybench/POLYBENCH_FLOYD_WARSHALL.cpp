@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -23,7 +23,7 @@ POLYBENCH_FLOYD_WARSHALL::POLYBENCH_FLOYD_WARSHALL(const RunParams& params)
 {
   Index_type N_default = 1000;
 
-  setDefaultProblemSize( N_default * N_default ); 
+  setDefaultProblemSize( N_default * N_default );
   setDefaultReps(8);
 
   m_N = std::sqrt( getTargetProblemSize() ) + 1;
@@ -66,19 +66,19 @@ POLYBENCH_FLOYD_WARSHALL::~POLYBENCH_FLOYD_WARSHALL()
 {
 }
 
-void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitDataRandSign(m_pin, m_N*m_N, vid);
   allocAndInitDataConst(m_pout, m_N*m_N, 0.0, vid);
 }
 
-void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_pin);

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -18,7 +18,7 @@ namespace rajaperf
 namespace polybench
 {
 
-void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
+void POLYBENCH_ATAX::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps= getRunReps();
 
@@ -57,19 +57,19 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, 
+      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY2;
                                  };
-      auto poly_atax_base_lam3 = [=] (Index_type i, 
+      auto poly_atax_base_lam3 = [=] (Index_type i,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY3;
                                   };
-      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , 
+      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j ,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY5;
                                   };
-      auto poly_atax_base_lam6 = [=] (Index_type j, 
+      auto poly_atax_base_lam6 = [=] (Index_type j,
                                       Real_type &dot) {
                                    POLYBENCH_ATAX_BODY6;
                                   };
@@ -148,8 +148,8 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL1>( 
-          RAJA::make_tuple(RAJA::RangeSegment{0, N}, 
+        RAJA::kernel_param<EXEC_POL1>(
+          RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
 
@@ -158,8 +158,8 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
           poly_atax_lam3
 
         );
-        
-        RAJA::kernel_param<EXEC_POL2>( 
+
+        RAJA::kernel_param<EXEC_POL2>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
@@ -178,7 +178,7 @@ void POLYBENCH_ATAX::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown variant id = " << vid << std::endl;
     }
 
   }

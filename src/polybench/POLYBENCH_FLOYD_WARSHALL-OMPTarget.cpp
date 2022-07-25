@@ -1,10 +1,10 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "POLYBENCH_FLOYD_WARSHALL.hpp"
 
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -35,7 +35,7 @@ namespace polybench
   deallocOpenMPDeviceData(pout, did);
 
 
-void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -98,7 +98,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -107,4 +107,4 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

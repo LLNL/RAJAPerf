@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -25,12 +25,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
   allocAndInitCudaDeviceData(y, m_y, m_array_length); \
@@ -48,6 +42,8 @@ namespace apps
   deallocCudaDeviceData(div); \
   deallocCudaDeviceData(real_zones);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void deldotvec2d(Real_ptr div,
                             const Real_ptr x1, const Real_ptr x2,
                             const Real_ptr x3, const Real_ptr x4,
@@ -61,7 +57,7 @@ __global__ void deldotvec2d(Real_ptr div,
                             const Real_type half, const Real_type ptiny,
                             Index_type iend)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type ii = blockIdx.x * block_size + threadIdx.x;
    if (ii < iend) {
      DEL_DOT_VEC_2D_BODY_INDEX;
      DEL_DOT_VEC_2D_BODY;
@@ -69,7 +65,8 @@ __global__ void deldotvec2d(Real_ptr div,
 }
 
 
-void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
@@ -90,7 +87,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      deldotvec2d<<<grid_size, block_size>>>(div,
+      deldotvec2d<block_size><<<grid_size, block_size>>>(div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -119,7 +116,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         0, iend,
         [=] __device__ (Index_type ii) {
 
@@ -142,7 +139,7 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    camp::resources::Resource working_res{camp::resources::Cuda()};
+    camp::resources::Resource working_res{camp::resources::Cuda::get_default()};
     RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                              m_domain->n_real_zones,
                                              working_res);
@@ -161,9 +158,11 @@ void DEL_DOT_VEC_2D::runCudaVariant(VariantID vid)
     DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DEL_DOT_VEC_2D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

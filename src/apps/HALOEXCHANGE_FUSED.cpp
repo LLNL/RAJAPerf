@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -104,7 +104,7 @@ HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
-void HALOEXCHANGE_FUSED::setUp(VariantID vid)
+void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
@@ -132,14 +132,14 @@ void HALOEXCHANGE_FUSED::setUp(VariantID vid)
   }
 }
 
-void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid)
+void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
-    checksum[vid] += calcChecksum(var, m_var_size);
+    checksum[vid][tune_idx] += calcChecksum(var, m_var_size);
   }
 }
 
-void HALOEXCHANGE_FUSED::tearDown(VariantID vid)
+void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
     deallocData(m_buffers[l]);

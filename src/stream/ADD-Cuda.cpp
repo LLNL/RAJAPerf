@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define ADD_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
@@ -38,17 +32,20 @@ namespace stream
   deallocCudaDeviceData(b); \
   deallocCudaDeviceData(c);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
                      Index_type iend)
 {
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
     ADD_BODY;
   }
 }
 
 
-void ADD::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void ADD::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -64,7 +61,7 @@ void ADD::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      add<<<grid_size, block_size>>>( c, a, b,
+      add<block_size><<<grid_size, block_size>>>( c, a, b,
                                       iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -81,7 +78,7 @@ void ADD::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         ADD_BODY;
       });
@@ -110,9 +107,11 @@ void ADD::runCudaVariant(VariantID vid)
     ADD_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

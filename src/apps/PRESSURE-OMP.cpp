@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,13 +12,13 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
 
 
-void PRESSURE::runOpenMPVariant(VariantID vid)
+void PRESSURE::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -34,7 +34,7 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
   auto pressure_lam2 = [=](Index_type i) {
                          PRESSURE_BODY2;
                        };
-  
+
   switch ( vid ) {
 
     case Base_OpenMP : {
@@ -111,12 +111,12 @@ void PRESSURE::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  PRESSURE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
-#else 
+#else
   RAJA_UNUSED_VAR(vid);
 #endif
 }

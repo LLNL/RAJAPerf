@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -27,7 +27,7 @@ namespace basic
   const size_t threads_per_team = 256;
 
 
-void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
+void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -43,8 +43,8 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       Real_type pi = m_pi_init;
-     
-      #pragma omp target device( did ) map(tofrom:pi) 
+
+      #pragma omp target device( did ) map(tofrom:pi)
       #pragma omp teams distribute parallel for reduction(+:pi) \
               thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
@@ -60,11 +60,11 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
- 
-      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init); 
+
+      RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), 
+        RAJA::RangeSegment(ibegin, iend),
         [=](Index_type i) {
           PI_REDUCE_BODY;
       });
@@ -75,7 +75,7 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
   } else {
-    std::cout << "\n  PI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
+    getCout() << "\n  PI_REDUCE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }

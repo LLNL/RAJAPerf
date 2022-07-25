@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
@@ -44,7 +44,7 @@ namespace polybench
   deallocOpenMPDeviceData(A, did);
 
 
-void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
+void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -66,7 +66,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
         }
         POLYBENCH_ATAX_BODY3;
       }
-        
+
       #pragma omp target is_device_ptr(y,tmp,A) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type j = 0; j < N; ++j ) {
@@ -153,7 +153,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
     POLYBENCH_ATAX_TEARDOWN_OMP_TARGET;
 
   } else {
-      std::cout << "\n  POLYBENCH_ATAX : Unknown OMP Target variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_ATAX : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }
@@ -162,4 +162,4 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_TARGET_OPENMP
-  
+

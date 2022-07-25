@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJA/COPYRIGHT file for details.
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -19,6 +19,7 @@ build_root=${BUILD_ROOT:-""}
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
+raja_version=${UPDATE_RAJA:-""}
 
 sys_type=${SYS_TYPE:-""}
 py_env_path=${PYTHON_ENVIRONMENT_PATH:-""}
@@ -55,7 +56,9 @@ then
         prefix_opt="--prefix=${prefix}"
     fi
 
-    python scripts/uberenv/uberenv.py --spec="${spec}" ${prefix_opt}
+    python3 tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+
+    mv ${project_dir}/tpl/RAJA/hc-*.cmake ${project_dir}/.
 
 fi
 date
@@ -103,6 +106,10 @@ then
     echo "~ Build Dir:   ${build_dir}"
     echo "~ Project Dir: ${project_dir}"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo ""
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~ ENV ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ Building RAJA PerfSuite"
@@ -110,6 +117,21 @@ then
 
     # Map CPU core allocations
     declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32)
+
+    # If using Multi-project, set up the submodule
+    if [[ -n ${raja_version} ]]
+    then
+      cd tpl/RAJA  
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating RAJA Submodule to develop ~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      git pull origin develop
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      echo "~~~~ Updating Submodules within RAJA ~~~~~~"
+      echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      git submodule update --init --recursive
+      cd -
+    fi
 
     # If building, then delete everything first
     # NOTE: 'cmake --build . -j core_counts' attempts to reduce individual build resources.
@@ -119,6 +141,12 @@ then
     mkdir -p ${build_dir} && cd ${build_dir}
 
     date
+
+    if [[ "${truehostname}" == "corona" ]]
+    then
+        module unload rocm
+    fi
+
     cmake \
       -C ${hostconfig_path} \
       ${project_dir}
@@ -136,10 +164,6 @@ then
     date
 fi
 
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "~~~~~ RUNNING RAJAPERF SUITE"
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
 if [[ ! -d ${build_dir} ]]
 then
     echo "ERROR: Build directory not found : ${build_dir}" && exit 1
@@ -147,34 +171,60 @@ fi
 
 cd ${build_dir}
 
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~ TESTING RAJAPERF SUITE"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
 if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
+
+    #
+    # Maintaining separate, but identical release and debug sections 
+    # in case we want to make them disctinct in the future.
+    #
+
     if echo ${sys_type} | grep -q "blueos" && echo ${spec} | grep -q "cuda" ; then
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 --smpiargs='-disable_gpu_hooks' /bin/raja-perf.exe -sp"
+            echo "lrun -n1 ... ctest --output-on-failure -T test"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         else
-            lrun -n1 --smpiargs="-disable_gpu_hooks" ./bin/raja-perf.exe --checkrun -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "lrun -n1 --smpiargs='-disable_gpu_hook' ./bin/raja-perf.exe --checkrun -sp"
+            echo "lrun -n1 ... ctest --output-on-failure -T test"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         fi
     else
         if grep -q -i "CMAKE_BUILD_TYPE.*Release" ${hostconfig_path}
         then
-            ./bin/raja-perf.exe -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe -sp"
+            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         else
-            ./bin/raja-perf.exe --checkrun -sp
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
-            echo "./bin/raja-perf.exe --checkrun -sp"
+            echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
             echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         fi
+    fi
+
+    no_test_str="No tests were found!!!"
+    if [[ "$(tail -n 1 tests_output.txt)" == "${no_test_str}" ]]
+    then
+        echo "ERROR: No tests were found" && exit 1
+    fi
+
+    echo "Copying Testing xml reports for export"
+    tree Testing
+    xsltproc -o junit.xml ${project_dir}/blt/tests/ctest-to-junit.xsl Testing/*/Test.xml
+    mv junit.xml ${project_dir}/junit.xml
+
+    if grep -q "Errors while running CTest" ./tests_output.txt
+    then
+        echo "ERROR: failure(s) while running CTest" && exit 1
     fi
 fi
 

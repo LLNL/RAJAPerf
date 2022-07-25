@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -45,6 +45,7 @@ cmake \
   -DCMAKE_C_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/clang \
   -DCMAKE_CXX_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/clang++ \
   -DHIP_HIPCC_FLAGS=--offload-arch=${COMP_ARCH} \
+  -DBLT_CXX_STD=c++14 \ 
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_HIP=ON \
   -DENABLE_OPENMP=OFF \

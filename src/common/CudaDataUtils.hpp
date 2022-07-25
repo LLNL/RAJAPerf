@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -18,12 +18,26 @@
 
 #if defined(RAJA_ENABLE_CUDA)
 
+#include "common/GPUUtils.hpp"
 
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 
 namespace rajaperf
 {
+
+/*!
+ * \brief Device timer, returns a time in ns from an arbitrary starting point.
+ * Note that this time is consistent across the whole device.
+ */
+__device__ __forceinline__ unsigned long long device_timer()
+{
+  unsigned long long global_timer = 0;
+#if __CUDA_ARCH__ >= 300
+  asm volatile ("mov.u64 %0, %globaltimer;" : "=l"(global_timer));
+#endif
+  return global_timer;
+}
 
 /*!
  * \brief Simple forall cuda kernel that runs a lambda.
@@ -36,6 +50,16 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
     body(i);
   }
 }
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda body)
+{
+  Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
+  if (i < iend) {
+    body(i);
+  }
+}
 
 /*!
  * \brief Simple cuda kernel that runs a lambda.
@@ -43,7 +67,14 @@ __global__ void lambda_cuda_forall(Index_type ibegin, Index_type iend, Lambda bo
 template < typename Lambda >
 __global__ void lambda_cuda(Lambda body)
 {
-    body();
+  body();
+}
+///
+template < size_t block_size, typename Lambda >
+__launch_bounds__(block_size)
+__global__ void lambda_cuda(Lambda body)
+{
+  body();
 }
 
 /*!

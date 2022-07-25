@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -65,7 +65,7 @@ namespace apps
   deallocOpenMPDeviceData(qq_old, did); \
   deallocOpenMPDeviceData(vnewc, did);
 
-void ENERGY::runOpenMPTargetVariant(VariantID vid)
+void ENERGY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -123,7 +123,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
       for (Index_type i = ibegin; i < iend; ++i ) {
         ENERGY_BODY6;
       }
-        
+
     }
     stopTimer();
 
@@ -157,7 +157,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY4;
         });
-  
+
         RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           ENERGY_BODY5;
@@ -176,7 +176,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid)
     ENERGY_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  ENERGY : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  ENERGY : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define PRESSURE_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(compression, m_compression, iend); \
   allocAndInitHipDeviceData(bvc, m_bvc, iend); \
@@ -42,30 +36,35 @@ namespace apps
   deallocHipDeviceData(e_old); \
   deallocHipDeviceData(vnewc);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
                               const Real_type cls,
                               Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      PRESSURE_BODY1;
    }
 }
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void pressurecalc2(Real_ptr p_new, Real_ptr bvc, Real_ptr e_old,
                               Real_ptr vnewc,
                               const Real_type p_cut, const Real_type eosvmax,
                               const Real_type pmin,
                               Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      PRESSURE_BODY2;
    }
 }
 
 
-void PRESSURE::runHipVariant(VariantID vid)
+template < size_t block_size >
+void PRESSURE::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
@@ -82,12 +81,12 @@ void PRESSURE::runHipVariant(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-       hipLaunchKernelGGL((pressurecalc1), dim3(grid_size), dim3(block_size), 0, 0,  bvc, compression,
+       hipLaunchKernelGGL((pressurecalc1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  bvc, compression,
                                                  cls,
                                                  iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((pressurecalc2), dim3(grid_size), dim3(block_size), 0, 0,  p_new, bvc, e_old,
+       hipLaunchKernelGGL((pressurecalc2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
@@ -126,9 +125,11 @@ void PRESSURE::runHipVariant(VariantID vid)
     PRESSURE_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PRESSURE, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

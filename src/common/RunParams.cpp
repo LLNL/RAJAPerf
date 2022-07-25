@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -29,10 +29,12 @@ RunParams::RunParams(int argc, char** argv)
  : input_state(Undefined),
    show_progress(false),
    npasses(1),
+   npasses_combiners(),
    rep_fact(1.0),
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -48,6 +50,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_feature_input(),
    exclude_feature_input(),
    invalid_exclude_feature_input(),
+   npasses_combiner_input(),
+   invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
 {
@@ -78,10 +82,26 @@ void RunParams::print(std::ostream& str) const
 {
   str << "\n show_progress = " << show_progress;
   str << "\n npasses = " << npasses;
+  str << "\n npasses combiners = ";
+  for (size_t j = 0; j < npasses_combiners.size(); ++j) {
+    str << "\n\t" << CombinerOptToStr(npasses_combiners[j]);
+  }
+  str << "\n npasses_combiners_input = ";
+  for (size_t j = 0; j < npasses_combiner_input.size(); ++j) {
+    str << "\n\t" << npasses_combiner_input[j];
+  }
+  str << "\n invalid_npasses_combiners_input = ";
+  for (size_t j = 0; j < invalid_npasses_combiner_input.size(); ++j) {
+    str << "\n\t" << invalid_npasses_combiner_input[j];
+  }
   str << "\n rep_fact = " << rep_fact;
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n gpu_block_sizes = ";
+  for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
+    str << "\n\t" << gpu_block_sizes[j];
+  }
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
   str << "\n reference_variant = " << reference_variant;
@@ -156,7 +176,7 @@ void RunParams::print(std::ostream& str) const
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
-  std::cout << "\n\nReading command line input..." << std::endl;
+  getCout() << "\n\nReading command line input..." << std::endl;
 
   for (int i = 1; i < argc; ++i) {
 
@@ -165,7 +185,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     if ( opt == std::string("--help") ||
          opt == std::string("-h") ) {
 
-      printHelpMessage(std::cout);
+      printHelpMessage(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--show-progress") ||
@@ -176,31 +196,31 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     } else if ( opt == std::string("--print-kernels") ||
                 opt == std::string("-pk") ) {
 
-      printFullKernelNames(std::cout);
+      printFullKernelNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-variants") ||
                 opt == std::string("-pv") ) {
 
-      printVariantNames(std::cout);
+      printVariantNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
                 opt == std::string("-pf") ) {
 
-      printFeatureNames(std::cout);
+      printFeatureNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-feature-kernels") ||
                 opt == std::string("-pfk") ) {
 
-      printFeatureKernels(std::cout);
+      printFeatureKernels(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-kernel-features") ||
                 opt == std::string("-pkf") ) {
 
-      printKernelFeatures(std::cout);
+      printKernelFeatures(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--npasses") ) {
@@ -209,10 +229,25 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         npasses = ::atoi( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --npasses a value for number of passes (int)"
                   << std::endl;
         input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--npasses-combiners") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          npasses_combiner_input.push_back(opt);
+          ++i;
+        }
       }
 
     } else if ( opt == std::string("--repfact") ) {
@@ -221,7 +256,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         rep_fact = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --rep_fact a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -232,7 +267,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       i++;
       if ( i < argc ) {
         if (size_meaning == SizeMeaning::Direct) {
-          std::cout << "\nBad input:"
+          getCout() << "\nBad input:"
                     << " may only set one of --size and --sizefact"
                     << std::endl;
           input_state = BadInput;
@@ -241,14 +276,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           if ( size_factor >= 0.0 ) {
             size_meaning = SizeMeaning::Factor;
           } else {
-            std::cout << "\nBad input:"
+            getCout() << "\nBad input:"
                   << " must give --sizefact a POSITIVE value (double)"
                   << std::endl;
             input_state = BadInput;
           }
         }
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --sizefact a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -259,7 +294,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       i++;
       if ( i < argc ) {
         if (size_meaning == SizeMeaning::Factor) {
-          std::cout << "\nBad input:"
+          getCout() << "\nBad input:"
                     << " may only set one of --size and --sizefact"
                     << std::endl;
           input_state = BadInput;
@@ -268,15 +303,46 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           if ( size >= 0.0 ) {
             size_meaning = SizeMeaning::Direct;
           } else {
-            std::cout << "\nBad input:"
+            getCout() << "\nBad input:"
                   << " must give --size a POSITIVE value (double)"
                   << std::endl;
             input_state = BadInput;
           }
         }
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --size a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--gpu_block_size") ) {
+
+      bool got_someting = false;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          got_someting = true;
+          int gpu_block_size = ::atoi( opt.c_str() );
+          if ( gpu_block_size <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --gpu_block_size POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else {
+            gpu_block_sizes.push_back(gpu_block_size);
+          }
+          ++i;
+        }
+      }
+      if (!got_someting) {
+        getCout() << "\nBad input:"
+                  << " must give --gpu_block_size one or more values (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -288,7 +354,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if ( i < argc ) {
         pf_tol = ::atof( argv[i] );
       } else {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --pass-fail-tol (or -pftol) a value (double)"
                   << std::endl;
         input_state = BadInput;
@@ -455,8 +521,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       input_state = BadInput;
 
       std::string huh(argv[i]);
-      std::cout << "\nUnknown option: " << huh << std::endl;
-      std::cout.flush();
+      getCout() << "\nUnknown option: " << huh << std::endl;
+      getCout().flush();
 
     }
 
@@ -466,6 +532,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
   if (size_meaning == SizeMeaning::Unset) {
     size_meaning = SizeMeaning::Factor;
     size_factor = 1.0;
+  }
+
+  // Default npasses_combiners if no input
+  if (npasses_combiner_input.empty()) {
+    npasses_combiners.emplace_back(CombinerOpt::Average);
   }
 }
 
@@ -494,7 +565,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --npasses <int> [default is 1]\n"
       << "\t      (num passes through Suite)\n";
   str << "\t\t Example...\n"
-      << "\t\t --npasses 2 (runs complete Suite twice\n\n";
+      << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
+
+  str << "\t --npasses-combiners <space-separated strings> [Default is average]\n"
+      << "\t      (Ways of combining npasses timing data into timing files)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
+      << "\t\t   max timing .csv files)\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
       << "\t      (multiplier on default # reps to run each kernel)\n";
@@ -512,6 +589,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+
+  str << "\t --gpu_block_size <space-separated ints> [no default]\n"
+      << "\t      (block sizes to run for all GPU kernels)\n"
+      << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
+      << "\t      (Support is determined by kernel implementation and cmake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";

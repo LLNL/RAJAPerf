@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-21, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,11 +12,13 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
 #include "rajaperf_config.hpp"
 #endif
 
 #include <iosfwd>
+#include <streambuf>
+#include <memory>
 #include <utility>
 #include <set>
 
@@ -28,7 +30,8 @@ class WarmupKernel;
 /*!
  *******************************************************************************
  *
- * \brief Class that assembles kernels and variants to run and executes them.
+ * \brief Class that assembles kernels, variants, and tunings to run and
+ *        executes them.
  *
  *******************************************************************************
  */
@@ -58,30 +61,43 @@ private:
   };
 
   struct FOMGroup {
-    VariantID base;
     std::vector<VariantID> variants;
   };
+
+  template < typename Kernel >
+  KernelBase* makeKernel();
+
+  void runKernel(KernelBase* kern, bool print_kernel_name);
+
+  std::unique_ptr<std::ostream> openOutputFile(const std::string& filename) const;
 
   bool haveReferenceVariant() { return reference_vid < NumVariants; }
 
   void writeKernelInfoSummary(std::ostream& str, bool to_file) const;
 
-  void writeCSVReport(const std::string& filename, CSVRepMode mode,
-                      size_t prec);
-  std::string getReportTitle(CSVRepMode mode);
-  long double getReportDataEntry(CSVRepMode mode,
-                                 KernelBase* kern, VariantID vid);
+  void writeCSVReport(std::ostream& file, CSVRepMode mode,
+                      RunParams::CombinerOpt combiner, size_t prec);
+  std::string getReportTitle(CSVRepMode mode, RunParams::CombinerOpt combiner);
+  long double getReportDataEntry(CSVRepMode mode, RunParams::CombinerOpt combiner,
+                                 KernelBase* kern, VariantID vid, size_t tune_idx);
 
-  void writeChecksumReport(const std::string& filename);
+  void writeChecksumReport(std::ostream& file);
 
-  void writeFOMReport(const std::string& filename);
+  void writeFOMReport(std::ostream& file, std::vector<FOMGroup>& fom_groups);
   void getFOMGroups(std::vector<FOMGroup>& fom_groups);
 
   RunParams run_params;
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
+  std::vector<std::string> tuning_names[NumVariants];
 
   VariantID reference_vid;
+  size_t    reference_tune_idx;
+
+public:
+  // Methods for verification testing in CI.
+  std::vector<KernelBase*> getKernels() const { return kernels; }
+  std::vector<VariantID> getVariantIDs() const { return variant_ids; }
 
 };
 
