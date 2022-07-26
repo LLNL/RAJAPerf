@@ -132,7 +132,8 @@ if (RAJA_PERFSUITE_USE_CALIPER)
    find_package(adiak REQUIRED)
    # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
    list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
-   message(STATUS "Using Adiak")
+   message(STATUS "Using Adiak INCLUDES: ${adiak_INCLUDE_DIRS}")
+   include_directories(${adiak_INCLUDE_DIRS})
    if (ENABLE_CUDA)
       # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
       # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
