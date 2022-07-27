@@ -31,22 +31,24 @@
 namespace rajaperf {
 
 struct configuration {
+#ifdef RAJA_PERFSUITE_USE_CALIPER
 constexpr static const char* perfsuite_version = "@CMAKE_PROJECT_VERSION@";
 constexpr static const char* raja_version = "@RAJA_LOADED@";
 constexpr static const char* cmake_build_type = "@CMAKE_BUILD_TYPE@";
-constexpr static const char* compiler = "@RAJAPERF_COMPILER@"; 
+constexpr static const char* cmake_cxx_flags = "@CMAKE_CXX_FLAGS@";
+constexpr static const char* cmake_exe_linker_flags = "@CMAKE_EXE_LINKER_FLAGS@";
+constexpr static const char* rajaperf_compiler = "@RAJAPERF_COMPILER@"; 
+constexpr static const char* rajaperf_compiler_options = "@RAJAPERF_COMPILER_OPTIONS@"; 
 constexpr static const char* compiler_version = "@CMAKE_CXX_COMPILER_VERSION@"; 
-constexpr static const char* compiler_flags = "@CMAKE_CXX_FLAGS@"; 
-constexpr static const char* compiler_flags_release = "@CMAKE_CXX_FLAGS_RELEASE@"; 
-constexpr static const char* compiler_flags_relwithdebinfo = "@CMAKE_CXX_FLAGS_RELWITHDEBINFO@"; 
-constexpr static const char* compiler_flags_debug = "@CMAKE_CXX_FLAGS_DEBUG@"; 
 constexpr static const char* cuda_compiler_version = "@CMAKE_CUDA_COMPILER_VERSION@"; 
-constexpr static const char* cuda_flags = "@CMAKE_CUDA_FLAGS@"; 
-constexpr static const char* cuda_flags_release = "@CMAKE_CUDA_FLAGS_RELEASE@"; 
-constexpr static const char* cuda_flags_relwithdebinfo = "@CMAKE_CUDA_FLAGS_RELWITHDEBINFO@"; 
-constexpr static const char* cuda_flags_debug = "@CMAKE_CUDA_FLAGS_DEBUG@"; 
+constexpr static const char* gpu_targets = "@GPU_TARGETS@"; 
+constexpr static const char* cmake_hip_architectures = "@CMAKE_HIP_ARCHIECTURES@"; 
+constexpr static const char* gpu_targets_block_sizes = "@RAJA_PERFSUITE_GPU_BLOCKSIZES@"; 
+constexpr static const char* raja_hipcc_flags = "@RAJA_HIPCC_FLAGS@"; 
+constexpr static const char* mpi_cxx_compiler = "@MPI_CXX_COMPILER@"; 
 constexpr static const char* systype_build = "@RAJAPERF_BUILD_SYSTYPE@"; 
 constexpr static const char* machine_build = "@RAJAPERF_BUILD_HOST@"; 
+#endif
 #if 0
 // Version of RAJA Perf Suite (ex: 0.1.0)
 static const std::string perfsuite_version =

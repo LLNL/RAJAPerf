@@ -123,22 +123,21 @@ endif()
 #
 # Are we using Caliper
 #
-set(ENABLE_CALIPER off CACHE BOOL "")
-set(RAJAPERF_USE_CALIPER off)
-if (ENABLE_CALIPER)
+set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
+if (RAJA_PERFSUITE_USE_CALIPER)
    find_package(caliper REQUIRED)
    list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
-   set(RAJAPERF_USE_CALIPER on)
-   add_definitions(-DRAJAPERF_USE_CALIPER)
+   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
    message(STATUS "Using Caliper")
    find_package(adiak REQUIRED)
    # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
    list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
-   message(STATUS "Using Adiak")
+   message(STATUS "Using Adiak INCLUDES: ${adiak_INCLUDE_DIRS}")
+   include_directories(${adiak_INCLUDE_DIRS})
    if (ENABLE_CUDA)
       # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
       # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
-      set_target_properties(adiak PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
    endif ()
 endif ()
 

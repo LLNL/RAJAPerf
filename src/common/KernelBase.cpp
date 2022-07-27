@@ -191,7 +191,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     return;
   }
 
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   if(doCaliperTiming) {
     KernelBase::setCaliperMgrStart(vid);
   }
@@ -267,7 +267,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     }
 
   }
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   if(doCaliperTiming) {
     setCaliperMgrStop(vid); 
   }
@@ -341,7 +341,7 @@ void KernelBase::print(std::ostream& os) const
   }
   os << std::endl;
 }
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
 // initialize a KernelBase static 
 std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 #endif

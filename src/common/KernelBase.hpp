@@ -32,26 +32,29 @@
 #include <map>
 #include <limits>
 
-#ifdef RAJAPERF_USE_CALIPER
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-#include <adiak.hpp>
+#ifdef RAJA_PERFSUITE_USE_CALIPER
 
 #define CALI_START \
-    if (doCaliperTiming) { \
+    if(doCaliperTiming) { \
+      std::string tstr = getVariantTuningName(running_variant,running_tuning); \
       std::string kstr = getName(); \
+      std::string ktstr = kstr + "." + tstr; \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
       CALI_MARK_BEGIN(vstr.c_str()); \
       CALI_MARK_BEGIN(gstr.c_str()); \
       CALI_MARK_BEGIN(kstr.c_str()); \
+      CALI_MARK_BEGIN(ktstr.c_str()); \
     }
 
 #define CALI_STOP \
-    if (doCaliperTiming) { \
+    if(doCaliperTiming) { \
+      std::string tstr = getVariantTuningName(running_variant,running_tuning); \
       std::string kstr = getName(); \
+      std::string ktstr = kstr + "." + tstr; \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
+      CALI_MARK_END(ktstr.c_str()); \
       CALI_MARK_END(kstr.c_str()); \
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
@@ -237,9 +240,7 @@ public:
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    timer.stop(); 
-    CALI_STOP;
-    recordExecTime();
+    timer.stop(); CALI_STOP; recordExecTime();
   }
 
   void resetTimer() { timer.reset(); }
@@ -277,7 +278,7 @@ public:
   }
 #endif
 
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; } 
   static void setCaliperMgrVariant(VariantID vid)
@@ -294,6 +295,7 @@ public:
   static void setCaliperMgrStop(VariantID vid) { mgr[vid].stop(); }
   static void setCaliperMgrFlush() 
   { // we're going to flush all the variants at once
+    std::cout << "flushing " << mgr.size() << " variants\n";
     for(auto const &kv : mgr) {
       // set Adiak key first
       std::string variant=getVariantName(kv.first);
@@ -351,16 +353,16 @@ private:
 
   RAJA::Timer timer;
 
-  std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
-  std::vector<RAJA::Timer::ElapsedType> max_time[NumVariants];
-  std::vector<RAJA::Timer::ElapsedType> tot_time[NumVariants];
-
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
 // we need a Caliper Manager object per variant
 // we can inline this with c++17
   static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
 #endif
+
+  std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
+  std::vector<RAJA::Timer::ElapsedType> max_time[NumVariants];
+  std::vector<RAJA::Timer::ElapsedType> tot_time[NumVariants];
 };
 
 }  // closing brace for rajaperf namespace

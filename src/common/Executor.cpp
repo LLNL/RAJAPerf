@@ -26,9 +26,8 @@
 #include <list>
 #include <vector>
 #include <string>
-#include <unordered_map>
-
 #include <regex>
+#include <unordered_map>
 
 #include <iostream>
 #include <iomanip>
@@ -43,17 +42,15 @@ namespace rajaperf {
 
 using namespace std;
 
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
 vector<string> split(const string str, const string regex_str)
 {
-  regex regexz(regex_str);
-  vector<string> list( regex_token_iterator(str.begin(), str.end(),
-                                            regexz, -1),
-                       sregex_token_iterator() );
-  return list;
+    regex regexz(regex_str);
+    vector<string> list(sregex_token_iterator(str.begin(), str.end(), regexz, -1),
+                                  sregex_token_iterator());
+    return list;
 }
 #endif
-
 
 namespace {
 
@@ -119,7 +116,7 @@ Executor::Executor(int argc, char** argv)
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   struct configuration cc;
   adiak::init(NULL);
   adiak::user();
@@ -130,12 +127,14 @@ Executor::Executor(int argc, char** argv)
   adiak::value("perfsuite_version", cc.perfsuite_version);
   adiak::value("raja_version", cc.raja_version);
   adiak::value("cmake_build_type", cc.cmake_build_type);
-
-  adiak::value("compiler_path", cc.compiler);
-  cout << "Compiler path: " << cc.compiler << "\n";
-  auto tokens = split(cc.compiler, "/");
-  string compiler_exec = tokens.back();
+  adiak::value("cmake_cxx_flags", cc.cmake_cxx_flags);
+  adiak::value("cmake_exe_linker_flags", cc.cmake_exe_linker_flags);
+  adiak::value("rajaperf_compiler", cc.rajaperf_compiler);
+  adiak::value("rajaperf_compiler_options", cc.rajaperf_compiler_options);
   adiak::value("compiler_version", cc.compiler_version);
+
+  auto tokens = split(cc.rajaperf_compiler, "/");
+  string compiler_exec = tokens.back();
   string compiler = compiler_exec + "-" + cc.compiler_version;
   cout << "Compiler: " << compiler << "\n";
   adiak::value("compiler", compiler.c_str());
@@ -152,26 +151,32 @@ Executor::Executor(int argc, char** argv)
     } 
   }
 
-
-  adiak::value("compiler_flags", cc.compiler_flags);
-  if (!strcmp(cc.cmake_build_type, "Release"))
-    adiak::value("compiler_flags_release", cc.compiler_flags_release);
-  else if (!strcmp(cc.cmake_build_type, "RelWithDebInfo"))
-    adiak::value("compiler_flags_relwithdebinfo", cc.compiler_flags_relwithdebinfo);
-  else if (!strcmp(cc.cmake_build_type, "Debug"))
-    adiak::value("compiler_flags_debug", cc.compiler_flags_debug);
-
   if (strlen(cc.cuda_compiler_version) > 0) {
     adiak::value("cuda_compiler_version", cc.cuda_compiler_version);
-    adiak::value("cuda_flags", cc.cuda_flags);
-    adiak::value("cuda_flags_release", cc.cuda_flags_release);
+  }
+  if (strlen(cc.gpu_targets) > 0) {
+    adiak::value("gpu_targets", cc.gpu_targets);
+  }
+  if (strlen(cc.cmake_hip_architectures) > 0) {
+    adiak::value("cmake_hip_architectures", cc.cmake_hip_architectures);
+  }
+  if (strlen(cc.gpu_targets_block_sizes) > 0) {
+    adiak::value("gpu_targets_block_sizes", cc.gpu_targets_block_sizes);
+  }
+  if (strlen(cc.raja_hipcc_flags) > 0) {
+    adiak::value("raja_hipcc_flags", cc.raja_hipcc_flags);
+  }
+  if (strlen(cc.mpi_cxx_compiler) > 0) {
+    adiak::value("mpi_cxx_compiler", cc.mpi_cxx_compiler);
+  }
+  if (strlen(cc.systype_build) > 0) {
+    adiak::value("systype_build", cc.systype_build);
+  }
+  if (strlen(cc.machine_build) > 0) {
+    adiak::value("machine_build", cc.machine_build);
   }
 
-  if (strlen(cc.systype_build) > 0)
-    adiak::value("systype_build", cc.systype_build);
-  if (strlen(cc.machine_build) > 0)
-    adiak::value("machine_build", cc.machine_build);
-
+  adiak::value("Tuning","default");
   adiak::value("ProblemSize",1.0);
   adiak::value("SizeMeaning",run_params.SizeMeaningToStr(run_params.getSizeMeaning()).c_str());
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
@@ -189,7 +194,7 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
-#ifdef RAJAPERF_USE_CALIPER 
+#ifdef RAJA_PERFSUITE_USE_CALIPER 
   adiak::fini();
 #endif
 }
@@ -690,7 +695,7 @@ void Executor::setupSuite()
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
         KernelBase::setCaliperMgrVariant(*vid);
 #endif
       }
@@ -943,11 +948,11 @@ void Executor::runSuite()
 
   for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
     KernelBase* warmup_kernel = warmup_kernels[ik];
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
     warmup_kernel->caliperOff();
 #endif
     runKernel(warmup_kernel, true);
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
     warmup_kernel->caliperOn();
 #endif
     delete warmup_kernel;
@@ -973,7 +978,7 @@ void Executor::runSuite()
 
   } // loop over passes through suite
 
-#ifdef RAJAPERF_USE_CALIPER
+#ifdef RAJA_PERFSUITE_USE_CALIPER
   // Flush Caliper data
   KernelBase::setCaliperMgrFlush();
 #endif
