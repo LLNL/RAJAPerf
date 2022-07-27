@@ -137,7 +137,7 @@ if (RAJA_PERFSUITE_USE_CALIPER)
    if (ENABLE_CUDA)
       # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
       # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
-      set_target_properties(adiak PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
    endif ()
 endif ()
 
