@@ -280,7 +280,8 @@ public:
 
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   void caliperOn() { doCaliperTiming = true; }
-  void caliperOff() { doCaliperTiming = false; } 
+  void caliperOff() { doCaliperTiming = false; }
+  void setKernelAdiakMeta(); 
   static void setCaliperMgrVariant(VariantID vid)
   {
     cali::ConfigManager m;

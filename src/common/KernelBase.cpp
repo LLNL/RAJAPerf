@@ -342,6 +342,23 @@ void KernelBase::print(std::ostream& os) const
   os << std::endl;
 }
 #ifdef RAJA_PERFSUITE_USE_CALIPER
+void KernelBase::setKernelAdiakMeta()
+{
+  std::string problem_size = std::to_string(getActualProblemSize());
+  std::string reps = std::to_string(getRunReps());
+  std::string iters_rep = std::to_string(getItsPerRep());
+  std::string kerns_rep = std::to_string(getKernelsPerRep());
+  std::string bytes_rep = std::to_string(getBytesPerRep());
+  std::string flops_rep = std::to_string(getFLOPsPerRep());
+
+  std::string valStr = "problem_size:"+problem_size;
+  valStr += ",reps:"+reps;
+  valStr += ",iters_rep:"+iters_rep;
+  valStr += ",kerns_rep:"+kerns_rep;
+  valStr += ",bytes_rep:"+bytes_rep;
+  valStr += ",flops_rep:"+flops_rep;
+  adiak::value(getName().c_str(),valStr.c_str());
+}
 // initialize a KernelBase static 
 std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 #endif

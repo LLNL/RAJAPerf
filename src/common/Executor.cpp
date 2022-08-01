@@ -185,6 +185,18 @@ Executor::Executor(int argc, char** argv)
     adiak::value("ProblemSize",run_params.getSize());
   }
 
+  // Openmp section
+  // todo get lib : e.g libomp,libiomp5,libgomp etc  : parse adiak::libraries via tool callback
+  // note version map only goes to 5.1; revise as needed
+#if defined(_OPENMP)
+  std::unordered_map<unsigned,std::string> map{
+    {200505,"2.5"},{200805,"3.0"},{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201811,"5.0"},{202011,"5.1"}};
+  string strval = map.at(_OPENMP);
+  adiak::value("omp_version",strval.c_str());
+  strval = std::to_string(omp_get_max_threads());
+  adiak::value("omp_max_threads",strval.c_str());
+#endif
+
 #endif
 }
 
@@ -979,6 +991,12 @@ void Executor::runSuite()
   } // loop over passes through suite
 
 #ifdef RAJA_PERFSUITE_USE_CALIPER
+  // setup per kernel Adiak meta data
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+      KernelBase* kernel = kernels[ik];
+      kernel->setKernelAdiakMeta();
+  } // loop over kernels
+
   // Flush Caliper data
   KernelBase::setCaliperMgrFlush();
 #endif
