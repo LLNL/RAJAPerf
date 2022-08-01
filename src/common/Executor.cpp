@@ -142,11 +142,11 @@ Executor::Executor(int argc, char** argv)
   if (tsize >= 3) {
     // pickup path version <compiler-version-hash|date>/bin/exec
     string path_version = tokens[tsize-3];
-    cout << "Compiler path version: " << path_version << "\n";
+    //cout << "Compiler path version: " << path_version << "\n";
     auto s = split(path_version,"-");
     if (s.size() >= 2) {
       string path_version_short = s[0] + "-" + s[1];
-      cout << "Compiler path version short: " << path_version_short << "\n";
+      //cout << "Compiler path version short: " << path_version_short << "\n";
       adiak::value("Compiler_path_version",path_version_short.c_str());
     } 
   }
