@@ -124,18 +124,18 @@ Executor::Executor(int argc, char** argv)
   adiak::libraries();
   adiak::cmdline();
   adiak::clustername();
-  adiak::value("perfsuite_version", cc.perfsuite_version);
-  adiak::value("raja_version", cc.raja_version);
-  adiak::value("cmake_build_type", cc.cmake_build_type);
-  adiak::value("cmake_cxx_flags", cc.cmake_cxx_flags);
-  adiak::value("cmake_exe_linker_flags", cc.cmake_exe_linker_flags);
-  adiak::value("rajaperf_compiler", cc.rajaperf_compiler);
-  adiak::value("rajaperf_compiler_options", cc.rajaperf_compiler_options);
-  adiak::value("compiler_version", cc.compiler_version);
+  adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
+  adiak::value("raja_version", cc.adiak_raja_version);
+  adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
+  adiak::value("cmake_cxx_flags", cc.adiak_cmake_cxx_flags);
+  adiak::value("cmake_exe_linker_flags", cc.adiak_cmake_exe_linker_flags);
+  adiak::value("rajaperf_compiler", cc.adiak_rajaperf_compiler);
+  adiak::value("rajaperf_compiler_options", cc.adiak_rajaperf_compiler_options);
+  adiak::value("compiler_version", cc.adiak_compiler_version);
 
-  auto tokens = split(cc.rajaperf_compiler, "/");
+  auto tokens = split(cc.adiak_rajaperf_compiler, "/");
   string compiler_exec = tokens.back();
-  string compiler = compiler_exec + "-" + cc.compiler_version;
+  string compiler = compiler_exec + "-" + cc.adiak_compiler_version;
   cout << "Compiler: " << compiler << "\n";
   adiak::value("compiler", compiler.c_str());
   auto tsize = tokens.size();
@@ -151,29 +151,29 @@ Executor::Executor(int argc, char** argv)
     } 
   }
 
-  if (strlen(cc.cuda_compiler_version) > 0) {
-    adiak::value("cuda_compiler_version", cc.cuda_compiler_version);
+  if (strlen(cc.adiak_cuda_compiler_version) > 0) {
+    adiak::value("cuda_compiler_version", cc.adiak_cuda_compiler_version);
   }
-  if (strlen(cc.gpu_targets) > 0) {
-    adiak::value("gpu_targets", cc.gpu_targets);
+  if (strlen(cc.adiak_gpu_targets) > 0) {
+    adiak::value("gpu_targets", cc.adiak_gpu_targets);
   }
-  if (strlen(cc.cmake_hip_architectures) > 0) {
-    adiak::value("cmake_hip_architectures", cc.cmake_hip_architectures);
+  if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
+    adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
   }
-  if (strlen(cc.gpu_targets_block_sizes) > 0) {
-    adiak::value("gpu_targets_block_sizes", cc.gpu_targets_block_sizes);
+  if (strlen(cc.adiak_gpu_targets_block_sizes) > 0) {
+    adiak::value("gpu_targets_block_sizes", cc.adiak_gpu_targets_block_sizes);
   }
-  if (strlen(cc.raja_hipcc_flags) > 0) {
-    adiak::value("raja_hipcc_flags", cc.raja_hipcc_flags);
+  if (strlen(cc.adiak_raja_hipcc_flags) > 0) {
+    adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
   }
-  if (strlen(cc.mpi_cxx_compiler) > 0) {
-    adiak::value("mpi_cxx_compiler", cc.mpi_cxx_compiler);
+  if (strlen(cc.adiak_mpi_cxx_compiler) > 0) {
+    adiak::value("mpi_cxx_compiler", cc.adiak_mpi_cxx_compiler);
   }
-  if (strlen(cc.systype_build) > 0) {
-    adiak::value("systype_build", cc.systype_build);
+  if (strlen(cc.adiak_systype_build) > 0) {
+    adiak::value("systype_build", cc.adiak_systype_build);
   }
-  if (strlen(cc.machine_build) > 0) {
-    adiak::value("machine_build", cc.machine_build);
+  if (strlen(cc.adiak_machine_build) > 0) {
+    adiak::value("machine_build", cc.adiak_machine_build);
   }
 
   adiak::value("Tuning","default");
