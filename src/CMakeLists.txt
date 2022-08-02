@@ -8,7 +8,7 @@
 
 include_directories(.)
 
-if(RAJAPERF_USE_CALIPER)
+if(RAJA_PERFSUITE_USE_CALIPER)
    message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
    message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
    include_directories(${caliper_INCLUDE_DIR})
