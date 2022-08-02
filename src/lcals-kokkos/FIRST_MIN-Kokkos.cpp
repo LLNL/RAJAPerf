@@ -11,12 +11,11 @@
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
-namespace rajaperf 
-{
-namespace lcals
-{
+namespace rajaperf {
+namespace lcals {
 
-void FIRST_MIN::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void FIRST_MIN::runKokkosVariant(VariantID vid,
+                                 size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -26,51 +25,51 @@ void FIRST_MIN::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   // Wrap pointers in Kokkkos Views
   auto x_view = getViewFromPointer(x, iend);
 
-  switch ( vid ) {
+  switch (vid) {
 
-    case Kokkos_Lambda : {
+  case Kokkos_Lambda: {
 
-      Kokkos::fence();
-      startTimer();
+    Kokkos::fence();
+    startTimer();
 
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-               // The third template argument is the memory space where the
-               // result will be stored; the result will be stored in the same place the
-               // kernel is called from , i.e., the Host
-              using reducer_type = Kokkos::MinLoc<Real_type, Index_type, Kokkos::HostSpace>;
-                // must hold the value and the location (host/device) ;
-                // Create a custom-type variable to hold the result from parallel_reduce
-              reducer_type::value_type min_result_obj;
+      // The third template argument is the memory space where the
+      // result will be stored; the result will be stored in the same place the
+      // kernel is called from , i.e., the Host
+      using reducer_type =
+          Kokkos::MinLoc<Real_type, Index_type, Kokkos::HostSpace>;
+      // must hold the value and the location (host/device) ;
+      // Create a custom-type variable to hold the result from parallel_reduce
+      reducer_type::value_type min_result_obj;
 
-   Kokkos::parallel_reduce("FIRST_MIN_Kokkos Kokkos_Lambda",
-                            Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                            KOKKOS_LAMBDA(Index_type i, reducer_type::value_type& mymin) {
-                                   if (x_view[i] < mymin.val) {
-                                        mymin.val = x_view[i];
-                                        mymin.loc = i;
-                                   }
-                                     
-                                   // Kokkos handles a MinLoc type
-                                   }, reducer_type(min_result_obj));
+      Kokkos::parallel_reduce(
+          "FIRST_MIN_Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i, reducer_type::value_type & mymin) {
+            if (x_view[i] < mymin.val) {
+              mymin.val = x_view[i];
+              mymin.loc = i;
+            }
 
-        m_minloc = min_result_obj.loc;
+            // Kokkos handles a MinLoc type
+          },
+          reducer_type(min_result_obj));
 
-      }
-      Kokkos::fence();
-      stopTimer();
-
-      break;
+      m_minloc = min_result_obj.loc;
     }
+    Kokkos::fence();
+    stopTimer();
 
-    default : {
-      std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
-    }
-
+    break;
   }
 
+  default: {
+    std::cout << "\n  FIRST_MIN : Unknown variant id = " << vid << std::endl;
+  }
+  }
 
-    moveDataToHostFromKokkosView(x, x_view, iend);
+  moveDataToHostFromKokkosView(x, x_view, iend);
 }
 
 } // end namespace lcals

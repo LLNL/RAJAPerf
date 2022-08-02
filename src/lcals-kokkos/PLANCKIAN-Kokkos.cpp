@@ -9,16 +9,14 @@
 #include "PLANCKIAN.hpp"
 #if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
-namespace rajaperf 
-{
-namespace lcals
-{
+namespace rajaperf {
+namespace lcals {
 
-void PLANCKIAN::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
-{
+void PLANCKIAN::runKokkosVariant(VariantID vid,
+                                 size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -31,36 +29,34 @@ void PLANCKIAN::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   auto v_view = getViewFromPointer(v, iend);
   auto w_view = getViewFromPointer(w, iend);
 
-  auto planckian_lam = [=](Index_type i) {
-                         PLANCKIAN_BODY;
-                       };
+  auto planckian_lam = [=](Index_type i) { PLANCKIAN_BODY; };
 
-  switch ( vid ) {
+  switch (vid) {
 
-    case Kokkos_Lambda : {
+  case Kokkos_Lambda: {
 
-      Kokkos::fence();
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+    Kokkos::fence();
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        Kokkos::parallel_for("PLANCKIAN_Kokkos Kokkos_Lambda",
-                             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                             KOKKOS_LAMBDA(Index_type i){
-                              y_view[i] = u_view[i] / v_view[i];
-                              w_view[i] = x_view[i] / ( exp( y_view[i] ) - 1.0 );
-                             });
-      }
-
-      Kokkos::fence();
-      stopTimer();
-
-      break;
+      Kokkos::parallel_for(
+          "PLANCKIAN_Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i) {
+            y_view[i] = u_view[i] / v_view[i];
+            w_view[i] = x_view[i] / (exp(y_view[i]) - 1.0);
+          });
     }
 
-    default : {
-      std::cout << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
-    }
+    Kokkos::fence();
+    stopTimer();
 
+    break;
+  }
+
+  default: {
+    std::cout << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
+  }
   }
 
   moveDataToHostFromKokkosView(x, x_view, iend);

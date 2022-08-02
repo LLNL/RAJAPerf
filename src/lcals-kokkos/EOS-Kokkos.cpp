@@ -8,16 +8,14 @@
 
 #include "EOS.hpp"
 #if defined(RUN_KOKKOS)
-#include "common/KokkosViewUtils.hpp"$
+#include "common/KokkosViewUtils.hpp" $
 #include <iostream>
 
-namespace rajaperf 
-{
-namespace lcals
-{
+namespace rajaperf {
+namespace lcals {
 
-
-void EOS::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void EOS::runKokkosVariant(VariantID vid,
+                           size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -30,38 +28,35 @@ void EOS::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) 
   auto z_view = getViewFromPointer(z, iend + 7);
   auto u_view = getViewFromPointer(u, iend + 7);
 
+  auto eos_lam = [=](Index_type i) { EOS_BODY; };
 
-  auto eos_lam = [=](Index_type i) {
-                   EOS_BODY;
-                 };
+  switch (vid) {
 
+  case Kokkos_Lambda: {
 
-  switch ( vid ) {
-
-    case Kokkos_Lambda : {
-
-      Kokkos::fence();
-      startTimer();
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-              Kokkos::parallel_for("EOS_Kokkos Kokkos_Lambda",
-                                   Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                                   KOKKOS_LAMBDA(Index_type i) {
-                                     x_view[i] = u_view[i] + r*( z_view[i] + r*y_view[i] ) + \
-                                     t*( u_view[i+3] + r*( u_view[i+2] + r*u_view[i+1] ) + \
-                                     t*( u_view[i+6] + q*( u_view[i+5] + q*u_view[i+4] ) ) ); 
-                                   });
-
-      }
-      Kokkos::fence();
-      stopTimer();
-
-      break;
+    Kokkos::fence();
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+      Kokkos::parallel_for(
+          "EOS_Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i) {
+            x_view[i] =
+                u_view[i] + r * (z_view[i] + r * y_view[i]) +
+                t * (u_view[i + 3] + r * (u_view[i + 2] + r * u_view[i + 1]) +
+                     t * (u_view[i + 6] +
+                          q * (u_view[i + 5] + q * u_view[i + 4])));
+          });
     }
+    Kokkos::fence();
+    stopTimer();
 
-    default : {
-      std::cout << "\n  EOS : Unknown variant id = " << vid << std::endl;
-    }
+    break;
+  }
 
+  default: {
+    std::cout << "\n  EOS : Unknown variant id = " << vid << std::endl;
+  }
   }
 
   moveDataToHostFromKokkosView(x, x_view, iend + 7);
