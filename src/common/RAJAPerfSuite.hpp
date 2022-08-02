@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels, variants, features, etc..
+/// Types and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -18,6 +18,12 @@
 
 #include <string>
 #include <ostream>
+
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
+#endif
 
 namespace rajaperf
 {
@@ -153,6 +159,8 @@ enum KernelID {
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
+  Algorithm_MEMSET,
+  Algorithm_MEMCPY,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -191,6 +199,8 @@ enum VariantID {
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
+
+  Kokkos_Lambda,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

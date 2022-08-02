@@ -1,5 +1,7 @@
 *.pyc
 *.o
 *.exe
+*.swp
+*.swo
 build*/
 install*/

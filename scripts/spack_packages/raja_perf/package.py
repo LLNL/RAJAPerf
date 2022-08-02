@@ -76,10 +76,14 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     variant('libcpp', default=False, description='Uses libc++ instead of libstdc++')
     variant('tests', default='basic', values=('none', 'basic', 'benchmarks'),
             multi=False, description='Tests to run')
+    variant('caliper',default=False, description='Build with support for Caliper based profiling')
 
     depends_on('cmake@3.9:', type='build')
     depends_on('blt@0.4.1', type='build', when='@main')
     depends_on('blt@0.4.1:', type='build')
+    depends_on('caliper@2.8.0',when='+caliper')
+    depends_on('caliper@2.8.0 +cuda',when='+caliper +cuda')
+    depends_on('caliper@2.8.0 +rocm',when='+caliper +rocm')
 
     conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
@@ -343,6 +347,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
         cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
         cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
+        cfg.write(cmake_cache_option("RAJA_PERFSUITE_USE_CALIPER","+caliper" in spec))
 
         #######################
         # Close and save

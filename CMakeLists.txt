@@ -13,6 +13,7 @@ cmake_minimum_required(VERSION 3.14.5)
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
+option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA Perfsuite" Off)
 
 #
 # Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
@@ -22,8 +23,13 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
-set(BLT_CXX_STD c++14)
+if(ENABLE_KOKKOS)
+  set(CMAKE_CXX_STANDARD 17)
+  set(BLT_CXX_STD c++17)
+else()
+  set(CMAKE_CXX_STANDARD 14)
+  set(BLT_CXX_STD c++14)
+endif()
 
 include(blt/SetupBLT.cmake)
 
@@ -100,7 +106,12 @@ endif()
 if (ENABLE_CUDA)
   list(APPEND RAJA_PERFSUITE_DEPENDS cuda)
 endif()
-if (ENABLE_HIP)
+
+# Kokkos requires hipcc as the CMAKE_CXX_COMPILER for HIP AMD/VEGA GPU
+# platforms, whereas RAJAPerf Suite uses blt/CMake FindHIP to set HIP compiler. 
+# Separate RAJAPerf Suite and Kokkos handling of HIP compilers
+
+if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
   message(STATUS "HIP version: ${hip_VERSION}")
   if("${hip_VERSION}" VERSION_LESS "3.5")
     message(FATAL_ERROR "Trying to use HIP/ROCm version ${hip_VERSION}. RAJA Perf Suite requires HIP/ROCm version 3.5 or newer. ")
@@ -109,12 +120,36 @@ if (ENABLE_HIP)
   list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip_runtime)
 endif()
 
+#
+# Are we using Caliper
+#
+set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
+if (RAJA_PERFSUITE_USE_CALIPER)
+   find_package(caliper REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
+   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
+   message(STATUS "Using Caliper")
+   find_package(adiak REQUIRED)
+   # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
+   list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
+   if (ENABLE_CUDA)
+      # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
+      # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
+      set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+   endif ()
+endif ()
+
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
 
 if (ENABLE_CUDA)
-  set(CMAKE_CUDA_STANDARD 14)
-  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
+  if (ENABLE_KOKKOS)
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
+  else()
+    set(CMAKE_CUDA_STANDARD 14)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
+  endif()
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
   list(APPEND RAJAPERF_COMPILER ${CMAKE_CXX_COMPILER})
@@ -131,17 +166,50 @@ else()
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/rajaperf_config.hpp)
+               ${CMAKE_CURRENT_BINARY_DIR}/include/rajaperf_config.hpp)
 
 include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
 
-# Make sure RAJA flag propagate (we need to do some house cleaning to
+# Make sure RAJA flags propagate (we need to do some tidying to
 # remove project-specific CMake variables that are no longer needed)
 set (CUDA_NVCC_FLAGS ${RAJA_NVCC_FLAGS})
 
 #
 # Each directory in the perf suite has its own CMakeLists.txt file.
-#
+
+# ENABLE_KOKKOS is A RAJAPerf Suite Option
+if(ENABLE_KOKKOS)
+  add_definitions(-DRUN_KOKKOS)
+  if(ENABLE_HIP)
+    set(Kokkos_ENABLE_HIP ON CACHE BOOL "Kokkos builds for AMD HIP set the
+Kokkos_ENABLE_HIP variable to ON")
+  endif()
+
+  if(ENABLE_TARGET_OPENMP)
+    set(Kokkos_ENABLE_OPENMPTARGET ON CACHE BOOL "Docstring")
+    if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+      if(NOT EXPERIMENTAL_BUILD)
+      message(FATAL_ERROR "Kokkos builds with OpenMPTarget require a Debug build to succeed at the moment. Rebuild with CMAKE_BUILD_TYPE=Debug. If you're a compiler developer, rebuild with -DEXPERIMENTAL_BUILD=ON")
+      endif()
+    endif()
+  endif()
+
+# ENABLE_CUDA IS A RAJA PERFSUITE OPTION
+  if(ENABLE_CUDA)
+    set(Kokkos_ENABLE_CUDA ON CACHE BOOL "Docstring")
+    set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Docstring")
+    enable_language(CUDA)
+  endif()
+  if(ENABLE_OPENMP)
+    set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Docstring")
+  endif()
+
+  add_subdirectory(tpl/kokkos)
+  get_property(KOKKOS_INCLUDE_DIRS DIRECTORY tpl/kokkos PROPERTY INCLUDE_DIRECTORIES)
+  include_directories(${KOKKOS_INCLUDE_DIRS})
+  list(APPEND RAJA_PERFSUITE_DEPENDS kokkos)
+endif()
+
 add_subdirectory(src)
 
 if (RAJA_PERFSUITE_ENABLE_TESTS)

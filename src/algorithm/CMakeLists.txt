@@ -29,5 +29,17 @@ blt_add_library(
           REDUCE_SUM-Cuda.cpp
           REDUCE_SUM-OMP.cpp
           REDUCE_SUM-OMPTarget.cpp
+          MEMSET.cpp
+          MEMSET-Seq.cpp
+          MEMSET-Hip.cpp
+          MEMSET-Cuda.cpp
+          MEMSET-OMP.cpp
+          MEMSET-OMPTarget.cpp
+          MEMCPY.cpp
+          MEMCPY-Seq.cpp
+          MEMCPY-Hip.cpp
+          MEMCPY-Cuda.cpp
+          MEMCPY-OMP.cpp
+          MEMCPY-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

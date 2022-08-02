@@ -1,6 +1,10 @@
 [submodule "blt"]
 	path = blt
 	url = https://github.com/LLNL/blt.git
+	ignore = dirty
 [submodule "tpl/RAJA"]
 	path = tpl/RAJA
 	url = https://github.com/LLNL/RAJA.git
+[submodule "tpl/kokkos"]
+	path = tpl/kokkos
+	url = https://github.com/kokkos/kokkos

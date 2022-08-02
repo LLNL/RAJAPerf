@@ -8,9 +8,17 @@
 
 include_directories(.)
 
+if(RAJA_PERFSUITE_USE_CALIPER)
+   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
+   include_directories(${caliper_INCLUDE_DIR})
+   include_directories(${adiak_INCLUDE_DIRS})
+endif ()
+
 add_subdirectory(common)
-add_subdirectory(apps)
 add_subdirectory(basic)
+add_subdirectory(basic-kokkos)
+add_subdirectory(apps)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
@@ -20,6 +28,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
     polybench
     stream
@@ -225,6 +234,12 @@ blt_add_executable(
   algorithm/REDUCE_SUM.cpp
   algorithm/REDUCE_SUM-Seq.cpp
   algorithm/REDUCE_SUM-OMPTarget.cpp
+  algorithm/MEMSET.cpp
+  algorithm/MEMSET-Seq.cpp
+  algorithm/MEMSET-OMPTarget.cpp
+  algorithm/MEMCPY.cpp
+  algorithm/MEMCPY-Seq.cpp
+  algorithm/MEMCPY-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 
@@ -232,6 +247,10 @@ else()
 blt_add_executable(
   NAME raja-perf.exe
   SOURCES RAJAPerfSuiteDriver.cpp
+  INCLUDES ${PROJECT_BINARY_DIR}/include
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
 endif()
+
+#blt_print_target_properties(TARGET raja-perf.exe)
+
