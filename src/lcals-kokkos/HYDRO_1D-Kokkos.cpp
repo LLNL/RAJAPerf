@@ -11,14 +11,11 @@
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
-namespace rajaperf 
-{
-namespace lcals
-{
+namespace rajaperf {
+namespace lcals {
 
-
-void HYDRO_1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
-{
+void HYDRO_1D::runKokkosVariant(VariantID vid,
+                                size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -30,45 +27,40 @@ void HYDRO_1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
   auto y_view = getViewFromPointer(y, iend + 12);
   auto z_view = getViewFromPointer(z, iend + 12);
 
+  auto hydro1d_lam = [=](Index_type i) { HYDRO_1D_BODY; };
 
-  auto hydro1d_lam = [=](Index_type i) {
-                       HYDRO_1D_BODY;
-                     };
+  switch (vid) {
 
-  switch ( vid ) {
+  case Kokkos_Lambda: {
 
-    case Kokkos_Lambda : {
+    Kokkos::fence();
+    startTimer();
 
-      Kokkos::fence();
-      startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-        Kokkos::parallel_for("HYDRO_1D_Kokkos Kokkos_Lambda",
-                             Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-                             KOKKOS_LAMBDA(Index_type i) {
-                             x_view[i] = q + y_view[i]*( r*z_view[i+10] + t*z_view[i+11] );
-                             });
-
-      }
-
-      Kokkos::fence();
-      stopTimer();
-
-      break;
+      Kokkos::parallel_for(
+          "HYDRO_1D_Kokkos Kokkos_Lambda",
+          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
+          KOKKOS_LAMBDA(Index_type i) {
+            x_view[i] =
+                q + y_view[i] * (r * z_view[i + 10] + t * z_view[i + 11]);
+          });
     }
 
+    Kokkos::fence();
+    stopTimer();
 
-    default : {
-      std::cout << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
-    }
-
+    break;
   }
 
-    moveDataToHostFromKokkosView(x, x_view, iend + 12);
-    moveDataToHostFromKokkosView(y, y_view, iend + 12);
-    moveDataToHostFromKokkosView(z, z_view, iend + 12);
+  default: {
+    std::cout << "\n  HYDRO_1D : Unknown variant id = " << vid << std::endl;
+  }
+  }
 
+  moveDataToHostFromKokkosView(x, x_view, iend + 12);
+  moveDataToHostFromKokkosView(y, y_view, iend + 12);
+  moveDataToHostFromKokkosView(z, z_view, iend + 12);
 }
 
 } // end namespace lcals
