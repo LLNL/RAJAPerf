@@ -721,6 +721,55 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
     NESTED_INIT_DATA_TEARDOWN_HIP;
 
+  } else if ( vid == RAJA_HIP && (exp == 4) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, i_block_sz*j_block_sz*k_block_sz>>;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::expt::LoopPolicy<RAJA::hip_block_z_direct>;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Index_type Bi = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
+      Index_type Bj = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
+
+      RAJA::expt::launch<launch_policy>(
+        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, nk),
+                         RAJA::expt::Threads(i_block_sz, j_block_sz, k_block_sz)),
+        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, nk), [&](Index_type k) {
+            RAJA::expt::tile<teams_y>(ctx, j_block_sz, RAJA::RangeSegment(0, nj), [&](RAJA::RangeSegment const& tile_j) {
+              RAJA::expt::tile<teams_x>(ctx, i_block_sz, RAJA::RangeSegment(0, ni), [&](RAJA::RangeSegment const& tile_i) {
+
+                RAJA::expt::loop<threads_y>(ctx, tile_j, [&](Index_type j) {
+                  RAJA::expt::loop<threads_x>(ctx, tile_i, [&](Index_type i) {
+
+                    NESTED_INIT_BODY;
+
+                  });  // RAJA::expt::loop<threads_x>
+                });  // RAJA::expt::loop<threads_y>
+
+              });  // RAJA::expt::loop<teams_x>
+            });  // RAJA::expt::loop<teams_y>
+          });  // RAJA::expt::loop<teams_z>
+
+      });  // RAJA::expt::launch
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;
+
   } else {
      getCout() << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;
   }
@@ -847,7 +896,7 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
   size_t num_exp = (vid == Base_HIP)   ? 3
                  : (vid == Lambda_HIP) ? 0
-                 : (vid == RAJA_HIP)   ? 4
+                 : (vid == RAJA_HIP)   ? 5
                  :                       0 ;
   for (size_t exp = 0; exp < num_exp; ++exp) {
 
@@ -888,7 +937,7 @@ void NESTED_INIT::setHipTuningDefinitions(VariantID vid)
 
   size_t num_exp = (vid == Base_HIP)   ? 3
                  : (vid == Lambda_HIP) ? 0
-                 : (vid == RAJA_HIP)   ? 4
+                 : (vid == RAJA_HIP)   ? 5
                  :                       0 ;
   for (size_t exp = 0; exp < num_exp; ++exp) {
 
