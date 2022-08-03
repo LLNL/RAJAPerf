@@ -708,7 +708,7 @@ void Executor::setupSuite()
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
 #ifdef RAJA_PERFSUITE_USE_CALIPER
-        KernelBase::setCaliperMgrVariant(*vid);
+        KernelBase::setCaliperMgrVariant(*vid,run_params.getOutputDirName());
 #endif
       }
 
