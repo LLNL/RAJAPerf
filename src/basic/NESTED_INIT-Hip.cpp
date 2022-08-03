@@ -634,14 +634,14 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
       Index_type Bi = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
       Index_type Bj = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
-      Index_type Bk = RAJA_DIVIDE_CEILING_INT(nk, k_block_sz);
+      static_assert(k_block_sz == 1, "k_block_size must be 1");
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, Bk),
-                         RAJA::expt::Threads(i_block_sz, j_block_sz, k_block_sz)),
+        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, nk),
+                         RAJA::expt::Threads(i_block_sz, j_block_sz)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, Bk), [&](Index_type k) {
+          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, nk), [&](Index_type k) {
             RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Bj), [&](Index_type by) {
               RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Bi), [&](Index_type bx) {
 
@@ -686,14 +686,14 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
       Index_type Bi = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
       Index_type Bj = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
-      Index_type Bk = RAJA_DIVIDE_CEILING_INT(nk, k_block_sz);
+      static_assert(k_block_sz == 1, "k_block_size must be 1");
 
       RAJA::expt::launch<launch_policy>(
-        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, Bk),
-                         RAJA::expt::Threads(i_block_sz, j_block_sz, k_block_sz)),
+        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, nk),
+                         RAJA::expt::Threads(i_block_sz, j_block_sz)),
         [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
 
-          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, Bk), [&](Index_type bz) {
+          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, nk), [&](Index_type k) {
             RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Bj), [&](Index_type by) {
               RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Bi), [&](Index_type bx) {
 
@@ -702,9 +702,8 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
                     Index_type i = bx * i_block_sz + tx;
                     Index_type j = by * j_block_sz + ty;
-                    Index_type k = bz;
 
-                    if ( i < ni && j < nj && k < nk ) {
+                    if ( i < ni && j < nj ) {
                       NESTED_INIT_BODY;
                     }
 
