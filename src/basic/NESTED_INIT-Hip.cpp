@@ -35,6 +35,20 @@ struct TileExp : public internal::Statement<ExecPolicy, EnclosedStmts...> {
   using exec_policy_t = ExecPolicy;
 };
 
+/*!
+ * A RAJA::kernel statement that implements a tiled loop.
+ *
+ */
+template <camp::idx_t ArgumentId,
+          typename TilePolicy,
+          typename TileExecPolicy,
+          typename ForExecPolicy,
+          typename... EnclosedStmts>
+struct TiledFor : public internal::Statement<TileExecPolicy, EnclosedStmts...> {
+  using tile_policy_t = TilePolicy;
+  using exec_policy_t = TileExecPolicy;
+};
+
 }  // end namespace statement
 
 namespace internal
@@ -126,6 +140,88 @@ struct HipStatementExecutor<
     LaunchDims enclosed_dims =
         enclosed_stmts_t::calculateDimensions(private_data);
 
+    return dims.max(enclosed_dims);
+  }
+};
+
+
+/*!
+ * A specialized RAJA::kernel hip_impl executor for statement::TiledFor
+ * Assigns the tile segment to segment ArgumentId
+ *
+ */
+template <typename Data,
+          camp::idx_t ArgumentId,
+          camp::idx_t chunk_size,
+          int BlockDim,
+          int ThreadDim,
+          typename... EnclosedStmts,
+          typename Types>
+struct HipStatementExecutor<
+    Data,
+    statement::TiledFor<ArgumentId,
+                    RAJA::tile_fixed<chunk_size>,
+                    hip_block_xyz_direct<BlockDim>,
+                    hip_thread_xyz_direct<ThreadDim>,
+                    EnclosedStmts...>,
+                    Types>
+  {
+
+  using stmt_list_t = StatementList<EnclosedStmts...>;
+
+  // Set the argument type for this loop
+  using NewTypes = setSegmentTypeFromData<Types, ArgumentId, Data>;
+
+  using enclosed_stmts_t =
+      HipStatementListExecutor<Data, stmt_list_t, NewTypes>;
+
+  using diff_t = segment_diff_type<ArgumentId, Data>;
+
+  static
+  inline
+  RAJA_DEVICE
+  void exec(Data &data, bool thread_active)
+  {
+    diff_t len = segment_length<ArgumentId>(data);
+    diff_t i = get_hip_dim<BlockDim>(dim3(blockIdx.x,blockIdx.y,blockIdx.z)) * chunk_size +
+               get_hip_dim<ThreadDim>(dim3(threadIdx.x,threadIdx.y,threadIdx.z));
+
+    // assign thread id directly to offset
+    data.template assign_offset<ArgumentId>(i);
+
+    // execute enclosed statements if in bounds
+    enclosed_stmts_t::exec(data, thread_active && (i<len));
+  }
+
+
+  static
+  inline
+  LaunchDims calculateDimensions(Data const &data)
+  {
+    // Compute how many blocks
+    diff_t len = segment_length<ArgumentId>(data);
+    diff_t num_blocks = len / chunk_size;
+    if (num_blocks * chunk_size < len) {
+      num_blocks++;
+    }
+
+    LaunchDims dims;
+    set_hip_dim<BlockDim>(dims.blocks, num_blocks);
+
+    // since we are direct-mapping, we REQUIRE len
+    set_hip_dim<BlockDim>(dims.min_blocks, num_blocks);
+
+    // add a max_blocks to ensure correctness?
+
+
+    set_hip_dim<ThreadDim>(dims.threads, chunk_size);
+
+    // since we are direct-mapping, we REQUIRE chunk_size
+    set_hip_dim<ThreadDim>(dims.min_threads, chunk_size);
+
+
+    // combine with enclosed statements
+    LaunchDims enclosed_dims = enclosed_stmts_t::calculateDimensions(data);
     return dims.max(enclosed_dims);
   }
 };
@@ -487,6 +583,41 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
     NESTED_INIT_DATA_SETUP_HIP;
 
+    using EXEC_POL =
+      RAJA::KernelPolicy<
+       RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
+          RAJA::statement::For<2, RAJA::hip_block_z_direct,              // k
+            RAJA::statement::TiledFor<1, RAJA::tile_fixed<j_block_sz>,   // j
+                RAJA::hip_block_y_direct, RAJA::hip_thread_y_direct,
+              RAJA::statement::TiledFor<0, RAJA::tile_fixed<i_block_sz>, // i
+                  RAJA::hip_block_x_direct, RAJA::hip_thread_x_direct,
+                RAJA::statement::Lambda<0>
+              >
+            >
+          >
+        >
+      >;
+
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+                                               RAJA::RangeSegment(0, nj),
+                                               RAJA::RangeSegment(0, nk)),
+        [=] __device__ (Index_type i, Index_type j, Index_type k) {
+        NESTED_INIT_BODY;
+      });
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP && (exp == 2) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
     constexpr bool async = true;
 
     using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, i_block_sz*j_block_sz*k_block_sz>>;
@@ -535,7 +666,7 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 
     NESTED_INIT_DATA_TEARDOWN_HIP;
 
-  } else if ( vid == RAJA_HIP && (exp == 2) ) {
+  } else if ( vid == RAJA_HIP && (exp == 3) ) {
 
     NESTED_INIT_DATA_SETUP_HIP;
 
@@ -717,7 +848,7 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
   size_t num_exp = (vid == Base_HIP)   ? 3
                  : (vid == Lambda_HIP) ? 0
-                 : (vid == RAJA_HIP)   ? 3
+                 : (vid == RAJA_HIP)   ? 4
                  :                       0 ;
   for (size_t exp = 0; exp < num_exp; ++exp) {
 
@@ -758,7 +889,7 @@ void NESTED_INIT::setHipTuningDefinitions(VariantID vid)
 
   size_t num_exp = (vid == Base_HIP)   ? 3
                  : (vid == Lambda_HIP) ? 0
-                 : (vid == RAJA_HIP)   ? 3
+                 : (vid == RAJA_HIP)   ? 4
                  :                       0 ;
   for (size_t exp = 0; exp < num_exp; ++exp) {
 
