@@ -282,12 +282,16 @@ public:
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   void setKernelAdiakMeta(); 
-  static void setCaliperMgrVariant(VariantID vid)
+  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir)
   {
     cali::ConfigManager m;
     mgr.insert(std::make_pair(vid,m));
+    std::string od("./");
+    if(outdir.size()) {
+       od = outdir + "/";
+    } 
     std::string vstr = getVariantName(vid);
-    std::string profile = "spot(output=" + vstr + ".cali)";
+    std::string profile = "spot(output="  +od + vstr + ".cali)";
     std::cout << "Profile: " << profile << std::endl;
     mgr[vid].add(profile.c_str()); 
   }
