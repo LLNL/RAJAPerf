@@ -218,7 +218,7 @@ template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
 __global__ void nested_init_exp0(Real_ptr array,
                             Index_type ni, Index_type nj, Index_type nk)
 {
-  bool thread_active = true;
+  bool thread_active0 = true;
   Index_type i, j, k;
 
   // RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>, RAJA::hip_block_y_direct,
@@ -226,35 +226,35 @@ __global__ void nested_init_exp0(Real_ptr array,
   if (j < nj) {
 
     Index_type orig_nj = nj;
-    nj = j+static_cast<Index_type>(j_block_size) < nj ? j+static_cast<Index_type>(j_block_size) : nj;
+    nj = min((j+static_cast<Index_type>(j_block_size)), nj);
 
     // RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>, RAJA::hip_block_x_direct,
     i = blockIdx.x * static_cast<Index_type>(i_block_size);
     if (i < ni) {
 
       Index_type orig_ni = ni;
-      ni = i+static_cast<Index_type>(i_block_size) < ni ? i+static_cast<Index_type>(i_block_size) : ni;
+      ni = min((i+static_cast<Index_type>(i_block_size)), ni);
 
       // RAJA::statement::For<2, RAJA::hip_block_z_direct,
       {
         k = blockIdx.z;
 
-        thread_active = thread_active && (k<nk);
+        bool thread_active1 = thread_active0 && (k<nk);
 
         // RAJA::statement::For<1, RAJA::hip_thread_y_direct,
         {
           j = j + threadIdx.y;
 
-          thread_active = thread_active && (j<nj);
+          bool thread_active2 = thread_active1 && (j<nj);
 
           // RAJA::statement::For<0, RAJA::hip_thread_x_direct,
           {
             i = i + threadIdx.x;
 
-            thread_active = thread_active && (i<ni);
+            bool thread_active3 = thread_active2 && (i<ni);
 
             // RAJA::statement::Lambda<0>
-            if ( thread_active ) {
+            if ( thread_active3 ) {
               NESTED_INIT_BODY;
             }
 
@@ -273,14 +273,85 @@ __global__ void nested_init_exp0(Real_ptr array,
 }
 
 
+template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
+  __launch_bounds__(i_block_size*j_block_size*k_block_size)
+__global__ void nested_init_exp1(Real_ptr array,
+                            Index_type ni, Index_type nj, Index_type nk)
+{
+  bool thread_active0 = true;
+  Index_type i, j, k;
+
+  // RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>, RAJA::hip_block_y_direct,
+  j = blockIdx.y * static_cast<Index_type>(j_block_size);
+  {
+
+    Index_type orig_nj = nj;
+    nj = min((j+static_cast<Index_type>(j_block_size)), nj);
+
+    // RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>, RAJA::hip_block_x_direct,
+    i = blockIdx.x * static_cast<Index_type>(i_block_size);
+    {
+
+      Index_type orig_ni = ni;
+      ni = min((i+static_cast<Index_type>(i_block_size)), ni);
+
+      // RAJA::statement::For<2, RAJA::hip_block_z_direct,
+      {
+        k = blockIdx.z;
+
+        bool thread_active1 = thread_active0 && (k<nk);
+
+        // RAJA::statement::For<1, RAJA::hip_thread_y_direct,
+        {
+          j = j + threadIdx.y;
+
+          bool thread_active2 = thread_active1 && (j<nj);
+
+          // RAJA::statement::For<0, RAJA::hip_thread_x_direct,
+          {
+            i = i + threadIdx.x;
+
+            bool thread_active3 = thread_active2 && (i<ni);
+
+            assert(i == blockIdx.x * i_block_size + threadIdx.x);
+            assert(j == blockIdx.y * j_block_size + threadIdx.y);
+            assert(k == blockIdx.z);
+
+            // RAJA::statement::Lambda<0>
+            if ( thread_active3 ) {
+              assert(blockIdx.x * i_block_size + threadIdx.x < orig_ni);
+              assert(blockIdx.y * j_block_size + threadIdx.y < orig_nj);
+              assert(blockIdx.z < nk);
+              NESTED_INIT_BODY;
+            } else {
+              assert((blockIdx.x * i_block_size + threadIdx.x >= orig_ni) ||
+                     (blockIdx.y * j_block_size + threadIdx.y >= orig_nj) ||
+                     (blockIdx.z >= nk));
+            }
+
+          }
+
+        }
+
+      }
+
+      ni = orig_ni;
+    }
+
+    nj = orig_nj;
+  }
+
+}
+
+
 template < size_t block_size >
-void NESTED_INIT::runHipVariantExp(VariantID vid)
+void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
 {
   const Index_type run_reps = getRunReps();
 
   NESTED_INIT_DATA_SETUP;
 
-  if ( vid == Base_HIP ) {
+  if ( vid == Base_HIP && (exp == 0) ) {
 
     NESTED_INIT_DATA_SETUP_HIP;
 
@@ -300,7 +371,27 @@ void NESTED_INIT::runHipVariantExp(VariantID vid)
 
     NESTED_INIT_DATA_TEARDOWN_HIP;
 
-  } else if ( vid == RAJA_HIP ) {
+  } else if ( vid == Base_HIP && (exp == 1) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      NESTED_INIT_THREADS_PER_BLOCK_HIP;
+      NESTED_INIT_NBLOCKS_HIP;
+
+      hipLaunchKernelGGL((nested_init_exp1<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         array, ni, nj, nk);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP && (exp == 0) ) {
 
     NESTED_INIT_DATA_SETUP_HIP;
 
@@ -333,6 +424,114 @@ void NESTED_INIT::runHipVariantExp(VariantID vid)
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP && (exp == 1) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, i_block_sz*j_block_sz*k_block_sz>>;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::expt::LoopPolicy<RAJA::hip_block_z_direct>;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Index_type Bi = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
+      Index_type Bj = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
+      Index_type Bk = RAJA_DIVIDE_CEILING_INT(nk, k_block_sz);
+
+      RAJA::expt::launch<launch_policy>(
+        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, Bk),
+                         RAJA::expt::Threads(i_block_sz, j_block_sz, k_block_sz)),
+        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, Bk), [&](Index_type k) {
+            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Bj), [&](Index_type by) {
+              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Bi), [&](Index_type bx) {
+
+                Index_type j_begin = by * j_block_sz;
+                Index_type j_end = min(j_begin + j_block_sz, nj);
+                Index_type i_begin = bx * i_block_sz;
+                Index_type i_end = min(i_begin + i_block_sz, ni);
+                RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(j_begin, j_end), [&](Index_type j) {
+                  RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(i_begin, i_end), [&](Index_type i) {
+                    NESTED_INIT_BODY;
+                  });  // RAJA::expt::loop<threads_x>
+                });  // RAJA::expt::loop<threads_y>
+
+              });  // RAJA::expt::loop<teams_x>
+            });  // RAJA::expt::loop<teams_y>
+          });  // RAJA::expt::loop<teams_z>
+
+      });  // RAJA::expt::launch
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == RAJA_HIP && (exp == 2) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    constexpr bool async = true;
+
+    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, i_block_sz*j_block_sz*k_block_sz>>;
+
+    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_z = RAJA::expt::LoopPolicy<RAJA::hip_block_z_direct>;
+
+    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      Index_type Bi = RAJA_DIVIDE_CEILING_INT(ni, i_block_sz);
+      Index_type Bj = RAJA_DIVIDE_CEILING_INT(nj, j_block_sz);
+      Index_type Bk = RAJA_DIVIDE_CEILING_INT(nk, k_block_sz);
+
+      RAJA::expt::launch<launch_policy>(
+        RAJA::expt::Grid(RAJA::expt::Teams(Bi, Bj, Bk),
+                         RAJA::expt::Threads(i_block_sz, j_block_sz, k_block_sz)),
+        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+          RAJA::expt::loop<teams_z>(ctx, RAJA::RangeSegment(0, Bk), [&](Index_type bz) {
+            RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Bj), [&](Index_type by) {
+              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Bi), [&](Index_type bx) {
+
+                RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, j_block_sz), [&](Index_type ty) {
+                  RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, i_block_sz), [&](Index_type tx) {
+
+                    Index_type i = bx * i_block_sz + tx;
+                    Index_type j = by * j_block_sz + ty;
+                    Index_type k = bz;
+
+                    if ( i < ni && j < nj && k < nk ) {
+                      NESTED_INIT_BODY;
+                    }
+
+                  });  // RAJA::expt::loop<threads_x>
+                });  // RAJA::expt::loop<threads_y>
+
+              });  // RAJA::expt::loop<teams_x>
+            });  // RAJA::expt::loop<teams_y>
+          });  // RAJA::expt::loop<teams_z>
+
+      });  // RAJA::expt::launch
 
     }
     stopTimer();
@@ -463,7 +662,11 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
   });
 
-  if (vid == Base_HIP || vid == RAJA_HIP) {
+  size_t num_exp = (vid == Base_HIP)   ? 2
+                 : (vid == Lambda_HIP) ? 0
+                 : (vid == RAJA_HIP)   ? 3
+                 :                       0 ;
+  for (size_t exp = 0; exp < num_exp; ++exp) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -472,7 +675,7 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
         if (tune_idx == t) {
 
-          runHipVariantExp<block_size>(vid);
+          runHipVariantExp<block_size>(vid, exp);
 
         }
 
@@ -500,14 +703,18 @@ void NESTED_INIT::setHipTuningDefinitions(VariantID vid)
 
   });
 
-  if (vid == Base_HIP || vid == RAJA_HIP) {
+  size_t num_exp = (vid == Base_HIP)   ? 2
+                 : (vid == Lambda_HIP) ? 0
+                 : (vid == RAJA_HIP)   ? 3
+                 :                       0 ;
+  for (size_t exp = 0; exp < num_exp; ++exp) {
 
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
       if (run_params.numValidGPUBlockSize() == 0u ||
           run_params.validGPUBlockSize(block_size)) {
 
-        addVariantTuningName(vid, "exp_"+std::to_string(block_size));
+        addVariantTuningName(vid, "exp"+std::to_string(exp)+"_"+std::to_string(block_size));
 
       }
 
