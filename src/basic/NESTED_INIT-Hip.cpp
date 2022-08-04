@@ -53,6 +53,59 @@ struct TiledFor : public internal::Statement<TileExecPolicy, EnclosedStmts...> {
 
 namespace internal
 {
+
+template < int d >
+RAJA_DEVICE
+inline auto get_hip_threadIdx() {}
+template < >
+RAJA_DEVICE
+inline auto get_hip_threadIdx<0>() { return threadIdx.x; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_threadIdx<1>() { return threadIdx.y; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_threadIdx<2>() { return threadIdx.z; }
+
+template < int d >
+RAJA_DEVICE
+inline auto get_hip_blockIdx() {}
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockIdx<0>() { return blockIdx.x; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockIdx<1>() { return blockIdx.y; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockIdx<2>() { return blockIdx.z; }
+
+template < int d >
+RAJA_DEVICE
+inline auto get_hip_blockDim() {}
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockDim<0>() { return blockDim.x; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockDim<1>() { return blockDim.y; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_blockDim<2>() { return blockDim.z; }
+
+template < int d >
+RAJA_DEVICE
+inline auto get_hip_gridDim() {}
+template < >
+RAJA_DEVICE
+inline auto get_hip_gridDim<0>() { return gridDim.x; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_gridDim<1>() { return gridDim.y; }
+template < >
+RAJA_DEVICE
+inline auto get_hip_gridDim<2>() { return gridDim.z; }
+
 /*!
  * A specialized RAJA::kernel hip_impl executor for statement::TileExp
  * Assigns the tile segment to segment ArgumentId
@@ -91,7 +144,8 @@ struct HipStatementExecutor<
 
     // compute trip count
     diff_t len = segment.end() - segment.begin();
-    diff_t i = get_hip_dim<BlockDim>(dim3(blockIdx.x,blockIdx.y,blockIdx.z)) * chunk_size;
+    // diff_t i = get_hip_dim<BlockDim>(dim3(blockIdx.x,blockIdx.y,blockIdx.z)) * chunk_size;
+    diff_t i = get_hip_blockIdx<BlockDim>() * chunk_size;
 
     // Keep copy of original segment, so we can restore it
     segment_t orig_segment = segment;
@@ -183,8 +237,9 @@ struct HipStatementExecutor<
   void exec(Data &data, bool thread_active)
   {
     diff_t len = segment_length<ArgumentId>(data);
-    diff_t i = get_hip_dim<BlockDim>(dim3(blockIdx.x,blockIdx.y,blockIdx.z)) * chunk_size +
-               get_hip_dim<ThreadDim>(dim3(threadIdx.x,threadIdx.y,threadIdx.z));
+    // diff_t i = get_hip_dim<BlockDim>(dim3(blockIdx.x,blockIdx.y,blockIdx.z)) * chunk_size +
+    //            get_hip_dim<ThreadDim>(dim3(threadIdx.x,threadIdx.y,threadIdx.z));
+    diff_t i = get_hip_blockIdx<BlockDim>() * chunk_size + get_hip_threadIdx<ThreadDim>();
 
     // assign thread id directly to offset
     data.template assign_offset<ArgumentId>(i);
