@@ -6,6 +6,11 @@ import sys
 import re
 import getopt
 import csv
+import importlib
+import pkgutil
+import traceback
+import glob
+
 import matplotlib.pyplot as plt
 
 def make_tuple_str(astr):
@@ -93,6 +98,7 @@ g_known_tunings =  { "default": {"format": "-"},
                      "block_512": {"format": "-."},
                      "block_1024": {"format": "-"},
                      "cub": {"format": ":"},
+                     "library": {"format": "-"},
                      "rocprim": {"format": ":"}
                    }
 g_markers = [ "o", "s", "+", "x", "*", "d", "h", "p", "8" ]
@@ -154,6 +160,8 @@ g_known_kernel_groups = {
       "kernels": [ "Apps_HALOEXCHANGE", "Apps_HALOEXCHANGE_FUSED", ]
    },
    }
+
+g_can_process_caliper = False
 
 def first(vals):
    return vals[0]
@@ -1233,6 +1241,44 @@ class Data:
          else:
             raise NameError("Unknown data kind {}".format(kind))
 
+# the following is edited specifically for Hatchet, but future make exclude pkgs generic
+# We exclude roundtrip and vis in import check since we're not in Hatchet interactive mode 
+def import_submodules(package, recursive=True):
+    """ Import all submodules of a module, recursively, including subpackages
+
+    :param package: package (name or actual module)
+    :type package: str | module
+    :rtype: dict[str, types.ModuleType]
+    """
+    if isinstance(package, str):
+        package = importlib.import_module(package)
+    results = {}
+    for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+      full_name = package.__name__ + '.' + name
+      chk_name = full_name.split('.')
+      if not 'roundtrip' in chk_name and not 'vis' in chk_name:
+         results[full_name] = importlib.import_module(full_name)
+         if recursive and is_pkg:
+            results.update(import_submodules(full_name))
+    #print(results)
+    return results
+
+def check_hatchet_import():
+   reader_spec = importlib.util.find_spec("hatchet")
+   reader_found = reader_spec is not None
+   depends_found = False
+   if reader_found:
+      print("Hatchet Reader found")
+      try:
+         cr = importlib.import_module("hatchet")
+         import_submodules(cr)
+         depends_found = True
+      except:
+         print("Can't load Hatchet")
+         traceback.print_exc()
+   else:
+      print("Hatchet not found")
+   return reader_found and depends_found
 
 
 def get_size_from_dir_name(sweep_subdir_name):
@@ -1257,7 +1303,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
             ignore = False
             for c in range(1, len(row)):
                info_kind = row[c].strip()
-               # print(c, info_kind)
+               #print(c, info_kind)
                if not info_kind in Data.kinds:
                   # add new kind to global data
                   print("Unknown kernel info {0}".format(info_kind))
@@ -1266,10 +1312,10 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
                   print("Repeated kernel info {0}".format(info_kind))
                   sys.exit(1)
                if not Data.kinds[info_kind].data:
-                  # add data to kind
+                  #print("# add data to kind:" + info_kind)
                   Data.kinds[info_kind].makeData()
                if not sweep_index in Data.kinds[info_kind].data.data:
-                  # add new sweep to global data
+                  #print("# add new sweep to global data")
                   Data.kinds[info_kind].data.data[sweep_index] = {}
                if run_size_index in Data.kinds[info_kind].data.data[sweep_index]:
                   sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
@@ -1277,7 +1323,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
                   print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size_name))
                   sys.exit(1)
                else:
-                  # add new size to global data
+                  #print("# add new size to global data")
                   Data.kinds[info_kind].data.data[sweep_index][run_size_index] = {}
                # make map of columns to names
                c_to_info_kinds[c] = info_kind
@@ -1311,7 +1357,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 
 
 def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index):
-   # print(sweep_index, sweep_subdir_timing_file_path, run_size_index)
+   print(sweep_index, sweep_subdir_timing_file_path, run_size_index)
    with open(sweep_subdir_timing_file_path, "r") as file:
       file_reader = csv.reader(file, delimiter=',')
 
@@ -1385,11 +1431,99 @@ def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
                try:
                   val = float(row[c].strip())
-                  # print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
+                  print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
                   Data.kinds[data_kind].set(axes_index, val)
                except ValueError:
                   pass # could not convert data to float
 
+def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
+   graph_frames = []
+   kernel_list = []
+   candidate_list = []
+
+   data_kind = g_timing_file_kind
+   if not data_kind in Data.kinds:
+      raise NameError("Unknown kind {}".format(data_kind))
+   if not Data.kinds[data_kind].data:
+      Data.kinds[data_kind].makeData()
+   if not sweep_index in Data.kinds[data_kind].data.data:
+      Data.kinds[data_kind].data.data[sweep_index] = {}
+   if not run_size_index in Data.kinds[data_kind].data.data[sweep_index]:
+      Data.kinds[data_kind].data.data[sweep_index][run_size_index] = {}
+   else:
+      sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
+      run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
+      raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size_name))
+
+   print("run size:" + Data.get_index_name(Data.axes["run_size"], run_size_index))
+   allfiles = sorted(glob.glob(glob.escape(sweep_subdir) + "/*.cali"))
+   for f in allfiles:
+      kernel_tuning_list = []
+      candidate_tuning_list = []
+      gf = cr.GraphFrame.from_caliperreader(f)
+      #print(gf.metadata['variant'])
+      metric = 'min#inclusive#sum#time.duration'
+      #print(gf.inc_metrics)
+      graph_frames.append(gf)
+
+      #take care of variant in this graphframe
+      variant_name = gf.metadata['variant']
+      variant_index = -1
+      if variant_name in Data.variants:
+         variant_index = Data.variants[variant_name]
+      elif (len(Data.include_variants) == 0 or variant_name in Data.include_variants) and (not variant_name in Data.exclude_variants):
+         Data.add_variant(variant_name)
+         variant_index = Data.variants[variant_name]
+
+      # extract kernel list
+      kernel_index = -1
+      tt = gf.graph.roots[0].traverse(order="pre")
+      for nn in tt:
+         # test if leaf node
+         if not nn.children:
+            #kernel_tuning_name is kernel.tuning in Caliper
+            kernel_tuning_name = gf.dataframe.loc[nn,'name']
+            kernel_name = kernel_tuning_name.split('.')[0]
+            if kernel_name in Data.kernels:
+               kernel_tuning_name = gf.dataframe.loc[nn,'name']
+               candidate_tuning_list.append(kernel_tuning_name)
+               candidate_list.append(kernel_name)
+      kernel_list = list(set(candidate_list) | set(kernel_list))
+      kernel_tuning_list = list(set(candidate_tuning_list) | set(kernel_tuning_list))
+      #print(kernel_list)
+      #print(kernel_tuning_list)
+
+      for kernel in kernel_tuning_list:
+         kernel_name = kernel.split('.')[0]
+         tuning_name = kernel.split('.')[1]
+
+         if kernel_name in Data.kernels:
+            kernel_index = Data.kernels[kernel_name]
+         else:
+            continue # skip kernel
+
+         tuning_index = None
+         if tuning_name in Data.tunings:
+            tuning_index = Data.tunings[tuning_name]
+         elif (len(Data.include_tunings) == 0 or tuning_name in Data.include_tunings) and (not tuning_name in Data.exclude_tunings):
+            Data.add_tuning(tuning_name)
+            tuning_index = Data.tunings[tuning_name]
+         else:
+            tuning_index = -1
+
+         axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
+                              Data.axes["run_size"]: run_size_index,
+                              Data.axes["kernel_index"]: kernel_index,
+                              Data.axes["variant_index"]: variant_index,
+                              Data.axes["tuning_index"]: tuning_index, }
+         val = 0.0
+         #print(metric)
+         try:
+            val = float(gf.dataframe.loc[gf.dataframe['name']==kernel].iloc[0][metric])
+            print(variant_name, kernel_name, tuning_name, data_kind, val)
+            Data.kinds[data_kind].set(axes_index, val)
+         except ValueError:
+            pass # could not convert data to float
 
 def get_plot_data(kind, partial_axes_index):
 
@@ -1883,13 +2017,20 @@ def main(argv):
          print(help_string)
          sys.exit(2)
       elif opt[0] == "-":
-
          handle_num = None
          handle_arg = None
          # no arg options
          if opt in ("-h", "--help"):
             print(help_string)
             sys.exit()
+         if opt in ("-pc", "--process-caliper"):
+            print("Request process Caliper")
+            handle_num = -1
+            g_can_process_caliper = check_hatchet_import()
+            if g_can_process_caliper:
+               cr = importlib.import_module("hatchet")
+               print("Caliper processing using hatchet:" + os.path.dirname(cr.__file__))
+               
          # single arg options
          if opt in ("-o", "--output"):
             handle_num = 1
@@ -2097,7 +2238,7 @@ def main(argv):
 
    for sweep_dir_path in sweep_dir_paths:
       sweep_dir_name = os.path.basename(sweep_dir_path)
-      # print(sweep_dir_name, sweep_dir_path)
+      print(sweep_dir_name, sweep_dir_path)
 
       if sweep_dir_name in Data.exclude_sweeps:
          continue
@@ -2132,9 +2273,13 @@ def main(argv):
                      sweep_subdir_runinfo_file_path = sweep_subdir_file_path
 
             if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
-               # print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
+               print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
                read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
-               read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
+               if(g_can_process_caliper):
+                  read_caliper_timing_file(cr,sweep_index, sweep_subdir_path, run_size_index)
+               else:
+                  read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
+
 
    kinds_string = ""
    for kindTree in Data.kinds.values():
