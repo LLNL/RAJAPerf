@@ -8,7 +8,13 @@
 
 blt_add_library(
   NAME basic
-  SOURCES DAXPY.cpp
+  SOURCES ARRAY_OF_PTRS.cpp
+          ARRAY_OF_PTRS-Seq.cpp
+          ARRAY_OF_PTRS-Hip.cpp
+          ARRAY_OF_PTRS-Cuda.cpp
+          ARRAY_OF_PTRS-OMP.cpp
+          ARRAY_OF_PTRS-OMPTarget.cpp
+          DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp

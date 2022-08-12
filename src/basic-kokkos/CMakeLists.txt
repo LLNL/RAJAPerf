@@ -12,6 +12,7 @@ blt_add_library(
   NAME basic-kokkos
   SOURCES
           PI_ATOMIC-Kokkos.cpp
+          ARRAY_OF_PTRS-Kokkos.cpp
           DAXPY-Kokkos.cpp
           IF_QUAD-Kokkos.cpp
           INIT3-Kokkos.cpp

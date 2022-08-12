@@ -70,7 +70,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ARRAY_OF_PTRS = 0,
+  Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
