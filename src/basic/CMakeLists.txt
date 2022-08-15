@@ -8,7 +8,10 @@
 
 blt_add_library(
   NAME basic
-  SOURCES DAXPY.cpp
+  SOURCES ADD_4GROUPS.cpp
+          ADD_4GROUPS-Seq.cpp
+          ADD_4GROUPS-Cuda.cpp
+          DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
@@ -62,6 +65,9 @@ blt_add_library(
           MAT_MAT_SHARED-Cuda.cpp
           MAT_MAT_SHARED-OMP.cpp
           MAT_MAT_SHARED-OMPTarget.cpp
+          MAT_VEC_MULT_4GROUPS.cpp
+          MAT_VEC_MULT_4GROUPS-Seq.cpp
+          MAT_VEC_MULT_4GROUPS-Cuda.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
@@ -98,6 +104,9 @@ blt_add_library(
           REDUCE_STRUCT-Cuda.cpp
           REDUCE_STRUCT-OMP.cpp
           REDUCE_STRUCT-OMPTarget.cpp
+          SOLVE_4x4_4GROUPS.cpp
+          SOLVE_4x4_4GROUPS-Seq.cpp
+          SOLVE_4x4_4GROUPS-Cuda.cpp
           TRAP_INT.cpp
           TRAP_INT-Seq.cpp
           TRAP_INT-Hip.cpp

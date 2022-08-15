@@ -17,6 +17,7 @@
 //
 // Basic kernels...
 //
+#include "basic/ADD_4GROUPS.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
@@ -26,12 +27,14 @@
 #include "basic/INIT_VIEW1D.hpp"
 #include "basic/INIT_VIEW1D_OFFSET.hpp"
 #include "basic/MAT_MAT_SHARED.hpp"
+#include "basic/MAT_VEC_MULT_4GROUPS.hpp"
 #include "basic/MULADDSUB.hpp"
 #include "basic/NESTED_INIT.hpp"
 #include "basic/PI_ATOMIC.hpp"
 #include "basic/PI_REDUCE.hpp"
 #include "basic/REDUCE3_INT.hpp"
 #include "basic/REDUCE_STRUCT.hpp"
+#include "basic/SOLVE_4x4_4GROUPS.hpp"
 #include "basic/TRAP_INT.hpp"
 
 //
@@ -153,6 +156,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ADD_4GROUPS"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
@@ -162,12 +166,14 @@ static const std::string KernelNames [] =
   std::string("Basic_INIT_VIEW1D"),
   std::string("Basic_INIT_VIEW1D_OFFSET"),
   std::string("Basic_MAT_MAT_SHARED"),
+  std::string("Basic_MAT_VEC_MULT_4GROUPS"),
   std::string("Basic_MULADDSUB"),
   std::string("Basic_NESTED_INIT"),
   std::string("Basic_PI_ATOMIC"),
   std::string("Basic_PI_REDUCE"),
   std::string("Basic_REDUCE3_INT"),
   std::string("Basic_REDUCE_STRUCT"),
+  std::string("Basic_SOLVE_4x4_4GROUPS"),
   std::string("Basic_TRAP_INT"),
 
 //
@@ -523,6 +529,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ADD_4GROUPS : {
+       kernel = new basic::ADD_4GROUPS(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
@@ -559,6 +569,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new basic::MAT_MAT_SHARED(run_params);
        break;
     }
+    case Basic_MAT_VEC_MULT_4GROUPS : {
+       kernel = new basic::MAT_VEC_MULT_4GROUPS(run_params);
+       break;
+    }
     case Basic_MULADDSUB : {
        kernel = new basic::MULADDSUB(run_params);
        break;
@@ -583,6 +597,10 @@ KernelBase* getKernelObject(KernelID kid,
         kernel = new basic::REDUCE_STRUCT(run_params);
         break;
     } 	
+    case Basic_SOLVE_4x4_4GROUPS : {
+       kernel = new basic::SOLVE_4x4_4GROUPS(run_params);
+       break;
+    }
     case Basic_TRAP_INT : {
        kernel = new basic::TRAP_INT(run_params);
        break;

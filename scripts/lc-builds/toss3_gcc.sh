@@ -36,7 +36,7 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_VER}/bin/g++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
-  -DENABLE_OPENMP=On \
+  -DENABLE_OPENMP=Off \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..

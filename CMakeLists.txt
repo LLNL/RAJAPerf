@@ -19,6 +19,7 @@ option(ENABLE_KOKKOS "Include Kokkos implementations of the kernels in the RAJA 
 # Note: the BLT build system is inheritted by RAJA and is initialized by RAJA
 #
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=native")
 if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()

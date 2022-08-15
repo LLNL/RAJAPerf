@@ -70,7 +70,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_ADD_4GROUPS = 0,
+  Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
@@ -79,12 +80,14 @@ enum KernelID {
   Basic_INIT_VIEW1D,
   Basic_INIT_VIEW1D_OFFSET,
   Basic_MAT_MAT_SHARED,
+  Basic_MAT_VEC_MULT_4GROUPS,
   Basic_MULADDSUB,
   Basic_NESTED_INIT,
   Basic_PI_ATOMIC,
   Basic_PI_REDUCE,
   Basic_REDUCE3_INT,
   Basic_REDUCE_STRUCT,
+  Basic_SOLVE_4x4_4GROUPS,
   Basic_TRAP_INT,
 
 //

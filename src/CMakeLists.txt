@@ -102,6 +102,9 @@ blt_add_executable(
   basic/MAT_MAT_SHARED.cpp
   basic/MAT_MAT_SHARED-Seq.cpp
   basic/MAT_MAT_SHARED-OMPTarget.cpp
+  basic/MAT_VEC_MULT_4GROUPS.cpp
+  basic/MAT_VEC_MULT_4GROUPS-Seq.cpp
+  basic/MAT_VEC_MULT_4GROUPS-Cuda.cpp
   basic/MULADDSUB.cpp
   basic/MULADDSUB-Seq.cpp
   basic/MULADDSUB-OMPTarget.cpp
@@ -120,6 +123,9 @@ blt_add_executable(
   basic/REDUCE_STRUCT.cpp
   basic/REDUCE_STRUCT-Seq.cpp
   basic/REDUCE_STRUCT-OMPTarget.cpp
+  basic/SOLVE_4x4_4GROUPS.cpp
+  basic/SOLVE_4x4_4GROUPS-Seq.cpp
+  basic/SOLVE_4x4_4GROUPS-Cuda.cpp
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp

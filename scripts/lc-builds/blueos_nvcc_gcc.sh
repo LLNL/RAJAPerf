@@ -43,7 +43,7 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/tce/packages/gcc/gcc-${COMP_GCC_VER}/bin/g++ \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
-  -DENABLE_OPENMP=On \
+  -DENABLE_OPENMP=Off \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER} \
   -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER}/bin/nvcc \
