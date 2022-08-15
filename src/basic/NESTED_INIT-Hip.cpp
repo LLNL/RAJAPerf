@@ -334,7 +334,7 @@ __global__ void nested_init(Real_ptr array,
 
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
   __launch_bounds__(i_block_size*j_block_size*k_block_size)
-__global__ void nested_init_exp0(Real_ptr array,
+__global__ void nested_init_exp10(Real_ptr array,
                             Index_type ni, Index_type nj, Index_type nk, Index_type nimin)
 {
   Index_type i = blockIdx.x * i_block_size + threadIdx.x;
