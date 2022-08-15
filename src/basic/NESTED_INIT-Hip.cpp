@@ -330,6 +330,21 @@ __global__ void nested_init(Real_ptr array,
     NESTED_INIT_BODY;
   }
 }
+          
+
+template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
+  __launch_bounds__(i_block_size*j_block_size*k_block_size)
+__global__ void nested_init10(Real_ptr array,
+                            Index_type ni, Index_type nj, Index_type nk, Index_type nimin)
+{
+  Index_type i = blockIdx.x * i_block_size + threadIdx.x;
+  Index_type j = blockIdx.y * j_block_size + threadIdx.y;
+  Index_type k = blockIdx.z;
+
+  if (  i > nimin && i < ni && j < nj && k < nk ) {
+    NESTED_INIT_BODY;
+  }
+}          
 
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size, typename Lambda >
 __launch_bounds__(i_block_size*j_block_size*k_block_size)
@@ -1214,7 +1229,29 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_HIP;
+    NESTED_INIT_DATA_TEARDOWN_HIP;    
+
+  } else if ( vid == Base_HIP && (exp == 10) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      NESTED_INIT_THREADS_PER_BLOCK_HIP;
+      NESTED_INIT_NBLOCKS_HIP;
+      Index_type nimin = ni-nj;
+
+      hipLaunchKernelGGL((nested_init_exp10<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         array, ni, nj, nk, nimin);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;             
+            
 
   } else if ( vid == RAJA_HIP && (exp == 0) ) {
 
