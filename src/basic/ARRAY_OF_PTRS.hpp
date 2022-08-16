@@ -9,8 +9,15 @@
 ///
 /// ARRAY_OF_PTRS kernel reference implementation:
 ///
+/// // Use a runtime sized portion of an array
+/// Index_type array_size;
+/// Real_ptr x[ARRAY_OF_PTRS_MAX_ARRAY_SIZE];
+///
 /// for (Index_type i = ibegin; i < iend; ++i ) {
-///   y[i] += a * x[i] ;
+///   y[i] = 0.0;
+///   for (Index_type a = 0; a < array_size; ++a) {
+///     y[i] += x[a][i] ;
+///   }
 /// }
 ///
 
