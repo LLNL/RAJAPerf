@@ -1647,7 +1647,7 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
   });
 
-  size_t num_exp = (vid == Base_HIP)   ? 10
+  size_t num_exp = (vid == Base_HIP)   ? 11
                  : (vid == Lambda_HIP) ? 0
                  : (vid == RAJA_HIP)   ? 6
                  :                       0 ;
@@ -1688,7 +1688,7 @@ void NESTED_INIT::setHipTuningDefinitions(VariantID vid)
 
   });
 
-  size_t num_exp = (vid == Base_HIP)   ? 10
+  size_t num_exp = (vid == Base_HIP)   ? 11
                  : (vid == Lambda_HIP) ? 0
                  : (vid == RAJA_HIP)   ? 6
                  :                       0 ;
