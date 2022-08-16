@@ -344,7 +344,22 @@ __global__ void nested_init_exp10(Real_ptr array,
   if (  i > imin && i < ni && j < nj && k < nk ) {
     NESTED_INIT_BODY;
   }
-}          
+}       
+          
+template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
+  __launch_bounds__(i_block_size*j_block_size*k_block_size)
+__global__ void nested_init_exp11(Real_ptr array,
+                            Index_type ni, Index_type nj, Index_type nk,
+                            Index_type i_offset, Index_type j_offset, Index_type k_offset)
+{
+  Index_type i = blockIdx.x * i_block_size + threadIdx.x;
+  Index_type j = blockIdx.y * j_block_size + threadIdx.y;
+  Index_type k = blockIdx.z;
+
+  if (  (i+i_offset) < (ni+i_offset) && (j+j_offset) < (nj+j_offset) && (k+k_offset) < (nk+k_offset) ) {
+    array[(i+i_offset)+(ni+i_offset)*((j+j_offset)+nj*(k+k_offset))] = 0.00000001 * (i+i_offset) * (j+j_offset) * (k+k_offset) ;
+  }
+}
 
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size, typename Lambda >
 __launch_bounds__(i_block_size*j_block_size*k_block_size)
@@ -1250,8 +1265,30 @@ void NESTED_INIT::runHipVariantExp(VariantID vid, size_t exp)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_HIP;             
+    NESTED_INIT_DATA_TEARDOWN_HIP;   
             
+   } else if ( vid == Base_HIP && (exp == 11) ) {
+
+    NESTED_INIT_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      NESTED_INIT_THREADS_PER_BLOCK_HIP;
+      NESTED_INIT_NBLOCKS_HIP;
+      Index_type i_offset = ni-nj;
+      Index_type j_offset = nj-ni;
+      Index_type k_offset = nk-ni;
+
+      hipLaunchKernelGGL((nested_init_exp11<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         array, ni, nj, nk, i_offset, j_offset, k_offset);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    NESTED_INIT_DATA_TEARDOWN_HIP;            
 
   } else if ( vid == RAJA_HIP && (exp == 0) ) {
 
@@ -1647,7 +1684,7 @@ void NESTED_INIT::runHipVariant(VariantID vid, size_t tune_idx)
 
   });
 
-  size_t num_exp = (vid == Base_HIP)   ? 11
+  size_t num_exp = (vid == Base_HIP)   ? 12
                  : (vid == Lambda_HIP) ? 0
                  : (vid == RAJA_HIP)   ? 6
                  :                       0 ;
@@ -1688,7 +1725,7 @@ void NESTED_INIT::setHipTuningDefinitions(VariantID vid)
 
   });
 
-  size_t num_exp = (vid == Base_HIP)   ? 11
+  size_t num_exp = (vid == Base_HIP)   ? 12
                  : (vid == Lambda_HIP) ? 0
                  : (vid == RAJA_HIP)   ? 6
                  :                       0 ;
