@@ -39,10 +39,11 @@
   ARRAY_OF_PTRS_DATA_SETUP_X_ARRAY
 
 #define ARRAY_OF_PTRS_BODY(x) \
-  y[i] = 0.0; \
+  Real_type yi = 0.0; \
   for (Index_type a = 0; a < array_size; ++a) { \
-    y[i] += (x)[a][i] ; \
-  }
+    yi += (x)[a][i] ; \
+  } \
+  y[i] = yi;
 
 
 #include "common/KernelBase.hpp"
