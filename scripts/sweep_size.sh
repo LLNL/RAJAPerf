@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-EXECUTABLES=""
+NAMES=()
+EXECUTABLES=()
 SIZE_MIN=10000
 SIZE_MAX=1000000
 SIZE_RATIO=2
@@ -8,20 +9,20 @@ SIZE_RATIO=2
 ################################################################################
 #
 # Usage:
-#     srun -n1 --exclusive sweep.sh -x raja-perf.exe [-- <raja perf args>]
+#     srun -n1 --exclusive sweep.sh -x my_run raja-perf.exe [-- <raja perf args>]
 #
 # Parse any args for this script and consume them using shift
 # leave the raja perf arguments if any for later use
 #
 # Examples:
-#     lalloc 1 lrun -n1 sweep.sh -x raja-perf.exe -- <args>
-#       # run a sweep of default problem sizes with executable `raja-perf.exe`
-#       # with args `args`
+#     lalloc 1 lrun -n1 sweep.sh -x my_run raja-perf.exe -- <args>
+#       # run a sweep of default problem sizes in dir my_run with
+#       # executable `raja-perf.exe` with args `args`
 #
-#     srun -n1 --exclusive sweep.sh -x raja-perf.exe --size-min 1000
+#     srun -n1 --exclusive sweep.sh -x my_run raja-perf.exe --size-min 1000
 #            --size-max 10000 --size-ratio 2 -- <args>
 #       # run a sweep of problem sizes 1K to 10K with ratio 2 (1K, 2K, 4K, 8K)
-#       # with executable `raja-perf.exe` with args `args`
+#       # in dir my_run with executable `raja-perf.exe` with args `args`
 #
 ################################################################################
 while [ "$#" -gt 0 ]; do
@@ -30,17 +31,20 @@ while [ "$#" -gt 0 ]; do
 
     if [[ "x$1" == "x-x" || "x$1" == "x--executable" ]]; then
 
-      exec="$2"
-      if ! [[ "x$exec" == x/* ]]; then
-        exec="$(pwd)/$exec"
+      if [ "$#" -lt 3 ]; then
+        echo "Expected 2 args to $1" 1>&2
+        exit 1
+      elif  [[ "$2" =~ ^\-.* ]]; then
+        echo "Expected 2 args to $1: $2" 1>&2
+        exit 1
+      elif  [[ "$3" =~ ^\-.* ]]; then
+        echo "Expected 2 args to $1: $2 $3" 1>&2
+        exit 1
       fi
 
-      if [[ "x$EXECUTABLES" == "x" ]]; then
-        EXECUTABLES="$exec"
-      else
-        EXECUTABLES="${EXECUTABLES} $exec"
-      fi
-      shift
+      NAMES+=("$2")
+      EXECUTABLES+=("$3")
+      shift 2
 
     elif [[ "x$1" == "x-m" || "x$1" == "x--size-min" ]]; then
 
@@ -77,7 +81,8 @@ while [ "$#" -gt 0 ]; do
 
 done
 
-echo "Running sweep with executables: $EXECUTABLES"
+echo "Running sweeps with names: ${NAMES[@]}"
+echo "          and executables: ${EXECUTABLES[@]}"
 echo "Sweeping from size $SIZE_MIN to $SIZE_MAX with ratio $SIZE_RATIO"
 echo "extra args to executables are: $@"
 
@@ -102,44 +107,24 @@ if [[ "$SIZE_MIN" -gt "$SIZE_MAX" ]]; then
   exit 1
 fi
 
-################################################################################
-# check executables exist and are executable
-################################################################################
-for exec in $EXECUTABLES; do
-  if [[ ! -f "$exec" ]]; then
-    echo "Executable not found: $exec" 1>&2
-    exit 1
-  elif [[ ! -x "$exec" ]]; then
-    echo "Executable not executable: $exec" 1>&2
-    exit 1
-  fi
-done
-
-EXEC_I=0
-for exec in $EXECUTABLES; do
-
-  mkdir "RAJAPerf_$EXEC_I" || exit 1
-
-  let EXEC_I=EXEC_I+1
-
-done
-
 SIZE="$SIZE_MIN"
 while [[ "$SIZE" -le "$SIZE_MAX" ]]; do
 
   EXEC_I=0
-  for exec in $EXECUTABLES; do
+  EXEC_N=${#EXECUTABLES[@]}
+  while [[ "$EXEC_I" -lt "$EXEC_N" ]]; do
 
-    cd "RAJAPerf_$EXEC_I" || exit 1
+    name="${NAMES[EXEC_I]}"
+    exec="${EXECUTABLES[EXEC_I]}"
+    echo "${name}: ${exec}"
 
-    SIZE_FILE="$(printf "SIZE_%09d" $SIZE)"
-    mkdir "$SIZE_FILE" && cd "$SIZE_FILE" || exit 1
+    SIZE_DIR="$(printf "SIZE_%09d" $SIZE)"
+    OUT_DIR="${name}/$SIZE_DIR"
 
-    echo "$exec --size $SIZE $@"
-    echo "$exec --size $SIZE $@" &> "raja-perf-sweep.txt"
-          $exec --size $SIZE $@ &>> "raja-perf-sweep.txt"
+    mkdir -p "${OUT_DIR}" || exit 1
 
-    cd ../..
+    echo "$exec -od ${OUT_DIR} --size $SIZE $@" | tee -a "${OUT_DIR}/raja-perf-sweep.txt"
+          $exec -od ${OUT_DIR} --size $SIZE $@ &>> "${OUT_DIR}/raja-perf-sweep.txt"
 
     let EXEC_I=EXEC_I+1
 
