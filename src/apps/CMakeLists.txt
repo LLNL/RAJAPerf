@@ -1,7 +1,7 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -9,12 +9,24 @@
 blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
+          CONVECTION3DPA.cpp
+          CONVECTION3DPA-Cuda.cpp
+          CONVECTION3DPA-Hip.cpp
+          CONVECTION3DPA-Seq.cpp
+          CONVECTION3DPA-OMP.cpp
+          CONVECTION3DPA-OMPTarget.cpp
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
+          DIFFUSION3DPA.cpp
+          DIFFUSION3DPA-Cuda.cpp
+          DIFFUSION3DPA-Hip.cpp
+          DIFFUSION3DPA-Seq.cpp
+          DIFFUSION3DPA-OMP.cpp
+          DIFFUSION3DPA-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 
@@ -33,6 +45,12 @@ blt_add_library(
           HALOEXCHANGE-Cuda.cpp
           HALOEXCHANGE-OMP.cpp
           HALOEXCHANGE-OMPTarget.cpp
+          HALOEXCHANGE_FUSED.cpp
+          HALOEXCHANGE_FUSED-Seq.cpp
+          HALOEXCHANGE_FUSED-Hip.cpp
+          HALOEXCHANGE_FUSED-Cuda.cpp
+          HALOEXCHANGE_FUSED-OMP.cpp
+          HALOEXCHANGE_FUSED-OMPTarget.cpp
           LTIMES.cpp
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp
@@ -45,6 +63,18 @@ blt_add_library(
           LTIMES_NOVIEW-Cuda.cpp
           LTIMES_NOVIEW-OMP.cpp
           LTIMES_NOVIEW-OMPTarget.cpp
+          MASS3DPA.cpp
+          MASS3DPA-Cuda.cpp
+          MASS3DPA-Hip.cpp
+          MASS3DPA-Seq.cpp
+          MASS3DPA-OMP.cpp
+          MASS3DPA-OMPTarget.cpp
+          NODAL_ACCUMULATION_3D.cpp
+          NODAL_ACCUMULATION_3D-Seq.cpp
+          NODAL_ACCUMULATION_3D-Hip.cpp
+          NODAL_ACCUMULATION_3D-Cuda.cpp
+          NODAL_ACCUMULATION_3D-OMP.cpp
+          NODAL_ACCUMULATION_3D-OMPTarget.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 

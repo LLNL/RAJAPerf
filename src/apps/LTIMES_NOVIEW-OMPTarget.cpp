@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -36,7 +36,7 @@ namespace apps
   deallocOpenMPDeviceData(psidat, did);
 
 
-void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
+void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -97,7 +97,7 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid)
     LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n LTIMES_NOVIEW : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n LTIMES_NOVIEW : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

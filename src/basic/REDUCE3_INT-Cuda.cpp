@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,16 +16,10 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define REDUCE3_INT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(vec, m_vec, iend);
@@ -34,31 +28,33 @@ namespace basic
   deallocCudaDeviceData(vec);
 
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void reduce3int(Int_ptr vec,
                            Int_ptr vsum, Int_type vsum_init,
                            Int_ptr vmin, Int_type vmin_init,
                            Int_ptr vmax, Int_type vmax_init,
-                           Index_type iend) 
+                           Index_type iend)
 {
   extern __shared__ Int_type psum[ ];
-  Int_type* pmin = (Int_type*)&psum[ 1 * blockDim.x ];
-  Int_type* pmax = (Int_type*)&psum[ 2 * blockDim.x ];
+  Int_type* pmin = (Int_type*)&psum[ 1 * block_size ];
+  Int_type* pmax = (Int_type*)&psum[ 2 * block_size ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
   psum[ threadIdx.x ] = vsum_init;
   pmin[ threadIdx.x ] = vmin_init;
   pmax[ threadIdx.x ] = vmax_init;
 
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     psum[ threadIdx.x ] += vec[ i ];
     pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], vec[ i ] );
     pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], vec[ i ] );
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) { 
-    if ( threadIdx.x < i ) { 
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
+    if ( threadIdx.x < i ) {
       psum[ threadIdx.x ] += psum[ threadIdx.x + i ];
       pmin[ threadIdx.x ] = RAJA_MIN( pmin[ threadIdx.x ], pmin[ threadIdx.x + i ] );
       pmax[ threadIdx.x ] = RAJA_MAX( pmax[ threadIdx.x ], pmax[ threadIdx.x + i ] );
@@ -82,11 +78,13 @@ __global__ void reduce3int(Int_ptr vec,
 }
 
 
-void REDUCE3_INT::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   REDUCE3_INT_DATA_SETUP;
 
@@ -94,51 +92,44 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
 
     REDUCE3_INT_DATA_SETUP_CUDA;
 
-    Int_ptr vsum;
-    allocAndInitCudaDeviceData(vsum, &m_vsum_init, 1);
-    Int_ptr vmin;
-    allocAndInitCudaDeviceData(vmin, &m_vmin_init, 1);
-    Int_ptr vmax;
-    allocAndInitCudaDeviceData(vmax, &m_vmax_init, 1);
+    Int_ptr vmem_init;
+    allocCudaPinnedData(vmem_init, 3);
+
+    Int_ptr vmem;
+    allocCudaDeviceData(vmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(vsum, &m_vsum_init, 1);
-      initCudaDeviceData(vmin, &m_vmin_init, 1);
-      initCudaDeviceData(vmax, &m_vmax_init, 1);
+      vmem_init[0] = m_vsum_init;
+      vmem_init[1] = m_vmin_init;
+      vmem_init[2] = m_vmax_init;
+      cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
+                                   cudaMemcpyHostToDevice ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      reduce3int<<<grid_size, block_size, 
-                   3*sizeof(Int_type)*block_size>>>(vec, 
-                                                    vsum, m_vsum_init,
-                                                    vmin, m_vmin_init,
-                                                    vmax, m_vmax_init,
-                                                    iend ); 
+      reduce3int<block_size><<<grid_size, block_size,
+                   3*sizeof(Int_type)*block_size>>>(vec,
+                                                    vmem + 0, m_vsum_init,
+                                                    vmem + 1, m_vmin_init,
+                                                    vmem + 2, m_vmax_init,
+                                                    iend );
+      cudaErrchk( cudaGetLastError() );
 
-      Int_type lsum;
-      Int_ptr plsum = &lsum;
-      getCudaDeviceData(plsum, vsum, 1);
-      m_vsum += lsum;
-
-      Int_type lmin;
-      Int_ptr plmin = &lmin;
-      getCudaDeviceData(plmin, vmin, 1);
-      m_vmin = RAJA_MIN(m_vmin, lmin);
-
-      Int_type lmax;
-      Int_ptr plmax = &lmax;
-      getCudaDeviceData(plmax, vmax, 1);
-      m_vmax = RAJA_MAX(m_vmax, lmax);
+      Int_type lmem[3];
+      Int_ptr plmem = &lmem[0];
+      getCudaDeviceData(plmem, vmem, 3);
+      m_vsum += lmem[0];
+      m_vmin = RAJA_MIN(m_vmin, lmem[1]);
+      m_vmax = RAJA_MAX(m_vmax, lmem[2]);
 
     }
     stopTimer();
 
     REDUCE3_INT_DATA_TEARDOWN_CUDA;
 
-    deallocCudaDeviceData(vsum);
-    deallocCudaDeviceData(vmin);
-    deallocCudaDeviceData(vmax);
+    deallocCudaDeviceData(vmem);
+    deallocCudaPinnedData(vmem_init);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -166,9 +157,11 @@ void REDUCE3_INT::runCudaVariant(VariantID vid)
     REDUCE3_INT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

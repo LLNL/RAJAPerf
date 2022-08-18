@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define FIRST_SUM_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_N); \
   allocAndInitHipDeviceData(y, m_y, m_N);
@@ -36,21 +30,24 @@ namespace lcals
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void first_sum(Real_ptr x, Real_ptr y,
                           Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i > 0 && i < iend) {
      FIRST_SUM_BODY;
    }
 }
 
 
-void FIRST_SUM::runHipVariant(VariantID vid)
+template < size_t block_size >
+void FIRST_SUM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_SUM_DATA_SETUP;
 
@@ -62,8 +59,9 @@ void FIRST_SUM::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL(first_sum,grid_size, block_size, 0, 0, x, y,
+       hipLaunchKernelGGL((first_sum<block_size>),grid_size, block_size, 0, 0, x, y,
                                               iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -88,9 +86,11 @@ void FIRST_SUM::runHipVariant(VariantID vid)
     FIRST_SUM_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  FIRST_SUM : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  FIRST_SUM : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_SUM, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

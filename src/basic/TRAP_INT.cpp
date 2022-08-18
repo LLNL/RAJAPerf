@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -21,8 +21,19 @@ namespace basic
 TRAP_INT::TRAP_INT(const RunParams& params)
   : KernelBase(rajaperf::Basic_TRAP_INT, params)
 {
-  setDefaultSize(100000);
-  setDefaultReps(2000);
+  setDefaultProblemSize(1000000);
+  setDefaultReps(50);
+
+  setActualProblemSize( getTargetProblemSize() );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 1*sizeof(Real_type)) +
+                  (0*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(10 * getActualProblemSize()); // 1 sqrt
+
+  setUsesFeature(Forall);
+  setUsesFeature(Reduction);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -40,15 +51,17 @@ TRAP_INT::TRAP_INT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
-TRAP_INT::~TRAP_INT() 
+TRAP_INT::~TRAP_INT()
 {
 }
 
-void TRAP_INT::setUp(VariantID vid)
+void TRAP_INT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  Real_type xn; 
+  Real_type xn;
   initData(xn, vid);
 
   initData(m_x0, vid);
@@ -63,12 +76,12 @@ void TRAP_INT::setUp(VariantID vid)
   m_sumx = 0;
 }
 
-void TRAP_INT::updateChecksum(VariantID vid)
+void TRAP_INT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += m_sumx;
+  checksum[vid][tune_idx] += m_sumx;
 }
 
-void TRAP_INT::tearDown(VariantID vid)
+void TRAP_INT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 }

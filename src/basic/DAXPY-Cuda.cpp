@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,16 +16,10 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define DAXPY_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend); \
@@ -36,22 +30,25 @@ namespace basic
   deallocCudaDeviceData(x); \
   deallocCudaDeviceData(y);
 
-__global__ void daxpy(Real_ptr y, Real_ptr x, 
-                      Real_type a, 
-                      Index_type iend) 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void daxpy(Real_ptr y, Real_ptr x,
+                      Real_type a,
+                      Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
-     DAXPY_BODY; 
+     DAXPY_BODY;
    }
 }
 
 
-void DAXPY::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void DAXPY::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   DAXPY_DATA_SETUP;
 
@@ -63,8 +60,28 @@ void DAXPY::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      daxpy<<<grid_size, block_size>>>( y, x, a,
-                                        iend ); 
+      daxpy<block_size><<<grid_size, block_size>>>( y, x, a,
+                                        iend );
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    DAXPY_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    DAXPY_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        DAXPY_BODY;
+      });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -89,9 +106,11 @@ void DAXPY::runCudaVariant(VariantID vid)
     DAXPY_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

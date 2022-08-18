@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -14,10 +14,28 @@
 
 #include "common/HipDataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
+
+//
+// Define thread block shape for Hip execution
+//
+#define j_block_sz (32)
+#define i_block_sz (block_size / j_block_sz)
+
+#define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP \
+  j_block_sz, i_block_sz
+
+#define POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP \
+  dim3 nthreads_per_block(POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, 1);
+
+#define POLY_FLOYD_WARSHALL_NBLOCKS_HIP \
+  dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, j_block_sz)), \
+               static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N, i_block_sz)), \
+               static_cast<size_t>(1));
+
 
 #define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(pin, m_pin, m_N * m_N); \
@@ -29,19 +47,36 @@ namespace polybench
   deallocHipDeviceData(pin); \
   deallocHipDeviceData(pout);
 
-
+template < size_t j_block_size, size_t i_block_size >
+__launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
                                     Index_type k,
                                     Index_type N)
 {
-   Index_type i = blockIdx.y;
-   Index_type j = threadIdx.x;
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
 
-   POLYBENCH_FLOYD_WARSHALL_BODY;              
+  if ( i < N && j < N ) {
+    POLYBENCH_FLOYD_WARSHALL_BODY;
+  }
+}
+
+template < size_t j_block_size, size_t i_block_size, typename Lambda >
+__launch_bounds__(j_block_size*i_block_size)
+__global__ void poly_floyd_warshall_lam(Index_type N,
+                                        Lambda body)
+{
+  Index_type i = blockIdx.y * i_block_size + threadIdx.y;
+  Index_type j = blockIdx.x * j_block_size + threadIdx.x;
+
+  if ( i < N && j < N ) {
+    body(i, j);
+  }
 }
 
 
-void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
+template < size_t block_size >
+void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
@@ -56,10 +91,44 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
 
       for (Index_type k = 0; k < N; ++k) {
 
-        dim3 nblocks1(1, N, 1);
-        dim3 nthreads_per_block1(N, 1, 1);
-        hipLaunchKernelGGL((poly_floyd_warshall),dim3(nblocks1), dim3(nthreads_per_block1),0,0,pout, pin,
-                                                               k, N);
+        POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
+        POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+
+        hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
+                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           pout, pin,
+                           k, N);
+        hipErrchk( hipGetLastError() );
+
+      }
+
+    }
+    stopTimer();
+
+    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      for (Index_type k = 0; k < N; ++k) {
+
+        auto poly_floyd_warshall_lambda =
+          [=] __device__ (Index_type i, Index_type j) {
+            POLYBENCH_FLOYD_WARSHALL_BODY;
+          };
+
+        POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
+        POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+
+        hipLaunchKernelGGL(
+          (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
+          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+          N, poly_floyd_warshall_lambda);
+        hipErrchk( hipGetLastError() );
 
       }
 
@@ -77,10 +146,16 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
-          RAJA::statement::HipKernelAsync<
-            RAJA::statement::For<1, RAJA::hip_block_y_loop,
-              RAJA::statement::For<2, RAJA::hip_thread_x_loop,
-                RAJA::statement::Lambda<0>
+          RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
+            RAJA::statement::Tile<1, RAJA::tile_fixed<i_block_sz>,
+                                     RAJA::hip_block_y_direct,
+              RAJA::statement::Tile<2, RAJA::tile_fixed<j_block_sz>,
+                                       RAJA::hip_block_x_direct,
+                RAJA::statement::For<1, RAJA::hip_thread_y_direct,   // i
+                  RAJA::statement::For<2, RAJA::hip_thread_x_direct, // j
+                    RAJA::statement::Lambda<0>
+                  >
+                >
               >
             >
           >
@@ -104,13 +179,14 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariant(VariantID vid)
     POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
 
   } else {
-      std::cout << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;
   }
-
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_FLOYD_WARSHALL, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_HIP
-  
+

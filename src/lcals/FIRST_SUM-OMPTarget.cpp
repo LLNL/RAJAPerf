@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -39,24 +39,24 @@ namespace lcals
   deallocOpenMPDeviceData(y, did);
 
 
-void FIRST_SUM::runOpenMPTargetVariant(VariantID vid)
+void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_SUM_DATA_SETUP;
- 
+
   if ( vid == Base_OpenMPTarget ) {
 
     FIRST_SUM_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
-        
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
+
       for (Index_type i = ibegin; i < iend; ++i ) {
         FIRST_SUM_BODY;
       }
@@ -65,11 +65,11 @@ void FIRST_SUM::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_SUM_DATA_TEARDOWN_OMP_TARGET;
-                       
+
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     FIRST_SUM_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -82,9 +82,9 @@ void FIRST_SUM::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_SUM_DATA_TEARDOWN_OMP_TARGET;
-                       
-  } else {                          
-     std::cout << "\n  FIRST_SUM : Unknown OMP Target variant id = " << vid << std::endl;
+
+  } else {
+     getCout() << "\n  FIRST_SUM : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

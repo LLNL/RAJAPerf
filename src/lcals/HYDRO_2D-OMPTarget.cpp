@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -54,7 +54,7 @@ namespace lcals
 
 
 
-void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
+void HYDRO_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type kbeg = 1;
@@ -73,7 +73,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(zadat, zbdat, zpdat, \
                                        zqdat, zrdat, zmdat) device( did )
-      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY1;
@@ -82,7 +82,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(zudat, zvdat, zadat, \
                                        zbdat, zzdat, zrdat) device( did )
-      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY2;
@@ -91,7 +91,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
 
       #pragma omp target is_device_ptr(zroutdat, zzoutdat, \
                                        zrdat, zudat, zzdat, zvdat) device( did )
-      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(2)
       for (Index_type k = kbeg; k < kend; ++k ) {
         for (Index_type j = jbeg; j < jend; ++j ) {
           HYDRO_2D_BODY3;
@@ -147,7 +147,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid)
     HYDRO_2D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  HYDRO_2D : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_2D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

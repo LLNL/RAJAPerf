@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,13 +13,13 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
-void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
+
+void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -112,25 +112,12 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
 
       POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
-      auto poly_heat3d_lam1 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY1_RAJA;
-                              };
-      auto poly_heat3d_lam2 = [=](Index_type i, Index_type j, Index_type k) {
-                                POLYBENCH_HEAT_3D_BODY2_RAJA;
-                              };
-     
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                     RAJA::ArgList<0, 1>,
             RAJA::statement::For<2, RAJA::loop_exec,
               RAJA::statement::Lambda<0>
-            >
-          >,
-          RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
-                                    RAJA::ArgList<0, 1>,
-            RAJA::statement::For<2, RAJA::loop_exec,
-              RAJA::statement::Lambda<1>
             >
           >
         >;
@@ -143,9 +130,17 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
           RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1},
                                                    RAJA::RangeSegment{1, N-1}),
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY1_RAJA;
+            }
+          );
 
-            poly_heat3d_lam1,
-            poly_heat3d_lam2
+          RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1},
+                                                   RAJA::RangeSegment{1, N-1}),
+            [=](Index_type i, Index_type j, Index_type k) {
+              POLYBENCH_HEAT_3D_BODY2_RAJA;
+            }
           );
 
         }
@@ -154,16 +149,18 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid)
       stopTimer();
 
       POLYBENCH_HEAT_3D_DATA_RESET;
-      
+
       break;
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_HEAT_3D : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

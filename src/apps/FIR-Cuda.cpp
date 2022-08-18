@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -25,73 +25,72 @@ namespace apps
 #define USE_CUDA_CONSTANT_MEMORY
 //#undef USE_CUDA_CONSTANT_MEMORY
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #if defined(USE_CUDA_CONSTANT_MEMORY)
 
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
+  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
+  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
   cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getRunSize()); \
+  getCudaDeviceData(m_out, out, getActualProblemSize()); \
   deallocCudaDeviceData(in); \
   deallocCudaDeviceData(out);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
 }
 
-#else  // use global memry for coefficients 
+#else  // use global memry for coefficients
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr coeff; \
 \
-  allocAndInitCudaDeviceData(in, m_in, getRunSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getRunSize()); \
+  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
+  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitCudaDeviceData(coeff, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getRunSize()); \
+  getCudaDeviceData(m_out, out, getActualProblemSize()); \
   deallocCudaDeviceData(in); \
   deallocCudaDeviceData(out); \
   deallocCudaDeviceData(coeff);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void fir(Real_ptr out, Real_ptr in,
                     Real_ptr coeff,
                     const Index_type coefflen,
                     Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      FIR_BODY;
    }
 }
 
-#endif 
+#endif
 
 
-void FIR::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void FIR::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 
@@ -107,14 +106,16 @@ void FIR::runCudaVariant(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
 #if defined(USE_CUDA_CONSTANT_MEMORY)
-       fir<<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size>>>( out, in,
                                        coefflen,
                                        iend );
+       cudaErrchk( cudaGetLastError() );
 #else
-       fir<<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );
+       cudaErrchk( cudaGetLastError() );
 #endif
 
     }
@@ -142,9 +143,11 @@ void FIR::runCudaVariant(VariantID vid)
     FIR_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  FIR : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  FIR : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define INT_PREDICT_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(px, m_px, m_array_length);
 
@@ -34,6 +28,8 @@ namespace lcals
   getHipDeviceData(m_px, px, m_array_length); \
   deallocHipDeviceData(px);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void int_predict(Real_ptr px,
                             Real_type dm22, Real_type dm23, Real_type dm24,
                             Real_type dm25, Real_type dm26, Real_type dm27,
@@ -41,18 +37,19 @@ __global__ void int_predict(Real_ptr px,
                             const Index_type offset,
                             Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      INT_PREDICT_BODY;
    }
 }
 
 
-void INT_PREDICT::runHipVariant(VariantID vid)
+template < size_t block_size >
+void INT_PREDICT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INT_PREDICT_DATA_SETUP;
 
@@ -64,11 +61,12 @@ void INT_PREDICT::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((int_predict), dim3(grid_size), dim3(block_size), 0, 0,  px,
+       hipLaunchKernelGGL((int_predict<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  px,
                                                dm22, dm23, dm24, dm25,
                                                dm26, dm27, dm28, c0,
                                                offset,
                                                iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -93,9 +91,11 @@ void INT_PREDICT::runHipVariant(VariantID vid)
     INT_PREDICT_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INT_PREDICT, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

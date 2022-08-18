@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -45,7 +45,7 @@ namespace apps
   deallocOpenMPDeviceData(vol, did);
 
 
-void VOL3D::runOpenMPTargetVariant(VariantID vid)
+void VOL3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = m_domain->fpz;
@@ -68,7 +68,7 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
                                        y0,y1,y2,y3,y4,y5,y6,y7, \
                                        z0,z1,z2,z3,z4,z5,z6,z7, \
                                        vol) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin ; i < iend ; ++i ) {
         VOL3D_BODY;
       }
@@ -76,7 +76,7 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_OMP_TARGET;     
+    VOL3D_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
@@ -98,10 +98,10 @@ void VOL3D::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_OMP_TARGET;     
+    VOL3D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-    std::cout << "\n  VOL3D : Unknown OMP Target variant id = " << vid << std::endl;
+    getCout() << "\n  VOL3D : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

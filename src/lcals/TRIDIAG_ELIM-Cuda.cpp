@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,16 +16,10 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define TRIDIAG_ELIM_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(xout, m_xout, m_N); \
@@ -40,17 +34,20 @@ namespace lcals
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(z);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
-                    Index_type N) 
+                    Index_type N)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i > 0 && i < N) {
-     TRIDIAG_ELIM_BODY; 
+     TRIDIAG_ELIM_BODY;
    }
 }
 
 
-void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
@@ -66,8 +63,10 @@ void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       eos<<<grid_size, block_size>>>( xout, xin, y, z,
-                                       iend ); 
+       eos<block_size>
+          <<<grid_size, block_size>>>( xout, xin, y, z,
+                                       iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -92,9 +91,11 @@ void TRIDIAG_ELIM::runCudaVariant(VariantID vid)
     TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRIDIAG_ELIM, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

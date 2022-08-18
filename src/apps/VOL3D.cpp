@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,7 +13,10 @@
 #include "AppsData.hpp"
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+#include <cmath>
+
+
+namespace rajaperf
 {
 namespace apps
 {
@@ -22,12 +25,28 @@ namespace apps
 VOL3D::VOL3D(const RunParams& params)
   : KernelBase(rajaperf::Apps_VOL3D, params)
 {
-  setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(300);
+  setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultReps(100);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_array_length = m_domain->nnalls;
+
+  setActualProblemSize( m_domain->lpz+1 - m_domain->fpz );
+
+  setItsPerRep( m_domain->lpz+1 - m_domain->fpz );
+  setKernelsPerRep(1);
+  // touched data size, not actual number of stores and loads
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
+  setFLOPsPerRep(72 * (m_domain->lpz+1 - m_domain->fpz));
+
+  checksum_scale_factor = 0.001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -47,16 +66,12 @@ VOL3D::VOL3D(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 }
 
-VOL3D::~VOL3D() 
+VOL3D::~VOL3D()
 {
   delete m_domain;
 }
 
-Index_type VOL3D::getItsPerRep() const { 
-  return m_domain->lpz+1 - m_domain->fpz;
-}
-
-void VOL3D::setUp(VariantID vid)
+void VOL3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
@@ -69,15 +84,15 @@ void VOL3D::setUp(VariantID vid)
 
   allocAndInitDataConst(m_vol, m_array_length, 0.0, vid);
 
-  m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */  
+  m_vnormq = 0.083333333333333333; /* vnormq = 1/12 */
 }
 
-void VOL3D::updateChecksum(VariantID vid)
+void VOL3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_vol, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
 }
 
-void VOL3D::tearDown(VariantID vid)
+void VOL3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 

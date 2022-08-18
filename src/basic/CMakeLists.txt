@@ -1,31 +1,43 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
 blt_add_library(
   NAME basic
-  SOURCES ATOMIC_PI.cpp
-          ATOMIC_PI-Seq.cpp
-          ATOMIC_PI-Hip.cpp
-          ATOMIC_PI-Cuda.cpp
-          ATOMIC_PI-OMP.cpp
-          ATOMIC_PI-OMPTarget.cpp
-          DAXPY.cpp
+  SOURCES DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
           DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
+          DAXPY_ATOMIC.cpp
+          DAXPY_ATOMIC-Seq.cpp
+          DAXPY_ATOMIC-Hip.cpp
+          DAXPY_ATOMIC-Cuda.cpp
+          DAXPY_ATOMIC-OMP.cpp
+          DAXPY_ATOMIC-OMPTarget.cpp
           IF_QUAD.cpp
           IF_QUAD-Seq.cpp
           IF_QUAD-Hip.cpp
           IF_QUAD-Cuda.cpp
           IF_QUAD-OMP.cpp
           IF_QUAD-OMPTarget.cpp
+          INDEXLIST.cpp
+          INDEXLIST-Seq.cpp
+          INDEXLIST-Hip.cpp
+          INDEXLIST-Cuda.cpp
+          INDEXLIST-OMP.cpp
+          INDEXLIST-OMPTarget.cpp
+          INDEXLIST_3LOOP.cpp
+          INDEXLIST_3LOOP-Seq.cpp
+          INDEXLIST_3LOOP-Hip.cpp
+          INDEXLIST_3LOOP-Cuda.cpp
+          INDEXLIST_3LOOP-OMP.cpp
+          INDEXLIST_3LOOP-OMPTarget.cpp
           INIT3.cpp
           INIT3-Seq.cpp
           INIT3-Hip.cpp
@@ -44,6 +56,12 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          MAT_MAT_SHARED.cpp
+          MAT_MAT_SHARED-Seq.cpp
+          MAT_MAT_SHARED-Hip.cpp
+          MAT_MAT_SHARED-Cuda.cpp
+          MAT_MAT_SHARED-OMP.cpp
+          MAT_MAT_SHARED-OMPTarget.cpp
           MULADDSUB.cpp
           MULADDSUB-Seq.cpp
           MULADDSUB-Hip.cpp
@@ -56,12 +74,30 @@ blt_add_library(
           NESTED_INIT-Cuda.cpp
           NESTED_INIT-OMP.cpp
           NESTED_INIT-OMPTarget.cpp
+          PI_ATOMIC.cpp
+          PI_ATOMIC-Seq.cpp
+          PI_ATOMIC-Hip.cpp
+          PI_ATOMIC-Cuda.cpp
+          PI_ATOMIC-OMP.cpp
+          PI_ATOMIC-OMPTarget.cpp
+          PI_REDUCE.cpp
+          PI_REDUCE-Seq.cpp
+          PI_REDUCE-Hip.cpp
+          PI_REDUCE-Cuda.cpp
+          PI_REDUCE-OMP.cpp
+          PI_REDUCE-OMPTarget.cpp
           REDUCE3_INT.cpp
           REDUCE3_INT-Seq.cpp
           REDUCE3_INT-Hip.cpp
           REDUCE3_INT-Cuda.cpp
           REDUCE3_INT-OMP.cpp
           REDUCE3_INT-OMPTarget.cpp
+          REDUCE_STRUCT.cpp
+          REDUCE_STRUCT-Seq.cpp
+          REDUCE_STRUCT-Hip.cpp
+          REDUCE_STRUCT-Cuda.cpp
+          REDUCE_STRUCT-OMP.cpp
+          REDUCE_STRUCT-OMPTarget.cpp
           TRAP_INT.cpp
           TRAP_INT-Seq.cpp
           TRAP_INT-Hip.cpp

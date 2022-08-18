@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -33,24 +33,24 @@ namespace apps
 \
   Real_ptr coeff; \
 \
-  allocAndInitOpenMPDeviceData(in, m_in, getRunSize(), did, hid); \
-  allocAndInitOpenMPDeviceData(out, m_out, getRunSize(), did, hid); \
+  allocAndInitOpenMPDeviceData(in, m_in, getActualProblemSize(), did, hid); \
+  allocAndInitOpenMPDeviceData(out, m_out, getActualProblemSize(), did, hid); \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitOpenMPDeviceData(coeff, tcoeff, FIR_COEFFLEN, did, hid);
 
 
 #define FIR_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_out, out, getRunSize(), hid, did); \
+  getOpenMPDeviceData(m_out, out, getActualProblemSize(), hid, did); \
   deallocOpenMPDeviceData(in, did); \
   deallocOpenMPDeviceData(out, did); \
   deallocOpenMPDeviceData(coeff, did);
 
 
-void FIR::runOpenMPTargetVariant(VariantID vid)
+void FIR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize() - m_coefflen;
+  const Index_type iend = getActualProblemSize() - m_coefflen;
 
   FIR_DATA_SETUP;
 
@@ -94,7 +94,7 @@ void FIR::runOpenMPTargetVariant(VariantID vid)
     FIR_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  FIR : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  FIR : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 
