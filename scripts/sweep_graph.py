@@ -10,6 +10,7 @@ import importlib
 import pkgutil
 import traceback
 import glob
+import numpy as np
 
 import matplotlib.pyplot as plt
 
@@ -107,7 +108,8 @@ g_markers = [ "o", "s", "+", "x", "*", "d", "h", "p", "8" ]
 # formatted as series_name: dictionary of "color": color, "format": format
 g_series_reformat = {}
 
-g_timing_filename = "RAJAPerf-timing-Minimum.csv"
+#g_timing_filename = "RAJAPerf-timing-Minimum.csv"
+g_timing_filename = "RAJAPerf-timing-Average.csv"
 g_runinfo_filename = "RAJAPerf-kernels.csv"
 g_timing_file_kind = "time(s)"
 
@@ -160,8 +162,6 @@ g_known_kernel_groups = {
       "kernels": [ "Apps_HALOEXCHANGE", "Apps_HALOEXCHANGE_FUSED", ]
    },
    }
-
-g_can_process_caliper = False
 
 def first(vals):
    return vals[0]
@@ -1058,14 +1058,16 @@ class Data:
       }
 
    def compute_data(kind):
-      # print("compute_data", kind)
+      print("compute_data", kind)
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
 
       datatree = Data.kinds[kind]
       if datatree.data:
          return # already calculated
-
+      print(datatree.model_kind)
+      print(datatree.args)
+      print(datatree.func)
       if not (datatree.model_kind and datatree.args and datatree.func):
          raise NameError("Computing data is not supported for kind {0}".format(kind))
 
@@ -1679,8 +1681,16 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
 
          if len(ykinds) > 1:
             yname = "{} {}".format(Data.kinds[ykind].kind, yname)
-
-         plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
+         np_xdata = np.array(xdata)
+         xind = np_xdata.argsort()
+         print(xind)
+         np_xdata = np_xdata[xind[0:]]
+         print(np_xdata)
+         np_ydata = np.array(ydata)
+         np_ydata = np_ydata[xind[0:]]
+         print(np_ydata)
+         #plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
+         plt.plot(np_xdata,np_ydata,yformat,color=ycolor,label=yname)
 
       if ylabel:
          plt.ylabel(ylabel)
@@ -2009,7 +2019,7 @@ def main(argv):
    split_line_graph_kind_lists = []
    bar_graph_kind_lists = []
    histogram_graph_kind_lists = []
-
+   can_process_caliper = False
    i = 0
    while i < len(argv):
       opt = argv[i]
@@ -2026,8 +2036,8 @@ def main(argv):
          if opt in ("-pc", "--process-caliper"):
             print("Request process Caliper")
             handle_num = -1
-            g_can_process_caliper = check_hatchet_import()
-            if g_can_process_caliper:
+            can_process_caliper = check_hatchet_import()
+            if can_process_caliper:
                cr = importlib.import_module("hatchet")
                print("Caliper processing using hatchet:" + os.path.dirname(cr.__file__))
                
@@ -2275,7 +2285,7 @@ def main(argv):
             if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
                print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
                read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
-               if(g_can_process_caliper):
+               if(can_process_caliper):
                   read_caliper_timing_file(cr,sweep_index, sweep_subdir_path, run_size_index)
                else:
                   read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
