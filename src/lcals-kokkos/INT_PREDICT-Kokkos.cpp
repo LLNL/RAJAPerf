@@ -25,8 +25,6 @@ void INT_PREDICT::runKokkosVariant(VariantID vid,
   // Wrap pointer in Kokkos View, and adjust indices
   auto px_view = getViewFromPointer(px, iend * 13);
 
-  auto intpredict_lam = [=](Index_type i) { INT_PREDICT_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {
