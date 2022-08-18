@@ -41,7 +41,29 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid,
       Kokkos::parallel_for(
           "DIFF_PREDICT_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-          KOKKOS_LAMBDA(Index_type i){DIFF_PREDICT_BODY});
+          KOKKOS_LAMBDA(Index_type i) {
+            // DIFF_PREDICT_BODY with Kokkos Views
+            Real_type ar, br, cr;
+            ar = cx_view[i + offset * 4];
+            br = ar - px_view[i + offset * 4];
+            px_view[i + offset * 4] = ar;
+            cr = br - px_view[i + offset * 5];
+            px_view[i + offset * 5] = br;
+            ar = cr - px_view[i + offset * 6];
+            px_view[i + offset * 6] = cr;
+            br = ar - px_view[i + offset * 7];
+            px_view[i + offset * 7] = ar;
+            cr = br - px_view[i + offset * 8];
+            px_view[i + offset * 8] = br;
+            ar = cr - px_view[i + offset * 9];
+            px_view[i + offset * 9] = cr;
+            br = ar - px_view[i + offset * 10];
+            px_view[i + offset * 10] = ar;
+            cr = br - px_view[i + offset * 11];
+            px_view[i + offset * 11] = br;
+            px_view[i + offset * 13] = cr - px_view[i + offset * 12];
+            px_view[i + offset * 12] = cr;
+          });
     }
     Kokkos::fence();
     stopTimer();
