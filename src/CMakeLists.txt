@@ -1,7 +1,7 @@
 ###############################################################################
-# Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -9,20 +9,24 @@
 include_directories(.)
 
 add_subdirectory(common)
-add_subdirectory(apps)
 add_subdirectory(basic)
+add_subdirectory(basic-kokkos)
+add_subdirectory(apps)
 add_subdirectory(lcals)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
     polybench
-    stream)
-list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS}) 
+    stream
+    algorithm)
+list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
 if(ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
@@ -31,9 +35,15 @@ blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
+  apps/CONVECTION3DPA.cpp
+  apps/CONVECTION3DPA-Seq.cpp
+  apps/CONVECTION3DPA-OMPTarget.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp
+  apps/DIFFUSION3DPA.cpp
+  apps/DIFFUSION3DPA-Seq.cpp
+  apps/DIFFUSION3DPA-OMPTarget.cpp
   apps/ENERGY.cpp
   apps/ENERGY-Seq.cpp
   apps/ENERGY-OMPTarget.cpp
@@ -46,25 +56,40 @@ blt_add_executable(
   apps/HALOEXCHANGE.cpp
   apps/HALOEXCHANGE-Seq.cpp
   apps/HALOEXCHANGE-OMPTarget.cpp
+  apps/HALOEXCHANGE_FUSED.cpp
+  apps/HALOEXCHANGE_FUSED-Seq.cpp
+  apps/HALOEXCHANGE_FUSED-OMPTarget.cpp
   apps/LTIMES.cpp
   apps/LTIMES-Seq.cpp
   apps/LTIMES-OMPTarget.cpp
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DPA.cpp
+  apps/MASS3DPA-Seq.cpp
+  apps/MASS3DPA-OMPTarget.cpp
+  apps/NODAL_ACCUMULATION_3D.cpp
+  apps/NODAL_ACCUMULATION_3D-Seq.cpp
+  apps/NODAL_ACCUMULATION_3D-OMPTarget.cpp
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
   apps/WIP-COUPLE.cpp
-  basic/ATOMIC_PI.cpp
-  basic/ATOMIC_PI-Seq.cpp
-  basic/ATOMIC_PI-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
+  basic/DAXPY_ATOMIC.cpp
+  basic/DAXPY_ATOMIC-Seq.cpp
+  basic/DAXPY_ATOMIC-OMPTarget.cpp
   basic/IF_QUAD.cpp
   basic/IF_QUAD-Seq.cpp
   basic/IF_QUAD-OMPTarget.cpp
+  basic/INDEXLIST.cpp
+  basic/INDEXLIST-Seq.cpp
+  basic/INDEXLIST-OMPTarget.cpp
+  basic/INDEXLIST_3LOOP.cpp
+  basic/INDEXLIST_3LOOP-Seq.cpp
+  basic/INDEXLIST_3LOOP-OMPTarget.cpp
   basic/INIT3.cpp
   basic/INIT3-Seq.cpp
   basic/INIT3-OMPTarget.cpp
@@ -74,15 +99,27 @@ blt_add_executable(
   basic/INIT_VIEW1D_OFFSET.cpp
   basic/INIT_VIEW1D_OFFSET-Seq.cpp
   basic/INIT_VIEW1D_OFFSET-OMPTarget.cpp
+  basic/MAT_MAT_SHARED.cpp
+  basic/MAT_MAT_SHARED-Seq.cpp
+  basic/MAT_MAT_SHARED-OMPTarget.cpp
   basic/MULADDSUB.cpp
   basic/MULADDSUB-Seq.cpp
   basic/MULADDSUB-OMPTarget.cpp
   basic/NESTED_INIT.cpp
   basic/NESTED_INIT-Seq.cpp
   basic/NESTED_INIT-OMPTarget.cpp
+  basic/PI_ATOMIC.cpp
+  basic/PI_ATOMIC-Seq.cpp
+  basic/PI_ATOMIC-OMPTarget.cpp
+  basic/PI_REDUCE.cpp
+  basic/PI_REDUCE-Seq.cpp
+  basic/PI_REDUCE-OMPTarget.cpp
   basic/REDUCE3_INT.cpp
   basic/REDUCE3_INT-Seq.cpp
   basic/REDUCE3_INT-OMPTarget.cpp
+  basic/REDUCE_STRUCT.cpp
+  basic/REDUCE_STRUCT-Seq.cpp
+  basic/REDUCE_STRUCT-OMPTarget.cpp
   basic/TRAP_INT.cpp
   basic/TRAP_INT-Seq.cpp
   basic/TRAP_INT-OMPTarget.cpp
@@ -180,6 +217,22 @@ blt_add_executable(
   common/RAJAPerfSuite.cpp
   common/RPTypes.hpp
   common/RunParams.cpp
+  algorithm/SCAN.cpp
+  algorithm/SCAN-Seq.cpp
+  algorithm/SCAN-OMPTarget.cpp
+  algorithm/SORT.cpp
+  algorithm/SORT-Seq.cpp
+  algorithm/SORTPAIRS.cpp
+  algorithm/SORTPAIRS-Seq.cpp
+  algorithm/REDUCE_SUM.cpp
+  algorithm/REDUCE_SUM-Seq.cpp
+  algorithm/REDUCE_SUM-OMPTarget.cpp
+  algorithm/MEMSET.cpp
+  algorithm/MEMSET-Seq.cpp
+  algorithm/MEMSET-OMPTarget.cpp
+  algorithm/MEMCPY.cpp
+  algorithm/MEMCPY-Seq.cpp
+  algorithm/MEMCPY-OMPTarget.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
 )
 

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -45,11 +45,11 @@ namespace basic
   deallocOpenMPDeviceData(x1, did); \
   deallocOpenMPDeviceData(x2, did);
 
-void IF_QUAD::runOpenMPTargetVariant(VariantID vid)
+void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   IF_QUAD_DATA_SETUP;
 
@@ -61,7 +61,7 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(a, b, c, x1, x2) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         IF_QUAD_BODY;
       }
@@ -89,7 +89,7 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid)
     IF_QUAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  IF_QUAD : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  IF_QUAD : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace apps
 {
@@ -24,10 +24,11 @@ namespace apps
 COUPLE::COUPLE(const RunParams& params)
   : KernelBase(rajaperf::Apps_COUPLE, params)
 {
-  setDefaultSize(64);  // See rzmax in ADomain struct
-  setDefaultReps(60);
+  setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
+  setDefaultReps(50);
 
-  m_domain = new ADomain(getRunSize(), /* ndims = */ 3);
+  Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
+  m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
   m_imin = m_domain->imin;
   m_imax = m_domain->imax;
@@ -35,19 +36,29 @@ COUPLE::COUPLE(const RunParams& params)
   m_jmax = m_domain->jmax;
   m_kmin = m_domain->kmin;
   m_kmax = m_domain->kmax;
+
+  setActualProblemSize( m_domain->n_real_zones );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (3*sizeof(Complex_type) + 5*sizeof(Complex_type)) * m_domain->n_real_zones );
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
+
+  setVariantDefined( Base_Seq );
+  setVariantDefined( RAJA_Seq );
+
+  setVariantDefined( Base_OpenMP );
+  setVariantDefined( RAJA_OpenMP );
 }
 
-COUPLE::~COUPLE() 
+COUPLE::~COUPLE()
 {
   delete m_domain;
 }
 
-Index_type COUPLE::getItsPerRep() const 
-{ 
-  return  ( (m_imax - m_imin) * (m_jmax - m_jmin) * (m_kmax - m_kmin) ); 
-}
-
-void COUPLE::setUp(VariantID vid)
+void COUPLE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   Index_type max_loop_index = m_domain->lrn;
 
@@ -66,11 +77,12 @@ void COUPLE::setUp(VariantID vid)
   m_fratio = sqrt(m_omegar / m_omega0);
   m_r_fratio = 1.0/m_fratio;
   m_c20 = 0.25 * (m_clight / m_csound) * m_r_fratio;
-  m_ireal = Complex_type(0.0, 1.0); 
+  m_ireal = Complex_type(0.0, 1.0);
 }
 
-void COUPLE::runKernel(VariantID vid)
+void COUPLE::runKernel(VariantID vid, size_t tune_idx)
 {
+  RAJA_UNUSED_VAR(tune_idx);
   const Index_type run_reps = getRunReps();
 
   COUPLE_DATA_SETUP;
@@ -90,7 +102,7 @@ void COUPLE::runKernel(VariantID vid)
       stopTimer();
 
       break;
-    } 
+    }
 
 #if defined(RUN_RAJA_SEQ)
     case RAJA_Seq : {
@@ -101,10 +113,10 @@ void COUPLE::runKernel(VariantID vid)
         RAJA::forall<RAJA::loop_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
-        }); 
+        });
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
@@ -116,7 +128,7 @@ void COUPLE::runKernel(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (Index_type k = kmin ; k < kmax ; ++k ) {
           COUPLE_BODY;
         }
@@ -134,10 +146,10 @@ void COUPLE::runKernel(VariantID vid)
         RAJA::forall<RAJA::omp_parallel_for_exec>(
           RAJA::RangeSegment(kmin, kmax), [=](Index_type k) {
           COUPLE_BODY;
-        }); 
+        });
 
       }
-      stopTimer(); 
+      stopTimer();
 
       break;
     }
@@ -147,7 +159,7 @@ void COUPLE::runKernel(VariantID vid)
     case Base_OpenMPTarget :
     case RAJA_OpenMPTarget :
     {
-      runOpenMPTargetVariant(vid);
+      runOpenMPTargetVariant(vid, tune_idx);
       break;
     }
 #endif
@@ -156,31 +168,31 @@ void COUPLE::runKernel(VariantID vid)
     case Base_CUDA :
     case RAJA_CUDA :
     {
-      runCudaVariant(vid);
+      runCudaVariant(vid, tune_idx);
       break;
     }
 #endif
 
     default : {
-      std::cout << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  COUPLE : Unknown variant id = " << vid << std::endl;
     }
 
   }
 }
 
-void COUPLE::updateChecksum(VariantID vid)
+void COUPLE::updateChecksum(VariantID vid, size_t tune_idx)
 {
   Index_type max_loop_index = m_domain->lrn;
 
-  checksum[vid] += calcChecksum(m_t0, max_loop_index);
-  checksum[vid] += calcChecksum(m_t1, max_loop_index);
-  checksum[vid] += calcChecksum(m_t2, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t0, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t1, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t2, max_loop_index);
 }
 
-void COUPLE::tearDown(VariantID vid)
+void COUPLE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
- 
+
   deallocData(m_t0);
   deallocData(m_t1);
   deallocData(m_t2);

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -30,18 +30,18 @@ namespace basic
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(a, m_a, getRunSize(), did, hid);
+  allocAndInitOpenMPDeviceData(a, m_a, getActualProblemSize(), did, hid);
 
 #define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_a, a, getRunSize(), hid, did); \
+  getOpenMPDeviceData(m_a, a, getActualProblemSize(), hid, did); \
   deallocOpenMPDeviceData(a, did);
 
 
-void INIT_VIEW1D_OFFSET::runOpenMPTargetVariant(VariantID vid)
+void INIT_VIEW1D_OFFSET::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 1;
-  const Index_type iend = getRunSize()+1;
+  const Index_type iend = getActualProblemSize()+1;
 
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
@@ -83,7 +83,7 @@ void INIT_VIEW1D_OFFSET::runOpenMPTargetVariant(VariantID vid)
      INIT_VIEW1D_OFFSET_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown OMP Targetvariant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D_OFFSET : Unknown OMP Targetvariant id = " << vid << std::endl;
   }
 }
 

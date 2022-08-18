@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,13 +13,13 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
 
-void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
+void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -70,7 +70,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp parallel for collapse(2)
-        for (Index_type i = 0; i < ni; ++i ) { 
+        for (Index_type i = 0; i < ni; ++i ) {
           for (Index_type j = 0; j < nj; ++j ) {
             POLYBENCH_GEMM_BODY1;
             poly_gemm_base_lam2(i, j);
@@ -123,7 +123,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         RAJA::kernel_param<EXEC_POL>(
-     
+
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
@@ -143,11 +143,13 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMM : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

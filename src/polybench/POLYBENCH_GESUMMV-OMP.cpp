@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,13 +13,13 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
-void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
+
+void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -96,9 +96,9 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
+          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,   // i
             RAJA::statement::Lambda<0, RAJA::Params<0,1>>,
-            RAJA::statement::For<1, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::loop_exec,             // j
               RAJA::statement::Lambda<1, RAJA::Segs<0, 1>, RAJA::Params<0,1>>
             >,
             RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0,1>>
@@ -111,7 +111,7 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
-          RAJA::make_tuple(static_cast<Real_type>(0.0), 
+          RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
 
           poly_gesummv_lam1,
@@ -126,11 +126,13 @@ void POLYBENCH_GESUMMV::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_GESUMMV : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GESUMMV : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

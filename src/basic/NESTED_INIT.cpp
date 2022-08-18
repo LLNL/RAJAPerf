@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include "common/DataUtils.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -24,12 +24,25 @@ namespace basic
 NESTED_INIT::NESTED_INIT(const RunParams& params)
   : KernelBase(rajaperf::Basic_NESTED_INIT, params)
 {
-  m_ni = 500;
-  m_nj = 500;
-  m_nk = m_nk_init = 50;
+  m_n_init = 100;
 
-  setDefaultSize(m_ni * m_nj * m_nk);
-  setDefaultReps(100);
+  setDefaultProblemSize(m_n_init * m_n_init * m_n_init);
+  setDefaultReps(1000);
+
+  auto n_final = std::cbrt( getTargetProblemSize() );
+  m_ni = n_final;
+  m_nj = n_final;
+  m_nk = n_final;
+  m_array_length = m_ni * m_nj * m_nk;
+
+  setActualProblemSize( m_array_length );
+
+  setItsPerRep( getActualProblemSize() );
+  setKernelsPerRep(1);
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getActualProblemSize() );
+  setFLOPsPerRep(3 * getActualProblemSize());
+
+  setUsesFeature(Kernel);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -43,34 +56,35 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setVariantDefined( RAJA_OpenMPTarget );
 
   setVariantDefined( Base_CUDA );
+  setVariantDefined( Lambda_CUDA );
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( Base_HIP );
+  setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
-NESTED_INIT::~NESTED_INIT() 
+NESTED_INIT::~NESTED_INIT()
 {
 }
 
-void NESTED_INIT::setUp(VariantID vid)
+void NESTED_INIT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  m_nk = m_nk_init * static_cast<Real_type>( getRunSize() ) / getDefaultSize();
-  m_array_length = m_ni * m_nj * m_nk;
-
   allocAndInitDataConst(m_array, m_array_length, 0.0, vid);
 }
 
-void NESTED_INIT::updateChecksum(VariantID vid)
+void NESTED_INIT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_array, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_array, m_array_length);
 }
 
-void NESTED_INIT::tearDown(VariantID vid)
+void NESTED_INIT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   RAJA::free_aligned(m_array);
-  m_array = 0; 
+  m_array = 0;
 }
 
 } // end namespace basic

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -17,7 +17,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -46,23 +46,23 @@ namespace lcals
   deallocOpenMPDeviceData(w, did);
 
 
-void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
+void PLANCKIAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
     PLANCKIAN_DATA_SETUP_OMP_TARGET;
-                              
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(x, y, u, v, w) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1) 
+      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         PLANCKIAN_BODY;
       }
@@ -70,12 +70,12 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET; 
+    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    PLANCKIAN_DATA_SETUP_OMP_TARGET; 
-                              
+    PLANCKIAN_DATA_SETUP_OMP_TARGET;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -87,10 +87,10 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET; 
+    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  PLANCKIAN : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  PLANCKIAN : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

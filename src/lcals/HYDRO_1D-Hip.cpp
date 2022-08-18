@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define HYDRO_1D_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_array_length); \
   allocAndInitHipDeviceData(y, m_y, m_array_length); \
@@ -38,22 +32,25 @@ namespace lcals
   deallocHipDeviceData(y); \
   deallocHipDeviceData(z); \
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
                          Real_type q, Real_type r, Real_type t,
                          Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      HYDRO_1D_BODY;
    }
 }
 
 
-void HYDRO_1D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void HYDRO_1D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   HYDRO_1D_DATA_SETUP;
 
@@ -65,9 +62,10 @@ void HYDRO_1D::runHipVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((hydro_1d), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z,
+       hipLaunchKernelGGL((hydro_1d<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z,
                                             q, r, t,
                                             iend );
+       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -92,9 +90,11 @@ void HYDRO_1D::runHipVariant(VariantID vid)
     HYDRO_1D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  HYDRO_1D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  HYDRO_1D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_1D, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

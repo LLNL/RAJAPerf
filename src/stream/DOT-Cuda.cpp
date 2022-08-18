@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -17,16 +17,10 @@
 #include <iostream>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace stream
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define DOT_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, iend); \
@@ -36,21 +30,23 @@ namespace stream
   deallocCudaDeviceData(a); \
   deallocCudaDeviceData(b);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
                     Real_ptr dprod, Real_type dprod_init,
-                    Index_type iend) 
+                    Index_type iend)
 {
   extern __shared__ Real_type pdot[ ];
 
-  Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  pdot[ threadIdx.x ] = dprod_init; 
-  for ( ; i < iend ; i += gridDim.x * blockDim.x ) {
+  pdot[ threadIdx.x ] = dprod_init;
+  for ( ; i < iend ; i += gridDim.x * block_size ) {
     pdot[ threadIdx.x ] += a[ i ] * b[i];
   }
   __syncthreads();
 
-  for ( i = blockDim.x / 2; i > 0; i /= 2 ) {
+  for ( i = block_size / 2; i > 0; i /= 2 ) {
     if ( threadIdx.x < i ) {
       pdot[ threadIdx.x ] += pdot[ threadIdx.x + i ];
     }
@@ -70,11 +66,12 @@ __global__ void dot(Real_ptr a, Real_ptr b,
 }
 
 
-void DOT::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void DOT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   DOT_DATA_SETUP;
 
@@ -91,15 +88,14 @@ void DOT::runCudaVariant(VariantID vid)
       initCudaDeviceData(dprod, &m_dot_init, 1);
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<<<grid_size, block_size, 
-            sizeof(Real_type)*block_size>>>( a, b, 
-                                             dprod, m_dot_init,
-                                             iend ); 
+      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
+          a, b, dprod, m_dot_init, iend );
+      cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
       Real_ptr plprod = &lprod;
       getCudaDeviceData(plprod, dprod, 1);
-      m_dot += lprod;  
+      m_dot += lprod;
 
     }
     stopTimer();
@@ -130,9 +126,11 @@ void DOT::runCudaVariant(VariantID vid)
     DOT_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

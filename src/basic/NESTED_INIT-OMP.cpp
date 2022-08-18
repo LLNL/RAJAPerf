@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -21,10 +21,10 @@ namespace basic
 #undef USE_OMP_COLLAPSE
 
 
-void NESTED_INIT::runOpenMPVariant(VariantID vid)
+void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
- 
+
   const Index_type run_reps = getRunReps();
 
   NESTED_INIT_DATA_SETUP;
@@ -94,7 +94,7 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid)
           >
         >;
 #else
-      using EXEC_POL = 
+      using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::omp_parallel_for_exec,  // k
             RAJA::statement::For<1, RAJA::loop_exec,            // j
@@ -122,11 +122,13 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

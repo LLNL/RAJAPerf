@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -17,16 +17,10 @@
 #include <iostream>
 #include <cmath>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define PLANCKIAN_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, iend); \
@@ -43,22 +37,25 @@ namespace lcals
   deallocCudaDeviceData(v); \
   deallocCudaDeviceData(w);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
-                          Real_ptr u, Real_ptr v, Real_ptr w, 
-                          Index_type iend) 
+                          Real_ptr u, Real_ptr v, Real_ptr w,
+                          Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
-     PLANCKIAN_BODY; 
+     PLANCKIAN_BODY;
    }
 }
 
 
-void PLANCKIAN::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void PLANCKIAN::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   PLANCKIAN_DATA_SETUP;
 
@@ -70,9 +67,10 @@ void PLANCKIAN::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       planckian<<<grid_size, block_size>>>( x, y, 
+       planckian<block_size><<<grid_size, block_size>>>( x, y,
                                              u, v, w,
                                              iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -97,9 +95,11 @@ void PLANCKIAN::runCudaVariant(VariantID vid)
     PLANCKIAN_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

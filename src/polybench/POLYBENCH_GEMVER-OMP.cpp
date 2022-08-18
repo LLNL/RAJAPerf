@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -14,13 +14,13 @@
 #include <cstring>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
 
-void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
+void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
 
@@ -49,14 +49,14 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
             POLYBENCH_GEMVER_BODY3;
           }
           POLYBENCH_GEMVER_BODY4;
-        } 
+        }
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY5;
         }
 
-        #pragma omp parallel for  
+        #pragma omp parallel for
         for (Index_type i = 0; i < n; i++ ) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; j++) {
@@ -140,7 +140,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
       auto poly_gemver_lam1 = [=] (Index_type i, Index_type j) {
                                    POLYBENCH_GEMVER_BODY1_RAJA;
                                   };
-      auto poly_gemver_lam2 = [=] (Real_type &dot) {
+      auto poly_gemver_lam2 = [=] (Index_type /* i */, Real_type &dot) {
                                    POLYBENCH_GEMVER_BODY2_RAJA;
                                   };
       auto poly_gemver_lam3 = [=] (Index_type i, Index_type j, Real_type &dot) {
@@ -171,20 +171,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           >
         >;
 
-      using EXEC_POL2 =
-        RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::Lambda<0, RAJA::Params<0>>,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-            >,
-            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-          >
-        >;
-
-      using EXEC_POL3 = RAJA::loop_exec;
-
-      using EXEC_POL4 =
+      using EXEC_POL24 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
             RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
@@ -195,6 +182,8 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           >
         >;
 
+      using EXEC_POL3 = RAJA::loop_exec;
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -203,7 +192,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           poly_gemver_lam1
         );
 
-        RAJA::kernel_param<EXEC_POL2>(
+        RAJA::kernel_param<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
@@ -217,7 +206,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           poly_gemver_lam5
         );
 
-        RAJA::kernel_param<EXEC_POL4>(
+        RAJA::kernel_param<EXEC_POL24>(
           RAJA::make_tuple(RAJA::RangeSegment{0, n},
                            RAJA::RangeSegment{0, n}),
           RAJA::tuple<Real_type>{0.0},
@@ -226,7 +215,7 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
           poly_gemver_lam7,
           poly_gemver_lam8
 
-        ); 
+        );
 
       }
       stopTimer();
@@ -235,11 +224,13 @@ void POLYBENCH_GEMVER::runOpenMPVariant(VariantID vid)
     }
 
     default : {
-      std::cout << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_GEMVER : Unknown variant id = " << vid << std::endl;
     }
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

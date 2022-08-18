@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
@@ -32,7 +32,7 @@ namespace basic
   deallocOpenMPDeviceData(array, did);
 
 
-void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
+void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -46,14 +46,14 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp target is_device_ptr(array) device( did )
-      #pragma omp teams distribute parallel for schedule(static, 1) collapse(3) 
+      #pragma omp teams distribute parallel for schedule(static, 1) collapse(3)
       for (Index_type k = 0; k < nk; ++k ) {
         for (Index_type j = 0; j < nj; ++j ) {
           for (Index_type i = 0; i < ni; ++i ) {
             NESTED_INIT_BODY;
           }
         }
-      }  
+      }
 
     }
     stopTimer();
@@ -64,7 +64,7 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
 
     NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
-    using EXEC_POL = 
+    using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::Collapse<RAJA::omp_target_parallel_collapse_exec,
                                   RAJA::ArgList<2, 1, 0>, // k, j, i
@@ -87,8 +87,8 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid)
 
     NESTED_INIT_DATA_TEARDOWN_OMP_TARGET;
 
-  } else { 
-     std::cout << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
+  } else {
+     getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;
   }
 }
 

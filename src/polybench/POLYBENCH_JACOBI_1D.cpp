@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,77 +12,68 @@
 #include "common/DataUtils.hpp"
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
- 
+
 POLYBENCH_JACOBI_1D::POLYBENCH_JACOBI_1D(const RunParams& params)
   : KernelBase(rajaperf::Polybench_JACOBI_1D, params)
 {
-  SizeSpec lsizespec = KernelBase::getSizeSpec();
-  int run_reps = 0; 
-  switch(lsizespec) {
-    case Mini:
-      m_N=300;
-      m_tsteps=20;
-      run_reps = 10000;
-      break;
-    case Small:
-      m_N=1200;
-      m_tsteps=100;
-      run_reps = 1000;
-      break;
-    case Medium:
-      m_N=4000;
-      m_tsteps=100;
-      run_reps = 100;
-      break;
-    case Large:
-      m_N=200000;
-      m_tsteps=50;
-      run_reps = 1;
-      break;
-    case Extralarge:
-      m_N=2000000;
-      m_tsteps=10;
-      run_reps = 20;
-      break;
-    default:
-      m_N=4000000;
-      m_tsteps=10;
-      run_reps = 10;
-      break;
-  }
+  Index_type N_default = 1000000;
 
-  setDefaultSize( m_tsteps * 2 * m_N );
-  setDefaultReps(run_reps);
+  setDefaultProblemSize( N_default-2 );
+  setDefaultReps(100);
+
+  m_N = getTargetProblemSize();
+  m_tsteps = 16;
+
+
+  setActualProblemSize( m_N-2 );
+
+  setItsPerRep( m_tsteps * ( 2 * getActualProblemSize() ) );
+  setKernelsPerRep(m_tsteps * 2);
+  setBytesPerRep( m_tsteps * ( (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               m_N +
+                               (1*sizeof(Real_type ) + 0*sizeof(Real_type )) *
+                               (m_N-2) +
+                               (0*sizeof(Real_type ) + 1*sizeof(Real_type )) *
+                               m_N ) );
+  setFLOPsPerRep( m_tsteps * ( 3 * (m_N-2) +
+                               3 * (m_N-2) ) );
+
+  checksum_scale_factor = 0.0001 *
+              ( static_cast<Checksum_type>(getDefaultProblemSize()) /
+                                           getActualProblemSize() );
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
   setVariantDefined( RAJA_Seq );
-                     
+
   setVariantDefined( Base_OpenMP );
   setVariantDefined( Lambda_OpenMP );
   setVariantDefined( RAJA_OpenMP );
-  
+
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
-      
+
   setVariantDefined( Base_CUDA );
   setVariantDefined( RAJA_CUDA );
-        
+
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
 }
 
-POLYBENCH_JACOBI_1D::~POLYBENCH_JACOBI_1D() 
+POLYBENCH_JACOBI_1D::~POLYBENCH_JACOBI_1D()
 {
-
 }
 
-void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
+void POLYBENCH_JACOBI_1D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   allocAndInitData(m_Ainit, m_N, vid);
@@ -91,13 +82,13 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid)
   allocAndInitDataConst(m_B, m_N, 0.0, vid);
 }
 
-void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid)
+void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid] += calcChecksum(m_A, m_N);
-  checksum[vid] += calcChecksum(m_B, m_N);
+  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor );
 }
 
-void POLYBENCH_JACOBI_1D::tearDown(VariantID vid)
+void POLYBENCH_JACOBI_1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
   deallocData(m_A);

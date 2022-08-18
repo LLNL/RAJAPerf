@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -50,11 +50,37 @@ HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   m_halo_width_default   = 1;
   m_num_vars_default     = 3;
 
-  setDefaultSize((m_grid_dims_default[0] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[1] + 2*m_halo_width_default) *
-                 (m_grid_dims_default[2] + 2*m_halo_width_default) *
-                 m_num_vars_default);
+  setDefaultProblemSize( m_grid_dims_default[0] *
+                         m_grid_dims_default[1] *
+                         m_grid_dims_default[2] );
   setDefaultReps(50);
+
+  double cbrt_run_size = std::cbrt(getTargetProblemSize());
+
+  m_grid_dims[0] = cbrt_run_size;
+  m_grid_dims[1] = cbrt_run_size;
+  m_grid_dims[2] = cbrt_run_size;
+  m_halo_width = m_halo_width_default;
+  m_num_vars   = m_num_vars_default;
+
+  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
+  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
+  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
+  m_var_size = m_grid_plus_halo_dims[0] *
+               m_grid_plus_halo_dims[1] *
+               m_grid_plus_halo_dims[2] ;
+
+  setActualProblemSize( m_grid_dims[0] * m_grid_dims[1] * m_grid_dims[1] );
+
+  setItsPerRep( m_num_vars * (m_var_size - getActualProblemSize()) );
+  setKernelsPerRep( 2 * s_num_neighbors * m_num_vars );
+  setBytesPerRep( (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Int_type)  + 1*sizeof(Int_type) ) * getItsPerRep() +
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() );
+  setFLOPsPerRep(0);
+
+  setUsesFeature(Forall);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( Lambda_Seq );
@@ -78,23 +104,8 @@ HALOEXCHANGE::~HALOEXCHANGE()
 {
 }
 
-void HALOEXCHANGE::setUp(VariantID vid)
+void HALOEXCHANGE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  double cbrt_size_fact = std::cbrt(run_params.getSizeFactor());
-
-  m_grid_dims[0] = cbrt_size_fact * m_grid_dims_default[0];
-  m_grid_dims[1] = cbrt_size_fact * m_grid_dims_default[1];
-  m_grid_dims[2] = cbrt_size_fact * m_grid_dims_default[2];
-  m_halo_width = m_halo_width_default;
-  m_num_vars   = m_num_vars_default;
-
-  m_grid_plus_halo_dims[0] = m_grid_dims[0] + 2*m_halo_width;
-  m_grid_plus_halo_dims[1] = m_grid_dims[1] + 2*m_halo_width;
-  m_grid_plus_halo_dims[2] = m_grid_dims[2] + 2*m_halo_width;
-  m_var_size = m_grid_plus_halo_dims[0] *
-               m_grid_plus_halo_dims[1] *
-               m_grid_plus_halo_dims[2] ;
-
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
     allocAndInitData(m_vars[v], m_var_size, vid);
@@ -121,14 +132,14 @@ void HALOEXCHANGE::setUp(VariantID vid)
   }
 }
 
-void HALOEXCHANGE::updateChecksum(VariantID vid)
+void HALOEXCHANGE::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
-    checksum[vid] += calcChecksum(var, m_var_size);
+    checksum[vid][tune_idx] += calcChecksum(var, m_var_size);
   }
 }
 
-void HALOEXCHANGE::tearDown(VariantID vid)
+void HALOEXCHANGE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
     deallocData(m_buffers[l]);

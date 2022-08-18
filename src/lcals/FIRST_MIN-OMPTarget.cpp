@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
@@ -37,18 +37,18 @@ namespace lcals
 
 FIRST_MIN_MINLOC_COMPARE;
 
-void FIRST_MIN::runOpenMPTargetVariant(VariantID vid)
+void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   FIRST_MIN_DATA_SETUP;
- 
+
   if ( vid == Base_OpenMPTarget ) {
 
     FIRST_MIN_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +70,11 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_MIN_DATA_TEARDOWN_OMP_TARGET;
-                       
+
   } else if ( vid == RAJA_OpenMPTarget ) {
 
     FIRST_MIN_DATA_SETUP_OMP_TARGET;
-                       
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -92,9 +92,9 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid)
     stopTimer();
 
     FIRST_MIN_DATA_TEARDOWN_OMP_TARGET;
-                       
-  } else {                          
-     std::cout << "\n  FIRST_MIN : Unknown OMP Target variant id = " << vid << std::endl;
+
+  } else {
+     getCout() << "\n  FIRST_MIN : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }

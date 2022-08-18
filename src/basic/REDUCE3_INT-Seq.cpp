@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -13,17 +13,17 @@
 #include <limits>
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace basic
 {
 
 
-void REDUCE3_INT::runSeqVariant(VariantID vid)
+void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   REDUCE3_INT_DATA_SETUP;
 
@@ -55,9 +55,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
 #if defined(RUN_RAJA_SEQ)
     case Lambda_Seq : {
 
-      auto init3_base_lam = [=](Index_type i) -> Int_type {
-                              return vec[i];
-                            };
+      auto reduce3_base_lam = [=](Index_type i) -> Int_type {
+                                return vec[i];
+                              };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,9 +67,9 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
         Int_type vmax = m_vmax_init;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          vsum += init3_base_lam(i);
-          vmin = RAJA_MIN(vmin, init3_base_lam(i));
-          vmax = RAJA_MAX(vmax, init3_base_lam(i));
+          vsum += reduce3_base_lam(i);
+          vmin = RAJA_MIN(vmin, reduce3_base_lam(i));
+          vmax = RAJA_MAX(vmax, reduce3_base_lam(i));
         }
 
         m_vsum += vsum;
@@ -108,7 +108,7 @@ void REDUCE3_INT::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
     }
 
   }

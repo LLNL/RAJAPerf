@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -25,12 +25,6 @@ namespace rajaperf
 namespace apps
 {
 
-  //
-  // Define thread block size for HIP execution
-  //
-  const size_t block_size = 256;
-
-
 #define DEL_DOT_VEC_2D_DATA_SETUP_HIP \
   allocAndInitHipDeviceData(x, m_x, m_array_length); \
   allocAndInitHipDeviceData(y, m_y, m_array_length); \
@@ -48,6 +42,8 @@ namespace apps
   deallocHipDeviceData(div); \
   deallocHipDeviceData(real_zones);
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void deldotvec2d(Real_ptr div,
                             const Real_ptr x1, const Real_ptr x2,
                             const Real_ptr x3, const Real_ptr x4,
@@ -61,7 +57,7 @@ __global__ void deldotvec2d(Real_ptr div,
                             const Real_type half, const Real_type ptiny,
                             Index_type iend)
 {
-   Index_type ii = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type ii = blockIdx.x * block_size + threadIdx.x;
    if (ii < iend) {
      DEL_DOT_VEC_2D_BODY_INDEX;
      DEL_DOT_VEC_2D_BODY;
@@ -69,7 +65,8 @@ __global__ void deldotvec2d(Real_ptr div,
 }
 
 
-void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
+template < size_t block_size >
+void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
@@ -90,7 +87,7 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL((deldotvec2d), dim3(grid_size), dim3(block_size), 0, 0, div,
+      hipLaunchKernelGGL((deldotvec2d<block_size>), dim3(grid_size), dim3(block_size), 0, 0, div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -98,6 +95,37 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
                                              real_zones,
                                              half, ptiny,
                                              iend);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+    DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
+
+  } else if ( vid == Lambda_HIP ) {
+
+    DEL_DOT_VEC_2D_DATA_SETUP_HIP;
+
+    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
+    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
+    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
+    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto deldotvec2d_lambda = [=] __device__ (Index_type ii) {
+
+        DEL_DOT_VEC_2D_BODY_INDEX;
+        DEL_DOT_VEC_2D_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(deldotvec2d_lambda)>),
+        grid_size, block_size, 0, 0,
+        0, iend, deldotvec2d_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
@@ -113,7 +141,7 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
     NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
 
-    camp::resources::Resource working_res{camp::resources::Hip()};
+    camp::resources::Resource working_res{camp::resources::Hip::get_default()};
     RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
                                              m_domain->n_real_zones,
                                              working_res);
@@ -132,9 +160,11 @@ void DEL_DOT_VEC_2D::runHipVariant(VariantID vid)
     DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
 
   } else {
-     std::cout << "\n  DEL_DOT_VEC_2D : Unknown Hip variant id = " << vid << std::endl;
+     getCout() << "\n  DEL_DOT_VEC_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DEL_DOT_VEC_2D, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -32,10 +32,10 @@
 ///      q[i][0] = v[0][i];
 ///      for (j=1; j<N-1; j++) {
 ///        p[i][j] = -c / (a*p[i][j-1]+b);
-///        q[i][j] = (-d*u[j][i-1]+(1.0+2.0*d)*u[j][i] - 
+///        q[i][j] = (-d*u[j][i-1]+(1.0+2.0*d)*u[j][i] -
 ///                   f*u[j][i+1]-a*q[i][j-1]) / (a*p[i][j-1]+b);
 ///      }
-///      
+///
 ///      v[N-1][i] = 1.0;
 ///      for (k=N-2; k>=1; k--) {
 ///        v[k][i] = p[i][k] * v[k+1][i] + q[i][k];
@@ -48,7 +48,7 @@
 ///      q[i][0] = u[i][0];
 ///      for (j=1; j<N-1; j++) {
 ///        p[i][j] = -f / (d*p[i][j-1]+e);
-///        q[i][j] = (-a*v[i-1][j]+(1.0+2.0*a)*v[i][j] - 
+///        q[i][j] = (-a*v[i-1][j]+(1.0+2.0*a)*v[i][j] -
 ///                  c*v[i+1][j]-d*q[i][j-1]) / (d*p[i][j-1]+e);
 ///      }
 ///      u[i][N-1] = 1.0;
@@ -97,13 +97,13 @@
   P[i * n + j] = -c / (a * P[i * n + j-1] + b); \
   Q[i * n + j] = (-d * U[j * n + i-1] + (1.0 + 2.0*d) * U[j * n + i] - \
                  f * U[j * n + i + 1] - a * Q[i * n + j-1]) / \
-                    (a * P[i * n + j-1] + b); 
+                    (a * P[i * n + j-1] + b);
 
 #define POLYBENCH_ADI_BODY4 \
   V[(n-1) * n + i] = 1.0;
 
 #define POLYBENCH_ADI_BODY5 \
-  V[k * n + i]  = P[i * n + k] * V[(k+1) * n + i] + Q[i * n + k]; 
+  V[k * n + i]  = P[i * n + k] * V[(k+1) * n + i] + Q[i * n + k];
 
 #define POLYBENCH_ADI_BODY6 \
   U[i * n + 0] = 1.0; \
@@ -120,7 +120,7 @@
   U[i * n + n-1] = 1.0;
 
 #define POLYBENCH_ADI_BODY9 \
-  U[i * n + k] = P[i * n + k] * U[i * n + k +1] + Q[i * n + k]; 
+  U[i * n + k] = P[i * n + k] * U[i * n + k +1] + Q[i * n + k];
 
 
 #define POLYBENCH_ADI_BODY2_RAJA \
@@ -170,7 +170,7 @@
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -186,18 +186,27 @@ public:
 
   ~POLYBENCH_ADI();
 
- 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
+
   Index_type m_n;
   Index_type m_tsteps;
 

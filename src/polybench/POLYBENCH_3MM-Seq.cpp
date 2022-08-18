@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -14,13 +14,13 @@
 #include <cstring>
 
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace polybench
 {
 
-  
-void POLYBENCH_3MM::runSeqVariant(VariantID vid)
+
+void POLYBENCH_3MM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -143,7 +143,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
       auto poly_3mm_lam1 = [=] (Real_type &dot) {
                                   POLYBENCH_3MM_BODY1_RAJA;
                                 };
-      auto poly_3mm_lam2 = [=] (Index_type i, Index_type j, Index_type k, 
+      auto poly_3mm_lam2 = [=] (Index_type i, Index_type j, Index_type k,
                                 Real_type &dot) {
                                   POLYBENCH_3MM_BODY2_RAJA;
                                 };
@@ -154,7 +154,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
       auto poly_3mm_lam4 = [=] (Real_type &dot) {
                                   POLYBENCH_3MM_BODY4_RAJA;
                                 };
-      auto poly_3mm_lam5 = [=] (Index_type j, Index_type l, Index_type m, 
+      auto poly_3mm_lam5 = [=] (Index_type j, Index_type l, Index_type m,
                                 Real_type &dot) {
                                   POLYBENCH_3MM_BODY5_RAJA;
                                 };
@@ -165,7 +165,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
       auto poly_3mm_lam7 = [=] (Real_type &dot) {
                                   POLYBENCH_3MM_BODY7_RAJA;
                                 };
-      auto poly_3mm_lam8 = [=] (Index_type i, Index_type l, Index_type j, 
+      auto poly_3mm_lam8 = [=] (Index_type i, Index_type l, Index_type j,
                                 Real_type &dot) {
                                   POLYBENCH_3MM_BODY8_RAJA;
                                 };
@@ -212,7 +212,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
           poly_3mm_lam5,
           poly_3mm_lam6
 
-        ); 
+        );
 
         RAJA::kernel_param<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, ni},
@@ -234,7 +234,7 @@ void POLYBENCH_3MM::runSeqVariant(VariantID vid)
 #endif // RUN_RAJA_SEQ
 
     default : {
-      std::cout << "\n  POLYBENCH_2MM : Unknown variant id = " << vid << std::endl;
+      getCout() << "\n  POLYBENCH_2MM : Unknown variant id = " << vid << std::endl;
     }
 
   }

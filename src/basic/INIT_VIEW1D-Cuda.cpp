@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -21,35 +21,33 @@ namespace rajaperf
 namespace basic
 {
 
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
-
 #define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getRunSize());
+  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
 
 #define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getRunSize()); \
+  getCudaDeviceData(m_a, a, getActualProblemSize()); \
   deallocCudaDeviceData(a);
 
-__global__ void initview1d(Real_ptr a, 
+template < size_t block_size >
+__launch_bounds__(block_size)
+__global__ void initview1d(Real_ptr a,
                            Real_type v,
-                           const Index_type iend) 
+                           const Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i < iend) {
-     INIT_VIEW1D_BODY; 
-   }
+  Index_type i = blockIdx.x * block_size + threadIdx.x;
+  if (i < iend) {
+    INIT_VIEW1D_BODY;
+  }
 }
 
 
-void INIT_VIEW1D::runCudaVariant(VariantID vid)
+
+template < size_t block_size >
+void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   INIT_VIEW1D_DATA_SETUP;
 
@@ -60,10 +58,28 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       initview1d<<<grid_size, block_size>>>( a,
-                                              v, 
-                                              iend ); 
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      initview1d<block_size><<<grid_size, block_size>>>( a, v, iend );
+      cudaErrchk( cudaGetLastError() );
+
+    }
+    stopTimer();
+
+    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
+
+  } else if ( vid == Lambda_CUDA ) {
+
+    INIT_VIEW1D_DATA_SETUP_CUDA;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+        ibegin, iend, [=] __device__ (Index_type i) {
+        INIT_VIEW1D_BODY;
+      });
+      cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -90,9 +106,11 @@ void INIT_VIEW1D::runCudaVariant(VariantID vid)
     INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
   } else {
-     std::cout << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
+     getCout() << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

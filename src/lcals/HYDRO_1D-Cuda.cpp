@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -16,16 +16,10 @@
 
 #include <iostream>
 
-namespace rajaperf 
+namespace rajaperf
 {
 namespace lcals
 {
-
-  //
-  // Define thread block size for CUDA execution
-  //
-  const size_t block_size = 256;
-
 
 #define HYDRO_1D_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(x, m_x, m_array_length); \
@@ -38,22 +32,25 @@ namespace lcals
   deallocCudaDeviceData(y); \
   deallocCudaDeviceData(z); \
 
+template < size_t block_size >
+__launch_bounds__(block_size)
 __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
                          Real_type q, Real_type r, Real_type t,
-                         Index_type iend) 
+                         Index_type iend)
 {
-   Index_type i = blockIdx.x * blockDim.x + threadIdx.x;
+   Index_type i = blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
-     HYDRO_1D_BODY; 
+     HYDRO_1D_BODY;
    }
 }
 
 
-void HYDRO_1D::runCudaVariant(VariantID vid)
+template < size_t block_size >
+void HYDRO_1D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
-  const Index_type iend = getRunSize();
+  const Index_type iend = getActualProblemSize();
 
   HYDRO_1D_DATA_SETUP;
 
@@ -65,9 +62,10 @@ void HYDRO_1D::runCudaVariant(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hydro_1d<<<grid_size, block_size>>>( x, y, z,
+       hydro_1d<block_size><<<grid_size, block_size>>>( x, y, z,
                                             q, r, t,
-                                            iend ); 
+                                            iend );
+       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
@@ -91,10 +89,12 @@ void HYDRO_1D::runCudaVariant(VariantID vid)
 
     HYDRO_1D_DATA_TEARDOWN_CUDA;
 
-  } else { 
-     std::cout << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;
+  } else {
+     getCout() << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
+
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_1D, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

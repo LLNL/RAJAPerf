@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -20,6 +20,11 @@ namespace rajaperf
 {
 namespace apps
 {
+
+  //
+  // Define threads per team for target execution
+  //
+  const size_t threads_per_team = 256;
 
 #define HALOEXCHANGE_DATA_SETUP_OMP_TARGET \
   int hid = omp_get_initial_device(); \
@@ -46,7 +51,7 @@ namespace apps
   }
 
 
-void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
+void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
 
@@ -98,7 +103,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
 
     HALOEXCHANGE_DATA_SETUP_OMP_TARGET;
 
-    using EXEC_POL = RAJA::omp_target_parallel_exec;
+    using EXEC_POL = RAJA::omp_target_parallel_for_exec<threads_per_team>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -141,7 +146,7 @@ void HALOEXCHANGE::runOpenMPTargetVariant(VariantID vid)
     HALOEXCHANGE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n HALOEXCHANGE : Unknown OMP Target variant id = " << vid << std::endl;
   }
 }
 

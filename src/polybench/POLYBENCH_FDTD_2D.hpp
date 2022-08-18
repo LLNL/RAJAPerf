@@ -1,7 +1,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/COPYRIGHT file for details.
+// See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -12,21 +12,21 @@
 /// for (t = 0; t < TSTEPS; t++)
 /// {
 ///   for (j = 0; j < ny; j++) {
-///	ey[0][j] = fict[t];
+///     ey[0][j] = fict[t];
 ///   }
 ///   for (i = 1; i < nx; i++) {
-///	for (j = 0; j < ny; j++) {
-///	  ey[i][j] = ey[i][j] - 0.5*(hz[i][j]-hz[i-1][j]);
+///     for (j = 0; j < ny; j++) {
+///       ey[i][j] = ey[i][j] - 0.5*(hz[i][j]-hz[i-1][j]);
 ///     }
-///   } 
+///   }
 ///   for (i = 0; i < nx; i++) {
-///	for (j = 1; j < ny; j++) {
-///	  ex[i][j] = ex[i][j] - 0.5*(hz[i][j]-hz[i][j-1]);
+///     for (j = 1; j < ny; j++) {
+///       ex[i][j] = ex[i][j] - 0.5*(hz[i][j]-hz[i][j-1]);
 ///     }
-///   } 
+///   }
 ///   for (i = 0; i < nx - 1; i++) {
-///	for (j = 0; j < ny - 1; j++) {
-///	  hz[i][j] = hz[i][j] - 0.7*(ex[i][j+1] - ex[i][j] +
+///     for (j = 0; j < ny - 1; j++) {
+///       hz[i][j] = hz[i][j] - 0.7*(ex[i][j+1] - ex[i][j] +
 ///                                  ey[i+1][j] - ey[i][j]);
 ///     }
 ///   }
@@ -53,14 +53,14 @@
   ey[j + 0*ny] = fict[t];
 
 #define POLYBENCH_FDTD_2D_BODY2 \
-  ey[j + i*ny] = ey[j + i*ny] - 0.5*(hz[j + i*ny] - hz[j + (i-1)*ny]); 
+  ey[j + i*ny] = ey[j + i*ny] - 0.5*(hz[j + i*ny] - hz[j + (i-1)*ny]);
 
 #define POLYBENCH_FDTD_2D_BODY3 \
-  ex[j + i*ny] = ex[j + i*ny] - 0.5*(hz[j + i*ny] - hz[j-1 + i*ny]); 
+  ex[j + i*ny] = ex[j + i*ny] - 0.5*(hz[j + i*ny] - hz[j-1 + i*ny]);
 
 #define POLYBENCH_FDTD_2D_BODY4 \
   hz[j + i*ny] = hz[j + i*ny] - 0.7*(ex[j+1 + i*ny] - ex[j + i*ny] + \
-                                     ey[j + (i+1)*ny] - ey[j + i*ny]); 
+                                     ey[j + (i+1)*ny] - ey[j + i*ny]);
 
 
 #define POLYBENCH_FDTD_2D_BODY1_RAJA \
@@ -88,7 +88,7 @@ using VIEW_TYPE = RAJA::View<Real_type, \
 
 #include "common/KernelBase.hpp"
 
-namespace rajaperf 
+namespace rajaperf
 {
 
 class RunParams;
@@ -104,18 +104,28 @@ public:
 
   ~POLYBENCH_FDTD_2D();
 
+  void setUp(VariantID vid, size_t tune_idx);
+  void updateChecksum(VariantID vid, size_t tune_idx);
+  void tearDown(VariantID vid, size_t tune_idx);
 
-  void setUp(VariantID vid);
-  void updateChecksum(VariantID vid);
-  void tearDown(VariantID vid);
+  void runSeqVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPVariant(VariantID vid, size_t tune_idx);
+  void runCudaVariant(VariantID vid, size_t tune_idx);
+  void runHipVariant(VariantID vid, size_t tune_idx);
+  void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
 
-  void runSeqVariant(VariantID vid);
-  void runOpenMPVariant(VariantID vid);
-  void runCudaVariant(VariantID vid);
-  void runHipVariant(VariantID vid);
-  void runOpenMPTargetVariant(VariantID vid);
+  void setCudaTuningDefinitions(VariantID vid);
+  void setHipTuningDefinitions(VariantID vid);
+  template < size_t block_size >
+  void runCudaVariantImpl(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantImpl(VariantID vid);
 
 private:
+  static const size_t default_gpu_block_size = 256;
+  using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size,
+                                                         gpu_block_size::MultipleOf<32>>;
+
   Index_type m_nx;
   Index_type m_ny;
   Index_type m_tsteps;
