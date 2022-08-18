@@ -8,7 +8,7 @@
 
 #include "EOS.hpp"
 #if defined(RUN_KOKKOS)
-#include "common/KokkosViewUtils.hpp" $
+#include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
 namespace rajaperf {
@@ -27,8 +27,6 @@ void EOS::runKokkosVariant(VariantID vid,
   auto y_view = getViewFromPointer(y, iend + 7);
   auto z_view = getViewFromPointer(z, iend + 7);
   auto u_view = getViewFromPointer(u, iend + 7);
-
-  auto eos_lam = [=](Index_type i) { EOS_BODY; };
 
   switch (vid) {
 

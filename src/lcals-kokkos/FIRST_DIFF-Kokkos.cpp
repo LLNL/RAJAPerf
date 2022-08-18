@@ -26,8 +26,6 @@ void FIRST_DIFF::runKokkosVariant(VariantID vid,
   auto x_view = getViewFromPointer(x, iend + 1);
   auto y_view = getViewFromPointer(y, iend + 1);
 
-  auto firstdiff_lam = [=](Index_type i) { FIRST_DIFF_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {

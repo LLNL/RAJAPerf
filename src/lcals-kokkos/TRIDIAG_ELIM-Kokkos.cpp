@@ -27,8 +27,6 @@ void TRIDIAG_ELIM::runKokkosVariant(VariantID vid,
   auto y_view = getViewFromPointer(y, iend);
   auto z_view = getViewFromPointer(z, iend);
 
-  auto tridiag_elim_lam = [=](Index_type i) { TRIDIAG_ELIM_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {

@@ -29,11 +29,6 @@ void GEN_LIN_RECUR::runKokkosVariant(VariantID vid,
   auto sb_view = getViewFromPointer(sb, iend);
   auto stb5_view = getViewFromPointer(stb5, iend);
 
-  // RAJAPerf Suite Lambdas
-
-  auto genlinrecur_lam1 = [=](Index_type k) { GEN_LIN_RECUR_BODY1; };
-  auto genlinrecur_lam2 = [=](Index_type i) { GEN_LIN_RECUR_BODY2; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {

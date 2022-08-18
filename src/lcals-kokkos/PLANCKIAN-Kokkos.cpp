@@ -29,8 +29,6 @@ void PLANCKIAN::runKokkosVariant(VariantID vid,
   auto v_view = getViewFromPointer(v, iend);
   auto w_view = getViewFromPointer(w, iend);
 
-  auto planckian_lam = [=](Index_type i) { PLANCKIAN_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {

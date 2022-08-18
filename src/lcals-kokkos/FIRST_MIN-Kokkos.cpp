@@ -34,9 +34,9 @@ void FIRST_MIN::runKokkosVariant(VariantID vid,
 
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      // The third template argument, `Kokkos::HostSpace`, is the memory space where the
-      // result will be stored; the result will be stored in the same place the
-      // kernel is called from , i.e., the Host
+      // The third template argument, `Kokkos::HostSpace`, is the memory space
+      // where the result will be stored; the result will be stored in the same
+      // place the kernel is called from , i.e., the Host
       using reducer_type =
           Kokkos::MinLoc<Real_type, Index_type, Kokkos::HostSpace>;
       // must hold the value and the location (host/device) ;

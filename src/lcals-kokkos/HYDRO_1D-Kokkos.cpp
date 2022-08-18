@@ -27,8 +27,6 @@ void HYDRO_1D::runKokkosVariant(VariantID vid,
   auto y_view = getViewFromPointer(y, iend + 12);
   auto z_view = getViewFromPointer(z, iend + 12);
 
-  auto hydro1d_lam = [=](Index_type i) { HYDRO_1D_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {

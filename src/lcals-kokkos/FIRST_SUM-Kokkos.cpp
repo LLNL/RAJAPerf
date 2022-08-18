@@ -26,8 +26,6 @@ void FIRST_SUM::runKokkosVariant(VariantID vid,
   auto x_view = getViewFromPointer(x, iend);
   auto y_view = getViewFromPointer(y, iend);
 
-  auto firstsum_lam = [=](Index_type i) { FIRST_SUM_BODY; };
-
   switch (vid) {
 
   case Kokkos_Lambda: {
