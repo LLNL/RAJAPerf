@@ -370,12 +370,12 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid)
 {
   // use json spec query expr
   if(doCaliMetaOnce[vid]) {
-    cali_begin_string_byname("ProblemSize",std::to_string(getActualProblemSize()).c_str());
-    cali_begin_string_byname("Reps",std::to_string(getRunReps()).c_str());
-    cali_begin_string_byname("Iterations/Rep",std::to_string(getItsPerRep()).c_str());
-    cali_begin_string_byname("Kernels/Rep",std::to_string(getKernelsPerRep()).c_str());
-    cali_begin_string_byname("Bytes/Rep",std::to_string(getBytesPerRep()).c_str());
-    cali_begin_string_byname("Flops/Rep",std::to_string(getFLOPsPerRep()).c_str());
+    cali_begin_double_byname("ProblemSize",(double)getActualProblemSize());
+    cali_begin_double_byname("Reps",(double)getRunReps());
+    cali_begin_double_byname("Iterations/Rep",(double)getItsPerRep());
+    cali_begin_double_byname("Kernels/Rep",(double)getKernelsPerRep());
+    cali_begin_double_byname("Bytes/Rep",(double)getBytesPerRep());
+    cali_begin_double_byname("Flops/Rep",(double)getFLOPsPerRep());
   }  
 }
 
