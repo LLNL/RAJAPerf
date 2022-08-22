@@ -39,6 +39,12 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   running_tuning = getUnknownTuningIdx();
 
   checksum_scale_factor = 1.0;
+
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  for (size_t vid=0; vid < NumVariants; ++vid) {
+    doCaliMetaOnce[vid] = true;
+  }
+#endif
 }
 
 
@@ -359,6 +365,35 @@ void KernelBase::setKernelAdiakMeta()
   valStr += ",flops_rep:"+flops_rep;
   adiak::value(getName().c_str(),valStr.c_str());
 }
+
+void KernelBase::doOnceCaliMetaBegin(VariantID vid)
+{
+  // use json spec query expr
+  if(doCaliMetaOnce[vid]) {
+    cali_begin_double_byname("ProblemSize",(double)getActualProblemSize());
+    cali_begin_double_byname("Reps",(double)getRunReps());
+    cali_begin_double_byname("Iterations/Rep",(double)getItsPerRep());
+    cali_begin_double_byname("Kernels/Rep",(double)getKernelsPerRep());
+    cali_begin_double_byname("Bytes/Rep",(double)getBytesPerRep());
+    cali_begin_double_byname("Flops/Rep",(double)getFLOPsPerRep());
+  }  
+}
+
+void KernelBase::doOnceCaliMetaEnd(VariantID vid)
+{ 
+  // use json spec query exp
+  if(doCaliMetaOnce[vid]) {
+    cali_end_byname("Flops/Rep");
+    cali_end_byname("Bytes/Rep");
+    cali_end_byname("Kernels/Rep");
+    cali_end_byname("Iterations/Rep");
+    cali_end_byname("Reps");
+    cali_end_byname("ProblemSize");
+    doCaliMetaOnce[vid] = false;
+  }
+  
+}
+
 // initialize a KernelBase static 
 std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 #endif
