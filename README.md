@@ -6,11 +6,10 @@
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
 
-Kokkos Peformance Testing Suite
+Kokkos Implementation of RAJAPerf Suite Kernel Groups
 ======================
 
-This test suite is forked from the Raja performance test suite, but intended for internal Kokkos performance regression tests.
-Independently we are adding Kokkos variants of the main RAJA Performance Suite to the primary repository. 
+We are developing Kokkos variants of the RAJAPerf Suite kernels.
 
 RAJA Performance Suite
 ======================
