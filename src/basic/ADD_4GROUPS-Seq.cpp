@@ -81,7 +81,7 @@ void ADD_4GROUPS::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          a4g_lam(i);
+            a4g_lam(i);
         }
 
       }

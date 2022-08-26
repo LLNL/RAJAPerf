@@ -115,18 +115,15 @@ void SOLVE_4x4_4GROUPS::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       u12(vall) = a12(vall) - l10(vall) * u02(vall);
       u13(vall) = a13(vall) - l10(vall) * u03(vall);
       // column
-      l21(vall)  = (a21(vall) - l20(vall) * u01(vall));
-      l21(vall) /= u11(vall);
-      l31(vall) = (a31(vall) - l30(vall) * u01(vall));
-      l31(vall) /= u11(vall);
+      l21(vall)  = (a21(vall) - l20(vall) * u01(vall)) /  u11(vall);
+      l31(vall) = (a31(vall) - l30(vall) * u01(vall)) /  u11(vall);
 
       // k == 2
       // row
       u22(vall)   = a22(vall) - l20(vall) * u02(vall) - l21(vall) * u12(vall);
       u23(vall)   = a23(vall) - l20(vall) * u03(vall) - l21(vall) * u13(vall);
       // column 
-      l32(vall)  = a32(vall) - l30(vall) * u02(vall) - l31(vall) * u12(vall);
-      l32(vall) /=u22(vall);
+      l32(vall)  = (a32(vall) - l30(vall) * u02(vall) - l31(vall) * u12(vall)) /u22(vall);
 
       // k == 3
       // row
@@ -148,14 +145,10 @@ void SOLVE_4x4_4GROUPS::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       z3(vall)  = r3(vall) - l30(vall) * z0(vall) - l31(vall) * z1(vall) - l32(vall) * z2(vall);
 
       // Backward substitution
-      r3(vall)  = z3(vall);
-      r3(vall) /= u33(vall);
-      r2(vall)  = (z2(vall) - u23(vall) * r3(vall));
-      r2(vall) /= u22(vall);
-      r1(vall)  = z1(vall) - u12(vall) * r2(vall) - u13(vall) * r3(vall);
-      r1(vall) /= u11(vall);
-      r0(vall)  = z0(vall) - u01(vall) * r1(vall) - u02(vall) * r2(vall) -  u03(vall) * r3(vall);
-      r0(vall) /= u00(vall);
+      r3(vall)  = z3(vall) / u33(vall);
+      r2(vall)  = (z2(vall) - u23(vall) * r3(vall)) / u22(vall);
+      r1(vall)  = (z1(vall) - u12(vall) * r2(vall) - u13(vall) * r3(vall)) /  u11(vall);
+      r0(vall)  = (z0(vall) - u01(vall) * r1(vall) - u02(vall) * r2(vall) -  u03(vall) * r3(vall) ) / u00(vall);
 
       y0(vall) = r0(vall);
       y1(vall) = r1(vall);

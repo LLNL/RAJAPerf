@@ -154,12 +154,9 @@ namespace basic
       z3(vall)  = r3(vall) - l30(vall) * z0(vall) - l31(vall) * z1(vall) - l32(vall) * z2(vall);\
 \
       r3(vall)  = z3(vall)/u33(vall);\
-      r2(vall)  = ( z2(vall) - u23(vall) * r3(vall) );\
-      r2(vall) /= u22(vall);\
-      r1(vall)  = z1(vall) - u12(vall) * r2(vall) - u13(vall) * r3(vall);\
-      r1(vall) /= u11(vall);\
-      r0(vall)  = z0(vall) - u01(vall) * r1(vall) - u02(vall) * r2(vall) -  u03(vall) * r3(vall);\
-      r0(vall) /= u00(vall);\
+      r2(vall)  = ( z2(vall) - u23(vall) * r3(vall) ) /  u22(vall);\
+      r1(vall)  = ( z1(vall) - u12(vall) * r2(vall) - u13(vall) * r3(vall) ) /  u11(vall);\
+      r0(vall)  = ( z0(vall) - u01(vall) * r1(vall) - u02(vall) * r2(vall) -  u03(vall) * r3(vall) ) / u00(vall);\
 \
       y0(vall) = r0(vall);\
       y1(vall) = r1(vall);\
