@@ -11,6 +11,9 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
+#if defined(__NVCOMPILER_CUDA__) || defined(_NVHPC_STDPAR_CUDA)
+static inline void std::__throw_bad_array_new_length() { std::abort(); }
+#endif
 
 #include <iostream>
 
@@ -40,7 +43,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type l) {
+                       [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -55,7 +58,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type l) {
+                       [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -81,7 +84,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type l) {
+                       [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -99,7 +102,7 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 
         std::for_each( std::execution::par_unseq,
                        begin, end,
-                       [=](Index_type l) {
+                       [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
