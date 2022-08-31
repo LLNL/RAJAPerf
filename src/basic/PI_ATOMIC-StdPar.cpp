@@ -65,12 +65,11 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
       break;
     }
 
-#if 0
     case Lambda_StdPar : {
 
       auto piatomic_base_lam = [=](Index_type i, myAtomic * a_pi) {
                                  double x = (double(i) + 0.5) * dx;
-                                 a_pi = a_pi + dx / (1.0 + x * x);
+                                 *a_pi = *a_pi + dx / (1.0 + x * x);
                                };
 
       startTimer();
@@ -91,7 +90,6 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
 
       break;
     }
-#endif
 
     default : {
       getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
