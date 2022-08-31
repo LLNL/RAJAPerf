@@ -40,6 +40,7 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
   DEFAULT_TIME: 30
   MP_BRANCH: "develop"
+  LLNL_SERVICE_USER: umdev
 
 # Normally, stages are blocking in Gitlab. However, using the keyword "needs" we
 # can express dependencies between job that break the ordering of stages, in
