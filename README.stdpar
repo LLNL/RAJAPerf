@@ -4,14 +4,28 @@ cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAG
 
 # NVC++
 
-cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
+## Patches
+
+$ diff /opt/nvidia/hpc_sdk/Linux_x86_64/22.[35]/compilers/include/nvhpc/algorithm_execution.hpp
+1066c1066
+<     _ASSERT_RANDOM_ACCESS(_FIt);
+---
+>     //_ASSERT_RANDOM_ACCESS(_FIt);
+
+$ diff /opt/nvidia/hpc_sdk/Linux_x86_64/22.[35]/compilers/include/nvhpc/numeric_execution.hpp
+386c386
+<     _ASSERT_RANDOM_ACCESS(_FIt);
+---
+>     //_ASSERT_RANDOM_ACCESS(_FIt);
+
+## OpenMP/OpenACC for atomics
+
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=multicore -acc=multicore -mp=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
 
 cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_supress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
 
 
 ## CPU
-
-^ SORTPAIRS fails with sizefact 0.1 when _all_ kernels are run but not when SORTPAIRS or Algorithm are run by themselves
 
 Just disable the lambda one I guess...
 
@@ -65,22 +79,6 @@ RAJA_Seq-default           268294.10758353886195       1.5483237802982330322e-08
 
 ## GPU
 
-Just disable parallel execution here...
-
-[ 99%] Linking CXX executable ../bin/raja-perf.exe
-nvlink error   : Undefined reference to '_ZSt28__throw_bad_array_new_lengthv' in '../lib/libapps.a:HALOEXCHANGE-StdPar.cpp.o'
-pgacclnk: child process exit status 2: /opt/nvidia/hpc_sdk/Linux_x86_64/22.5/compilers/bin/tools/nvdd
-make[2]: *** [src/CMakeFiles/raja-perf.exe.dir/build.make:109: bin/raja-perf.exe] Error 2
-make[1]: *** [CMakeFiles/Makefile2:1393: src/CMakeFiles/raja-perf.exe.dir/all] Error 2
-make[1]: *** Waiting for unfinished jobs....
-
-PI_ATOMIC is fixed by allocating on the heap...
-
-   Running Base_StdPar variant
-terminate called after throwing an instance of 'thrust::system::system_error'
-  what():  for_each: failed to synchronize: cudaErrorIllegalAddress: an illegal memory access was encountered
-Aborted (core dumped)
-
 Lambda_Seq has the bug too so just disable the Lambda versions...
 
 -------------------------------------------------------
@@ -91,18 +89,6 @@ Lambda_Seq-default         -6.0464819976872759102e+32  6.0464819976872759102e+32
 RAJA_Seq-default           1136.6199452543779141       0.0000000000000000000
 Base_StdPar-default        1136.6199452543779141       0.0000000000000000000
 Lambda_StdPar-default      -6.0464819976872759102e+32  6.0464819976872759102e+32
-
-SORTPAIRS emplace_back not supported on GPU...
-
-nvlink error   : Undefined reference to '_ZSt20__throw_length_errorPKc' in '../lib/libalgorithm.a:SORTPAIRS-StdPar.cpp.o'
-nvlink error   : Undefined reference to '_ZSt20__throw_length_errorPKc' in '../lib/libalgorithm.a:SORTPAIRS-StdPar.cpp.o'
-
-SORTPAIRS write out to {x,i} bad...
-
-   Running Base_StdPar variant
-terminate called after throwing an instance of 'thrust::system::system_error'
-  what():  for_each: failed to synchronize: cudaErrorIllegalAddress: an illegal memory access was encountered
-Aborted (core dumped)
 
 # Intel
 
