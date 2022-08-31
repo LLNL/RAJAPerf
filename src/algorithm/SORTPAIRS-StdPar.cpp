@@ -45,18 +45,25 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
         using pair_type = std::pair<Real_type, Real_type>;
 
         std::vector<pair_type> vector_of_pairs;
+
+#if 0
         vector_of_pairs.reserve(iend-ibegin);
 
         //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
-        std::for_each(
-#ifndef NVCXX_GPU_ENABLED
-// GPU implementation crashes
-                       std::execution::par_unseq,
-#endif
+        std::for_each( //std::execution::par, // parallelism leads to incorrectness
                        begin,end,
                        [=,&vector_of_pairs](Index_type iemp) noexcept {
           vector_of_pairs.emplace_back(x[iend*irep + iemp], i[iend*irep + iemp]);
         });
+#else
+        vector_of_pairs.resize(iend-ibegin);
+
+        std::for_each( std::execution::par_unseq,
+                       begin,end,
+                       [=,&vector_of_pairs](Index_type iemp) noexcept {
+          vector_of_pairs[iemp] = std::make_pair(x[iend*irep + iemp], i[iend*irep + iemp]);
+        });
+#endif
 
         std::sort( std::execution::par_unseq,
                    vector_of_pairs.begin(), vector_of_pairs.end(),
@@ -65,11 +72,7 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
                    });
 
         //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
-        std::for_each( 
-#ifndef NVCXX_GPU_ENABLED
-// GPU implementation crashes
-                       std::execution::par_unseq,
-#endif
+        std::for_each( std::execution::par_unseq,
                        begin,end,
                        [=](Index_type iemp) {
           const pair_type &pair = vector_of_pairs[iemp - ibegin];
