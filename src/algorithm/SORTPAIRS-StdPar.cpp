@@ -11,6 +11,9 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
+#if defined(__NVCOMPILER_CUDA__) || defined(_NVHPC_STDPAR_CUDA)
+static inline void std::__throw_bad_array_new_length() { std::abort(); }
+#endif
 
 #include <vector>
 #include <utility>
@@ -49,7 +52,6 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
 #if 0
         vector_of_pairs.reserve(iend-ibegin);
 
-        //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
         std::for_each( //std::execution::par, // parallelism leads to incorrectness
                        begin,end,
                        [=,&vector_of_pairs](Index_type iemp) noexcept {
@@ -58,24 +60,25 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
 #else
         vector_of_pairs.resize(iend-ibegin);
 
+        auto p = vector_of_pairs.data();
         std::for_each( std::execution::par_unseq,
                        begin,end,
-                       [=,&vector_of_pairs](Index_type iemp) noexcept {
-          vector_of_pairs[iemp] = std::make_pair(x[iend*irep + iemp], i[iend*irep + iemp]);
+                       [=](Index_type iemp) noexcept {
+          p[iemp] = std::make_pair(x[iend*irep + iemp], i[iend*irep + iemp]);
         });
 #endif
 
         std::sort( std::execution::par_unseq,
                    vector_of_pairs.begin(), vector_of_pairs.end(),
-                   [](pair_type const& lhs, pair_type const& rhs) {
+                   [](pair_type const& lhs, pair_type const& rhs) noexcept {
                      return lhs.first < rhs.first;
                    });
 
-        //for (Index_type iemp = ibegin; iemp < iend; ++iemp) {
         std::for_each( std::execution::par_unseq,
                        begin,end,
-                       [=](Index_type iemp) {
-          const pair_type &pair = vector_of_pairs[iemp - ibegin];
+                       [=](Index_type iemp) noexcept {
+          //const pair_type &pair = vector_of_pairs[iemp - ibegin];
+          const pair_type &pair = p[iemp - ibegin];
           x[iend*irep + iemp] = pair.first;
           i[iend*irep + iemp] = pair.second;
         });
