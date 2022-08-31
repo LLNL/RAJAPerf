@@ -48,24 +48,34 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#warning needs parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
-        }
+        });
 
+#if 0
         Index_type count = 0;
-
-#warning needs parallel scan
+        
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
+#else
+        // The validation does not notice if the exscan
+        // is removed, or otherwise forced to be wrong...
+#warning This may be incorrect...
+        std::exclusive_scan( std::execution::par_unseq,
+                             counts+ibegin, counts+iend+1,
+                             counts+ibegin, 0);
+#endif
 
-#warning needs parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           INDEXLIST_3LOOP_MAKE_LIST;
-        }
+        });
 
         m_len = counts[iend];
 
@@ -92,24 +102,34 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#warning needs parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           indexlist_conditional_lam(i);
-        }
+        });
 
+#if 0
         Index_type count = 0;
-
-#warning needs parallel scan
+        
         for (Index_type i = ibegin; i < iend+1; ++i ) {
           Index_type inc = counts[i];
           counts[i] = count;
           count += inc;
         }
+#else
+        // The validation does not notice if the exscan
+        // is removed, or otherwise forced to be wrong...
+#warning This may be incorrect...
+        std::exclusive_scan( std::execution::par_unseq,
+                             counts+ibegin, counts+iend+1,
+                             counts+ibegin, 0);
+#endif
 
-#warning needs parallel for
-        for (Index_type i = ibegin; i < iend; ++i ) {
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type i) {
           indexlist_make_list_lam(i);
-        }
+        });
 
         m_len = counts[iend];
 

@@ -27,6 +27,9 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto begin = counting_iterator<Index_type>(ibegin);
+  auto end   = counting_iterator<Index_type>(iend);
+
   INDEXLIST_DATA_SETUP;
 
   switch ( vid ) {
@@ -38,15 +41,12 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
         Index_type count = 0;
 
-#if 0
-#warning needs parallel inscan
+#warning needs parallel something
         for (Index_type i = ibegin; i < iend; ++i ) {
           if ( x[i] < 0.0 ) {
             list[count++] = i;
           }
         }
-#else
-#endif
 
         m_len = count;
 
