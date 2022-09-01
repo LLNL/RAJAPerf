@@ -99,6 +99,9 @@ jobs:
     condition: eq( variables['Agent.OS'], 'Darwin')
   - script: |
       cd build
-      ./bin/raja-perf.exe --checkrun 5 -sp
-    displayName: 'Run Perf Suite'
-    condition: eq( variables['Agent.OS'], 'Darwin')
+      ctest -T test --output-on-failure
+    displayName: 'OSX Test'
+- task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Test.xml'
