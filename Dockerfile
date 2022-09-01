@@ -53,7 +53,7 @@ COPY . /home/raja/workspace
 WORKDIR /home/raja/workspace/build
 RUN . /opt/spack/share/spack/setup-env.sh && \
     export LD_LIBRARY_PATH=/opt/view/lib:$LD_LIBRARY_PATH && \
-    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug .. && \
+    cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_OPENMP=On .. && \
     make -j 6 &&\
     ctest -T test --output-on-failure
 
