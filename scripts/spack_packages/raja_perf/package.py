@@ -218,7 +218,6 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
         using_toolchain = list(filter(gcc_toolchain_regex.match, spec.compiler_flags['cxxflags']))
 
-        print("using_toolchain: {}".format(0))
         if(using_toolchain):
           gcc_toolchain_path = gcc_toolchain_regex.match(using_toolchain[0])
         using_gcc_name = list(filter(gcc_name_regex.match, spec.compiler_flags['cxxflags']))
