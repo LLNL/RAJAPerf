@@ -101,7 +101,7 @@ jobs:
       cd build
       ctest -T test --output-on-failure
     displayName: 'OSX Test'
-- task: PublishTestResults@2
+  - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'cTest'
       testResultsFiles: '**/Test.xml'
