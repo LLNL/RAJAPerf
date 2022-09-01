@@ -217,10 +217,12 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         gcc_name_regex = re.compile(".*gcc-name.*")
 
         using_toolchain = list(filter(gcc_toolchain_regex.match, spec.compiler_flags['cxxflags']))
+
+        print("using_toolchain: {}".format(0))
         if(using_toolchain):
           gcc_toolchain_path = gcc_toolchain_regex.match(using_toolchain[0])
         using_gcc_name = list(filter(gcc_name_regex.match, spec.compiler_flags['cxxflags']))
-        compilers_using_toolchain = ["pgi", "xl", "icpc"]
+        compilers_using_toolchain = ["pgi", "xl", "icpc", "clang"]
         if any(compiler in cpp_compiler for compiler in compilers_using_toolchain):
             if using_toolchain or using_gcc_name:
                 cfg.write(cmake_cache_entry("BLT_CMAKE_IMPLICIT_LINK_DIRECTORIES_EXCLUDE",
@@ -265,6 +267,12 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                 cuda_release_flags = "-O3 -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_debug_flags = "-O0 -g -Xcompiler -O0 -Xcompiler -finline-functions"
+
+            if (using_toolchain):
+                gcc_prefix = gcc_toolchain_path.group(1)
+                cuda_release_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
+                cuda_reldebinf_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
+                cuda_debug_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
                 
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE", cuda_release_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO", cuda_reldebinf_flags))

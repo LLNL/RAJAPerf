@@ -52,7 +52,7 @@ xl_16_1_1_12_gcc_8_3_1:
 
 clang_11_cuda:
   variables:
-    SPEC: "+openmp +cuda cuda_arch=70 %clang@11.0.0 ^cuda@11.5.0"
+    SPEC: "+openmp +cuda cuda_arch=70 %clang@11.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@11.5.0"
   extends: .build_and_test_on_lassen
 
 gcc_8_3_1_cuda:
