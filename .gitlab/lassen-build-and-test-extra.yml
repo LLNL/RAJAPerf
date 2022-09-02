@@ -74,24 +74,24 @@ ibm_clang_9_gcc_8_3_1_cuda_10_1_168:
   extends: .build_and_test_on_lassen
   allow_failure: true
 
-# WARNING: cuda was 10.1.168, moved to 11.0.2 to match RAJA
-gcc_8_3_1_cuda_11_0_2:
+# WARNING: RAJA is using cuda@11.0.2 here.
+gcc_8_3_1_cuda_10_1_168:
   variables:
-    SPEC: "+openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@11.0.2"
+    SPEC: "+openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@10.1.168"
   extends: .build_and_test_on_lassen
 
-# WARNING: cuda was 11.0.2, moved to 11.5.0 to match RAJA
-gcc_8_3_1_cuda_11_5_0_ats_disabled:
+# WARNING: RAJA is using cuda@11.5.0 here.
+gcc_8_3_1_cuda_11_0_2_ats_disabled:
   variables:
-    SPEC: "+openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@11.5.0"
+    SPEC: "+openmp +cuda %gcc@8.3.1 cuda_arch=70 ^cuda@11.0.2"
     LASSEN_BUILD_AND_TEST_JOB_ALLOC: "1 --atsdisable -W 30"
   extends: .build_and_test_on_lassen
 
-# WARNING: cuda was 10.1.168, moved to 11.0.2 to match RAJA
+# WARNING: RAJA is using cuda@11.0.2 here.
 # Overriding shared spec: Extra flags + Longer allocation
-xl_16_1_1_12_cuda_11_0_2:
+xl_16_1_1_12_cuda_10_1_168:
   variables:
-    SPEC: "+openmp +cuda %xl@16.1.1.12 cxxflags=\"-qthreaded -std=c++14 -O2 -qstrict -qxlcompatmacros -qalias=noansi -qsmp=omp -qhot -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cuda_arch=70 ^cuda@11.0.2 ^cmake@3.14.5"
+    SPEC: "+openmp +cuda %xl@16.1.1.12 cxxflags=\"-qthreaded -std=c++14 -O2 -qstrict -qxlcompatmacros -qalias=noansi -qsmp=omp -qhot -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cuda_arch=70 ^cuda@10.1.168 ^cmake@3.14.5"
     LASSEN_BUILD_AND_TEST_JOB_ALLOC: "1 -W 60"
   allow_failure: true
   extends: .build_and_test_on_lassen
@@ -119,8 +119,8 @@ clang_9_0_0_asan:
     ASAN_OPTIONS: "detect_leaks=1"
   extends: .build_and_test_on_lassen
 
-# WARNING: cuda was 10.1.168, moved to 11.0.2 to match RAJA
-#gcc_8_3_1_cuda_11_0_2_desul_atomics:
+# WARNING: RAJA is using cuda@11.0.2 here.
+#gcc_8_3_1_cuda_10_1_168_desul_atomics:
 #  variables:
-#    SPEC: "+openmp +cuda +desul %gcc@8.3.1 cuda_arch=70 ^cuda@11.0.2"
+#    SPEC: "+openmp +cuda +desul %gcc@8.3.1 cuda_arch=70 ^cuda@10.1.168"
 #  extends: .build_and_test_on_lassen
