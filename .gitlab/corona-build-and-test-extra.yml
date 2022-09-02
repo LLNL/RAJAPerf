@@ -5,6 +5,10 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 #############################################################################
 
+# With GitLab CI, included files cannot be empty.
+variables:
+  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
+
 # INFO: This job is activated in RAJA CI
 #rocm_5_1_1_clang_13_0_0_desul_atomics:
 #  variables:
