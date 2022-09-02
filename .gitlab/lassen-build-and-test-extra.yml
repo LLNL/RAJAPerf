@@ -10,14 +10,14 @@
 ##########
 
 # Overriding shared spec: Allow failures
-ibm_clang_9:
+ibm_clang_9_0_0:
   variables:
     SPEC: "${PROJECT_LASSEN_VARIANTS} %clang@ibm.9.0.0 ${PROJECT_LASSEN_DEPS}"
   extends: .build_and_test_on_lassen
   allow_failure: true
 
 # Overriding shared spec: Allow failures
-ibm_clang_9_gcc_8:
+ibm_clang_9_0_0_gcc_8_3_1:
   variables:
     SPEC: "${PROJECT_LASSEN_VARIANTS} %clang@ibm.9.0.0 cxxflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" cflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" ${PROJECT_LASSEN_DEPS}"
   extends: .build_and_test_on_lassen
@@ -61,7 +61,7 @@ xl_16_1_1_12_gcc_8_3_1:
 ##########
 
 
-clang_11_0_0_cuda_11_5_0:
+clang_11_0_0_gcc_8_3_1_cuda_11_5_0:
   variables:
     SPEC: "+openmp +cuda cuda_arch=70 %clang@11.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@11.5.0"
   extends: .build_and_test_on_lassen
