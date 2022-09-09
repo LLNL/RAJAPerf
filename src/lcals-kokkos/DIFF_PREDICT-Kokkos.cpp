@@ -34,7 +34,6 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid,
                                                             iend);
   Kokkos::View<Real_type *[14], Kokkos::LayoutLeft> cx_view(cx_flat_view.data(),
                                                             iend);
-
   switch (vid) {
 
   case Kokkos_Lambda: {
