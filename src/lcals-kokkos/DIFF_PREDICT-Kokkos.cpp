@@ -26,8 +26,14 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid,
   // Wrapping pointers in Kokkos Views
   // Nota bene: get the actual array size to catch errors
 
-  auto px_view = getViewFromPointer(px, iend * 14);
-  auto cx_view = getViewFromPointer(cx, iend * 14);
+  auto px_flat_view = getViewFromPointer(px, iend * 14);
+  auto cx_flat_view = getViewFromPointer(cx, iend * 14);
+
+  // 2D View w/ runtime and compile time dimension
+  Kokkos::View<Real_type *[14], Kokkos::LayoutLeft> px_view(px_flat_view.data(),
+                                                            iend);
+  Kokkos::View<Real_type *[14], Kokkos::LayoutLeft> cx_view(cx_flat_view.data(),
+                                                            iend);
 
   switch (vid) {
 
@@ -44,25 +50,26 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid,
           KOKKOS_LAMBDA(Index_type i) {
             // DIFF_PREDICT_BODY with Kokkos Views
             Real_type ar, br, cr;
-            ar = cx_view[i + offset * 4];
-            br = ar - px_view[i + offset * 4];
-            px_view[i + offset * 4] = ar;
-            cr = br - px_view[i + offset * 5];
-            px_view[i + offset * 5] = br;
-            ar = cr - px_view[i + offset * 6];
-            px_view[i + offset * 6] = cr;
-            br = ar - px_view[i + offset * 7];
-            px_view[i + offset * 7] = ar;
-            cr = br - px_view[i + offset * 8];
-            px_view[i + offset * 8] = br;
-            ar = cr - px_view[i + offset * 9];
-            px_view[i + offset * 9] = cr;
-            br = ar - px_view[i + offset * 10];
-            px_view[i + offset * 10] = ar;
-            cr = br - px_view[i + offset * 11];
-            px_view[i + offset * 11] = br;
-            px_view[i + offset * 13] = cr - px_view[i + offset * 12];
-            px_view[i + offset * 12] = cr;
+
+            ar = cx_view(i, 4);
+            br = ar - px_view(i, 4);
+            px_view(i, 4) = ar;
+            cr = br - px_view(i, 5);
+            px_view(i, 5) = br;
+            ar = cr - px_view(i, 6);
+            px_view(i, 6) = cr;
+            br = ar - px_view(i, 7);
+            px_view(i, 7) = ar;
+            cr = br - px_view(i, 8);
+            px_view(i, 8) = br;
+            ar = cr - px_view(i, 9);
+            px_view(i, 9) = cr;
+            br = ar - px_view(i, 10);
+            px_view(i, 10) = ar;
+            cr = br - px_view(i, 11);
+            px_view(i, 11) = br;
+            px_view(i, 13) = cr - px_view(i, 12);
+            px_view(i, 12) = cr;
           });
     }
     Kokkos::fence();
@@ -75,8 +82,8 @@ void DIFF_PREDICT::runKokkosVariant(VariantID vid,
   }
   }
 
-  moveDataToHostFromKokkosView(px, px_view, iend * 14);
-  moveDataToHostFromKokkosView(cx, cx_view, iend * 14);
+  moveDataToHostFromKokkosView(px, px_flat_view, iend * 14);
+  moveDataToHostFromKokkosView(cx, cx_flat_view, iend * 14);
 }
 
 } // end namespace lcals
