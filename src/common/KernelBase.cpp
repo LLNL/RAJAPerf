@@ -357,12 +357,14 @@ void KernelBase::setKernelAdiakMeta()
   std::string bytes_rep = std::to_string(getBytesPerRep());
   std::string flops_rep = std::to_string(getFLOPsPerRep());
 
-  std::string valStr = "problem_size:"+problem_size;
-  valStr += ",reps:"+reps;
-  valStr += ",iters_rep:"+iters_rep;
-  valStr += ",kerns_rep:"+kerns_rep;
-  valStr += ",bytes_rep:"+bytes_rep;
-  valStr += ",flops_rep:"+flops_rep;
+  // put into python dict form
+  std::string valStr = "{'Problem size': "+problem_size;
+  valStr += ",'Reps':"+reps;
+  valStr += ",'Iterations/rep': "+iters_rep;
+  valStr += ",'Kernels/rep': "+kerns_rep;
+  valStr += ",'Bytes/rep': "+bytes_rep;
+  valStr += ",'FLOPS/rep': "+flops_rep;
+  valStr += "}";
   adiak::value(getName().c_str(),valStr.c_str());
 }
 

@@ -3,8 +3,6 @@
 import math
 import os
 import sys
-import re
-import getopt
 import csv
 import importlib
 import pkgutil
@@ -383,6 +381,7 @@ class Data:
       Data.run_sizes[run_size_index] = run_size_name
 
    def add_kernel(kernel_name):
+      print("add_kernel:" + kernel_name)
       kernel_index = Data.num_kernels
       Data.num_kernels += 1
       Data.kernels[kernel_name] = kernel_index
@@ -602,13 +601,17 @@ class Data:
                           data_tree.axes[3]: k3,}, v3,)
 
    def MultiAxesTreeItemGenerator5(data_tree):
+      print(data_tree)
+      print(data_tree.items())
       assert(len(data_tree.axes) == 5)
       assert(data_tree.data)
+      
       for k0, v0 in data_tree.data.items():
          for k1, v1 in v0.items():
             for k2, v2 in v1.items():
                for k3, v3 in v2.items():
                   for k4, v4 in v3.items():
+                     print(k0,k1,k2,k3,k4,v4)
                      yield ({data_tree.axes[0]: k0,
                              data_tree.axes[1]: k1,
                              data_tree.axes[2]: k2,
@@ -618,8 +621,14 @@ class Data:
    def MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
                                                 axes_index, leftover_axes_index,
                                                 val, depth):
+      print("PartialItemGen {0} val {1} depth {2}".format(partial_axes_index,val,depth))
       if data_tree.axes[depth] in partial_axes_index:
          key = partial_axes_index[data_tree.axes[depth]]
+         print("key")
+         print(key)
+         print("val")
+         print(val)
+         print(key in val)
          if key in val:
             val = val[key]
             axes_index[data_tree.axes[depth]] = key
@@ -631,9 +640,9 @@ class Data:
                for yld in gen:
                   yield yld
          else:
-            # print(data_tree, partial_axes_index,
-            #       axes_index, leftover_axes_index,
-            #       key, val, depth)
+            #print(data_tree, partial_axes_index,
+            #      axes_index, leftover_axes_index,
+            #      key, val, depth)
             raise NameError("invalid index {} {}".format(Data.get_axes_index_str(axes_index), Data.get_axis_index_str(data_tree.axes[depth], key)))
       else:
          for key, val in val.items():
@@ -802,6 +811,7 @@ class Data:
             if axis_index in partial_axes_index:
                num_matching_indices += 1
          assert(num_matching_indices == len(partial_axes_index))
+         print("len(self.axes) = {0}".format(len(self.axes)))
          if len(self.axes) == 0:
             return Data.MultiAxesTreePartialItemGenerator0(self, partial_axes_index)
          elif len(self.axes) == 1:
@@ -1305,7 +1315,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
             ignore = False
             for c in range(1, len(row)):
                info_kind = row[c].strip()
-               #print(c, info_kind)
+               print(c, info_kind)
                if not info_kind in Data.kinds:
                   # add new kind to global data
                   print("Unknown kernel info {0}".format(info_kind))
@@ -1347,7 +1357,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
                try:
                   # add data to global structure
                   val = int(row[c].strip())
-                  # print(kernel_index, kernel_name, info_kind, val)
+                  print(kernel_index, kernel_name, info_kind, val)
 
                   axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
                                  Data.axes["run_size"]: run_size_index,
@@ -1356,6 +1366,77 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
                   Data.kinds[info_kind].set(axes_index, val)
                except ValueError:
                   pass # could not convert data to int
+
+# we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
+def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
+   graph_frames = []
+   kernel_list = []
+   candidate_list = []
+
+   # per kernel metadata is Adiak key/values, so we need our kernel list
+   allfiles = sorted(glob.glob(glob.escape(sweep_subdir) + "/*.cali"))
+   # not all kernels run in every variant so capture kernel list across variants
+   for f in allfiles:
+      gf = cr.GraphFrame.from_caliperreader(f)
+      print(gf.metadata['variant'])
+      metric = 'min#inclusive#sum#time.duration'
+      #print(gf.inc_metrics)
+      graph_frames.append(gf)
+
+      # extract kernel list
+      kernel_index = -1
+      tt = gf.graph.roots[0].traverse(order="pre")
+      for nn in tt:
+         # test if leaf node
+         if not nn.children:
+            # kernel_tuning_name is kernel.tuning in Caliper
+            kernel_tuning_name = gf.dataframe.loc[nn, 'name']
+            kernel_name = kernel_tuning_name.split('.')[0]
+            if (len(Data.include_kernels) == 0 or kernel_name in Data.include_kernels) and (not kernel_name in Data.exclude_kernels):
+               candidate_list.append(kernel_name)
+      kernel_list = list(set(candidate_list) | set(kernel_list))
+  
+   for kernel_name in kernel_list:
+      if kernel_name not in Data.kernels:
+         Data.add_kernel(kernel_name)
+      kernel_index = Data.kernels[kernel_name]
+      metadata = eval(gf.metadata[kernel_name])
+      print(metadata)
+      for info_kind, info_value in metadata.items():
+         print(info_kind)
+         print(Data.info_axes)
+         if not info_kind in Data.kinds:
+            Data.kinds[info_kind] = Data.DataTree(info_kind, "info", Data.info_axes)
+         if not Data.kinds[info_kind].data:
+            Data.kinds[info_kind].makeData()
+         if not sweep_index in Data.kinds[info_kind].data.data:
+            Data.kinds[info_kind].data.data[sweep_index] = {}
+         if run_size_index in Data.kinds[info_kind].data.data[sweep_index]:
+            #sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
+            #run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
+            #print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size_name))
+            continue
+         else:
+            #print("# add new size to global data")
+            Data.kinds[info_kind].data.data[sweep_index][run_size_index] = {}
+         try:
+            val = int(info_value)
+            axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
+                              Data.axes["run_size"]: run_size_index,
+                              Data.axes["kernel_index"]: kernel_index, }
+
+            Data.kinds[info_kind].set(axes_index, val)
+            sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
+            run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
+            kernel_index_name = Data.get_index_name(Data.axes["kernel_index"], kernel_index)
+            print("Info kind {0} {1} size {2} kernel {3} val {4}".format(info_kind,sweep_dir_name, run_size_name,kernel_index_name,val))
+         except ValueError:
+            print("ValueError")
+            pass # could not convert data to int
+
+      
+  
+         
 
 
 def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index):
@@ -1410,7 +1491,7 @@ def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
             else:
                print("Unknown row {0}".format(row))
-               sys.exit(1);
+               sys.exit(1)
          elif len(c_to_variant_index) > 0 and len(c_to_tuning_index) > 0:
             kernel_index = -1
             kernel_name = row[0].strip()
@@ -2283,11 +2364,14 @@ def main(argv):
                      sweep_subdir_runinfo_file_path = sweep_subdir_file_path
 
             if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
-               print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
-               read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
+               #print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
+               #read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
                if(can_process_caliper):
+                  #read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
+                  read_caliper_runinfo_file(cr,sweep_index, sweep_subdir_path, run_size_index)
                   read_caliper_timing_file(cr,sweep_index, sweep_subdir_path, run_size_index)
                else:
+                  read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
                   read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
 
