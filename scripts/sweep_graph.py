@@ -1375,6 +1375,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 
 # we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
 def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
+   print(sweep_index, sweep_subdir, run_size_index)
    graph_frames = []
    kernel_list = []
    candidate_list = []
@@ -1405,6 +1406,7 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
       if kernel_name not in Data.kernels:
          Data.add_kernel(kernel_name)
       kernel_index = Data.kernels[kernel_name]
+      print("runinfo kernel_index:" + str(kernel_index))
       metadata = eval(gf.metadata[kernel_name])
       for info_kind, info_value in metadata.items():
          if not info_kind in Data.kinds:
@@ -1413,20 +1415,13 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
             Data.kinds[info_kind].makeData()
          if not sweep_index in Data.kinds[info_kind].data.data:
             Data.kinds[info_kind].data.data[sweep_index] = {}
-         if run_size_index in Data.kinds[info_kind].data.data[sweep_index]:
-            #sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
-            #run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
-            #print("Repeated kernel size {0} in {1}".format(sweep_dir_name, run_size_name))
-            continue
-         else:
-            #print("# add new size to global data")
+         if not run_size_index in Data.kinds[info_kind].data.data[sweep_index]:
             Data.kinds[info_kind].data.data[sweep_index][run_size_index] = {}
          try:
             val = int(info_value)
             axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
                               Data.axes["run_size"]: run_size_index,
                               Data.axes["kernel_index"]: kernel_index, }
-
             Data.kinds[info_kind].set(axes_index, val)
             sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
             run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
@@ -1669,7 +1664,7 @@ g_xlim = None
 g_hbin_size = None
 
 def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds):
-   # print("plotting {} {} {} {}".format(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds))
+   print("plotting {} {} {} {}".format(outputfile_name, split_axis_name, xaxis_name, xkind, ykinds))
 
    assert(split_axis_name == "kernel_index")
    for split_index in range(0, Data.num_kernels):
