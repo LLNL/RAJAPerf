@@ -131,7 +131,7 @@ g_known_kernel_groups = {
                    "Apps_DEL_DOT_VEC_2D", "Apps_DIFFUSION3DPA", "Apps_ENERGY",
                    "Apps_FIR", "Apps_MASS3DPA", "Apps_NODAL_ACCUMULATION_3D",
                    "Apps_PRESSURE", "Apps_VOL3D", "Algorithm_SCAN",
-                   "Algorithm_REDUCE_SUM", ],
+                   "Algorithm_REDUCE_SUM", "Algorithm_MEMCPY", "Algorithm_MEMSET"],
    },
    "flops": {
       "kind": "GFLOPS",
@@ -160,6 +160,26 @@ g_known_kernel_groups = {
       "kernels": [ "Apps_HALOEXCHANGE", "Apps_HALOEXCHANGE_FUSED", ]
    },
    }
+
+def check_kernel_name(kname) ->(bool):
+   bandwidth_kernels = g_known_kernel_groups["bandwidth"]["kernels"]
+   flops_kernels = g_known_kernel_groups["flops"]["kernels"]
+   reduce_kernels = g_known_kernel_groups["reduce"]["kernels"]
+   other_kernels = g_known_kernel_groups["other"]["kernels"]
+   launch_bound_kernels = g_known_kernel_groups["launch_bound"]["kernels"]
+   if kname in bandwidth_kernels:
+      return True
+   if kname in flops_kernels:
+      return True
+   if kname in reduce_kernels:
+      return True
+   if kname in other_kernels:
+      return True
+   if kname in launch_bound_kernels:
+      return True
+   return False
+   
+   
 
 def first(vals):
    return vals[0]
@@ -381,7 +401,6 @@ class Data:
       Data.run_sizes[run_size_index] = run_size_name
 
    def add_kernel(kernel_name):
-      print("add_kernel:" + kernel_name)
       kernel_index = Data.num_kernels
       Data.num_kernels += 1
       Data.kernels[kernel_name] = kernel_index
@@ -601,8 +620,6 @@ class Data:
                           data_tree.axes[3]: k3,}, v3,)
 
    def MultiAxesTreeItemGenerator5(data_tree):
-      print(data_tree)
-      print(data_tree.items())
       assert(len(data_tree.axes) == 5)
       assert(data_tree.data)
       
@@ -611,7 +628,6 @@ class Data:
             for k2, v2 in v1.items():
                for k3, v3 in v2.items():
                   for k4, v4 in v3.items():
-                     print(k0,k1,k2,k3,k4,v4)
                      yield ({data_tree.axes[0]: k0,
                              data_tree.axes[1]: k1,
                              data_tree.axes[2]: k2,
@@ -621,14 +637,8 @@ class Data:
    def MultiAxesTreePartialItemGenerator_helper(data_tree, partial_axes_index,
                                                 axes_index, leftover_axes_index,
                                                 val, depth):
-      print("PartialItemGen {0} val {1} depth {2}".format(partial_axes_index,val,depth))
       if data_tree.axes[depth] in partial_axes_index:
          key = partial_axes_index[data_tree.axes[depth]]
-         print("key")
-         print(key)
-         print("val")
-         print(val)
-         print(key in val)
          if key in val:
             val = val[key]
             axes_index[data_tree.axes[depth]] = key
@@ -811,7 +821,6 @@ class Data:
             if axis_index in partial_axes_index:
                num_matching_indices += 1
          assert(num_matching_indices == len(partial_axes_index))
-         print("len(self.axes) = {0}".format(len(self.axes)))
          if len(self.axes) == 0:
             return Data.MultiAxesTreePartialItemGenerator0(self, partial_axes_index)
          elif len(self.axes) == 1:
@@ -1068,16 +1077,12 @@ class Data:
       }
 
    def compute_data(kind):
-      print("compute_data", kind)
       if not kind in Data.kinds:
          raise NameError("Unknown data kind {}".format(kind))
 
       datatree = Data.kinds[kind]
       if datatree.data:
          return # already calculated
-      print(datatree.model_kind)
-      print(datatree.args)
-      print(datatree.func)
       if not (datatree.model_kind and datatree.args and datatree.func):
          raise NameError("Computing data is not supported for kind {0}".format(kind))
 
@@ -1315,7 +1320,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
             ignore = False
             for c in range(1, len(row)):
                info_kind = row[c].strip()
-               print(c, info_kind)
+               #print(c, info_kind)
                if not info_kind in Data.kinds:
                   # add new kind to global data
                   print("Unknown kernel info {0}".format(info_kind))
@@ -1357,7 +1362,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
                try:
                   # add data to global structure
                   val = int(row[c].strip())
-                  print(kernel_index, kernel_name, info_kind, val)
+                  #print(kernel_index, kernel_name, info_kind, val)
 
                   axes_index = { Data.axes["sweep_dir_name"]: sweep_index,
                                  Data.axes["run_size"]: run_size_index,
@@ -1365,6 +1370,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 
                   Data.kinds[info_kind].set(axes_index, val)
                except ValueError:
+                  print('ValueError')
                   pass # could not convert data to int
 
 # we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
@@ -1378,7 +1384,6 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
    # not all kernels run in every variant so capture kernel list across variants
    for f in allfiles:
       gf = cr.GraphFrame.from_caliperreader(f)
-      print(gf.metadata['variant'])
       metric = 'min#inclusive#sum#time.duration'
       #print(gf.inc_metrics)
       graph_frames.append(gf)
@@ -1401,10 +1406,7 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
          Data.add_kernel(kernel_name)
       kernel_index = Data.kernels[kernel_name]
       metadata = eval(gf.metadata[kernel_name])
-      print(metadata)
       for info_kind, info_value in metadata.items():
-         print(info_kind)
-         print(Data.info_axes)
          if not info_kind in Data.kinds:
             Data.kinds[info_kind] = Data.DataTree(info_kind, "info", Data.info_axes)
          if not Data.kinds[info_kind].data:
@@ -1429,7 +1431,7 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
             sweep_dir_name = Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
             run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
             kernel_index_name = Data.get_index_name(Data.axes["kernel_index"], kernel_index)
-            print("Info kind {0} {1} size {2} kernel {3} val {4}".format(info_kind,sweep_dir_name, run_size_name,kernel_index_name,val))
+            #print("Info kind {0} {1} size {2} kernel {3} val {4}".format(info_kind,sweep_dir_name, run_size_name,kernel_index_name,val))
          except ValueError:
             print("ValueError")
             pass # could not convert data to int
@@ -1440,7 +1442,7 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
 
 
 def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index):
-   print(sweep_index, sweep_subdir_timing_file_path, run_size_index)
+   #print(sweep_index, sweep_subdir_timing_file_path, run_size_index)
    with open(sweep_subdir_timing_file_path, "r") as file:
       file_reader = csv.reader(file, delimiter=',')
 
@@ -1514,9 +1516,10 @@ def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
                try:
                   val = float(row[c].strip())
-                  print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
+                  #print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
                   Data.kinds[data_kind].set(axes_index, val)
                except ValueError:
+                  print('ValueError')
                   pass # could not convert data to float
 
 def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
@@ -1603,9 +1606,10 @@ def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
          #print(metric)
          try:
             val = float(gf.dataframe.loc[gf.dataframe['name']==kernel].iloc[0][metric])
-            print(variant_name, kernel_name, tuning_name, data_kind, val)
+            #print(variant_name, kernel_name, tuning_name, data_kind, val)
             Data.kinds[data_kind].set(axes_index, val)
          except ValueError:
+            print('ValueError')
             pass # could not convert data to float
 
 def get_plot_data(kind, partial_axes_index):
@@ -1764,12 +1768,9 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
             yname = "{} {}".format(Data.kinds[ykind].kind, yname)
          np_xdata = np.array(xdata)
          xind = np_xdata.argsort()
-         print(xind)
          np_xdata = np_xdata[xind[0:]]
-         print(np_xdata)
          np_ydata = np.array(ydata)
          np_ydata = np_ydata[xind[0:]]
-         print(np_ydata)
          #plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
          plt.plot(np_xdata,np_ydata,yformat,color=ycolor,label=yname)
 
@@ -2242,12 +2243,20 @@ def main(argv):
          elif opt in ("-k", "--kernels"):
             handle_num = -1
             def fk(arg):
-               Data.include_kernels[arg] = arg
+               if check_kernel_name(arg):
+                  Data.include_kernels[arg] = arg
+               else:
+                  print("invalid include kernels argument: " + arg)
+                  sys.exit(1)
             handle_arg = fk
          elif opt in ("-ek", "--exclude-kernels"):
             handle_num = -1
             def fek(arg):
-               Data.exclude_kernels[arg] = arg
+               if check_kernel_name(arg):
+                  Data.exclude_kernels[arg] = arg
+               else:
+                  print("invalid exclude kernels argument: " + arg)
+                  sys.exit(1)
             handle_arg = fek
          elif opt in ("-v", "--variants"):
             handle_num = -1
@@ -2367,7 +2376,6 @@ def main(argv):
                #print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
                #read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
                if(can_process_caliper):
-                  #read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
                   read_caliper_runinfo_file(cr,sweep_index, sweep_subdir_path, run_size_index)
                   read_caliper_timing_file(cr,sweep_index, sweep_subdir_path, run_size_index)
                else:
@@ -2411,6 +2419,7 @@ def main(argv):
    print("kernel groups")
    print("  {}".format(kernel_groups_string[2:]))
 
+   assert Data.num_kernels > 0,f"Expected kernels to be greater than zero; kernel name typo in cmdline arg??"
    kernel_string = ""
    for v in range(0, Data.num_kernels):
       kernel_string += ", {}".format(Data.kernels[v])
