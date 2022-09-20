@@ -29,7 +29,7 @@ ibm_clang_9_0_0_gcc_8_3_1:
 # Overriding shared spec: Extra flags
 gcc_8_3_1:
   variables:
-    SPEC: " ${PROJECT_LASSEN_VARIANTS}} %gcc@8.3.1 cxxflags=\"-finline-functions -finline-limit=20000\" cflags=\"-finline-functions -finline-limit=20000\" ${PROJECT_LASSEN_DEPS}"
+    SPEC: " ${PROJECT_LASSEN_VARIANTS} %gcc@8.3.1 cxxflags=\"-finline-functions -finline-limit=20000\" cflags=\"-finline-functions -finline-limit=20000\" ${PROJECT_LASSEN_DEPS}"
   extends: .build_and_test_on_lassen
 
 # Overriding shared spec: Longer allocation + Allow failures
@@ -50,7 +50,7 @@ xl_16_1_1_12:
 # Overriding shared spec: Longer allocation + Extra flags
 xl_16_1_1_12_gcc_8_3_1:
   variables:
-    $SPEC: " ${PROJECT_LASSEN_VARIANTS} %xl@16.1.1.12 cxxflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -qthreaded -std=c++14 -O2 -qstrict -qxlcompatmacros -qalias=noansi -qsmp=omp -qhot -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ${PROJECT_LASSEN_DEPS}"
+    SPEC: " ${PROJECT_LASSEN_VARIANTS} %xl@16.1.1.12 cxxflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -qthreaded -std=c++14 -O2 -qstrict -qxlcompatmacros -qalias=noansi -qsmp=omp -qhot -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" ${PROJECT_LASSEN_DEPS}"
     LASSEN_BUILD_AND_TEST_JOB_ALLOC: "1 -W 50"
   extends: .build_and_test_on_lassen
 
@@ -102,7 +102,7 @@ clang_11_0_0:
 
 clang_11_0_0_gcc_8_3_1_cuda_11_5_0:
   variables:
-    SPEC: " +openmp +cuda cuda_arch=70 %clang@11.0.0 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 ^cuda@11.5.0"
+    SPEC: " +openmp +cuda cuda_arch=70 %clang@11.0.0 cxxflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" cflags=\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" ^cuda@11.5.0"
   extends: .build_and_test_on_lassen
 
 # WARNING: RAJA is using cuda@11.0.2 here.
