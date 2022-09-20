@@ -161,7 +161,7 @@ g_known_kernel_groups = {
    },
    }
 
-def check_kernel_name(kname) ->(bool):
+def check_kernel_name(kname) -> bool:
    bandwidth_kernels = g_known_kernel_groups["bandwidth"]["kernels"]
    flops_kernels = g_known_kernel_groups["flops"]["kernels"]
    reduce_kernels = g_known_kernel_groups["reduce"]["kernels"]
@@ -179,6 +179,53 @@ def check_kernel_name(kname) ->(bool):
       return True
    return False
    
+def set_legend_order(labels) -> list:
+   lex_order = ['machine', 'execution_model','programming_model','tuning']
+   legend_order = []
+  
+   machines = []
+   programming_models = []
+   execution_models = []
+   tunings = []
+   for label in labels:
+      ll = label.split(" ")
+      machines.append(ll[0])
+      variant = ll[1]
+      vs = variant.split("_")
+      programming_models.append(vs[0])
+      execution_models.append(vs[1])
+      tunings.append(ll[2])
+  
+   machines_min_len = len(min(machines,key=len))
+   prg_min_len = len(min(programming_models,key=len))
+   exe_min_len = len(min(execution_models, key=len))
+   tunings_min_len = len(min(tunings,key=len))
+   lex_strings = []
+   for i in range(len(machines)):
+      machines[i] = machines[i][0:machines_min_len]
+      programming_models[i] = programming_models[i][0:prg_min_len]
+      execution_models[i] = execution_models[i][0:exe_min_len]
+      tunings[i] = tunings[i][0:tunings_min_len]
+      lex_string = ""
+      for lo in lex_order:
+         if lo == 'machine':
+            lex_string += machines[i]
+         if lo == 'programming_model':
+            lex_string += programming_models[i]
+         if lo == 'execution_model':
+            lex_string += execution_models[i]
+         if lo == 'tuning':
+            lex_string += tunings[i]
+      lex_strings.append([lex_string,i])
+   lex_strings.sort()
+   
+   for x in lex_strings:
+      legend_order.append(x[1])
+      
+   #print(lex_strings)
+   #print(legend_order)
+   
+   return legend_order
    
 
 def first(vals):
@@ -1375,7 +1422,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 
 # we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
 def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
-   print(sweep_index, sweep_subdir, run_size_index)
+   #print(sweep_index, sweep_subdir, run_size_index)
    graph_frames = []
    kernel_list = []
    candidate_list = []
@@ -1406,7 +1453,6 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
       if kernel_name not in Data.kernels:
          Data.add_kernel(kernel_name)
       kernel_index = Data.kernels[kernel_name]
-      print("runinfo kernel_index:" + str(kernel_index))
       metadata = eval(gf.metadata[kernel_name])
       for info_kind, info_value in metadata.items():
          if not info_kind in Data.kinds:
@@ -1536,7 +1582,7 @@ def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
       run_size_name = Data.get_index_name(Data.axes["run_size"], run_size_index)
       raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size_name))
 
-   print("run size:" + Data.get_index_name(Data.axes["run_size"], run_size_index))
+   #print("run size:" + Data.get_index_name(Data.axes["run_size"], run_size_index))
    allfiles = sorted(glob.glob(glob.escape(sweep_subdir) + "/*.cali"))
    for f in allfiles:
       kernel_tuning_list = []
@@ -1784,7 +1830,9 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
          plt.xlim(xlim)
 
       plt.title(gname)
-      plt.legend(loc=lloc)
+      handles, labels = plt.gca().get_legend_handles_labels()
+      legend_order = set_legend_order(labels)
+      plt.legend([handles[idx] for idx in legend_order], [labels[idx] for idx in legend_order],loc=lloc)
       plt.grid(True)
 
       plt.savefig(fname, dpi=150.0)
@@ -2042,7 +2090,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
 
    h_n = len(kernel_data["hnames"])
    hwidth = hbin_size / h_n
-   print(h_n, hwidth, hbin_size)
+   #print(h_n, hwidth, hbin_size)
    for hname in kernel_data["hnames"]:
 
       h_i = kernel_data["hnames"][hname]
