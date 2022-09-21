@@ -40,11 +40,6 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
 
   checksum_scale_factor = 1.0;
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
-  for (size_t vid=0; vid < NumVariants; ++vid) {
-    doCaliMetaOnce[vid] = true;
-  }
-#endif
 }
 
 
@@ -157,6 +152,9 @@ void KernelBase::setVariantDefined(VariantID vid)
   min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
   max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  doCaliMetaOnce[vid].resize(variant_tuning_names[vid].size(),true);
+#endif
 }
 
 void KernelBase::execute(VariantID vid, size_t tune_idx)
@@ -368,10 +366,10 @@ void KernelBase::setKernelAdiakMeta()
   adiak::value(getName().c_str(),valStr.c_str());
 }
 
-void KernelBase::doOnceCaliMetaBegin(VariantID vid)
+void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
 {
   // use json spec query expr
-  if(doCaliMetaOnce[vid]) {
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
     cali_begin_double_byname("ProblemSize",(double)getActualProblemSize());
     cali_begin_double_byname("Reps",(double)getRunReps());
     cali_begin_double_byname("Iterations/Rep",(double)getItsPerRep());
@@ -381,17 +379,17 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid)
   }  
 }
 
-void KernelBase::doOnceCaliMetaEnd(VariantID vid)
+void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
 { 
   // use json spec query exp
-  if(doCaliMetaOnce[vid]) {
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
     cali_end_byname("Flops/Rep");
     cali_end_byname("Bytes/Rep");
     cali_end_byname("Kernels/Rep");
     cali_end_byname("Iterations/Rep");
     cali_end_byname("Reps");
     cali_end_byname("ProblemSize");
-    doCaliMetaOnce[vid] = false;
+    doCaliMetaOnce[vid].at(tune_idx) = false;
   }
   
 }

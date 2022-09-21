@@ -41,7 +41,7 @@
       std::string ktstr = kstr + "." + tstr; \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
-      doOnceCaliMetaBegin(running_variant); \
+      doOnceCaliMetaBegin(running_variant,running_tuning); \
       CALI_MARK_BEGIN(vstr.c_str()); \
       CALI_MARK_BEGIN(gstr.c_str()); \
       CALI_MARK_BEGIN(kstr.c_str()); \
@@ -59,7 +59,7 @@
       CALI_MARK_END(kstr.c_str()); \
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
-      doOnceCaliMetaEnd(running_variant); \
+      doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
 #else
@@ -284,8 +284,8 @@ public:
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   void setKernelAdiakMeta(); 
-  void doOnceCaliMetaBegin(VariantID vid);
-  void doOnceCaliMetaEnd(VariantID vid);
+  void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
+  void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariant(VariantID vid, const std::string& outdir)
   {
     const std::string problem_size_json_spec = R"json(
@@ -499,7 +499,7 @@ private:
 
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
-  bool doCaliMetaOnce[NumVariants];
+  std::vector<bool> doCaliMetaOnce[NumVariants];
 
 
 // we need a Caliper Manager object per variant
