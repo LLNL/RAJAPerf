@@ -54,6 +54,14 @@ then
         prefix="${prefix}/${job_unique_id}"
         mkdir -p ${prefix}
         prefix_opt="--prefix=${prefix}"
+
+        # We force Spack to put all generated files (cache and configuration of
+        # all sorts) in a unique location so that there can be no collision
+        # with existing or concurrent Spack.
+        spack_user_cache="${prefix}/spack-user-cache"
+        export SPACK_DISABLE_LOCAL_CONFIG=""
+        export SPACK_USER_CACHE_PATH="${spack_user_cache}"
+        mkdir -p ${spack_user_cache}
     fi
 
     python3 tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
@@ -146,6 +154,8 @@ then
     then
         module unload rocm
     fi
+
+    module load cmake/3.20.2 || module load cmake/3.19.2 || module load cmake/3.21.1
 
     cmake \
       -C ${hostconfig_path} \
