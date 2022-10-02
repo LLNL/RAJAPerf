@@ -151,6 +151,9 @@ void KernelBase::setVariantDefined(VariantID vid)
   min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
   max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  doCaliMetaOnce[vid].resize(variant_tuning_names[vid].size(),true);
+#endif
 }
 
 void KernelBase::execute(VariantID vid, size_t tune_idx)
@@ -351,15 +354,46 @@ void KernelBase::setKernelAdiakMeta()
   std::string bytes_rep = std::to_string(getBytesPerRep());
   std::string flops_rep = std::to_string(getFLOPsPerRep());
 
-  std::string valStr = "problem_size:"+problem_size;
-  valStr += ",reps:"+reps;
-  valStr += ",iters_rep:"+iters_rep;
-  valStr += ",kerns_rep:"+kerns_rep;
-  valStr += ",bytes_rep:"+bytes_rep;
-  valStr += ",flops_rep:"+flops_rep;
+  // put into python dict form
+  std::string valStr = "{'Problem size': "+problem_size;
+  valStr += ",'Reps':"+reps;
+  valStr += ",'Iterations/rep': "+iters_rep;
+  valStr += ",'Kernels/rep': "+kerns_rep;
+  valStr += ",'Bytes/rep': "+bytes_rep;
+  valStr += ",'FLOPS/rep': "+flops_rep;
+  valStr += "}";
   adiak::value(getName().c_str(),valStr.c_str());
 }
-// initialize a KernelBase static 
+
+void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
+{
+  // use json spec query expr
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    cali_begin_double_byname("ProblemSize",(double)getActualProblemSize());
+    cali_begin_double_byname("Reps",(double)getRunReps());
+    cali_begin_double_byname("Iterations/Rep",(double)getItsPerRep());
+    cali_begin_double_byname("Kernels/Rep",(double)getKernelsPerRep());
+    cali_begin_double_byname("Bytes/Rep",(double)getBytesPerRep());
+    cali_begin_double_byname("Flops/Rep",(double)getFLOPsPerRep());
+  }
+}
+
+void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
+{
+  // use json spec query exp
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    cali_end_byname("Flops/Rep");
+    cali_end_byname("Bytes/Rep");
+    cali_end_byname("Kernels/Rep");
+    cali_end_byname("Iterations/Rep");
+    cali_end_byname("Reps");
+    cali_end_byname("ProblemSize");
+    doCaliMetaOnce[vid].at(tune_idx) = false;
+  }
+
+}
+
+// initialize a KernelBase static
 std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 #endif
 }  // closing brace for rajaperf namespace

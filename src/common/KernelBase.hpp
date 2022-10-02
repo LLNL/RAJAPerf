@@ -41,6 +41,7 @@
       std::string ktstr = kstr + "." + tstr; \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = getVariantName(running_variant); \
+      doOnceCaliMetaBegin(running_variant,running_tuning); \
       CALI_MARK_BEGIN(vstr.c_str()); \
       CALI_MARK_BEGIN(gstr.c_str()); \
       CALI_MARK_BEGIN(kstr.c_str()); \
@@ -58,6 +59,7 @@
       CALI_MARK_END(kstr.c_str()); \
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
+      doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
 #else
@@ -282,8 +284,133 @@ public:
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   void setKernelAdiakMeta(); 
+  void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
+  void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariant(VariantID vid, const std::string& outdir)
   {
+    const std::string problem_size_json_spec = R"json(
+    {
+        "name"        : "problem_size",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "problem size",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "ProblemSize" },
+              "group by" : "ProblemSize"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "ProblemSize" },
+              "group by" : "ProblemSize"
+            }
+        ]
+    }
+)json";
+
+   const std::string reps_json_spec = R"json(
+    {
+        "name"        : "reps",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "reps",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "Reps" },
+              "group by" : "Reps"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "Reps" },
+              "group by" : "Reps"
+            }
+        ]
+    }
+)json";
+
+   const std::string iters_json_spec = R"json(
+    {
+        "name"        : "iters_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "iterations per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "Iterations/Rep" },
+              "group by" : "Iterations/Rep"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "Iterations/Rep" },
+              "group by" : "Iterations/Rep"
+            }
+        ]
+    }
+)json";
+
+
+   const std::string kernels_json_spec = R"json(
+    {
+        "name"        : "kernels_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "kernels per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "Kernels/Rep" },
+              "group by" : "Kernels/Rep"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "Kernels/Rep" },
+              "group by" : "Kernels/Rep"
+            }
+        ]
+    }
+)json";
+
+   const std::string bytes_json_spec = R"json(
+    {
+        "name"        : "bytes_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "bytes per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "Bytes/Rep" },
+              "group by" : "Bytes/Rep"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "Bytes/Rep" },
+              "group by" : "Bytes/Rep"
+            }
+        ]
+    }
+)json";
+
+
+   const std::string flops_rep_json_spec = R"json(
+    {
+        "name"        : "flops_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "flops per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select"   : { "expr": "Flops/Rep" },
+              "group by" : "Flops/Rep"
+            },
+            { "level"    : "cross",
+              "select"   : { "expr": "Flops/Rep" },
+              "group by" : "Flops/Rep"
+            }
+        ]
+    }
+)json";
+
+
     cali::ConfigManager m;
     mgr.insert(std::make_pair(vid,m));
     std::string od("./");
@@ -293,7 +420,19 @@ public:
     std::string vstr = getVariantName(vid);
     std::string profile = "spot(output="  +od + vstr + ".cali)";
     std::cout << "Profile: " << profile << std::endl;
-    mgr[vid].add(profile.c_str()); 
+    mgr[vid].add_option_spec(problem_size_json_spec.c_str());
+    mgr[vid].set_default_parameter("problem_size","true");
+    mgr[vid].add_option_spec(reps_json_spec.c_str());
+    mgr[vid].set_default_parameter("reps","true");
+    mgr[vid].add_option_spec(iters_json_spec.c_str());
+    mgr[vid].set_default_parameter("iters_p_rep","true");
+    mgr[vid].add_option_spec(kernels_json_spec.c_str());
+    mgr[vid].set_default_parameter("kernels_p_rep","true");
+    mgr[vid].add_option_spec(bytes_json_spec.c_str());
+    mgr[vid].set_default_parameter("bytes_p_rep","true");
+    mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
+    mgr[vid].set_default_parameter("flops_p_rep","true");
+    mgr[vid].add(profile.c_str());
   }
 
   static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
@@ -360,6 +499,9 @@ private:
 
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
+  std::vector<bool> doCaliMetaOnce[NumVariants];
+
+
 // we need a Caliper Manager object per variant
 // we can inline this with c++17
   static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
