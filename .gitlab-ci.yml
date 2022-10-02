@@ -40,6 +40,8 @@ variables:
   BUILD_ROOT: ${CI_PROJECT_DIR}
   DEFAULT_TIME: 30
   MP_BRANCH: "develop"
+  LLNL_SERVICE_USER: umdev
+  CUSTOM_CI_BUILDS_DIR: /usr/workspace/umdev/gitlab-runner
 
 # Normally, stages are blocking in Gitlab. However, using the keyword "needs" we
 # can express dependencies between job that break the ordering of stages, in
@@ -76,7 +78,7 @@ stages:
 
 .build_toss_4_x86_64_ib_corona_script:
   script:
-    - srun -p pbatch -t 30 -N 1 scripts/gitlab/build_and_test.sh
+    - flux mini run --time-limit=30m --nodes=1 scripts/gitlab/build_and_test.sh
 
 # Lassen and Butte use a different job scheduler (spectrum lsf) that does not
 # allow pre-allocation the same way slurm does.

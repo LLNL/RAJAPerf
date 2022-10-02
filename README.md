@@ -6,6 +6,10 @@
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
 
+Kokkos Implementation of RAJAPerf Suite Kernel Groups
+======================
+
+We are developing Kokkos variants of the RAJAPerf Suite kernels.
 
 RAJA Performance Suite
 ======================
