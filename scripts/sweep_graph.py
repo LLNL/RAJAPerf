@@ -12,6 +12,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+import argparse_sweep_graph
+
 def make_tuple_str(astr):
    astr = astr.strip()
    if len(astr) < 2 or astr[0] != "(" or astr[len(astr)-1] != ")":
@@ -180,6 +182,7 @@ def check_kernel_name(kname) -> bool:
    return False
    
 def set_legend_order(labels) -> list:
+   print("set_legend_order:" + str(labels))
    lex_order = ['machine', 'execution_model','programming_model','tuning']
    legend_order = []
   
@@ -806,21 +809,19 @@ class Data:
       def axesString(self):
          axes_names = ""
          for axis_index in self.axes:
+            print("axis_index:" +str(axis_index))
             if axes_names:
                axes_names = "{}, {}".format(axes_names, Data.axes[axis_index])
             else:
                axes_names = "[{}".format(Data.axes[axis_index])
          return "{}]".format(axes_names)
 
+     
       def dataString(self):
-         buf = ""
-         for axes_index, val in self.data.items():
-            index_buf = " "
-            for axis_index, index in axes_index.items():
-               index_buf = "{} {}".format(index_buf, Data.get_index_name(axis_index, index))
-            buf += "{} {}".format(buf, val)
+         buf = "items\n"
+         for item in self.items():
+            buf += str(item) + "\n"
          return buf
-
       def __repr__(self):
          return "MultiAxesTree({}):\n{}".format(self.axesString(), self.dataString())
 
@@ -1355,7 +1356,8 @@ def get_size_from_dir_name(sweep_subdir_name):
       raise NameError("Expected SIZE_<run_size>".format(sweep_subdir_name))
 
 def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index):
-   # print(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
+   #print("read_runinfo_file")
+   #print(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
    with open(sweep_subdir_runinfo_file_path, "r") as file:
       file_reader = csv.reader(file, delimiter=',')
 
@@ -1417,7 +1419,7 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 
                   Data.kinds[info_kind].set(axes_index, val)
                except ValueError:
-                  print('ValueError')
+                  print('read_runinfo_file ValueError')
                   pass # could not convert data to int
 
 # we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
@@ -1474,7 +1476,7 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
             kernel_index_name = Data.get_index_name(Data.axes["kernel_index"], kernel_index)
             #print("Info kind {0} {1} size {2} kernel {3} val {4}".format(info_kind,sweep_dir_name, run_size_name,kernel_index_name,val))
          except ValueError:
-            print("ValueError")
+            print("read_caliper_runinfo_file ValueError")
             pass # could not convert data to int
 
       
@@ -1554,13 +1556,16 @@ def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
                               Data.axes["kernel_index"]: kernel_index,
                               Data.axes["variant_index"]: variant_index,
                               Data.axes["tuning_index"]: tuning_index, }
-
+               print(axes_index)
+               print(Data.axes)
                try:
                   val = float(row[c].strip())
                   #print(kernel_index, kernel_name, variant_index, tuning_index, data_kind, val)
                   Data.kinds[data_kind].set(axes_index, val)
                except ValueError:
-                  print('ValueError')
+                  # we usually encounter this for Not run entry
+                  #print(row[c].strip())
+                  #print('read_timing_file ValueError')
                   pass # could not convert data to float
 
 def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
@@ -1812,7 +1817,6 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
          np_xdata = np_xdata[xind[0:]]
          np_ydata = np.array(ydata)
          np_ydata = np_ydata[xind[0:]]
-         #plt.plot(xdata,ydata,yformat,color=ycolor,label=yname)
          plt.plot(np_xdata,np_ydata,yformat,color=ycolor,label=yname)
 
       if ylabel:
@@ -1828,7 +1832,7 @@ def plot_data_split_line(outputfile_name, split_axis_name, xaxis_name, xkind, yk
          plt.xscale(xscale)
       if xlim:
          plt.xlim(xlim)
-
+      #print(plt.rcParams.keys())
       plt.title(gname)
       handles, labels = plt.gca().get_legend_handles_labels()
       legend_order = set_legend_order(labels)
@@ -2145,6 +2149,16 @@ def main(argv):
    bar_graph_kind_lists = []
    histogram_graph_kind_lists = []
    can_process_caliper = False
+   
+   # set a few plot params - see rcParams.keys() for list
+   params = {'xtick.labelsize':'small',
+             'ytick.labelsize':'small',
+             'axes.labelsize':'small',
+             'axes.titlesize':'medium',
+             'legend.fontsize':'x-small'}
+   plt.rcParams.update(params)
+   
+   """
    i = 0
    while i < len(argv):
       opt = argv[i]
@@ -2359,7 +2373,105 @@ def main(argv):
       else:
          sweep_dir_paths.append(opt)
       i += 1
+"""
+   parser = argparse_sweep_graph.process_argparse()
+   args, unknown = parser.parse_args(argv)
+   print(args)
+   
+   #kernels section
+   parse_set = set()
+   if args.kernels != None:
+      parse_set.update(set(args.kernels))
+   if args.kernels_close != None:
+      parse_set.update(set(args.kernels_close))
+   for k in list(parse_set):
+      print("including kernel:" + str(k))
+      Data.include_kernels[k] = k
+      
+   parse_set = set()
+   if args.exclude_kernels != None:
+      parse_set.update(set(args.exclude_kernels))
+   if args.exclude_kernels_close != None:
+      parse_set.update(set(args.exclude_kernels_close))
+   for k in list(parse_set):
+      print("excluding kernel:" + str(k))
+      Data.exclude_kernels[k] = k
 
+   # variant section
+   parse_set = set()
+   if args.variants != None:
+      parse_set.update(set(args.variants))
+   if args.variants_close != None:
+      parse_set.update(set(args.variants_close))
+   for k in list(parse_set):
+      print("including variant:" + str(k))
+      Data.include_variants[k] = k
+
+   parse_set = set()
+   if args.exclude_variants != None:
+      parse_set.update(set(args.exclude_variants))
+   if args.exclude_variants_close != None:
+      parse_set.update(set(args.exclude_variants_close))
+   for k in list(parse_set):
+      print("excluding variant:" + str(k))
+      Data.exclude_variants[k] = k
+   
+   #tuning section
+   parse_set = set()
+   if args.tunings != None:
+      parse_set.update(set(args.tunings))
+   if args.tunings_close != None:
+      parse_set.update(set(args.tunings_close))
+   for k in list(parse_set):
+      print("including tuning:" + str(k))
+      Data.include_tunings[k] = k
+
+   parse_set = set()
+   if args.exclude_tunings != None:
+      parse_set.update(set(args.exclude_tunings))
+   if args.exclude_tunings_close != None:
+      parse_set.update(set(args.exclude_tunings_close))
+   for k in list(parse_set):
+      print("excluding tuning:" + str(k))
+      Data.exclude_tunings[k] = k
+      
+   sweep_dir_paths = args.prescan["directories"]
+   
+   if args.output != None:
+      outputfile = args.output[0]
+      
+   if args.graph_name != None:
+      global g_gname
+      g_gname = args.graph_name[0]
+      
+   if args.legend_location != None:
+      global g_lloc
+      g_lloc = (float(args.legend_location[0]), float(args.legend_location[1]))
+      
+   if args.y_axis_label != None:
+      global g_ylabel
+      g_ylabel = args.y_axis_label[0]
+      
+   if args.y_axis_scale != None:
+      global g_yscale
+      g_yscale = args.y_axis_scale[0]
+      
+   if args.y_axis_limit != None:
+      global g_ylim
+      g_ylim = (float(args.y_axis_limit[0]),float(args.y_axis_limit[1]))
+
+   if args.x_axis_label != None:
+      global g_xlabel
+      g_xlabel = args.x_axis_label[0]
+
+   if args.x_axis_scale != None:
+      global g_xscale
+      g_xscale = args.x_axis_scale[0]
+
+   if args.x_axis_limit != None:
+      global g_xlim
+      g_xlim = (float(args.x_axis_limit[0]), float(args.x_axis_limit[1]))
+   """
    for kernel_group in Data.include_kernel_groups.keys():
       if kernel_group in g_known_kernel_groups:
          for kernel_name in g_known_kernel_groups[kernel_group]["kernels"]:
@@ -2375,13 +2487,24 @@ def main(argv):
       else:
          print("Unknown kernel group {}".format(kernel_group))
          sys.exit(2)
+   """
 
+   if args.print != None:
+      for aa in args.print:
+         print_kinds.append(aa)
+
+   if args.split_line_graphs != None:
+      split_line_graph_kind_lists.append([])
+      for aa in args.split_line_graphs:
+         split_line_graph_kind_lists[len(split_line_graph_kind_lists) - 1].append(aa)
+         
+   #done with options
    print("Input directories are \"{0}\"".format(sweep_dir_paths))
    print("Output file is \"{0}\"".format(outputfile))
-
    for sweep_dir_path in sweep_dir_paths:
+      print("sweep_dir_path:" + sweep_dir_path)
       sweep_dir_name = os.path.basename(sweep_dir_path)
-      print(sweep_dir_name, sweep_dir_path)
+      print("sweep_dir_name:" + sweep_dir_name)
 
       if sweep_dir_name in Data.exclude_sweeps:
          continue
@@ -2400,10 +2523,12 @@ def main(argv):
             # print(sweep_dir_name, sweep_subdir_path)
 
             run_size_name = get_size_from_dir_name(sweep_subdir_name)
-
-            if not run_size_name in Data.run_sizes:
-               Data.add_run_size(run_size_name)
-            run_size_index = Data.run_sizes[run_size_name]
+            if run_size_name in args.prescan["sweep_sizes"]:
+               if not run_size_name in Data.run_sizes:
+                  Data.add_run_size(run_size_name)
+               run_size_index = Data.run_sizes[run_size_name]
+            else:
+               continue
 
             sweep_subdir_timing_file_path = ""
             sweep_subdir_runinfo_file_path = ""
