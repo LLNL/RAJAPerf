@@ -16,7 +16,8 @@
 namespace rajaperf {
 namespace basic {
 
-void REDUCE3_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void REDUCE3_INT::runKokkosVariant(VariantID vid,
+                                   size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
@@ -54,10 +55,8 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
           Kokkos::Max<Int_type>(max_value), Kokkos::Min<Int_type>(min_value),
           sum);
       m_vsum += static_cast<Int_type>(sum);
-      m_vmin =
-          Kokkos::Experimental::min(m_vmin, static_cast<Int_type>(min_value));
-      m_vmax =
-          Kokkos::Experimental::max(m_vmax, static_cast<Int_type>(max_value));
+      m_vmin = Kokkos::min(m_vmin, static_cast<Int_type>(min_value));
+      m_vmax = Kokkos::max(m_vmax, static_cast<Int_type>(max_value));
     }
     Kokkos::fence();
     stopTimer();
