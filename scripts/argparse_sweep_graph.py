@@ -5,6 +5,48 @@ import os
 import csv
 import glob
 import difflib
+import importlib
+import pkgutil
+import traceback
+
+def import_submodules(package, recursive=True):
+   """ Import all submodules of a module, recursively, including subpackages
+
+   :param package: package (name or actual module)
+   :type package: str | module
+   :rtype: dict[str, types.ModuleType]
+   """
+   if isinstance(package, str):
+      package = importlib.import_module(package)
+   results = {}
+   for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):
+      full_name = package.__name__ + '.' + name
+      chk_name = full_name.split('.')
+      if not 'roundtrip' in chk_name and not 'vis' in chk_name:
+         results[full_name] = importlib.import_module(full_name)
+         if recursive and is_pkg:
+            results.update(import_submodules(full_name))
+   # print(results)
+   return results
+
+
+def check_hatchet_import():
+   reader_spec = importlib.util.find_spec("hatchet")
+   reader_found = reader_spec is not None
+   depends_found = False
+   if reader_found:
+      print("Hatchet Reader found")
+      try:
+         cr = importlib.import_module("hatchet")
+         import_submodules(cr)
+         depends_found = True
+      except:
+         print("Can't load Hatchet")
+         traceback.print_exc()
+   else:
+      print("Hatchet not found")
+   return reader_found and depends_found
+
 
 def get_size_from_dir_name(sweep_subdir_name):
    # print(sweep_subdir_name)
@@ -59,7 +101,22 @@ def close_action_check(values,prescan_dict_name, namespace):
 
 class process_argparse():
    # the intended use is to return both an args object for Namespace,
-   # and unknown args that specifically do not use - or -- prefix
+   # and unknown args that specificallpy do not use - or -- prefix
+
+   class CaliperAction(argparse.Action):
+      def __init__(self, option_strings, dest, nargs='?', **kwargs):
+         super().__init__(option_strings, dest, nargs, **kwargs)
+      def __call__(self, parser, namespace, values, option_string=None):
+         check = check_hatchet_import()
+         setattr(namespace, self.dest, check)
+         if check:
+            cr = importlib.import_module("hatchet")
+            import_submodules(cr)
+         else:
+            cr = None
+         setattr(namespace,"cr",cr)
+         
+
    class KernelAction(argparse.Action):
       def __init__(self, option_strings, dest, nargs='+', **kwargs):
          super().__init__(option_strings, dest, nargs, **kwargs)
@@ -180,7 +237,9 @@ class process_argparse():
    
 
    def __init__(self):
-      self.parent_parser = argparse.ArgumentParser(add_help=False)
+      self.parent_caliper_parser= argparse.ArgumentParser(add_help=False)
+      self.parent_caliper_parser.add_argument('--caliper', action=self.CaliperAction)
+      self.parent_parser = argparse.ArgumentParser(parents=[self.parent_caliper_parser],add_help=False)
       self.parent_parser.add_argument('-d','--directories', required=True, nargs='+', action=self.DirectoryAction)
       self.child_parser = argparse.ArgumentParser(parents=[self.parent_parser])
       
@@ -209,8 +268,11 @@ class process_argparse():
       self.child_parser.add_argument('--reformat', nargs=2,
                                      help="reformat series_name format_str")
       #the following should be modified to use action based on possible kinds
-      self.child_parser.add_argument('-p','--print', nargs=1,
-                                     help="print one of kind argument expression")
+      pgroup = self.child_parser.add_mutually_exclusive_group()
+      pgroup.add_argument('-pc','--print-compact', nargs=1,
+                                     help="print one of kind argument expression in compact form")
+      pgroup.add_argument('-pe','--print-expanded', nargs=1,
+                                     help="print one of kind argument expression in expanded form")
       self.child_parser.add_argument('-slg','--split-line-graphs', nargs=1,
                                      help="split line graph of one kind argument expression")
       self.child_parser.add_argument('-bg','--bar-graph', nargs=1,
@@ -226,6 +288,11 @@ class process_argparse():
                                      help="search for set of kernels to include close to arg eg. Poly_ Basic_ etc")
       self.child_parser.add_argument('-ekc', '--exclude-kernels-close', nargs='+', action=self.KernelCloseAction,
                                      help="search for set of kernels to exclude close to arg eg. Poly_ Basic_ etc")
+      # eventually setup action to crosscheck against known kernel groups
+      self.child_parser.add_argument('-kg', '--kernel-groups', nargs='+',
+                                     help='kernel groups to include')
+      self.child_parser.add_argument('-ekg', '--exclude-kernel-groups', nargs='+',
+                                     help='kernel groups to exclude')
 
       self.child_parser.add_argument('-v', '--variants', nargs='+', action=self.VariantAction,
                                      help='variants to include')
