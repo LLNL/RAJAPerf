@@ -345,6 +345,7 @@ void KernelBase::print(std::ostream& os) const
   }
   os << std::endl;
 }
+
 #ifdef RAJA_PERFSUITE_USE_CALIPER
 void KernelBase::setKernelAdiakMeta()
 {
@@ -370,28 +371,26 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
 {
   // use json spec query expr
   if(doCaliMetaOnce[vid].at(tune_idx)) {
-    cali_begin_double_byname("ProblemSize",(double)getActualProblemSize());
-    cali_begin_double_byname("Reps",(double)getRunReps());
-    cali_begin_double_byname("Iterations/Rep",(double)getItsPerRep());
-    cali_begin_double_byname("Kernels/Rep",(double)getKernelsPerRep());
-    cali_begin_double_byname("Bytes/Rep",(double)getBytesPerRep());
-    cali_begin_double_byname("Flops/Rep",(double)getFLOPsPerRep());
-  }  
+    cali_id_t ProblemSize_attr = cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(ProblemSize_attr,(double)getActualProblemSize());
+    cali_id_t Reps_attr = cali_create_attribute("Reps",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(Reps_attr,(double)getRunReps());
+    cali_id_t Iters_Rep_attr = cali_create_attribute("Iterations/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
+    cali_id_t Kernels_Rep_attr = cali_create_attribute("Kernels/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
+    cali_id_t Bytes_Rep_attr = cali_create_attribute("Bytes/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
+    cali_id_t Flops_Rep_attr = cali_create_attribute("Flops/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+    cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
+  }
 }
 
 void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
 { 
-  // use json spec query exp
   if(doCaliMetaOnce[vid].at(tune_idx)) {
-    cali_end_byname("Flops/Rep");
-    cali_end_byname("Bytes/Rep");
-    cali_end_byname("Kernels/Rep");
-    cali_end_byname("Iterations/Rep");
-    cali_end_byname("Reps");
-    cali_end_byname("ProblemSize");
     doCaliMetaOnce[vid].at(tune_idx) = false;
   }
-  
 }
 
 // initialize a KernelBase static 
