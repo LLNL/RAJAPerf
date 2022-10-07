@@ -137,6 +137,10 @@ if (RAJA_PERFSUITE_USE_CALIPER)
       # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
       set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
    endif ()
+   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
+   include_directories(${caliper_INCLUDE_DIR})
+   include_directories(${adiak_INCLUDE_DIRS})
 endif ()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
