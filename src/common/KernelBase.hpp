@@ -290,25 +290,23 @@ public:
   {
     const std::string problem_size_json_spec = R"json(
     {
-        "name"        : "problem_size",
+        "name"        : "problem_size", 
         "type"        : "boolean",
         "category"    : "metric",
         "description" : "problem size",
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "ProblemSize" },
-              "group by" : "ProblemSize"
+              "select": { "expr": "any(max#ProblemSize)", "as": "ProblemSize" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "ProblemSize" },
-              "group by" : "ProblemSize"
+              "select": { "expr": "any(any#max#ProblemSize)", "as": "ProblemSize" },
             }
         ]
     }
 )json";
 
-   const std::string reps_json_spec = R"json(
+    const std::string reps_json_spec = R"json(
     {
         "name"        : "reps",
         "type"        : "boolean",
@@ -317,18 +315,16 @@ public:
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "Reps" },
-              "group by" : "Reps"
+              "select": { "expr": "any(max#Reps)", "as": "Reps" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "Reps" },
-              "group by" : "Reps"
+              "select": { "expr": "any(any#max#Reps)", "as": "Reps" },
             }
         ]
     }
 )json";
 
-   const std::string iters_json_spec = R"json(
+    const std::string iters_json_spec = R"json(
     {
         "name"        : "iters_p_rep",
         "type"        : "boolean",
@@ -337,19 +333,16 @@ public:
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "Iterations/Rep" },
-              "group by" : "Iterations/Rep"
+              "select": { "expr": "any(max#Iterations/Rep)", "as": "Iterations/Rep" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "Iterations/Rep" },
-              "group by" : "Iterations/Rep"
+              "select": { "expr": "any(any#max#Iterations/Rep)", "as": "Iterations/Rep" },
             }
         ]
     }
 )json";
 
-
-   const std::string kernels_json_spec = R"json(
+    const std::string kernels_json_spec = R"json(
     {
         "name"        : "kernels_p_rep",
         "type"        : "boolean",
@@ -358,18 +351,16 @@ public:
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "Kernels/Rep" },
-              "group by" : "Kernels/Rep"
+              "select": { "expr": "any(max#Kernels/Rep)", "as": "Kernels/Rep" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "Kernels/Rep" },
-              "group by" : "Kernels/Rep"
+              "select": { "expr": "any(any#max#Kernels/Rep)", "as": "Kernels/Rep" },
             }
         ]
     }
 )json";
 
-   const std::string bytes_json_spec = R"json(
+    const std::string bytes_json_spec = R"json(
     {
         "name"        : "bytes_p_rep",
         "type"        : "boolean",
@@ -378,19 +369,16 @@ public:
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "Bytes/Rep" },
-              "group by" : "Bytes/Rep"
+              "select": { "expr": "any(max#Bytes/Rep)", "as": "Bytes/Rep" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "Bytes/Rep" },
-              "group by" : "Bytes/Rep"
+              "select": { "expr": "any(any#max#Bytes/Rep)", "as": "Bytes/Rep" },
             }
         ]
     }
 )json";
 
-
-   const std::string flops_rep_json_spec = R"json(
+    const std::string flops_rep_json_spec = R"json(
     {
         "name"        : "flops_p_rep",
         "type"        : "boolean",
@@ -399,12 +387,10 @@ public:
         "query" :
         [
             { "level"    : "local",
-              "select"   : { "expr": "Flops/Rep" },
-              "group by" : "Flops/Rep"
+              "select": { "expr": "any(max#Flops/Rep)", "as": "Flops/Rep" },
             },
             { "level"    : "cross",
-              "select"   : { "expr": "Flops/Rep" },
-              "group by" : "Flops/Rep"
+              "select": { "expr": "any(any#max#Flops/Rep)", "as": "Flops/Rep" },
             }
         ]
     }
@@ -500,7 +486,6 @@ private:
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
   std::vector<bool> doCaliMetaOnce[NumVariants];
-
 
 // we need a Caliper Manager object per variant
 // we can inline this with c++17
