@@ -6,23 +6,28 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "PI_ATOMIC.hpp"
+#include "PLANCKIAN.hpp"
 #if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
+#include <cmath>
 #include <iostream>
 
 namespace rajaperf {
-namespace basic {
+namespace lcals {
 
-void PI_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void PLANCKIAN::runKokkosVariant(VariantID vid,
+                                 size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  PI_ATOMIC_DATA_SETUP;
+  PLANCKIAN_DATA_SETUP;
 
-  // Declare Kokkos View that will wrap the pointer defined in PI_ATOMIC.hpp
-  auto pi_view = getViewFromPointer(pi, 1);
+  auto x_view = getViewFromPointer(x, iend);
+  auto y_view = getViewFromPointer(y, iend);
+  auto u_view = getViewFromPointer(u, iend);
+  auto v_view = getViewFromPointer(v, iend);
+  auto w_view = getViewFromPointer(w, iend);
 
   switch (vid) {
 
@@ -32,24 +37,13 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      // Initializing a value, pi, on the host
-      *pi = m_pi_init;
-
-      pi_view = getViewFromPointer(pi, 1);
-
       Kokkos::parallel_for(
-          "PI_ATOMIC-Kokkos Kokkos_Lambda",
+          "PLANCKIAN_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) {
-            double x = (double(i) + 0.5) * dx;
-            // Make a reference to the 0th element of a 1D view with one
-            // element
-            Kokkos::atomic_add(&pi_view(0), dx / (1.0 + x * x));
+            y_view[i] = u_view[i] / v_view[i];
+            w_view[i] = x_view[i] / (exp(y_view[i]) - 1.0);
           });
-      // Moving the data on the device (held in the KokkosView) BACK to the
-      // pointer, pi.
-      moveDataToHostFromKokkosView(pi, pi_view, 1);
-      *pi *= 4.0;
     }
 
     Kokkos::fence();
@@ -59,11 +53,17 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   }
 
   default: {
-    std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  PLANCKIAN : Unknown variant id = " << vid << std::endl;
   }
   }
+
+  moveDataToHostFromKokkosView(x, x_view, iend);
+  moveDataToHostFromKokkosView(y, y_view, iend);
+  moveDataToHostFromKokkosView(u, u_view, iend);
+  moveDataToHostFromKokkosView(v, v_view, iend);
+  moveDataToHostFromKokkosView(w, w_view, iend);
 }
 
-} // end namespace basic
+} // end namespace lcals
 } // end namespace rajaperf
-#endif
+#endif // RUN_KOKKOS
