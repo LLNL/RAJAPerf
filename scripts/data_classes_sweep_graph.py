@@ -1000,7 +1000,7 @@ class Data:
             buf = ""
          for item in self.items():
             keys, value = item
-            print(str(keys))
+            #print(str(keys))
             if compact:
                buf += str(item) + "\n"
             else:

@@ -172,7 +172,12 @@ class process_argparse():
    
       def __call__(self, parser, namespace, values, option_string=None):
          # print('Action Namespace=%r values=%r option_string=%r' % (namespace, values, option_string))
-         prescan = self.prescan_sweep_dirs(values)
+         cr = getattr(namespace,'cr')
+         if cr != None:
+            print("DirectoryAction detects .cali file processing")
+            prescan = self.prescan_caliper_sweep_dirs(cr,values)
+         else:
+            prescan = self.prescan_sweep_dirs(values)
          setattr(namespace, 'prescan', prescan)
          setattr(namespace, self.dest, prescan["directories"])  # do the normal attr set for dest
 
@@ -233,8 +238,65 @@ class process_argparse():
          prescan["kernels_intersection"] = set.intersection(*sets)
          prescan["sweep_sizes"] = list(outer_runsizes_set)
          return prescan
-      
-   
+
+      def prescan_caliper_sweep_dirs(self, cr,sweep_dir_paths) -> dict:
+         prescan = {"directories": [], "kernels_union": [], "kernels_intersection": [], "variants": [], "tunings": [],
+                    "sweep_sizes": [],
+                    "machines"   : []}
+         # machines only gleans os.path.basename of sweep_dir_paths, and does not actually parse real encoded machine names from data; so machine_name is a convention for directory naming
+         sets = []
+         outer_runsizes_set = set()
+         for sweep_dir_path in sweep_dir_paths:
+            if not os.path.exists(sweep_dir_path):
+               raise NameError("Invalid directory: {0}".format(sweep_dir_path))
+            kernel_set = set()
+            sweep_dir_path = sweep_dir_path.rstrip(os.sep)
+            prescan["directories"].append(sweep_dir_path)
+            sweep_dir_name = os.path.basename(sweep_dir_path)
+            if sweep_dir_name not in prescan["machines"]:
+               prescan["machines"].append(sweep_dir_name)
+            subdirs = sorted(glob.glob(glob.escape(sweep_dir_path) + os.sep + "**" + os.sep + "SIZE_*", recursive=True))
+            inner_runsizes_set = set()
+            for subdir in subdirs:
+               # print(subdir)
+               run_size = get_size_from_dir_name(os.path.basename(subdir))
+               inner_runsizes_set.add(run_size)
+               cali_files = sorted(glob.glob(glob.escape(subdir) + os.sep + "*.cali", recursive=False))
+               # not all kernels run in every variant so capture kernel list across variants
+               for f in cali_files:
+                  gf = cr.GraphFrame.from_caliperreader(f)
+                  #print(gf.metadata)
+                  variant_name = gf.metadata['variant']
+                  if variant_name not in prescan["variants"]:
+                     prescan["variants"].append(variant_name)
+                  #machine = gf.metadata["cluster"] + "_" + gf.metadata["compiler"]
+                  #if machine not in prescan["machines"]:
+                  #   prescan["machines"].append(machine)
+                  # extract kernel list
+                  kernel_index = -1
+                  tt = gf.graph.roots[0].traverse(order="pre")
+                  for nn in tt:
+                     # test if leaf node
+                     if not nn.children:
+                        # kernel_tuning_name is kernel.tuning in Caliper
+                        kernel_tuning_name = gf.dataframe.loc[nn, 'name']
+                        kernel_name = kernel_tuning_name.split('.')[0]
+                        tuning_name = kernel_tuning_name.split('.')[1]
+                        if kernel_name not in prescan["kernels_union"]:
+                           prescan["kernels_union"].append(kernel_name)
+                        if kernel_name not in kernel_set:
+                           kernel_set.add(kernel_name)
+                        if tuning_name not in prescan["tunings"]:
+                           prescan["tunings"].append(tuning_name)
+
+               
+            if (not outer_runsizes_set) and inner_runsizes_set:
+               outer_runsizes_set = inner_runsizes_set
+            outer_runsizes_set = outer_runsizes_set.intersection(inner_runsizes_set)
+            sets.append(kernel_set)
+         prescan["kernels_intersection"] = set.intersection(*sets)
+         prescan["sweep_sizes"] = list(outer_runsizes_set)
+         return prescan
 
    def __init__(self):
       self.parent_caliper_parser= argparse.ArgumentParser(add_help=False)
