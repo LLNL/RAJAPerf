@@ -6,33 +6,25 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "TRAP_INT.hpp"
+#include "FIRST_DIFF.hpp"
 #if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
-
 #include <iostream>
 
 namespace rajaperf {
-namespace basic {
+namespace lcals {
 
-//
-// Function used in TRAP_INT loop.
-//
-RAJA_INLINE
-//
-KOKKOS_FUNCTION
-Real_type trap_int_func(Real_type x, Real_type y, Real_type xp, Real_type yp) {
-  Real_type denom = (x - xp) * (x - xp) + (y - yp) * (y - yp);
-  denom = 1.0 / sqrt(denom);
-  return denom;
-}
-
-void TRAP_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void FIRST_DIFF::runKokkosVariant(VariantID vid,
+                                  size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  TRAP_INT_DATA_SETUP;
+  FIRST_DIFF_DATA_SETUP;
+
+  // Wrap pointers in Kokkos Views
+  auto x_view = getViewFromPointer(x, iend + 1);
+  auto y_view = getViewFromPointer(y, iend + 1);
 
   switch (vid) {
 
@@ -40,18 +32,16 @@ void TRAP_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     Kokkos::fence();
     startTimer();
+
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      Real_type trap_integral_val = m_sumx_init;
-
-      Kokkos::parallel_reduce(
-          "TRAP_INT_Kokkos Kokkos_Lambda",
+      Kokkos::parallel_for(
+          "FIRST_DIFF_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
-          KOKKOS_LAMBDA(const int64_t i, Real_type &sumx){TRAP_INT_BODY},
-          trap_integral_val);
-
-      m_sumx += static_cast<Real_type>(trap_integral_val) * h;
+          KOKKOS_LAMBDA(Index_type i) {
+            x_view[i] = y_view[i + 1] - y_view[i];
+          });
     }
+
     Kokkos::fence();
     stopTimer();
 
@@ -59,11 +49,15 @@ void TRAP_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
   }
 
   default: {
-    std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  FIRST_DIFF : Unknown variant id = " << vid << std::endl;
   }
   }
+
+  // View dimensions must match array dimensions!
+  moveDataToHostFromKokkosView(x, x_view, iend + 1);
+  moveDataToHostFromKokkosView(y, y_view, iend + 1);
 }
 
-} // end namespace basic
+} // end namespace lcals
 } // end namespace rajaperf
-#endif
+#endif // RUN_KOKKOS

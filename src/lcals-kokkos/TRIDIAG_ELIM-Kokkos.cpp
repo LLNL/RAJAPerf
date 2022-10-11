@@ -6,22 +6,26 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "INIT_VIEW1D.hpp"
+#include "TRIDIAG_ELIM.hpp"
 #if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
 namespace rajaperf {
-namespace basic {
-
-void INIT_VIEW1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+namespace lcals {
+void TRIDIAG_ELIM::runKokkosVariant(VariantID vid,
+                                    size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
+  const Index_type ibegin = 1;
+  const Index_type iend = m_N;
 
-  INIT_VIEW1D_DATA_SETUP;
+  TRIDIAG_ELIM_DATA_SETUP;
 
-  auto a_view = getViewFromPointer(a, iend);
+  // Wrap pointers in Kokkos Views
+  auto xout_view = getViewFromPointer(xout, iend);
+  auto xin_view = getViewFromPointer(xin, iend);
+  auto y_view = getViewFromPointer(y, iend);
+  auto z_view = getViewFromPointer(z, iend);
 
   switch (vid) {
 
@@ -32,13 +36,12 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       Kokkos::parallel_for(
-          "INIT_VIEW1D_Kokkos Kokkos_Lambda",
+          "TRIDIAG_ELIM_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) {
-            a_view[i] = (i + 1) * v;
+            xout_view[i] = z_view[i] * (y_view[i] - xin_view[i - 1]);
           });
     }
-
     Kokkos::fence();
     stopTimer();
 
@@ -46,13 +49,16 @@ void INIT_VIEW1D::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   }
 
   default: {
-    std::cout << "\n  INIT_VIEW1D : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  TRIDIAG_ELIM : Unknown variant id = " << vid << std::endl;
   }
   }
 
-  moveDataToHostFromKokkosView(a, a_view, iend);
+  moveDataToHostFromKokkosView(xout, xout_view, iend);
+  moveDataToHostFromKokkosView(xin, xin_view, iend);
+  moveDataToHostFromKokkosView(y, y_view, iend);
+  moveDataToHostFromKokkosView(z, z_view, iend);
 }
 
-} // end namespace basic
+} // end namespace lcals
 } // end namespace rajaperf
-#endif
+#endif // RUN_KOKKOS

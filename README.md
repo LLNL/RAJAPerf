@@ -6,7 +6,6 @@
 [comment]: # (# SPDX-License-Identifier: BSD-3-Clause)
 [comment]: # (#################################################################)
 
-
 RAJA Performance Suite
 ======================
 
