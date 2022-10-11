@@ -163,8 +163,8 @@ def read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
       if not run_size_index in dc.Data.kinds[data_kind].data.data[sweep_index]:
          dc.Data.kinds[data_kind].data.data[sweep_index][run_size_index] = {}
       else:
-         sweep_dir_name = dc.Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
-         run_size_name = dc.Data.get_index_name(Data.axes["run_size"], run_size_index)
+         sweep_dir_name = dc.Data.get_index_name(dc.Data.axes["sweep_dir_name"], sweep_index)
+         run_size_name = dc.Data.get_index_name(dc.Data.axes["run_size"], run_size_index)
          raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size_name))
 
       c_to_variant_index = {}
@@ -246,8 +246,8 @@ def read_caliper_timing_file(cr, sweep_index, sweep_subdir, run_size_index):
    if not run_size_index in dc.Data.kinds[data_kind].data.data[sweep_index]:
       dc.Data.kinds[data_kind].data.data[sweep_index][run_size_index] = {}
    else:
-      sweep_dir_name = dc.Data.get_index_name(Data.axes["sweep_dir_name"], sweep_index)
-      run_size_name = dc.Data.get_index_name(Data.axes["run_size"], run_size_index)
+      sweep_dir_name = dc.Data.get_index_name(dc.Data.axes["sweep_dir_name"], sweep_index)
+      run_size_name = dc.Data.get_index_name(dc.Data.axes["run_size"], run_size_index)
       raise NameError("Already seen {0} in {1}".format(sweep_dir_name, run_size_name))
 
    #print("run size:" + Data.get_index_name(Data.axes["run_size"], run_size_index))
@@ -550,7 +550,7 @@ def plot_data_bar(outputfile_name, xaxis, ykinds):
       kernel_data["kernel_names"].append(kernel_name)
       kernel_data["kernel_centers"].append(kernel_index)
 
-      axes_index = { Data.axes["kernel_index"]: kernel_index }
+      axes_index = { dc.Data.axes["kernel_index"]: kernel_index }
 
       for ykind in ykinds:
 
@@ -728,8 +728,8 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
                hname = "{} {}".format(dc.Data.kinds[ykind].kind, hname)
 
             hcolor = (0.0, 0.0, 0.0, 1.0)
-            if Data.axes["variant_index"] in hdata["axes_index"]:
-               variant_index = hdata["axes_index"][Data.axes["variant_index"]]
+            if dc.Data.axes["variant_index"] in hdata["axes_index"]:
+               variant_index = hdata["axes_index"][dc.Data.axes["variant_index"]]
                hcolor = dc.Data.variant_colors[variant_index]
 
             if not hname in kernel_data["hnames"]:

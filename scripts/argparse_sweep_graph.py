@@ -9,6 +9,8 @@ import importlib
 import pkgutil
 import traceback
 
+import data_classes_sweep_graph as dc
+
 def import_submodules(package, recursive=True):
    """ Import all submodules of a module, recursively, including subpackages
 
@@ -69,6 +71,30 @@ def get_close_matches(test_value,match_values) -> list:
          close_matches = found_sub
    return close_matches
 
+
+def kind_action_check(values,kinds, kind_tempplates):
+   check = []
+   
+   for k in values:
+      items = k.split('<')
+      if k in kinds:
+         check.append(k)
+      elif len(items) == 1:
+         close_matches = get_close_matches(k, kinds.keys())
+         if len(close_matches) > 0:
+            raise NameError(
+               "Invalid kinds check for {0}: Did you mean one of {1}, or try changing case".format(k,
+                                                                                                 str(close_matches)))
+         else:
+            raise NameError("Invalid kinds check for {0}: Use one of {1}".format(k, str(kinds.keys())))
+      elif len(items) > 1:
+         # continue for now because this is a DSL expression
+         print('DSL: No checking yet')
+         check.append(k)
+         
+   return check
+
+
 def direct_action_check(values,prescan_dict_name, namespace):
    check = []
    for k in values:
@@ -115,8 +141,15 @@ class process_argparse():
          else:
             cr = None
          setattr(namespace,"cr",cr)
-         
 
+   class KindAction(argparse.Action):
+      def __init__(self, option_strings, dest, nargs='+', **kwargs):
+         super().__init__(option_strings, dest, nargs, **kwargs)
+   
+      def __call__(self, parser, namespace, values, option_string=None):
+         check = kind_action_check(values, dc.Data.kinds, dc.Data.kind_templates)
+         setattr(namespace, self.dest, check)
+         
    class KernelAction(argparse.Action):
       def __init__(self, option_strings, dest, nargs='+', **kwargs):
          super().__init__(option_strings, dest, nargs, **kwargs)
@@ -331,15 +364,15 @@ class process_argparse():
                                      help="reformat series_name format_str")
       #the following should be modified to use action based on possible kinds
       pgroup = self.child_parser.add_mutually_exclusive_group()
-      pgroup.add_argument('-pc','--print-compact', nargs=1,
+      pgroup.add_argument('-pc','--print-compact', nargs=1,action=self.KindAction,
                                      help="print one of kind argument expression in compact form")
-      pgroup.add_argument('-pe','--print-expanded', nargs=1,
+      pgroup.add_argument('-pe','--print-expanded', nargs=1,action=self.KindAction,
                                      help="print one of kind argument expression in expanded form")
-      self.child_parser.add_argument('-slg','--split-line-graphs', nargs=1,
+      self.child_parser.add_argument('-slg','--split-line-graphs', nargs=1,action=self.KindAction,
                                      help="split line graph of one kind argument expression")
-      self.child_parser.add_argument('-bg','--bar-graph', nargs=1,
+      self.child_parser.add_argument('-bg','--bar-graph', nargs=1,action=self.KindAction,
                                      help="bar graph of one kind argument expression")
-      self.child_parser.add_argument('-hg','--histogram-graph', nargs=1,
+      self.child_parser.add_argument('-hg','--histogram-graph', nargs=1,action=self.KindAction,
                                      help="histogram graph of one kind argument expression")
       
       self.child_parser.add_argument('-k', '--kernels', nargs='+', action=self.KernelAction,
