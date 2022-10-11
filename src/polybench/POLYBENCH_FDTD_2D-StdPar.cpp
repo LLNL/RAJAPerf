@@ -54,6 +54,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
                          begin1X, end1X,
                          [=](Index_type i) {
             for (Index_type j = 0; j < ny; j++) {
+              //std::cerr << "B2: " << i << "," << j << "\n";
               POLYBENCH_FDTD_2D_BODY2;
             }
           });
@@ -61,6 +62,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
                          beginX, endX,
                          [=](Index_type i) {
             for (Index_type j = 1; j < ny; j++) {
+              //std::cerr << "B3: " << i << "," << j << "\n";
               POLYBENCH_FDTD_2D_BODY3;
             }
           });
@@ -68,6 +70,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
                          beginXm1, endXm1,
                          [=](Index_type i) {
             for (Index_type j = 0; j < ny - 1; j++) {
+              //std::cerr << "B4: " << i << "," << j << "\n";
               POLYBENCH_FDTD_2D_BODY4;
             }
           });
@@ -87,7 +90,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       //       scalar variable 't' used in it is updated for each
       //       t-loop iteration.
       //
-      auto poly_fdtd2d_base_lam1 = [&](Index_type j) {
+      auto poly_fdtd2d_base_lam1 = [=](Index_type j) {
                                      POLYBENCH_FDTD_2D_BODY1;
                                    };
       auto poly_fdtd2d_base_lam2 = [=](Index_type i, Index_type j) {
@@ -105,31 +108,53 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (t = 0; t < tsteps; ++t) {
 
-          std::for_each( //std::execution::par_unseq,
+          //for (Index_type j = 0; j < ny; j++) {
+          std::for_each( std::execution::par_unseq,
                          beginY, endY,
                          [=](Index_type j) {
             poly_fdtd2d_base_lam1(j);
           });
-          std::for_each( //std::execution::par_unseq,
-                         begin1X, end1X,
-                         [=](Index_type i) {
-            for (Index_type j = 0; j < ny; j++) {
+
+      counting_iterator<Index_type> begin2(0);
+      counting_iterator<Index_type> end2((nx-1)*ny);
+
+          //for (Index_type i = 1; i < nx; i++) {
+          //  for (Index_type j = 0; j < ny; j++) {
+          std::for_each( std::execution::par_unseq,
+                         begin2, end2,
+                         [=](Index_type ij) {
+              const auto i  = 1 + ij / ny;
+              const auto j  =     ij % ny;
+              //std::cerr << "L2: " << i << "," << j << "\n";
               poly_fdtd2d_base_lam2(i, j);
-            }
           });
-          std::for_each( //std::execution::par_unseq,
-                         beginX, endX,
-                         [=](Index_type i) {
-            for (Index_type j = 1; j < ny; j++) {
+
+      counting_iterator<Index_type> begin3(0);
+      counting_iterator<Index_type> end3(nx*(ny-1));
+
+          //for (Index_type i = 0; i < nx; i++) {
+          //  for (Index_type j = 1; j < ny; j++) {
+          std::for_each( std::execution::par_unseq,
+                         begin3, end3,
+                         [=](Index_type ij) {
+              const auto i  =     ij / (ny-1);
+              const auto j  = 1 + ij % (ny-1);
+              //std::cerr << "L3: " << i << "," << j << "\n";
               poly_fdtd2d_base_lam3(i, j);
-            }
           });
-          std::for_each( //std::execution::par_unseq,
-                         beginXm1, endXm1,
-                         [=](Index_type i) {
-            for (Index_type j = 0; j < ny - 1; j++) {
+
+      counting_iterator<Index_type> begin4(0);
+      counting_iterator<Index_type> end4((nx-1)*(ny-1));
+
+          //for (Index_type i = 0; i < nx - 1; i++) {
+          //  for (Index_type j = 0; j < ny - 1; j++) {
+          std::for_each( std::execution::par_unseq,
+                         begin4, end4,
+                         [=](Index_type ij) {
+              const auto i  = ij / (ny-1);
+              const auto j  = ij % (ny-1);
+              //std::cerr << "L4: " << i << "," << j << "\n";
               poly_fdtd2d_base_lam4(i, j);
-            }
           });
 
         }  // tstep loop
