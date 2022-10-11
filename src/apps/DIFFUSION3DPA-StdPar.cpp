@@ -17,6 +17,9 @@
 
 #include <iostream>
 
+// This is used below, which is bad for GPU
+//#define CPU_FOREACH(i, k, N) for (int i = 0; i < N; i++)
+
 namespace rajaperf {
 namespace apps {
 
