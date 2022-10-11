@@ -27,8 +27,14 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
+#ifdef USE_STDPAR_COLLAPSE
+  const auto nn = N-2;
+  counting_iterator<Index_type> begin(0);
+  counting_iterator<Index_type> end(nn*nn*nn);
+#else
   counting_iterator<Index_type> begin(1);
   counting_iterator<Index_type> end(N-1);
+#endif
 
   switch ( vid ) {
 
@@ -39,6 +45,15 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 0; t < tsteps; ++t) { 
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type ijk) {
+              const auto i  = 1 + ijk / (nn*nn);
+              const auto jk = ijk % (nn*nn);
+              const auto j  = 1 + jk / nn;
+              const auto k  = 1 + jk % nn;
+#else
           std::for_each( std::execution::par_unseq,
                          begin, end,
                          [=](Index_type i) {
@@ -48,11 +63,23 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
               std::for_each( std::execution::unseq,
                            begin, end,
                            [=](Index_type k) {
+#endif
                 POLYBENCH_HEAT_3D_BODY1;
+#ifndef USE_STDPAR_COLLAPSE
               });
             });
+#endif
           });
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type ijk) {
+              const auto i  = 1 + ijk / (nn*nn);
+              const auto jk = ijk % (nn*nn);
+              const auto j  = 1 + jk / nn;
+              const auto k  = 1 + jk % nn;
+#else
           std::for_each( std::execution::par_unseq,
                          begin, end,
                          [=](Index_type i) {
@@ -62,9 +89,12 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
               std::for_each( std::execution::unseq,
                            begin, end,
                            [=](Index_type k) {
+#endif
                 POLYBENCH_HEAT_3D_BODY2;
+#ifndef USE_STDPAR_COLLAPSE
               });
             });
+#endif
           });
 
         }
@@ -93,6 +123,15 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type ijk) {
+              const auto i  = 1 + ijk / (nn*nn);
+              const auto jk = ijk % (nn*nn);
+              const auto j  = 1 + jk / nn;
+              const auto k  = 1 + jk % nn;
+#else
           std::for_each( std::execution::par_unseq,
                          begin, end,
                          [=](Index_type i) {
@@ -102,11 +141,23 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
               std::for_each( std::execution::unseq,
                            begin, end,
                            [=](Index_type k) {
+#endif
                 poly_heat3d_base_lam1(i, j, k);
+#ifndef USE_STDPAR_COLLAPSE
               });
             });
+#endif
           });
 
+#ifdef USE_STDPAR_COLLAPSE
+        std::for_each( std::execution::par_unseq,
+                        begin, end,
+                        [=](Index_type ijk) {
+              const auto i  = 1 + ijk / (nn*nn);
+              const auto jk = ijk % (nn*nn);
+              const auto j  = 1 + jk / nn;
+              const auto k  = 1 + jk % nn;
+#else
           std::for_each( std::execution::par_unseq,
                          begin, end,
                          [=](Index_type i) {
@@ -116,9 +167,12 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
               std::for_each( std::execution::unseq,
                            begin, end,
                            [=](Index_type k) {
+#endif
                 poly_heat3d_base_lam2(i, j, k);
+#ifndef USE_STDPAR_COLLAPSE
               });
             });
+#endif
           });
 
         }
