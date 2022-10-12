@@ -25,9 +25,6 @@ void POLYBENCH_MVT::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_MVT_DATA_SETUP;
 
-  counting_iterator<Index_type> begin(0);
-  counting_iterator<Index_type> end(N);
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -35,25 +32,25 @@ void POLYBENCH_MVT::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_MVT_BODY1;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             POLYBENCH_MVT_BODY2;
           });
           POLYBENCH_MVT_BODY3;
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_MVT_BODY4;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             POLYBENCH_MVT_BODY5;
           });
           POLYBENCH_MVT_BODY6;
@@ -87,25 +84,25 @@ void POLYBENCH_MVT::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_MVT_BODY1;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             poly_mvt_base_lam2(i, j, dot);
           });
           poly_mvt_base_lam3(i, dot);
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_MVT_BODY4;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             poly_mvt_base_lam5(i, j, dot);
           });
           poly_mvt_base_lam6(i, dot);
