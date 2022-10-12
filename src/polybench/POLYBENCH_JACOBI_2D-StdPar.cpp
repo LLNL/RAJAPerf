@@ -27,6 +27,8 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_JACOBI_2D_DATA_SETUP;
 
+  const auto n2 = (N-2);
+
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -38,16 +40,16 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each_n( std::execution::par_unseq,
-                         counting_iterator<Index_type>(0), (N-2)*(N-2),
+                         counting_iterator<Index_type>(0), n2*n2,
                          [=](Index_type ij) {
-              const auto i  = 1 + ij / nn;
-              const auto j  = 1 + ij % nn;
+              const auto i  = 1 + ij / n2;
+              const auto j  = 1 + ij % n2;
 #else
           std::for_each_n( std::execution::par_unseq,
-                           counting_iterator<Index_type>(1), N-2,
+                           counting_iterator<Index_type>(1), n2,
                            [=](Index_type i) {
             std::for_each_n( std::execution::unseq,
-                             counting_iterator<Index_type>(1), N-2,
+                             counting_iterator<Index_type>(1), n2,
                              [=](Index_type j) {
 #endif
               POLYBENCH_JACOBI_2D_BODY1;
@@ -56,17 +58,17 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
           });
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type ij) {
-              const auto i  = 1 + ij / nn;
-              const auto j  = 1 + ij % nn;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), n2*n2,
+                         [=](Index_type ij) {
+              const auto i  = 1 + ij / n2;
+              const auto j  = 1 + ij % n2;
 #else
           std::for_each_n( std::execution::par_unseq,
-                           counting_iterator<Index_type>(1), N-2,
+                           counting_iterator<Index_type>(1), n2,
                            [=](Index_type i) {
             std::for_each_n( std::execution::unseq,
-                             counting_iterator<Index_type>(1), N-2,
+                             counting_iterator<Index_type>(1), n2,
                              [=](Index_type j) {
 #endif
               POLYBENCH_JACOBI_2D_BODY2;
@@ -101,16 +103,16 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
 #ifdef USE_STDPAR_COLLAPSE
         std::for_each_n( std::execution::par_unseq,
-                         counting_iterator<Index_type>(0), (N-2)*(N-2),
+                         counting_iterator<Index_type>(0), n2*n2,
                          [=](Index_type ij) {
-              const auto i  = 1 + ij / nn;
-              const auto j  = 1 + ij % nn;
+              const auto i  = 1 + ij / n2;
+              const auto j  = 1 + ij % n2;
 #else
           std::for_each_n( std::execution::par_unseq,
-                           counting_iterator<Index_type>(1), N-2,
+                           counting_iterator<Index_type>(1), n2,
                            [=](Index_type i) {
             std::for_each_n( std::execution::unseq,
-                             counting_iterator<Index_type>(1), N-2,
+                             counting_iterator<Index_type>(1), n2,
                              [=](Index_type j) {
 #endif
               poly_jacobi2d_base_lam1(i, j);
@@ -120,17 +122,17 @@ void POLYBENCH_JACOBI_2D::runStdParVariant(VariantID vid, size_t tune_idx)
           });
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type ij) {
-              const auto i  = 1 + ij / nn;
-              const auto j  = 1 + ij % nn;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), n2*n2,
+                         [=](Index_type ij) {
+              const auto i  = 1 + ij / n2;
+              const auto j  = 1 + ij % n2;
 #else
           std::for_each_n( std::execution::par_unseq,
-                           counting_iterator<Index_type>(1), N-2,
+                           counting_iterator<Index_type>(1), n2,
                            [=](Index_type i) {
             std::for_each_n( std::execution::unseq,
-                             counting_iterator<Index_type>(1), N-2,
+                             counting_iterator<Index_type>(1), n2,
                              [=](Index_type j) {
 #endif
               poly_jacobi2d_base_lam2(i, j);
