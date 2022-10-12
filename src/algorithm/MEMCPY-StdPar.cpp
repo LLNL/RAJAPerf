@@ -66,15 +66,12 @@ void MEMCPY::runStdParVariantDefault(VariantID vid)
 
     case Base_StdPar : {
 
-      auto begin = counting_iterator<Index_type>(ibegin);
-      auto end   = counting_iterator<Index_type>(iend);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           MEMCPY_BODY;
         });
 
@@ -90,15 +87,12 @@ void MEMCPY::runStdParVariantDefault(VariantID vid)
                              MEMCPY_BODY;
                            };
 
-      auto begin = counting_iterator<Index_type>(ibegin);
-      auto end   = counting_iterator<Index_type>(iend);
-
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           memcpy_lambda(i);
         });
 

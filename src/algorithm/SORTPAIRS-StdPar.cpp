@@ -33,9 +33,6 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   SORTPAIRS_DATA_SETUP;
 
   switch ( vid ) {
@@ -52,18 +49,18 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
 #if 0
         vector_of_pairs.reserve(iend-ibegin);
 
-        std::for_each( //std::execution::par, // parallelism leads to incorrectness
-                       begin,end,
-                       [=,&vector_of_pairs](Index_type iemp) noexcept {
+        std::for_each_n( //std::execution::par, // parallelism leads to incorrectness
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=,&vector_of_pairs](Index_type iemp) noexcept {
           vector_of_pairs.emplace_back(x[iend*irep + iemp], i[iend*irep + iemp]);
         });
 #else
         vector_of_pairs.resize(iend-ibegin);
 
         auto p = vector_of_pairs.data();
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type iemp) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type iemp) noexcept {
           p[iemp] = std::make_pair(x[iend*irep + iemp], i[iend*irep + iemp]);
         });
 #endif
@@ -74,9 +71,9 @@ void SORTPAIRS::runStdParVariant(VariantID vid, size_t tune_idx)
                      return lhs.first < rhs.first;
                    });
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type iemp) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type iemp) noexcept {
           //const pair_type &pair = vector_of_pairs[iemp - ibegin];
           const pair_type &pair = p[iemp - ibegin];
           x[iend*irep + iemp] = pair.first;
