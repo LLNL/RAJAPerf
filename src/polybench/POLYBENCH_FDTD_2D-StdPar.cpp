@@ -93,8 +93,9 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       //       scalar variable 't' used in it is updated for each
       //       t-loop iteration.
       //
-      // THIS ONE, AND ONLY THIS ONE, NEEDS TO BE [&] TO BE CORRECT, AT LEAST WITH GCC
-      auto poly_fdtd2d_base_lam1 = [&](Index_type j) {
+      // capturing t by reference is required for GCC 11 to generate correct results
+      auto poly_fdtd2d_base_lam1 = [=,&t](Index_type j) {
+                                     //ey[j + 0*ny] = fict[t];
                                      POLYBENCH_FDTD_2D_BODY1;
                                    };
       auto poly_fdtd2d_base_lam2 = [=](Index_type i, Index_type j) {
