@@ -36,9 +36,6 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   PI_ATOMIC_DATA_SETUP;
 
   switch ( vid ) {
@@ -51,8 +48,8 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
         //myAtomic a_pi{m_pi_init};
         myAtomic * a_pi = new myAtomic; // i hate this
         *a_pi = m_pi_init;
-        std::for_each( std::execution::par,
-                       begin, end,
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
                        [=](Index_type i) {
           double x = (double(i) + 0.5) * dx;
           *a_pi = *a_pi + dx / (1.0 + x * x);
@@ -78,8 +75,8 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
         //myAtomic a_pi{m_pi_init};
         myAtomic * a_pi = new myAtomic; // i hate this
         *a_pi = m_pi_init;
-        std::for_each( std::execution::par,
-                       begin, end,
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
                        [=](Index_type i) {
           piatomic_base_lam(i,a_pi);
         });

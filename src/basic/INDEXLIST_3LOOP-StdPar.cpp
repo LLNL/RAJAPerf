@@ -30,12 +30,10 @@ namespace basic
 void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 #if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
-
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
 
   INDEXLIST_3LOOP_DATA_SETUP;
 
@@ -48,9 +46,9 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
 
@@ -71,9 +69,9 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
                              counts+ibegin, 0);
 #endif
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           INDEXLIST_3LOOP_MAKE_LIST;
         });
 
@@ -102,9 +100,9 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           indexlist_conditional_lam(i);
         });
 
@@ -125,9 +123,9 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
                              counts+ibegin, 0);
 #endif
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           indexlist_make_list_lam(i);
         });
 

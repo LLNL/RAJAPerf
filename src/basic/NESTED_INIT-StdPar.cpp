@@ -28,14 +28,6 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
 
   NESTED_INIT_DATA_SETUP;
 
-#ifdef USE_STDPAR_COLLAPSE
-      auto begin = counting_iterator<Index_type>(0);
-      auto end   = counting_iterator<Index_type>(ni*nj*nk);
-#else
-      auto begin = counting_iterator<Index_type>(0);
-      auto end   = counting_iterator<Index_type>(nk);
-#endif
-
   auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
                           NESTED_INIT_BODY;
                         };
@@ -48,23 +40,23 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type idx) {
-              const auto k  = idx / (nj*ni);
-              const auto ij = idx % (nj*ni);
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), ni*nj*nk,
+                         [=](Index_type ijk) {
+              const auto k  = ijk / (nj*ni);
+              const auto ij = ijk % (nj*ni);
               const auto j  = ij / ni;
               const auto i  = ij % ni;
 #else
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type k) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk,
+                         [=](Index_type k) {
             for (Index_type j = 0; j < nj; ++j )
               for (Index_type i = 0; i < ni; ++i )
 #endif
               {
                 NESTED_INIT_BODY;
-                //getCout() << i << "," << j << "," << k << ";" << idx << " PAR\n";
+                //getCout() << i << "," << j << "," << k << ";" << ijk << " PAR\n";
               }
         });
 
@@ -80,17 +72,17 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type idx) {
-              const auto k  = idx / (nj*ni);
-              const auto ij = idx % (nj*ni);
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), ni*nj*nk,
+                         [=](Index_type ijk) {
+              const auto k  = ijk / (nj*ni);
+              const auto ij = ijk % (nj*ni);
               const auto j  = ij / ni;
               const auto i  = ij % ni;
 #else
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type k) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk,
+                         [=](Index_type k) {
             for (Index_type j = 0; j < nj; ++j )
               for (Index_type i = 0; i < ni; ++i )
 #endif

@@ -28,9 +28,6 @@ void INIT_VIEW1D_OFFSET::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 1;
   const Index_type iend = getActualProblemSize()+1;
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   switch ( vid ) {
@@ -40,9 +37,9 @@ void INIT_VIEW1D_OFFSET::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           INIT_VIEW1D_OFFSET_BODY;
         });
 
@@ -61,12 +58,11 @@ void INIT_VIEW1D_OFFSET::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           initview1doffset_base_lam(i);
         });
-
       }
       stopTimer();
 
