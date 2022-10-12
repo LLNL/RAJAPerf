@@ -27,9 +27,6 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_JACOBI_1D_DATA_SETUP;
 
-  counting_iterator<Index_type> begin(1);
-  counting_iterator<Index_type> end(N-1);
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -39,14 +36,14 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 0; t < tsteps; ++t) { 
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                         [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), N-2,
+                           [=](Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
           });
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                         [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), N-2,
+                           [=](Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
           });
 
@@ -74,14 +71,14 @@ void POLYBENCH_JACOBI_1D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                          [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), N-2,
+                           [=](Index_type i) {
             poly_jacobi1d_lam1(i);
           });
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                          [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), N-2,
+                           [=](Index_type i) {
             poly_jacobi1d_lam2(i);
           });
 
