@@ -99,7 +99,9 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       //       t-loop iteration.
       //
       // capturing t by reference is required for GCC 11 to generate correct results
-      auto poly_fdtd2d_base_lam1 = [=,&t](Index_type j) {
+      //auto poly_fdtd2d_base_lam1 = [=,&t](Index_type j) {
+      // but that breaks NVHPC GPU, so we instead make it an explicit parameter
+      auto poly_fdtd2d_base_lam1 = [=](Index_type j, Index_type t) {
                                      //ey[j + 0*ny] = fict[t];
                                      POLYBENCH_FDTD_2D_BODY1;
                                    };
@@ -121,7 +123,7 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
           std::for_each( std::execution::par_unseq,
                          beginY, endY,
                          [=](Index_type j) {
-            poly_fdtd2d_base_lam1(j);
+            poly_fdtd2d_base_lam1(j,t);
           });
 
           std::for_each( std::execution::par_unseq,
