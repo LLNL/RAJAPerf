@@ -33,6 +33,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NVCXX_GPU_ENABLED
 #endif
 
+#if defined(NVCXX_GPU_ENABLED)
+// this is required to get NVC++ to compile CUDA atomics in StdPar
+#include <openacc.h>
+#endif
+
 // This implementation was authored by David Olsen
 
 #include <algorithm>
