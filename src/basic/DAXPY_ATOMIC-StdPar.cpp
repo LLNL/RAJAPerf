@@ -44,18 +44,19 @@ void DAXPY_ATOMIC::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
         std::for_each( std::execution::par_unseq,
                        begin, end,
                        [=](Index_type i) {
-#if __cpp_lib_atomic_ref
-          auto px = std::atomic_ref<Real_type>(x[i]);
-          auto py = std::atomic_ref<Real_type>(y[i]);
-          py += a * px;
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
           #pragma omp atomic
           y[i] += a * x[i];
 #elif defined(_OPENACC)
           #pragma acc atomic
           y[i] += a * x[i];
 #elif defined(NVCXX_GPU_ENABLED)
+          //atomicAdd(&y[i],a * x[i]);
           atomicaddd(&y[i],a * x[i]);
+#elif __cpp_lib_atomic_ref
+          auto px = std::atomic_ref<Real_type>(x[i]);
+          auto py = std::atomic_ref<Real_type>(y[i]);
+          py += a * px;
 #else
 #warning No atomic
           y[i] += a * x[i];
