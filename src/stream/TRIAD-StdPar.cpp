@@ -23,12 +23,10 @@ namespace stream
 void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
 {
 #if defined(RUN_STDPAR)
+
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
-
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
 
   TRIAD_DATA_SETUP;
 
@@ -43,9 +41,9 @@ void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           TRIAD_BODY;
         });
 
@@ -60,9 +58,9 @@ void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           triad_lam(i);
         });
       }

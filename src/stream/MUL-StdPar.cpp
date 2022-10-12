@@ -28,9 +28,6 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   MUL_DATA_SETUP;
 
   auto mul_lam = [=](Index_type i) {
@@ -44,9 +41,9 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           MUL_BODY;
         });
 
@@ -61,9 +58,9 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin,end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           mul_lam(i);
         });
       }
