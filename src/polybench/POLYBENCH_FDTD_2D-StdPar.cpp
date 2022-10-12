@@ -54,6 +54,11 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
             POLYBENCH_FDTD_2D_BODY1;
           });
 
+          // Note to future developers:
+          //   Do not try to be smart and use more C++ than necessary.
+          //   auto [i,j] = std::div(ij,ny); i++;
+          //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This is noticeably slower than below.
+
           std::for_each( std::execution::par_unseq,
                          begin2, end2,
                          [=](Index_type ij) {
