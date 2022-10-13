@@ -32,15 +32,8 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 #ifdef USE_STDPAR_COLLAPSE
   // this is going to run from [(0,0),..]
   // we will add (1,1) later
-  const auto nk = kend-1;
-  const auto nj = jend-1;
-  auto begin = counting_iterator<Index_type>(0);
-  auto end   = counting_iterator<Index_type>(nk*nj);
-#else
-  auto beginK = counting_iterator<Index_type>(kbeg);
-  auto endK   = counting_iterator<Index_type>(kend);
-  auto beginJ = counting_iterator<Index_type>(jbeg);
-  auto endJ   = counting_iterator<Index_type>(jend);
+  const auto nk = kend-kbeg;
+  const auto nj = jend-jbeg;
 #endif
 
   HYDRO_2D_DATA_SETUP;
@@ -53,17 +46,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k  = kbeg + kj / nj;
+            const auto j  = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             //std::cerr << "JEFF: " << k << "," << j << "\n";
             HYDRO_2D_BODY1;
@@ -73,17 +67,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k = kbeg + kj / nj;
+            const auto j = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             HYDRO_2D_BODY2;
 #ifndef USE_STDPAR_COLLAPSE
@@ -92,17 +87,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k = kbeg + kj / nj;
+            const auto j = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             HYDRO_2D_BODY3;
 #ifndef USE_STDPAR_COLLAPSE
@@ -132,17 +128,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k = kbeg + kj / nj;
+            const auto j = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             hydro2d_base_lam1(k, j);
 #ifndef USE_STDPAR_COLLAPSE
@@ -151,17 +148,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k = kbeg + kj / nj;
+            const auto j = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             hydro2d_base_lam2(k, j);
 #ifndef USE_STDPAR_COLLAPSE
@@ -170,17 +168,18 @@ void HYDRO_2D::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin, end, [=](Index_type kj) {
-            const auto k  = 1 + kj / nj;
-            const auto j  = 1 + kj % nj;
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), nk*nj,
+                         [=](Index_type kj) {
+            const auto k = kbeg + kj / nj;
+            const auto j = jbeg + kj % nj;
 #else
-        std::for_each( std::execution::par,
-                        beginK, endK,
-                        [=](Index_type k) {
-          std::for_each( std::execution::unseq,
-                        beginJ, endJ,
-                        [=](Index_type j) {
+        std::for_each_n( std::execution::par,
+                         counting_iterator<Index_type>(kbeg), kend-kbeg,
+                         [=](Index_type k) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(jbeg), jend-jbeg,
+                           [=](Index_type j) {
 #endif
             hydro2d_base_lam3(k, j);
 #ifndef USE_STDPAR_COLLAPSE

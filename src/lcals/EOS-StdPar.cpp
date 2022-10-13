@@ -28,14 +28,7 @@ void EOS::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   EOS_DATA_SETUP;
-
-  auto eos_lam = [=](Index_type i) {
-                   EOS_BODY;
-                 };
 
   switch ( vid ) {
 
@@ -44,9 +37,9 @@ void EOS::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
           EOS_BODY;
         });
 
@@ -58,14 +51,19 @@ void EOS::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+      auto eos_lam = [=](Index_type i) {
+                       EOS_BODY;
+                     };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
           eos_lam(i);
         });
+
       }
       stopTimer();
 

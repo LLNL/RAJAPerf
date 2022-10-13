@@ -59,8 +59,8 @@ void TRIDIAG_ELIM::runStdParVariant(VariantID vid, size_t tune_idx)
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         std::for_each_n( std::execution::par_unseq,
-                          counting_iterator<Index_type>(ibegin), iend,
-                          [=](Index_type i) {
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
           tridiag_elim_lam(i);
         });
 
