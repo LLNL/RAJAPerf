@@ -44,12 +44,14 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nj,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nj,
                            [=](Index_type j) {
 #endif
             POLYBENCH_GEMM_BODY1;
             POLYBENCH_GEMM_BODY2;
-            std::for_each_n( counting_iterator<Index_type>(0), nk,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nk,
                              [=,&dot](Index_type k) {
                POLYBENCH_GEMM_BODY3;
             });
@@ -90,12 +92,14 @@ void POLYBENCH_GEMM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nj,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nj,
                            [=](Index_type j) {
 #endif
             POLYBENCH_GEMM_BODY1;
             poly_gemm_base_lam2(i, j);
-            std::for_each_n( counting_iterator<Index_type>(0), nk,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nk,
                              [=,&dot](Index_type k) {
               poly_gemm_base_lam3(i, j, k, dot);
             });

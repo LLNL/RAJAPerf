@@ -48,7 +48,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
                            [=](Index_type j) {
 #endif
             POLYBENCH_3MM_BODY1;
-            std::for_each_n( counting_iterator<Index_type>(0), nk,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nk,
                              [=,&dot](Index_type k) {
               POLYBENCH_3MM_BODY2;
             });
@@ -68,11 +69,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), nj,
                          [=](Index_type j) {
-          std::for_each_n( counting_iterator<Index_type>(0), nl,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nl,
                            [=](Index_type l) {
 #endif
             POLYBENCH_3MM_BODY4;
-            std::for_each_n( counting_iterator<Index_type>(0), nm,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nm,
                              [=,&dot](Index_type m) {
               POLYBENCH_3MM_BODY5;
             });
@@ -92,11 +95,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nl,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nl,
                            [=](Index_type l) {
 #endif
             POLYBENCH_3MM_BODY7;
-            std::for_each_n( counting_iterator<Index_type>(0), nj,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nj,
                              [=,&dot](Index_type j) {
               POLYBENCH_3MM_BODY8;
             });
@@ -152,11 +157,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nj,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nj,
                            [=](Index_type j) {
 #endif
             POLYBENCH_3MM_BODY1;
-            std::for_each_n( counting_iterator<Index_type>(0), nk,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nk,
                              [=,&dot](Index_type k) {
               poly_3mm_base_lam2(i, j, k, dot);
             });
@@ -176,11 +183,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), nj,
                          [=](Index_type j) {
-          std::for_each_n( counting_iterator<Index_type>(0), nl,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nl,
                            [=](Index_type l) {
 #endif
             POLYBENCH_3MM_BODY4;
-            std::for_each_n( counting_iterator<Index_type>(0), nm,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nm,
                              [=,&dot](Index_type m) {
               poly_3mm_base_lam5(j, l, m, dot);
             });
@@ -200,11 +209,13 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nl,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), nl,
                            [=](Index_type l) {
 #endif
             POLYBENCH_3MM_BODY7;
-            std::for_each_n( counting_iterator<Index_type>(0), nj,
+            std::for_each_n( std::execution::unseq,
+                             counting_iterator<Index_type>(0), nj,
                              [=,&dot](Index_type j) {
               poly_3mm_base_lam8(i, l, j, dot);
             });

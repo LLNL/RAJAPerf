@@ -37,7 +37,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=](Index_type j) {
             POLYBENCH_GEMVER_BODY1;
           });
@@ -47,7 +48,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
           POLYBENCH_GEMVER_BODY2;
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=,&dot](Index_type j) {
             POLYBENCH_GEMVER_BODY3;
           });
@@ -64,7 +66,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
           POLYBENCH_GEMVER_BODY6;
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=,&dot](Index_type j) {
             POLYBENCH_GEMVER_BODY7;
           });
@@ -104,7 +107,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=](Index_type j) {
             poly_gemver_base_lam1(i, j);
           });
@@ -114,7 +118,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
           POLYBENCH_GEMVER_BODY2;
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=,&dot](Index_type j) {
             poly_gemver_base_lam3(i, j, dot);
           });
@@ -131,7 +136,8 @@ void POLYBENCH_GEMVER::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), n,
                          [=](Index_type i) {
           POLYBENCH_GEMVER_BODY6;
-          std::for_each_n( counting_iterator<Index_type>(0), n,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), n,
                            [=,&dot](Index_type j) {
             poly_gemver_base_lam7(i, j, dot);
           });

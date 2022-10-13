@@ -38,7 +38,8 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), N,
                          [=](Index_type i) {
           POLYBENCH_GESUMMV_BODY1;
-          std::for_each_n( counting_iterator<Index_type>(0), N,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
                            [=,&tmpdot,&ydot](Index_type j) {
             POLYBENCH_GESUMMV_BODY2;
           });
@@ -67,7 +68,8 @@ void POLYBENCH_GESUMMV::runStdParVariant(VariantID vid, size_t tune_idx)
                          counting_iterator<Index_type>(0), N,
                          [=](Index_type i) {
           POLYBENCH_GESUMMV_BODY1;
-          std::for_each_n( counting_iterator<Index_type>(0), N,
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
                            [=,&tmpdot,&ydot](Index_type j) {
             poly_gesummv_base_lam2(i, j, tmpdot, ydot);
           });
