@@ -28,14 +28,7 @@ void TRIDIAG_ELIM::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 1;
   const Index_type iend = m_N;
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   TRIDIAG_ELIM_DATA_SETUP;
-
-  auto tridiag_elim_lam = [=](Index_type i) {
-                            TRIDIAG_ELIM_BODY;
-                          };
 
   switch ( vid ) {
 
@@ -44,9 +37,9 @@ void TRIDIAG_ELIM::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
           TRIDIAG_ELIM_BODY;
         });
 
@@ -58,12 +51,16 @@ void TRIDIAG_ELIM::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+      auto tridiag_elim_lam = [=](Index_type i) {
+                                TRIDIAG_ELIM_BODY;
+                              };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                          counting_iterator<Index_type>(ibegin), iend,
+                          [=](Index_type i) {
           tridiag_elim_lam(i);
         });
 
