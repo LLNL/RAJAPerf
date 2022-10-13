@@ -27,9 +27,6 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_ATAX_DATA_SETUP;
 
-  counting_iterator<Index_type> begin(0);
-  counting_iterator<Index_type> end(N);
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -37,25 +34,25 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_ATAX_BODY1;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             POLYBENCH_ATAX_BODY2;
           });
           POLYBENCH_ATAX_BODY3;
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type j) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type j) {
           POLYBENCH_ATAX_BODY4;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type i) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type i) {
             POLYBENCH_ATAX_BODY5;
           });
           POLYBENCH_ATAX_BODY6;
@@ -69,45 +66,41 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
-      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, 
-                                      Real_type &dot) {
+      auto poly_atax_base_lam2 = [=] (Index_type i, Index_type j, Real_type &dot) {
                                    POLYBENCH_ATAX_BODY2;
                                  };
-      auto poly_atax_base_lam3 = [=] (Index_type i, 
-                                      Real_type &dot) {
+      auto poly_atax_base_lam3 = [=] (Index_type i, Real_type &dot) {
                                    POLYBENCH_ATAX_BODY3;
                                   };
-      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , 
-                                      Real_type &dot) {
+      auto poly_atax_base_lam5 = [=] (Index_type i, Index_type j , Real_type &dot) {
                                    POLYBENCH_ATAX_BODY5;
                                   };
-      auto poly_atax_base_lam6 = [=] (Index_type j, 
-                                      Real_type &dot) {
+      auto poly_atax_base_lam6 = [=] (Index_type j, Real_type &dot) {
                                    POLYBENCH_ATAX_BODY6;
                                   };
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
           POLYBENCH_ATAX_BODY1;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type j) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type j) {
             poly_atax_base_lam2(i, j, dot);
           });
           poly_atax_base_lam3(i, dot);
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type j) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type j) {
           POLYBENCH_ATAX_BODY4;
-          std::for_each( std::execution::unseq,
-                         begin, end,
-                         [=,&dot](Index_type i) {
+          std::for_each_n( std::execution::unseq,
+                           counting_iterator<Index_type>(0), N,
+                           [=,&dot](Index_type i) {
             poly_atax_base_lam5(i, j, dot);
           });
           poly_atax_base_lam6(j, dot);
@@ -128,5 +121,5 @@ void POLYBENCH_ATAX::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace polybench
-} // end namespace rajaperf
+} // N namespace polybench
+} // N namespace rajaperf

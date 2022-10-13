@@ -27,9 +27,6 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_ADI_DATA_SETUP;
 
-  counting_iterator<Index_type> begin(1);
-  counting_iterator<Index_type> end(n-1);
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -39,9 +36,9 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 1; t <= tsteps; ++t) { 
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                         [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), n-2,
+                           [=](Index_type i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
               POLYBENCH_ADI_BODY3;
@@ -52,9 +49,9 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
             }  
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                         [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), n-2,
+                           [=](Index_type i) {
             POLYBENCH_ADI_BODY6;
             for (Index_type j = 1; j < n-1; ++j) {
               POLYBENCH_ADI_BODY7;
@@ -105,9 +102,9 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type t = 1; t <= tsteps; ++t) {
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                          [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), n-2,
+                           [=](Index_type i) {
             poly_adi_base_lam2(i);
             for (Index_type j = 1; j < n-1; ++j) {
               poly_adi_base_lam3(i, j);
@@ -118,9 +115,9 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
             }
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin, end,
-                          [=](Index_type i) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(1), n-2,
+                           [=](Index_type i) {
             poly_adi_base_lam6(i);
             for (Index_type j = 1; j < n-1; ++j) {
               poly_adi_base_lam7(i, j);
@@ -148,5 +145,5 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace polybench
-} // end namespace rajaperf
+} // n-2 namespace polybench
+} // n-2 namespace rajaperf

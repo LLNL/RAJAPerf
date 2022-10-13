@@ -27,18 +27,6 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_FDTD_2D_DATA_SETUP;
 
-  counting_iterator<Index_type> beginY(0);
-  counting_iterator<Index_type> endY(ny);
-
-  counting_iterator<Index_type> begin2(0);
-  counting_iterator<Index_type> end2((nx-1)*ny);
-
-  counting_iterator<Index_type> begin3(0);
-  counting_iterator<Index_type> end3(nx*(ny-1));
-
-  counting_iterator<Index_type> begin4(0);
-  counting_iterator<Index_type> end4((nx-1)*(ny-1));
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -48,9 +36,9 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (t = 0; t < tsteps; ++t) {
 
-          std::for_each( std::execution::par_unseq,
-                         beginY, endY,
-                         [=](Index_type j) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), ny,
+                           [=](Index_type j) {
             POLYBENCH_FDTD_2D_BODY1;
           });
 
@@ -59,25 +47,25 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
           //   auto [i,j] = std::div(ij,ny); i++;
           //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This is noticeably slower than below.
 
-          std::for_each( std::execution::par_unseq,
-                         begin2, end2,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), (nx-1)*ny,
+                           [=](Index_type ij) {
               const auto i  = 1 + ij / ny;
               const auto j  =     ij % ny;
               POLYBENCH_FDTD_2D_BODY2;
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin3, end3,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), nx*(ny-1),
+                           [=](Index_type ij) {
               const auto i  =     ij / (ny-1);
               const auto j  = 1 + ij % (ny-1);
               POLYBENCH_FDTD_2D_BODY3;
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin4, end4,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), (nx-1)*(ny-1),
+                           [=](Index_type ij) {
               const auto i  = ij / (ny-1);
               const auto j  = ij % (ny-1);
               POLYBENCH_FDTD_2D_BODY4;
@@ -99,7 +87,6 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
       //       t-loop iteration.
       //
       // capturing t by reference is required for GCC 11 to generate correct results
-      //auto poly_fdtd2d_base_lam1 = [=,&t](Index_type j) {
       // but that breaks NVHPC GPU, so we instead make it an explicit parameter
       auto poly_fdtd2d_base_lam1 = [=](Index_type j, Index_type t) {
                                      //ey[j + 0*ny] = fict[t];
@@ -120,34 +107,31 @@ void POLYBENCH_FDTD_2D::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (t = 0; t < tsteps; ++t) {
 
-          std::for_each( std::execution::par_unseq,
-                         beginY, endY,
-                         [=](Index_type j) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), ny,
+                           [=](Index_type j) {
             poly_fdtd2d_base_lam1(j,t);
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin2, end2,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), (nx-1)*ny,
+                           [=](Index_type ij) {
               const auto i  = 1 + ij / ny;
               const auto j  =     ij % ny;
               poly_fdtd2d_base_lam2(i, j);
           });
 
-          std::for_each( std::execution::par_unseq,
-                         begin3, end3,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), nx*(ny-1),
+                           [=](Index_type ij) {
               const auto i  =     ij / (ny-1);
               const auto j  = 1 + ij % (ny-1);
               poly_fdtd2d_base_lam3(i, j);
           });
 
-          counting_iterator<Index_type> begin4(0);
-          counting_iterator<Index_type> end4((nx-1)*(ny-1));
-
-          std::for_each( std::execution::par_unseq,
-                         begin4, end4,
-                         [=](Index_type ij) {
+          std::for_each_n( std::execution::par_unseq,
+                           counting_iterator<Index_type>(0), (nx-1)*(ny-1),
+                           [=](Index_type ij) {
               const auto i  = ij / (ny-1);
               const auto j  = ij % (ny-1);
               poly_fdtd2d_base_lam4(i, j);

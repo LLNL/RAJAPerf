@@ -29,14 +29,6 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
-#ifdef USE_STDPAR_COLLAPSE
-  counting_iterator<Index_type> begin2(0);
-  counting_iterator<Index_type> end2(N*N);
-#else
-  counting_iterator<Index_type> begin(0);
-  counting_iterator<Index_type> end(N);
-#endif
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -46,16 +38,17 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type k = 0; k < N; ++k) {
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin2, end2, [=](Index_type ji) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N*N,
+                         [=](Index_type ji) {
             const auto j  = ji / N;
             const auto i  = ji % N;
 #else
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
-          std::for_each( begin, end,
-                         [=](Index_type j) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
+          std::for_each_n( counting_iterator<Index_type>(0), N,
+                           [=](Index_type j) {
 #endif
               POLYBENCH_FLOYD_WARSHALL_BODY;
             });
@@ -72,8 +65,7 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
-      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, 
-                                             Index_type j) {
+      auto poly_floydwarshall_base_lam = [=](Index_type k, Index_type i, Index_type j) {
                                            POLYBENCH_FLOYD_WARSHALL_BODY;
                                          };
 
@@ -82,16 +74,17 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
 
         for (Index_type k = 0; k < N; ++k) {
 #ifdef USE_STDPAR_COLLAPSE
-        std::for_each( std::execution::par_unseq,
-                       begin2, end2, [=](Index_type ji) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N*N,
+                         [=](Index_type ji) {
             const auto j  = ji / N;
             const auto i  = ji % N;
 #else
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
-          std::for_each( begin, end,
-                         [=](Index_type j) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(0), N,
+                         [=](Index_type i) {
+          std::for_each_n( counting_iterator<Index_type>(0), N,
+                           [=](Index_type j) {
 #endif
               poly_floydwarshall_base_lam(k, i, j);
           });
@@ -115,5 +108,5 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace polybench
-} // end namespace rajaperf
+} // N namespace polybench
+} // N namespace rajaperf
