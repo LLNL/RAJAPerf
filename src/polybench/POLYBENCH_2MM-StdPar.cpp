@@ -27,6 +27,11 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid, size_t tune_idx)
 
   POLYBENCH_2MM_DATA_SETUP;
 
+#if 0
+  auto begin = counting_iterator<Index_type>(0);
+  auto end   = counting_iterator<Index_type>(nk);
+#endif
+
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -48,6 +53,7 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid, size_t tune_idx)
                            counting_iterator<Index_type>(0), nj,
                            [=](Index_type j) {
 #endif
+#if 1
             POLYBENCH_2MM_BODY1;
             std::for_each_n( std::execution::unseq,
                              counting_iterator<Index_type>(0), nk,
@@ -55,6 +61,14 @@ void POLYBENCH_2MM::runStdParVariant(VariantID vid, size_t tune_idx)
               POLYBENCH_2MM_BODY2;
             });
             POLYBENCH_2MM_BODY3;
+#else
+            tmp[j + i*nj] = std::transform_reduce( std::execution::unseq,
+                                                   begin, end,
+                                                   (Real_type)0, std::plus<Real_type>(),
+                                                   [=] (Index_type k) {
+                                                     return alpha * A[k + i*nk] * B[j + k*nj];
+                                                   });
+#endif
 #ifndef USE_STDPAR_COLLAPSE
           });
 #endif
