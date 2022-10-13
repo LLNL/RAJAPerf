@@ -60,7 +60,7 @@
   const Real_type s = m_s; \
   const Real_type t = m_t; \
 \
-  const Index_type kn = m_kn; \
+  const Index_type kn = m_kn; (void)kn; \
   const Index_type jn = m_jn;
 
 #define HYDRO_2D_BODY1  \

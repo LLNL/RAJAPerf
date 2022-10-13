@@ -27,9 +27,6 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   INDEXLIST_DATA_SETUP;
 
   switch ( vid ) {
