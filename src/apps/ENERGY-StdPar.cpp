@@ -28,30 +28,8 @@ void ENERGY::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   ENERGY_DATA_SETUP;
   
-  auto energy_lam1 = [=](Index_type i) {
-                       ENERGY_BODY1;
-                     };
-  auto energy_lam2 = [=](Index_type i) {
-                       ENERGY_BODY2;
-                     };
-  auto energy_lam3 = [=](Index_type i) {
-                       ENERGY_BODY3;
-                     };
-  auto energy_lam4 = [=](Index_type i) {
-                       ENERGY_BODY4;
-                     };
-  auto energy_lam5 = [=](Index_type i) {
-                       ENERGY_BODY5;
-                     };
-  auto energy_lam6 = [=](Index_type i) {
-                       ENERGY_BODY6;
-                     };
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -59,39 +37,39 @@ void ENERGY::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY1;
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY2;
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY3;
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY4;
         });
   
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY5;
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           ENERGY_BODY6;
         });
 
@@ -103,42 +81,61 @@ void ENERGY::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+      auto energy_lam1 = [=](Index_type i) {
+                           ENERGY_BODY1;
+                         };
+      auto energy_lam2 = [=](Index_type i) {
+                           ENERGY_BODY2;
+                         };
+      auto energy_lam3 = [=](Index_type i) {
+                           ENERGY_BODY3;
+                         };
+      auto energy_lam4 = [=](Index_type i) {
+                           ENERGY_BODY4;
+                         };
+      auto energy_lam5 = [=](Index_type i) {
+                           ENERGY_BODY5;
+                         };
+      auto energy_lam6 = [=](Index_type i) {
+                           ENERGY_BODY6;
+                         };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam1(i);
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam2(i);
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam3(i);
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam4(i);
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam5(i);
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
-                        [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type i) {
           energy_lam6(i);
         });
 
@@ -157,5 +154,5 @@ void ENERGY::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace apps
-} // end namespace rajaperf
+} // iend-ibegin namespace apps
+} // iend-ibegin namespace rajaperf

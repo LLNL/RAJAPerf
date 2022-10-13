@@ -31,8 +31,8 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 
   HALOEXCHANGE_DATA_SETUP;
 
-  auto begin = counting_iterator<Index_type>(0);
-  auto end   = counting_iterator<Index_type>(num_neighbors);
+  auto ibegin = 0;
+  auto iend   = num_neighbors;
 
   switch ( vid ) {
 
@@ -41,9 +41,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type l) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -56,9 +56,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
           }
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type l) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -82,9 +82,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type l) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
@@ -100,9 +100,9 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
           }
         });
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type l) noexcept {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend-ibegin,
+                         [=](Index_type l) noexcept {
           Real_ptr buffer = buffers[l];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
@@ -132,5 +132,5 @@ void HALOEXCHANGE::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace apps
-} // end namespace rajaperf
+} // iend-ibegin namespace apps
+} // iend-ibegin namespace rajaperf

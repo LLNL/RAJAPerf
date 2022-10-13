@@ -21,7 +21,6 @@ namespace apps {
 
 void MASS3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
 #if defined(RUN_STDPAR)
-
   const Index_type run_reps = getRunReps();
 
   MASS3DPA_DATA_SETUP;
@@ -30,15 +29,12 @@ void MASS3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
 
   case Base_StdPar: {
 
-    auto begin = counting_iterator<int>(0);
-    auto end   = counting_iterator<int>((int)NE);
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      std::for_each( std::execution::par_unseq,
-                     begin, end,
-                     [=](int e) {
+      std::for_each_n( std::execution::par_unseq,
+                       counting_iterator<int>(0), NE, 
+                       [=](int e) {
 
         MASS3DPA_0_CPU
 
@@ -94,6 +90,7 @@ void MASS3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
         }
 
       }); // element loop
+
     }
     stopTimer();
 
@@ -103,6 +100,9 @@ void MASS3DPA::runStdParVariant(VariantID vid, size_t tune_idx) {
   default:
     getCout() << "\n MASS3DPA : Unknown StdPar variant id = " << vid << std::endl;
   }
+
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

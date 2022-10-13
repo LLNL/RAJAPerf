@@ -28,9 +28,6 @@ void FIR::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   FIR_COEFF;
 
   FIR_DATA_SETUP;
@@ -38,10 +35,6 @@ void FIR::runStdParVariant(VariantID vid, size_t tune_idx)
   Real_type coeff[FIR_COEFFLEN];
   std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));
 
-  auto fir_lam = [=](Index_type i) {
-                   FIR_BODY;
-                 };
-  
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -49,9 +42,9 @@ void FIR::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
           FIR_BODY;
         });
 
@@ -63,12 +56,16 @@ void FIR::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+      auto fir_lam = [=](Index_type i) {
+                       FIR_BODY;
+                     };
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                       begin, end,
-                       [=](Index_type i) {
+        std::for_each_n( std::execution::par_unseq,
+                         counting_iterator<Index_type>(ibegin), iend,
+                         [=](Index_type i) {
            fir_lam(i);
         });
 
@@ -84,6 +81,8 @@ void FIR::runStdParVariant(VariantID vid, size_t tune_idx)
 
   }
 
+#else
+  RAJA_UNUSED_VAR(vid);
 #endif
 }
 

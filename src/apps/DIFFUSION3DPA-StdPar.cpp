@@ -30,9 +30,6 @@ void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
 
   DIFFUSION3DPA_DATA_SETUP;
 
-  auto begin = counting_iterator<int>(0);
-  auto end   = counting_iterator<int>(NE);
-
   switch (vid) {
 
   case Base_StdPar: {
@@ -40,9 +37,9 @@ void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      std::for_each( std::execution::par_unseq,
-                      begin, end,
-                      [=](int e) {
+      std::for_each_n( std::execution::par_unseq,
+                       counting_iterator<int>(0), NE,
+                       [=](int e) {
 
         DIFFUSION3DPA_0_CPU;
 
@@ -115,6 +112,7 @@ void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
         }
 
       }); // element loop
+
     }
     stopTimer();
 
@@ -122,8 +120,7 @@ void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
   }
 
   default:
-    getCout() << "\n DIFFUSION3DPA : Unknown StdPar variant id = " << vid
-              << std::endl;
+    getCout() << "\n DIFFUSION3DPA : Unknown StdPar variant id = " << vid << std::endl;
   }
 
 #else

@@ -28,18 +28,8 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  auto begin = counting_iterator<Index_type>(ibegin);
-  auto end   = counting_iterator<Index_type>(iend);
-
   PRESSURE_DATA_SETUP;
 
-  auto pressure_lam1 = [=](Index_type i) {
-                         PRESSURE_BODY1;
-                       };
-  auto pressure_lam2 = [=](Index_type i) {
-                         PRESSURE_BODY2;
-                       };
-  
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -47,14 +37,14 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
+        std::for_each_n( std::execution::par_unseq,
+                        counting_iterator<Index_type>(ibegin), iend-ibegin,
                         [=](Index_type i) {
           PRESSURE_BODY1;
         });
 
-        std::for_each( std::execution::par_unseq,
-                        begin, end,
+        std::for_each_n( std::execution::par_unseq,
+                        counting_iterator<Index_type>(ibegin), iend-ibegin,
                         [=](Index_type i) {
           PRESSURE_BODY2;
         });
@@ -67,17 +57,24 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+      auto pressure_lam1 = [=](Index_type i) {
+                             PRESSURE_BODY1;
+                           };
+      auto pressure_lam2 = [=](Index_type i) {
+                             PRESSURE_BODY2;
+                           };
+      
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       std::for_each( std::execution::par_unseq,
-                        begin, end,
+       std::for_each_n( std::execution::par_unseq,
+                        counting_iterator<Index_type>(ibegin), iend-ibegin,
                         [=](Index_type i) {
          pressure_lam1(i);
        });
 
-       std::for_each( std::execution::par_unseq,
-                        begin, end,
+       std::for_each_n( std::execution::par_unseq,
+                        counting_iterator<Index_type>(ibegin), iend-ibegin,
                         [=](Index_type i) {
          pressure_lam2(i);
        });
@@ -97,5 +94,5 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // end namespace apps
-} // end namespace rajaperf
+} // iend-ibegin namespace apps
+} // iend-ibegin namespace rajaperf
