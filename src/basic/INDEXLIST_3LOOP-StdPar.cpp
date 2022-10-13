@@ -52,22 +52,17 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
         });
 
-#if 0
-        Index_type count = 0;
-        
-        for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
-          counts[i] = count;
-          count += inc;
-        }
-#else
         // The validation does not notice if the exscan
-        // is removed, or otherwise forced to be wrong...
-#warning This may be incorrect...
-        std::exclusive_scan( std::execution::par_unseq,
+        // is removed, or otherwise forced to be wrong.
+        // Using brute-force validation (see below):
+        // Intel outputs 0s when any execution policy is used.
+        // NVHPC (GPU) is fine.
+        std::exclusive_scan(
+#ifdef __NVCOMPILER
+                             std::execution::par_unseq,
+#endif
                              counts+ibegin, counts+iend+1,
                              counts+ibegin, 0);
-#endif
 
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
@@ -77,6 +72,11 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
         m_len = counts[iend];
 
+#if BRUTE_FORCE_VALIDATION
+        for (Index_type i = ibegin; i < iend+1; ++i ) {
+          std::cout << "C: " << i << "," << counts[i] << "\n";
+        }
+#endif
       }
       stopTimer();
 
@@ -106,22 +106,13 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           indexlist_conditional_lam(i);
         });
 
-#if 0
-        Index_type count = 0;
-        
-        for (Index_type i = ibegin; i < iend+1; ++i ) {
-          Index_type inc = counts[i];
-          counts[i] = count;
-          count += inc;
-        }
-#else
-        // The validation does not notice if the exscan
-        // is removed, or otherwise forced to be wrong...
-#warning This may be incorrect...
-        std::exclusive_scan( std::execution::par_unseq,
+        // See comments above...
+        std::exclusive_scan(
+#ifdef __NVCOMPILER
+                             std::execution::par_unseq,
+#endif
                              counts+ibegin, counts+iend+1,
                              counts+ibegin, 0);
-#endif
 
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
