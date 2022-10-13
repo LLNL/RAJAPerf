@@ -55,7 +55,7 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         // The validation does not notice if the exscan
         // is removed, or otherwise forced to be wrong.
         // Using brute-force validation (see below):
-        // Intel outputs 0s when any execution policy is used.
+        // Intel and GCC output 0s when any execution policy is used.
         // NVHPC (GPU) is fine.
         std::exclusive_scan(
 #ifdef __NVCOMPILER
