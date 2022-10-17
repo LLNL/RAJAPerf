@@ -209,6 +209,7 @@ class process_argparse():
       def __call__(self, parser, namespace, values, option_string=None):
          # print('Action Namespace=%r values=%r option_string=%r' % (namespace, values, option_string))
          if hasattr(namespace,'cr'):
+            cr = getattr(namespace,'cr')
             print("DirectoryAction detects .cali file processing")
             prescan = self.prescan_caliper_sweep_dirs(cr,values)
          else:
