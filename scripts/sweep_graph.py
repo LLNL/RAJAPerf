@@ -1093,15 +1093,13 @@ def main(argv):
 
    for kind in print_kinds:
       print("Print Data {}:".format(kind))
-      #dc.Data.compute(kind)
-      dc.compute(kind)
+      dc.Data.compute(kind)
       print(dc.Data.kinds[kind].dataString(compact_flag))
 
    for kind_list in split_line_graph_kind_lists:
       print("Plot split line graph {}:".format(kind_list))
       for kind in kind_list:
-         #dc.Data.compute(kind)
-         dc.compute(kind)
+         dc.Data.compute(kind)
       plot_data_split_line(outputfile, "kernel_index", "run_size", "Problem size", kind_list)
 
    for kind_list in bar_graph_kind_lists:
@@ -1113,8 +1111,7 @@ def main(argv):
    for kind_list in histogram_graph_kind_lists:
       print("Plot histogram graph {}:".format(kind_list))
       for kind in kind_list:
-         #dc.Data.compute(kind)
-         dc.compute(kind)
+         dc.Data.compute(kind)
       plot_data_histogram(outputfile, "kernel_index", kind_list)
 
 if __name__ == "__main__":

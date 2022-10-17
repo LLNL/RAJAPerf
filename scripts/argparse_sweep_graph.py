@@ -76,8 +76,11 @@ def kind_action_check(values,kinds, kind_tempplates):
    check = []
    
    for k in values:
+      # strip whitespace
+      k = ''.join(k.split())
       items = k.split('<')
       if k in kinds:
+         print("matches kinds: " + k)
          check.append(k)
       elif len(items) == 1:
          close_matches = get_close_matches(k, kinds.keys())
@@ -205,8 +208,7 @@ class process_argparse():
    
       def __call__(self, parser, namespace, values, option_string=None):
          # print('Action Namespace=%r values=%r option_string=%r' % (namespace, values, option_string))
-         cr = getattr(namespace,'cr')
-         if cr != None:
+         if hasattr(namespace,'cr'):
             print("DirectoryAction detects .cali file processing")
             prescan = self.prescan_caliper_sweep_dirs(cr,values)
          else:

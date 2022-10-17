@@ -207,192 +207,6 @@ g_markers = ["o", "s", "+", "x", "*", "d", "h", "p", "8"]
 g_series_reformat = {}
 
 
-def compute_data(kind):
-   if not kind in Data.kinds:
-      raise NameError("Unknown data kind {}".format(kind))
-   
-   datatree = Data.kinds[kind]
-   if datatree.data:
-      return  # already calculated
-   if not (datatree.model_kind and datatree.args and datatree.func):
-      raise NameError("Computing data is not supported for kind {0}".format(kind))
-   
-   model_kind = datatree.model_kind
-   compute_args = datatree.args
-   compute_func = datatree.func
-   
-   if model_kind != kind:
-      Data.compute(model_kind)
-   
-   arg_datatrees = ()
-   for arg_kind in compute_args:
-      # calculate data for arg_kind
-      Data.compute(arg_kind)
-      arg_datatree = Data.kinds[arg_kind]
-      arg_datatrees = arg_datatrees + (arg_datatree,)
-   
-   if (not model_kind in Data.kinds) or (not Data.kinds[model_kind].data):
-      raise NameError("Model data not available {0}, no args".format(model_kind))
-   
-   datatree.makeData()
-   
-   use_lists = ()
-   for arg_datatree in arg_datatrees:
-      use_list = datatree.missingAxes(arg_datatree.axes)
-      use_lists = use_lists + (use_list,)
-   
-   for axes_index in Data.kinds[model_kind]:
-      # print("compute_data:"+str(axes_index))
-      if not datatree.check(axes_index):
-         args_val = ()
-         for i in range(0, len(arg_datatrees)):
-            arg_datatree = arg_datatrees[i]
-            arg_val = arg_datatree.get(axes_index)
-            if use_lists[i]:
-               arg_val = [arg_val, ]
-            args_val = args_val + (arg_val,)
-         datatree.set(axes_index, args_val)
-      else:
-         args_val = datatree.get(axes_index)
-         for i in range(0, len(arg_datatrees)):
-            if use_lists[i]:
-               arg_datatree = arg_datatrees[i]
-               arg_val = arg_datatree.get(axes_index)
-               args_val[i].append(arg_val)
-   
-   for axes_index, args_val in datatree.items():
-      val = compute_func(*args_val)
-      datatree.set(axes_index, val)
-
-
-def compute_index(kind_preindex, index_args):
-   # print("compute_index", kind_preindex, index_args)
-   Data.compute(kind_preindex)
-   datatree_preindex = Data.kinds[kind_preindex]
-   
-   # extract axes and indices
-   partial_axis_index = {}
-   for index_str in index_args:
-      index_list = index_str.split("::")
-      if len(index_list) != 2:
-         raise NameError("Expected valid index <axis>::<index>: {}".format(index_str))
-      axis_name = index_list[0].strip()
-      index_name = index_list[1].strip()
-      partial_axis_index.update(Data.get_axis_index(axis_name, index_name))
-   
-   kind = "{}[{}]".format(kind_preindex, ",".join(index_args))
-   
-   datatree = None
-   if kind in Data.kinds:
-      datatree = Data.kinds[kind]
-      if datatree.data:
-         return
-   else:
-      axes = Data.axes_difference(datatree_preindex.axes, partial_axis_index)
-      datatree = Data.DataTree(kind, datatree_preindex.label, axes=axes)
-      Data.kinds[kind] = datatree
-   
-   datatree.makeData()
-   
-   for axes_index, partial_axes_index, value in datatree_preindex.partial_match_items(partial_axis_index):
-      datatree.set(partial_axes_index, value)
-
-
-def compute_templated_data(kind_template, template_args):
-   # print("compute_templated_data", kind_template, template_args)
-   if kind_template in Data.kind_templates:
-      kind = Data.kind_templates[kind_template].getKind(template_args)
-      if not kind in Data.kinds:
-         # compute args first to ensure arg kinds exist
-         for arg_kind in Data.kind_templates[kind_template].getArgs(template_args):
-            Data.compute(arg_kind)
-         Data.kinds[kind] = Data.kind_templates[kind_template].makeDataTree(template_args)
-         Data.compute(kind)
-   else:
-      raise NameError("Unkown kind template {}".format(kind_template))
-
-
-def kind_template_scan(kind):
-   # print("kind_template_scan", kind)
-   
-   kind_prefix = None
-   
-   template_args = []
-   index_args = []
-   
-   template_depth = 0
-   index_depth = 0
-   
-   arg_end_idx = -1
-   
-   # look through string backwards to find indexing or templating
-   for i_forward in range(0, len(kind)):
-      i = len(kind) - i_forward - 1
-      c = kind[i]
-      if c == ">" or c == "]":
-         if template_depth == 0 and index_depth == 0:
-            arg_end_idx = i
-         if c == ">":
-            template_depth += 1
-         elif c == "]":
-            index_depth += 1
-      elif c == ",":
-         if template_depth == 1 and index_depth == 0:
-            template_args.append(kind[i + 1:arg_end_idx].strip())
-            arg_end_idx = i
-         elif template_depth == 0 and index_depth == 1:
-            index_args.append(kind[i + 1:arg_end_idx].strip())
-            arg_end_idx = i
-      elif c == "<" or c == "[":
-         if template_depth == 1 and index_depth == 0:
-            template_args.append(kind[i + 1:arg_end_idx].strip())
-            arg_end_idx = -1
-         elif template_depth == 0 and index_depth == 1:
-            index_args.append(kind[i + 1:arg_end_idx].strip())
-            arg_end_idx = -1
-         if c == "<":
-            template_depth -= 1
-         elif c == "[":
-            index_depth -= 1
-         if template_depth == 0 and index_depth == 0:
-            if not kind_prefix:
-               kind_prefix = kind[:i].strip()
-               break
-   assert (arg_end_idx == -1)
-   assert (template_depth == 0)
-   assert (index_depth == 0)
-   assert (kind_prefix)
-   
-   # reverse lists
-   for i in range(0, len(template_args) // 2):
-      i_rev = len(template_args) - i - 1
-      template_args[i], template_args[i_rev] = template_args[i_rev], template_args[i]
-   for i in range(0, len(index_args) // 2):
-      i_rev = len(index_args) - i - 1
-      index_args[i], index_args[i_rev] = index_args[i_rev], index_args[i]
-   
-   return (kind_prefix, template_args, index_args)
-
-
-def compute(kind):
-   if kind in Data.kinds:
-      if not Data.kinds[kind].data:
-         Data.compute_data(kind)
-      else:
-         pass
-   else:
-      kind_template, template_args, index_args = Data.kind_template_scan(kind)
-      # print("Data.kind_template_scan", kind_template, template_args, index_args)
-      if template_args:
-         if kind_template in Data.kind_templates:
-            Data.compute_templated_data(kind_template, template_args)
-         else:
-            raise NameError("Unknown data kind template {}".format(kind))
-      elif index_args:
-         Data.compute_index(kind_template, index_args)
-      else:
-         raise NameError("Unknown data kind {}".format(kind))
-
 
 def first(vals):
    return vals[0]
@@ -1075,6 +889,7 @@ class Data:
    class DataTree:
       
       def __init__(self, kind, label, model_kind=None, axes=None, args=None, func=None):
+         print("DataTree init:"+str(kind)+ ' ' + str(label) + ' ' + str(args))
          self.kind = kind
          self.label = label
          self.axes = axes
@@ -1387,3 +1202,187 @@ class Data:
                                                          func=eval_segmented_linearRegression_loglog),
       
    }
+
+   def compute_data(kind):
+      if not kind in Data.kinds:
+         raise NameError("Unknown data kind {}".format(kind))
+   
+      datatree = Data.kinds[kind]
+      if datatree.data:
+         return  # already calculated
+      if not (datatree.model_kind and datatree.args and datatree.func):
+         raise NameError("Computing data is not supported for kind {0}".format(kind))
+   
+      model_kind = datatree.model_kind
+      compute_args = datatree.args
+      compute_func = datatree.func
+   
+      if model_kind != kind:
+         Data.compute(model_kind)
+   
+      arg_datatrees = ()
+      for arg_kind in compute_args:
+         # calculate data for arg_kind
+         Data.compute(arg_kind)
+         arg_datatree = Data.kinds[arg_kind]
+         arg_datatrees = arg_datatrees + (arg_datatree,)
+   
+      if (not model_kind in Data.kinds) or (not Data.kinds[model_kind].data):
+         raise NameError("Model data not available {0}, no args".format(model_kind))
+   
+      datatree.makeData()
+   
+      use_lists = ()
+      for arg_datatree in arg_datatrees:
+         use_list = datatree.missingAxes(arg_datatree.axes)
+         use_lists = use_lists + (use_list,)
+   
+      for axes_index in Data.kinds[model_kind]:
+         # print("compute_data:"+str(axes_index))
+         if not datatree.check(axes_index):
+            args_val = ()
+            for i in range(0, len(arg_datatrees)):
+               arg_datatree = arg_datatrees[i]
+               arg_val = arg_datatree.get(axes_index)
+               if use_lists[i]:
+                  arg_val = [arg_val, ]
+               args_val = args_val + (arg_val,)
+            datatree.set(axes_index, args_val)
+         else:
+            args_val = datatree.get(axes_index)
+            for i in range(0, len(arg_datatrees)):
+               if use_lists[i]:
+                  arg_datatree = arg_datatrees[i]
+                  arg_val = arg_datatree.get(axes_index)
+                  args_val[i].append(arg_val)
+   
+      for axes_index, args_val in datatree.items():
+         val = compute_func(*args_val)
+         datatree.set(axes_index, val)
+
+   def compute_index(kind_preindex, index_args):
+      # print("compute_index", kind_preindex, index_args)
+      Data.compute(kind_preindex)
+      datatree_preindex = Data.kinds[kind_preindex]
+   
+      # extract axes and indices
+      partial_axis_index = {}
+      for index_str in index_args:
+         index_list = index_str.split("::")
+         if len(index_list) != 2:
+            raise NameError("Expected valid index <axis>::<index>: {}".format(index_str))
+         axis_name = index_list[0].strip()
+         index_name = index_list[1].strip()
+         partial_axis_index.update(Data.get_axis_index(axis_name, index_name))
+   
+      kind = "{}[{}]".format(kind_preindex, ",".join(index_args))
+   
+      datatree = None
+      if kind in Data.kinds:
+         datatree = Data.kinds[kind]
+         if datatree.data:
+            return
+      else:
+         axes = Data.axes_difference(datatree_preindex.axes, partial_axis_index)
+         datatree = Data.DataTree(kind, datatree_preindex.label, axes=axes)
+         Data.kinds[kind] = datatree
+   
+      datatree.makeData()
+   
+      for axes_index, partial_axes_index, value in datatree_preindex.partial_match_items(partial_axis_index):
+         datatree.set(partial_axes_index, value)
+
+   def compute_templated_data(kind_template, template_args):
+      # print("compute_templated_data", kind_template, template_args)
+      if kind_template in Data.kind_templates:
+         kind = Data.kind_templates[kind_template].getKind(template_args)
+         if not kind in Data.kinds:
+            # compute args first to ensure arg kinds exist
+            for arg_kind in Data.kind_templates[kind_template].getArgs(template_args):
+               Data.compute(arg_kind)
+            Data.kinds[kind] = Data.kind_templates[kind_template].makeDataTree(template_args)
+            Data.compute(kind)
+      else:
+         raise NameError("Unkown kind template {}".format(kind_template))
+
+   def kind_template_scan(kind):
+      # print("kind_template_scan", kind)
+   
+      kind_prefix = None
+   
+      template_args = []
+      index_args = []
+   
+      template_depth = 0
+      index_depth = 0
+   
+      arg_end_idx = -1
+   
+      # look through string backwards to find indexing or templating
+      for i_forward in range(0, len(kind)):
+         i = len(kind) - i_forward - 1
+         c = kind[i]
+         if c == ">" or c == "]":
+            if template_depth == 0 and index_depth == 0:
+               arg_end_idx = i
+            if c == ">":
+               template_depth += 1
+            elif c == "]":
+               index_depth += 1
+         elif c == ",":
+            if template_depth == 1 and index_depth == 0:
+               template_args.append(kind[i + 1:arg_end_idx].strip())
+               arg_end_idx = i
+            elif template_depth == 0 and index_depth == 1:
+               index_args.append(kind[i + 1:arg_end_idx].strip())
+               arg_end_idx = i
+         elif c == "<" or c == "[":
+            if template_depth == 1 and index_depth == 0:
+               template_args.append(kind[i + 1:arg_end_idx].strip())
+               arg_end_idx = -1
+            elif template_depth == 0 and index_depth == 1:
+               index_args.append(kind[i + 1:arg_end_idx].strip())
+               arg_end_idx = -1
+            if c == "<":
+               template_depth -= 1
+            elif c == "[":
+               index_depth -= 1
+            if template_depth == 0 and index_depth == 0:
+               if not kind_prefix:
+                  kind_prefix = kind[:i].strip()
+                  break
+      assert (arg_end_idx == -1)
+      assert (template_depth == 0)
+      assert (index_depth == 0)
+      assert (kind_prefix)
+   
+      # reverse lists
+      for i in range(0, len(template_args) // 2):
+         i_rev = len(template_args) - i - 1
+         template_args[i], template_args[i_rev] = template_args[i_rev], template_args[i]
+      for i in range(0, len(index_args) // 2):
+         i_rev = len(index_args) - i - 1
+         index_args[i], index_args[i_rev] = index_args[i_rev], index_args[i]
+   
+      return (kind_prefix, template_args, index_args)
+
+   def compute(kind):
+      if kind in Data.kinds:
+         if not Data.kinds[kind].data:
+            Data.compute_data(kind)
+         else:
+            pass
+      else:
+         kind_template, template_args, index_args = Data.kind_template_scan(kind)
+         # print("Data.kind_template_scan", kind_template, template_args, index_args)
+         if template_args:
+            if kind_template in Data.kind_templates:
+               Data.compute_templated_data(kind_template, template_args)
+            else:
+               raise NameError("Unknown data kind template {}".format(kind))
+         elif index_args:
+            Data.compute_index(kind_template, index_args)
+         else:
+            raise NameError("Unknown data kind {}".format(kind))
+
+
