@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-20, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/COPYRIGHT file for details.
 //
@@ -24,8 +24,6 @@ void COPY::runKokkosVariant(VariantID vid,
 
   auto a_view = getViewFromPointer(a, iend);
   auto c_view = getViewFromPointer(c, iend);
-
-  auto copy_lam = [=](Index_type i) { COPY_BODY; };
 
   switch (vid) {
 
