@@ -5,6 +5,7 @@ import os
 import csv
 import glob
 import difflib
+import itertools
 import importlib
 import pkgutil
 import traceback
@@ -72,6 +73,20 @@ def get_close_matches(test_value,match_values) -> list:
    return close_matches
 
 
+def get_close_matches_icase(word, possibilities, *args, **kwargs):
+   """ Case-insensitive version of difflib.get_close_matches """
+   lword = word.lower()
+   lpos = {}
+   for p in possibilities:
+      if p.lower() not in lpos:
+         lpos[p.lower()] = [p]
+      else:
+         lpos[p.lower()].append(p)
+   lmatches = difflib.get_close_matches(lword, lpos.keys(), *args, **kwargs)
+   ret = [lpos[m] for m in lmatches]
+   ret = itertools.chain.from_iterable(ret)
+   return set(ret)
+
 def kind_action_check(values,kinds, kind_tempplates):
    check = []
    
@@ -83,7 +98,7 @@ def kind_action_check(values,kinds, kind_tempplates):
          print("matches kinds: " + k)
          check.append(k)
       elif len(items) == 1:
-         close_matches = get_close_matches(k, kinds.keys())
+         close_matches = get_close_matches_icase(k, kinds.keys())
          if len(close_matches) > 0:
             raise NameError(
                "Invalid kinds check for {0}: Did you mean one of {1}, or try changing case".format(k,
@@ -361,9 +376,9 @@ class process_argparse():
                                      help="y axis limit")
       self.child_parser.add_argument('-xlim', '--x-axis-limit', nargs=2,
                                      help="x axis limit")
-      self.child_parser.add_argument('--recolor', nargs=4,
-                                     help="recolor series_name r g b")
-      self.child_parser.add_argument('--reformat', nargs=2,
+      self.child_parser.add_argument('--recolor', action='append',nargs=2,
+                                     help="recolor series_name (r,g,b)  : series name followed by rgb in tuple form r,g,b floats in [0-1], optional repeat series color pairs")
+      self.child_parser.add_argument('--reformat', action='append',nargs=2,
                                      help="reformat series_name format_str")
       #the following should be modified to use action based on possible kinds
       pgroup = self.child_parser.add_mutually_exclusive_group()
