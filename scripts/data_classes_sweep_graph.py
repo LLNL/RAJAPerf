@@ -889,7 +889,7 @@ class Data:
    class DataTree:
       
       def __init__(self, kind, label, model_kind=None, axes=None, args=None, func=None):
-         print("DataTree init:"+str(kind)+ ' ' + str(label) + ' ' + str(args))
+         #print("DataTree init:"+str(kind)+ ' ' + str(label) + ' ' + str(args))
          self.kind = kind
          self.label = label
          self.axes = axes

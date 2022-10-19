@@ -929,6 +929,24 @@ def main(argv):
    if args.x_axis_limit != None:
       global g_xlim
       g_xlim = (float(args.x_axis_limit[0]), float(args.x_axis_limit[1]))
+      
+   if args.recolor != None:
+      # expect one or more repeating sequence of series tuple
+      for ll in args.recolor:
+         series_name = ll[0]
+         # expecting tuple string "(r,g,b)" with r,g,b floats in [0-1]
+         tuple_str = ll[1]
+         if not series_name in dc.g_series_reformat:
+            dc.g_series_reformat[series_name] = {}
+         dc.g_series_reformat[series_name]['color'] = dc.make_color_tuple_str(tuple_str)
+      
+   if args.reformat != None:
+      for ll in args.reformat:
+         series_name = ll[0]
+         format_str = ll[1]
+         if not series_name in dc.g_series_reformat:
+            dc.g_series_reformat[series_name] = {}
+         dc.g_series_reformat[series_name]['format'] = format_str
    
    if args.kernel_groups != None:
       for g in args.kernel_groups:
