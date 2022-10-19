@@ -396,7 +396,6 @@ public:
     }
 )json";
 
-
     cali::ConfigManager m;
     mgr.insert(std::make_pair(vid,m));
     std::string od("./");
@@ -486,8 +485,15 @@ private:
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   bool doCaliperTiming = true; // warmup can use this to exclude timing
   std::vector<bool> doCaliMetaOnce[NumVariants];
+  cali_id_t ProblemSize_attr; // in ctor cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  cali_id_t Reps_attr;
+  cali_id_t Iters_Rep_attr;
+  cali_id_t Kernels_Rep_attr;
+  cali_id_t Bytes_Rep_attr;
+  cali_id_t Flops_Rep_attr;
 
-// we need a Caliper Manager object per variant
+
+      // we need a Caliper Manager object per variant
 // we can inline this with c++17
   static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
 #endif
