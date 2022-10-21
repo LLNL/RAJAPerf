@@ -686,6 +686,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
+      << "\t\t appends additional parameters to the built-in Caliper spot config\n";
+  str << "\t\t Example to include some PAPI counters (Intel arch)\n"
+      << "\t\t -atsc topdown.all\n\n";
+#endif
+
   str << std::endl;
   str.flush();
 }
