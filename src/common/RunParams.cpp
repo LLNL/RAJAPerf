@@ -54,6 +54,9 @@ RunParams::RunParams(int argc, char** argv)
    invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf")
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+   ,add_to_spot_config()
+#endif
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -107,6 +110,12 @@ void RunParams::print(std::ostream& str) const
   str << "\n reference_variant = " << reference_variant;
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
+
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  if(add_to_spot_config.length() > 0) {
+    str << "\n add_to_spot_config = " << add_to_spot_config;
+  }
+#endif
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -515,7 +524,20 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
 
       }
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+    } else if ( std::string(argv[i]) == std::string("--add-to-spot-config") ||
+               std::string(argv[i]) == std::string("-atsc") ) {
 
+      i++;
+      if ( i < argc ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          add_to_spot_config = std::string( argv[i] );
+        }
+      }
+#endif
     } else {
 
       input_state = BadInput;
