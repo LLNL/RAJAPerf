@@ -286,8 +286,10 @@ public:
   void setKernelAdiakMeta(); 
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
-  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir)
+  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, const std::string& addToConfig)
   {
+    static bool ran_spot_config_check = false;
+    bool config_ok = true;
     const std::string problem_size_json_spec = R"json(
     {
         "name"        : "problem_size", 
@@ -396,28 +398,47 @@ public:
     }
 )json";
 
-    cali::ConfigManager m;
-    mgr.insert(std::make_pair(vid,m));
-    std::string od("./");
-    if(outdir.size()) {
-       od = outdir + "/";
-    } 
-    std::string vstr = getVariantName(vid);
-    std::string profile = "spot(output="  +od + vstr + ".cali)";
-    std::cout << "Profile: " << profile << std::endl;
-    mgr[vid].add_option_spec(problem_size_json_spec.c_str());
-    mgr[vid].set_default_parameter("problem_size","true");
-    mgr[vid].add_option_spec(reps_json_spec.c_str());
-    mgr[vid].set_default_parameter("reps","true");
-    mgr[vid].add_option_spec(iters_json_spec.c_str());
-    mgr[vid].set_default_parameter("iters_p_rep","true");
-    mgr[vid].add_option_spec(kernels_json_spec.c_str());
-    mgr[vid].set_default_parameter("kernels_p_rep","true");
-    mgr[vid].add_option_spec(bytes_json_spec.c_str());
-    mgr[vid].set_default_parameter("bytes_p_rep","true");
-    mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
-    mgr[vid].set_default_parameter("flops_p_rep","true");
-    mgr[vid].add(profile.c_str());
+    if(!ran_spot_config_check && (!addToConfig.empty())) {
+      cali::ConfigManager cm;
+      std::string check_profile = "spot()," + addToConfig;
+      std::string msg = cm.check(check_profile.c_str());
+      if(!msg.empty()) {
+        std::cerr << "Problem with Cali Config: " << check_profile << "\n";
+        std::cerr << "Check your command line argument: " << addToConfig << "\n";
+        config_ok = false;
+        exit(-1);
+      }
+      ran_spot_config_check = true;
+      std::cout << "Caliper ran Spot config check\n";
+    }
+
+    if(config_ok) {
+      cali::ConfigManager m;
+      mgr.insert(std::make_pair(vid, m));
+      std::string od("./");
+      if (outdir.size()) {
+        od = outdir + "/";
+      }
+      std::string vstr = getVariantName(vid);
+      std::string profile = "spot(output=" + od + vstr + ".cali)";
+      if(!addToConfig.empty()) {
+        profile += "," + addToConfig;
+      }
+      std::cout << "Profile: " << profile << std::endl;
+      mgr[vid].add_option_spec(problem_size_json_spec.c_str());
+      mgr[vid].set_default_parameter("problem_size", "true");
+      mgr[vid].add_option_spec(reps_json_spec.c_str());
+      mgr[vid].set_default_parameter("reps", "true");
+      mgr[vid].add_option_spec(iters_json_spec.c_str());
+      mgr[vid].set_default_parameter("iters_p_rep", "true");
+      mgr[vid].add_option_spec(kernels_json_spec.c_str());
+      mgr[vid].set_default_parameter("kernels_p_rep", "true");
+      mgr[vid].add_option_spec(bytes_json_spec.c_str());
+      mgr[vid].set_default_parameter("bytes_p_rep", "true");
+      mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
+      mgr[vid].set_default_parameter("flops_p_rep", "true");
+      mgr[vid].add(profile.c_str());
+    }
   }
 
   static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
