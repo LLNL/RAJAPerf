@@ -22,7 +22,7 @@ $ diff /opt/nvidia/hpc_sdk/Linux_x86_64/22.[35]/compilers/include/nvhpc/numeric_
 
 cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=multicore -acc=multicore -mp=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
 
-cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_supress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
 
 
 ## CPU
