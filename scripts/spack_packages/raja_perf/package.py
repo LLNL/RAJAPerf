@@ -81,9 +81,9 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     depends_on('cmake@3.9:', type='build')
     depends_on('blt@0.4.1', type='build', when='@main')
     depends_on('blt@0.4.1:', type='build')
-    depends_on('caliper@2.8.0',when='+caliper')
-    depends_on('caliper@2.8.0 +cuda',when='+caliper +cuda')
-    depends_on('caliper@2.8.0 +rocm',when='+caliper +rocm')
+    depends_on('caliper@master',when='+caliper')
+    depends_on('caliper@master +cuda',when='+caliper +cuda')
+    depends_on('caliper@master +rocm',when='+caliper +rocm')
 
     conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')

@@ -8,13 +8,6 @@
 
 include_directories(.)
 
-if(RAJAPERF_USE_CALIPER)
-   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
-   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
-   include_directories(${caliper_INCLUDE_DIR})
-   include_directories(${adiak_INCLUDE_DIRS})
-endif ()
-
 add_subdirectory(common)
 add_subdirectory(basic)
 add_subdirectory(basic-kokkos)

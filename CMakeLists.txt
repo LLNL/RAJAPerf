@@ -132,13 +132,19 @@ if (RAJA_PERFSUITE_USE_CALIPER)
    find_package(adiak REQUIRED)
    # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
    list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
-   message(STATUS "Using Adiak INCLUDES: ${adiak_INCLUDE_DIRS}")
-   include_directories(${adiak_INCLUDE_DIRS})
    if (ENABLE_CUDA)
       # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
       # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
       set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      # the following for adiak-0.2.2
+      if (TARGET adiak::mpi)
+        set_target_properties(adiak::mpi PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      endif ()
    endif ()
+   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
+   include_directories(${caliper_INCLUDE_DIR})
+   include_directories(${adiak_INCLUDE_DIRS})
 endif ()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})

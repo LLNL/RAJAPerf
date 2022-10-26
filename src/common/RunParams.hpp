@@ -194,6 +194,11 @@ public:
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
+#endif
+
+
 //@}
 
   /*!
@@ -265,6 +270,9 @@ private:
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  std::string add_to_spot_config;
+#endif
 };
 
 
