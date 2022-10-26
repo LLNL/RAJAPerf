@@ -33,7 +33,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define NVCXX_GPU_ENABLED
 #endif
 
-#if defined(_NVHPC_STDPAR_MULTICORE)
+#if ( defined(__NVCOMPILER_CUDA__) || defined(_NVHPC_STDPAR_CUDA))
+#define NVHPC_CALC_VERSION(MAJOR, MINOR, PATCH) (((MAJOR) * 10000) + ((MINOR) * 100) +  (PATCH))
+#if NVHPC_CALC_VERSION(__NVCOMPILER_MAJOR__,__NVCOMPILER_MINOR__,__NVCOMPILER_PATCHLEVEL__) < 220900
+static inline void std::__throw_bad_array_new_length() { std::abort(); }
+#endif
+#endif
+
+#if 0 //defined(_NVHPC_STDPAR_MULTICORE)
 #warning COLLAPSE (TESTING ONLY - DISABLE IN PRODUCTION)
 #define USE_STDPAR_COLLAPSE
 #endif

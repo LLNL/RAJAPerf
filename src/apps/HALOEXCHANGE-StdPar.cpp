@@ -11,9 +11,6 @@
 #include "RAJA/RAJA.hpp"
 
 #include "common/StdParUtils.hpp"
-#if defined(__NVCOMPILER_CUDA__) || defined(_NVHPC_STDPAR_CUDA)
-static inline void std::__throw_bad_array_new_length() { std::abort(); }
-#endif
 
 #include <iostream>
 
