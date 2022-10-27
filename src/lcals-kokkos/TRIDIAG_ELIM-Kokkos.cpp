@@ -1,37 +1,31 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
-// See the RAJAPerf/LICENSE file for details.
+// See the RAJAPerf/COPYRIGHT file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "DAXPY_ATOMIC.hpp"
+#include "TRIDIAG_ELIM.hpp"
 #if defined(RUN_KOKKOS)
 #include "common/KokkosViewUtils.hpp"
 #include <iostream>
 
-// Delete me
-// For de-bugging:
-#include "RAJA/RAJA.hpp"
-
 namespace rajaperf {
-namespace basic {
-
-void DAXPY_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
-{
-
+namespace lcals {
+void TRIDIAG_ELIM::runKokkosVariant(VariantID vid,
+                                    size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
-  const Index_type ibegin = 0;
-  const Index_type iend = getActualProblemSize();
+  const Index_type ibegin = 1;
+  const Index_type iend = m_N;
 
-  DAXPY_ATOMIC_DATA_SETUP;
-  //
-  // Kokkos Views to wrap pointers declared in DAXPY_ATOMIC.hpp
-  //
+  TRIDIAG_ELIM_DATA_SETUP;
 
-  auto x_view = getViewFromPointer(x, iend);
+  // Wrap pointers in Kokkos Views
+  auto xout_view = getViewFromPointer(xout, iend);
+  auto xin_view = getViewFromPointer(xin, iend);
   auto y_view = getViewFromPointer(y, iend);
+  auto z_view = getViewFromPointer(z, iend);
 
   switch (vid) {
 
@@ -39,17 +33,15 @@ void DAXPY_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
     Kokkos::fence();
     startTimer();
-
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       Kokkos::parallel_for(
-          "DAXPY_ATOMIC_Kokkos Kokkos_Lambda",
+          "TRIDIAG_ELIM_Kokkos Kokkos_Lambda",
           Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(ibegin, iend),
           KOKKOS_LAMBDA(Index_type i) {
-            Kokkos::atomic_add(&y_view[i], a * x_view[i]);
+            xout_view[i] = z_view[i] * (y_view[i] - xin_view[i - 1]);
           });
     }
-
     Kokkos::fence();
     stopTimer();
 
@@ -57,14 +49,16 @@ void DAXPY_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
   }
 
   default: {
-    getCout() << "\n  DAXPY_ATOMIC : Unknown variant id = " << vid << std::endl;
+    std::cout << "\n  TRIDIAG_ELIM : Unknown variant id = " << vid << std::endl;
   }
   }
 
-  moveDataToHostFromKokkosView(x, x_view, iend);
+  moveDataToHostFromKokkosView(xout, xout_view, iend);
+  moveDataToHostFromKokkosView(xin, xin_view, iend);
   moveDataToHostFromKokkosView(y, y_view, iend);
+  moveDataToHostFromKokkosView(z, z_view, iend);
 }
 
-} // end namespace basic
+} // end namespace lcals
 } // end namespace rajaperf
-#endif
+#endif // RUN_KOKKOS

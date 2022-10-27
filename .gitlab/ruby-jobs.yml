@@ -5,12 +5,12 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ##############################################################################
 
-clang_10:
+clang_10_0_1:
   variables:
     SPEC: "+openmp %clang@10.0.1"
   extends: .build_and_test_on_ruby
 
-clang_9:
+clang_9_0_0:
   variables:
     SPEC: "+openmp %clang@9.0.0"
   extends: .build_and_test_on_ruby
@@ -21,18 +21,6 @@ gcc_8_1_0:
     DEFAULT_TIME: 60
   extends: .build_and_test_on_ruby
 
-#icpc_17_0_2:
-#  variables:
-#    SPEC: "%intel@17.0.2"
-#    DEFAULT_TIME: 40
-#  extends: .build_and_test_on_ruby
-
-#icpc_18_0_2:
-#  variables:
-#    SPEC: " tests=none %intel@18.0.2"
-#    DEFAULT_TIME: 40
-#  extends: .build_and_test_on_ruby
-
 icpc_19_1_0:
   variables:
     SPEC: "+openmp %intel@19.1.0"
@@ -41,13 +29,7 @@ icpc_19_1_0:
 
 # EXTRAS
 
-#gcc_4_9_3:
-#  variables:
-#    SPEC: "%gcc@4.9.3"
-#    DEFAULT_TIME: 60
-#  extends: .build_and_test_on_ruby
-
-#clang_10_desul_atomics:
+#clang_10_0_1_desul_atomics:
 #  variables:
 #    SPEC: "+openmp +desul %clang@10.0.1 cxxflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 cflags=--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1"
 #  extends: .build_and_test_on_ruby
