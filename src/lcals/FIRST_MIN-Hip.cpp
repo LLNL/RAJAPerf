@@ -58,8 +58,8 @@ __global__ void first_min(Real_ptr x,
     if ( minloc[ 0 ].val < (*dminloc).val ) {
       *dminloc = minloc[ 0 ];
     }
+     __syncthreads();
   }
-    __syncthreads();
 }
 
 
