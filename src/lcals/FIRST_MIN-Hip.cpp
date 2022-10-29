@@ -59,6 +59,7 @@ __global__ void first_min(Real_ptr x,
       *dminloc = minloc[ 0 ];
     }
   }
+    __syncthreads();
 }
 
 
