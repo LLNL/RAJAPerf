@@ -30,10 +30,6 @@ void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
 
   TRIAD_DATA_SETUP;
 
-  auto triad_lam = [=](Index_type i) {
-                     TRIAD_BODY;
-                   };
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -41,11 +37,17 @@ void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
                          [=](Index_type i) {
           TRIAD_BODY;
         });
+#else
+        std::transform( std::execution::par_unseq,
+                        &b[ibegin], &b[iend], &c[ibegin], &a[ibegin],
+                        [=](Real_type b, Real_type c) { return b + alpha * c; });
+#endif
 
       }
       stopTimer();
@@ -55,14 +57,30 @@ void TRIAD::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+#if 0
+      auto triad_lam = [=](Index_type i) {
+                         TRIAD_BODY;
+                       };
+#else
+      auto triad_lam = [=](Real_type b, Real_type c) {
+                        return b + alpha * c;
+                       };
+#endif
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
                          [=](Index_type i) {
           triad_lam(i);
         });
+#else
+        std::transform( std::execution::par_unseq,
+                        &b[ibegin], &b[iend], &c[ibegin], &a[ibegin],
+                        triad_lam );
+#endif
       }
       stopTimer();
 
