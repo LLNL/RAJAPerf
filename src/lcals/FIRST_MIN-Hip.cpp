@@ -103,9 +103,10 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
            hipErrchk( hipMemcpy( &(*mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
                                   hipMemcpyDeviceToHost ) );
+	   hipErrchk( hipGetLastError() );			  
 	   m_minloc = RAJA_MAX(m_minloc, (*mymin_block[i]).loc);
        }
-       hipErrchk( hipGetLastError() );
+       
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 	       hipErrchk( hipFree(dminloc[i]));
        }
