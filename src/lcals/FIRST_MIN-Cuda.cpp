@@ -30,14 +30,14 @@ namespace lcals
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
-                          MyMinLoc* dminloc,
+                          MyMinLoc** dminloc,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  minloc[ threadIdx.x ] = *dminloc;
+  minloc[ threadIdx.x ] = *dminloc[blockIdx.x];
 
   for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
@@ -55,8 +55,8 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (*dminloc).val ) {
-      *dminloc = minloc[ 0 ];
+    if ( minloc[ 0 ].val < (*dminloc[blockIdx.x]).val ) {
+      *dminloc[blockIdx.x] = minloc[ 0 ];
     }
   }
 }
@@ -80,24 +80,38 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
        FIRST_MIN_MINLOC_INIT;
 
-       MyMinLoc* dminloc;
-       cudaErrchk( cudaMalloc( (void**)&dminloc, sizeof(MyMinLoc) ) );
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       MyMinLoc** dminloc;
+
+       cudaErrchk( cudaMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
        cudaErrchk( cudaMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
                                cudaMemcpyHostToDevice ) );
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+   	    cudaErrchk( cudaMalloc( (void**)&(dminloc[i]), sizeof(MyMinLoc) ) );
+            cudaErrchk( cudaMemcpy( dminloc[i], &mymin, sizeof(MyMinLoc),
+                               cudaMemcpyHostToDevice ) );      
+	}
        first_min<block_size><<<grid_size, block_size,
                    sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
                                                    iend );
-       cudaErrchk( cudaGetLastError() );
-
-       cudaErrchk( cudaMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
-                               cudaMemcpyDeviceToHost ) );
-       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
-
+       MyMinLoc **mymin_block; //per-block min value
+       mymin_block = (MyMinLoc**)malloc(sizeof(MyMinLoc*)*grid_size);
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+           mymin_block[i]=(MyMinLoc*)malloc(sizeof(MyMinLoc));
+       }       
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+           cudaErrchk( cudaMemcpy( &(*mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
+                                  cudaMemcpyDeviceToHost ) );
+	   cudaErrchk( cudaGetLastError() );			  
+	   m_minloc = RAJA_MAX(m_minloc, (*mymin_block[i]).loc);
+       }
+       
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+	       cudaErrchk( cudaFree(dminloc[i]));
+       }
        cudaErrchk( cudaFree( dminloc ) );
-
     }
     stopTimer();
 
