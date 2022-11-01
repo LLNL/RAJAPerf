@@ -30,14 +30,14 @@ namespace lcals
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
-                          MyMinLoc* dminloc,
+                          MyMinLoc** dminloc,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  minloc[ threadIdx.x ] = *dminloc;
+  minloc[ threadIdx.x ] = *dminloc[blockIdx.x];
 
   for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
@@ -55,8 +55,8 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (*dminloc).val ) {
-      *dminloc = minloc[ 0 ];
+    if ( minloc[ 0 ].val < (*dminloc[blockIdx.x]).val ) {
+      *dminloc[blockIdx.x] = minloc[ 0 ];
     }
   }
 }
@@ -80,22 +80,35 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
        FIRST_MIN_MINLOC_INIT;
 
-       MyMinLoc* dminloc;
-       hipErrchk( hipMalloc( (void**)&dminloc, sizeof(MyMinLoc) ) );
+       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       MyMinLoc** dminloc;
+       hipErrchk( hipMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
        hipErrchk( hipMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
                                hipMemcpyHostToDevice ) );
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+   	    hipErrchk( hipMalloc( (void**)&(dminloc[i]), sizeof(MyMinLoc) ) );
+            hipErrchk( hipMemcpy( dminloc[i], &mymin, sizeof(MyMinLoc),
+                               hipMemcpyHostToDevice ) );      
+	}
        hipLaunchKernelGGL((first_min<block_size>), grid_size, block_size,
                    sizeof(MyMinLoc)*block_size, 0, x,
                                                    dminloc,
                                                    iend );
+       MyMinLoc **mymin_block; //per-block min value
+       mymin_block = (MyMinLoc**)malloc(sizeof(MyMinLoc*)*grid_size);
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+           mymin_block[i]=(MyMinLoc*)malloc(sizeof(MyMinLoc));
+       }
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+           hipErrchk( hipMemcpy( &(*mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
+                                  hipMemcpyDeviceToHost ) );
+	   m_minloc = RAJA_MAX(m_minloc, (*mymin_block[i]).loc);
+       }
        hipErrchk( hipGetLastError() );
-
-       hipErrchk( hipMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
-                               hipMemcpyDeviceToHost ) );
-       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
-
+       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
+	       hipErrchk( hipFree(dminloc[i]));
+       }
        hipErrchk( hipFree( dminloc ) );
 
     }
