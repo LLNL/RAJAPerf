@@ -83,7 +83,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        MyMinLoc* dminloc;
        MyMinLoc mymin_block[grid_size]; //per-block min value
-       Index_type minloc = m_initloc;
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 	       mymin_block[i] = mymin;	       
@@ -100,10 +99,11 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                               hipMemcpyDeviceToHost ) );       
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           minloc = RAJA_MAX(minloc, (mymin_block[i]).loc);
+	   if( (mymin_block[i]).val < mymin.val) 
+		   mymin = mymin_block[i];
        }	   
 
-       m_minloc = minloc;
+       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
 
        hipErrchk( hipGetLastError() );			  
        hipErrchk( hipFree( dminloc ) );

@@ -101,10 +101,11 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                               cudaMemcpyDeviceToHost ) );       
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	   minloc = RAJA_MAX(minloc, (mymin_block[i]).loc);
-       }	   
+           if( (mymin_block[i]).val < mymin.val)
+                   mymin = mymin_block[i];
+       }
 
-       m_minloc = minloc;
+       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
 
        cudaErrchk( cudaGetLastError() );			  
        cudaErrchk( cudaFree( dminloc ) );
