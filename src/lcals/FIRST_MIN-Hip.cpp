@@ -83,8 +83,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        MyMinLoc** dminloc;
        hipErrchk( hipMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
-       hipErrchk( hipMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
-                               hipMemcpyHostToDevice ) );
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 
    	    hipErrchk( hipMalloc( (void**)&(dminloc[i]), sizeof(MyMinLoc) ) );
