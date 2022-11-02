@@ -85,7 +85,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        MyMinLoc mymin_block[grid_size]; //per-block min value
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	       memcpy(&(mymin_block[i]),&mymin, sizeof(MyMinLoc));
+	       mymin_block[i] = mymin;	       
        }
        hipErrchk( hipMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
        hipErrchk( hipMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
