@@ -94,16 +94,12 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                    sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
                                                    iend );
-       MyMinLoc **mymin_block; //per-block min value
-       mymin_block = (MyMinLoc**)malloc(sizeof(MyMinLoc*)*grid_size);
+       MyMinLoc mymin_block[grid_size]; //per-block min value
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           mymin_block[i]=(MyMinLoc*)malloc(sizeof(MyMinLoc));
-       }       
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           cudaErrchk( cudaMemcpy( &(*mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
+           cudaErrchk( cudaMemcpy( &(mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
                                   cudaMemcpyDeviceToHost ) );
 	   cudaErrchk( cudaGetLastError() );			  
-	   m_minloc = RAJA_MAX(m_minloc, (*mymin_block[i]).loc);
+	   m_minloc = RAJA_MAX(m_minloc, (mymin_block[i]).loc);
        }
        
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){

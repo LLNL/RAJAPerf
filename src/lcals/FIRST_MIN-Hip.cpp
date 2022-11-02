@@ -93,16 +93,12 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                    sizeof(MyMinLoc)*block_size, 0, x,
                                                    dminloc,
                                                    iend );
-       MyMinLoc **mymin_block; //per-block min value
-       mymin_block = (MyMinLoc**)malloc(sizeof(MyMinLoc*)*grid_size);
+       MyMinLoc mymin_block[grid_size]; //per-block min value
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           mymin_block[i]=(MyMinLoc*)malloc(sizeof(MyMinLoc));
-       }
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           hipErrchk( hipMemcpy( &(*mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
+           hipErrchk( hipMemcpy( &(mymin_block[i]), dminloc[i], sizeof(MyMinLoc),
                                   hipMemcpyDeviceToHost ) );
 	   hipErrchk( hipGetLastError() );			  
-	   m_minloc = RAJA_MAX(m_minloc, (*mymin_block[i]).loc);
+	   m_minloc = RAJA_MAX(m_minloc, (mymin_block[i]).loc);
        }
        
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
