@@ -95,14 +95,14 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                    sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
                                                    iend );
+	    
        cudaErrchk( cudaMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
                               cudaMemcpyDeviceToHost ) );       
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
            m_minloc = RAJA_MAX(m_minloc, (mymin_block[i]).loc);
-       }	   
-
-
+       }
+	    
        cudaErrchk( cudaGetLastError() );			  
        cudaErrchk( cudaFree( dminloc ) );
     }
