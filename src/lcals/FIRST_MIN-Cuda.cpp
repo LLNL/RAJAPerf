@@ -96,6 +96,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                    sizeof(MyMinLoc)*block_size>>>( x,
                                                    dminloc,
                                                    iend );
+	    
        cudaErrchk( cudaMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
                               cudaMemcpyDeviceToHost ) );       
 
