@@ -83,7 +83,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        MyMinLoc* dminloc;
        MyMinLoc mymin_block[grid_size]; //per-block min value
-       Index_type minloc = std::numeric_limits<Real_type>::max();
+       Index_type minloc = m_initloc;
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
 	       mymin_block[i] = mymin;
@@ -101,9 +101,10 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                               cudaMemcpyDeviceToHost ) );       
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-           minloc = RAJA_MIN(minloc, (mymin_block[i]).loc);
+	   minloc = RAJA_MAX(minloc, (mymin_block[i]).loc);
        }	   
-       m_minloc = RAJA_MAX(m_minloc, minloc);
+
+       m_minloc = minloc;
 
        cudaErrchk( cudaGetLastError() );			  
        cudaErrchk( cudaFree( dminloc ) );
