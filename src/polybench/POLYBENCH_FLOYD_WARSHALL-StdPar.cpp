@@ -47,7 +47,8 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), N,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), N,
+          std::for_each_n( std::execution::seq,
+                           counting_iterator<Index_type>(0), N,
                            [=](Index_type j) {
 #endif
               POLYBENCH_FLOYD_WARSHALL_BODY;
@@ -83,7 +84,8 @@ void POLYBENCH_FLOYD_WARSHALL::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), N,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), N,
+          std::for_each_n( std::execution::seq,
+                           counting_iterator<Index_type>(0), N,
                            [=](Index_type j) {
 #endif
               poly_floydwarshall_base_lam(k, i, j);
