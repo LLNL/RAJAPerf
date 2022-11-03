@@ -44,7 +44,8 @@ void POLYBENCH_3MM::runStdParVariant(VariantID vid, size_t tune_idx)
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(0), ni,
                          [=](Index_type i) {
-          std::for_each_n( counting_iterator<Index_type>(0), nj,
+          std::for_each_n( std::execution::seq,
+                           counting_iterator<Index_type>(0), nj,
                            [=](Index_type j) {
 #endif
             POLYBENCH_3MM_BODY1;
