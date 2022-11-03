@@ -45,8 +45,8 @@ void ADD::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 #else
         std::transform( std::execution::par_unseq,
-                        &b[ibegin], &b[iend], &c[ibegin], &a[ibegin],
-                        [=](Real_type b, Real_type c) { return b + c; });
+                        &a[ibegin], &a[iend], &b[ibegin], &c[ibegin],
+                        [=](Real_type a, Real_type b) { return a + b; });
 #endif
 
       }
@@ -62,8 +62,8 @@ void ADD::runStdParVariant(VariantID vid, size_t tune_idx)
                        ADD_BODY;
                      };
 #else
-      auto add_lam = [=](Real_type b, Real_type c) {
-                       return b + c;
+      auto add_lam = [=](Real_type a, Real_type b) {
+                       return a + b;
                       };
 #endif
 
@@ -78,8 +78,8 @@ void ADD::runStdParVariant(VariantID vid, size_t tune_idx)
         });
 #else
         std::transform( std::execution::par_unseq,
-                        &b[ibegin], &b[iend], &c[ibegin], &a[ibegin],
-                        triad_lam );
+                        &a[ibegin], &a[iend], &b[ibegin], &c[ibegin],
+                        add_lam );
 #endif
       }
       stopTimer();

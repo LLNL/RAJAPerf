@@ -30,10 +30,6 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
 
   MUL_DATA_SETUP;
 
-  auto mul_lam = [=](Index_type i) {
-                   MUL_BODY;
-                 };
-
   switch ( vid ) {
 
     case Base_StdPar : {
@@ -41,11 +37,17 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
                          [=](Index_type i) {
           MUL_BODY;
         });
+#else
+        std::transform( std::execution::par_unseq,
+                        &c[ibegin], &c[iend], &b[ibegin],
+                        [=](Real_type c) { return alpha * c; });
+#endif
 
       }
       stopTimer();
@@ -55,14 +57,30 @@ void MUL::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+#if 0
+      auto mul_lam = [=](Index_type i) {
+                       MUL_BODY;
+                     };
+#else
+      auto mul_lam = [=](Real_type c) {
+                       return alpha * c;
+                      };
+#endif
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::for_each_n( std::execution::par_unseq,
                          counting_iterator<Index_type>(ibegin), iend-ibegin,
                          [=](Index_type i) {
           mul_lam(i);
         });
+#else
+        std::transform( std::execution::par_unseq,
+                        &c[ibegin], &c[iend], &b[ibegin],
+                        mul_lam );
+#endif
       }
       stopTimer();
 
