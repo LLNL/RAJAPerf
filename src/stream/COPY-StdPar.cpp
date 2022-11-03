@@ -37,8 +37,15 @@ void COPY::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::copy( std::execution::par_unseq,
                    &a[ibegin], &a[iend], &c[ibegin]);
+#else
+        std::transform( std::execution::par_unseq,
+                        &a[ibegin], &a[iend], &c[ibegin],
+                        [=](Real_type a) { return a; });
+#endif
+
       }
       stopTimer();
 
@@ -47,11 +54,24 @@ void COPY::runStdParVariant(VariantID vid, size_t tune_idx)
 
     case Lambda_StdPar : {
 
+#if 1
+      auto copy_lam = [=](Real_type a) {
+                       return a;
+                      };
+#endif
+
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         std::copy( std::execution::par_unseq,
                    &a[ibegin], &a[iend], &c[ibegin]);
+#else
+        std::transform( std::execution::par_unseq,
+                        &a[ibegin], &a[iend], &c[ibegin],
+                        copy_lam );
+#endif
+
       }
       stopTimer();
 
