@@ -9,7 +9,11 @@
 # C is required for googletest to find Threads
 project(RAJAPerfSuite LANGUAGES CXX C)
 
-cmake_minimum_required(VERSION 3.14.5)
+if (ENABLE_HIP)
+  cmake_minimum_required(VERSION 3.23)
+else()
+  cmake_minimum_required(VERSION 3.20)
+endif()
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
@@ -23,7 +27,7 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-if(ENABLE_KOKKOS)
+if (ENABLE_KOKKOS)
   set(CMAKE_CXX_STANDARD 17)
   set(BLT_CXX_STD c++17)
 else()
@@ -129,7 +133,7 @@ if (ENABLE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
   else()
     set(CMAKE_CUDA_STANDARD 14)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --expt-extended-lambda --expt-relaxed-constexpr")
   endif()
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")

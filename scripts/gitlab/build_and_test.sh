@@ -177,9 +177,10 @@ then
     if [[ "${truehostname}" == "corona" ]]
     then
         module unload rocm
+        module load cmake/3.23.1
+    else
+        module load cmake/3.20.2
     fi
-
-    module load cmake/3.20.2 || module load cmake/3.19.2 || module load cmake/3.21.1
 
     cmake \
       -C ${hostconfig_path} \
