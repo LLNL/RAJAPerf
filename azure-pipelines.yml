@@ -44,20 +44,20 @@ jobs:
         docker_target: gcc11
       clang11:
         docker_target: clang11
-      clang11-debug:
-        docker_target: clang11-debug
+##      clang11-debug:
+##        docker_target: clang11-debug
       clang13:
         docker_target: clang13
       nvcc10:
         docker_target: nvcc10
       nvcc11:
         docker_target: nvcc11
-      nvcc11-debug:
-        docker_target: nvcc11-debug
+##      nvcc11-debug:
+##        docker_target: nvcc11-debug
       hip:
         docker_target: hip
-#     sycl:
-#       docker_target: sycl
+##     sycl:
+##       docker_target: sycl
   pool:
     vmImage: 'ubuntu-latest'
   variables:
