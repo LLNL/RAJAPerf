@@ -7,7 +7,9 @@
 ###############################################################################
 
 # C is required for googletest to find Threads
-project(RAJAPerfSuite LANGUAGES CXX C)
+cmake_policy(SET CMP0048 NEW)
+
+project(RAJAPerfSuite VERSION 0.11.0 LANGUAGES CXX C)
 
 cmake_minimum_required(VERSION 3.14.5)
 
@@ -91,9 +93,10 @@ if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 11)
-set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
+set(RAJA_PERFSUITE_VERSION_MAJOR ${RAJAPerfSuite_VERSION_MAJOR})
+set(RAJA_PERFSUITE_VERSION_MINOR ${RAJAPerfSuite_VERSION_MINOR})
+set(RAJA_PERFSUITE_VERSION_PATCHLEVEL ${RAJAPerfSuite_VERSION_PATCH})
+message(STATUS "CMAKE_PROJECT_VERSION:" ${CMAKE_PROJECT_VERSION})
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 

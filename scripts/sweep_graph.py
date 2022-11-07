@@ -94,18 +94,18 @@ def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_inde
 # we expect the following to overlap wrt redundancies to read_caliper_timing_file; they should be refactored
 def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
    #print(sweep_index, sweep_subdir, run_size_index)
-   graph_frames = []
    kernel_list = []
    candidate_list = []
+   kernel_metadata = {}
 
-   # per kernel metadata is Adiak key/values, so we need our kernel list
+   # per kernel metadata is in dataframe columns per kernel.tuning, so we need our kernel list
    allfiles = sorted(glob.glob(glob.escape(sweep_subdir) + "/*.cali"))
    # not all kernels run in every variant so capture kernel list across variants
    for f in allfiles:
+      #print(f)
       gf = cr.GraphFrame.from_caliperreader(f)
       metric = 'min#inclusive#sum#time.duration'
       #print(gf.inc_metrics)
-      graph_frames.append(gf)
 
       # extract kernel list
       kernel_index = -1
@@ -116,15 +116,29 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
             # kernel_tuning_name is kernel.tuning in Caliper
             kernel_tuning_name = gf.dataframe.loc[nn, 'name']
             kernel_name = kernel_tuning_name.split('.')[0]
+            if kernel_name not in kernel_metadata:
+               kernel_metadata[kernel_name] = {}
             if (len(dc.Data.include_kernels) == 0 or kernel_name in dc.Data.include_kernels) and (not kernel_name in dc.Data.exclude_kernels):
                candidate_list.append(kernel_name)
+               if len(kernel_metadata[kernel_name]) == 0:
+                  metadata = {}
+                  metadata['Problem size'] = gf.dataframe.loc[nn, 'any#any#max#ProblemSize']
+                  metadata['Reps'] = gf.dataframe.loc[nn, 'any#any#max#Reps']
+                  metadata['Iterations/rep'] = gf.dataframe.loc[nn, 'any#any#max#Iterations/Rep']
+                  metadata['Kernels/rep'] = gf.dataframe.loc[nn, 'any#any#max#Kernels/Rep']
+                  metadata['Bytes/rep'] = gf.dataframe.loc[nn, 'any#any#max#Bytes/Rep']
+                  metadata['FLOPS/rep'] = gf.dataframe.loc[nn, 'any#any#max#Flops/Rep']
+                  kernel_metadata[kernel_name] = metadata
+                  #print("Kernel Column Metadata:" + kernel_name )
+                  #print(kernel_metadata[kernel_name]['Problem size'])
+               
       kernel_list = list(set(candidate_list) | set(kernel_list))
   
    for kernel_name in kernel_list:
       if kernel_name not in dc.Data.kernels:
          dc.Data.add_kernel(kernel_name)
       kernel_index = dc.Data.kernels[kernel_name]
-      metadata = eval(gf.metadata[kernel_name])
+      metadata = kernel_metadata[kernel_name] # use column metadata instead
       for info_kind, info_value in metadata.items():
          if not info_kind in dc.Data.kinds:
             dc.Data.kinds[info_kind] = dc.Data.DataTree(info_kind, "info", dc.Data.info_axes)
@@ -140,9 +154,9 @@ def read_caliper_runinfo_file(cr, sweep_index, sweep_subdir, run_size_index):
                            dc.Data.axes["run_size"]: run_size_index,
                            dc.Data.axes["kernel_index"]: kernel_index, }
             dc.Data.kinds[info_kind].set(axes_index, val)
-            sweep_dir_name = dc.Data.get_index_name(dc.Data.axes["sweep_dir_name"], sweep_index)
-            run_size_name = dc.Data.get_index_name(dc.Data.axes["run_size"], run_size_index)
-            kernel_index_name = dc.Data.get_index_name(dc.Data.axes["kernel_index"], kernel_index)
+            #sweep_dir_name = dc.Data.get_index_name(dc.Data.axes["sweep_dir_name"], sweep_index)
+            #run_size_name = dc.Data.get_index_name(dc.Data.axes["run_size"], run_size_index)
+            #kernel_index_name = dc.Data.get_index_name(dc.Data.axes["kernel_index"], kernel_index)
             #print("Info kind {0} {1} size {2} kernel {3} val {4}".format(info_kind,sweep_dir_name, run_size_name,kernel_index_name,val))
          except ValueError:
             print("read_caliper_runinfo_file ValueError")
