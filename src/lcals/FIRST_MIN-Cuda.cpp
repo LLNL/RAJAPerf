@@ -97,6 +97,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                                                    dminloc,
                                                    iend );
 	    
+       cudaErrchk( cudaGetLastError() );			  
        cudaErrchk( cudaMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
                               cudaMemcpyDeviceToHost ) );       
 
@@ -107,7 +108,6 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
 
-       cudaErrchk( cudaGetLastError() );			  
        cudaErrchk( cudaFree( dminloc ) );
     }
     stopTimer();

@@ -95,6 +95,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                                                    dminloc,
                                                    iend );
 
+       hipErrchk( hipGetLastError() );			  
        hipErrchk( hipMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
                               hipMemcpyDeviceToHost ) );       
 
@@ -105,7 +106,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
 
-       hipErrchk( hipGetLastError() );			  
        hipErrchk( hipFree( dminloc ) );
 
     }
