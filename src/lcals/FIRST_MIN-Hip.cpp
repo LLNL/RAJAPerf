@@ -109,7 +109,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
          }
        }	   
 
-       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+       m_minloc = mymin.loc;
 
        hipErrchk( hipFree( dminloc ) );
 
@@ -133,7 +133,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
          FIRST_MIN_BODY_RAJA;
        });
 
-       m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+       m_minloc = loc.getLoc();
 
     }
     stopTimer();

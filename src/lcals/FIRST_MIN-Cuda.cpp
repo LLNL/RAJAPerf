@@ -110,7 +110,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
          }
        }
 
-       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+       m_minloc = mymin.loc;
 
        cudaErrchk( cudaFree( dminloc ) );
 
@@ -134,7 +134,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
          FIRST_MIN_BODY_RAJA;
        });
 
-       m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+       m_minloc = loc.getLoc();
 
     }
     stopTimer();

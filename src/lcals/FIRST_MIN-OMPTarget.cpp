@@ -64,7 +64,7 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY;
       }
 
-      m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+      m_minloc = mymin.loc;
 
     }
     stopTimer();
@@ -86,7 +86,7 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY_RAJA;
       });
 
-      m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+      m_minloc = loc.getLoc();
 
     }
     stopTimer();
