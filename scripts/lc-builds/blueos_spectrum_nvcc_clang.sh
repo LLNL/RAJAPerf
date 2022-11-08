@@ -11,12 +11,12 @@ if [[ $# -lt 4 ]]; then
   echo
   echo "You must pass 4 arguments to the script (in this order): "
   echo "   1) compiler version number for spectrum mpi"
-  echo "   2) compiler version number for nvcc"
+  echo "   2) compiler version number for nvcc (number only, not 'sm_70' for example)"
   echo "   3) CUDA compute architecture"
   echo "   4) compiler version number for clang. "
   echo
   echo "For example: "
-  echo "    blueos_nvcc_clang.sh rolling-release 10.2.89 sm_70 10.0.1"
+  echo "    blueos_spectrum_nvcc_clang.sh rolling-release 10.2.89 70 10.0.1"
   exit
 fi
 
@@ -38,7 +38,7 @@ echo
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.14.5
+module load cmake/3.20.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
@@ -51,7 +51,7 @@ cmake \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER} \
   -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER}/bin/nvcc \
-  -DCUDA_ARCH=${COMP_ARCH} \
+  -DCMAKE_CUDA_ARCHITECTURES=${COMP_ARCH} \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..

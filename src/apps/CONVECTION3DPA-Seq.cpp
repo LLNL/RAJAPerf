@@ -129,176 +129,176 @@ void CONVECTION3DPA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 #if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::seq_launch_t>;
+    using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using outer_x = RAJA::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using inner_x = RAJA::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
 
-    using inner_z = RAJA::expt::LoopPolicy<RAJA::loop_exec>;
+    using inner_z = RAJA::LoopPolicy<RAJA::loop_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       // Grid is empty as the host does not need a compute grid to be specified
-      RAJA::expt::launch<launch_policy>(
-          RAJA::expt::Grid(),
-          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      RAJA::launch<launch_policy>(
+          RAJA::LaunchParams(),
+          [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
              CONVECTION3DPA_0_CPU;
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                         [&](int dx) {
 
                           CONVECTION3DPA_1;
 
                         } // lambda (dx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                         [&](int qx) {
 
                           CONVECTION3DPA_2;
 
                         } // lambda (dx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                     [&](int qx) {
-                      RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                      RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                         [&](int qy) {
 
                           CONVECTION3DPA_3;
 
                         } // lambda (dy)
-                      ); // RAJA::expt::loop<inner_y>
+                      ); // RAJA::loop<inner_y>
                     } // lambda (dx)
-                  );  //RAJA::expt::loop<inner_x>
+                  );  //RAJA::loop<inner_x>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+              RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                 [&](int qx) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                     [&](int qy) {
-                      RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                      RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                         [&](int qz) {
 
                           CONVECTION3DPA_4;
 
                         } // lambda (qz)
-                      ); // RAJA::expt::loop<inner_z>
+                      ); // RAJA::loop<inner_z>
                     } // lambda (qy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (qx)
-              );  //RAJA::expt::loop<inner_x>
+              );  //RAJA::loop<inner_x>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                 [&](int qz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                     [&](int qy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                         [&](int qx) {
 
                           CONVECTION3DPA_5;
 
                         } // lambda (qx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (qy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (qz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+              RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                 [&](int qx) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                     [&](int qy) {
-                      RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                      RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                         [&](int dz) {
 
                           CONVECTION3DPA_6;
 
                         } // lambda (dz)
-                      ); // RAJA::expt::loop<inner_z>
+                      ); // RAJA::loop<inner_z>
                     } // lambda (qy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (qx)
-              );  //RAJA::expt::loop<inner_x>
+              );  //RAJA::loop<inner_x>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_Q1D),
                     [&](int qx) {
-                      RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                      RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                         [&](int dy) {
 
                           CONVECTION3DPA_7;
 
                         } // lambda (dy)
-                      ); // RAJA::expt::loop<inner_y>
+                      ); // RAJA::loop<inner_y>
                     } // lambda (qx)
-                  );  //RAJA::expt::loop<inner_x>
+                  );  //RAJA::loop<inner_x>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
             ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_D1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, CPA_D1D),
                         [&](int dx) {
 
                           CONVECTION3DPA_8;
 
                         } // lambda (dx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
             } // lambda (e)
-         ); // RAJA::expt::loop<outer_x>
+         ); // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
-      );  // RAJA::expt::launch
+      );  // RAJA::launch
     }  // loop over kernel reps
     stopTimer();
 
