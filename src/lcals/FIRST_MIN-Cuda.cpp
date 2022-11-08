@@ -27,6 +27,7 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
