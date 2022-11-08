@@ -811,6 +811,86 @@ RAJAPerf Suite uses continuous integration to ensure that changes added to the r
 RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentation is therefore [shared](https://radiuss-ci.readthedocs.io/en/latest).
 
 * * *
+# Using Caliper
+RAJAPerf Suite may also use Caliper instrumentation, with per variant output into Spot/Hatchet .cali files. Original timing is nested within Caliper annotations and so is not impacted when Caliper support is turned on. While Caliper is low-overhead it is not zero, so it will add a small amount of timing skew in its data as compared to the original. 
+For much more on Caliper, read it's documentation: 
+[Caliper](http://software.llnl.gov/Caliper/)
+### Building with Caliper support
+In Cmake scripts add
+-DRAJA_PERFSUITE_USE_CALIPER=On 
+
+Assuming you've built Caliper/Adiak with Spack or by hand (Note: build version caliper@master or caliper@2.9.0 when it's available)
+
+Add to -DCMAKE_PREFIX_PATH ${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+
+or use -Dcaliper_DIR -Dadiak_DIR package prefixes 
+
+For Spack : raja_perf +caliper ^caliper@master
+
+For Uberenv: python3 scripts/uberenv/uberenv.py --spec +caliper ^caliper@master
+
+If you intend on passing nvtx or roctx annotation to Nvidia or AMD profiling tools, build Caliper with +cuda cuda_arch=XX or +rocm respectively. Then you can specify an additional Caliper service for nvtx or roctx like so:
+roctx example: 
+
+CALI_SERVICES_ENABLE=roctx rocprof --roctx-trace --hip-trace raja-perf.exe 
+
+### Inspecting .cali files
+1: Use cali-query in Caliper's bin directory:  cali-query -T RAJA_OpenMP.cali
+
+2: Use Caliper's python reader (pip install caliper-reader or add the python/caliper-reader path in the cloned Caliper repository to PYTHONPATH.)
+```python
+import caliperreader as cr
+
+(records,globals) = cr.read_caliper_contents('RAJA_OpenMP.cali')
+
+variant = globals['variant']
+```
+For a more complete example of Caliper's python reader [caliper-reader](https://pypi.org/project/caliper-reader)
+
+3: Use Hatchet
+```python
+import hatchet as ht
+
+gf = ht.GraphFrame.from_caliperreader('RAJA_OpenMP.cali')
+
+print(gf.tree())
+```
+Find more on Hatchet here: [hatchet](https://github.com/LLNL/hatchet) 
+
+### Collecting PAPI topdown statistics on Intel Architectures
+On Intel systems, you can collect topdown PAPI counter statistics by using a command line switch
+
+--add-to-spot-config, -atsc <string> [Default is none]
+
+appends additional parameters to the built-in Caliper spot config
+
+Example to include some PAPI counters (Intel arch)
+
+-atsc topdown.all
+
+When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
+
+This will hopefully allow you to correlate using hardware counters to memory or core bound behavior. Note that small kernels may result in anomalous readings, so it is suggested to use a larger problem size.
+
+### Generating trace events (time-series) for viewing in chrome://tracing or [Perfetto](https://ui.perfetto.dev/)
+Use Caliper's event trace service to collect timestamp info, where kernel timing can be viewed using browser trace profile views
+
+CALI_CONFIG=event-trace,event.timestamps ./raja-perf.exe -ek PI_ATOMIC INDEXLIST  -sp
+
+This will produce a separate .cali file with date prefix which looks something like 221108-100718_724_ZKrHC68b77Yd.cali
+
+Then we'll need to convert this .cali file to JSON records, but first we need to make sure Caliper's python reader is available in the PYTHONPATH, 
+
+$ export PYTHONPATH=<caliper-source-dir>/python/caliper-reader
+
+then run cali2traceevent.py. Example:
+
+python3 ~/workspace/Caliper/python/cali2traceevent.py 221108-102406_956_9WkZo6xvetnu.cali RAJAPerf.trace.json
+
+You can then load the resulting JSON file either in Chrome by going to chrome://tracing or in Perfetto.
+
+[Todo] show trace.cuda and other options for PAPI, CUDA, or ROCM activities
+
 
 # Contributions
 
