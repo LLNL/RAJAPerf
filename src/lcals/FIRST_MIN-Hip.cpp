@@ -27,6 +27,8 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(x);
 
+FIRST_MIN_MINLOC_COMPARE;	
+
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
@@ -100,8 +102,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                               hipMemcpyDeviceToHost ) );       
 
        for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	   if( (mymin_block[i]).val < mymin.val) 
-		   mymin = mymin_block[i];
+	       mymin = MinLoc_compare(mymin, mymin_block[i]);
        }	   
 
        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
