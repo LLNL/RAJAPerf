@@ -27,8 +27,6 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_CUDA \
   deallocCudaDeviceData(x);
 
-FIRST_MIN_MINLOC_COMPARE;	
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
@@ -83,14 +81,15 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
        FIRST_MIN_MINLOC_INIT;
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       MyMinLoc* dminloc;
-       MyMinLoc mymin_block[grid_size]; //per-block min value
-       Index_type minloc = m_initloc;
 
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	       mymin_block[i] = mymin;
+       MyMinLoc mymin_block[grid_size]; //per-block min value
+       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+         mymin_block[i] = mymin;
        }
-       cudaErrchk( cudaMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
+
+       MyMinLoc* dminloc;
+       cudaErrchk( cudaMalloc( (void**)&dminloc, 
+                               grid_size * sizeof(MyMinLoc) ) );
        cudaErrchk( cudaMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
                                cudaMemcpyHostToDevice ) );      
 
@@ -100,16 +99,20 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                                                    iend );
 	    
        cudaErrchk( cudaGetLastError() );			  
-       cudaErrchk( cudaMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
-                              cudaMemcpyDeviceToHost ) );       
+       cudaErrchk( cudaMemcpy( &mymin_block, dminloc, 
+                               grid_size * sizeof(MyMinLoc),
+                               cudaMemcpyDeviceToHost ) );       
 
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	       mymin = MinLoc_compare(mymin, mymin_block[i]);
+       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+         if ( mymin_block[i].val < mymin.val ) {
+           mymin = mymin_block[i];
+         }
        }
 
        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
 
        cudaErrchk( cudaFree( dminloc ) );
+
     }
     stopTimer();
 

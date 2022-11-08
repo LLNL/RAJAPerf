@@ -27,7 +27,6 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_HIP \
   deallocHipDeviceData(x);
 
-FIRST_MIN_MINLOC_COMPARE;	
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -83,26 +82,31 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        FIRST_MIN_MINLOC_INIT;
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       MyMinLoc* dminloc;
-       MyMinLoc mymin_block[grid_size]; //per-block min value
 
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	       mymin_block[i] = mymin;	       
+       MyMinLoc mymin_block[grid_size]; //per-block min value
+       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+         mymin_block[i] = mymin;	       
        }
+
+       MyMinLoc* dminloc;
        hipErrchk( hipMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
        hipErrchk( hipMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
-                               hipMemcpyHostToDevice ) );      
-       hipLaunchKernelGGL((first_min<block_size>), grid_size, block_size,
-                   sizeof(MyMinLoc)*block_size, 0, x,
-                                                   dminloc,
-                                                   iend );
+                             hipMemcpyHostToDevice ) );
+
+       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
+                           sizeof(MyMinLoc)*block_size, 0, x,
+                           dminloc,
+                           iend );
 
        hipErrchk( hipGetLastError() );			  
-       hipErrchk( hipMemcpy( &mymin_block, dminloc, grid_size * sizeof(MyMinLoc),
-                              hipMemcpyDeviceToHost ) );       
+       hipErrchk( hipMemcpy( &mymin_block, dminloc, 
+                             grid_size * sizeof(MyMinLoc),
+                             hipMemcpyDeviceToHost ) );       
 
-       for (Index_type i=0;i<static_cast<Index_type>(grid_size);i++){
-	       mymin = MinLoc_compare(mymin, mymin_block[i]);
+       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+         if ( mymin_block[i].val < mymin.val ) {
+           mymin = mymin_block[i];
+         }
        }	   
 
        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
