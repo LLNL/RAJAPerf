@@ -822,7 +822,7 @@ In Cmake scripts add
 
 Assuming you've built Caliper/Adiak with Spack or by hand (Note: build version caliper@master or caliper@2.9.0 when it's available)
 
-Add to -DCMAKE_PREFIX_PATH ${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+Add to -DCMAKE_PREFIX_PATH ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
 
 or use -Dcaliper_DIR -Dadiak_DIR package prefixes 
 
