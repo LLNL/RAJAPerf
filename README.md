@@ -56,9 +56,10 @@ Table of Contents
 3. [Generated output](#generated-output)
 4. [Adding kernels and variants](#adding-kernels-and-variants)
 4. [Continuous Integration](#continuous-integration)
-5. [Contributions](#contributions)
-6. [Authors](#authors)
-7. [Copyright and Release](#copyright-and-release)
+5. [Using Caliper](#using-caliper)
+6. [Contributions](#contributions)
+7. [Authors](#authors)
+8. [Copyright and Release](#copyright-and-release)
 
 * * *
 
