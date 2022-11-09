@@ -882,7 +882,7 @@ This will produce a separate .cali file with date prefix which looks something l
 
 Then we'll need to convert this .cali file to JSON records, but first we need to make sure Caliper's python reader is available in the PYTHONPATH, 
 
-$ export PYTHONPATH=<caliper-source-dir>/python/caliper-reader
+$ export PYTHONPATH=caliper-source-dir/python/caliper-reader
 
 then run cali2traceevent.py. Example:
 
