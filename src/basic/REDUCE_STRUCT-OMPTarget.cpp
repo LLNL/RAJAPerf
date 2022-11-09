@@ -37,7 +37,9 @@ namespace basic
   deallocOpenMPDeviceData(points.x, did);                                           \
   deallocOpenMPDeviceData(points.y, did);
 
-  void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid) {
+  void
+  REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid,
+                                        size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
     const Index_type run_reps = getRunReps();
     const Index_type ibegin = 0;
     const Index_type iend = getActualProblemSize();
@@ -116,8 +118,7 @@ namespace basic
       getCout() << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid
                 << std::endl;
     }
-
-}
+  }
 
 } // end namespace basic
 } // end namespace rajaperf
