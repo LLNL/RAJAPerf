@@ -60,7 +60,7 @@ namespace basic
         Real_type xmax = m_init_max;
         Real_type ymax = m_init_max;
 
-#pragma omp target is_device_ptr(vec) device(did)                              \
+#pragma omp target device(did)                              \
     map(tofrom                                                                 \
         : xsum, xmin, xmax, ysum, ymin, ymax)
 #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static,1) \
