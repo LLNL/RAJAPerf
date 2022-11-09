@@ -890,9 +890,15 @@ python3 ~/workspace/Caliper/python/cali2traceevent.py 221108-102406_956_9WkZo6xv
 
 You can then load the resulting JSON file either in Chrome by going to chrome://tracing or in Perfetto.
 
-[Todo] show trace.cuda and other options for PAPI, CUDA, or ROCM activities
+For CUDA, assuming you built Caliper with CUDA support, you can collect and combine trace information for memcpy, kernel launch, synchronization, and kernels; with example:
 
+CALI_CONFIG="event-trace(event.timestamps,trace.cuda=true,cuda.activities)" ./raja-perf.exe -v RAJA_CUDA Base_CUDA -k Algorithm_REDUCE_SUM -sp
 
+However, when you run cali2traceevent.py you need to add --sort option before the filenames.
+
+~/workspace/Caliper/python/cali2traceevent.py --sort file.cali file.json
+
+For HIP substitute rocm.activities vs. cuda.activities; note currently there is no analog trace.rocm. 
 # Contributions
 
 The RAJA Performance Suite is a work-in-progress, with new kernels and variants
