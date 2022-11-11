@@ -34,6 +34,7 @@ namespace algorithm
   allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid);
 
 #define MEMCPY_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_y, y, iend, hid, did); \
   deallocOpenMPDeviceData(x, did); \
   deallocOpenMPDeviceData(y, did);
 
