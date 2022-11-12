@@ -76,19 +76,20 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
     FIRST_MIN_DATA_SETUP_HIP;
 
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    MyMinLoc mymin_block[grid_size]; //per-block min value
+    MyMinLoc* dminloc;
+
     startTimer();
+
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        FIRST_MIN_MINLOC_INIT;
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-
-       MyMinLoc mymin_block[grid_size]; //per-block min value
        for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
          mymin_block[i] = mymin;	       
        }
 
-       MyMinLoc* dminloc;
        hipErrchk( hipMalloc( (void**)&dminloc, grid_size * sizeof(MyMinLoc) ) );
        hipErrchk( hipMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
                              hipMemcpyHostToDevice ) );
@@ -111,11 +112,11 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
        m_minloc = mymin.loc;
 
-       hipErrchk( hipFree( dminloc ) );
 
     }
     stopTimer();
 
+    hipErrchk( hipFree( dminloc ) );
     FIRST_MIN_DATA_TEARDOWN_HIP;
 
   } else if ( vid == RAJA_HIP ) {
