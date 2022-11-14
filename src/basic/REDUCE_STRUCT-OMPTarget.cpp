@@ -27,7 +27,7 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define REDUCE_STRUCT_DATA_SETUP_OMP_TARGET \
-  points points; \
+  PointsType points; \
   points.N = getActualProblemSize(); \
 \
   int hid = omp_get_initial_device(); \
