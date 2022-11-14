@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
+# Initialize modules for users not using bash as a default shell
+if test -e /usr/share/lmod/lmod/init/bash
+then
+  . /usr/share/lmod/lmod/init/bash
+fi
+
 ###############################################################################
-# Copyright (c) 2016-21, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
+# Copyright (c) 2016-22, Lawrence Livermore National Security, LLC and RAJA
+# project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -20,12 +26,30 @@ hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
 raja_version=${UPDATE_RAJA:-""}
-
 sys_type=${SYS_TYPE:-""}
-py_env_path=${PYTHON_ENVIRONMENT_PATH:-""}
+
+prefix=""
+
+if [[ -d /dev/shm ]]
+then
+    prefix="/dev/shm/${hostname}"
+    if [[ -z ${job_unique_id} ]]; then
+      job_unique_id=manual_job_$(date +%s)
+      while [[ -d ${prefix}-${job_unique_id} ]] ; do
+          sleep 1
+          job_unique_id=manual_job_$(date +%s)
+      done
+    fi
+
+    prefix="${prefix}-${job_unique_id}"
+    mkdir -p ${prefix}
+fi
 
 # Dependencies
 date
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~ Build and test started"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 if [[ "${option}" != "--build-only" && "${option}" != "--test-only" ]]
 then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -42,17 +66,6 @@ then
 
     if [[ -d /dev/shm ]]
     then
-        prefix="/dev/shm/${hostname}"
-        if [[ -z ${job_unique_id} ]]; then
-          job_unique_id=manual_job_$(date +%s)
-          while [[ -d ${prefix}/${job_unique_id} ]] ; do
-              sleep 1
-              job_unique_id=manual_job_$(date +%s)
-          done
-        fi
-
-        prefix="${prefix}/${job_unique_id}"
-        mkdir -p ${prefix}
         prefix_opt="--prefix=${prefix}"
 
         # We force Spack to put all generated files (cache and configuration of
@@ -64,11 +77,14 @@ then
         mkdir -p ${spack_user_cache}
     fi
 
-    python3 tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
 
-    mv ${project_dir}/tpl/RAJA/hc-*.cmake ${project_dir}/.
+    mv ${project_dir}/tpl/RAJA/*.cmake ${project_dir}/.
 
 fi
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  echo "~~~~~ Dependencies Built"
+  echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 date
 
 # Host config file
@@ -76,18 +92,18 @@ if [[ -z ${hostconfig} ]]
 then
     # If no host config file was provided, we assume it was generated.
     # This means we are looking of a unique one in project dir.
-    hostconfigs=( $( ls "${project_dir}/"hc-*.cmake ) )
+    hostconfigs=( $( ls "${project_dir}/"*.cmake ) )
     if [[ ${#hostconfigs[@]} == 1 ]]
     then
         hostconfig_path=${hostconfigs[0]}
         echo "Found host config file: ${hostconfig_path}"
     elif [[ ${#hostconfigs[@]} == 0 ]]
     then
-        echo "No result for: ${project_dir}/hc-*.cmake"
+        echo "No result for: ${project_dir}/*.cmake"
         echo "Spack generated host-config not found."
         exit 1
     else
-        echo "More than one result for: ${project_dir}/hc-*.cmake"
+        echo "More than one result for: ${project_dir}/*.cmake"
         echo "${hostconfigs[@]}"
         echo "Please specify one with HOST_CONFIG variable"
         exit 1
@@ -97,13 +113,25 @@ else
     hostconfig_path="${project_dir}/host-configs/${hostconfig}"
 fi
 
+hostconfig=$(basename ${hostconfig_path})
+
 # Build Directory
 if [[ -z ${build_root} ]]
 then
-    build_root=$(pwd)
+    if [[ -d /dev/shm ]]
+    then
+        build_root="${prefix}"
+    else
+        build_root="$(pwd)"
+    fi
+else
+    build_root="${build_root}"
 fi
 
 build_dir="${build_root}/build_${hostconfig//.cmake/}"
+
+# TODO: This is from Umpire, could it work with RAJA ?
+#cmake_exe=`grep 'CMake executable' ${hostconfig_path} | cut -d ':' -f 2 | xargs`
 
 # Build
 if [[ "${option}" != "--deps-only" && "${option}" != "--test-only" ]]
@@ -116,10 +144,6 @@ then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo ""
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    echo "~~~~ ENV ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
-    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ Building RAJA PerfSuite"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
@@ -129,7 +153,7 @@ then
     # If using Multi-project, set up the submodule
     if [[ -n ${raja_version} ]]
     then
-      cd tpl/RAJA  
+      cd tpl/RAJA
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       echo "~~~~ Updating RAJA Submodule to develop ~~~"
       echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -153,9 +177,10 @@ then
     if [[ "${truehostname}" == "corona" ]]
     then
         module unload rocm
+        module load cmake/3.23.1
+    else
+        module load cmake/3.20.2
     fi
-
-    module load cmake/3.20.2 || module load cmake/3.19.2 || module load cmake/3.21.1
 
     cmake \
       -C ${hostconfig_path} \
@@ -189,7 +214,7 @@ if grep -q -i "ENABLE_TESTS.*ON" ${hostconfig_path}
 then
 
     #
-    # Maintaining separate, but identical release and debug sections 
+    # Maintaining separate, but identical release and debug sections
     # in case we want to make them disctinct in the future.
     #
 
@@ -243,3 +268,7 @@ echo "~~~~~ CLEAN UP"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 make clean
 
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "~~~~~ Build and test completed"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+date

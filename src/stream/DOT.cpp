@@ -52,6 +52,8 @@ DOT::DOT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 DOT::~DOT()

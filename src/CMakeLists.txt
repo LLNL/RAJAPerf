@@ -16,6 +16,7 @@ add_subdirectory(lcals)
 add_subdirectory(lcals-kokkos)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
@@ -27,6 +28,7 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     lcals-kokkos
     polybench
     stream
+    stream-kokkos
     algorithm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
