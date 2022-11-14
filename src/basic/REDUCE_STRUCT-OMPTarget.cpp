@@ -27,24 +27,28 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define REDUCE_STRUCT_DATA_SETUP_OMP_TARGET \
+  points points; \
+  points.N = getActualProblemSize(); \
+\
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitHipDeviceData(points.x, m_x, points.N, did, hid); \
-  allocAndInitHipDeviceData(points.y, m_y, points.N, did, hid); 
+  allocAndInitOpenMPDeviceData(points.x, m_x, points.N, did, hid); \
+  allocAndInitOpenMPDeviceData(points.y, m_y, points.N, did, hid); 
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_OMP_TARGET \
-  deallocHipDeviceData(points.x); \
-  deallocHipDeviceData(points.y); \
+  deallocOpenMPDeviceData(points.x, did); \
+  deallocOpenMPDeviceData(points.y, did); \
 
 
-void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
+void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid, 
+                                           size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  REDUCE_STRUCT_DATA_SETUP;
+//  REDUCE_STRUCT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 
@@ -57,7 +61,7 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
       Real_type xmin = m_init_min; Real_type ymin = m_init_min;
       Real_type xmax = m_init_max; Real_type ymax = m_init_max;
 
-      #pragma omp target is_device_ptr(vec) device( did ) map(tofrom:xsum, xmin, xmax, ysum, ymin, ymax)
+      #pragma omp target is_device_ptr(points.x, points.y) device( did ) map(tofrom:xsum, xmin, xmax, ysum, ymin, ymax)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static,1) \
                                reduction(+:xsum) \
                                reduction(min:xmin) \

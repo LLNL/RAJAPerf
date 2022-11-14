@@ -37,7 +37,7 @@ cmake \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
-  -DENABLE_TARGET_OPENMP=On \
+  -DRAJA_ENABLE_TARGET_OPENMP=On \
   -DOpenMP_CXX_FLAGS="-qoffload;-qsmp=omp;-qalias=noansi" \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
