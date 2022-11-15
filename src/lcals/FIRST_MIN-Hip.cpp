@@ -88,12 +88,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
        FIRST_MIN_MINLOC_INIT;
 
-       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
-         mymin_block[i] = mymin;	       
-       }
-       hipErrchk( hipMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
-                             hipMemcpyHostToDevice ) );
-
        hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            sizeof(MyMinLoc)*block_size, 0, x,
                            dminloc,

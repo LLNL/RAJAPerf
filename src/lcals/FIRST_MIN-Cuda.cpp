@@ -85,14 +85,8 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
+i
       FIRST_MIN_MINLOC_INIT;
-
-      for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
-        mymin_block[i] = mymin;
-      }
-      cudaErrchk( cudaMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
-                              cudaMemcpyHostToDevice ) );      
 
       first_min<block_size><<<grid_size, block_size,
                               sizeof(MyMinLoc)*block_size>>>(x, dminloc, iend);
