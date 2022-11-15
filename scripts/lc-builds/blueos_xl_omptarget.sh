@@ -29,7 +29,7 @@ echo
 rm -rf build_${BUILD_SUFFIX} 2>/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.14.5
+module load cmake/3.20.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
@@ -38,7 +38,8 @@ cmake \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DRAJA_ENABLE_TARGET_OPENMP=On \
-  -DOpenMP_CXX_FLAGS="-qoffload;-qsmp=omp;-qalias=noansi" \
+  -DBLT_OPENMP_COMPILE_FLAGS="-qoffload;-qsmp=omp;-qalias=noansi" \
+  -DBLT_OPENMP_LINK_FLAGS="-qoffload;-qsmp=omp;-qalias=noansi" \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..
