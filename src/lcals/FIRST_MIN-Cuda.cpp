@@ -82,7 +82,6 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
     startTimer();
 
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        FIRST_MIN_MINLOC_INIT;
 
@@ -91,6 +90,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
          mymin_block[i] = mymin;
        }
 
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
        cudaErrchk( cudaMalloc( (void**)&dminloc, 
                                grid_size * sizeof(MyMinLoc) ) );
        cudaErrchk( cudaMemcpy( dminloc, mymin_block, grid_size*sizeof(MyMinLoc),
@@ -106,6 +106,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                                grid_size * sizeof(MyMinLoc),
                                cudaMemcpyDeviceToHost ) );       
 
+    }
        for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
          if ( mymin_block[i].val < mymin.val ) {
            mymin = mymin_block[i];
@@ -115,7 +116,6 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
        m_minloc = mymin.loc;
 
 
-    }
     stopTimer();
 
     delete[] mymin_block;
