@@ -85,7 +85,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-i
+
       FIRST_MIN_MINLOC_INIT;
 
       first_min<block_size><<<grid_size, block_size,
