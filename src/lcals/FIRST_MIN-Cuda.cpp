@@ -77,10 +77,11 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
     FIRST_MIN_DATA_SETUP_CUDA;
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    MyMinLoc mymin_block[grid_size]; //per-block min value
+    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
     MyMinLoc* dminloc;
 
     startTimer();
+
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        FIRST_MIN_MINLOC_INIT;
@@ -101,7 +102,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
                                                    iend );
 	    
        cudaErrchk( cudaGetLastError() );			  
-       cudaErrchk( cudaMemcpy( &mymin_block, dminloc, 
+       cudaErrchk( cudaMemcpy( mymin_block, dminloc, 
                                grid_size * sizeof(MyMinLoc),
                                cudaMemcpyDeviceToHost ) );       
 
@@ -117,6 +118,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
+    delete[] mymin_block;
     cudaErrchk( cudaFree( dminloc ) );
     FIRST_MIN_DATA_TEARDOWN_CUDA;
 

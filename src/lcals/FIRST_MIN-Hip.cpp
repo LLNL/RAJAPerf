@@ -77,7 +77,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
     FIRST_MIN_DATA_SETUP_HIP;
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-    MyMinLoc mymin_block[grid_size]; //per-block min value
+    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
     MyMinLoc* dminloc;
 
     startTimer();
@@ -100,7 +100,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
                            iend );
 
        hipErrchk( hipGetLastError() );			  
-       hipErrchk( hipMemcpy( &mymin_block, dminloc, 
+       hipErrchk( hipMemcpy( mymin_block, dminloc, 
                              grid_size * sizeof(MyMinLoc),
                              hipMemcpyDeviceToHost ) );       
 
@@ -116,6 +116,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
+    delete[] mymin_block;
     hipErrchk( hipFree( dminloc ) );
     FIRST_MIN_DATA_TEARDOWN_HIP;
 
