@@ -49,8 +49,8 @@ struct MyMinLoc {
   mymin.val = m_xmin_init; \
   mymin.loc = m_initloc;
 
-inline MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
-  return a.val < b.val ? a : b ; \
+inline MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) {
+  return a.val < b.val ? a : b ;
 }
 
 #include "common/KernelBase.hpp"
