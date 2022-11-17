@@ -30,10 +30,13 @@ namespace algorithm
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid);
+  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
+  allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid);
 
 #define MEMCPY_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_y, y, iend, hid, did); \
   deallocOpenMPDeviceData(x, did); \
+  deallocOpenMPDeviceData(y, did);
 
 
 void MEMCPY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
