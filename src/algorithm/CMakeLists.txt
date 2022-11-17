@@ -13,6 +13,7 @@ blt_add_library(
           SCAN-Hip.cpp
           SCAN-Cuda.cpp
           SCAN-OMP.cpp
+          SCAN-OMPTarget.cpp
           SORT.cpp
           SORT-Seq.cpp
           SORT-Hip.cpp

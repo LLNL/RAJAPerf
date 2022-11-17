@@ -12,6 +12,8 @@
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 
+#include "common/OpenMPTargetDataUtils.hpp"
+
 #include <iostream>
 #include <vector>
 
