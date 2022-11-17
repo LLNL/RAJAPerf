@@ -356,26 +356,6 @@ void KernelBase::print(std::ostream& os) const
 }
 
 #ifdef RAJA_PERFSUITE_USE_CALIPER
-void KernelBase::setKernelAdiakMeta()
-{
-  std::string problem_size = std::to_string(getActualProblemSize());
-  std::string reps = std::to_string(getRunReps());
-  std::string iters_rep = std::to_string(getItsPerRep());
-  std::string kerns_rep = std::to_string(getKernelsPerRep());
-  std::string bytes_rep = std::to_string(getBytesPerRep());
-  std::string flops_rep = std::to_string(getFLOPsPerRep());
-
-  // put into python dict form
-  std::string valStr = "{'Problem size': "+problem_size;
-  valStr += ",'Reps':"+reps;
-  valStr += ",'Iterations/rep': "+iters_rep;
-  valStr += ",'Kernels/rep': "+kerns_rep;
-  valStr += ",'Bytes/rep': "+bytes_rep;
-  valStr += ",'FLOPS/rep': "+flops_rep;
-  valStr += "}";
-  adiak::value(getName().c_str(),valStr.c_str());
-}
-
 void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
 {
   // attributes are class variables initialized in ctor

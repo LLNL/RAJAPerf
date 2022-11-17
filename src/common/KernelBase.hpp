@@ -283,7 +283,6 @@ public:
 #ifdef RAJA_PERFSUITE_USE_CALIPER
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
-  void setKernelAdiakMeta(); 
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, const std::string& addToConfig)

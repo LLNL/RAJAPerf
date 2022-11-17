@@ -176,13 +176,12 @@ Executor::Executor(int argc, char** argv)
     adiak::value("machine_build", cc.adiak_machine_build);
   }
 
-  adiak::value("Tuning","default");
-  adiak::value("ProblemSize",1.0);
+  adiak::value("ProblemSizeRunParam",(double)1.0);
   adiak::value("SizeMeaning",run_params.SizeMeaningToStr(run_params.getSizeMeaning()).c_str());
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    adiak::value("ProblemSize",run_params.getSizeFactor());
+    adiak::value("ProblemSizeRunParam",(double)run_params.getSizeFactor());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
-    adiak::value("ProblemSize",run_params.getSize());
+    adiak::value("ProblemSizeRunParam",(double)run_params.getSize());
   }
 
   // Openmp section
