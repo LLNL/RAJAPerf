@@ -17,7 +17,11 @@ namespace rajaperf
 namespace lcals
 {
 
-FIRST_MIN_MINLOC_COMPARE;
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+MyMinLoc MinLoc_compare_omp(MyMinLoc a, MyMinLoc b) {
+  return a.val < b.val ? a : b ;
+}
+#endif
 
 void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -37,7 +41,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+                                      omp_out = MinLoc_compare_omp(omp_out, omp_in))
 
         FIRST_MIN_MINLOC_INIT;
 
@@ -64,7 +68,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+                                      omp_out = MinLoc_compare_omp(omp_out, omp_in))
 
         FIRST_MIN_MINLOC_INIT;
 

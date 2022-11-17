@@ -43,10 +43,10 @@ struct MyMinLoc {
   rajaperf::Index_type loc;
 };
 
-#define FIRST_MIN_MINLOC_COMPARE \
-MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
-  return a.val < b.val ? a : b ; \
-}
+//#define FIRST_MIN_MINLOC_COMPARE \
+//MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
+//  return a.val < b.val ? a : b ; \
+//}
 
 #define FIRST_MIN_MINLOC_INIT \
   MyMinLoc mymin; \

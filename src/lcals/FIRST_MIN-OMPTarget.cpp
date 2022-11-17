@@ -35,7 +35,9 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_OMP_TARGET \
   deallocOpenMPDeviceData(x, did);
 
-FIRST_MIN_MINLOC_COMPARE;
+MyMinLoc MinLoc_compare_omptarget(MyMinLoc a, MyMinLoc b) {
+  return a.val < b.val ? a : b ;
+}
 
 void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -53,7 +55,7 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp declare reduction(minloc : MyMinLoc : \
-                                    omp_out = MinLoc_compare(omp_out, omp_in))
+                                    omp_out = MinLoc_compare_omptarget(omp_out, omp_in))
 
       FIRST_MIN_MINLOC_INIT;
 
