@@ -38,7 +38,7 @@
 
 
 #define REDUCE_STRUCT_DATA_SETUP \
-  points points; \
+  PointsType points; \
   points.N = getActualProblemSize(); \
   points.x = m_x; \
   points.y = m_y; \
@@ -94,7 +94,7 @@ public:
   template < size_t block_size >
   void runHipVariantImpl(VariantID vid);
 
-  struct points{
+  struct PointsType {
     Int_type N;
     Real_ptr x, y;
 
@@ -114,7 +114,8 @@ public:
     Real_type center[2] = {0.0,0.0};
     Real_type xmin, xmax;
     Real_type ymin, ymax;
-    }; 
+  }; 
+
 private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
@@ -122,7 +123,7 @@ private:
   Real_type	m_init_sum; 
   Real_type	m_init_min; 
   Real_type	m_init_max; 
-  points m_points;
+  PointsType m_points;
   Real_type X_MIN = 0.0, X_MAX = 100.0; 
   Real_type Y_MIN = 0.0, Y_MAX = 50.0; 
   Real_type Lx = (X_MAX) - (X_MIN); 

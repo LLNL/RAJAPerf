@@ -40,8 +40,9 @@ cmake \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_OPENMP=On \
   -DENABLE_CUDA=Off \
-  -DENABLE_TARGET_OPENMP=On \
-  -DOpenMP_CXX_FLAGS="-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda" \
+  -DRAJA_ENABLE_TARGET_OPENMP=On \
+  -DBLT_OPENMP_COMPILE_FLAGS="-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda" \
+  -DBLT_OPENMP_LINK_FLAGS="-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda" \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..
