@@ -186,9 +186,18 @@ Executor::Executor(int argc, char** argv)
 
   // Openmp section
 #if defined(_OPENMP)
+  std::string strval = "";
+  std::string test = std::to_string(_OPENMP);
+
   std::unordered_map<unsigned,std::string> map{
-    {200505,"2.5"},{200805,"3.0"},{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201811,"5.0"},{202011,"5.1"},{202111,"5.2"}};
-  string strval = map.at(_OPENMP);
+    {200505,"2.5"},{200805,"3.0"},{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201611,"4.5"},{201811,"5.0"},{202011,"5.1"},{202111,"5.2"}};
+
+  try {
+    strval = map.at(_OPENMP);
+  } catch(...) {
+    strval="Version Not Detected";
+  }
+  std::cerr << "_OPENMP:" << test << " at version: " << strval << "\n";
   adiak::value("omp_version",strval.c_str());
   strval = std::to_string(omp_get_max_threads());
   adiak::value("omp_max_threads",strval.c_str());
