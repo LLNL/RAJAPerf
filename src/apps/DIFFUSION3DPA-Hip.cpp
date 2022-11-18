@@ -158,198 +158,198 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
     constexpr bool async = true;
 
     using launch_policy =
-        RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, DPA_Q1D*DPA_Q1D*DPA_Q1D>>;
+        RAJA::LaunchPolicy<RAJA::hip_launch_t<async, DPA_Q1D*DPA_Q1D*DPA_Q1D>>;
 
     using outer_x =
-        RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
+        RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
 
     using inner_x =
-        RAJA::expt::LoopPolicy<RAJA::hip_thread_x_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_x_loop>;
 
     using inner_y =
-        RAJA::expt::LoopPolicy<RAJA::hip_thread_y_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_y_loop>;
 
     using inner_z =
-        RAJA::expt::LoopPolicy<RAJA::hip_thread_z_loop>;
+        RAJA::LoopPolicy<RAJA::hip_thread_z_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<launch_policy>(
-          RAJA::expt::Grid(RAJA::expt::Teams(NE),
-                           RAJA::expt::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
-          [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      RAJA::launch<launch_policy>(
+          RAJA::LaunchParams(RAJA::Teams(NE),
+                           RAJA::Threads(DPA_Q1D, DPA_Q1D, DPA_Q1D)),
+          [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
               DIFFUSION3DPA_0_GPU;
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                         [&](int dx) {
 
                           DIFFUSION3DPA_1;
 
                         } // lambda (dx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
                 [&](int RAJA_UNUSED_ARG(dz)) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
                           DIFFUSION3DPA_2;
 
                         } // lambda (qx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                     [&](int dy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
                           DIFFUSION3DPA_3;
 
                         } // lambda (qx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (dy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                 [&](int dz) {
-                  RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                     [&](int qy) {
-                      RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                         [&](int qx) {
 
                           DIFFUSION3DPA_4;
 
                         } // lambda (qx)
-                      ); // RAJA::expt::loop<inner_x>
+                      ); // RAJA::loop<inner_x>
                     } // lambda (qy)
-                  );  //RAJA::expt::loop<inner_y>
+                  );  //RAJA::loop<inner_y>
                 } // lambda (dz)
-              );  //RAJA::expt::loop<inner_z>
+              );  //RAJA::loop<inner_z>
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+             RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                [&](int qz) {
-                 RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                 RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                    [&](int qy) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                     RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                        [&](int qx) {
 
                          DIFFUSION3DPA_5;
 
                        } // lambda (qx)
-                     ); // RAJA::expt::loop<inner_x>
+                     ); // RAJA::loop<inner_x>
                    } // lambda (qy)
-                 );  //RAJA::expt::loop<inner_y>
+                 );  //RAJA::loop<inner_y>
                } // lambda (qz)
-             );  //RAJA::expt::loop<inner_z>
+             );  //RAJA::loop<inner_z>
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+             RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
                [&](int RAJA_UNUSED_ARG(dz)) {
-                 RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                 RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int d) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                     RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                        [&](int q) {
 
                          DIFFUSION3DPA_6;
 
                        } // lambda (q)
-                     ); // RAJA::expt::loop<inner_x>
+                     ); // RAJA::loop<inner_x>
                    } // lambda (d)
-                 );  //RAJA::expt::loop<inner_y>
+                 );  //RAJA::loop<inner_y>
                } // lambda (dz)
-             );  //RAJA::expt::loop<inner_z>
+             );  //RAJA::loop<inner_z>
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+             RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                [&](int qz) {
-                 RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+                 RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                    [&](int qy) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                     RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
                          DIFFUSION3DPA_7;
 
                        } // lambda (dx)
-                     ); // RAJA::expt::loop<inner_x>
+                     ); // RAJA::loop<inner_x>
                    } // lambda (qy)
-                 );  //RAJA::expt::loop<inner_y>
+                 );  //RAJA::loop<inner_y>
                } // lambda (qz)
-             );  //RAJA::expt::loop<inner_z>
+             );  //RAJA::loop<inner_z>
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
+             RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_Q1D),
                [&](int qz) {
-                 RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                 RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int dy) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                     RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
                          DIFFUSION3DPA_8;
 
                        } // lambda (dx)
-                     ); // RAJA::expt::loop<inner_x>
+                     ); // RAJA::loop<inner_x>
                    } // lambda (dy)
-                 );  //RAJA::expt::loop<inner_y>
+                 );  //RAJA::loop<inner_y>
                } // lambda (qz)
-             );  //RAJA::expt::loop<inner_z>
+             );  //RAJA::loop<inner_z>
 
              ctx.teamSync();
 
-             RAJA::expt::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+             RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                [&](int dz) {
-                 RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                 RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                    [&](int dy) {
-                     RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
+                     RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, DPA_D1D),
                        [&](int dx) {
 
                          DIFFUSION3DPA_9;
 
                        } // lambda (dx)
-                     ); // RAJA::expt::loop<inner_x>
+                     ); // RAJA::loop<inner_x>
                    } // lambda (dy)
-                 );  //RAJA::expt::loop<inner_y>
+                 );  //RAJA::loop<inner_y>
                } // lambda (dz)
-             );  //RAJA::expt::loop<inner_z>
+             );  //RAJA::loop<inner_z>
 
             } // lambda (e)
-          ); // RAJA::expt::loop<outer_x>
+          ); // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
-      );  // RAJA::expt::launch
+      );  // RAJA::launch
 
     } // loop over kernel reps
     stopTimer();

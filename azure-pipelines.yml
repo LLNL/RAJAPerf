@@ -1,11 +1,5 @@
-variables:
-  DO_BUILD: 'yes'
-  DO_TEST: 'yes'
-  DO_INSTALL: 'yes'
-  COMPILER: 'g++'
-
 jobs:
-#- job: Windows #temporarily commenting out until cmake/azure version issue resolved
+#- job: Windows #commented out since we really don't need this
 #  strategy:
 #    matrix:
 #      shared:
@@ -32,7 +26,6 @@ jobs:
 #     inputs:
 #       script: 'ctest.exe -T test -C Release'
 #       workingDirectory: 'build'
-#     condition: eq( variables['Agent.OS'], 'Windows_NT')
 #   - task: PublishTestResults@2
 #     inputs:
 #       testResultsFormat: 'cTest'
@@ -63,8 +56,8 @@ jobs:
 ##        docker_target: nvcc11-debug
       hip:
         docker_target: hip
-#     sycl:
-#       docker_target: sycl
+##     sycl:
+##       docker_target: sycl
   pool:
     vmImage: 'ubuntu-latest'
   variables:
@@ -79,6 +72,10 @@ jobs:
       command: build
       dockerFile: 'Dockerfile'
       arguments: '--target $(docker_target)'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Test.xml'
 - job: Mac 
   pool:
     vmImage: 'macOS-latest'
@@ -99,6 +96,9 @@ jobs:
     condition: eq( variables['Agent.OS'], 'Darwin')
   - script: |
       cd build
-      ./bin/raja-perf.exe --checkrun 5 -sp
-    displayName: 'Run Perf Suite'
-    condition: eq( variables['Agent.OS'], 'Darwin')
+      ctest -T test --output-on-failure
+    displayName: 'OSX Test'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Test.xml'

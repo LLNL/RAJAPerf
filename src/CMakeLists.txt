@@ -13,8 +13,10 @@ add_subdirectory(basic)
 add_subdirectory(basic-kokkos)
 add_subdirectory(apps)
 add_subdirectory(lcals)
+add_subdirectory(lcals-kokkos)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
@@ -23,12 +25,14 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     basic-kokkos
     lcals
+    lcals-kokkos
     polybench
     stream
+    stream-kokkos
     algorithm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
-if(ENABLE_TARGET_OPENMP)
+if(RAJA_ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 
 blt_add_executable(
