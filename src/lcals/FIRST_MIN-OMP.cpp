@@ -17,7 +17,6 @@ namespace rajaperf
 namespace lcals
 {
 
-FIRST_MIN_MINLOC_COMPARE;
 
 void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {

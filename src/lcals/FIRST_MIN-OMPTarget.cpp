@@ -35,7 +35,6 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_OMP_TARGET \
   deallocOpenMPDeviceData(x, did);
 
-FIRST_MIN_MINLOC_COMPARE;
 
 void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {

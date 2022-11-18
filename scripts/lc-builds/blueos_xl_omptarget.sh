@@ -17,7 +17,7 @@ fi
 COMP_VER=$1
 shift 1
 
-BUILD_SUFFIX=lc_blueos-xl-${COMP_VER}
+BUILD_SUFFIX=lc_blueos-xl_omptarget-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/blueos/xl_X.cmake
 
 echo
