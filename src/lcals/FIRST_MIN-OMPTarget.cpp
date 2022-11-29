@@ -35,7 +35,6 @@ namespace lcals
 #define FIRST_MIN_DATA_TEARDOWN_OMP_TARGET \
   deallocOpenMPDeviceData(x, did);
 
-FIRST_MIN_MINLOC_COMPARE;
 
 void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -64,7 +63,7 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY;
       }
 
-      m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+      m_minloc = mymin.loc;
 
     }
     stopTimer();
@@ -86,7 +85,7 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY_RAJA;
       });
 
-      m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+      m_minloc = loc.getLoc();
 
     }
     stopTimer();
