@@ -814,8 +814,14 @@ RAJAPerf Suite shares its Gitlab CI workflow with other projects. The documentat
 * * *
 # Using Caliper
 RAJAPerf Suite may also use Caliper instrumentation, with per variant output into Spot/Hatchet .cali files. Original timing is nested within Caliper annotations and so is not impacted when Caliper support is turned on. While Caliper is low-overhead it is not zero, so it will add a small amount of timing skew in its data as compared to the original. 
-For much more on Caliper, read it's documentation here: 
+For much more on Caliper, read it's documentation here:
 [Caliper](http://software.llnl.gov/Caliper/)
+
+Caliper annotation is in the following tree structure
+>* Variant  
+>  *  Group  
+>     *  Kernel  
+>        *  Kernel.Tuning 
 ### Building with Caliper support
 Build against these Caliper versions
 ```asm
@@ -864,8 +870,8 @@ For a more complete example of Caliper's python reader [caliper-reader](https://
 import hatchet as ht
 
 gf = ht.GraphFrame.from_caliperreader('RAJA_OpenMP.cali')
-
 print(gf.tree())
+print(gf.show_metric_columns())
 ```
 Find more on Hatchet here: [hatchet](https://github.com/LLNL/hatchet) 
 
@@ -880,9 +886,62 @@ Example to include some PAPI counters (Intel arch)
 
 ```-atsc topdown.all```
 
-When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
+Caliper's topdown service generates derived metrics from raw PAPI counters; a hierarchy of metrics to identify bottlenecks in out-of-order processors. This is based on an an approach described in Ahmad Yasin's paper *A Top-Down Method for Performance Analysis and Counters Architecture*. The toplevel of the hierarchy has a reliable set of four derived metrics or starting weights (sum to 1.0) which include:
 
-This will hopefully allow you to correlate using hardware counters to memory or core bound behavior. Note that small kernels may result in anomalous readings, so it is suggested to use a larger problem size.
+1. Frontend Bound: stalls attributed to the front end which is responsible for fetching and decoding program code.    
+2. Bad Speculation: fraction of the workload that is affected by incorrect execution paths, i.e. branch misprediction penalties
+3. Retiring: Increases in this category reflects overall Instructions Per Cycle (IPC) fraction which is good in general. However, a large retiring fraction for non-vectorized code could also be a hint to the user to vectorize their code (see Yasin's paper) 
+4. Backend Bound: Memory Bound where execution stalls are related to the memory subsystem, or Core Bound where execution unit occupancy is sub-optimal lowering IPC (more compiler dependent)
+
+> Backend Bound = 1 - (Frontend Bound + Bad Speculation + Retiring)
+
+Caveats: 
+
+1. When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
+2. Small kernels should be run at large problem sizes to minimize anomalous readings 
+3. Measured values are only relevant for the innermost level of the Caliper tree hierarchy, i.e. kernel.tuning under investigation
+4. Some lower level derived quantities may still appear anomalous with negative values. Collecting raw counters can help identify the discrepency
+
+```-atsc topdown-counters.all```
+
+A Hatchet based snippet to fetch topdown.toplevel metric values at the leaf (Kernel.Tuning) nodes across several files using -atsc topdown.toplevel
+
+```python
+ def load_toplevel(cr):
+    md = {}
+    metric = []
+    metric.append('any#any#topdown.retiring')
+    metric.append('any#any#topdown.backend_bound')
+    metric.append('any#any#topdown.frontend_bound')
+    metric.append('any#any#topdown.bad_speculation')
+    values = np.zeros((3, 4))
+    files = sorted(glob.glob('data/*topleve*.cali'))
+    findex = 0
+    for f in files:
+        print(f)
+        gf = cr.GraphFrame.from_caliperreader(f)
+        tt = gf.graph.roots[0].traverse(order="pre")
+        for nn in tt:
+            # test if leaf node
+            if not nn.children:
+                for mindex in range(0, 4):
+                    values[findex, mindex] = gf.dataframe.loc[nn, metric[mindex]]
+        findex += 1
+    for mindex in range(0,len(metric)):
+        md[metric[mindex]] = np.average(values[:,mindex])
+    return values,md  
+```
+
+
+> Caveat for the code snippet above. If you run -atsc topdown.toplevel,profile.mpi  then the MPI Barrier routine will be nested at the leaf node vs expected Kernel.Tuning
+
+> Other caveats:  raw counter values are often noisy and require a lot of accommodation to collect accurate data; these include turning off Hyperthreading, turning off Prefetch as is done in Intel's Memory Latency Checker (requires Root), adding LFENCE instruction to serialize and bracket code under test, disable preemption and hard interrupts. See Andreas Abel's dissertation "Automatic Generation of Model of Microarchitectures" for more info on this and for a comprehensive look at the nanobench machinery.
+
+[Yasin's Paper](https://www.researchgate.net/publication/269302126_A_Top-Down_method_for_performance_analysis_and_counters_architecture)
+
+[Vtune-cookbook topdown method](https://www.intel.com/content/www/us/en/develop/documentation/vtune-cookbook/top/methodologies/top-down-microarchitecture-analysis-method.html)
+
+[Automatic Generation of Models of Microarchitectures](https://uops.info/dissertation.pdf)
 
 ### Generating trace events (time-series) for viewing in chrome://tracing or [Perfetto](https://ui.perfetto.dev/)
 Use Caliper's event trace service to collect timestamp info, where kernel timing can be viewed using browser trace profile views
