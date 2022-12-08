@@ -935,7 +935,7 @@ A Hatchet based snippet to fetch topdown.toplevel metric values at the leaf (Ker
 
 > Caveat for the code snippet above. If you run -atsc topdown.toplevel,profile.mpi  then the MPI Barrier routine will be nested at the leaf node vs expected Kernel.Tuning
 
-> Other caveats:  raw counter values are often noisy and require a lot of accommodation to collect accurate data; these include turning off Hyperthreading, turning off Prefetch as is done in Intel's Memory Latency Checker (requires Root), adding LFENCE instruction to serialize and bracket code under test, disable preemption and hard interrupts. See Andreas Abel's dissertation "Automatic Generation of Model of Microarchitectures" for more info on this and for a comprehensive look at the nanobench machinery.
+> Other caveats:  raw counter values are often noisy and require a lot of accommodation to collect accurate data; these include turning off Hyperthreading, turning off Prefetch as is done in Intel's Memory Latency Checker (requires Root), adding LFENCE instruction to serialize and bracket code under test, disable preemption and hard interrupts. See Andreas Abel's dissertation "Automatic Generation of Models of Microarchitectures" for more info on this and for a comprehensive look at the nanobench machinery.
 
 [Yasin's Paper](https://www.researchgate.net/publication/269302126_A_Top-Down_method_for_performance_analysis_and_counters_architecture)
 
