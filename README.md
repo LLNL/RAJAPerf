@@ -818,10 +818,10 @@ For much more on Caliper, read it's documentation here:
 [Caliper](http://software.llnl.gov/Caliper/)
 
 Caliper annotation is in the following tree structure
->* Variant  
->  *  Group  
->     *  Kernel  
->        *  Kernel.Tuning 
+>Variant  
+>&nbsp;&nbsp; Group  
+>&nbsp;&nbsp;&nbsp;&nbsp; Kernel  
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kernel.Tuning 
 ### Building with Caliper support
 Build against these Caliper versions
 ```asm
