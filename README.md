@@ -900,7 +900,7 @@ Caveats:
 1. When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
 2. Small kernels should be run at large problem sizes to minimize anomalous readings 
 3. Measured values are only relevant for the innermost level of the Caliper tree hierarchy, i.e. kernel.tuning under investigation
-4. Some lower level derived quantities may still appear anomalous with negative values. Collecting raw counters can help identify the discrepency
+4. Some lower level derived quantities may still appear anomalous with negative values. Collecting raw counters can help identify the discrepancy
 
 ```-atsc topdown-counters.all```
 
