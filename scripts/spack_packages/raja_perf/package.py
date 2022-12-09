@@ -80,7 +80,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     def initconfig_compiler_entries(self):
         spec = self.spec
         # Default entries are already defined in CachedCMakePackage, inherit them:
-        entries = super(RajaPerf, self).initconfig_compiler_entries()
+        entries = super(Raja, self).initconfig_compiler_entries()
 
         # Switch to hip as a CPP compiler.
         # adrienbernede-22-11:
@@ -115,7 +115,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
     def initconfig_hardware_entries(self):
         spec = self.spec
-        entries = super(RajaPerf, self).initconfig_hardware_entries()
+        entries = super(Raja, self).initconfig_hardware_entries()
 
         entries.append(cmake_cache_option("ENABLE_OPENMP", "+openmp" in spec))
 
