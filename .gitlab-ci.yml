@@ -1,19 +1,20 @@
 ###############################################################################
 # Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
-# See the RAJAPerf/COPYRIGHT file for details.
+# See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-# DESCRIPTION:
 ###############################################################################
 # General GitLab pipelines configurations for supercomputers and Linux clusters
 # at Lawrence Livermore National Laboratory (LLNL).
+#
 # This entire pipeline is LLNL-specific
 #
 # Important note: This file is a copy of the template provided by
-# llnl/radiuss-shared-ci. It should not require any change from the project.
+# llnl/radiuss-shared-ci. It should not require any change from the project to
+# get started but could feature project-specific stages.
 #
 # Instead, each project should provide:
 # - .gitlab/subscribed-pipelines.yml
