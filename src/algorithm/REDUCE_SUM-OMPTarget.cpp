@@ -76,12 +76,14 @@ void REDUCE_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
       RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sum(m_sum_init);
 
+      #pragma omp target data map(tofrom : sum)
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
+          RAJA::RangeSegment(ibegin, iend),
+        [=,&sum](Index_type i) {
           REDUCE_SUM_BODY;
       });
-
+      }
       m_sum = sum.get();
 
     }

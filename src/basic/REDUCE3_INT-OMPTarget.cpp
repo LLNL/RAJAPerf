@@ -84,12 +84,14 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
       RAJA::ReduceMin<RAJA::omp_target_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::omp_target_reduce, Int_type> vmax(m_vmax_init);
 
+      #pragma omp target data map(tofrom : vsum, vmin, vmax) map(to: vec) 
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
+        [=,&vsum, &vmin,&vmax](Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
-
+      }
       m_vsum += static_cast<Real_type>(vsum.get());
       m_vmin = RAJA_MIN(m_vmin, static_cast<Real_type>(vmin.get()));
       m_vmax = RAJA_MAX(m_vmax, static_cast<Real_type>(vmax.get()));

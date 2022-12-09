@@ -80,11 +80,13 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       RAJA::ReduceMinLoc<RAJA::omp_target_reduce, Real_type, Index_type> loc(
                                                   m_xmin_init, m_initloc);
 
+      #pragma omp target data map(tofrom : loc)
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+        RAJA::RangeSegment(ibegin, iend), [=,&loc](Index_type i) {
         FIRST_MIN_BODY_RAJA;
       });
-
+      }
       m_minloc = loc.getLoc();
 
     }

@@ -88,11 +88,13 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> sumx(m_sumx_init);
 
+      #pragma omp target data map(tofrom : sumx) 
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
-        RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
+        RAJA::RangeSegment(ibegin, iend), [=,&sumx](Index_type i) {
         TRAP_INT_BODY;
       });
-
+      }
       m_sumx += static_cast<Real_type>(sumx.get()) * h;
 
     }

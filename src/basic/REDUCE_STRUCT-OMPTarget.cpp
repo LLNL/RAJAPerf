@@ -105,12 +105,14 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid,
       RAJA::ReduceMax<RAJA::omp_target_reduce, Real_type> xmax(m_init_max);
       RAJA::ReduceMax<RAJA::omp_target_reduce, Real_type> ymax(m_init_max);
 
+      #pragma omp target data map(tofrom : xsum, ysum, xmin, ymin, xmax, ymax)
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
+        [=, &xsum, &ysum, &xmin, &ymin, &xmax, &ymax](Index_type i) {
         REDUCE_STRUCT_BODY_RAJA;
       });
-
+      }
       points.SetCenter(xsum.get()/(points.N),
                        ysum.get()/(points.N));
       points.SetXMin(xmin.get());

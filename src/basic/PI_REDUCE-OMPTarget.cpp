@@ -63,12 +63,14 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
       RAJA::ReduceSum<RAJA::omp_target_reduce, Real_type> pi(m_pi_init);
 
+      #pragma omp target data map(tofrom : pi) 
+      {
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend),
-        [=](Index_type i) {
+        [=,&pi](Index_type i) {
           PI_REDUCE_BODY;
       });
-
+      }
       m_pi = 4.0 * pi.get();
 
     }
