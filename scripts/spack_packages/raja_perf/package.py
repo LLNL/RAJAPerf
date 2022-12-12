@@ -355,6 +355,10 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         cfg.write(cmake_cache_option("ENABLE_BENCHMARKS", 'tests=benchmarks' in spec))
         cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
         cfg.write(cmake_cache_option("RAJA_PERFSUITE_USE_CALIPER","+caliper" in spec))
+        if "caliper" in self.spec:
+            cfg.write(cmake_cache_path("caliper_DIR", spec["caliper"].prefix+"/share/cmake/caliper/"))
+            cfg.write(cmake_cache_path("adiak_DIR", spec["adiak"].prefix+"/lib/cmake/adiak/"))
+        
 
         #######################
         # Close and save
