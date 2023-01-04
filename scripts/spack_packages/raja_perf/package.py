@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.camp import hip_repair_cache
 
 import socket
 import os
@@ -59,6 +60,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
+    version('0.12.0', tag='v0.12.0', submodules="True")
     version('0.11.0', tag='v0.11.0', submodules="True")
     version('0.10.0', tag='v0.10.0', submodules="True")
     version('0.9.0', tag='v0.9.0', submodules="True")
@@ -77,9 +79,19 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     variant('tests', default='basic', values=('none', 'basic', 'benchmarks'),
             multi=False, description='Tests to run')
 
-    depends_on('cmake@3.9:', type='build')
-    depends_on('blt@0.4.1', type='build', when='@main')
-    depends_on('blt@0.4.1:', type='build')
+    depends_on("blt")
+    depends_on("blt@0.5.0:", type="build", when="@0.12.0:")
+    depends_on("blt@0.4.1:", type="build", when="@0.11.0:")
+    depends_on("blt@0.4.0:", type="build", when="@0.8.0:")
+    depends_on("blt@0.3.0:", type="build", when="@:0.7.0")
+
+    depends_on("cmake@3.20:", when="@0.12.0:", type="build")
+    depends_on("cmake@3.23:", when="@0.12.0: +rocm", type="build")
+    depends_on("cmake@3.14:", when="@:0.12.0", type="build")
+
+    depends_on("llvm-openmp", when="+openmp %apple-clang")
+
+    depends_on("rocprim", when="+rocm")
 
     conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
@@ -280,6 +292,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             if not spec.satisfies('cuda_arch=none'):
                 cuda_arch = spec.variants['cuda_arch'].value
                 cfg.write(cmake_cache_string("CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES", '{0}'.format(cuda_arch[0])))
 
         else:
             cfg.write(cmake_cache_option("ENABLE_CUDA", False))
@@ -290,7 +303,6 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
@@ -328,9 +340,11 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         cfg.write(cmake_cache_option("ENABLE_OPENMP_TARGET", "+openmp_target" in spec))
         if "+openmp_target" in spec:
             if ('%xl' in spec):
-                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-qsmp=omp;-qoffload;-qnoeh;-qalias=noansi"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_COMPILE_FLAGS", "-qoffload;-qsmp=omp;-qnoeh;-qalias=noansi"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_LINK_FLAGS", "-qoffload;-qsmp=omp;-qnoeh;-qalias=noansi"))
             if ('%clang' in spec):
-                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_COMPILE_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_LINK_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
                 cfg.write(cmake_cache_option("ENABLE_CUDA", False))
 
 
