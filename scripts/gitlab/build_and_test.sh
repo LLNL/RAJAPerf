@@ -7,7 +7,7 @@ then
 fi
 
 ###############################################################################
-# Copyright (c) 2016-22, Lawrence Livermore National Security, LLC and RAJA
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC and RAJA
 # project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -130,8 +130,7 @@ fi
 
 build_dir="${build_root}/build_${hostconfig//.cmake/}"
 
-# TODO: This is from Umpire, could it work with RAJA ?
-#cmake_exe=`grep 'CMake executable' ${hostconfig_path} | cut -d ':' -f 2 | xargs`
+cmake_exe=`grep 'CMake executable' ${hostconfig_path} | cut -d ':' -f 2 | xargs`
 
 # Build
 if [[ "${option}" != "--deps-only" && "${option}" != "--test-only" ]]
@@ -144,7 +143,7 @@ then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo ""
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    echo "~~~~~ Building RAJA PerfSuite"
+    echo "~~~~~ Building RAJA Perf Suite"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     # Map CPU core allocations
@@ -177,25 +176,19 @@ then
     if [[ "${truehostname}" == "corona" ]]
     then
         module unload rocm
-        module load cmake/3.23.1
-    else
-        module load cmake/3.20.2
     fi
-
-    cmake \
+    $cmake_exe \
       -C ${hostconfig_path} \
       ${project_dir}
-    if echo ${spec} | grep -q "intel" ; then
-        cmake --build . -j 16
-        echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
-        echo "cmake --build . -j 16"
-        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    else
-        cmake --build . -j ${core_counts[$truehostname]}
-        echo "~~~~~~~~~ Build Command: ~~~~~~~~~~~~~~~~~~~~~"
-        echo "cmake --build . -j ${core_counts[$truehostname]}"
-        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    if ! $cmake_exe --build . -j ${core_counts[$truehostname]}
+    then
+        echo "ERROR: compilation failed, building with verbose output..."
+        $cmake_exe --build . --verbose -j 1
     fi
+
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~ RAJA Perf Suite Built"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     date
 fi
 
