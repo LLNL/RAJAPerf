@@ -373,7 +373,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         if "caliper" in self.spec:
             cfg.write(cmake_cache_path("caliper_DIR", spec["caliper"].prefix+"/share/cmake/caliper/"))
             cfg.write(cmake_cache_path("adiak_DIR", spec["adiak"].prefix+"/lib/cmake/adiak/"))
-        
+
 
         #######################
         # Close and save
