@@ -35,7 +35,7 @@ pgi_20_1_gcc_local_8_3_1:
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
 
-gcc_8_3_1:
+gcc_8_3_1_caliper:
   variables:
     SPEC: " ${PROJECT_RUBY_VARIANTS} +caliper %gcc@8.3.1 ${PROJECT_RUBY_DEPS}"
     RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=60 --nodes=1"
