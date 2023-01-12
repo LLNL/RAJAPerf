@@ -27,10 +27,11 @@ spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
 raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
+use_dev_shm=${USE_DEV_SHM:-True}
 
 prefix=""
 
-if [[ -d /dev/shm ]]
+if [[ -d /dev/shm && $use_dev_shm ]]
 then
     prefix="/dev/shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
@@ -43,6 +44,9 @@ then
 
     prefix="${prefix}-${job_unique_id}"
     mkdir -p ${prefix}
+else
+    prefix="spack-and-build-root"
+    mkdir ${prefix}
 fi
 
 # Dependencies
@@ -62,20 +66,15 @@ then
         exit 1
     fi
 
-    prefix_opt=""
+    prefix_opt="--prefix=${prefix}"
 
-    if [[ -d /dev/shm ]]
-    then
-        prefix_opt="--prefix=${prefix}"
-
-        # We force Spack to put all generated files (cache and configuration of
-        # all sorts) in a unique location so that there can be no collision
-        # with existing or concurrent Spack.
-        spack_user_cache="${prefix}/spack-user-cache"
-        export SPACK_DISABLE_LOCAL_CONFIG=""
-        export SPACK_USER_CACHE_PATH="${spack_user_cache}"
-        mkdir -p ${spack_user_cache}
-    fi
+    # We force Spack to put all generated files (cache and configuration of
+    # all sorts) in a unique location so that there can be no collision
+    # with existing or concurrent Spack.
+    spack_user_cache="${prefix}/spack-user-cache"
+    export SPACK_DISABLE_LOCAL_CONFIG=""
+    export SPACK_USER_CACHE_PATH="${spack_user_cache}"
+    mkdir -p ${spack_user_cache}
 
     ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
 
@@ -118,7 +117,7 @@ hostconfig=$(basename ${hostconfig_path})
 # Build Directory
 if [[ -z ${build_root} ]]
 then
-    if [[ -d /dev/shm ]]
+    if [[ -d /dev/shm && $use_dev_shm ]]
     then
         build_root="${prefix}"
     else
@@ -249,6 +248,10 @@ then
     tree Testing
     xsltproc -o junit.xml ${project_dir}/blt/tests/ctest-to-junit.xsl Testing/*/Test.xml
     mv junit.xml ${project_dir}/junit.xml
+
+    cali_dir=${project_dir}/caliper_reports
+    mkdir -p ${cali_dir}
+    cp test/*.cali ${cali_dir}
 
     if grep -q "Errors while running CTest" ./tests_output.txt
     then
