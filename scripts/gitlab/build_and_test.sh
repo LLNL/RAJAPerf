@@ -250,9 +250,14 @@ then
     mv junit.xml ${project_dir}/junit.xml
 
     if ( find test -name '*.cali' | grep -q '.' ); then
-        cali_dir=${project_dir}/caliper-reports
-        mkdir -p ${cali_dir}
-        cp test/*.cali ${cali_dir}
+        reports_dir=${project_dir}/caliper-reports
+        mkdir -p ${reports_dir}
+        cp test/*.cali ${reports_dir}
+
+        baselines_dir=${project_dir}/caliper-baselines
+        for cali_file in "Base_Seq" "Base_OpenMP" "Lambda_Seq" "Lambda_OpenMP" "RAJA_Seq" "RAJA_OpenMP"; do
+            ./gitlab/hatchet_analysis.py --report=${reports_dir}/${cali_file} --baseline=${baselines_dir}/${cali_file}
+        done
     fi
 
     if grep -q "Errors while running CTest" ./tests_output.txt
