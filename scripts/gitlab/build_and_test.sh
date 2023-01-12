@@ -250,7 +250,7 @@ then
     mv junit.xml ${project_dir}/junit.xml
 
     if ( find test -name '*.cali' | grep -q '.' ); then
-        cali_dir=${project_dir}/caliper_reports
+        cali_dir=${project_dir}/caliper-reports
         mkdir -p ${cali_dir}
         cp test/*.cali ${cali_dir}
     fi
