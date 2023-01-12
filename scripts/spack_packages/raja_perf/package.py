@@ -5,6 +5,7 @@
 
 
 from spack import *
+from spack.pkg.builtin.camp import hip_repair_cache
 
 import socket
 import os
@@ -59,6 +60,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
+    version('0.12.0', tag='v0.12.0', submodules="True")
     version('0.11.0', tag='v0.11.0', submodules="True")
     version('0.10.0', tag='v0.10.0', submodules="True")
     version('0.9.0', tag='v0.9.0', submodules="True")
@@ -77,9 +79,19 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     variant('tests', default='basic', values=('none', 'basic', 'benchmarks'),
             multi=False, description='Tests to run')
 
-    depends_on('cmake@3.9:', type='build')
-    depends_on('blt@0.4.1', type='build', when='@main')
-    depends_on('blt@0.4.1:', type='build')
+    depends_on("blt")
+    depends_on("blt@0.5.0:", type="build", when="@0.12.0:")
+    depends_on("blt@0.4.1:", type="build", when="@0.11.0:")
+    depends_on("blt@0.4.0:", type="build", when="@0.8.0:")
+    depends_on("blt@0.3.0:", type="build", when="@:0.7.0")
+
+    depends_on("cmake@3.20:", when="@0.12.0:", type="build")
+    depends_on("cmake@3.23:", when="@0.12.0: +rocm", type="build")
+    depends_on("cmake@3.14:", when="@:0.12.0", type="build")
+
+    depends_on("llvm-openmp", when="+openmp %apple-clang")
+
+    depends_on("rocprim", when="+rocm")
 
     conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
@@ -217,10 +229,11 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         gcc_name_regex = re.compile(".*gcc-name.*")
 
         using_toolchain = list(filter(gcc_toolchain_regex.match, spec.compiler_flags['cxxflags']))
+
         if(using_toolchain):
           gcc_toolchain_path = gcc_toolchain_regex.match(using_toolchain[0])
         using_gcc_name = list(filter(gcc_name_regex.match, spec.compiler_flags['cxxflags']))
-        compilers_using_toolchain = ["pgi", "xl", "icpc"]
+        compilers_using_toolchain = ["pgi", "xl", "icpc", "clang"]
         if any(compiler in cpp_compiler for compiler in compilers_using_toolchain):
             if using_toolchain or using_gcc_name:
                 cfg.write(cmake_cache_entry("BLT_CMAKE_IMPLICIT_LINK_DIRECTORIES_EXCLUDE",
@@ -265,6 +278,12 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
                 cuda_release_flags = "-O3 -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -Ofast -Xcompiler -finline-functions"
                 cuda_debug_flags = "-O0 -g -Xcompiler -O0 -Xcompiler -finline-functions"
+
+            if (using_toolchain):
+                gcc_prefix = gcc_toolchain_path.group(1)
+                cuda_release_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
+                cuda_reldebinf_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
+                cuda_debug_flags += " -Xcompiler --gcc-toolchain={0}".format(gcc_prefix)
                 
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELEASE", cuda_release_flags))
             cfg.write(cmake_cache_string("CMAKE_CUDA_FLAGS_RELWITHDEBINFO", cuda_reldebinf_flags))
@@ -273,6 +292,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             if not spec.satisfies('cuda_arch=none'):
                 cuda_arch = spec.variants['cuda_arch'].value
                 cfg.write(cmake_cache_string("CUDA_ARCH", 'sm_{0}'.format(cuda_arch[0])))
+                cfg.write(cmake_cache_string("CMAKE_CUDA_ARCHITECTURES", '{0}'.format(cuda_arch[0])))
 
         else:
             cfg.write(cmake_cache_option("ENABLE_CUDA", False))
@@ -283,7 +303,6 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             cfg.write("#------------------{0}\n\n".format("-" * 60))
 
             cfg.write(cmake_cache_option("ENABLE_HIP", True))
-            cfg.write(cmake_cache_option("ENABLE_TESTS", not 'tests=none' in spec or self.run_tests))
 
             hip_root = spec['hip'].prefix
             rocm_root = hip_root + "/.."
@@ -321,9 +340,11 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
         cfg.write(cmake_cache_option("ENABLE_OPENMP_TARGET", "+openmp_target" in spec))
         if "+openmp_target" in spec:
             if ('%xl' in spec):
-                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-qsmp=omp;-qoffload;-qnoeh;-qalias=noansi"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_COMPILE_FLAGS", "-qoffload;-qsmp=omp;-qnoeh;-qalias=noansi"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_LINK_FLAGS", "-qoffload;-qsmp=omp;-qnoeh;-qalias=noansi"))
             if ('%clang' in spec):
-                cfg.write(cmake_cache_string("OpenMP_CXX_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_COMPILE_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
+                cfg.write(cmake_cache_string("BLT_OPENMP_LINK_FLAGS", "-fopenmp;-fopenmp-targets=nvptx64-nvidia-cuda"))
                 cfg.write(cmake_cache_option("ENABLE_CUDA", False))
 
 

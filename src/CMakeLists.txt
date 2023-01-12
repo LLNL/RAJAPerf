@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -9,30 +9,39 @@
 include_directories(.)
 
 add_subdirectory(common)
-add_subdirectory(apps)
 add_subdirectory(basic)
+add_subdirectory(basic-kokkos)
+add_subdirectory(apps)
 add_subdirectory(lcals)
+add_subdirectory(lcals-kokkos)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     common
     apps
     basic
+    basic-kokkos
     lcals
+    lcals-kokkos
     polybench
     stream
+    stream-kokkos
     algorithm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
-if(ENABLE_TARGET_OPENMP)
+if(RAJA_ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 
 blt_add_executable(
   NAME raja-perf-omptarget.exe
   SOURCES RAJAPerfSuiteDriver.cpp
   apps/AppsData.cpp
+  apps/CONVECTION3DPA.cpp
+  apps/CONVECTION3DPA-Seq.cpp
+  apps/CONVECTION3DPA-OMPTarget.cpp
   apps/DEL_DOT_VEC_2D.cpp
   apps/DEL_DOT_VEC_2D-Seq.cpp
   apps/DEL_DOT_VEC_2D-OMPTarget.cpp
@@ -222,8 +231,17 @@ blt_add_executable(
   algorithm/REDUCE_SUM.cpp
   algorithm/REDUCE_SUM-Seq.cpp
   algorithm/REDUCE_SUM-OMPTarget.cpp
-  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
+  algorithm/MEMSET.cpp
+  algorithm/MEMSET-Seq.cpp
+  algorithm/MEMSET-OMPTarget.cpp
+  algorithm/MEMCPY.cpp
+  algorithm/MEMCPY-Seq.cpp
+  algorithm/MEMCPY-OMPTarget.cpp
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
+install( TARGETS raja-perf-omptarget.exe
+         RUNTIME DESTINATION bin
+       )
 
 else()
 blt_add_executable(
@@ -231,4 +249,7 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
+install( TARGETS raja-perf.exe
+         RUNTIME DESTINATION bin
+       )
 endif()

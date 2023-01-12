@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -9,6 +9,12 @@
 blt_add_library(
   NAME apps
   SOURCES AppsData.cpp
+          CONVECTION3DPA.cpp
+          CONVECTION3DPA-Cuda.cpp
+          CONVECTION3DPA-Hip.cpp
+          CONVECTION3DPA-Seq.cpp
+          CONVECTION3DPA-OMP.cpp
+          CONVECTION3DPA-OMPTarget.cpp
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 

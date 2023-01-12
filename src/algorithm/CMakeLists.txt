@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -13,6 +13,7 @@ blt_add_library(
           SCAN-Hip.cpp
           SCAN-Cuda.cpp
           SCAN-OMP.cpp
+          SCAN-OMPTarget.cpp
           SORT.cpp
           SORT-Seq.cpp
           SORT-Hip.cpp
@@ -29,5 +30,17 @@ blt_add_library(
           REDUCE_SUM-Cuda.cpp
           REDUCE_SUM-OMP.cpp
           REDUCE_SUM-OMPTarget.cpp
+          MEMSET.cpp
+          MEMSET-Seq.cpp
+          MEMSET-Hip.cpp
+          MEMSET-Cuda.cpp
+          MEMSET-OMP.cpp
+          MEMSET-OMPTarget.cpp
+          MEMCPY.cpp
+          MEMCPY-Seq.cpp
+          MEMCPY-Hip.cpp
+          MEMCPY-Cuda.cpp
+          MEMCPY-OMP.cpp
+          MEMCPY-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

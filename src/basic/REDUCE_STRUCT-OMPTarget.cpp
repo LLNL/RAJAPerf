@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -27,28 +27,33 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define REDUCE_STRUCT_DATA_SETUP_OMP_TARGET \
+  PointsType points; \
+  points.N = getActualProblemSize(); \
+\
   int hid = omp_get_initial_device(); \
   int did = omp_get_default_device(); \
 \
-  allocAndInitHipDeviceData(points.x, m_x, points.N, did, hid); \
-  allocAndInitHipDeviceData(points.y, m_y, points.N, did, hid); 
+  allocAndInitOpenMPDeviceData(points.x, m_x, points.N, did, hid); \
+  allocAndInitOpenMPDeviceData(points.y, m_y, points.N, did, hid); 
 
 #define REDUCE_STRUCT_DATA_TEARDOWN_OMP_TARGET \
-  deallocHipDeviceData(points.x); \
-  deallocHipDeviceData(points.y); \
+  deallocOpenMPDeviceData(points.x, did); \
+  deallocOpenMPDeviceData(points.y, did); \
 
 
-void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
+void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid, 
+                                           size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  REDUCE_STRUCT_DATA_SETUP;
-
   if ( vid == Base_OpenMPTarget ) {
 
     REDUCE_STRUCT_DATA_SETUP_OMP_TARGET;
+
+    Real_ptr xa = points.x;
+    Real_ptr ya = points.y;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -57,7 +62,7 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
       Real_type xmin = m_init_min; Real_type ymin = m_init_min;
       Real_type xmax = m_init_max; Real_type ymax = m_init_max;
 
-      #pragma omp target is_device_ptr(vec) device( did ) map(tofrom:xsum, xmin, xmax, ysum, ymin, ymax)
+      #pragma omp target is_device_ptr(xa, ya) device( did ) map(tofrom:xsum, xmin, xmax, ysum, ymin, ymax)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static,1) \
                                reduction(+:xsum) \
                                reduction(min:xmin) \
@@ -66,7 +71,12 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
                                reduction(min:ymin), \
                                reduction(max:ymax)
       for (Index_type i = ibegin; i < iend; ++i ) {
-        REDUCE_STRUCT_BODY;
+        xsum += xa[i] ;
+        xmin = RAJA_MIN(xmin, xa[i]) ;
+        xmax = RAJA_MAX(xmax, xa[i]) ;
+        ysum += ya[i] ;
+        ymin = RAJA_MIN(ymin, ya[i]) ;
+        ymax = RAJA_MAX(ymax, ya[i]) ;
       }
 
       points.SetCenter(xsum/points.N, ysum/points.N);
@@ -115,7 +125,7 @@ void REDUCE_STRUCT::runOpenMPTargetVariant(VariantID vid)
     REDUCE_STRUCT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
-     std::cout << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid << std::endl;
+     getCout() << "\n  REDUCE_STRUCT : Unknown OMP Target variant id = " << vid << std::endl;
   }
 
 }

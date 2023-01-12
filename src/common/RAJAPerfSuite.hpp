@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,7 +7,7 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 ///
-/// Tyoes and methods for managing Suite kernels, variants, features, etc..
+/// Types and methods for managing Suite kernels, variants, features, etc..
 ///
 
 #ifndef RAJAPerfSuite_HPP
@@ -131,6 +131,7 @@ enum KernelID {
 //
 // Apps kernels...
 //
+  Apps_CONVECTION3DPA,
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
@@ -152,6 +153,8 @@ enum KernelID {
   Algorithm_SORT,
   Algorithm_SORTPAIRS,
   Algorithm_REDUCE_SUM,
+  Algorithm_MEMSET,
+  Algorithm_MEMCPY,
 
   NumKernels // Keep this one last and NEVER comment out (!!)
 
@@ -190,6 +193,8 @@ enum VariantID {
   Base_HIP,
   Lambda_HIP,
   RAJA_HIP,
+
+  Kokkos_Lambda,
 
   NumVariants // Keep this one last and NEVER comment out (!!)
 

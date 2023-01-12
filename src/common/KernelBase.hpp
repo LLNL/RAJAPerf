@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -88,6 +88,10 @@ public:
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
+#endif
+#if defined(RUN_KOKKOS)
+  virtual void setKokkosTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 
@@ -229,6 +233,12 @@ public:
 #endif
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
+#endif
+#if defined(RUN_KOKKOS)
+  virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
+  {
+     getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
+  }
 #endif
 
 protected:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors. 
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -11,7 +11,7 @@
 #=============================================================================
 # Change the copyright date in all files that contain the text
 # "the RAJAPerf/LICENSE file", which is part of the copyright statement
-# at the top of each RAJA file. We use this to distinguish RAJA files from
+# at the top of each RAJA file. We use this to distinguish RAJAPerf files from
 # that we do not own (e.g., other repos included as submodules), which we do
 # not want to modify. Note that this file and *.git files are omitted
 # as well.
@@ -46,14 +46,18 @@ for i in `cat files2change`
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/Copyright (c) 2017-21/Copyright (c) 2017-22/" $i.sed.bak > $i
+    sed "s/Copyright (c) 2017-22/Copyright (c) 2017-23/" $i.sed.bak > $i
 done
 
-for i in LICENSE RELEASE README.md
+echo LICENSE
+cp LICENSE LICENSE.sed.bak
+sed "s/Copyright (c) 2017-2022/Copyright (c) 2017-2023/" LICENSE.sed.bak > LICENSE
+
+for i in RELEASE README.md
 do
     echo $i
     cp $i $i.sed.bak
-    sed "s/2017-2021/2017-2022/" $i.sed.bak > $i
+    sed "s/2017-22/2017-23/" $i.sed.bak > $i
 done
 
 #=============================================================================

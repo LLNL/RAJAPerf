@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -330,7 +330,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           got_someting = true;
           int gpu_block_size = ::atoi( opt.c_str() );
           if ( gpu_block_size <= 0 ) {
-            std::cout << "\nBad input:"
+            getCout() << "\nBad input:"
                       << " must give --gpu_block_size POSITIVE values (int)"
                       << std::endl;
             input_state = BadInput;
@@ -341,7 +341,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
       if (!got_someting) {
-        std::cout << "\nBad input:"
+        getCout() << "\nBad input:"
                   << " must give --gpu_block_size one or more values (int)"
                   << std::endl;
         input_state = BadInput;
