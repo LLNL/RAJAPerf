@@ -256,7 +256,7 @@ then
 
         baselines_dir=${project_dir}/caliper-baselines
         for cali_file in "Base_Seq" "Base_OpenMP" "Lambda_Seq" "Lambda_OpenMP" "RAJA_Seq" "RAJA_OpenMP"; do
-            ./gitlab/hatchet_analysis.py --report=${reports_dir}/${cali_file} --baseline=${baselines_dir}/${cali_file}
+            ./scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/${cali_file} --baseline=${baselines_dir}/${cali_file}
         done
     fi
 
