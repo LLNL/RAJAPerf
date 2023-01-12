@@ -249,9 +249,11 @@ then
     xsltproc -o junit.xml ${project_dir}/blt/tests/ctest-to-junit.xsl Testing/*/Test.xml
     mv junit.xml ${project_dir}/junit.xml
 
-    cali_dir=${project_dir}/caliper_reports
-    mkdir -p ${cali_dir}
-    cp test/*.cali ${cali_dir}
+    if ( find test -name '*.cali' | grep -q '.' ); then
+        cali_dir=${project_dir}/caliper_reports
+        mkdir -p ${cali_dir}
+        cp test/*.cali ${cali_dir}
+    fi
 
     if grep -q "Errors while running CTest" ./tests_output.txt
     then
