@@ -15,7 +15,7 @@ set(RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS
     stream
     algorithm)
 list(APPEND RAJA_PERFSUITE_TEST_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
- 
+
 raja_add_test(
   NAME test-raja-perf-suite
   SOURCES test-raja-perf-suite.cpp
