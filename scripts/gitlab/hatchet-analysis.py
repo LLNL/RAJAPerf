@@ -6,7 +6,7 @@ import datetime as dt
 
 from optparse import OptionParser
 
-parser=optparse.OptionParser()
+parser = OptionParser()
 
 parser.add_option("-r", "--report", metavar="FILE", help="Pass the caliper report file.")
 parser.add_option("-b", "--baseline", metavar="FILE", help="Pass the caliper baseline file.")
