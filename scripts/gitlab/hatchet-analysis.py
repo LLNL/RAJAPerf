@@ -34,20 +34,20 @@ gf3 = gf2 - gf1
 print(gf3.dataframe.columns)
 
 # Sort resulting DataFrame by ``time`` column in descending order.
-sorted_df = gf3.dataframe.sort_values(by=["sum#sum#time.duration"], ascending=False)
+sorted_df = gf3.dataframe.sort_values(by=["sum#inclusive#sum#time.duration"], ascending=False)
 
 # Display resulting DataFrame.
 print(sorted_df.head())
 
 # Display calltree
-print(gf3.tree(metric_column="sum#sum#time.duration"))
+print(gf3.tree(metric_column="sum#inclusive#sum#time.duration"))
 
 # Count number of nodes in calltree
 print("Num nodes:", len(gf3.graph))
 
 # Get a single metric value for a given node
 root_node = gf3.graph.roots[0]
-metric = "sum#sum#time.duration"
+metric = "sum#inclusive#sum#time.duration"
 print("")
 print("Node name =", root_node.frame["name"])
 print(metric, "=", gf3.dataframe.loc[root_node, metric])
