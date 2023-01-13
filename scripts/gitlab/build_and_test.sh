@@ -254,7 +254,7 @@ then
         mkdir -p ${reports_dir}
         cp test/*.cali ${reports_dir}
 
-        baselines_dir=${project_dir}/caliper-baselines
+        baselines_dir=${project_dir}/test/caliper-baselines
         for cali_file in "Base_Seq" "Base_OpenMP" "Lambda_Seq" "Lambda_OpenMP" "RAJA_Seq" "RAJA_OpenMP"; do
             ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/${cali_file}.cali --baseline=${baselines_dir}/${cali_file}.cali
         done
