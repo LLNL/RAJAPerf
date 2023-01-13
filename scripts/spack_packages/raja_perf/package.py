@@ -3,17 +3,15 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-
-from spack import *
-from spack.pkg.builtin.camp import hip_repair_cache
-
-import socket
 import os
+import socket
+import re
 
 from os import environ as env
 from os.path import join as pjoin
 
-import re
+from spack import *
+from spack.pkg.builtin.camp import hip_repair_cache
 
 def cmake_cache_entry(name, value, comment=""):
     """Generate a string for a cmake cache variable"""
@@ -34,32 +32,15 @@ def cmake_cache_option(name, boolean_value, comment=""):
     return 'set(%s %s CACHE BOOL "%s")\n\n' % (name,value,comment)
 
 
-def get_spec_path(spec, package_name, path_replacements = {}, use_bin = False) :
-    """Extracts the prefix path for the given spack package
-       path_replacements is a dictionary with string replacements for the path.
-    """
-
-    if not use_bin:
-        path = spec[package_name].prefix
-    else:
-        path = spec[package_name].prefix.bin
-
-    path = os.path.realpath(path)
-
-    for key in path_replacements:
-        path = path.replace(key, path_replacements[key])
-
-    return path
-
-
 class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
-    """RAJAPerf Suite Framework."""
+    """RAJA Performance Suite."""
 
     homepage = "http://software.llnl.gov/RAJAPerf/"
     git      = "https://github.com/LLNL/RAJAPerf.git"
 
     version('develop', branch='develop', submodules='True')
     version('main',  branch='main',  submodules='True')
+    version('2022.10.0', tag='v2022.10.0', submodules="True")
     version('0.12.0', tag='v0.12.0', submodules="True")
     version('0.11.0', tag='v0.11.0', submodules="True")
     version('0.10.0', tag='v0.10.0', submodules="True")
@@ -80,6 +61,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
             multi=False, description='Tests to run')
 
     depends_on("blt")
+    depends_on("blt@0.5.2:", type="build", when="@2022.10.0:")
     depends_on("blt@0.5.0:", type="build", when="@0.12.0:")
     depends_on("blt@0.4.1:", type="build", when="@0.11.0:")
     depends_on("blt@0.4.0:", type="build", when="@0.8.0:")
@@ -93,7 +75,6 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("rocprim", when="+rocm")
 
-    conflicts('+openmp', when='+rocm')
     conflicts('~openmp', when='+openmp_target', msg='OpenMP target requires OpenMP')
 
     phases = ['hostconfig', 'cmake', 'build', 'install']
@@ -124,7 +105,7 @@ class RajaPerf(CMakePackage, CudaPackage, ROCmPackage):
     def hostconfig(self, spec, prefix, py_site_pkgs_dir=None):
         """
         This method creates a 'host-config' file that specifies
-        all of the options used to configure and build Umpire.
+        all of the options used to configure and build RAJAPerf.
 
         For more details about 'host-config' files see:
             http://software.llnl.gov/conduit/building.html
