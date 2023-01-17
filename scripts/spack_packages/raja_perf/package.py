@@ -62,8 +62,6 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
     conflicts("~openmp", when="+openmp_target", msg="OpenMP target requires OpenMP")
     conflicts("+cuda", when="+openmp_target", msg="Cuda may not be activated when openmp_target is ON")
 
-    phases = ["hostconfig", "cmake", "build", "install"]
-
     def _get_sys_type(self, spec):
         sys_type = str(spec.architecture)
         # if on llnl systems, we can use the SYS_TYPE
@@ -96,7 +94,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
         spec = self.spec
         compiler = self.compiler
         # Default entries are already defined in CachedCMakePackage, inherit them:
-        entries = super(Raja, self).initconfig_compiler_entries()
+        entries = super(RajaPerf, self).initconfig_compiler_entries()
 
         # Switch to hip as a CPP compiler.
         # adrienbernede-22-11:
@@ -140,7 +138,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
     def initconfig_hardware_entries(self):
         spec = self.spec
         compiler = self.compiler
-        entries = super(Raja, self).initconfig_hardware_entries()
+        entries = super(RajaPerf, self).initconfig_hardware_entries()
 
         entries.append(cmake_cache_option("ENABLE_OPENMP", "+openmp" in spec))
 
