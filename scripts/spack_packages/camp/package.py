@@ -58,9 +58,12 @@ def hip_for_radiuss_projects(options, spec, spec_compiler):
     # adrienbernede-22-11:
     #   Specific to Umpire, attempt port to RAJA and CHAI
     hip_link_flags = ""
-    if "%gcc" in spec:
-        gcc_bin = os.path.dirname(spec_compiler.cxx)
-        gcc_prefix = join_path(gcc_bin, "..")
+    if "%gcc" in spec or spec_uses_toolchain(spec):
+        if "%gcc" in spec:
+            gcc_bin = os.path.dirname(spec_compiler.cxx)
+            gcc_prefix = join_path(gcc_bin, "..")
+        else:
+            gcc_prefix = spec_uses_toolchain(spec)[0]
         options.append(cmake_cache_string("HIP_CLANG_FLAGS", "--gcc-toolchain={0}".format(gcc_prefix)))
         options.append(cmake_cache_string("CMAKE_EXE_LINKER_FLAGS", hip_link_flags + " -Wl,-rpath {}/lib64".format(gcc_prefix)))
     else:
