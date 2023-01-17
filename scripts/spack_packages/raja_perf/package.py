@@ -154,10 +154,10 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
 
             # Custom options. We place everything in CMAKE_CUDA_FLAGS_(RELEASE|RELWITHDEBINFO|DEBUG) which are not set by cuda_for_radiuss_projects
             if ("xl" in cpp_compiler):
-                all_targets_flags = "-Xcompiler -qstrict -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi"
-                                  + "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh"
-                                  + "-Xcompiler -qsuppress=1500-029 -Xcompiler -qsuppress=1500-036"
-                                  + "-Xcompiler -qsuppress=1500-030"
+                all_targets_flags = "-Xcompiler -qstrict -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi" \
+                                  + "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh" \
+                                  + "-Xcompiler -qsuppress=1500-029 -Xcompiler -qsuppress=1500-036" \
+                                  + "-Xcompiler -qsuppress=1500-030" \
 
                 cuda_release_flags = "-O3 -Xcompiler -O2 " + all_targets_flags
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -O2 " + all_targets_flags
