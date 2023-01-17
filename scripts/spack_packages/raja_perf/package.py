@@ -130,7 +130,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
         # adrienbernede-23-01
         # Maybe we want to share this in the above blt_link_helpers function.
         compilers_using_cxx14 = ["intel-17", "intel-18", "xl"]
-        if any(compiler in cpp_compiler for compiler in compilers_using_cxx14):
+        if any(compiler in self.compiler.cxx for compiler in compilers_using_cxx14):
             entries.append(cmake_cache_string("BLT_CXX_STD", "c++14"))
 
         return entries
@@ -151,7 +151,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
             cuda_for_radiuss_projects(entries, spec)
 
             # Custom options. We place everything in CMAKE_CUDA_FLAGS_(RELEASE|RELWITHDEBINFO|DEBUG) which are not set by cuda_for_radiuss_projects
-            if ("xl" in cpp_compiler):
+            if ("xl" in self.compiler.cxx):
                 all_targets_flags = "-Xcompiler -qstrict -Xcompiler -qxlcompatmacros -Xcompiler -qalias=noansi" \
                                   + "-Xcompiler -qsmp=omp -Xcompiler -qhot -Xcompiler -qnoeh" \
                                   + "-Xcompiler -qsuppress=1500-029 -Xcompiler -qsuppress=1500-036" \
@@ -161,7 +161,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
                 cuda_reldebinf_flags = "-O3 -g -Xcompiler -O2 " + all_targets_flags
                 cuda_debug_flags = "-O0 -g -Xcompiler -O2 " + all_targets_flags
 
-            elif ("gcc" in cpp_compiler):
+            elif ("gcc" in self.compiler.cxx):
                 all_targets_flags = "-Xcompiler -finline-functions -Xcompiler -finline-limit=20000"
 
                 cuda_release_flags = "-O3 -Xcompiler -Ofast " + all_targets_flags
