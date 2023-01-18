@@ -35,6 +35,8 @@ void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   SORT_DATA_SETUP;
 
   if ( vid == RAJA_CUDA ) {
@@ -44,7 +46,7 @@ void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort< RAJA::cuda_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORT_ARGS);
+      RAJA::sort< RAJA::cuda_exec<default_gpu_block_size, true /*async*/> >(res, RAJA_SORT_ARGS);
 
     }
     stopTimer();

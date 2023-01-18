@@ -46,6 +46,8 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -55,7 +57,7 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk( cudaMemsetAsync(MEMSET_STD_ARGS, 0) );
+      cudaErrchk( cudaMemsetAsync(MEMSET_STD_ARGS, res.get_stream()) );
 
     }
     stopTimer();
@@ -65,8 +67,6 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
   } else if ( vid == RAJA_CUDA ) {
 
     MEMSET_DATA_SETUP_CUDA;
-
-    camp::resources::Cuda res = camp::resources::Cuda::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -93,6 +93,8 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -104,7 +106,7 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       memset<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( x,
+                  sizeof(Real_type)*block_size, res.get_stream()>>>( x,
                                                    val,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
@@ -126,7 +128,7 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
           ibegin, iend, memset_lambda );
       cudaErrchk( cudaGetLastError() );
 
@@ -142,7 +144,7 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMSET_BODY;
       });

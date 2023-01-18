@@ -70,13 +70,15 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
     REDUCE_SUM_DATA_SETUP_CUDA;
 
-    cudaStream_t stream = 0;
+    cudaStream_t stream = res.get_stream();
 
     int len = iend - ibegin;
 
@@ -141,6 +143,8 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -157,7 +161,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       reduce_sum<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( x,
+                  sizeof(Real_type)*block_size, res.get_stream()>>>( x,
                                                    dsum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
@@ -184,7 +188,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });
