@@ -36,7 +36,8 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+                                      omp_out = MinLoc_compare(omp_out, omp_in)) \
+                                      initializer (omp_priv = omp_orig)
 
         FIRST_MIN_MINLOC_INIT;
 
@@ -63,7 +64,8 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         #pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+                                      omp_out = MinLoc_compare(omp_out, omp_in)) \
+                                      initializer (omp_priv = omp_orig)
 
         FIRST_MIN_MINLOC_INIT;
 
