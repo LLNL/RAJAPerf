@@ -89,6 +89,8 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   LTIMES_NOVIEW_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -102,7 +104,7 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
       LTIMES_NOVIEW_NBLOCKS_CUDA;
 
       ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                   <<<nblocks, nthreads_per_block>>>(phidat, elldat, psidat,
+                   <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(phidat, elldat, psidat,
                                                      num_d,
                                                      num_m, num_g, num_z);
       cudaErrchk( cudaGetLastError() );
@@ -123,7 +125,7 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
       LTIMES_NOVIEW_NBLOCKS_CUDA;
 
       ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                       <<<nblocks, nthreads_per_block>>>(num_m, num_g, num_z,
+                       <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(num_m, num_g, num_z,
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_NOVIEW_BODY;
@@ -168,10 +170,11 @@ void LTIMES_NOVIEW::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, num_d),
                                                RAJA::RangeSegment(0, num_z),
                                                RAJA::RangeSegment(0, num_g),
                                                RAJA::RangeSegment(0, num_m)),
+                                       res,
         [=] __device__ (Index_type d, Index_type z, Index_type g, Index_type m) {
         LTIMES_NOVIEW_BODY;
       });

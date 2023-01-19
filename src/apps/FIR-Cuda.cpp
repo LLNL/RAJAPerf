@@ -92,6 +92,8 @@ void FIR::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize() - m_coefflen;
 
+  auto res{getCudaResource()};
+
   FIR_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -106,12 +108,12 @@ void FIR::runCudaVariantImpl(VariantID vid)
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
 #if defined(USE_CUDA_CONSTANT_MEMORY)
-       fir<block_size><<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( out, in,
                                        coefflen,
                                        iend );
        cudaErrchk( cudaGetLastError() );
 #else
-       fir<block_size><<<grid_size, block_size>>>( out, in,
+       fir<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );
@@ -132,7 +134,7 @@ void FIR::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIR_BODY;
        });

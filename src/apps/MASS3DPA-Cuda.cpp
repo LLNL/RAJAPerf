@@ -106,6 +106,8 @@ template < size_t block_size >
 void MASS3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   MASS3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -119,7 +121,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Mass3DPA<block_size><<<NE, nthreads_per_block>>>(B, Bt, D, X, Y);
+      Mass3DPA<block_size><<<NE, nthreads_per_block, 0, res.get_stream()>>>(B, Bt, D, X, Y);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -147,7 +149,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
                          RAJA::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {

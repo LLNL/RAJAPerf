@@ -70,6 +70,8 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   PRESSURE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -81,12 +83,12 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-       pressurecalc1<block_size><<<grid_size, block_size>>>( bvc, compression,
+       pressurecalc1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( bvc, compression,
                                                  cls,
                                                  iend );
        cudaErrchk( cudaGetLastError() );
 
-       pressurecalc2<block_size><<<grid_size, block_size>>>( p_new, bvc, e_old,
+       pressurecalc2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
@@ -112,12 +114,12 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });
