@@ -45,13 +45,15 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   SCAN_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
     SCAN_DATA_SETUP_HIP;
 
-    hipStream_t stream = 0;
+    hipStream_t stream = res.get_stream();
 
     RAJA::operators::plus<Real_type> binary_op;
     Real_type init_val = 0.0;
@@ -125,7 +127,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::exclusive_scan< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SCAN_ARGS);
+      RAJA::exclusive_scan< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(res, RAJA_SCAN_ARGS);
 
     }
     stopTimer();

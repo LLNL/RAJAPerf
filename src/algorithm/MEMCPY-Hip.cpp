@@ -48,6 +48,8 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -57,7 +59,7 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS, hipMemcpyDefault, 0) );
+      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS, hipMemcpyDefault, res.get_stream()) );
 
     }
     stopTimer();
@@ -67,8 +69,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
   } else if ( vid == RAJA_HIP ) {
 
     MEMCPY_DATA_SETUP_HIP;
-
-    camp::resources::Hip res = camp::resources::Hip::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -95,6 +95,8 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MEMCPY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -106,7 +108,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (memcpy<block_size>),
-          dim3(grid_size), dim3(block_size), 0, 0,
+          dim3(grid_size), dim3(block_size), 0, res.get_stream(),
           x, y, iend );
       hipErrchk( hipGetLastError() );
 
@@ -128,7 +130,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memcpy_lambda)>),
-          grid_size, block_size, 0, 0,
+          grid_size, block_size, 0, res.get_stream(),
           ibegin, iend, memcpy_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -144,7 +146,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           MEMCPY_BODY;
       });
