@@ -50,6 +50,8 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = getActualProblemSize()+1;
 
+  auto res{getCudaResource()};
+
   INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -60,7 +62,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
-      initview1d_offset<block_size><<<grid_size, block_size>>>( a, v,
+      initview1d_offset<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( a, v,
                                                     ibegin,
                                                     iend );
       cudaErrchk( cudaGetLastError() );
@@ -78,7 +80,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend-ibegin, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY;
       });
@@ -98,7 +100,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         INIT_VIEW1D_OFFSET_BODY_RAJA;
       });

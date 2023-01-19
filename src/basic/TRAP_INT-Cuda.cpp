@@ -90,6 +90,8 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -106,7 +108,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       trapint<block_size><<<grid_size, block_size,
-                sizeof(Real_type)*block_size>>>(x0, xp,
+                sizeof(Real_type)*block_size, res.get_stream()>>>(x0, xp,
                                                 y, yp,
                                                 h,
                                                 sumx,
@@ -134,7 +136,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRAP_INT_BODY;
       });

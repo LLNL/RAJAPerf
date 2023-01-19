@@ -86,6 +86,8 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -105,11 +107,11 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
       vmem_init[1] = m_vmin_init;
       vmem_init[2] = m_vmax_init;
       cudaErrchk( cudaMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                   cudaMemcpyHostToDevice ) );
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       reduce3int<block_size><<<grid_size, block_size,
-                   3*sizeof(Int_type)*block_size>>>(vec,
+                   3*sizeof(Int_type)*block_size, res.get_stream()>>>(vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,
                                                     vmem + 2, m_vmax_init,
@@ -142,7 +144,7 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
       RAJA::ReduceMin<RAJA::cuda_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::cuda_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });

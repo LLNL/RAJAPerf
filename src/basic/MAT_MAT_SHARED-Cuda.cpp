@@ -77,6 +77,8 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
   const Index_type Nx = gridDim.x;
   const Index_type Ny = gridDim.y;
 
+  auto res{getCudaResource()};
+
   MAT_MAT_SHARED_DATA_SETUP;
 
   if (vid == Base_CUDA) {
@@ -86,7 +88,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<tile_size><<<gridDim, blockDim>>>(N, C, A, B);
+      mat_mat_shared<tile_size><<<gridDim, blockDim, 0, res.get_stream()>>>(N, C, A, B);
 
       cudaErrchk( cudaGetLastError() );
     }
@@ -101,7 +103,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      lambda_cuda<tile_size*tile_size><<<gridDim, blockDim>>>([=] __device__() {
+      lambda_cuda<tile_size*tile_size><<<gridDim, blockDim, 0, res.get_stream()>>>([=] __device__() {
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0(tile_size)
@@ -215,7 +217,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                          RAJA::Threads(tile_size, tile_size)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {

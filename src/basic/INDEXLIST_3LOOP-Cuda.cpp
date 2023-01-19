@@ -70,6 +70,8 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   INDEXLIST_3LOOP_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -79,7 +81,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
     Index_type* len;
     allocCudaPinnedData(len, 1);
 
-    cudaStream_t stream = RAJA::resources::Cuda::get_default().get_stream();
+    cudaStream_t stream = res.get_stream();
 
     RAJA::operators::plus<Index_type> binary_op;
     Index_type init_val = 0;
@@ -140,16 +142,16 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Index_type> len(0);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::exclusive_scan_inplace< RAJA::cuda_exec<block_size, true /*async*/> >( res,
           RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
