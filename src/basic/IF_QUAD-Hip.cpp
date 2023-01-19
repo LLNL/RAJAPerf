@@ -58,6 +58,8 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   IF_QUAD_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -68,7 +70,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((ifquad<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x1, x2, a, b, c,
+      hipLaunchKernelGGL((ifquad<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  x1, x2, a, b, c,
                                           iend );
       hipErrchk( hipGetLastError() );
 
@@ -90,7 +92,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(ifquad_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, ifquad_lambda);
+        grid_size, block_size, 0, res.get_stream(), ibegin, iend, ifquad_lambda);
       hipErrchk( hipGetLastError() );
 
     }
@@ -105,7 +107,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         IF_QUAD_BODY;
       });

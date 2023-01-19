@@ -70,6 +70,8 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   INDEXLIST_3LOOP_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -79,7 +81,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     Index_type* len;
     allocHipPinnedData(len, 1);
 
-    hipStream_t stream = RAJA::resources::Hip::get_default().get_stream();
+    hipStream_t stream = res.get_stream();
 
     RAJA::operators::plus<Index_type> binary_op;
     Index_type init_val = 0;
@@ -162,16 +164,16 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 
       RAJA::ReduceSum<RAJA::hip_reduce, Index_type> len(0);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         counts[i] = (INDEXLIST_3LOOP_CONDITIONAL) ? 1 : 0;
       });
 
-      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::exclusive_scan_inplace< RAJA::hip_exec<block_size, true /*async*/> >( res,
           RAJA::make_span(counts+ibegin, iend+1-ibegin));
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend),
         [=] __device__ (Index_type i) {
         if (counts[i] != counts[i+1]) {
