@@ -77,6 +77,8 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_MVT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -88,10 +90,10 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-      poly_mvt_1<block_size><<<grid_size, block_size>>>(A, x1, y1, N);
+      poly_mvt_1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x1, y1, N);
       cudaErrchk( cudaGetLastError() );
 
-      poly_mvt_2<block_size><<<grid_size, block_size>>>(A, x2, y2, N);
+      poly_mvt_2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x2, y2, N);
       cudaErrchk( cudaGetLastError() );
 
     }
@@ -130,10 +132,11 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           [=] __device__ (Real_type &dot) {
             POLYBENCH_MVT_BODY1_RAJA;
@@ -147,10 +150,11 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
         );
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{0, N},
                            RAJA::RangeSegment{0, N}),
           RAJA::tuple<Real_type>{0.0},
+          res,
 
           [=] __device__ (Real_type &dot) {
             POLYBENCH_MVT_BODY4_RAJA;

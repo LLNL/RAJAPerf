@@ -92,6 +92,8 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_ADI_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -105,12 +107,12 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
 
-        adi1<block_size><<<grid_size, block_size>>>(n,
+        adi1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
                                         a, b, c, d, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
 
-        adi2<block_size><<<grid_size, block_size>>>(n,
+        adi2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
                                         a, c, d, e, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
@@ -133,7 +135,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
 
-        adi_lam<block_size><<<grid_size, block_size>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
@@ -147,7 +149,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
         );
         cudaErrchk( cudaGetLastError() );
 
-        adi_lam<block_size><<<grid_size, block_size>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6;
             for (Index_type j = 1; j < n-1; ++j) {
@@ -198,10 +200,11 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
@@ -217,10 +220,11 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
           }
         );
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;

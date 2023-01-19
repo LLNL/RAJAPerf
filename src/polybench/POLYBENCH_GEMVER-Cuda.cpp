@@ -151,6 +151,8 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_GEMVER_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -164,22 +166,22 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_CUDA;
 
       poly_gemmver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block1>>>(A, u1, v1, u2, v2,
+                    <<<nblocks1, nthreads_per_block1, 0, res.get_stream()>>>(A, u1, v1, u2, v2,
                                                         n);
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_2<block_size><<<grid_size, block_size>>>(A, x, y,
+      poly_gemmver_2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x, y,
                                                 beta,
                                                 n);
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_3<block_size><<<grid_size, block_size>>>(x, z,
+      poly_gemmver_3<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(x, z,
                                                 n);
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_4<block_size><<<grid_size, block_size>>>(A, x, w,
+      poly_gemmver_4<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x, w,
                                                 alpha,
                                                 n);
       cudaErrchk( cudaGetLastError() );
@@ -200,7 +202,7 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       GEMVER_NBLOCKS_CUDA;
 
       poly_gemmver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                        <<<nblocks1, nthreads_per_block1>>>(n,
+                        <<<nblocks1, nthreads_per_block1, 0, res.get_stream()>>>(n,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;
         }
@@ -209,7 +211,7 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; ++j) {
@@ -220,14 +222,14 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
         }
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; ++j) {
@@ -287,17 +289,19 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
+      RAJA::kernel_resource<EXEC_POL1>( RAJA::make_tuple(RAJA::RangeSegment{0, n},
                                                 RAJA::RangeSegment{0, n}),
+                                        res,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1_RAJA;
         }
       );
 
-      RAJA::kernel_param<EXEC_POL24>(
+      RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type /* i */, Real_type &dot) {
           POLYBENCH_GEMVER_BODY2_RAJA;
@@ -310,16 +314,17 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
         }
       );
 
-      RAJA::forall<EXEC_POL3> (RAJA::RangeSegment{0, n},
+      RAJA::forall<EXEC_POL3> ( res, RAJA::RangeSegment{0, n},
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5_RAJA;
         }
       );
 
-      RAJA::kernel_param<EXEC_POL24>(
+      RAJA::kernel_param_resource<EXEC_POL24>(
         RAJA::make_tuple(RAJA::RangeSegment{0, n},
                          RAJA::RangeSegment{0, n}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type i, Real_type &dot) {
           POLYBENCH_GEMVER_BODY6_RAJA;

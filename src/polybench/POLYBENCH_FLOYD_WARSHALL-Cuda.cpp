@@ -81,6 +81,8 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -96,7 +98,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
 
         poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                           <<<nblocks, nthreads_per_block>>>(pout, pin,
+                           <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(pout, pin,
                                                              k, N);
         cudaErrchk( cudaGetLastError() );
 
@@ -120,7 +122,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
 
         poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                               <<<nblocks, nthreads_per_block>>>(N,
+                               <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FLOYD_WARSHALL_BODY;
           }
@@ -161,9 +163,10 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{0, N},
                                                RAJA::RangeSegment{0, N},
                                                RAJA::RangeSegment{0, N}),
+                                       res,
         [=] __device__ (Index_type k, Index_type i, Index_type j) {
           POLYBENCH_FLOYD_WARSHALL_BODY_RAJA;
         }
