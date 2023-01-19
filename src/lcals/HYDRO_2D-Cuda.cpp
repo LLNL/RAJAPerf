@@ -127,6 +127,8 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
+  auto res{getCudaResource()};
+
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -140,20 +142,20 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
       HYDRO_2D_NBLOCKS_CUDA;
 
       hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zadat, zbdat,
+               <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(zadat, zbdat,
                                                  zpdat, zqdat, zrdat, zmdat,
                                                  jn, kn);
       cudaErrchk( cudaGetLastError() );
 
       hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zudat, zvdat,
+               <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(zudat, zvdat,
                                                  zadat, zbdat, zzdat, zrdat,
                                                  s,
                                                  jn, kn);
       cudaErrchk( cudaGetLastError() );
 
       hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
+               <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(zroutdat, zzoutdat,
                                                  zrdat, zudat, zzdat, zvdat,
                                                  t,
                                                  jn, kn);
@@ -190,23 +192,26 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });

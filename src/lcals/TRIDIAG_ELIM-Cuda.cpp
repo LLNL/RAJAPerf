@@ -53,6 +53,8 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = m_N;
 
+  auto res{getCudaResource()};
+
   TRIDIAG_ELIM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -64,7 +66,7 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
        eos<block_size>
-          <<<grid_size, block_size>>>( xout, xin, y, z,
+          <<<grid_size, block_size, 0, res.get_stream()>>>( xout, xin, y, z,
                                        iend );
        cudaErrchk( cudaGetLastError() );
 
@@ -80,7 +82,7 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          TRIDIAG_ELIM_BODY;
        });

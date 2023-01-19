@@ -70,6 +70,8 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   FIRST_MIN_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -89,7 +91,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
       FIRST_MIN_MINLOC_INIT;
 
       first_min<block_size><<<grid_size, block_size,
-                              sizeof(MyMinLoc)*block_size>>>(x, dminloc, iend);
+                              sizeof(MyMinLoc)*block_size, res.get_stream()>>>(x, dminloc, iend);
 	    
       cudaErrchk( cudaGetLastError() );
       cudaErrchk( cudaMemcpy( mymin_block, dminloc, 
@@ -121,7 +123,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
        RAJA::ReduceMinLoc<RAJA::cuda_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_MIN_BODY_RAJA;
        });
