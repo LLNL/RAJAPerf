@@ -34,6 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   gpu_stream(1),
    gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
@@ -98,6 +99,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
@@ -315,6 +317,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                   << std::endl;
         input_state = BadInput;
       }
+
+    } else if ( opt == std::string("--gpu_stream_0") ) {
+
+      gpu_stream = 0;
 
     } else if ( opt == std::string("--gpu_block_size") ) {
 
@@ -589,6 +595,10 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+
+  str << "\t --gpu_stream_0 [default is off; i.e. use RAJA default stream]\n"
+      << "\t      (use stream 0 with hip and cuda kernel variants)\n"
+      << "\t      (If this is off then the RAJA default stream is used)\n";
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"

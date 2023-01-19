@@ -16,6 +16,9 @@
 #include <mpi.h>
 #endif
 
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
+
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
@@ -124,6 +127,22 @@ void Executor::setupSuite()
   }
 
   getCout() << "\nSetting up suite based on input..." << endl;
+
+  if (run_params.getGPUStream() == 0) {
+#if defined(RAJA_ENABLE_CUDA)
+    getCudaResource() = camp::resources::Cuda::CudaFromStream(0);
+#endif
+#if defined(RAJA_ENABLE_HIP)
+    getHipResource() = camp::resources::Hip::HipFromStream(0);
+#endif
+  } else {
+#if defined(RAJA_ENABLE_CUDA)
+    getCudaResource() = camp::resources::Cuda::get_default();
+#endif
+#if defined(RAJA_ENABLE_HIP)
+    getHipResource() = camp::resources::Hip::get_default();
+#endif
+  }
 
   using Slist = list<string>;
   using Svector = vector<string>;

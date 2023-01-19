@@ -178,6 +178,15 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
+/*!
+ * \brief Get camp Hip resource.
+ */
+inline camp::resources::Hip& getHipResource()
+{
+  static camp::resources::Hip res = camp::resources::Hip::get_default();
+  return res;
+}
+
 
 }  // closing brace for rajaperf namespace
 

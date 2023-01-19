@@ -191,6 +191,15 @@ void deallocCudaPinnedData(T& pptr)
   pptr = nullptr;
 }
 
+/*!
+ * \brief Get camp Cuda resource.
+ */
+inline camp::resources::Cuda& getCudaResource()
+{
+  static camp::resources::Cuda res = camp::resources::Cuda::get_default();
+  return res;
+}
+
 }  // closing brace for rajaperf namespace
 
 #endif // RAJA_ENABLE_CUDA
