@@ -52,6 +52,8 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   HYDRO_1D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -62,7 +64,7 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((hydro_1d<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z,
+       hipLaunchKernelGGL((hydro_1d<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  x, y, z,
                                             q, r, t,
                                             iend );
        hipErrchk( hipGetLastError() );
@@ -79,7 +81,7 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          HYDRO_1D_BODY;
        });

@@ -70,6 +70,8 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   FIRST_MIN_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -89,7 +91,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        FIRST_MIN_MINLOC_INIT;
 
        hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
-                           sizeof(MyMinLoc)*block_size, 0, x,
+                           sizeof(MyMinLoc)*block_size, res.get_stream(), x,
                            dminloc,
                            iend );
 
@@ -123,7 +125,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        RAJA::ReduceMinLoc<RAJA::hip_reduce, Real_type, Index_type> loc(
                                                         m_xmin_init, m_initloc);
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          FIRST_MIN_BODY_RAJA;
        });
