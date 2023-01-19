@@ -90,6 +90,8 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_GEMM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -103,7 +105,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       POLY_GEMM_NBLOCKS_HIP;
 
       hipLaunchKernelGGL((poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                          C, A, B, alpha, beta,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
@@ -133,7 +135,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_gemm_lambda)>),
-        dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+        dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
         ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -173,12 +175,13 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
 
           RAJA::make_tuple( RAJA::RangeSegment{0, ni},
                             RAJA::RangeSegment{0, nj},
                             RAJA::RangeSegment{0, nk} ),
           RAJA::tuple<Real_type>{0.0},  // variable for dot
+          res,
 
           [=] __device__ (Real_type& dot) {
             POLYBENCH_GEMM_BODY1_RAJA;

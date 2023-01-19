@@ -61,6 +61,8 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_JACOBI_1D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -74,11 +76,11 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
-        hipLaunchKernelGGL((poly_jacobi_1D_1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
+        hipLaunchKernelGGL((poly_jacobi_1D_1<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),
                                             A, B, N);
         hipErrchk( hipGetLastError() );
 
-        hipLaunchKernelGGL((poly_jacobi_1D_2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
+        hipLaunchKernelGGL((poly_jacobi_1D_2<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),
                                             A, B, N);
         hipErrchk( hipGetLastError() );
 
@@ -100,12 +102,12 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY1;
         });
 
-        RAJA::forall<EXEC_POL> ( RAJA::RangeSegment{1, N-1},
+        RAJA::forall<EXEC_POL> ( res, RAJA::RangeSegment{1, N-1},
           [=] __device__ (Index_type i) {
             POLYBENCH_JACOBI_1D_BODY2;
         });

@@ -86,6 +86,8 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_ATAX_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -98,12 +100,12 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
 
       hipLaunchKernelGGL((poly_atax_1<block_size>),
-                         dim3(grid_size), dim3(block_size), 0, 0,
+                         dim3(grid_size), dim3(block_size), 0, res.get_stream(),
                          A, x, y, tmp, N);
       hipErrchk( hipGetLastError() );
 
       hipLaunchKernelGGL((poly_atax_2<block_size>),
-                         dim3(grid_size), dim3(block_size), 0, 0,
+                         dim3(grid_size), dim3(block_size), 0, res.get_stream(),
                          A, tmp, y, N);
       hipErrchk( hipGetLastError() );
 
@@ -130,7 +132,7 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((poly_atax_lam<block_size, decltype(poly_atax_1_lambda)>),
-        dim3(grid_size), dim3(block_size), 0, 0,
+        dim3(grid_size), dim3(block_size), 0, res.get_stream(),
         N, poly_atax_1_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -143,7 +145,7 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((poly_atax_lam<block_size, decltype(poly_atax_2_lambda)>),
-        dim3(grid_size), dim3(block_size), 0, 0,
+        dim3(grid_size), dim3(block_size), 0, res.get_stream(),
         N, poly_atax_2_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -193,10 +195,11 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL1>(
+      RAJA::kernel_param_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type i, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
@@ -210,10 +213,11 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param_resource<EXEC_POL2>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;

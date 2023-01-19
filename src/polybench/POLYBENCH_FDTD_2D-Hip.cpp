@@ -159,6 +159,8 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_FDTD_2D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -172,7 +174,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 
         const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
         hipLaunchKernelGGL((poly_fdtd2d_1<block_size>),
-                           dim3(grid_size1), dim3(block_size), 0, 0,
+                           dim3(grid_size1), dim3(block_size), 0, res.get_stream(),
                            ey, fict, ny, t);
         hipErrchk( hipGetLastError() );
 
@@ -180,17 +182,17 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
         FDTD_2D_NBLOCKS_HIP;
 
         hipLaunchKernelGGL((poly_fdtd2d_2<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            ey, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            ex, hz, nx, ny);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            hz, ex, ey, nx, ny);
         hipErrchk( hipGetLastError() );
 
@@ -217,7 +219,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
         };
 
         hipLaunchKernelGGL((poly_fdtd2d_1_lam<block_size, decltype(poly_fdtd2d_1_lambda)>),
-          dim3(grid_size1), dim3(block_size), 0, 0,
+          dim3(grid_size1), dim3(block_size), 0, res.get_stream(),
           ny, poly_fdtd2d_1_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -230,7 +232,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
           };
 
         hipLaunchKernelGGL((poly_fdtd2d_2_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_2_lambda)>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            nx, ny, poly_fdtd2d_2_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -240,7 +242,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
           };
 
         hipLaunchKernelGGL((poly_fdtd2d_3_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_3_lambda)>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            nx, ny, poly_fdtd2d_3_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -250,7 +252,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
           };
 
         hipLaunchKernelGGL((poly_fdtd2d_4_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_fdtd2d_4_lambda)>),
-                           dim3(nblocks234), dim3(nthreads_per_block234), 0, 0,
+                           dim3(nblocks234), dim3(nthreads_per_block234), 0, res.get_stream(),
                            nx, ny, poly_fdtd2d_4_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -291,30 +293,33 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 
       for (t = 0; t < tsteps; ++t) {
 
-        RAJA::forall<EXEC_POL1>( RAJA::RangeSegment(0, ny),
+        RAJA::forall<EXEC_POL1>( res, RAJA::RangeSegment(0, ny),
          [=] __device__ (Index_type j) {
            POLYBENCH_FDTD_2D_BODY1_RAJA;
         });
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{1, nx},
                            RAJA::RangeSegment{0, ny}),
+          res,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY2_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{0, nx},
                            RAJA::RangeSegment{1, ny}),
+          res,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY3_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL234>(
+        RAJA::kernel_resource<EXEC_POL234>(
           RAJA::make_tuple(RAJA::RangeSegment{0, nx-1},
                            RAJA::RangeSegment{0, ny-1}),
+          res,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY4_RAJA;
           }

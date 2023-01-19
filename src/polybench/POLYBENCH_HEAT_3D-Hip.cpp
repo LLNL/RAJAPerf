@@ -98,6 +98,8 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -113,12 +115,12 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
         HEAT_3D_NBLOCKS_HIP;
 
         hipLaunchKernelGGL((poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
@@ -152,13 +154,13 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 
         hipLaunchKernelGGL((poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                                              decltype(poly_heat_3D_1_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                            N, poly_heat_3D_1_lambda);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP,
                                              decltype(poly_heat_3D_2_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                            N, poly_heat_3D_2_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -199,17 +201,19 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1}),
+                                         res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1}),
+                                         res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }
