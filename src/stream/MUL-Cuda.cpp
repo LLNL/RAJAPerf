@@ -49,6 +49,8 @@ void MUL::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   MUL_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -59,7 +61,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      mul<block_size><<<grid_size, block_size>>>( b, c, alpha,
+      mul<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( b, c, alpha,
                                       iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -76,7 +78,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         MUL_BODY;
       });
@@ -94,7 +96,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         MUL_BODY;
       });
