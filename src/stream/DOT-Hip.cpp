@@ -74,6 +74,8 @@ void DOT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   DOT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -90,7 +92,7 @@ void DOT::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
-                                            sizeof(Real_type)*block_size, 0,
+                                            sizeof(Real_type)*block_size, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
@@ -115,7 +117,7 @@ void DOT::runHipVariantImpl(VariantID vid)
 
        RAJA::ReduceSum<RAJA::hip_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DOT_BODY;
        });
