@@ -72,6 +72,8 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -89,7 +91,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, 0, 0,
+          hipLaunchKernelGGL((haloexchange_pack<block_size>), nblocks, nthreads_per_block, 0, res.get_stream(),
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
           buffer += len;
@@ -105,7 +107,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, 0, 0,
+          hipLaunchKernelGGL((haloexchange_unpack<block_size>), nblocks, nthreads_per_block, 0, res.get_stream(),
               buffer, list, var, len);
           hipErrchk( hipGetLastError() );
           buffer += len;
@@ -136,7 +138,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_PACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(
+          RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_pack_base_lam );
           buffer += len;
@@ -153,7 +155,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_UNPACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(
+          RAJA::forall<EXEC_POL>( res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_unpack_base_lam );
           buffer += len;

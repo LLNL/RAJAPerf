@@ -106,6 +106,8 @@ template < size_t block_size >
 void MASS3DPA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   MASS3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -120,7 +122,7 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+      hipLaunchKernelGGL((Mass3DPA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
                          B, Bt, D, X, Y);
 
       hipErrchk( hipGetLastError() );
@@ -150,7 +152,7 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
                          RAJA::Threads(MPA_Q1D, MPA_Q1D, 1)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
