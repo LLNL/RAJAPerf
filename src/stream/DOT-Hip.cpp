@@ -88,7 +88,8 @@ void DOT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dprod, &m_dot_init, 1);
+      hipErrchk( hipMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
@@ -97,8 +98,9 @@ void DOT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;
-      Real_ptr plprod = &lprod;
-      getHipDeviceData(plprod, dprod, 1);
+      hipErrchk( hipMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_dot += lprod;
 
     }

@@ -104,7 +104,8 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(sumx, &m_sumx_init, 1);
+      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, res.get_stream(), x0, xp,
@@ -115,8 +116,9 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lsumx;
-      Real_ptr plsumx = &lsumx;
-      getHipDeviceData(plsumx, sumx, 1);
+      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_sumx += lsumx * h;
 
     }

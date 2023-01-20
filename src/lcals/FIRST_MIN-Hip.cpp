@@ -56,9 +56,7 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (dminloc[blockIdx.x]).val ) {
-      dminloc[blockIdx.x] = minloc[ 0 ];
-    }
+    dminloc[blockIdx.x] = minloc[ 0 ];
   }
 }
 
@@ -88,24 +86,25 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       FIRST_MIN_MINLOC_INIT;
+      FIRST_MIN_MINLOC_INIT;
 
-       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
+      hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            sizeof(MyMinLoc)*block_size, res.get_stream(), x,
                            dminloc,
                            iend );
+      hipErrchk( hipGetLastError() );
 
-       hipErrchk( hipGetLastError() );			  
-       hipErrchk( hipMemcpy( mymin_block, dminloc, 
-                             grid_size * sizeof(MyMinLoc),
-                             hipMemcpyDeviceToHost ) );       
+      hipErrchk( hipMemcpyAsync( mymin_block, dminloc,
+                                 grid_size * sizeof(MyMinLoc),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
-       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
-         if ( mymin_block[i].val < mymin.val ) {
-           mymin = mymin_block[i];
-         }
-       }	   
-       m_minloc = mymin.loc;
+      for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+        if ( mymin_block[i].val < mymin.val ) {
+          mymin = mymin_block[i];
+        }
+      }
+      m_minloc = mymin.loc;
 
     }
     stopTimer();

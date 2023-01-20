@@ -294,7 +294,7 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
           len, iend-ibegin );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipDeviceSynchronize() );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_len = *len;
 
     }

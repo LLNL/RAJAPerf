@@ -60,13 +60,16 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(pi, &m_pi_init, 1);
+      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, 0, res.get_stream(), pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
+      hipErrchk( hipMemcpyAsync( m_pi, pi, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       *m_pi *= 4.0;
 
     }
@@ -81,7 +84,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(pi, &m_pi_init, 1);
+      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       auto atomic_pi_lambda = [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
@@ -93,7 +97,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           grid_size, block_size, 0, res.get_stream(), ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
+      hipErrchk( hipMemcpyAsync( m_pi, pi, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       *m_pi *= 4.0;
 
     }
@@ -108,7 +114,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(pi, &m_pi_init, 1);
+      hipErrchk( hipMemcpyAsync( pi, &m_pi_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
@@ -116,7 +123,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getHipDeviceData(m_pi, pi, 1);
+      hipErrchk( hipMemcpyAsync( m_pi, pi, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       *m_pi *= 4.0;
 
     }

@@ -184,7 +184,8 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &m_sum_init, 1);
+      hipErrchk( hipMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
@@ -192,11 +193,9 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
                           x, dsum, m_sum_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      hipErrchk( hipMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();

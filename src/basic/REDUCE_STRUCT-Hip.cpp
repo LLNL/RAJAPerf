@@ -140,8 +140,9 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      Real_ptr plmem = &lmem[0];
-      getHipDeviceData(plmem, mem, 6);
+      hipErrchk( hipMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
       points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
       points.SetXMin(lmem[1]);
