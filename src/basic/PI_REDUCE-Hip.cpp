@@ -77,7 +77,8 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dpi, &m_pi_init, 1);
+      hipErrchk( hipMemcpyAsync( dpi, &m_pi_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
@@ -85,11 +86,10 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
                           dx, dpi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lpi;
-      Real_ptr plpi = &lpi;
-      getHipDeviceData(plpi, dpi, 1);
-
-      m_pi = 4.0 * lpi;
+      hipErrchk( hipMemcpyAsync( &m_pi, dpi, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
+      m_pi *= 4.0;
 
     }
     stopTimer();

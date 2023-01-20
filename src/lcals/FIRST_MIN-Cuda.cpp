@@ -56,9 +56,7 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (dminloc[blockIdx.x]).val ) {
-      dminloc[blockIdx.x] = minloc[ 0 ];
-    }
+    dminloc[blockIdx.x] = minloc[ 0 ];
   }
 }
 
@@ -92,11 +90,12 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
       first_min<block_size><<<grid_size, block_size,
                               sizeof(MyMinLoc)*block_size, res.get_stream()>>>(x, dminloc, iend);
-	    
       cudaErrchk( cudaGetLastError() );
-      cudaErrchk( cudaMemcpy( mymin_block, dminloc, 
-                              grid_size * sizeof(MyMinLoc),
-                              cudaMemcpyDeviceToHost ) );       
+
+      cudaErrchk( cudaMemcpyAsync( mymin_block, dminloc,
+                                   grid_size * sizeof(MyMinLoc),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
         if ( mymin_block[i].val < mymin.val ) {

@@ -138,8 +138,9 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      Real_ptr plmem = &lmem[0];
-      getCudaDeviceData(plmem, mem, 6);
+      cudaErrchk( cudaMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
       points.SetXMin(lmem[1]);

@@ -96,7 +96,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           buffer += len;
         }
       }
-      synchronize();
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -111,7 +111,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           buffer += len;
         }
       }
-      synchronize();
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
@@ -142,7 +142,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           buffer += len;
         }
       }
-      synchronize();
+      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -159,7 +159,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           buffer += len;
         }
       }
-      synchronize();
+      res.wait();
 
     }
     stopTimer();

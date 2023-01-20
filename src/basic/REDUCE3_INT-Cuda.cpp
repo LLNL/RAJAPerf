@@ -119,8 +119,9 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       Int_type lmem[3];
-      Int_ptr plmem = &lmem[0];
-      getCudaDeviceData(plmem, vmem, 3);
+      cudaErrchk( cudaMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_vsum += lmem[0];
       m_vmin = RAJA_MIN(m_vmin, lmem[1]);
       m_vmax = RAJA_MAX(m_vmax, lmem[2]);

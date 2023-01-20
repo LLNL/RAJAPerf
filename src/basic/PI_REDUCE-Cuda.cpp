@@ -77,7 +77,8 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dpi, &m_pi_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dpi, &m_pi_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       pi_reduce<block_size><<<grid_size, block_size,
@@ -86,11 +87,10 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lpi;
-      Real_ptr plpi = &lpi;
-      getCudaDeviceData(plpi, dpi, 1);
-
-      m_pi = 4.0 * lpi;
+      cudaErrchk( cudaMemcpyAsync( &m_pi, dpi, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      m_pi *= 4.0;
 
     }
     stopTimer();

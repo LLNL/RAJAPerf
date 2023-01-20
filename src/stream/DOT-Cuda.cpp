@@ -87,7 +87,8 @@ void DOT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dprod, &m_dot_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size, res.get_stream()>>>(
@@ -95,8 +96,9 @@ void DOT::runCudaVariantImpl(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
-      Real_ptr plprod = &lprod;
-      getCudaDeviceData(plprod, dprod, 1);
+      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_dot += lprod;
 
     }

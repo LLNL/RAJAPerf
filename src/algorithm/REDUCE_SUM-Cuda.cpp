@@ -157,7 +157,8 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dsum, &m_sum_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       reduce_sum<block_size><<<grid_size, block_size,
@@ -166,11 +167,9 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getCudaDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      cudaErrchk( cudaMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();

@@ -152,7 +152,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block, 0, res.get_stream()>>>(
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
-      synchronize();
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
@@ -178,7 +178,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block, 0, res.get_stream()>>>(
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
-      synchronize();
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
@@ -241,7 +241,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       }
       workgroup group_pack = pool_pack.instantiate();
       worksite site_pack = group_pack.run(res);
-      synchronize();
+      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[l];
@@ -260,7 +260,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       }
       workgroup group_unpack = pool_unpack.instantiate();
       worksite site_unpack = group_unpack.run(res);
-      synchronize();
+      res.wait();
 
     }
     stopTimer();

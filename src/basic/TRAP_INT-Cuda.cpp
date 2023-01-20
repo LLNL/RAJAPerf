@@ -104,7 +104,8 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(sumx, &m_sumx_init, 1);
+      cudaErrchk( cudaMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       trapint<block_size><<<grid_size, block_size,
@@ -116,8 +117,9 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       Real_type lsumx;
-      Real_ptr plsumx = &lsumx;
-      getCudaDeviceData(plsumx, sumx, 1);
+      cudaErrchk( cudaMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_sumx += lsumx * h;
 
     }
