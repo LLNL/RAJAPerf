@@ -29,15 +29,20 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SCAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
+#define SCAN_ALLOC_HIP_DATA \
+  allocHipDeviceData(x, iend); \
+  allocHipDeviceData(y, iend);
 
-#define SCAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
+#define SCAN_INIT_HIP_DATA \
+  initHipDeviceData(x, m_x, iend); \
+  initHipDeviceData(y, m_y, iend);
+
+#define SCAN_GET_HIP_DEVICE_DATA \
+  getHipDeviceData(m_y, y, iend);
+
+#define SCAN_DEALLOC_HIP_DATA \
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
-
 
 void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -49,7 +54,8 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   if ( vid == Base_HIP ) {
 
-    SCAN_DATA_SETUP_HIP;
+    SCAN_ALLOC_HIP_DATA;
+    SCAN_INIT_HIP_DATA;
 
     hipStream_t stream = 0;
 
@@ -116,11 +122,13 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     // Free temporary storage
     deallocHipDeviceData(temp_storage);
 
-    SCAN_DATA_TEARDOWN_HIP;
+    SCAN_GET_HIP_DEVICE_DATA;
+    SCAN_DEALLOC_HIP_DATA;
 
   } else if ( vid == RAJA_HIP ) {
 
-    SCAN_DATA_SETUP_HIP;
+    SCAN_ALLOC_HIP_DATA;
+    SCAN_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -130,7 +138,8 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     }
     stopTimer();
 
-    SCAN_DATA_TEARDOWN_HIP;
+    SCAN_GET_HIP_DEVICE_DATA;
+    SCAN_DEALLOC_HIP_DATA;
 
   } else {
      getCout() << "\n  SCAN : Unknown Hip variant id = " << vid << std::endl;

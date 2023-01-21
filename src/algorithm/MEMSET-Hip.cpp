@@ -21,11 +21,16 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
+#define MEMSET_ALLOC_HIP_DATA \
+  allocHipDeviceData(x, iend); \
 
-#define MEMSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend); \
+#define MEMSET_INIT_HIP_DATA \
+  initHipDeviceData(x, m_x, iend); \
+
+#define MEMSET_GET_HIP_DEVICE_DATA \
+  getHipDeviceData(m_x, x, iend);
+
+#define MEMSET_DEALLOC_HIP_DATA \
   deallocHipDeviceData(x);
 
 template < size_t block_size >
@@ -50,7 +55,8 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
+    MEMSET_ALLOC_HIP_DATA;
+    MEMSET_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -60,11 +66,13 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
+    MEMSET_GET_HIP_DEVICE_DATA;
+    MEMSET_DEALLOC_HIP_DATA;    
 
   } else if ( vid == RAJA_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
+    MEMSET_ALLOC_HIP_DATA;
+    MEMSET_INIT_HIP_DATA;
 
     camp::resources::Hip res = camp::resources::Hip::get_default();
 
@@ -76,7 +84,8 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
+    MEMSET_GET_HIP_DEVICE_DATA;
+    MEMSET_DEALLOC_HIP_DATA;    
 
   } else {
 
@@ -97,7 +106,8 @@ void MEMSET::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
+    MEMSET_ALLOC_HIP_DATA;
+    MEMSET_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -111,11 +121,13 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
+    MEMSET_GET_HIP_DEVICE_DATA;
+    MEMSET_DEALLOC_HIP_DATA;    
 
   } else if ( vid == Lambda_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
+    MEMSET_ALLOC_HIP_DATA;
+    MEMSET_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -133,11 +145,13 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
+    MEMSET_GET_HIP_DEVICE_DATA;
+    MEMSET_DEALLOC_HIP_DATA;    
 
   } else if ( vid == RAJA_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
+    MEMSET_ALLOC_HIP_DATA;
+    MEMSET_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -150,7 +164,8 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
+    MEMSET_GET_HIP_DEVICE_DATA;
+    MEMSET_DEALLOC_HIP_DATA;    
 
   } else {
 
