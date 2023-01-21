@@ -21,12 +21,18 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMCPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
+#define MEMCPY_ALLOC_HIP_DATA \
+  allocHipDeviceData(x, iend); \
+  allocHipDeviceData(y, iend);
 
-#define MEMCPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
+#define MEMCPY_INIT_HIP_DATA \
+  initHipDeviceData(x, m_x, iend); \
+  initHipDeviceData(y, m_y, iend);
+
+#define MEMCPY_GET_HIP_DEVICE_DATA \
+  getHipDeviceData(m_y, y, iend);
+
+#define MEMCPY_DEALLOC_HIP_DATA \
   deallocHipDeviceData(x); \
   deallocHipDeviceData(y);
 
@@ -52,7 +58,8 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
+    MEMCPY_ALLOC_HIP_DATA;
+    MEMCPY_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -62,11 +69,13 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
+    MEMCPY_GET_HIP_DEVICE_DATA;
+    MEMCPY_DEALLOC_HIP_DATA;    
 
   } else if ( vid == RAJA_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
+    MEMCPY_ALLOC_HIP_DATA;
+    MEMCPY_INIT_HIP_DATA;
 
     camp::resources::Hip res = camp::resources::Hip::get_default();
 
@@ -78,7 +87,9 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
+    MEMCPY_GET_HIP_DEVICE_DATA;
+    MEMCPY_DEALLOC_HIP_DATA;
+
 
   } else {
 
@@ -99,7 +110,8 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
+    MEMCPY_ALLOC_HIP_DATA;
+    MEMCPY_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,11 +125,13 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
+    MEMCPY_GET_HIP_DEVICE_DATA;
+    MEMCPY_DEALLOC_HIP_DATA;    
 
   } else if ( vid == Lambda_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
+    MEMCPY_ALLOC_HIP_DATA;
+    MEMCPY_INIT_HIP_DATA;    
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -135,11 +149,13 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
+    MEMCPY_GET_HIP_DEVICE_DATA;
+    MEMCPY_DEALLOC_HIP_DATA;
 
   } else if ( vid == RAJA_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
+    MEMCPY_ALLOC_HIP_DATA;
+    MEMCPY_INIT_HIP_DATA;    
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -152,7 +168,8 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
+    MEMCPY_GET_HIP_DEVICE_DATA;
+    MEMCPY_DEALLOC_HIP_DATA;    
 
   } else {
 
