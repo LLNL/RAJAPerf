@@ -21,26 +21,45 @@ namespace rajaperf
 namespace apps
 {
 
-#define ENERGY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(e_new, m_e_new, iend); \
-  allocAndInitHipDeviceData(e_old, m_e_old, iend); \
-  allocAndInitHipDeviceData(delvc, m_delvc, iend); \
-  allocAndInitHipDeviceData(p_new, m_p_new, iend); \
-  allocAndInitHipDeviceData(p_old, m_p_old, iend); \
-  allocAndInitHipDeviceData(q_new, m_q_new, iend); \
-  allocAndInitHipDeviceData(q_old, m_q_old, iend); \
-  allocAndInitHipDeviceData(work, m_work, iend); \
-  allocAndInitHipDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitHipDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitHipDeviceData(bvc, m_bvc, iend); \
-  allocAndInitHipDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitHipDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitHipDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitHipDeviceData(vnewc, m_vnewc, iend);
+#define ENERGY_ALLOC_HIP_DATA \
+  allocHipDeviceData(e_new, iend); \
+  allocHipDeviceData(e_old, iend); \
+  allocHipDeviceData(delvc, iend); \
+  allocHipDeviceData(p_new, iend); \
+  allocHipDeviceData(p_old, iend); \
+  allocHipDeviceData(q_new, iend); \
+  allocHipDeviceData(q_old, iend); \
+  allocHipDeviceData(work, iend); \
+  allocHipDeviceData(compHalfStep,  iend); \
+  allocHipDeviceData(pHalfStep, iend); \
+  allocHipDeviceData(bvc, iend); \
+  allocHipDeviceData(pbvc, iend); \
+  allocHipDeviceData(ql_old, iend); \
+  allocHipDeviceData(qq_old, iend); \
+  allocHipDeviceData(vnewc, iend);
 
-#define ENERGY_DATA_TEARDOWN_HIP \
+#define ENERGY_INIT_HIP_DATA \
+  initHipDeviceData(e_new, m_e_new, iend); \
+  initHipDeviceData(e_old, m_e_old, iend); \
+  initHipDeviceData(delvc, m_delvc, iend); \
+  initHipDeviceData(p_new, m_p_new, iend); \
+  initHipDeviceData(p_old, m_p_old, iend); \
+  initHipDeviceData(q_new, m_q_new, iend); \
+  initHipDeviceData(q_old, m_q_old, iend); \
+  initHipDeviceData(work, m_work, iend); \
+  initHipDeviceData(compHalfStep, m_compHalfStep, iend); \
+  initHipDeviceData(pHalfStep, m_pHalfStep, iend); \
+  initHipDeviceData(bvc, m_bvc, iend); \
+  initHipDeviceData(pbvc, m_pbvc, iend); \
+  initHipDeviceData(ql_old, m_ql_old, iend); \
+  initHipDeviceData(qq_old, m_qq_old, iend); \
+  initHipDeviceData(vnewc, m_vnewc, iend);
+
+#define ENERGY_GET_HIP_DEVICE_DATA \
   getHipDeviceData(m_e_new, e_new, iend); \
-  getHipDeviceData(m_q_new, q_new, iend); \
+  getHipDeviceData(m_q_new, q_new, iend);
+
+#define ENERGY_DEALLOC_HIP_DATA \
   deallocHipDeviceData(e_new); \
   deallocHipDeviceData(e_old); \
   deallocHipDeviceData(delvc); \
@@ -55,7 +74,7 @@ namespace apps
   deallocHipDeviceData(pbvc); \
   deallocHipDeviceData(ql_old); \
   deallocHipDeviceData(qq_old); \
-  deallocHipDeviceData(vnewc);
+  deallocHipDeviceData(vnewc); 
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -154,8 +173,8 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    ENERGY_DATA_SETUP_HIP;
-
+    ENERGY_ALLOC_HIP_DATA;
+    ENERGY_INIT_HIP_DATA;
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -207,11 +226,13 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_HIP;
+    ENERGY_GET_HIP_DEVICE_DATA;
+    ENERGY_DEALLOC_HIP_DATA;
 
   } else if ( vid == RAJA_HIP ) {
 
-    ENERGY_DATA_SETUP_HIP;
+    ENERGY_ALLOC_HIP_DATA;
+    ENERGY_INIT_HIP_DATA;
 
     const bool async = true;
 
@@ -255,7 +276,8 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_HIP;
+    ENERGY_GET_HIP_DEVICE_DATA;
+    ENERGY_DEALLOC_HIP_DATA;
 
   } else {
      getCout() << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;

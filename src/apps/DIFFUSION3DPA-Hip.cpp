@@ -22,15 +22,24 @@
 namespace rajaperf {
 namespace apps {
 
-#define DIFFUSION3DPA_DATA_SETUP_HIP                                           \
-  allocAndInitHipDeviceData(Basis, m_B, DPA_Q1D *DPA_D1D);                     \
-  allocAndInitHipDeviceData(dBasis, m_G, DPA_Q1D *DPA_D1D);                    \
-  allocAndInitHipDeviceData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);     \
-  allocAndInitHipDeviceData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);          \
-  allocAndInitHipDeviceData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
+#define DIFFUSION3DPA_ALLOC_HIP_DATA \
+  allocHipDeviceData(Basis, DPA_Q1D *DPA_D1D);                     \
+  allocHipDeviceData(dBasis, DPA_Q1D *DPA_D1D);                    \
+  allocHipDeviceData(D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);     \
+  allocHipDeviceData(X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);          \
+  allocHipDeviceData(Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
 
-#define DIFFUSION3DPA_DATA_TEARDOWN_HIP                                        \
-  getHipDeviceData(m_Y, Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);                   \
+#define DIFFUSION3DPA_INIT_HIP_DATA \
+  initHipDeviceData(Basis, m_B, DPA_Q1D *DPA_D1D);                     \
+  initHipDeviceData(dBasis, m_G, DPA_Q1D *DPA_D1D);                    \
+  initHipDeviceData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);     \
+  initHipDeviceData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);          \
+  initHipDeviceData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE); 
+
+#define DIFFUSION3DPA_GET_HIP_DEVICE_DATA \
+  getHipDeviceData(m_Y, Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
+
+#define DIFFUSION3DPA_DEALLOC_HIP_DATA \
   deallocHipDeviceData(Basis);                                                 \
   deallocHipDeviceData(dBasis);                                                \
   deallocHipDeviceData(D);                                                     \
@@ -130,7 +139,8 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    DIFFUSION3DPA_DATA_SETUP_HIP;
+    DIFFUSION3DPA_ALLOC_HIP_DATA;
+    DIFFUSION3DPA_INIT_HIP_DATA;    
 
     dim3 nblocks(NE);
     dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
@@ -146,14 +156,16 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    DIFFUSION3DPA_DATA_TEARDOWN_HIP;
+    DIFFUSION3DPA_GET_HIP_DEVICE_DATA;
+    DIFFUSION3DPA_DEALLOC_HIP_DATA;    
 
     break;
   }
 
   case RAJA_HIP: {
 
-    DIFFUSION3DPA_DATA_SETUP_HIP;
+    DIFFUSION3DPA_ALLOC_HIP_DATA;
+    DIFFUSION3DPA_INIT_HIP_DATA;    
 
     constexpr bool async = true;
 
@@ -354,7 +366,8 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
     } // loop over kernel reps
     stopTimer();
 
-    DIFFUSION3DPA_DATA_TEARDOWN_HIP;
+    DIFFUSION3DPA_GET_HIP_DEVICE_DATA;
+    DIFFUSION3DPA_DEALLOC_HIP_DATA;    
 
     break;
   }

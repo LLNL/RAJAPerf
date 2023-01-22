@@ -29,16 +29,21 @@ namespace apps
 
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
-#define FIR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
+#define FIR_ALLOC_HIP_DATA \
+  allocHipDeviceData(in, getActualProblemSize()); \
+  allocHipDeviceData(out, getActualProblemSize()); \
+
+#define FIR_INIT_HIP_DATA \
+  initHipDeviceData(in, m_in, getActualProblemSize()); \
+  initHipDeviceData(out, m_out, getActualProblemSize()); \
   hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
 
+#define FIR_GET_HIP_DEVICE_DATA \
+  getHipDeviceData(m_out, out, getActualProblemSize());
 
-#define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getActualProblemSize()); \
+#define FIR_DEALLOC_HIP_DATA \
   deallocHipDeviceData(in); \
-  deallocHipDeviceData(out);
+  deallocHipDeviceData(out); 
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -98,7 +103,8 @@ void FIR::runHipVariantImpl(VariantID vid)
 
     FIR_COEFF;
 
-    FIR_DATA_SETUP_HIP;
+    FIR_ALLOC_HIP_DATA;
+    FIR_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -121,13 +127,15 @@ void FIR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIR_DATA_TEARDOWN_HIP;
+    FIR_GET_HIP_DEVICE_DATA;
+    FIR_DEALLOC_HIP_DATA;    
 
   } else if ( vid == RAJA_HIP ) {
 
     FIR_COEFF;
 
-    FIR_DATA_SETUP_HIP;
+    FIR_ALLOC_HIP_DATA;
+    FIR_INIT_HIP_DATA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -140,7 +148,8 @@ void FIR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIR_DATA_TEARDOWN_HIP;
+    FIR_GET_HIP_DEVICE_DATA;
+    FIR_DEALLOC_HIP_DATA;    
 
   } else {
      getCout() << "\n  FIR : Unknown Hip variant id = " << vid << std::endl;

@@ -19,22 +19,33 @@
 namespace rajaperf {
 namespace apps {
 
-#define CONVECTION3DPA_DATA_SETUP_HIP                                         \
-  allocAndInitHipDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitHipDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitHipDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitHipDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitHipDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitHipDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
+#define CONVECTION3DPA_ALLOC_HIP_DATA \
+  allocHipDeviceData(Basis, CPA_Q1D *CPA_D1D);                    \
+  allocHipDeviceData(tBasis, CPA_Q1D *CPA_D1D);                  \
+  allocHipDeviceData(dBasis, CPA_Q1D *CPA_D1D);                   \
+  allocHipDeviceData(D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
+  allocHipDeviceData(X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
+  allocHipDeviceData(Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
 
-#define CONVECTION3DPA_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
+#define CONVECTION3DPA_INIT_HIP_DATA \
+  initHipDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
+  initHipDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
+  initHipDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
+  initHipDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
+  initHipDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
+  initHipDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
+
+#define CONVECTION3DPA_GET_HIP_DEVICE_DATA                                       \
+  getHipDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  
+
+#define CONVECTION3DPA_DEALLOC_HIP_DATA \
   deallocHipDeviceData(Basis);                                                \
   deallocHipDeviceData(tBasis);                                               \
   deallocHipDeviceData(dBasis);                                               \
   deallocHipDeviceData(D);                                                    \
   deallocHipDeviceData(X);                                                    \
   deallocHipDeviceData(Y);
+
 
 template < size_t block_size >
   __launch_bounds__(block_size)
@@ -153,7 +164,8 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    CONVECTION3DPA_DATA_SETUP_HIP;
+    CONVECTION3DPA_ALLOC_HIP_DATA;
+    CONVECTION3DPA_INIT_HIP_DATA;
 
     dim3 nblocks(NE);
     dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
@@ -169,14 +181,16 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
+    CONVECTION3DPA_GET_HIP_DEVICE_DATA;
+    CONVECTION3DPA_DEALLOC_HIP_DATA;
 
     break;
   }
 
   case RAJA_HIP: {
 
-    CONVECTION3DPA_DATA_SETUP_HIP;
+    CONVECTION3DPA_ALLOC_HIP_DATA;
+    CONVECTION3DPA_INIT_HIP_DATA;
 
     constexpr bool async = true;
 
@@ -359,7 +373,8 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     } // loop over kernel reps
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
+    CONVECTION3DPA_GET_HIP_DEVICE_DATA;
+    CONVECTION3DPA_DEALLOC_HIP_DATA;
 
     break;
   }

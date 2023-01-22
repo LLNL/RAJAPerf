@@ -21,14 +21,24 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP_HIP \
+#define HALOEXCHANGE_FUSED_ALLOC_HIP_DATA \
   for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitHipDeviceData(vars[v], m_vars[v], m_var_size); \
+    allocHipDeviceData(vars[v], m_var_size); \
   } \
   for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitHipDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
+    allocHipDeviceData(buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
+    allocHipDeviceData(pack_index_lists[l], m_pack_index_list_lengths[l]); \
+    allocHipDeviceData(unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
+  }
+
+#define HALOEXCHANGE_FUSED_INIT_HIP_DATA \
+  for (Index_type v = 0; v < m_num_vars; ++v) { \
+    initHipDeviceData(vars[v], m_vars[v], m_var_size); \
+  } \
+  for (Index_type l = 0; l < num_neighbors; ++l) { \
+    initHipDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
+    initHipDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
+    initHipDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
   }
 
 #define HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP \
