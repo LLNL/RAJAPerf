@@ -108,14 +108,15 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
 
         JACOBI_2D_THREADS_PER_BLOCK_HIP;
         JACOBI_2D_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL((poly_jacobi_2D_1<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((poly_jacobi_2D_2<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            A, B, N);
         hipErrchk( hipGetLastError() );
 
@@ -137,6 +138,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
 
         JACOBI_2D_THREADS_PER_BLOCK_HIP;
         JACOBI_2D_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         auto poly_jacobi_2D_1_lambda =
           [=] __device__ (Index_type i, Index_type j) {
@@ -144,7 +146,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
           };
 
         hipLaunchKernelGGL((poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_jacobi_2D_1_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            N, poly_jacobi_2D_1_lambda);
         hipErrchk( hipGetLastError() );
 
@@ -154,7 +156,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
           };
 
         hipLaunchKernelGGL((poly_jacobi_2D_lam<JACOBI_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_jacobi_2D_2_lambda)>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            N, poly_jacobi_2D_2_lambda);
         hipErrchk( hipGetLastError() );
 

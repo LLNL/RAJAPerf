@@ -95,9 +95,10 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL((poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                           dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                           dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                            pout, pin,
                            k, N);
         hipErrchk( hipGetLastError() );
@@ -125,10 +126,11 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_HIP;
         POLY_FLOYD_WARSHALL_NBLOCKS_HIP;
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL(
           (poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_floyd_warshall_lambda)>),
-          dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
           N, poly_floyd_warshall_lambda);
         hipErrchk( hipGetLastError() );
 

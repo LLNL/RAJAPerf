@@ -103,9 +103,10 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
       POLY_GEMM_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((poly_gemm<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          C, A, B, alpha, beta,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
@@ -124,6 +125,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
       POLY_GEMM_THREADS_PER_BLOCK_HIP;
       POLY_GEMM_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto poly_gemm_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_GEMM_BODY1;
@@ -135,7 +137,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((poly_gemm_lam<POLY_GEMM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_gemm_lambda)>),
-        dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+        dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
         ni, nj, poly_gemm_lambda);
       hipErrchk( hipGetLastError() );
 

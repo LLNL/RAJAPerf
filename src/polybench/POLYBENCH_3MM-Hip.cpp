@@ -177,24 +177,25 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_3MM_THREADS_PER_BLOCK_HIP;
+      constexpr size_t shmem = 0;
 
       POLY_3MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_1<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks1) , dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks1) , dim3(nthreads_per_block), shmem, res.get_stream(),
                          E, A, B,
                          ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks2), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks2), dim3(nthreads_per_block), shmem, res.get_stream(),
                          F, C, D,
                          nj, nl, nm);
       hipErrchk( hipGetLastError() );
 
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks3), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks3), dim3(nthreads_per_block), shmem, res.get_stream(),
                          G, E, F,
                          ni, nl, nj);
       hipErrchk( hipGetLastError() );
@@ -212,6 +213,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_3MM_THREADS_PER_BLOCK_HIP;
+      constexpr size_t shmem = 0;
 
       auto poly_3mm_1_lambda = [=] __device__ (Index_type i, Index_type j) {
         POLYBENCH_3MM_BODY1;
@@ -223,7 +225,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_1_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_1_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_1_lambda)>),
-                         dim3(nblocks1), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks1), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nj, poly_3mm_1_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -237,7 +239,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_2_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_2_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_2_lambda)>),
-                         dim3(nblocks2), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks2), dim3(nthreads_per_block), shmem, res.get_stream(),
                          nj, nl, poly_3mm_2_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -251,7 +253,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
       POLY_3MM_3_NBLOCKS_HIP;
       hipLaunchKernelGGL((poly_3mm_3_lam<POLY_3MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(poly_3mm_3_lambda)>),
-                         dim3(nblocks3), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks3), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nl, poly_3mm_3_lambda);
       hipErrchk( hipGetLastError() );
 
