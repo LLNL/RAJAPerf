@@ -72,8 +72,8 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-
-      poly_gesummv<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(x, y,
+      constexpr size_t shmem = 0;
+      poly_gesummv<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(x, y,
                                               A, B,
                                               alpha, beta,
                                               N);

@@ -106,13 +106,14 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
-        adi1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+        adi1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
                                         a, b, c, d, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
 
-        adi2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+        adi2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
                                         a, c, d, e, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
@@ -134,8 +135,9 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
-        adi_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
@@ -149,7 +151,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
         );
         cudaErrchk( cudaGetLastError() );
 
-        adi_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6;
             for (Index_type j = 1; j < n-1; ++j) {

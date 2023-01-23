@@ -141,16 +141,17 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_2MM_THREADS_PER_BLOCK_CUDA;
+      constexpr size_t shmem = 0;
 
       POLY_2MM_1_NBLOCKS_CUDA;
       poly_2mm_1<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks1, nthreads_per_block, 0, res.get_stream()>>>(tmp, A, B, alpha,
+                <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(tmp, A, B, alpha,
                                                    ni, nj, nk);
       cudaErrchk( cudaGetLastError() );
 
       POLY_2MM_2_NBLOCKS_CUDA;
       poly_2mm_2<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks2, nthreads_per_block, 0, res.get_stream()>>>(tmp, C, D, beta,
+                <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(tmp, C, D, beta,
                                                    ni, nl, nj);
       cudaErrchk( cudaGetLastError() );
 
@@ -167,10 +168,11 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       POLY_2MM_THREADS_PER_BLOCK_CUDA;
+      constexpr size_t shmem = 0;
 
       POLY_2MM_1_NBLOCKS_CUDA;
       poly_2mm_1_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block, 0, res.get_stream()>>>(ni, nj,
+                    <<<nblocks1, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_2MM_BODY1;
           for (Index_type k=0; k < nk; ++k) {
@@ -183,7 +185,7 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
 
       POLY_2MM_2_NBLOCKS_CUDA;
       poly_2mm_2_lam<POLY_2MM_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks2, nthreads_per_block, 0, res.get_stream()>>>(ni, nl,
+                    <<<nblocks2, nthreads_per_block, shmem, res.get_stream()>>>(ni, nl,
         [=] __device__ (Index_type i, Index_type l) {
           POLYBENCH_2MM_BODY4;
           for (Index_type j=0; j < nj; ++j) {

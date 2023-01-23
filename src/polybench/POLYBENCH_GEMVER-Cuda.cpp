@@ -164,24 +164,25 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
       GEMVER_THREADS_PER_BLOCK_CUDA;
       GEMVER_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       poly_gemmver_1<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                    <<<nblocks1, nthreads_per_block1, 0, res.get_stream()>>>(A, u1, v1, u2, v2,
+                    <<<nblocks1, nthreads_per_block1, shmem, res.get_stream()>>>(A, u1, v1, u2, v2,
                                                         n);
       cudaErrchk( cudaGetLastError() );
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x, y,
+      poly_gemmver_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, y,
                                                 beta,
                                                 n);
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_3<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(x, z,
+      poly_gemmver_3<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(x, z,
                                                 n);
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_4<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(A, x, w,
+      poly_gemmver_4<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, w,
                                                 alpha,
                                                 n);
       cudaErrchk( cudaGetLastError() );
@@ -200,9 +201,10 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
       GEMVER_THREADS_PER_BLOCK_CUDA;
       GEMVER_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       poly_gemmver_1_lam<GEMVER_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                        <<<nblocks1, nthreads_per_block1, 0, res.get_stream()>>>(n,
+                        <<<nblocks1, nthreads_per_block1, shmem, res.get_stream()>>>(n,
         [=] __device__ (Index_type i, Index_type j) {
           POLYBENCH_GEMVER_BODY1;
         }
@@ -211,7 +213,7 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
       size_t grid_size = RAJA_DIVIDE_CEILING_INT(n, block_size);
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY2;
           for (Index_type j = 0; j < n; ++j) {
@@ -222,14 +224,14 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY5;
         }
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_gemmver_234_lam<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(n,
+      poly_gemmver_234_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
         [=] __device__ (Index_type i) {
           POLYBENCH_GEMVER_BODY6;
           for (Index_type j = 0; j < n; ++j) {

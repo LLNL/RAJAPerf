@@ -173,24 +173,25 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
 
       for (t = 0; t < tsteps; ++t) {
 
-        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
+        constexpr size_t shmem = 0;
 
-        poly_fdtd2d_1<block_size><<<grid_size1, block_size, 0, res.get_stream()>>>(ey, fict, ny, t);
+        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
+        poly_fdtd2d_1<block_size><<<grid_size1, block_size, shmem, res.get_stream()>>>(ey, fict, ny, t);
         cudaErrchk( cudaGetLastError() );
 
         FDTD_2D_THREADS_PER_BLOCK_CUDA;
         FDTD_2D_NBLOCKS_CUDA;
 
         poly_fdtd2d_2<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(ey, hz, nx, ny);
+                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(ey, hz, nx, ny);
         cudaErrchk( cudaGetLastError() );
 
         poly_fdtd2d_3<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(ex, hz, nx, ny);
+                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(ex, hz, nx, ny);
         cudaErrchk( cudaGetLastError() );
 
         poly_fdtd2d_4<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(hz, ex, ey, nx, ny);
+                     <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(hz, ex, ey, nx, ny);
         cudaErrchk( cudaGetLastError() );
 
       } // tstep loop
@@ -209,9 +210,10 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
 
       for (t = 0; t < tsteps; ++t) {
 
-        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
+        constexpr size_t shmem = 0;
 
-        poly_fdtd2d_1_lam<block_size><<<grid_size1, block_size, 0, res.get_stream()>>>(ny,
+        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(ny, block_size);
+        poly_fdtd2d_1_lam<block_size><<<grid_size1, block_size, shmem, res.get_stream()>>>(ny,
           [=] __device__ (Index_type j) {
             POLYBENCH_FDTD_2D_BODY1;
           }
@@ -221,7 +223,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
         FDTD_2D_NBLOCKS_CUDA;
 
         poly_fdtd2d_2_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(nx, ny,
+                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY2;
           }
@@ -229,7 +231,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
         cudaErrchk( cudaGetLastError() );
 
         poly_fdtd2d_3_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(nx, ny,
+                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY3;
           }
@@ -237,7 +239,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
         cudaErrchk( cudaGetLastError() );
 
         poly_fdtd2d_4_lam<FDTD_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                         <<<nblocks234, nthreads_per_block234, 0, res.get_stream()>>>(nx, ny,
+                         <<<nblocks234, nthreads_per_block234, shmem, res.get_stream()>>>(nx, ny,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FDTD_2D_BODY4;
           }

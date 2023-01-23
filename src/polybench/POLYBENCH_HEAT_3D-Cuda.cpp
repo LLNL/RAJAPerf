@@ -113,13 +113,14 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(A, B, N);
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
         poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(A, B, N);
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
       }
@@ -140,9 +141,10 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(N,
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1;
           }
@@ -150,7 +152,7 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
         cudaErrchk( cudaGetLastError() );
 
         poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(N,
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2;
           }

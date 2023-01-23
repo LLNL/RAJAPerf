@@ -96,9 +96,10 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA;
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_floyd_warshall<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                           <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(pout, pin,
+                           <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(pout, pin,
                                                              k, N);
         cudaErrchk( cudaGetLastError() );
 
@@ -120,9 +121,10 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 
         POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_CUDA;
         POLY_FLOYD_WARSHALL_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_floyd_warshall_lam<POLY_FLOYD_WARSHALL_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                               <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(N,
+                               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j) {
             POLYBENCH_FLOYD_WARSHALL_BODY;
           }
