@@ -61,7 +61,8 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((first_diff<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  x, y,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((first_diff<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  x, y,
                                               iend );
        hipErrchk( hipGetLastError() );
 

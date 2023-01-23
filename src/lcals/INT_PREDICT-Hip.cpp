@@ -63,7 +63,8 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((int_predict<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  px,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((int_predict<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  px,
                                                dm22, dm23, dm24, dm25,
                                                dm26, dm27, dm28, c0,
                                                offset,
