@@ -61,7 +61,8 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       first_diff<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( x, y,
+       constexpr size_t shmem = 0;
+       first_diff<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y,
                                               iend );
        cudaErrchk( cudaGetLastError() );
 

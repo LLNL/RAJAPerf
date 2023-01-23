@@ -88,8 +88,9 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
       FIRST_MIN_MINLOC_INIT;
 
+      constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
       first_min<block_size><<<grid_size, block_size,
-                              sizeof(MyMinLoc)*block_size, res.get_stream()>>>(x, dminloc, iend);
+                              shmem, res.get_stream()>>>(x, dminloc, iend);
       cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaMemcpyAsync( mymin_block, dminloc,

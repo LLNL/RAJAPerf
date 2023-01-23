@@ -63,7 +63,8 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       int_predict<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( px,
+       constexpr size_t shmem = 0;
+       int_predict<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( px,
                                                dm22, dm23, dm24, dm25,
                                                dm26, dm27, dm28, c0,
                                                offset,
