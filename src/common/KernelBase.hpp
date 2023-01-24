@@ -170,6 +170,22 @@ public:
 
   void execute(VariantID vid, size_t tune_idx);
 
+   // Hip GPU arch info.
+  static inline std::string getGPUArch()
+  { 
+  #if defined(RAJA_ENABLE_HIP) 
+    hipDeviceProp_t devProp;
+    hipGetDeviceProperties(&devProp, 0); 
+    std::string gcnArchName(devProp.gcnArchName);
+    std::string GPUArch = gcnArchName.substr(0, 7); 
+    if(GPUArch.back() == ':' ) GPUArch.pop_back();
+  #else
+      std::string GPUArch = "unknown";
+  #endif
+    return GPUArch;
+  }  
+
+
   void synchronize()
   {
 #if defined(RAJA_ENABLE_CUDA)
@@ -257,6 +273,8 @@ private:
   //
   KernelID    kernel_id;
   std::string name;
+
+  std::string gpuArch;
 
   Index_type default_prob_size;
   Index_type default_reps;
