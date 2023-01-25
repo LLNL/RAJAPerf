@@ -21,6 +21,8 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   kernel_id = kid;
   name = getFullKernelName(kernel_id);
 
+   gpuArch = getGPUArch();
+
   default_prob_size = -1;
   default_reps = -1;
 
