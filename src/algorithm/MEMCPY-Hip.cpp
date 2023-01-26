@@ -88,6 +88,7 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
 }
 
+template < size_t block_size >
 void MEMCPY::runHipVariantUnifiedMem(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -101,30 +102,47 @@ void MEMCPY::runHipVariantUnifiedMem(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk( hipMemcpyAsync(MEMCPY_STD_ARGS, hipMemcpyDefault, 0) );
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (memcpy<block_size>),
+          dim3(grid_size), dim3(block_size), 0, 0,
+          x, y, iend );
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+  } else if ( vid == Lambda_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto memcpy_lambda = [=] __device__ (Index_type i) {
+        MEMCPY_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memcpy_lambda)>),
+          grid_size, block_size, 0, 0,
+          ibegin, iend, memcpy_lambda);
+      hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
   } else if ( vid == RAJA_HIP ) {
 
-    camp::resources::Hip res = camp::resources::Hip::get_default();
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      res.memcpy(MEMCPY_STD_ARGS);
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          MEMCPY_BODY;
+      });
 
     }
     stopTimer();
 
-
-  } else {
-
-    getCout() << "\n  MEMCPY : Unknown Hip variant id = " << vid << std::endl;
-
   }
-
 }
 
 template < size_t block_size >
@@ -234,6 +252,23 @@ void MEMCPY::runHipVariant(VariantID vid, size_t tune_idx)
 
   });
 
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      if (tune_idx == t) {
+
+        runHipVariantUnifiedMem<block_size>(vid);
+
+      }
+
+      t += 1;
+
+    }
+
+  });  
+
 }
 
 void MEMCPY::setHipTuningDefinitions(VariantID vid)
@@ -242,11 +277,6 @@ void MEMCPY::setHipTuningDefinitions(VariantID vid)
   if (vid == Base_HIP || vid == RAJA_HIP) {
     addVariantTuningName(vid, "library");
   }
-
-  bool hip_unified_mem_supported = hipUnifiedMemSupported();
-  if (hip_unified_mem_supported) {
-    addVariantTuningName(vid, "hipUnifiedMem");
-    }  
 
   seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
 
@@ -257,7 +287,22 @@ void MEMCPY::setHipTuningDefinitions(VariantID vid)
 
     }
 
-  });
+  });  
+
+  bool hip_unified_mem_supported = hipUnifiedMemSupported();
+  if (hip_unified_mem_supported) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      addVariantTuningName(vid, "hipUnifiedMem_"+std::to_string(block_size));
+
+    }
+
+    });
+
+    }  
 
 }
 
