@@ -76,9 +76,9 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
         if "SYS_TYPE" in env:
             hostname = hostname.rstrip("1234567890")
         var=""
-        if "+cuda" in spec:
+        if "+cuda" in self.spec:
             var= "-".join([var,"cuda"])
-        if "+libcpp" in spec:
+        if "+libcpp" in self.spec:
             var="-".join([var,"libcpp"])
 
         return "{0}-{1}{2}-{3}@{4}-{5}.cmake".format(
