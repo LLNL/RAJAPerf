@@ -87,6 +87,64 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
 }
 
 template < size_t block_size >
+void MEMSET::runHipVariantUnifiedMem(VariantID vid)
+{
+  const Index_type run_reps = getRunReps();
+  const Index_type ibegin = 0;
+  const Index_type iend = getActualProblemSize();
+
+  MEMSET_DATA_SETUP;
+
+  if ( vid == Base_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL( (memset<block_size>),
+          dim3(grid_size), dim3(block_size), 0, 0,
+          x, val, iend );
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+  } else if ( vid == Lambda_HIP ) {
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      auto memset_lambda = [=] __device__ (Index_type i) {
+        MEMSET_BODY;
+      };
+
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(memset_lambda)>),
+          grid_size, block_size, 0, 0,
+          ibegin, iend, memset_lambda);
+      hipErrchk( hipGetLastError() );
+
+    }
+    stopTimer();
+
+  } else if ( vid == RAJA_HIP ) {
+
+    MEMSET_DATA_SETUP_HIP;
+
+    startTimer();
+    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+        RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
+          MEMSET_BODY;
+      });
+
+    }
+    stopTimer();
+  }
+}
+
+template < size_t block_size >
 void MEMSET::runHipVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
@@ -193,6 +251,23 @@ void MEMSET::runHipVariant(VariantID vid, size_t tune_idx)
 
   });
 
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      if (tune_idx == t) {
+
+        runHipVariantUnifiedMem<block_size>(vid);
+
+      }
+
+      t += 1;
+
+    }
+
+  });   
+
 }
 
 void MEMSET::setHipTuningDefinitions(VariantID vid)
@@ -211,6 +286,20 @@ void MEMSET::setHipTuningDefinitions(VariantID vid)
     }
 
   });
+  bool hip_unified_mem_supported = hipUnifiedMemSupported();
+  if (hip_unified_mem_supported) {
+  seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+    if (run_params.numValidGPUBlockSize() == 0u ||
+        run_params.validGPUBlockSize(block_size)) {
+
+      addVariantTuningName(vid, "hipUnifiedMem_"+std::to_string(block_size));
+
+    }
+
+    });
+
+    }   
 
 }
 

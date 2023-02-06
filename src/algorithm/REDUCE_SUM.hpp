@@ -67,6 +67,8 @@ public:
   void runCudaVariantBlock(VariantID vid);
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantUnifiedMem(VariantID vid);   
 
 private:
   static const size_t default_gpu_block_size = 256;

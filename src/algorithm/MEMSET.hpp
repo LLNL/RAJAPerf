@@ -67,6 +67,8 @@ public:
 
   template < size_t block_size >
   void runHipVariantBlock(VariantID vid);
+  template < size_t block_size >
+  void runHipVariantUnifiedMem(VariantID vid);    
   void runHipVariantLibrary(VariantID vid);
 
 private:
