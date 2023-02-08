@@ -14,6 +14,7 @@
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
 #include <cstdlib>
+#include <unistd.h>
 
 namespace rajaperf
 {
@@ -107,6 +108,22 @@ void allocData(Complex_ptr& ptr, int len)
 {
   // Should we do this differently for alignment?? If so, change dealloc()
   ptr = new Complex_type[len];
+}
+
+template <typename T>
+void allocAlignedData(T& aptr, int alignment, int len)
+{
+    if(posix_memalign((void**)&aptr, alignment, 
+                      len * sizeof(typename std::remove_pointer<T>::type)) != 0){ 
+        aptr = nullptr; 
+        throw std::bad_alloc(); 
+        }   
+}
+
+
+inline int getDefaultAlignment()
+{    
+    return  getpagesize();
 }
 
 
