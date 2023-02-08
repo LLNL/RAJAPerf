@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -237,8 +237,11 @@ blt_add_executable(
   algorithm/MEMCPY.cpp
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
-  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
+install( TARGETS raja-perf-omptarget.exe
+         RUNTIME DESTINATION bin
+       )
 
 else()
 blt_add_executable(
@@ -246,4 +249,7 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
+install( TARGETS raja-perf.exe
+         RUNTIME DESTINATION bin
+       )
 endif()
