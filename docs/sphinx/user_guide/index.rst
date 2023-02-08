@@ -23,4 +23,4 @@ both of which contain code examples.
 .. toctree::
    :maxdepth: 3
 
-.. ##   getting_started
+   getting_started
