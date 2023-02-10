@@ -12,8 +12,10 @@
 Getting Started With RAJA Performance Suite
 *********************************************
 
-This section should help get you up and running the RAJA Performannce Suite
+This section should help get you building the RAJA Performance Suite code
 quickly.
+
+.. _getting_started_reqs-label:
 
 ============
 Requirements
@@ -34,8 +36,10 @@ need:
 - C++ compiler with C++14 support
 - `CMake <https://cmake.org/>`_ version 3.23 or greater when building the HIP back-end, and version 3.20 or greater otherwise.
 
+.. _getting_started_getcode-label:
+
 ==================
-Get the Code
+Getting the Code
 ==================
 
 The RAJA Performance Suite project is hosted on GitHub:
@@ -45,18 +49,22 @@ command::
 
    $ git clone --recursive https://github.com/LLNL/RAJAPerf.git
 
-The ``--recursive`` option above is used to pull RAJA Performance Suite 
+The ``--recursive`` option is used to pull all RAJA Performance Suite 
 Git *submodules*, on which it depends, into your local copy of the repository.
 
-After running the clone command, a copy of the RAJA Performance Suite
+After running the ``git clone`` command, a copy of the RAJA Performance Suite
 repository will reside in the ``RAJAPerf`` subdirectory where you ran the 
 clone command. You will be on the ``develop`` branch, which is the default 
-RAJA Performance Suite branch.
-
-If you do not pass the ``--recursive`` argument to the ``git clone``
-command, you can also type the following commands after cloning::
+RAJA Performance Suite branch. For example::
 
   $ cd RAJAPerf
+  $ git branch | grep \*
+  * develop
+
+If you do not pass the ``--recursive`` argument to the ``git clone``
+command, you can also type the following command in the ``RAJAPerf`` 
+directory after cloning::
+
   $ git submodule update --init --recursive
 
 Either way, the end result is the same and you should be good to configure the
@@ -78,11 +86,10 @@ code and build it.
 Dependencies
 ==================
 
-The RAJA Performance Suite has several dependencies that are required based 
-on how you want to build and use it. The RAJA Performance Suite Git repository 
-has submodules that contain these dependencies. We recommend using the 
-submodules which are pinned to specific versions of those libraries for 
-most usage.
+The RAJA Performance Suite has several dependencies that are required, and
+which are contained in the Suite submodules. For most usage, we recommend 
+using the submodules which are pinned to specific versions of those libraries 
+for each branch/release.
 
 The most important dependencies are:
 
@@ -91,7 +98,8 @@ The most important dependencies are:
 - `CMake <https://cmake.org/>`_ version 3.23 or greater when building the HIP back-end, and version 3.20 or greater otherwise.
 - A C++ 14 standard compliant compiler
 
-Please see `RAJA Dependencies <https://raja.readthedocs.io/en/develop/sphinx/user_guide/getting_started.html#dependencies>`_ for more information.
+Please see `RAJA Dependencies <https://raja.readthedocs.io/en/develop/sphinx/user_guide/getting_started.html#dependencies>`_ for more information about
+RAJA dependencies.
 
 .. _getting_started_build-label:
 
@@ -99,24 +107,24 @@ Please see `RAJA Dependencies <https://raja.readthedocs.io/en/develop/sphinx/use
 Build and Install
 ==================
 
-The process to build and install the RAJA Performance Suite is similar to
+The build and install process for the RAJA Performance Suite is similar to
 the process for RAJA. Please see `RAJA Build and Install <https://raja.readthedocs.io/en/develop/sphinx/user_guide/getting_started.html#build-and-install>`_
 for more information.
 
 When building the RAJA Performance Suite,
 RAJA and the RAJA Performance Suite are built together using the same CMake
 configuration. For convenience, we include scripts in the ``scripts``
-directory that invoke corresponding configuration files (CMake cache files)
+directory that invoke associated configuration files (CMake cache files)
 in the RAJA submodule. For example, the ``scripts/lc-builds`` directory
 contains scripts that show how we build code for testing on platforms in
-the Lawrence Livermore Computing Center. Each build script creates a
+the Computing Center at Lawrence Livermore National Laboratory. Each build 
+script creates a
 descriptively-named build space directory in the top-level RAJA Performance 
 Suite directory and runs CMake with a configuration appropriate for the 
-platform and compilers used. After CMake completes, enter the build directory 
-and type `make` (or `make -j <N>` for a parallel build using N processor 
-cores). If you omit the number of cores, the code will build in parallel 
-using all available cores on the node you are running on to compile the code. 
-For example::
+platform and specified compiler(s). After CMake completes, enter the build 
+directory and type ``make`` (or ``make -j <N>`` or ``make -j`` for a parallel 
+build using N processor cores, or all available processor cores on a node,
+respectively). For example::
 
   $ ./scripts/blueos_nvcc_clang.sh 10.2.89 70 10.0.1
   $ cd build_blueos_nvcc10.2.89-sm_70-clang10.0.1
@@ -130,15 +138,6 @@ the CUDA compute architecture ``sm_70``.
           helpful examples of running CMake to generate a variety of 
           build configurations.
 
-The provided configurations will only build the Performance Suite code by
-default; i.e., it will not build the RAJA Performance Suite test codes. If you 
-want to build the tests, for example, to verify your build is working properly,
-just pass the following options to CMake ``-DENABLE_TESTS=On`` and
-``-DRAJA_PERFSUITE_ENABLE_TESTS=On``, either on the command line if you run 
-CMake directly or edit the script you are running to do this. Then, when the 
-build completes, you can type `make test` to run the RAJA Performance Suite 
-tests.
-
 You can also create your own build directory and run CMake with your own
 options from there. For example::
 
@@ -147,10 +146,35 @@ options from there. For example::
   & cmake <cmake args> ../
   & make -j 
 
+When no CMake test options are provided, only the RAJA Performance Suite code 
+will be built. If you want to build both the Suite tests and RAJA tests (to
+verify that everything is built properly), pass the following options to 
+CMake: ``-DENABLE_TESTS=On`` and ``-DRAJA_PERFSUITE_ENABLE_TESTS=On``. This 
+can be done on the command line if you run CMake directly or by editing the 
+build script you are using. If you want to build the Suite tests, but not 
+RAJA tests, pass the two CMake options above plus the option 
+``-DRAJA_ENABLE_TESTS=Off``. 
+
+In any case, after the build completes, you can type `make test` to run the 
+tests you have chosen to build and see the results.
+
+.. note:: Which kernel variants that can be run depend on which programming
+          model features have been enabled for a build. By default, only
+          *sequential* CPU RAJA and baseline variants will be built. To
+          additionally enable OpenMP variants, for example, you must pass the 
+          ``DENABLE_OPENMP=On`` option to CMake. Similarly, for CUDA, HIP,
+          and other programming model variants.
+
+.. important:: For GPU-enabled builds, only one GPU back-end can be enabled
+               in a single executable. However, CPU and GPU enabled execution
+               can be enabled in a single executable. For example, one can
+               enable CPU sequential, OpenMP, and CUDA GPU variants in a build.
+               Similarly for HIP GPU variants. 
+
 Building with MPI
 -----------------
 
-Some of the provided configurations will build the Performance Suite with
+Some provided configurations will build the Performance Suite with
 MPI support enabled. For example::
 
   $ ./scripts/blueos_spectrum_nvcc_clang.sh rolling-release 10.2.89 70 10.0.1
@@ -158,20 +182,34 @@ MPI support enabled. For example::
   $  make -j
 
 In general MPI support can be enabled by passing the `-DENABLE_MPI=On` option
-to CMake and providing a mpi compiler wrapper via the
+to CMake and providing a MPI compiler wrapper via the
 ``-DMPI_CXX_COMPILER=/path/to/mpic++`` option to CMake in addition to other 
 CMake options. For example::
 
   $ mkdir my-mpi-build
   $ cd my-mpi-build
-  $ cmake -DENABLE_MPI=On -DMPI_CXX_COMPILER=/path/to/mpic++ <cmake args> ../
+  $ cmake <cmake args \
+    -DENABLE_MPI=On -DMPI_CXX_COMPILER=/path/to/mpic++ \
+    ..
   $ make -j
 
 When MPI is enabled, you can run the RAJA Performance Suite in a way that
-mimicks how a real application would run, such as by fully utilizing a GPU
+mimics how a real application would run, such as by fully utilizing a GPU
 or all CPU cores. MPI-enabled execution is supported to generate realistic
 performance data with the Suite.
 
 Building with specific GPU thread-block size tunings
 -----------------------------------------------------
+
+If desired, you can build a version of the RAJA Performance Suite code with 
+multiple GPU kernel versions that will run with different GPU thread-block 
+sizes. The CMake option for this is 
+``-DRAJA_PERFSUITE_GPU_BLOCKSIZES=<list,of,block,sizes>``. For example::
+
+  $ mkdir my-gpu-build
+  $ cd my-gpu-build
+  $ cmake <cmake args> \
+    -DRAJA_PERFSUITE_GPU_BLOCKSIZES=64,128,256,512,1024 \
+    ..
+  $ make -j
 

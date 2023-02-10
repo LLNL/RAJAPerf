@@ -12,15 +12,17 @@ RAJA Performance Suite User Guide
 ###################################
 
 If you have some familiarity with RAJA and want to get up and running quickly,
-check out :ref:`getting_started-label`. This guide contains information
-about accessing the RAJA Performance Suite code, building it, and basic usage.
+check out :ref:`getting_started-label`, which contains information about 
+getting the RAJA Performance Suite code, how to build it, how to run it, etc.
 
-If you want information about RAJA, please see the 
+If you want more information about RAJA, please see the 
 `RAJA User Guide <https://raja.readthedocs.io/en/develop/sphinx/user_guide/index.html>`_ 
-That Guidecontains a detailed discussion of RAJA features and a RAJA tutorial, 
+That Guide contains a detailed discussion of RAJA features and a RAJA tutorial, 
 both of which contain code examples.
 
 .. toctree::
    :maxdepth: 3
 
    getting_started
+   running
+.. ##   output
