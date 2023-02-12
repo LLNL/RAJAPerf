@@ -125,6 +125,10 @@ void Executor::setupSuite()
 
   getCout() << "\nSetting up suite based on input..." << endl;
 
+  #if defined(RAJA_ENABLE_SYCL)
+  KernelBase::qu = KernelBase::sycl_res.get<camp::resources::Sycl>().get_queue();
+  #endif
+
   using Slist = list<string>;
   using Svector = vector<string>;
   using COvector = vector<RunParams::CombinerOpt>;

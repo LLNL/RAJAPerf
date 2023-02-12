@@ -25,6 +25,11 @@
 #if defined(RAJA_ENABLE_HIP)
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+#include <sycl.hpp>
+#include "camp/resource.hpp"
+#endif
+
 
 #include <string>
 #include <vector>
@@ -94,6 +99,11 @@ public:
   virtual void setKokkosTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  virtual void setSyclTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
+#endif
+
 
   //
   // Getter methods used to generate kernel execution summary
@@ -240,6 +250,15 @@ public:
      getCout() << "\n KernelBase: Unimplemented Kokkos variant id = " << vid << std::endl;
   }
 #endif
+#if defined(RAJA_ENABLE_SYCL)
+  virtual void runSyclVariant(VariantID vid, size_t tune_idx)
+  {
+     getCout() << "\n KernelBase: Unimplemented Sycl variant id = " << vid << std::endl;
+  }
+  static cl::sycl::queue* qu;
+  static camp::resources::Resource sycl_res;
+#endif
+
 
 protected:
   const RunParams& run_params;

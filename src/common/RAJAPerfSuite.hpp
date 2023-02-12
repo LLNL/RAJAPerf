@@ -196,6 +196,10 @@ enum VariantID {
 
   Kokkos_Lambda,
 
+  Base_SYCL,
+  Range_SYCL,
+  RAJA_SYCL,
+
   NumVariants // Keep this one last and NEVER comment out (!!)
 
 };

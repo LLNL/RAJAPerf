@@ -10,6 +10,7 @@
 
 #include "RunParams.hpp"
 
+#include "RAJA/RAJA.hpp"
 #include <cmath>
 #include <limits>
 
@@ -135,6 +136,15 @@ void KernelBase::setVariantDefined(VariantID vid)
 #if defined(RUN_KOKKOS)
     setKokkosTuningDefinitions(vid);
 #endif
+    case Base_SYCL:
+    case Range_SYCL:
+    case RAJA_SYCL:
+    {
+#if defined(RAJA_ENABLE_SYCL)
+      setSyclTuningDefinitions(vid);
+#endif
+      break;
+    }
     break;
     }
 
@@ -157,6 +167,10 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;
   running_tuning = tune_idx;
+
+#if defined(RAJA_ENABLE_SYCL)
+  ::RAJA::sycl::detail::setQueue(&sycl_res);
+#endif
 
   resetTimer();
 
@@ -252,7 +266,15 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
       runKokkosVariant(vid, tune_idx);
 #endif
     }
-
+    case Base_SYCL:
+    case Range_SYCL:
+    case RAJA_SYCL:
+    {
+#if defined(RAJA_ENABLE_SYCL)
+      runSyclVariant(vid, tune_idx);
+#endif
+      break;
+    }
     default : {
 #if 0
       getCout() << "\n  " << getName()
