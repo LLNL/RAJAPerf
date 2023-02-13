@@ -255,7 +255,7 @@ public:
   {
      getCout() << "\n KernelBase: Unimplemented Sycl variant id = " << vid << std::endl;
   }
-  static cl::sycl::queue* qu;
+  static sycl::queue* qu;
   static camp::resources::Resource sycl_res;
 #endif
 

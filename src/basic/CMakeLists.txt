@@ -44,6 +44,7 @@ blt_add_library(
           INIT3-Cuda.cpp
           INIT3-OMP.cpp
           INIT3-OMPTarget.cpp
+          INIT3-Sycl.cpp
           INIT_VIEW1D.cpp
           INIT_VIEW1D-Seq.cpp
           INIT_VIEW1D-Hip.cpp
