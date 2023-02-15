@@ -16,43 +16,49 @@ Motivation and Background
 =============================
 
 The RAJA Performance Suite is designed to explore performance of loop-based
-computational kernels found in HPC applications. Specifically, it can be
+computational kernels found in HPC applications. Specifically, it is
 used to assess and monitor runtime performance of kernels implemented using
-`RAJA <https://github.com/LLNL/RAJA>`_ C++ performance portability 
-abstractions. The Suite contains a variety of kernels implemented using
-common parallel programming models, such as OpenMP and CUDA. Some important 
-terminology used in the Suite includes:
+`RAJA C++ performance portability abstractions <https://github.com/LLNL/RAJA>`_.
+The Suite contains a variety of kernels implemented using common parallel 
+programming models, such as OpenMP and CUDA. Some important 
+terminology used in the Suite implementation and discussion includes:
 
-  * `Kernel` is a distinct loop-based computation that appears in the Suite in
+  * **Kernel** is a distinct loop-based computation that appears in the Suite in
     multiple variants (or implementations), each of which performs the same
     computation.
-  * `Group` is a collection of kernels in the Suite that are grouped together
-    because they originate from the same source, such as a specific benchmark
-    suite.
-  * `Variant` refers to implementations of Suite kernels that share the same 
-    approach/abstraction and programming model, such as baseline OpenMP, RAJA 
-    OpenMP, etc.
-  * `Tuning` is a particular implementation of a variant of a kernel in the
-    Suite, such as GPU thread-block size 128, GPU thread-block size 256, etc.
+  * **Group** is a subset of kernels in the Suite that originated from the 
+    same source, such as a specific benchmark suite.
+  * **Variant** refers to implementations of Suite kernels that share the same 
+    implementation approach and programming model, such as *baseline OpenMP*, 
+    *RAJA OpenMP*, etc.
+  * **Tuning** refers to an implementation of kernels with a particular 
+    execution parameterization, such as GPU thread-block size 128, GPU 
+    thread-block size 256, etc.
 
-Each kernel in the Suite appears in multiple RAJA and non-RAJA (i.e., baseline)
-variants using parallel programming models that RAJA supports. Some kernels have
-multiple tunings of a variant to explore some of the parametrization that the
-programming model supports. The kernels originate from various HPC benchmark
-suites and applications. For example, the "Stream" group contains kernels from
-the Babel Stream benchmark, the "Apps" group contains kernels extracted from
-real scientific computing applications, and so forth.
+The kernels in the Suite originate from various HPC benchmark suites and 
+applications. For example, the "Stream" group contains kernels from the Babel 
+Stream benchmark, the "Apps" group contains kernels extracted from
+real scientific computing applications, and so forth. Each kernel in the Suite 
+appears in multiple RAJA and non-RAJA (i.e., *baseline*) variants that use 
+parallel programming models supported by RAJA. Some kernels have multiple 
+tunings of a variant to explore the performance implications of options that 
+a programming model supports.
+
+.. note:: Available variants for a kernel do not need to include all possible
+          variants in the Suite. In some cases, a kernel appears only in the 
+          subset of variants that makes sense for the particular kernel.
 
 The Suite can be run as a single process or with multiple processes when
-configured with MPI support. When running with multiple MPI ranks, the same 
-code is executed on all ranks. Ranks are synchronized before and after each
-kernel executes to gather timing data to rank zero. Running with MPI in the 
-same configuration used by an HPC app allows the Suite to generate performance 
-data that is more relevant for that HPC app than performance data generated 
-running with a single process.  For example, running sequentially with one MPI 
+configured with MPI support. When running with multiple MPI processes, the same 
+code is executed on each rank. Ranks are synchronized before and after each
+kernel executes to gather timing data to rank zero. Running with multiple 
+MPI processes helps the Suite generate performance data that is more 
+realistic for HPC applications than performance data generated running with 
+a single process. For example, running sequentially with one MPI 
 rank per core vs running sequentially with a single process yields different 
 performance results on most multi-core CPUs because bandwidth resources are
-exercised differently.
+exercised differently. Similarly, for GPU systems where multiple MPI ranks
+are necessary to fully utilize GPU compute resources.
 
 More information about running the Suite for different types of performance 
 studies is provided in the 
@@ -62,10 +68,10 @@ studies is provided in the
 Git Repository and Issue Tracking
 =================================
 
-The main interaction hub for the RAJA Performance Suite is
-`GitHub <https://github.com/LLNL/RAJAPerf>`_ There you will find the Git 
-source code repository, issue tracker, release history, and other information 
-about the project.
+The main interaction hub for the RAJA Performance Suite is its
+`GitHub project <https://github.com/LLNL/RAJAPerf>`_. There you will find 
+the Git source code repository, issue tracker, release history, and other 
+information about the project.
 
 ================================
 Communicating with the RAJA Team
