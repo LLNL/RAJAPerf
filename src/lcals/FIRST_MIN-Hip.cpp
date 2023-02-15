@@ -32,13 +32,14 @@ template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
+                          MyMinLoc mininit,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  minloc[ threadIdx.x ] = dminloc[blockIdx.x];
+  minloc[ threadIdx.x ] = mininit;
 
   for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
@@ -56,9 +57,7 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (dminloc[blockIdx.x]).val ) {
-      dminloc[blockIdx.x] = minloc[ 0 ];
-    }
+    dminloc[blockIdx.x] = minloc[ 0 ];
   }
 }
 
@@ -91,18 +90,19 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
        hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            sizeof(MyMinLoc)*block_size, 0, x,
                            dminloc,
+                           mymin,
                            iend );
 
-       hipErrchk( hipGetLastError() );			  
-       hipErrchk( hipMemcpy( mymin_block, dminloc, 
+       hipErrchk( hipGetLastError() );
+       hipErrchk( hipMemcpy( mymin_block, dminloc,
                              grid_size * sizeof(MyMinLoc),
-                             hipMemcpyDeviceToHost ) );       
+                             hipMemcpyDeviceToHost ) );
 
        for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
          if ( mymin_block[i].val < mymin.val ) {
            mymin = mymin_block[i];
          }
-       }	   
+       }
        m_minloc = mymin.loc;
 
     }
