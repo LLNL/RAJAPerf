@@ -135,6 +135,7 @@ enum KernelID {
   Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
+  Apps_EDGE3D,
   Apps_ENERGY,
   Apps_FIR,
   Apps_HALOEXCHANGE,
