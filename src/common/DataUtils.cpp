@@ -16,6 +16,9 @@
 namespace rajaperf
 {
 
+namespace detail
+{
+
 static int data_init_count = 0;
 
 /*
@@ -36,45 +39,42 @@ void incDataInitCount()
 
 
 /*
- * Allocate and initialize aligned integer data arrays.
- */
-void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
-{
-  allocData(ptr, len);
-  initData(ptr, len, vid);
-}
-
-/*
  * Allocate and initialize aligned data arrays.
  */
-void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
+void allocAndInitData(Int_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len);
+  allocData(ptr, len, align);
   initData(ptr, len, vid);
 }
 
-void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
+void allocAndInitData(Real_ptr& ptr, int len, int align, VariantID vid )
+{
+  allocData(ptr, len, align);
+  initData(ptr, len, vid);
+}
+
+void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
                            VariantID vid)
 {
-  allocData(ptr, len);
+  allocData(ptr, len, align);
   initDataConst(ptr, len, val, vid);
 }
 
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len);
+  allocData(ptr, len, align);
   initDataRandSign(ptr, len, vid);
 }
 
-void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len);
+  allocData(ptr, len, align);
   initDataRandValue(ptr, len, vid);
 }
 
-void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
+void allocAndInitData(Complex_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len);
+  allocData(ptr, len, align);
   initData(ptr, len, vid);
 }
 
@@ -82,22 +82,22 @@ void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
 /*
  * Allocate data arrays of given type.
  */
-void allocData(Int_ptr& ptr, int len)
+void allocData(Int_ptr& ptr, int len, int align)
 {
-  ptr = RAJA::allocate_aligned_type<Int_type>(RAJA::DATA_ALIGN,
-                                              len*sizeof(Int_type));
+  ptr = RAJA::allocate_aligned_type<Int_type>(
+      align, len*sizeof(Int_type));
 }
 
-void allocData(Real_ptr& ptr, int len)
+void allocData(Real_ptr& ptr, int len, int align)
 {
-  ptr = RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                               len*sizeof(Real_type));
+  ptr = RAJA::allocate_aligned_type<Real_type>(
+      align, len*sizeof(Real_type));
 }
 
-void allocData(Complex_ptr& ptr, int len)
+void allocData(Complex_ptr& ptr, int len, int align)
 {
-  ptr = RAJA::allocate_aligned_type<Complex_type>(RAJA::DATA_ALIGN,
-                                                  len*sizeof(Complex_type));
+  ptr = RAJA::allocate_aligned_type<Complex_type>(
+      align, len*sizeof(Complex_type));
 }
 
 
@@ -328,6 +328,7 @@ void initData(Real_type& d, VariantID vid)
   incDataInitCount();
 }
 
+}  // closing brace for detail namespace
 
 /*
  * Calculate and return checksum for data arrays.

@@ -188,6 +188,73 @@ public:
 #endif
   }
 
+  // run_params.getMemoryAlignment(); }
+  int getDataAlignment() const { return RAJA::DATA_ALIGN; }
+  template <typename T>
+  void allocData(T*& ptr, int len)
+  {
+    rajaperf::detail::allocData(ptr, len, getDataAlignment());
+  }
+  template <typename T>
+  void allocAndInitData(T*& ptr, int len,
+                        VariantID vid = NumVariants)
+  {
+    rajaperf::detail::allocAndInitData(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void allocAndInitDataConst(T*& ptr, int len, T val,
+                             VariantID vid = NumVariants)
+  {
+    rajaperf::detail::allocAndInitDataConst(ptr, len, getDataAlignment(), val, vid);
+  }
+  template <typename T>
+  void allocAndInitDataRandSign(T*& ptr, int len,
+                                VariantID vid = NumVariants)
+  {
+    rajaperf::detail::allocAndInitDataRandSign(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void allocAndInitDataRandValue(T*& ptr, int len,
+                                 VariantID vid = NumVariants)
+  {
+    rajaperf::detail::allocAndInitDataRandValue(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void deallocData(T*& ptr)
+  {
+    rajaperf::detail::deallocData(ptr);
+  }
+  template <typename T>
+  void initData(T*& ptr, int len,
+                VariantID vid = NumVariants)
+  {
+    rajaperf::detail::initData(ptr, len, vid);
+  }
+  template <typename T>
+  void initDataConst(T*& ptr, int len, T val,
+                     VariantID vid = NumVariants)
+  {
+    rajaperf::detail::initDataConst(ptr, len, val, vid);
+  }
+  template <typename T>
+  void initDataRandSign(T*& ptr, int len,
+                        VariantID vid = NumVariants)
+  {
+    rajaperf::detail::initDataRandSign(ptr, len, vid);
+  }
+  template <typename T>
+  void initDataRandValue(T*& ptr, int len,
+                         VariantID vid = NumVariants)
+  {
+    rajaperf::detail::initDataRandValue(ptr, len, vid);
+  }
+  template <typename T>
+  void initData(T& d,
+                VariantID vid = NumVariants)
+  {
+    rajaperf::detail::initData(d, vid);
+  }
+
   void startTimer()
   {
     synchronize();

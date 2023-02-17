@@ -19,28 +19,6 @@ namespace rajaperf
 namespace apps
 {
 
-namespace {
-
-void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       std::vector<Index_type >& pack_index_list_lengths,
-                       const Index_type halo_width, const Index_type* grid_dims,
-                       const Index_type num_neighbors,
-                       VariantID vid);
-void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                         std::vector<Index_type >& unpack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid);
-void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                        const Index_type num_neighbors,
-                        VariantID vid);
-void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid);
-
-}
-
-
 HALOEXCHANGE_FUSED::HALOEXCHANGE_FUSED(const RunParams& params)
   : KernelBase(rajaperf::Apps_HALOEXCHANGE_FUSED, params)
 {
@@ -172,14 +150,17 @@ struct Extent
   Index_type k_max;
 };
 
+}
+
 //
 // Function to generate index lists for packing.
 //
-void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       std::vector<Index_type >& pack_index_list_lengths,
-                       const Index_type halo_width, const Index_type* grid_dims,
-                       const Index_type num_neighbors,
-                       VariantID vid)
+void HALOEXCHANGE_FUSED::create_pack_lists(
+    std::vector<Int_ptr>& pack_index_lists,
+    std::vector<Index_type >& pack_index_list_lengths,
+    const Index_type halo_width, const Index_type* grid_dims,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   std::vector<Extent> pack_index_list_extents(num_neighbors);
 
@@ -304,9 +285,10 @@ void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
 //
 // Function to destroy packing index lists.
 //
-void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       const Index_type num_neighbors,
-                       VariantID vid)
+void HALOEXCHANGE_FUSED::destroy_pack_lists(
+    std::vector<Int_ptr>& pack_index_lists,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   (void) vid;
 
@@ -318,11 +300,12 @@ void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
 //
 // Function to generate index lists for unpacking.
 //
-void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                         std::vector<Index_type >& unpack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid)
+void HALOEXCHANGE_FUSED::create_unpack_lists(
+    std::vector<Int_ptr>& unpack_index_lists,
+    std::vector<Index_type >& unpack_index_list_lengths,
+    const Index_type halo_width, const Index_type* grid_dims,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   std::vector<Extent> unpack_index_list_extents(num_neighbors);
 
@@ -447,9 +430,10 @@ void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
 //
 // Function to destroy unpacking index lists.
 //
-void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid)
+void HALOEXCHANGE_FUSED::destroy_unpack_lists(
+    std::vector<Int_ptr>& unpack_index_lists,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   (void) vid;
 
@@ -457,8 +441,6 @@ void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
     deallocData(unpack_index_lists[l]);
   }
 }
-
-} // end namespace
 
 } // end namespace apps
 } // end namespace rajaperf
