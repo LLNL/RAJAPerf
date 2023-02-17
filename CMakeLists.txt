@@ -9,7 +9,7 @@
 # C is required for googletest to find Threads
 cmake_policy(SET CMP0048 NEW)
 
-project(RAJAPerfSuite VERSION 0.11.0 LANGUAGES CXX C)
+project(RAJAPerfSuite VERSION 2022.10.0 LANGUAGES CXX C)
 
 if (ENABLE_HIP)
   cmake_minimum_required(VERSION 3.23)

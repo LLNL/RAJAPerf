@@ -41,7 +41,7 @@ TEST(ShortSuiteTest, Basic)
   sargv[2] = std::string("1");
   sargv[3] = std::string("--show-progress");
 
-#if 0  
+#if 0
 #if defined(RAJA_ENABLE_HIP) && \
      (HIP_VERSION_MAJOR < 5 || \
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
@@ -50,7 +50,7 @@ TEST(ShortSuiteTest, Basic)
   sargv[6] = std::string("Basic_PI_ATOMIC");
 #endif
 #endif
-#if defined(RAJA_ENABLE_HIP) 
+#if defined(RAJA_ENABLE_HIP)
   sargv[4] = std::string("--exclude-kernels");
   sargv[5] = std::string("Basic_PI_ATOMIC");
 #endif
