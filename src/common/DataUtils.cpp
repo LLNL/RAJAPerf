@@ -84,21 +84,20 @@ void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
  */
 void allocData(Int_ptr& ptr, int len)
 {
-  // Should we do this differently for alignment?? If so, change dealloc()
-  ptr = new Int_type[len];
+  ptr = RAJA::allocate_aligned_type<Int_type>(RAJA::DATA_ALIGN,
+                                              len*sizeof(Int_type));
 }
 
 void allocData(Real_ptr& ptr, int len)
 {
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
+  ptr = RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
+                                               len*sizeof(Real_type));
 }
 
 void allocData(Complex_ptr& ptr, int len)
 {
-  // Should we do this differently for alignment?? If so, change dealloc()
-  ptr = new Complex_type[len];
+  ptr = RAJA::allocate_aligned_type<Complex_type>(RAJA::DATA_ALIGN,
+                                                  len*sizeof(Complex_type));
 }
 
 
@@ -108,8 +107,8 @@ void allocData(Complex_ptr& ptr, int len)
 void deallocData(Int_ptr& ptr)
 {
   if (ptr) {
-    delete [] ptr;
-    ptr = 0;
+    RAJA::free_aligned(ptr);
+    ptr = nullptr;
   }
 }
 
@@ -117,15 +116,15 @@ void deallocData(Real_ptr& ptr)
 {
   if (ptr) {
     RAJA::free_aligned(ptr);
-    ptr = 0;
+    ptr = nullptr;
   }
 }
 
 void deallocData(Complex_ptr& ptr)
 {
   if (ptr) {
-    delete [] ptr;
-    ptr = 0;
+    RAJA::free_aligned(ptr);
+    ptr = nullptr;
   }
 }
 
