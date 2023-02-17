@@ -34,6 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   memory_alignment(RAJA::DATA_ALIGN),
    gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),

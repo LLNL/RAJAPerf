@@ -125,6 +125,8 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
+  int getMemoryAlignment() const { return memory_alignment; }
+
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
   {
@@ -232,6 +234,7 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
+  int memory_alignment;
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for

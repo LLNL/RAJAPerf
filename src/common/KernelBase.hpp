@@ -188,8 +188,7 @@ public:
 #endif
   }
 
-  // run_params.getMemoryAlignment(); }
-  int getDataAlignment() const { return RAJA::DATA_ALIGN; }
+  int getDataAlignment() const { return run_params.getMemoryAlignment(); }
   template <typename T>
   void allocData(T*& ptr, int len,
                  VariantID vid)
