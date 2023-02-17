@@ -120,7 +120,7 @@ void HALOEXCHANGE::updateChecksum(VariantID vid, size_t tune_idx)
 void HALOEXCHANGE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
-    deallocData(m_buffers[l]);
+    deallocData(m_buffers[l], vid);
   }
   m_buffers.clear();
 
@@ -133,7 +133,7 @@ void HALOEXCHANGE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_pack_index_lists.clear();
 
   for (int v = 0; v < m_num_vars; ++v) {
-    deallocData(m_vars[v]);
+    deallocData(m_vars[v], vid);
   }
   m_vars.clear();
 }
@@ -293,7 +293,7 @@ void HALOEXCHANGE::destroy_pack_lists(
   (void) vid;
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(pack_index_lists[l]);
+    deallocData(pack_index_lists[l], vid);
   }
 }
 
@@ -438,7 +438,7 @@ void HALOEXCHANGE::destroy_unpack_lists(
   (void) vid;
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(unpack_index_lists[l]);
+    deallocData(unpack_index_lists[l], vid);
   }
 }
 

@@ -75,8 +75,8 @@ void MUL::updateChecksum(VariantID vid, size_t tune_idx)
 void MUL::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_b);
-  deallocData(m_c);
+  deallocData(m_b, vid);
+  deallocData(m_c, vid);
 }
 
 } // end namespace stream

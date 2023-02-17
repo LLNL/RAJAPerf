@@ -96,20 +96,26 @@ void allocAndInitData(Complex_ptr& ptr, int len, int align,
 /*!
  * \brief Allocate data arrays.
  */
-void allocData(Int_ptr& ptr, int len, int align);
+void allocData(Int_ptr& ptr, int len, int align,
+               VariantID vid);
 ///
-void allocData(Real_ptr& ptr, int len, int align);
+void allocData(Real_ptr& ptr, int len, int align,
+               VariantID vid);
 ///
-void allocData(Complex_ptr& ptr, int len, int align);
+void allocData(Complex_ptr& ptr, int len, int align,
+               VariantID vid);
 
 /*!
  * \brief Free data arrays.
  */
-void deallocData(Int_ptr& ptr);
+void deallocData(Int_ptr& ptr,
+                 VariantID vid);
 ///
-void deallocData(Real_ptr& ptr);
+void deallocData(Real_ptr& ptr,
+                 VariantID vid);
 ///
-void deallocData(Complex_ptr& ptr);
+void deallocData(Complex_ptr& ptr,
+                 VariantID vid);
 
 
 /*!

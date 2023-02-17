@@ -94,10 +94,10 @@ void POLYBENCH_HEAT_3D::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_HEAT_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_Ainit);
-  deallocData(m_Binit);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_Ainit, vid);
+  deallocData(m_Binit, vid);
 }
 
 } // end namespace polybench

@@ -74,7 +74,7 @@ void INIT_VIEW1D::updateChecksum(VariantID vid, size_t tune_idx)
 void INIT_VIEW1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
+  deallocData(m_a, vid);
 }
 
 } // end namespace basic
