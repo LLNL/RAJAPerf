@@ -36,7 +36,7 @@ prefix=""
 
 if [[ ${update_spack_upstream} ]]
 then
-    ${use_dev_shm}=False
+    use_dev_shm=False
     echo "We don't build in shared memory when updating the spack upstream"
 
     prefix=${spack_upstream_path}/..
