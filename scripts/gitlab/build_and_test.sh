@@ -29,9 +29,19 @@ raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
 use_dev_shm=${USE_DEV_SHM:-True}
 
+spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream/spack_dir"}
+update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-False}
+
 prefix=""
 
-if [[ -d /dev/shm && $use_dev_shm ]]
+if [[ ${update_spack_upstream} ]]
+then
+    ${use_dev_shm}=False
+    echo "We don't build in shared memory when updating the spack upstream"
+
+    prefix=${spack_upstream_path}/..
+    mkdir -p ${prefix}
+elif [[ -d /dev/shm && ${use_dev_shm} ]]
 then
     prefix="/dev/shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
@@ -68,6 +78,11 @@ then
 
     prefix_opt="--prefix=${prefix}"
 
+    if [[ -n ${spack_upstream_path} ]]
+    then
+      upstream_opt="--upstream=${spack_upstream_path}"
+    fi
+
     # We force Spack to put all generated files (cache and configuration of
     # all sorts) in a unique location so that there can be no collision
     # with existing or concurrent Spack.
@@ -76,7 +91,7 @@ then
     export SPACK_USER_CACHE_PATH="${spack_user_cache}"
     mkdir -p ${spack_user_cache}
 
-    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
+    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt} ${upstream_opt}
 
     mv ${project_dir}/tpl/RAJA/*.cmake ${project_dir}/.
 
