@@ -29,7 +29,7 @@ raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
 use_dev_shm=${USE_DEV_SHM:-True}
 
-spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream/spack_dir"}
+spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
 update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-False}
 
 prefix=""
@@ -39,7 +39,7 @@ then
     use_dev_shm=False
     echo "We don't build in shared memory when updating the spack upstream"
 
-    prefix=${spack_upstream_path}/..
+    prefix=${spack_upstream_path}
     mkdir -p ${prefix}
 elif [[ -d /dev/shm && ${use_dev_shm} ]]
 then
@@ -78,9 +78,8 @@ then
 
     prefix_opt="--prefix=${prefix}"
 
-    if [[ -n ${spack_upstream_path} ]]
-    then
-      upstream_opt="--upstream=${spack_upstream_path}"
+    if [[ -n ${spack_upstream_path} && -e ${spack_upstream_path}/spack/opt/spack/spack.yaml ]]
+        upstream_opt="--upstream=${spack_upstream_path}/spack/opt/spack"
     fi
 
     # We force Spack to put all generated files (cache and configuration of
