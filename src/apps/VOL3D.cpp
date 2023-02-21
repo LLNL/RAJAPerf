@@ -96,10 +96,10 @@ void VOL3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_z);
-  deallocData(m_vol);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
+  deallocData(m_z, vid);
+  deallocData(m_vol, vid);
 }
 
 } // end namespace apps

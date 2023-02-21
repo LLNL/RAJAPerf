@@ -92,9 +92,9 @@ void POLYBENCH_GEMM::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_GEMM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_C, vid);
 }
 
 } // end namespace polybench
