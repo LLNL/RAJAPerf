@@ -77,8 +77,8 @@ void FIR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_in);
-  deallocData(m_out);
+  deallocData(m_in, vid);
+  deallocData(m_out, vid);
 }
 
 } // end namespace apps

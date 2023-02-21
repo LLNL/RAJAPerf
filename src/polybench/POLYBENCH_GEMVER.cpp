@@ -108,15 +108,15 @@ void POLYBENCH_GEMVER::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_GEMVER::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_u1);
-  deallocData(m_v1);
-  deallocData(m_u2);
-  deallocData(m_v2);
-  deallocData(m_w);
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_z);
+  deallocData(m_A, vid);
+  deallocData(m_u1, vid);
+  deallocData(m_v1, vid);
+  deallocData(m_u2, vid);
+  deallocData(m_v2, vid);
+  deallocData(m_w, vid);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
+  deallocData(m_z, vid);
 }
 
 } // end namespace basic

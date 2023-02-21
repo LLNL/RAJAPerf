@@ -76,7 +76,7 @@ void PI_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
 void PI_ATOMIC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_pi);
+  deallocData(m_pi, vid);
 }
 
 } // end namespace basic

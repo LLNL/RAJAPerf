@@ -126,6 +126,23 @@ private:
   std::vector<Index_type > m_pack_index_list_lengths;
   std::vector<Int_ptr> m_unpack_index_lists;
   std::vector<Index_type > m_unpack_index_list_lengths;
+
+  void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
+                         std::vector<Index_type >& pack_index_list_lengths,
+                         const Index_type halo_width, const Index_type* grid_dims,
+                         const Index_type num_neighbors,
+                         VariantID vid);
+  void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
+                          const Index_type num_neighbors,
+                          VariantID vid);
+  void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
+                           std::vector<Index_type >& unpack_index_list_lengths,
+                           const Index_type halo_width, const Index_type* grid_dims,
+                           const Index_type num_neighbors,
+                           VariantID vid);
+  void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
+                            const Index_type num_neighbors,
+                            VariantID vid);
 };
 
 } // end namespace apps

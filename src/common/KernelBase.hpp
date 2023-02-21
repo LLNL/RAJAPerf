@@ -190,6 +190,74 @@ public:
 #endif
   }
 
+  int getDataAlignment() const { return run_params.getDataAlignment(); }
+  template <typename T>
+  void allocData(T*& ptr, int len,
+                 VariantID vid)
+  {
+    rajaperf::detail::allocData(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void allocAndInitData(T*& ptr, int len,
+                        VariantID vid)
+  {
+    rajaperf::detail::allocAndInitData(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void allocAndInitDataConst(T*& ptr, int len, T val,
+                             VariantID vid)
+  {
+    rajaperf::detail::allocAndInitDataConst(ptr, len, getDataAlignment(), val, vid);
+  }
+  template <typename T>
+  void allocAndInitDataRandSign(T*& ptr, int len,
+                                VariantID vid)
+  {
+    rajaperf::detail::allocAndInitDataRandSign(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void allocAndInitDataRandValue(T*& ptr, int len,
+                                 VariantID vid)
+  {
+    rajaperf::detail::allocAndInitDataRandValue(ptr, len, getDataAlignment(), vid);
+  }
+  template <typename T>
+  void deallocData(T*& ptr,
+                   VariantID vid)
+  {
+    rajaperf::detail::deallocData(ptr, vid);
+  }
+  template <typename T>
+  void initData(T*& ptr, int len,
+                VariantID vid)
+  {
+    rajaperf::detail::initData(ptr, len, vid);
+  }
+  template <typename T>
+  void initDataConst(T*& ptr, int len, T val,
+                     VariantID vid)
+  {
+    rajaperf::detail::initDataConst(ptr, len, val, vid);
+  }
+  template <typename T>
+  void initDataRandSign(T*& ptr, int len,
+                        VariantID vid)
+  {
+    rajaperf::detail::initDataRandSign(ptr, len, vid);
+  }
+  template <typename T>
+  void initDataRandValue(T*& ptr, int len,
+                         VariantID vid)
+  {
+    rajaperf::detail::initDataRandValue(ptr, len, vid);
+  }
+  template <typename T>
+  void initData(T& d,
+                VariantID vid)
+  {
+    rajaperf::detail::initData(d, vid);
+  }
+
 #if defined(RAJA_ENABLE_CUDA)
   CudaDataSpace getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
   template <typename T>
