@@ -35,8 +35,6 @@ generated in the run directory after Suite execution completes.
 .. note:: * You can pass the ``--dryrun`` command-line option to the executable
             to see a summary of how the Suite will execute without actually 
             running it.
-          * You can choose the directory for output file names as well as
-            output file names using command line options.
 
 The Suite can be run in a variety of ways determined by the command-line 
 options passed to the executable. For example, you can run or exclude subsets 
