@@ -6,16 +6,16 @@
 .. ## SPDX-License-Identifier: (BSD-3-Clause)
 .. ##
 
-.. _getting_started-label:
+.. _build-label:
 
 *********************************************
-Getting Started With RAJA Performance Suite
+Building the RAJA Performance Suite
 *********************************************
 
-This section should help you build the RAJA Performance Suite code so you can
+This section will help you build the RAJA Performance Suite code so you can
 start running it. 
 
-.. _getting_started_reqs-label:
+.. _build_reqs-label:
 
 ============
 Requirements
@@ -32,7 +32,7 @@ disable them are similar to `RAJA build options <https://raja.readthedocs.io/en/
 Later in this section, we discuss options that are specific to the 
 RAJA Performance Suite.
 
-.. _getting_started_getcode-label:
+.. _build_getcode-label:
 
 ==================
 Getting the Code
@@ -78,7 +78,7 @@ code and build it.
             ``git submodule update --init --recursive`` (described above) to 
             pull in the correct set of submodule and versions.
 
-.. _getting_started_depend-label:
+.. _build_depend-label:
 
 ==================
 Dependencies
@@ -95,16 +95,16 @@ The most important dependencies are:
 - `BLT build system <https://github.com/LLNL/blt>`_
 
 RAJA also contains dependencies, which are discussed in 
-`RAJA Dependencies <https://raja.readthedocs.io/en/develop/sphinx/user_guide/getting_started.html#dependencies>`_.
+`RAJA Dependencies <https://raja.readthedocs.io/en/develop/sphinx/user_guide/build.html#dependencies>`_.
 
-.. _getting_started_build-label:
+.. _build_build-label:
 
 ==================
 Build and Install
 ==================
 
 The build and install process for the RAJA Performance Suite is similar to
-the process for RAJA, which is described in `RAJA Build and Install <https://raja.readthedocs.io/en/develop/sphinx/user_guide/getting_started.html#build-and-install>`_.
+the process for RAJA, which is described in `RAJA Build and Install <https://raja.readthedocs.io/en/develop/sphinx/user_guide/build.html#build-and-install>`_.
 
 When building the RAJA Performance Suite, RAJA and the RAJA Performance Suite 
 are built together using the same CMake configuration. The basic process for 
