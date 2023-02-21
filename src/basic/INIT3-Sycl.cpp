@@ -55,58 +55,65 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   INIT3_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    INIT3_DATA_SETUP_SYCL;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
-
-      qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                                         [=] (sycl::nd_item<1> item ) {
-
-          Index_type i = item.get_global_id(0);
-          if (i < iend) {
+    if (work_group_size > 0) {
+  
+      INIT3_DATA_SETUP_SYCL;
+  
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+  
+        const size_t global_size = work_group_size * RAJA_DIVIDE_CEILING_INT(iend, work_group_size);
+  
+        qu->submit([&] (sycl::handler& h) {
+          h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
+                                           [=] (sycl::nd_item<1> item ) {
+  
+            Index_type i = item.get_global_id(0);
+            if (i < iend) {
+              INIT3_BODY
+            }
+  
+          });
+        });
+  
+      }
+      qu->wait();
+  
+      stopTimer();
+  
+      INIT3_DATA_TEARDOWN_SYCL;
+  
+    } else {
+  
+      INIT3_DATA_SETUP_SYCL;
+  
+      startTimer();
+      for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+  
+        qu->submit([&] (sycl::handler& h) {
+          h.parallel_for(sycl::range<1>(iend),
+                                        [=] (sycl::item<1> item ) {
+  
+            Index_type i = item.get_id(0);
             INIT3_BODY
-          }
-
+  
+          });
         });
-      });
+  
+      }
+      qu->wait();
+  
+      stopTimer();
+  
+      INIT3_DATA_TEARDOWN_SYCL;
 
-    }
-    qu->wait();
-
-    stopTimer();
-
-    INIT3_DATA_TEARDOWN_SYCL;
-
-  } else if ( vid == Range_SYCL ) {
-
-    INIT3_DATA_SETUP_SYCL;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      qu->submit([&] (sycl::handler& h) {
-        h.parallel_for(sycl::range<1>(iend),
-                                      [=] (sycl::item<1> item ) {
-
-          Index_type i = item.get_id(0);
-          INIT3_BODY
-
-        });
-      });
-
-    }
-    qu->wait();
-
-    stopTimer();
-
-    INIT3_DATA_TEARDOWN_SYCL;
-
+    } 
   } else if ( vid == RAJA_SYCL ) {
+
+    if ( work_group_size == 0 ) {
+      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      return;
+    }
 
     INIT3_DATA_SETUP_SYCL;
 

@@ -281,7 +281,6 @@ static const std::string VariantNames [] =
   std::string("Kokkos_Lambda"),
 
   std::string("Base_SYCL"),
-  std::string("Range_SYCL"),
   std::string("RAJA_SYCL"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
@@ -436,7 +435,6 @@ bool isVariantAvailable(VariantID vid)
 
 #if defined(RAJA_ENABLE_SYCL)
   if ( vid == Base_SYCL ||
-       vid == Range_SYCL ||
        vid == RAJA_SYCL ) {
     ret_val = true;
   }
@@ -505,7 +503,6 @@ bool isVariantGPU(VariantID vid)
 
 #if defined(RAJA_ENABLE_SYCL)
   if ( vid == Base_SYCL ||
-       vid == Range_SYCL ||
        vid == RAJA_SYCL ) {
     ret_val = true;
   }

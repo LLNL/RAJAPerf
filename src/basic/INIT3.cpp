@@ -55,7 +55,6 @@ INIT3::INIT3(const RunParams& params)
   setVariantDefined( Kokkos_Lambda );
 
   setVariantDefined( Base_SYCL );
-  setVariantDefined( Range_SYCL );
   setVariantDefined( RAJA_SYCL );
 }
 

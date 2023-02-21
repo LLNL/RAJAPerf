@@ -189,7 +189,11 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
     seq_for(gpu_block_sizes_type{}, [&](auto block_size) {                     \
       if (run_params.numValidGPUBlockSize() == 0u ||                           \
           run_params.validGPUBlockSize(block_size)) {                          \
-        addVariantTuningName(vid, "block_"+std::to_string(block_size));        \
+        if (block_size == 0u) {                                                 \
+          addVariantTuningName(vid, "block_auto");                             \
+        } else {                                                               \
+          addVariantTuningName(vid, "block_"+std::to_string(block_size));      \
+        }                                                                      \
       }                                                                        \
     });                                                                        \
   }

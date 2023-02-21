@@ -137,7 +137,6 @@ void KernelBase::setVariantDefined(VariantID vid)
     setKokkosTuningDefinitions(vid);
 #endif
     case Base_SYCL:
-    case Range_SYCL:
     case RAJA_SYCL:
     {
 #if defined(RAJA_ENABLE_SYCL)
@@ -267,7 +266,6 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 #endif
     }
     case Base_SYCL:
-    case Range_SYCL:
     case RAJA_SYCL:
     {
 #if defined(RAJA_ENABLE_SYCL)
