@@ -34,7 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
-   memory_alignment(RAJA::DATA_ALIGN),
+   data_alignment(RAJA::DATA_ALIGN),
    gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
@@ -99,7 +99,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
-  str << "\n memory_alignment = " << memory_alignment;
+  str << "\n data_alignment = " << data_alignment;
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
@@ -318,8 +318,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
-    } else if ( opt == std::string("--align") ||
-                opt == std::string("--memory_alignment") ) {
+    } else if ( opt == std::string("-align") ||
+                opt == std::string("--data_alignment") ) {
 
       i++;
       if ( i < argc ) {
@@ -336,7 +336,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 << std::endl;
           input_state = BadInput;
         } else {
-          memory_alignment = align;
+          data_alignment = align;
         }
       } else {
         getCout() << "\nBad input:"
@@ -619,11 +619,11 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
 
-  str << "\t --memory_alignment, --align <int> [default is RAJA::DATA_ALIGN]\n"
+  str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
       << "\t      (must be a power of 2 at least as large as the default alignment)\n";
   str << "\t\t Example...\n"
-      << "\t\t --align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+      << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"

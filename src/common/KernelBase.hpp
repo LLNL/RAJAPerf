@@ -188,7 +188,7 @@ public:
 #endif
   }
 
-  int getDataAlignment() const { return run_params.getMemoryAlignment(); }
+  int getDataAlignment() const { return run_params.getDataAlignment(); }
   template <typename T>
   void allocData(T*& ptr, int len,
                  VariantID vid)
