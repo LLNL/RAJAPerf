@@ -27,21 +27,21 @@ spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
 raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
-use_dev_shm=${USE_DEV_SHM:-True}
+use_dev_shm=${USE_DEV_SHM:-true}
 
 spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
-update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-False}
+update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-false}
 
 prefix=""
 
-if [[ ${update_spack_upstream} ]]
+if [[ ${update_spack_upstream} == true ]]
 then
-    use_dev_shm=False
+    use_dev_shm=false
     echo "We don't build in shared memory when updating the spack upstream"
 
     prefix=${spack_upstream_path}
     mkdir -p ${prefix}
-elif [[ -d /dev/shm && ${use_dev_shm} ]]
+elif [[ -d /dev/shm && ${use_dev_shm} == true ]]
 then
     prefix="/dev/shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
@@ -79,7 +79,7 @@ then
     prefix_opt="--prefix=${prefix}"
 
     upstream_opt=""
-    if [[ ! ${update_spack_upstream} && -e ${spack_upstream_path}/spack/opt/spack/spack.yaml ]]
+    if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/spack/opt/spack/spack.yaml ]]
     then
         upstream_opt="--upstream=${spack_upstream_path}/spack/opt/spack"
     fi
@@ -133,7 +133,7 @@ hostconfig=$(basename ${hostconfig_path})
 # Build Directory
 if [[ -z ${build_root} ]]
 then
-    if [[ -d /dev/shm && $use_dev_shm ]]
+    if [[ -d /dev/shm && ${use_dev_shm} == true ]]
     then
         build_root="${prefix}"
     else
