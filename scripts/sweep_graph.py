@@ -92,6 +92,85 @@ g_known_tunings =  { "default": {"format": "-"},
                      "block_256": {"format": "-"},
                      "block_512": {"format": "-."},
                      "block_1024": {"format": "-"},
+                     "atomic_32": {"format": ":"},
+                     "atomic_64": {"format": "-."},
+                     "atomic_128": {"format": "--"},
+                     "atomic_256": {"format": "-"},
+                     "atomic_512": {"format": "-."},
+                     "atomic_1024": {"format": "-"},
+                     "unsafeAtomic_32": {"format": ":"},
+                     "unsafeAtomic_64": {"format": "-."},
+                     "unsafeAtomic_128": {"format": "--"},
+                     "unsafeAtomic_256": {"format": "-"},
+                     "unsafeAtomic_512": {"format": "-."},
+                     "unsafeAtomic_1024": {"format": "-"},
+                     "sumAtomic_32": {"format": ":"},
+                     "sumAtomic_64": {"format": "-."},
+                     "sumAtomic_128": {"format": "--"},
+                     "sumAtomic_256": {"format": "-"},
+                     "sumAtomic_512": {"format": "-."},
+                     "sumAtomic_1024": {"format": "-"},
+                     "sumUnsafeAtomic_32": {"format": ":"},
+                     "sumUnsafeAtomic_64": {"format": "-."},
+                     "sumUnsafeAtomic_128": {"format": "--"},
+                     "sumUnsafeAtomic_256": {"format": "-"},
+                     "sumUnsafeAtomic_512": {"format": "-."},
+                     "sumUnsafeAtomic_1024": {"format": "-"},
+                     "reduceAtomic_32": {"format": ":"},
+                     "reduceAtomic_64": {"format": "-."},
+                     "reduceAtomic_128": {"format": "--"},
+                     "reduceAtomic_256": {"format": "-"},
+                     "reduceAtomic_512": {"format": "-."},
+                     "reduceAtomic_1024": {"format": "-"},
+                     "reduceUnsafeAtomic_32": {"format": ":"},
+                     "reduceUnsafeAtomic_64": {"format": "-."},
+                     "reduceUnsafeAtomic_128": {"format": "--"},
+                     "reduceUnsafeAtomic_256": {"format": "-"},
+                     "reduceUnsafeAtomic_512": {"format": "-."},
+                     "reduceUnsafeAtomic_1024": {"format": "-"},
+                     "reduce_32": {"format": ":"},
+                     "reduce_64": {"format": "-."},
+                     "reduce_128": {"format": "--"},
+                     "reduce_256": {"format": "-"},
+                     "reduce_512": {"format": "-."},
+                     "reduce_1024": {"format": "-"},
+                     "nonggl_32": {"format": ":"},
+                     "nonggl_64": {"format": "-."},
+                     "nonggl_128": {"format": "--"},
+                     "nonggl_256": {"format": ":"},
+                     "nonggl_512": {"format": "-."},
+                     "nonggl_1024": {"format": "-"},
+                     "nonggl_0_32": {"format": ":"},
+                     "nonggl_0_64": {"format": "-."},
+                     "nonggl_0_128": {"format": "--"},
+                     "nonggl_0_256": {"format": ":"},
+                     "nonggl_0_512": {"format": "-."},
+                     "nonggl_0_1024": {"format": "-"},
+                     "nonggl_1_32": {"format": ":"},
+                     "nonggl_1_64": {"format": "-."},
+                     "nonggl_1_128": {"format": "--"},
+                     "nonggl_1_256": {"format": ":"},
+                     "nonggl_1_512": {"format": "-."},
+                     "nonggl_1_1024": {"format": "-"},
+                     "nonggl_2_32": {"format": ":"},
+                     "nonggl_2_64": {"format": "-."},
+                     "nonggl_2_128": {"format": "--"},
+                     "nonggl_2_256": {"format": ":"},
+                     "nonggl_2_512": {"format": "-."},
+                     "nonggl_2_1024": {"format": "-"},
+                     "nonggl_3_32": {"format": ":"},
+                     "nonggl_3_64": {"format": "-."},
+                     "nonggl_3_128": {"format": "--"},
+                     "nonggl_3_256": {"format": ":"},
+                     "nonggl_3_512": {"format": "-."},
+                     "nonggl_3_1024": {"format": "-"},
+                     "nonggl_4_32": {"format": ":"},
+                     "nonggl_4_64": {"format": "-."},
+                     "nonggl_4_128": {"format": "--"},
+                     "nonggl_4_256": {"format": ":"},
+                     "nonggl_4_512": {"format": "-."},
+                     "nonggl_4_1024": {"format": "-"},
+                     "library": {"format": ":"},
                      "cub": {"format": ":"},
                      "rocprim": {"format": ":"}
                    }
@@ -116,7 +195,8 @@ g_known_kernel_groups = {
                    "Lcals_FIRST_DIFF", "Lcals_FIRST_SUM", "Lcals_GEN_LIN_RECUR",
                    "Lcals_HYDRO_1D", "Lcals_PLANCKIAN", "Lcals_TRIDIAG_ELIM",
                    "Polybench_JACOBI_1D", "Stream_ADD", "Stream_COPY",
-                   "Stream_MUL", "Stream_TRIAD",
+                   "Stream_MUL", "Stream_TRIAD", "Algorithm_MEMSET",
+                   "Algorithm_MEMCPY",
 
                    "Basic_IF_QUAD", "Basic_INDEXLIST", "Basic_INDEXLIST_3LOOP",
                    "Basic_NESTED_INIT", "Lcals_HYDRO_2D", "Lcals_INT_PREDICT",
@@ -140,13 +220,16 @@ g_known_kernel_groups = {
       "kind": "throughput(GProblem size/s)",
       "kernels": [ "Basic_PI_REDUCE", "Basic_REDUCE3_INT", "Basic_REDUCE_STRUCT",
                    "Basic_TRAP_INT", "Lcals_FIRST_MIN", "Stream_DOT",
-                   "Algorithm_REDUCE_SUM", ]
+                   "Algorithm_REDUCE_SUM",
+
+                   "Basic_PI_ATOMIC", ]
    },
    "other": {
       "kind": "throughput(GProblem size/s)",
-      "kernels": [ "Polybench_ADI", "Polybench_ATAX", "Polybench_FLOYD_WARSHALL",
-                   "Polybench_GEMVER", "Polybench_GESUMMV", "Polybench_MVT",
-                   "Apps_LTIMES", "Apps_LTIMES_NOVIEW", "Algorithm_SORT",
+      "kernels": [ "Basic_PI_ATOMIC", "Polybench_ADI", "Polybench_ATAX",
+                   "Polybench_FLOYD_WARSHALL", "Polybench_GEMVER",
+                   "Polybench_GESUMMV", "Polybench_MVT", "Apps_LTIMES",
+                   "Apps_LTIMES_NOVIEW", "Algorithm_SORT",
                    "Algorithm_SORTPAIRS", ]
    },
    "launch_bound": {
@@ -682,8 +765,7 @@ class Data:
          data = self.data
          for axis_index in self.axes:
             if not axis_index in axes_index:
-               axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
                return False
@@ -694,11 +776,10 @@ class Data:
          data = self.data
          for axis_index in self.axes:
             if not axis_index in axes_index:
-               axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
-               raise NameError("Missing index {}".format(index))
+               raise NameError("Missing index {}".format(Data.get_axis_index_str(axis_index,index)))
             data = data[index]
          return data
 
@@ -707,16 +788,14 @@ class Data:
          for i in range(0, len(self.axes)-1):
             axis_index = self.axes[i]
             if not axis_index in axes_index:
-               axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
                data[index] = {}
             data = data[index]
          axis_index = self.axes[len(self.axes)-1]
          if not axis_index in axes_index:
-            axis_name = Data.axes[axis_index]
-            raise NameError("Missing axis {}".format(axis_name))
+            raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
          index = axes_index[axis_index]
          data[index] = val
 
@@ -733,7 +812,7 @@ class Data:
          axes_names = ""
          for axis_index in self.axes:
             if axes_names:
-               axes_names = "{}, {}".format(axes_names, Data.axes[axis_index])
+               axes_names = "{}, {}".format(axes_names, Data.get_axis_name(axis_index))
             else:
                axes_names = "[{}".format(Data.axes[axis_index])
          return "{}]".format(axes_names)
@@ -1825,7 +1904,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
    for hname in kernel_data["hnames"]:
 
       h_i = kernel_data["hnames"][hname]
-      xoffset = hbin_size * ((h_i+1)/(h_n+1) - 0.5)
+      xoffset = hbin_size * ((h_i+0.5)/h_n)
       hcolor = kernel_data["hcolor"][hname]
       hbins = kernel_data["hbins"][hname]
 
@@ -1837,7 +1916,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
       xaxis = []
       haxis = []
       for i, hval in hbins.items():
-         xval = (i + 0.5) * hbin_size + xoffset
+         xval = i * hbin_size + xoffset
          xaxis.append(xval)
          haxis.append(hval)
 
