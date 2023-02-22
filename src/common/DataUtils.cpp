@@ -46,38 +46,38 @@ void incDataInitCount()
  */
 void allocAndInitData(Int_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initData(ptr, len, vid);
 }
 
 void allocAndInitData(Real_ptr& ptr, int len, int align, VariantID vid )
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initData(ptr, len, vid);
 }
 
 void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
                            VariantID vid)
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initDataConst(ptr, len, val, vid);
 }
 
 void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initDataRandSign(ptr, len, vid);
 }
 
 void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initDataRandValue(ptr, len, vid);
 }
 
 void allocAndInitData(Complex_ptr& ptr, int len, int align, VariantID vid)
 {
-  allocData(ptr, len, align, vid);
+  allocHostData(ptr, len, align, vid);
   initData(ptr, len, vid);
 }
 
@@ -85,7 +85,7 @@ void allocAndInitData(Complex_ptr& ptr, int len, int align, VariantID vid)
 /*
  * Allocate data arrays of given type.
  */
-void allocData(Int_ptr& ptr, int len, int align,
+void allocHostData(Int_ptr& ptr, int len, int align,
                VariantID vid)
 {
   (void)vid;
@@ -93,7 +93,7 @@ void allocData(Int_ptr& ptr, int len, int align,
       align, len*sizeof(Int_type));
 }
 ///
-void allocData(Index_type*& ptr, int len, int align,
+void allocHostData(Index_type*& ptr, int len, int align,
                VariantID vid)
 {
   (void)vid;
@@ -101,7 +101,7 @@ void allocData(Index_type*& ptr, int len, int align,
       align, len*sizeof(Index_type));
 }
 
-void allocData(Real_ptr& ptr, int len, int align,
+void allocHostData(Real_ptr& ptr, int len, int align,
                VariantID vid)
 {
   (void)vid;
@@ -109,7 +109,7 @@ void allocData(Real_ptr& ptr, int len, int align,
       align, len*sizeof(Real_type));
 }
 
-void allocData(Complex_ptr& ptr, int len, int align,
+void allocHostData(Complex_ptr& ptr, int len, int align,
                VariantID vid)
 {
   (void)vid;
@@ -121,7 +121,7 @@ void allocData(Complex_ptr& ptr, int len, int align,
 /*
  * Free data arrays of given type.
  */
-void deallocData(Int_ptr& ptr,
+void deallocHostData(Int_ptr& ptr,
                  VariantID vid)
 {
   (void)vid;
@@ -131,7 +131,7 @@ void deallocData(Int_ptr& ptr,
   }
 }
 
-void deallocData(Index_type*& ptr,
+void deallocHostData(Index_type*& ptr,
                  VariantID vid)
 {
   (void)vid;
@@ -141,7 +141,7 @@ void deallocData(Index_type*& ptr,
   }
 }
 
-void deallocData(Real_ptr& ptr,
+void deallocHostData(Real_ptr& ptr,
                  VariantID vid)
 {
   (void)vid;
@@ -151,7 +151,7 @@ void deallocData(Real_ptr& ptr,
   }
 }
 
-void deallocData(Complex_ptr& ptr,
+void deallocHostData(Complex_ptr& ptr,
                  VariantID vid)
 {
   (void)vid;

@@ -321,7 +321,7 @@ static const std::string FeatureNames [] =
 /*!
  *******************************************************************************
  *
- * \brief Array of names for each Cuda Memory Space in suite.
+ * \brief Array of names for each Memory Space in suite.
  *
  * IMPORTANT: This is only modified when a new memory space is added to the suite.
  *
@@ -330,45 +330,30 @@ static const std::string FeatureNames [] =
  *
  *******************************************************************************
  */
-static const std::string CudaDataSpaceNames [] =
+static const std::string DataSpaceNames [] =
 {
-
   std::string("Host"),
-  std::string("Pinned"),
-  std::string("Managed"),
-  std::string("Device"),
 
-  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+  std::string("Omp"),
 
-}; // END VariantNames
+  std::string("OmpTarget"),
 
+  std::string("CudaHost"),
+  std::string("CudaPinned"),
+  std::string("CudaManaged"),
+  std::string("CudaDevice"),
 
-/*!
- *******************************************************************************
- *
- * \brief Array of names for each Hip Memory Space in suite.
- *
- * IMPORTANT: This is only modified when a new memory space is added to the suite.
- *
- *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF HIPDATA IDS IN HEADER FILE!!!
- *
- *******************************************************************************
- */
-static const std::string HipDataSpaceNames [] =
-{
-
-  std::string("Host"),
-  std::string("HostAdviseFine"),
-  std::string("HostAdviseCoarse"),
-  std::string("Pinned"),
-  std::string("PinnedFine"),
-  std::string("PinnedCoarse"),
-  std::string("Managed"),
-  std::string("ManagedAdviseFine"),
-  std::string("ManagedAdviseCoarse"),
-  std::string("Device"),
-  std::string("DeviceFine"),
+  std::string("HipHost"),
+  std::string("HipHostAdviseFine"),
+  std::string("HipHostAdviseCoarse"),
+  std::string("HipPinned"),
+  std::string("HipPinnedFine"),
+  std::string("HipPinnedCoarse"),
+  std::string("HipManaged"),
+  std::string("HipManagedAdviseFine"),
+  std::string("HipManagedAdviseCoarse"),
+  std::string("HipDevice"),
+  std::string("HipDeviceFine"),
 
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 
@@ -571,22 +556,9 @@ const std::string& getFeatureName(FeatureID fid)
  *
  *******************************************************************************
  */
-const std::string& getCudaDataSpaceName(CudaDataSpace cd)
+const std::string& getDataSpaceName(DataSpace ds)
 {
-  return CudaDataSpaceNames[static_cast<int>(cd)];
-}
-
-
-/*
- *******************************************************************************
- *
- * Return memory space name associated with HipDataSpace enum value.
- *
- *******************************************************************************
- */
-const std::string& getHipDataSpaceName(HipDataSpace hd)
-{
-  return HipDataSpaceNames[static_cast<int>(hd)];
+  return DataSpaceNames[static_cast<int>(ds)];
 }
 
 

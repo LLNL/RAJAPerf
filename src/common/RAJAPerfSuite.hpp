@@ -236,7 +236,7 @@ enum FeatureID {
 /*!
  *******************************************************************************
  *
- * \brief Enumeration defining unique id for each (CUDA) Data memory space
+ * \brief Enumeration defining unique id for each Data memory space
  * used in suite.
  *
  * IMPORTANT: This is only modified when a new memory space is used in suite.
@@ -246,44 +246,30 @@ enum FeatureID {
  *
  *******************************************************************************
  */
-enum struct CudaDataSpace {
+enum struct DataSpace {
 
   Host = 0,
-  Pinned,
-  Managed,
-  Device,
 
-  NumSpaces // Keep this one last and NEVER comment out (!!)
+  Omp,
 
-};
+  OmpTarget,
 
+  CudaHost,
+  CudaPinned,
+  CudaManaged,
+  CudaDevice,
 
-/*!
- *******************************************************************************
- *
- * \brief Enumeration defining unique id for each (HIP) Data memory space
- * used in suite.
- *
- * IMPORTANT: This is only modified when a new memory space is used in suite.
- *
- *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
- *
- *******************************************************************************
- */
-enum struct HipDataSpace {
-
-  Host = 0,
-  HostAdviseFine,
-  HostAdviseCoarse,
-  Pinned,
-  PinnedFine,
-  PinnedCoarse,
-  Managed,
-  ManagedAdviseFine,
-  ManagedAdviseCoarse,
-  Device,
-  DeviceFine,
+  HipHost,
+  HipHostAdviseFine,
+  HipHostAdviseCoarse,
+  HipPinned,
+  HipPinnedFine,
+  HipPinnedCoarse,
+  HipManaged,
+  HipManagedAdviseFine,
+  HipManagedAdviseCoarse,
+  HipDevice,
+  HipDeviceFine,
 
   NumSpaces // Keep this one last and NEVER comment out (!!)
 

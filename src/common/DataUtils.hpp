@@ -45,6 +45,164 @@ void resetDataInitCount();
 void incDataInitCount();
 
 
+
+
+/*!
+ * \brief Allocate data array (ptr).
+ */
+template <typename T>
+void allocData(DataSpace dataSpace, T& ptr, int len, int align, VariantID vid)
+{
+  switch (dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    case dataSpace::CudaHost:
+    case dataSpace::HipHost:
+    {
+      allocHostData(ptr, len, align, vid);
+    } break;
+
+    case dataSpace::OmpTarget:
+    {
+      allocOpenMPDeviceData(ptr, len, did);
+    } break;
+
+    case dataSpace::CudaPinned:
+    {
+      allocCudaPinnedData(ptr, len, vid);
+    } break;
+    case dataSpace::CudaManaged:
+    {
+      allocCudaManagedData(ptr, len, vid);
+    } break;
+    case dataSpace::CudaDevice:
+    {
+      allocCudaDeviceData(ptr, len, vid);
+    } break;
+
+    case dataSpace::HipHostAdviseFine:
+    {
+      allocHostData(ptr, len, align, vid);
+      adviseHipFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipHostAdviseCoarse:
+    {
+      allocHostData(ptr, len, align, vid);
+      adviseHipCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinned:
+    {
+      allocHipPinnedData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinnedFine:
+    {
+      allocHipPinnedFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinnedCoarse:
+    {
+      allocHipPinnedCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManaged:
+    {
+      allocHipManagedData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManagedAdviseFine:
+    {
+      allocHipManagedData(ptr, len, vid);
+      adviseHipFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManagedAdviseCoarse:
+    {
+      allocHipManagedData(ptr, len, vid);
+      adviseHipCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipDevice:
+    {
+      allocHipDeviceData(ptr, len, vid);
+    } break;
+    case dataSpace::HipDeviceFine:
+    {
+      allocHipDeviceFineData(ptr, len, vid);
+    } break;
+
+    default:
+    {
+      throw std::invalid_argument("allocData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Deallocate data array (ptr).
+ */
+template <typename T>
+void deallocData(DataSpace dataSpace, T& ptr, VariantID vid)
+{
+  switch (dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    case dataSpace::CudaHost:
+    case dataSpace::HipHost:
+    case dataSpace::HipHostAdviseFine:
+    case dataSpace::HipHostAdviseCoarse:
+    {
+      deallocHostData(ptr, vid);
+    } break;
+
+    case dataSpace::OmpTarget:
+    {
+      deallocOpenMPDeviceData(ptr, did);
+    } break;
+
+    case dataSpace::CudaPinned:
+    {
+      deallocCudaPinnedData(ptr, vid);
+    } break;
+    case dataSpace::CudaManaged:
+    {
+      deallocCudaManagedData(ptr, vid);
+    } break;
+    case dataSpace::CudaDevice:
+    {
+      deallocCudaDeviceData(ptr, vid);
+    } break;
+
+    case dataSpace::HipPinned:
+    {
+      deallocHipPinnedData(ptr, vid);
+    } break;
+    case dataSpace::HipPinnedFine:
+    {
+      deallocHipPinnedFineData(ptr, vid);
+    } break;
+    case dataSpace::HipPinnedCoarse:
+    {
+      deallocHipPinnedCoarseData(ptr, vid);
+    } break;
+    case dataSpace::HipManaged:
+    case dataSpace::HipManagedAdviseFine:
+    case dataSpace::HipManagedAdviseCoarse:
+    {
+      deallocHipManagedData(ptr, vid);
+    } break;
+    case dataSpace::HipDevice:
+    {
+      deallocHipDeviceData(ptr, vid);
+    } break;
+    case dataSpace::HipDeviceFine:
+    {
+      deallocHipDeviceFineData(ptr, vid);
+    } break;
+
+    default:
+    {
+      throw std::invalid_argument("deallocData : Unknown memory type");
+    } break;
+  }
+}
+
+
+
 /*!
  * \brief Allocate and initialize Int_type data array.
  *
@@ -96,32 +254,24 @@ void allocAndInitData(Complex_ptr& ptr, int len, int align,
 /*!
  * \brief Allocate data arrays.
  */
-void allocData(Int_ptr& ptr, int len, int align,
-               VariantID vid);
+void allocHostData(Int_ptr& ptr, int len, int align, VariantID vid);
 ///
-void allocData(Index_type*& ptr, int len, int align,
-               VariantID vid);
+void allocHostData(Index_type*& ptr, int len, int align, VariantID vid);
 ///
-void allocData(Real_ptr& ptr, int len, int align,
-               VariantID vid);
+void allocHostData(Real_ptr& ptr, int len, int align, VariantID vid);
 ///
-void allocData(Complex_ptr& ptr, int len, int align,
-               VariantID vid);
+void allocHostData(Complex_ptr& ptr, int len, int align, VariantID vid);
 
 /*!
  * \brief Free data arrays.
  */
-void deallocData(Int_ptr& ptr,
-                 VariantID vid);
+void deallocHostData(Int_ptr& ptr, VariantID vid);
 ///
-void deallocData(Index_type*& ptr,
-                 VariantID vid);
+void deallocHostData(Index_type*& ptr, VariantID vid);
 ///
-void deallocData(Real_ptr& ptr,
-                 VariantID vid);
+void deallocHostData(Real_ptr& ptr, VariantID vid);
 ///
-void deallocData(Complex_ptr& ptr,
-                 VariantID vid);
+void deallocHostData(Complex_ptr& ptr, VariantID vid);
 
 
 /*!
