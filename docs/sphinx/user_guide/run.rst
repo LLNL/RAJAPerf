@@ -32,9 +32,7 @@ some information about each kernel will appear on the screen. More information
 about kernel and execution details will also appear in a run report files 
 generated in the run directory after Suite execution completes. 
 
-.. note:: * You can pass the ``--dryrun`` command-line option to the executable
-            to see a summary of how the Suite will execute without actually 
-            running it.
+.. note:: You can pass the ``--dryrun`` command-line option to the executable to see a summary of how the Suite will execute without actually running it.
 
 The Suite can be run in a variety of ways determined by the command-line 
 options passed to the executable. For example, you can run or exclude subsets 
