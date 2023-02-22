@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -129,6 +129,14 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
+// Required for running Kokkos
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+    setKokkosTuningDefinitions(vid);
+#endif
+    break;
+    }
 
     default : {
 #if 0
@@ -152,7 +160,7 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 
   resetTimer();
 
-  resetDataInitCount();
+  detail::resetDataInitCount();
   this->setUp(vid, tune_idx);
 
   this->runKernel(vid, tune_idx);
@@ -237,6 +245,12 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
       runHipVariant(vid, tune_idx);
 #endif
       break;
+    }
+    case Kokkos_Lambda :
+    {
+#if defined(RUN_KOKKOS)
+      runKokkosVariant(vid, tune_idx);
+#endif
     }
 
     default : {

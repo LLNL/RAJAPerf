@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -93,10 +93,10 @@ void POLYBENCH_JACOBI_2D::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_JACOBI_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_Ainit);
-  deallocData(m_Binit);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_Ainit, vid);
+  deallocData(m_Binit, vid);
 }
 
 } // end namespace polybench

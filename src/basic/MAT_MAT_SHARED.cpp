@@ -78,9 +78,9 @@ void MAT_MAT_SHARED::updateChecksum(VariantID vid, size_t tune_idx) {
 
 void MAT_MAT_SHARED::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   (void)vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_C, vid);
 }
 
 } // end namespace basic

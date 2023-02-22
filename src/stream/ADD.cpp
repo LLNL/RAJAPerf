@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -52,6 +52,8 @@ ADD::ADD(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 ADD::~ADD()
@@ -73,9 +75,9 @@ void ADD::updateChecksum(VariantID vid, size_t tune_idx)
 void ADD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
-  deallocData(m_b);
-  deallocData(m_c);
+  deallocData(m_a, vid);
+  deallocData(m_b, vid);
+  deallocData(m_c, vid);
 }
 
 } // end namespace stream

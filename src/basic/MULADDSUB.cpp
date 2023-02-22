@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,6 +51,8 @@ MULADDSUB::MULADDSUB(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 MULADDSUB::~MULADDSUB()
@@ -76,11 +78,11 @@ void MULADDSUB::updateChecksum(VariantID vid, size_t tune_idx)
 void MULADDSUB::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_out1);
-  deallocData(m_out2);
-  deallocData(m_out3);
-  deallocData(m_in1);
-  deallocData(m_in2);
+  deallocData(m_out1, vid);
+  deallocData(m_out2, vid);
+  deallocData(m_out3, vid);
+  deallocData(m_in1, vid);
+  deallocData(m_in2, vid);
 }
 
 } // end namespace basic

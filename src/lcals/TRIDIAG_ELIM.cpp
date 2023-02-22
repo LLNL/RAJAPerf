@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,6 +51,8 @@ TRIDIAG_ELIM::TRIDIAG_ELIM(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 TRIDIAG_ELIM::~TRIDIAG_ELIM()
@@ -73,10 +75,10 @@ void TRIDIAG_ELIM::updateChecksum(VariantID vid, size_t tune_idx)
 void TRIDIAG_ELIM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_xout);
-  deallocData(m_xin);
-  deallocData(m_y);
-  deallocData(m_z);
+  deallocData(m_xout, vid);
+  deallocData(m_xin, vid);
+  deallocData(m_y, vid);
+  deallocData(m_z, vid);
 }
 
 } // end namespace lcals

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -31,6 +31,8 @@
 namespace rajaperf
 {
 
+namespace detail
+{
 
 /*!
  * Reset counter for data initialization.
@@ -48,16 +50,16 @@ void incDataInitCount();
  *
  * Array is initialized using method initData(Int_ptr& ptr...) below.
  */
-void allocAndInitData(Int_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+void allocAndInitData(Int_ptr& ptr, int len, int align,
+                      VariantID vid);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
  *
  * Array is initialized using method initData(Real_ptr& ptr...) below.
  */
-void allocAndInitData(Real_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+void allocAndInitData(Real_ptr& ptr, int len, int align,
+                      VariantID vid);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
@@ -65,16 +67,16 @@ void allocAndInitData(Real_ptr& ptr, int len,
  * Array entries are initialized using the method
  * initDataConst(Real_ptr& ptr...) below.
  */
-void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
-                           VariantID vid = NumVariants);
+void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
+                           VariantID vid);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array with random sign.
  *
  * Array is initialized using method initDataRandSign(Real_ptr& ptr...) below.
  */
-void allocAndInitDataRandSign(Real_ptr& ptr, int len,
-                              VariantID vid = NumVariants);
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align,
+                              VariantID vid);
 
 /*!
  * \brief Allocate and initialize aligned Real_type data array with random
@@ -82,32 +84,38 @@ void allocAndInitDataRandSign(Real_ptr& ptr, int len,
  *
  * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
  */
-void allocAndInitDataRandValue(Real_ptr& ptr, int len,
-                               VariantID vid = NumVariants);
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align,
+                               VariantID vid);
 
 /*!
  * \brief Allocate and initialize aligned Complex_type data array.
  */
-void allocAndInitData(Complex_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+void allocAndInitData(Complex_ptr& ptr, int len, int align,
+                      VariantID vid);
 
 /*!
  * \brief Allocate data arrays.
  */
-void allocData(Int_ptr& ptr, int len);
+void allocData(Int_ptr& ptr, int len, int align,
+               VariantID vid);
 ///
-void allocData(Real_ptr& ptr, int len);
+void allocData(Real_ptr& ptr, int len, int align,
+               VariantID vid);
 ///
-void allocData(Complex_ptr& ptr, int len);
+void allocData(Complex_ptr& ptr, int len, int align,
+               VariantID vid);
 
 /*!
  * \brief Free data arrays.
  */
-void deallocData(Int_ptr& ptr);
+void deallocData(Int_ptr& ptr,
+                 VariantID vid);
 ///
-void deallocData(Real_ptr& ptr);
+void deallocData(Real_ptr& ptr,
+                 VariantID vid);
 ///
-void deallocData(Complex_ptr& ptr);
+void deallocData(Complex_ptr& ptr,
+                 VariantID vid);
 
 
 /*!
@@ -118,7 +126,7 @@ void deallocData(Complex_ptr& ptr);
  * a value > 1, one to a value < -1.
  */
 void initData(Int_ptr& ptr, int len,
-              VariantID vid = NumVariants);
+              VariantID vid);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -128,7 +136,7 @@ void initData(Int_ptr& ptr, int len,
  * and the order in which this method is called.
  */
 void initData(Real_ptr& ptr, int len,
-              VariantID vid = NumVariants);
+              VariantID vid);
 
 /*!
  * \brief Initialize Real_type data array.
@@ -136,7 +144,7 @@ void initData(Real_ptr& ptr, int len,
  * Array entries are set to given constant value.
  */
 void initDataConst(Real_ptr& ptr, int len, Real_type val,
-                   VariantID vid = NumVariants);
+                   VariantID vid);
 
 /*!
  * \brief Initialize Real_type data array with random sign.
@@ -145,7 +153,7 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
  * initData(Real_ptr& ptr...) above, but with random sign.
  */
 void initDataRandSign(Real_ptr& ptr, int len,
-                      VariantID vid = NumVariants);
+                      VariantID vid);
 
 /*!
  * \brief Initialize Real_type data array with random values.
@@ -153,7 +161,7 @@ void initDataRandSign(Real_ptr& ptr, int len,
  * Array entries are initialized with random values in the interval [0.0, 1.0].
  */
 void initDataRandValue(Real_ptr& ptr, int len,
-                       VariantID vid = NumVariants);
+                       VariantID vid);
 
 /*!
  * \brief Initialize Complex_type data array.
@@ -162,7 +170,7 @@ void initDataRandValue(Real_ptr& ptr, int len,
  * method allocAndInitData(Real_ptr& ptr...) above.
  */
 void initData(Complex_ptr& ptr, int len,
-              VariantID vid = NumVariants);
+              VariantID vid);
 
 /*!
  * \brief Initialize Real_type scalar data.
@@ -171,7 +179,9 @@ void initData(Complex_ptr& ptr, int len,
  * initData(Real_ptr& ptr...) above.
  */
 void initData(Real_type& d,
-              VariantID vid = NumVariants);
+              VariantID vid);
+
+}  // closing brace for detail namespace
 
 /*!
  * \brief Calculate and return checksum for data arrays.

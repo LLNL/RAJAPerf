@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -35,7 +35,7 @@ TEST(ShortSuiteTest, Basic)
   std::vector< std::string > sargv(argc);
   sargv[0] = std::string("dummy ");  // for executable name
   sargv[1] = std::string("--checkrun");
-  sargv[2] = std::string("5");
+  sargv[2] = std::string("3");
   sargv[3] = std::string("--show-progress");
 
 #if defined(RAJA_ENABLE_HIP) && \

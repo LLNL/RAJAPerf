@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -51,6 +51,8 @@ DAXPY_ATOMIC::DAXPY_ATOMIC(const RunParams& params)
   setVariantDefined( Base_HIP );
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 DAXPY_ATOMIC::~DAXPY_ATOMIC()
@@ -61,7 +63,7 @@ void DAXPY_ATOMIC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_y, getActualProblemSize(), 0.0, vid);
   allocAndInitData(m_x, getActualProblemSize(), vid);
-  initData(m_a);
+  initData(m_a, vid);
 }
 
 void DAXPY_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
@@ -72,8 +74,8 @@ void DAXPY_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
 void DAXPY_ATOMIC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
 }
 
 } // end namespace basic

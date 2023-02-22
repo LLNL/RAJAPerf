@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -43,17 +43,15 @@ struct MyMinLoc {
   rajaperf::Index_type loc;
 };
 
-#define FIRST_MIN_MINLOC_COMPARE \
-MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) { \
-  return a.val < b.val ? a : b ; \
-}
 
 #define FIRST_MIN_MINLOC_INIT \
   MyMinLoc mymin; \
   mymin.val = m_xmin_init; \
   mymin.loc = m_initloc;
 
-
+inline MyMinLoc MinLoc_compare(MyMinLoc a, MyMinLoc b) {
+  return a.val < b.val ? a : b ;
+}
 
 #include "common/KernelBase.hpp"
 
@@ -81,6 +79,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runKokkosVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);

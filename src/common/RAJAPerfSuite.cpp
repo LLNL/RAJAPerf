@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -100,6 +100,8 @@
 #include "algorithm/SORT.hpp"
 #include "algorithm/SORTPAIRS.hpp"
 #include "algorithm/REDUCE_SUM.hpp"
+#include "algorithm/MEMSET.hpp"
+#include "algorithm/MEMCPY.hpp"
 
 
 #include <iostream>
@@ -234,6 +236,8 @@ static const std::string KernelNames [] =
   std::string("Algorithm_SORT"),
   std::string("Algorithm_SORTPAIRS"),
   std::string("Algorithm_REDUCE_SUM"),
+  std::string("Algorithm_MEMSET"),
+  std::string("Algorithm_MEMCPY"),
 
   std::string("Unknown Kernel")  // Keep this at the end and DO NOT remove....
 
@@ -273,6 +277,8 @@ static const std::string VariantNames [] =
   std::string("Base_HIP"),
   std::string("Lambda_HIP"),
   std::string("RAJA_HIP"),
+
+  std::string("Kokkos_Lambda"),
 
   std::string("Unknown Variant")  // Keep this at the end and DO NOT remove....
 
@@ -418,6 +424,12 @@ bool isVariantAvailable(VariantID vid)
   }
 #endif
 
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda ) {
+    ret_val = true;
+  }
+#endif
+
   return ret_val;
 }
 
@@ -469,6 +481,12 @@ bool isVariantGPU(VariantID vid)
   if ( vid == Base_HIP ||
        vid == Lambda_HIP ||
        vid == RAJA_HIP ) {
+    ret_val = true;
+  }
+#endif
+
+#if defined(RUN_KOKKOS)
+  if ( vid == Kokkos_Lambda ) {
     ret_val = true;
   }
 #endif
@@ -775,6 +793,14 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Algorithm_REDUCE_SUM: {
        kernel = new algorithm::REDUCE_SUM(run_params);
+       break;
+    }
+    case Algorithm_MEMSET: {
+       kernel = new algorithm::MEMSET(run_params);
+       break;
+    }
+    case Algorithm_MEMCPY: {
+       kernel = new algorithm::MEMCPY(run_params);
        break;
     }
 

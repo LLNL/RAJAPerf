@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -57,6 +57,8 @@ GEN_LIN_RECUR::GEN_LIN_RECUR(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 GEN_LIN_RECUR::~GEN_LIN_RECUR()
@@ -81,10 +83,10 @@ void GEN_LIN_RECUR::updateChecksum(VariantID vid, size_t tune_idx)
 void GEN_LIN_RECUR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_b5);
-  deallocData(m_stb5);
-  deallocData(m_sa);
-  deallocData(m_sb);
+  deallocData(m_b5, vid);
+  deallocData(m_stb5, vid);
+  deallocData(m_sa, vid);
+  deallocData(m_sb, vid);
 }
 
 } // end namespace lcals
