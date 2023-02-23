@@ -12,9 +12,15 @@
 Contributing to the RAJA Performance Suite
 ********************************************
 
-Similar to RAJA, the RAJA Performance Suite is a collaborative open-source 
-software project and we encourage contributions from anyone who wants to add 
-features or improve its capabilities. This section describes the following:
+The most important things to know about making a contribution to the 
+RAJA Performance Suite involve the organization of the source code and
+how it works, especially when adding a new Kernel or Variant. These items
+are described in detail in :ref:`structure-label`.
+
+At a more basic level, the RAJA Performance Suite is a collaborative 
+open-source software project, similar to RAJA, and we encourage contributions 
+from anyone who wants to add features or improve its capabilities. This 
+section describes the following:
 
   * GitHub project access
   * How to develop a RAJA *pull request* (PR) contribution.
@@ -27,7 +33,6 @@ and `GitHub <https://github.com/>`_, which is where our project is hosted.
 .. important:: * Before a PR can be merged into the RAJA Performance Suite, 
                  all test checks must pass and the PR must be approved by at 
                  least one member of the core RAJA team.
-
 
 Access to the RAJA Performance Suite GitHub project and acceptance of 
 contributions to it are managed identically to the RAJA project. In the 
