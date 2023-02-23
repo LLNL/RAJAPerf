@@ -17,8 +17,8 @@ processes as RAJA, which are documented in the
 `RAJA Developer Guide <https://raja.readthedocs.io/en/develop/sphinx/dev_guide/index.html>`_ 
 
 This guide is structured similarly to the RAJA Developer Guide and refers to 
-sections in that on various development topics to avoid redundancy. It does 
-contains information about differences in development and maintenance 
+sections in that on various development topics to avoid redundancy. In
+addition, it contains information about development and maintenance 
 practices that are specific to the RAJA Performance Suite.
 
 .. toctree::

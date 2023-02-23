@@ -13,6 +13,4 @@ RAJA Performance Suite Build Configurations
 ********************************************
 
 Build configurations for the RAJA Performance Suite are maintained and
-used similarly to RAJA
-
-Please see `RAJA Build Configurations <https://raja.readthedocs.io/en/develop/sphinx/dev_guide/build_configurations.html>`_ for details.
+used similarly to RAJA. Please see `RAJA Build Configurations <https://raja.readthedocs.io/en/develop/sphinx/dev_guide/build_configurations.html>`_ for details.
