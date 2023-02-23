@@ -338,12 +338,10 @@ static const std::string DataSpaceNames [] =
 
   std::string("OmpTarget"),
 
-  std::string("CudaHost"),
   std::string("CudaPinned"),
   std::string("CudaManaged"),
   std::string("CudaDevice"),
 
-  std::string("HipHost"),
   std::string("HipHostAdviseFine"),
   std::string("HipHostAdviseCoarse"),
   std::string("HipPinned"),

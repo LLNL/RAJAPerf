@@ -45,212 +45,6 @@ void resetDataInitCount();
 void incDataInitCount();
 
 
-
-
-/*!
- * \brief Allocate data array (ptr).
- */
-template <typename T>
-void allocData(DataSpace dataSpace, T& ptr, int len, int align, VariantID vid)
-{
-  switch (dataSpace) {
-    case dataSpace::Host:
-    case dataSpace::Omp:
-    case dataSpace::CudaHost:
-    case dataSpace::HipHost:
-    {
-      allocHostData(ptr, len, align, vid);
-    } break;
-
-    case dataSpace::OmpTarget:
-    {
-      allocOpenMPDeviceData(ptr, len, did);
-    } break;
-
-    case dataSpace::CudaPinned:
-    {
-      allocCudaPinnedData(ptr, len, vid);
-    } break;
-    case dataSpace::CudaManaged:
-    {
-      allocCudaManagedData(ptr, len, vid);
-    } break;
-    case dataSpace::CudaDevice:
-    {
-      allocCudaDeviceData(ptr, len, vid);
-    } break;
-
-    case dataSpace::HipHostAdviseFine:
-    {
-      allocHostData(ptr, len, align, vid);
-      adviseHipFineData(ptr, len, vid);
-    } break;
-    case dataSpace::HipHostAdviseCoarse:
-    {
-      allocHostData(ptr, len, align, vid);
-      adviseHipCoarseData(ptr, len, vid);
-    } break;
-    case dataSpace::HipPinned:
-    {
-      allocHipPinnedData(ptr, len, vid);
-    } break;
-    case dataSpace::HipPinnedFine:
-    {
-      allocHipPinnedFineData(ptr, len, vid);
-    } break;
-    case dataSpace::HipPinnedCoarse:
-    {
-      allocHipPinnedCoarseData(ptr, len, vid);
-    } break;
-    case dataSpace::HipManaged:
-    {
-      allocHipManagedData(ptr, len, vid);
-    } break;
-    case dataSpace::HipManagedAdviseFine:
-    {
-      allocHipManagedData(ptr, len, vid);
-      adviseHipFineData(ptr, len, vid);
-    } break;
-    case dataSpace::HipManagedAdviseCoarse:
-    {
-      allocHipManagedData(ptr, len, vid);
-      adviseHipCoarseData(ptr, len, vid);
-    } break;
-    case dataSpace::HipDevice:
-    {
-      allocHipDeviceData(ptr, len, vid);
-    } break;
-    case dataSpace::HipDeviceFine:
-    {
-      allocHipDeviceFineData(ptr, len, vid);
-    } break;
-
-    default:
-    {
-      throw std::invalid_argument("allocData : Unknown memory type");
-    } break;
-  }
-}
-
-/*!
- * \brief Deallocate data array (ptr).
- */
-template <typename T>
-void deallocData(DataSpace dataSpace, T& ptr, VariantID vid)
-{
-  switch (dataSpace) {
-    case dataSpace::Host:
-    case dataSpace::Omp:
-    case dataSpace::CudaHost:
-    case dataSpace::HipHost:
-    case dataSpace::HipHostAdviseFine:
-    case dataSpace::HipHostAdviseCoarse:
-    {
-      deallocHostData(ptr, vid);
-    } break;
-
-    case dataSpace::OmpTarget:
-    {
-      deallocOpenMPDeviceData(ptr, did);
-    } break;
-
-    case dataSpace::CudaPinned:
-    {
-      deallocCudaPinnedData(ptr, vid);
-    } break;
-    case dataSpace::CudaManaged:
-    {
-      deallocCudaManagedData(ptr, vid);
-    } break;
-    case dataSpace::CudaDevice:
-    {
-      deallocCudaDeviceData(ptr, vid);
-    } break;
-
-    case dataSpace::HipPinned:
-    {
-      deallocHipPinnedData(ptr, vid);
-    } break;
-    case dataSpace::HipPinnedFine:
-    {
-      deallocHipPinnedFineData(ptr, vid);
-    } break;
-    case dataSpace::HipPinnedCoarse:
-    {
-      deallocHipPinnedCoarseData(ptr, vid);
-    } break;
-    case dataSpace::HipManaged:
-    case dataSpace::HipManagedAdviseFine:
-    case dataSpace::HipManagedAdviseCoarse:
-    {
-      deallocHipManagedData(ptr, vid);
-    } break;
-    case dataSpace::HipDevice:
-    {
-      deallocHipDeviceData(ptr, vid);
-    } break;
-    case dataSpace::HipDeviceFine:
-    {
-      deallocHipDeviceFineData(ptr, vid);
-    } break;
-
-    default:
-    {
-      throw std::invalid_argument("deallocData : Unknown memory type");
-    } break;
-  }
-}
-
-
-
-/*!
- * \brief Allocate and initialize Int_type data array.
- *
- * Array is initialized using method initData(Int_ptr& ptr...) below.
- */
-void allocAndInitData(Int_ptr& ptr, int len, int align,
-                      VariantID vid);
-
-/*!
- * \brief Allocate and initialize aligned Real_type data array.
- *
- * Array is initialized using method initData(Real_ptr& ptr...) below.
- */
-void allocAndInitData(Real_ptr& ptr, int len, int align,
-                      VariantID vid);
-
-/*!
- * \brief Allocate and initialize aligned Real_type data array.
- *
- * Array entries are initialized using the method
- * initDataConst(Real_ptr& ptr...) below.
- */
-void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
-                           VariantID vid);
-
-/*!
- * \brief Allocate and initialize aligned Real_type data array with random sign.
- *
- * Array is initialized using method initDataRandSign(Real_ptr& ptr...) below.
- */
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align,
-                              VariantID vid);
-
-/*!
- * \brief Allocate and initialize aligned Real_type data array with random
- *        values.
- *
- * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
- */
-void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align,
-                               VariantID vid);
-
-/*!
- * \brief Allocate and initialize aligned Complex_type data array.
- */
-void allocAndInitData(Complex_ptr& ptr, int len, int align,
-                      VariantID vid);
-
 /*!
  * \brief Allocate data arrays.
  */
@@ -337,7 +131,6 @@ void initData(Complex_ptr& ptr, int len,
 void initData(Real_type& d,
               VariantID vid);
 
-}  // closing brace for detail namespace
 
 /*!
  * \brief Calculate and return checksum for data arrays.
@@ -356,6 +149,383 @@ long double calcChecksum(Real_ptr d, int len,
 long double calcChecksum(Complex_ptr d, int len,
                          Real_type scale_factor = 1.0);
 
+/*!
+ * \brief Get an host accessible data space for this dataSpace.
+ *
+ * Intended to be a space that is quick to copy to from the given space if
+ * the given space is not accessible on the Host.
+ */
+DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    case dataSpace::CudaPinned:
+    case dataSpace::HipHostAdviseFine:
+    case dataSpace::HipHostAdviseCoarse:
+    case dataSpace::HipPinned:
+    case dataSpace::HipPinnedFine:
+    case dataSpace::HipPinnedCoarse:
+      return dataSpace;
+
+    case dataSpace::OmpTarget:
+      return dataSpace::Host;
+
+    case dataSpace::CudaManaged:
+    case dataSpace::CudaDevice:
+      return dataSpace::CudaPinned;
+
+    case dataSpace::HipManaged:
+    case dataSpace::HipManagedAdviseFine:
+    case dataSpace::HipManagedAdviseCoarse:
+      return dataSpace;
+
+    case dataSpace::HipDevice:
+    case dataSpace::HipDeviceFine:
+      return dataSpace::HipPinned;
+
+    default:
+    {
+      throw std::invalid_argument("accessibleDataSpace : Unknown memory type");
+    } break;
+  }
+}
+
+}  // closing brace for detail namespace
+
+
+
+/*!
+ * \brief Allocate data array (ptr).
+ */
+template <typename T>
+void allocData(DataSpace dataSpace, T& ptr, int len, int align, VariantID vid)
+{
+  switch (dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    {
+      allocHostData(ptr, len, align, vid);
+    } break;
+
+    case dataSpace::OmpTarget:
+    {
+      allocOpenMPDeviceData(ptr, len, did);
+    } break;
+
+    case dataSpace::CudaPinned:
+    {
+      allocCudaPinnedData(ptr, len, vid);
+    } break;
+    case dataSpace::CudaManaged:
+    {
+      allocCudaManagedData(ptr, len, vid);
+    } break;
+    case dataSpace::CudaDevice:
+    {
+      allocCudaDeviceData(ptr, len, vid);
+    } break;
+
+    case dataSpace::HipHostAdviseFine:
+    {
+      allocHostData(ptr, len, align, vid);
+      adviseHipFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipHostAdviseCoarse:
+    {
+      allocHostData(ptr, len, align, vid);
+      adviseHipCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinned:
+    {
+      allocHipPinnedData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinnedFine:
+    {
+      allocHipPinnedFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipPinnedCoarse:
+    {
+      allocHipPinnedCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManaged:
+    {
+      allocHipManagedData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManagedAdviseFine:
+    {
+      allocHipManagedData(ptr, len, vid);
+      adviseHipFineData(ptr, len, vid);
+    } break;
+    case dataSpace::HipManagedAdviseCoarse:
+    {
+      allocHipManagedData(ptr, len, vid);
+      adviseHipCoarseData(ptr, len, vid);
+    } break;
+    case dataSpace::HipDevice:
+    {
+      allocHipDeviceData(ptr, len, vid);
+    } break;
+    case dataSpace::HipDeviceFine:
+    {
+      allocHipDeviceFineData(ptr, len, vid);
+    } break;
+
+    default:
+    {
+      throw std::invalid_argument("allocData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Deallocate data array (ptr).
+ */
+template <typename T>
+void deallocData(DataSpace dataSpace, T& ptr, VariantID vid)
+{
+  switch (dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    case dataSpace::HipHostAdviseFine:
+    case dataSpace::HipHostAdviseCoarse:
+    {
+      deallocHostData(ptr, vid);
+    } break;
+
+    case dataSpace::OmpTarget:
+    {
+      deallocOpenMPDeviceData(ptr, did);
+    } break;
+
+    case dataSpace::CudaPinned:
+    {
+      deallocCudaPinnedData(ptr, vid);
+    } break;
+    case dataSpace::CudaManaged:
+    {
+      deallocCudaManagedData(ptr, vid);
+    } break;
+    case dataSpace::CudaDevice:
+    {
+      deallocCudaDeviceData(ptr, vid);
+    } break;
+
+    case dataSpace::HipPinned:
+    {
+      deallocHipPinnedData(ptr, vid);
+    } break;
+    case dataSpace::HipPinnedFine:
+    {
+      deallocHipPinnedFineData(ptr, vid);
+    } break;
+    case dataSpace::HipPinnedCoarse:
+    {
+      deallocHipPinnedCoarseData(ptr, vid);
+    } break;
+    case dataSpace::HipManaged:
+    case dataSpace::HipManagedAdviseFine:
+    case dataSpace::HipManagedAdviseCoarse:
+    {
+      deallocHipManagedData(ptr, vid);
+    } break;
+    case dataSpace::HipDevice:
+    {
+      deallocHipDeviceData(ptr, vid);
+    } break;
+    case dataSpace::HipDeviceFine:
+    {
+      deallocHipDeviceFineData(ptr, vid);
+    } break;
+
+    default:
+    {
+      throw std::invalid_argument("deallocData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Copy data from one array to another.
+ */
+template <typename T>
+void copyData(DataSpace dst_dataSpace, T* dst_ptr,
+              DataSpace src_dataSpace, const T* src_ptr,
+              int len, VariantID vid)
+{
+
+  switch (dst_dataSpace) {
+    case dataSpace::Host:
+    case dataSpace::Omp:
+    case dataSpace::HipHostAdviseFine:
+    case dataSpace::HipHostAdviseCoarse:
+    {
+      copyHostData(dst_ptr, src_ptr, sizeof(T)*len, vid);
+    } break;
+
+    case dataSpace::OmpTarget:
+    {
+      copyOpenMPDeviceData(dst_ptr, src_ptr, sizeof(T)*len, did);
+    } break;
+
+    case dataSpace::CudaPinned:
+    case dataSpace::CudaManaged:
+    case dataSpace::CudaDevice:
+    {
+      copyCudaData(dst_ptr, src_ptr, sizeof(T)*len, vid);
+    } break;
+
+    case dataSpace::HipPinned:
+    case dataSpace::HipPinnedFine:
+    case dataSpace::HipPinnedCoarse:
+    case dataSpace::HipManaged:
+    case dataSpace::HipManagedAdviseFine:
+    case dataSpace::HipManagedAdviseCoarse:
+    case dataSpace::HipDevice:
+    case dataSpace::HipDeviceFine:
+    {
+      copyHipData(dst_ptr, src_ptr, sizeof(T)*len, vid);
+    } break;
+
+    default:
+    {
+      throw std::invalid_argument("copyData : Unknown memory type");
+    } break;
+  }
+}
+
+/*!
+ * \brief Move data array into new dataSpace.
+ */
+template <typename T>
+void moveData(DataSpace new_dataSpace, DataSpace old_dataSpace,
+              T*& ptr, int len, int align, VariantID vid)
+{
+  if (new_dataSpace != old_dataSpace) {
+
+    T* new_ptr = nullptr;
+
+    detail::allocData(new_dataSpace, new_ptr, len, align, vid);
+
+    detail::copyData(new_dataSpace, new_ptr, old_dataSpace, ptr, len, vid);
+
+    detail::deallocData(old_dataSpace, ptr, len, vid);
+
+    ptr = new_ptr;
+  }
+}
+
+/*!
+ * \brief Allocate and initialize data array.
+ */
+template <typename T>
+void allocAndInitData(DataSpace dataSpace, T*& ptr, int len, int align,
+                      VariantID vid)
+{
+  DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
+
+  detail::allocData(init_dataSpace, ptr, len, align, vid);
+
+  detail::initData(ptr, len, vid);
+
+  if (init_dataSpace != dataSpace) {
+    detail::moveData(dataSpace, init_dataSpace, ptr, len, align, vid);
+  }
+}
+
+
+/*!
+ * \brief Allocate and initialize aligned Real_type data array.
+ *
+ * Array entries are initialized using the method
+ * initDataConst(Real_ptr& ptr...) below.
+ */
+void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
+                           VariantID vid);
+
+/*!
+ * \brief Allocate and initialize aligned Real_type data array with random sign.
+ *
+ * Array is initialized using method initDataRandSign(Real_ptr& ptr...) below.
+ */
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align,
+                              VariantID vid);
+
+/*!
+ * \brief Allocate and initialize aligned Real_type data array with random
+ *        values.
+ *
+ * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
+ */
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align,
+                               VariantID vid);
+
+
+/*
+ * Allocate and initialize aligned data arrays.
+ */
+void allocAndInitData(Int_ptr& ptr, int len, int align, VariantID vid)
+{
+  allocHostData(ptr, len, align, vid);
+  initData(ptr, len, vid);
+}
+
+void allocAndInitData(Real_ptr& ptr, int len, int align, VariantID vid )
+{
+  allocHostData(ptr, len, align, vid);
+  initData(ptr, len, vid);
+}
+
+void allocAndInitData(Complex_ptr& ptr, int len, int align, VariantID vid)
+{
+  allocHostData(ptr, len, align, vid);
+  initData(ptr, len, vid);
+}
+
+void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
+                           VariantID vid)
+{
+  allocHostData(ptr, len, align, vid);
+  initDataConst(ptr, len, val, vid);
+}
+
+void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align, VariantID vid)
+{
+  allocHostData(ptr, len, align, vid);
+  initDataRandSign(ptr, len, vid);
+}
+
+void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align, VariantID vid)
+{
+  allocHostData(ptr, len, align, vid);
+  initDataRandValue(ptr, len, vid);
+}
+
+
+
+
+/*
+ * Calculate and return checksum for arrays.
+ */
+template <typename T>
+long double calcChecksum(DataSpace dataSpace, const T* ptr, int len,
+                         Real_type scale_factor, VariantID vid)
+{
+  const T* check_ptr = ptr;
+
+  DataSpace check_dataSpace = hostAccessibleDataSpace(dataSpace);
+  if (check_dataSpace != dataSpace) {
+    allocData(check_dataSpace, check_ptr, len, vid);
+  }
+
+  auto val = detail::calcChecksum(check_ptr, len, scale_factor);
+
+  if (check_dataSpace != dataSpace) {
+    deallocData(check_dataSpace, check_ptr, vid);
+  }
+
+  return val;
+}
 
 /*!
  * \brief Holds a RajaPool object and provides access to it via a

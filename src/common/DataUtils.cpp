@@ -361,8 +361,6 @@ void initData(Real_type& d, VariantID vid)
   incDataInitCount();
 }
 
-}  // closing brace for detail namespace
-
 /*
  * Calculate and return checksum for data arrays.
  */
@@ -431,5 +429,7 @@ long double calcChecksum(const Complex_ptr ptr, int len,
   tchk *= scale_factor;
   return tchk;
 }
+
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace

@@ -254,12 +254,10 @@ enum struct DataSpace {
 
   OmpTarget,
 
-  CudaHost,
   CudaPinned,
   CudaManaged,
   CudaDevice,
 
-  HipHost,
   HipHostAdviseFine,
   HipHostAdviseCoarse,
   HipPinned,
