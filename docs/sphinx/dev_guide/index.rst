@@ -31,3 +31,4 @@ practices that are specific to the RAJA Performance Suite.
    release_process
    structure
    kernel_class
+   kernel_class_impl

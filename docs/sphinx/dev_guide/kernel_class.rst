@@ -50,15 +50,15 @@ files in the following sections:
                in a separate file helps to understand compiler optimizations 
                when looking at generated assembly code, for example.
 
+.. _kernel_class_header-label:
+
 -------------------------
 Kernel class header file
 -------------------------
 
-In its entirety, the **ADD** kernel class header file is:
+In its entirety, the **ADD** kernel class header file ``ADD.hpp`` is:
 
 .. literalinclude:: ../../../src/stream/ADD.hpp
-   :start-after: _add_header_start
-   :end-before: _add_header_end
    :language: C++
 
 The key ingredients of a kernel class header file are:
@@ -76,8 +76,9 @@ The key ingredients of a kernel class header file are:
     the file.
 
   * **Macro definitions** that contain source lines of code that appear in 
-    multiple places in the kernel class implementation. While it obfuscates
-    the code somewhat, it is useful to reduce the amount of code to maintain 
+    multiple places in the kernel class implementation, such as setting 
+    data pointers and operations in the kernel body. While macros obfuscate
+    the code somewhat, we use them to reduce the amount of code we maintain 
     and ensure consistency.
 
   * **Class definition** derived from the ``KernelBase`` class. We describe
@@ -112,5 +113,9 @@ the kernel class for kernel specific operations.
 
 Lastly, any data members used in the class implementation are defined, 
 typically in a ``private`` member section so they don't *bleed* out of the
-kernel class. 
+kernel class. For example, in the **ADD** class, we see data members for
+GPU block sizes. Also, there are pointer members to hold data arrays for
+the kernel. Here we have ``m_a``, m_b``, and ``m_c`` for the three arrays
+used in the ADD kernel. Note that we use the convention to prefix class data
+members with ``m_``.
 

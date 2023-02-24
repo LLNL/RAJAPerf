@@ -1,4 +1,3 @@
-// _add_header_start
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 // Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
@@ -76,4 +75,3 @@ private:
 } // end namespace rajaperf
 
 #endif // closing endif for header file include guard
-// _add_header_end
