@@ -29,3 +29,4 @@ practices that are specific to the RAJA Performance Suite.
    build_configurations
    ci
    release_process
+   structure
