@@ -30,3 +30,4 @@ practices that are specific to the RAJA Performance Suite.
    ci
    release_process
    structure
+   kernel_class
