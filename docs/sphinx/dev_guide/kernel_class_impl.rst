@@ -30,8 +30,6 @@ the **ADD** kernel that we are describing, this is the source file ``ADD.cpp``,
 which in its entirety is:
 
 .. literalinclude:: ../../../src/stream/ADD.cpp
-   :start-after: _add_impl_gen_start
-   :end-before: _add_impl_gen_end
    :language: C++
 
 The methods in the source file are:
