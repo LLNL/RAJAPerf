@@ -92,4 +92,58 @@ methods to allocate, initialize, deallocate, and copy data, and compute
 checksums defined in the various *data utils* files in the ``common``
 directory.
  
-    
+.. _kernel_class_impl_exec-label:
+
+-------------------------
+Kernel execution methods
+-------------------------
+
+In the discussion of the **ADD** :ref:`kernel_class-label`, we noted 
+that the class implementation involves multiple files containing variants for
+each execution back-end. In particular, these files contain implementations of
+the *run* methods declared in the **ADD** :ref:`kernel_class_header-label`
+to execute the variants.
+
+Each method takes a variant ID argument that identifies the variant to run and 
+a tuning index that identifies the tuning of the variant to run. Note that the 
+tuning index can be ignored when there is only one tuning. Each method is 
+responsible for multiple tasks which involve a combination of kernel and 
+variant specific operations and calling kernel base class methods, such as:
+
+  * Setting up and initializing data needed by a kernel variant before it is run
+  * Starting an execution timer before a kernel is run
+  * Running the proper number of kernel executions
+  * Stopping the time after the kernel is run
+  * Putting the class member data in an appropriate state to update a checksum 
+
+For example, here is the method to run sequential CPU variants of the **ADD**
+kernel:
+
+.. literalinclude:: ../../../src/stream/ADD.hpp
+   :start-after: _add_run_seq_start
+   :end-before: _add_run_seq_end
+   :language: C++
+
+All kernel source files follow a similar organization and implementation 
+pattern for each set of back-end exeuction variants.
+
+.. important:: Following the established implementation patterns for kernels
+               in the Suite help to ensure that the code is consistent, 
+               understandable, easily maintained, and needs minimal 
+               documentation.
+
+A few items are worth noting:
+
+  * Thee tuning index argument is ignored because there is only one tuning for 
+    the sequential kernel variants.
+  * Execution parameters, such as kernel loop length and number of execution
+    repetitions, are set by calling base class methods which return values
+    based on kernel defaults and input parameters. This ensures that the
+    execution will be consistent across run variants and results will be 
+    what is expected.
+  * Simple switch-case statement logic is used to execute the proper variant
+    based on the ``VariantID`` argument.
+  * Macros defined in the ``ADD.hpp`` header file are used to reduce the amount
+    of redundant code, such as for data initialization (``ADD_DATA_SETUP``) 
+    and the kernel body (``ADD_BODY``).
+
