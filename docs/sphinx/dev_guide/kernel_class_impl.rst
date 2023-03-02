@@ -141,6 +141,11 @@ A few details are worth noting:
     what is expected.
   * Simple switch-case statement logic is used to execute the proper variant
     based on the ``VariantID`` argument.
+  * We guard sequential variants apart from the ``Base_Seq`` variant with 
+    the ``RUN_RAJA_SEQ`` macro. This ensures that the base sequential variant
+    will always run to be used as a reference variant for execution timing.
+    By default, we turn off the other sequential variants when we build an
+    executable with OpenMP target offload enabled.
   * Macros defined in the ``ADD.hpp`` header file are used to reduce the amount
     of redundant code, such as for data initialization (``ADD_DATA_SETUP``) 
     and the kernel body (``ADD_BODY``).
@@ -159,6 +164,11 @@ kernel in the ``ADD-Cuda.cpp`` file are:
    :language: C++
 
 Notable differences with the sequential variant file are:
+
+  * Most of the file is guarded using the ``RAJA_ENABLE_CUDA`` macro. 
+
+    ..note:: The contents of all non-sequential variant implementation files
+             are guarded using the ``RAJA_ENABLE_<backend>`` macros.
 
   * In addition to using the ``ADD_DATA_SETUP`` macro, which is also used
     in the sequential variant implementation file discussed above, we

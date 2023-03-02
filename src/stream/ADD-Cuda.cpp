@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// _add_run_cuda_start
 #include "ADD.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -21,7 +22,6 @@ namespace rajaperf
 namespace stream
 {
 
-// _add_run_cuda_start
 #define ADD_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
@@ -113,10 +113,10 @@ void ADD::runCudaVariantImpl(VariantID vid)
 }
 
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Cuda)
-// _add_run_cuda_end
 
 } // end namespace stream
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
+// _add_run_cuda_end
 
