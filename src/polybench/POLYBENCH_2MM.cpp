@@ -102,11 +102,11 @@ void POLYBENCH_2MM::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_2MM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_tmp);
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
+  deallocData(m_tmp, vid);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_C, vid);
+  deallocData(m_D, vid);
 }
 
 } // end namespace polybench

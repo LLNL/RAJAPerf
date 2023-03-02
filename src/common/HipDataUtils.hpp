@@ -109,7 +109,7 @@ void initHipDeviceData(T& dptr, const T hptr, int len)
                           len * sizeof(typename std::remove_pointer<T>::type),
                           hipMemcpyHostToDevice ) );
 
-  incDataInitCount();
+  detail::incDataInitCount();
 }
 
 /*!

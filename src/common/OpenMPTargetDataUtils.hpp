@@ -49,7 +49,7 @@ void initOpenMPDeviceData(T& dptr, const T hptr, int len,
                           int did, int hid)
 {
   copyOpenMPDeviceData(dptr, hptr, len, did, hid);
-  incDataInitCount();
+  detail::incDataInitCount();
 }
 
 /*!
