@@ -1,4 +1,4 @@
-. ##
+.. ##
 .. ## Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 .. ## and RAJA Performance Suite project contributors.
 .. ## See the RAJAPerf/LICENSE file for details.
