@@ -125,7 +125,7 @@ variant specific operations and calling kernel base class methods, such as:
 For example, here is the method to run sequential CPU variants of the **ADD**
 kernel in the ``ADD-Seq.cpp`` file:
 
-.. literalinclude:: ../../../src/stream/ADD-Seq.hpp
+.. literalinclude:: ../../../src/stream/ADD-Seq.cpp
    :start-after: _add_run_seq_start
    :end-before: _add_run_seq_end
    :language: C++

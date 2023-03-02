@@ -72,8 +72,8 @@ The key ingredients of a kernel class header file are:
     kernel as it appears in the original code in which it was taken. This is 
     helpful to understand the origin and intent of the original. 
 
-  * **Uniquely-named header file include guard, that contains the contents of 
-    the file.
+  * **Uniquely-named include guard** that guards the contents of 
+    the header file.
 
   * **Macro definitions** that contain source lines of code that appear in 
     multiple places in the kernel class implementation, such as setting 
