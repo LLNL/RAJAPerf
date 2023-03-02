@@ -46,7 +46,7 @@ command::
    $ git clone --recursive https://github.com/LLNL/RAJAPerf.git
 
 The ``--recursive`` option is required to pull all RAJA Performance Suite 
-Git *submodules* on which it depends into your local copy of the repository.
+Git *submodules* into your local copy of the repository.
 
 After running the ``git clone`` command, a copy of the RAJA Performance Suite
 repository will reside in the ``RAJAPerf`` subdirectory where you ran the 
@@ -67,7 +67,7 @@ Either way, the result is the same and you should be good to configure the
 code and build it.
 
 .. note:: * If you are in your local copy of the RAJA Performance Suite repo
-            and you switch to a different repo branch (e.g., you run the 
+            and you switch to a different branch (e.g., you run the 
             command ``git checkout <different branch name>``), you may need to 
             run the command ``git submodule update`` to set the Git *submodule
             versions* to what is used by the new branch. To see if this is 
