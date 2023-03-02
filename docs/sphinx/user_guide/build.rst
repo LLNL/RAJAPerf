@@ -133,7 +133,7 @@ processor cores, or all available processor cores on a node, respectively).
 For example::
 
   $ ./scripts/lc-builds/blueos_nvcc_clang.sh 10.2.89 70 10.0.1
-  $ cd build_blueos_nvcc10.2.89-sm_70-clang10.0.1
+  $ cd build_blueos_nvcc10.2.89-70-clang10.0.1
   $ make -j 
 
 will build the code for CPU-GPU execution using the clang 10.0.1 compiler for
@@ -154,7 +154,7 @@ RAJA tests, pass the two CMake options above plus the option
 ``-DRAJA_ENABLE_TESTS=Off``. In any case, after the build completes, you can 
 type ``make test`` to run the tests you have built and see the results.
 
-.. note:: Which kernel variants that can be run depends on which programming
+.. note:: The kernel variants that can be run depends on which programming
           model features have been enabled in a build configuration. By 
           default, only *sequential* CPU RAJA and baseline variants will be 
           built. To additionally enable OpenMP variants, for example, you must 
@@ -162,7 +162,7 @@ type ``make test`` to run the tests you have built and see the results.
           enable other variants for CUDA, HIP, and other programming models.
 
 .. note:: For GPU-enabled builds, only one GPU back-end can be enabled in a 
-          single executable. However, CPU and GPU enabled execution can be 
+          single executable. However, CPU and GPU execution can be 
           enabled in a single executable. For example, one can enable CPU 
           sequential, OpenMP, and CUDA GPU variants in a build. Similarly 
           for HIP GPU variants. 
@@ -175,7 +175,7 @@ described why this is useful. Some configuration scripts we provide will
 configure a build with MPI support enabled. For example::
 
   $ ./scripts/lc-builds/lc-blueos_spectrum_nvcc_clang.sh rolling-release 10.2.89 70 10.0.1
-  $ cd build_lc_blueos-spectrumrolling-release-nvcc10.2.89-sm_70-clang10.0.1
+  $ cd build_lc_blueos-spectrumrolling-release-nvcc10.2.89-70-clang10.0.1
   $  make -j
 
 This will configure a build to use the *rolling release* of the Spectrum MPI
