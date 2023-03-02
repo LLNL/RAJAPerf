@@ -85,7 +85,7 @@ void ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   }
 
 }
-// _add_run_seq_start
+// _add_run_seq_end
 
 } // end namespace stream
 } // end namespace rajaperf
