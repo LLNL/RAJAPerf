@@ -23,13 +23,10 @@ directory, you will see the following::
   $ ls -c1 -F
   lcals/
   stream/
-  stream-kokkos/
   rajaperf_config.hpp.in
   polybench/
-  lcals-kokkos/
   common/
   basic/
-  basic-kokkos/
   apps/
   algorithm/
   RAJAPerfSuiteDriver.cpp
@@ -61,7 +58,7 @@ Adding a kernel to the Suite involves five main steps:
 #. Implement a kernel class that defines all operations needed to integrate
    the kernel into the Suite. This includes adding the kernel class header
    file and source files that contain kernel variant implementations.
-#. Add appropriate targets to ``CMakeLists.txt`` files, where needed so
+#. Add appropriate targets to ``CMakeLists.txt`` files, where needed, so
    that the new kernel code will be compiled when the Suite is built.
 
 We describe the steps in the following sections.
@@ -160,7 +157,77 @@ described above.
 .. note:: Enumeration values and string array entries for Features must be kept 
           consistent, in the same order and matching one-to-one.
 
+.. _structure_addvariant-label:
 
+================
+Adding a Variant
+================
 
+Similar to a Kernel, each Variant in the Suite is is identified by an 
+enumeration value and a string name. Adding a new variant requires adding 
+these two items in a similar fashion to adding a kernel name and ID as 
+described above.
 
+Adding a variant to the Suite involves four main steps:
 
+#. Add a unique variant ID and a unique variant name to the Suite.
+#. Add the pure virtual method to execute the variant to the ``KernelBase``
+   class header file. For example::
+
+     virtual void run<variant-name>Variant(VariantID vid, size_t tune_idx) = 0;
+
+#. For the kernel(s) to which the variant applies, provide kernel variant
+   implementations in associated ``<kernel-name>-<variant-name>.cpp`` files.
+#. Add appropriate targets to ``CMakeLists.txt`` files, where needed, so
+   that the new kernel variant code will be compiled when the Suite is built.
+
+We describe the steps in the following sections.
+
+.. _structure_addvariant_name-label:
+
+Adding a variant ID and name
+----------------------------
+
+Variant IDs and names are maintained in the files ``RAJAPerfSuite.hpp`` and
+``RAJAPerfSuite.cpp``, respectively, which reside in the ``src/common``
+directory. Adding a new variant ID and name is essentially the same as
+adding a kernel ID and name, which is described in 
+:ref:`structure_addkernel_name-label`.
+
+.. note:: A variant string name is just a string version of the variant ID.               enum value label. This convention must be followed so that each
+          variant works properly within the RAJA Performance Suite 
+          machinery. Also, the values in the VariantID enum and the 
+          strings in the VariantNames array must be kept consistent 
+          (i.e., same order and matching one-to-one).
+
+.. _structure_addvariant_impl-label:
+
+Adding kernel variant implementations
+-------------------------------------
+
+In the classes containing kernels to which a new variant applies, add 
+implementations for the variant in kernel execution methods in files named
+``<kernen-name>-<variant-name>.cpp``. This is described in detail in 
+:ref:`kernel_class_impl_exec-label`. 
+
+.. note:: Make sure to enable the variant for those kernels in the kernel 
+          class constructors by calling the ``KernelBase`` class  method
+          ``setVariantDefined(VariantID vid))`` so that the variant can be 
+          run. 
+
+.. _structure_addtuning-label:
+
+================
+Adding a Tuning
+================
+
+For kernels to which a new tuning applies, add implementations for the tuning 
+in the kernel execution and tuning naming methods as needed. Note that the 
+tuning indices are determined by the order that the tuning names are added 
+in the ``set<backend-name>TuningDefinitions(VariantID vid)`` method which is
+virtual in the ``KernelBase`` class. 
+
+.. note:: ``run<backend-name>Variant(VariantID vid, size_t tune_idx) methods 
+          should have similar logic to the 
+          ``set<backend-name>TuningDefinitions(VariantID vid)`` method so that
+          the correct tuning will be run based on the index.

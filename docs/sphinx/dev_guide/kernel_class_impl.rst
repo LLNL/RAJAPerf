@@ -68,20 +68,13 @@ The methods in the source file are:
   * ``tearDown`` method, which deallocates and resets any data that will be 
     re-allocated and/or initialized in subsequent kernel executions.
   
+.. important:: The ``tearDown`` method frees and/or resets all kernel data that
+               is allocated and/or initialized in the ``setUp`` method.
+
   * ``updateChecksum`` method, which computes a checksum from the results of
-    an execution of the kernel and adds it to the checksum value for the 
-    variant and tuning index that was run.
-
-.. important:: There will only be one instance of each kernel class created 
-               by the program. Thus, each kernel class constructor and 
-               destructor must only perform operations that are not specific 
-               to any kernel variant.
-
-The ``setUp``, ``tearDown``, and ``updateChecksum`` methods will be 
-called **each time a kernel variant is run**. We allocate and deallocate
-data arrays in the ``setUp`` and ``tearDown`` methods to prevent any 
-performance timing bias that may be introduced by artificially reusing data
-in cache for example, when doing performance experiments.
+    an execution of the kernel and adds it to the checksum value, which is a 
+    member of the ``KernelBase`` class, for the variant and tuning index that 
+    was run.
 
 .. important:: The checksum must be computed in the same way for each variant 
                of a  kernel so that checksums for different variants can be 
@@ -89,15 +82,58 @@ in cache for example, when doing performance experiments.
                implementations, compiler optimizations, programming model 
                execution, etc.
 
-Also, note that the ``setUp`` and ``tearDown`` methods pass a ``VariantID``
-value to data allocation and initialization, and deallocation methods so
+The ``setUp``, ``tearDown``, and ``updateChecksum`` methods are
+called **each time a kernel variant is run**. We allocate and deallocate
+data arrays in the ``setUp`` and ``tearDown`` methods to prevent any 
+performance timing bias that may be introduced by artificially reusing data 
+in cache, for example, when doing performance experiments. Also, note that 
+the ``setUp`` and ``tearDown`` methods take a ``VariantID`` argument and pass
+it to data allocation, initialization, and deallocation methods so
 this data management can be done in a variant-specific manner as needed.
 
 To simplify these operations and help ensure consistency, there exist utility 
 methods to allocate, initialize, deallocate, and copy data, and compute 
 checksums defined in the various *data utils* files in the ``common``
 directory.
- 
+
+---------------------------
+Kernel object construction 
+---------------------------
+
+It is important to note that there will only be one instance of each kernel 
+class created by the program. Thus, each kernel class constructor and 
+destructor must only perform operations that are not specific to any kernel 
+variant.
+
+The ``Executor`` class in the ``common`` directory creates kernel objects,
+one for each kernel that will be run based on command-line input options. To
+ensure a new kernel object will be created properly, add a call to its class 
+constructor based on its ``KernelID`` in the ``getKernelObject()`` method in 
+the ``RAJAPerfSuite.cpp`` file. For example::
+
+  KernelBase* getKernelObject(KernelID kid,
+                              const RunParams& run_params)
+  {
+    KernelBase* kernel = 0;
+
+    switch ( kid ) {
+
+      ...
+
+      case Stream_ADD : {
+        kernel = new stream::ADD(run_params);
+        break;
+      }
+
+      ...
+
+    } // end switch on kernel id
+
+    return kernel;
+  }
+
+  }
+
 .. _kernel_class_impl_exec-label:
 
 -------------------------
