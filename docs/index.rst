@@ -44,9 +44,9 @@ parallel programming models supported by RAJA. Some kernels have multiple
 tunings of a variant to explore the performance implications of options that 
 a programming model supports.
 
-.. note:: Available variants for a kernel do not need to include all possible
-          variants in the Suite. In some cases, a kernel appears only in the 
-          subset of variants that makes sense for the particular kernel.
+.. note:: A kernel does not need to provide all possible variants in the 
+          Suite. Tyoically, each kernel provides only the subset of variants
+          that makes sense for the kernel.
 
 The Suite can be run as a single process or with multiple processes when
 configured with MPI support. When running with multiple MPI processes, the same 
