@@ -21,6 +21,7 @@ namespace rajaperf
 namespace stream
 {
 
+// _add_run_cuda_start
 #define ADD_DATA_SETUP_CUDA \
   allocAndInitCudaDeviceData(a, m_a, iend); \
   allocAndInitCudaDeviceData(b, m_b, iend); \
@@ -35,7 +36,7 @@ namespace stream
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
-                     Index_type iend)
+                    Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
@@ -112,6 +113,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
 }
 
 RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Cuda)
+// _add_run_cuda_end
 
 } // end namespace stream
 } // end namespace rajaperf

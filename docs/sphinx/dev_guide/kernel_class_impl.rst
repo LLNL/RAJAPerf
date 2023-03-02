@@ -83,6 +83,12 @@ data arrays in the ``setUp`` and ``tearDown`` methods to prevent any
 performance timing bias that may be introduced by artificially reusing data
 in cache for example, when doing performance experiments.
 
+.. important:: The checksum must be computed in the same way for each variant 
+               of a  kernel so that checksums for different variants can be 
+               compared to help identify differences, and potential errors in 
+               implementations, compiler optimizations, programming model 
+               execution, etc.
+
 Also, note that the ``setUp`` and ``tearDown`` methods pass a ``VariantID``
 value to data allocation and initialization, and deallocation methods so
 this data management can be done in a variant-specific manner as needed.
@@ -117,22 +123,14 @@ variant specific operations and calling kernel base class methods, such as:
   * Putting the class member data in an appropriate state to update a checksum 
 
 For example, here is the method to run sequential CPU variants of the **ADD**
-kernel:
+kernel in the ``ADD-Seq.cpp`` file:
 
-.. literalinclude:: ../../../src/stream/ADD.hpp
+.. literalinclude:: ../../../src/stream/ADD-Seq.hpp
    :start-after: _add_run_seq_start
    :end-before: _add_run_seq_end
    :language: C++
 
-All kernel source files follow a similar organization and implementation 
-pattern for each set of back-end exeuction variants.
-
-.. important:: Following the established implementation patterns for kernels
-               in the Suite help to ensure that the code is consistent, 
-               understandable, easily maintained, and needs minimal 
-               documentation.
-
-A few items are worth noting:
+A few details are worth noting:
 
   * Thee tuning index argument is ignored because there is only one tuning for 
     the sequential kernel variants.
@@ -146,4 +144,37 @@ A few items are worth noting:
   * Macros defined in the ``ADD.hpp`` header file are used to reduce the amount
     of redundant code, such as for data initialization (``ADD_DATA_SETUP``) 
     and the kernel body (``ADD_BODY``).
+
+All kernel source files follow a similar organization and implementation 
+pattern for each set of back-end execution variants. However, there are some
+important differences to note that we describe next in the discussion of
+the CUDA variant execution file.
+
+The key contents related to execution of CUDA GPU variants of the **ADD** 
+kernel in the ``ADD-Cuda.cpp`` file are:
+
+.. literalinclude:: ../../../src/stream/ADD-Cuda.cpp
+   :start-after: _add_run_cuda_start
+   :end-before: _add_run_cuda_end
+   :language: C++
+
+Notable differences with the sequential variant file are:
+
+  * In addition to using the ``ADD_DATA_SETUP`` macro, which is also used
+    in the sequential variant implementation file discussed above, we
+    define two other macros, ``ADD_DATA_SETUP_CUDA`` and 
+    ``ADD_DATA_TEARDOWN_CUDA``. These macros allocate GPU device data and 
+    initialize it by copying host CPU data to it, and copy data back to the 
+    host and deallocate the device data, respectively.
+  * A CUDA GPU kernel ``add`` is implemented for the ``Base_CUDA`` variant.
+  * The ``block_size`` template parameter for the ``ADD::runCudaVariantImpl``
+    method represents the *tuning parameter*.
+  * The ``RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE`` macro is
+    used to generate different kernel tunings that use the GPU thread-block
+    sizes specified via command-line input mentioned in :ref:`build_build-label`.
+
+.. important:: Following the established implementation patterns for kernels
+               in the Suite help to ensure that the code is consistent, 
+               understandable, easily maintained, and needs minimal 
+               documentation.
 

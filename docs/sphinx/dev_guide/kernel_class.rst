@@ -47,7 +47,7 @@ files in the following sections:
                here, that variant should be placed in a file named to clearly
                distinguish the back-end implementation, such as 
                ``ADD-<backend>.cpp``. Keeping the variants for each back-end 
-               in a separate file helps to understand compiler optimizations 
+               in a separate file helps to understand compiler optimization
                when looking at generated assembly code, for example.
 
 .. _kernel_class_header-label:
