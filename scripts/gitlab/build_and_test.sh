@@ -231,12 +231,12 @@ then
         then
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         else
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "lrun -n1 ... ctest --output-on-failure -T test"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             lrun -n1 --smpiargs="-disable_gpu_hooks" ctest --output-on-failure -T test
         fi
     else
@@ -244,12 +244,12 @@ then
         then
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         else
             echo "~~~~~~~~~ Run Command: ~~~~~~~~~~~~~~~~~~~~~"
             echo "ctest --output-on-failure -T test 2>&1 | tee tests_output.txt"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             ctest --output-on-failure -T test 2>&1 | tee tests_output.txt
         fi
     fi
@@ -271,8 +271,16 @@ then
         cp test/*.cali ${reports_dir}
 
         baselines_dir=${project_dir}/test/caliper-baselines
-        for cali_file in "Base_Seq" "Base_OpenMP" "Lambda_Seq" "Lambda_OpenMP" "RAJA_Seq" "RAJA_OpenMP"; do
-            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/${cali_file}.cali --baseline=${baselines_dir}/${cali_file}.cali
+        for suffix in "Seq" "OpenMP"; do
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo "Hatchet comparison of Caliper data for ${suffix}"
+            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            echo " -> Base vs RAJA"
+            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
+            echo " -> Base vs Lambda"
+            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/Lambda_${suffix}.cali
+            echo " -> Lambda vs RAJA"
+            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Lambda_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
         done
     fi
 
