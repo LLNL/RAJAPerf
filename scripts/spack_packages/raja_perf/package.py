@@ -43,6 +43,7 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
     variant("libcpp", default=False, description="Uses libc++ instead of libstdc++")
     variant("tests", default="basic", values=("none", "basic", "benchmarks"),
             multi=False, description="Tests to run")
+    variant("caliper",default=False, description="Build with support for Caliper based profiling")
 
     depends_on("blt")
     depends_on("blt@0.5.2:", type="build", when="@2022.10.0:")
@@ -59,8 +60,14 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
 
     depends_on("rocprim", when="+rocm")
 
+
+
     conflicts("~openmp", when="+openmp_target", msg="OpenMP target requires OpenMP")
     conflicts("+cuda", when="+openmp_target", msg="Cuda may not be activated when openmp_target is ON")
+
+    depends_on("caliper@master",when="+caliper")
+    depends_on("caliper@master +cuda",when="+caliper +cuda")
+    depends_on("caliper@master +rocm",when="+caliper +rocm")
 
     def _get_sys_type(self, spec):
         sys_type = str(spec.architecture)
@@ -231,6 +238,11 @@ class RajaPerf(CachedCMakePackage, CudaPackage, ROCmPackage):
 
         entries.append(cmake_cache_option("ENABLE_BENCHMARKS", "tests=benchmarks" in spec))
         entries.append(cmake_cache_option("ENABLE_TESTS", not "tests=none" in spec or self.run_tests))
+
+        entries.append(cmake_cache_option("RAJA_PERFSUITE_USE_CALIPER","+caliper" in spec))
+        if "caliper" in self.spec:
+            entries.append(cmake_cache_path("caliper_DIR", spec["caliper"].prefix+"/share/cmake/caliper/"))
+            entries.append(cmake_cache_path("adiak_DIR", spec["adiak"].prefix+"/lib/cmake/adiak/"))
 
         return entries
 
