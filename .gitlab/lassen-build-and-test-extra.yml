@@ -69,6 +69,13 @@ xl_16_1_1_12_gcc_7_3_1_cuda_10_1_168:
     SPEC: "${PROJECT_LASSEN_VARIANTS} +cuda %xl@16.1.1.12 cxxflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-7.3.1 -qthreaded -std=c++14 -O3 -qstrict -qxlcompatmacros -qlanglvl=extended0x -qalias=noansi -qhot -qsmp=omp -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-7.3.1\" cuda_arch=70 ^cuda@10.1.168 ${PROJECT_LASSEN_DEPS}"
     LASSEN_BUILD_AND_TEST_JOB_ALLOC: "1 -W 60"
   extends: .build_and_test_on_lassen
+  script:
+    - |
+      echo -e "\e[31mDeactivated spec !\e[0m"
+      echo -e "\e[31m${SPEC}\e[0m"
+      echo -e "\e[31mRAJA won’t build with Cuda < 11.1.0 due to a known issue.\e[0m"
+    - exit 1
+  allow_failure: true
 
 # Overriding shared spec: Extra flags + Longer allocation + Allow failure
 xl_16_1_1_12_cuda_11_1_0:
