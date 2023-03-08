@@ -849,21 +849,23 @@ void Executor::runSuite()
     return;
   }
 
-  getCout() << "\n\nRun warmup kernels...\n";
-
   vector<KernelBase*> warmup_kernels;
 
-  warmup_kernels.push_back(makeKernel<basic::DAXPY>());
-  warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-  warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-  warmup_kernels.push_back(makeKernel<algorithm::SORT>());
-  warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
+  if (!run_params.getDisableWarmup()) {
+    getCout() << "\n\nRun warmup kernels...\n";
 
-  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
-    KernelBase* warmup_kernel = warmup_kernels[ik];
-    runKernel(warmup_kernel, true);
-    delete warmup_kernel;
-    warmup_kernels[ik] = nullptr;
+    warmup_kernels.push_back(makeKernel<basic::DAXPY>());
+    warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
+    warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
+    warmup_kernels.push_back(makeKernel<algorithm::SORT>());
+    warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
+
+    for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+      KernelBase* warmup_kernel = warmup_kernels[ik];
+      runKernel(warmup_kernel, true);
+      delete warmup_kernel;
+      warmup_kernels[ik] = nullptr;
+    }
   }
 
 
