@@ -23,6 +23,12 @@ sys.path.append(input_deploy_dir_str + "/spotdb")
 
 import hatchet as ht
 
+# This class turns an existing GraphFrame into a "generic" one by renaming
+# the root node into a generic node. We can then compare 2 "generic" graph
+# frame. In practice we use it to allow Hatchet to compare performance trees
+# generated from RAJA and Base kernels.
+# If they don’t have exactly the same structure, then we can use
+# ExtractCommonSubtree below.
 class GenericFrame(ht.GraphFrame):
    def __init__(self, gf):
       generic_dataframe = gf.dataframe.copy()
@@ -42,6 +48,17 @@ class GenericFrame(ht.GraphFrame):
       setattr(generic_graph, 'roots', [nn])
       super().__init__(generic_graph, generic_dataframe, generic_exc_metrics, generic_inc_metrics)
 
+# In this class, we turn dissimilar GraphFrames into comparable ones.
+# The idea behind is that the trees contain timings for the same algorithms
+# but different implementations (tuning) that result in non comparable leaves.
+# We extract the minimal value of the lowest level data leaves to set
+# a common comparison dataset.
+# To understand the implementation below, note that the caliper annotation
+# follows a 3-level structure:
+# Variant
+# - Group
+# -- Kernel
+# --- Kernel.Tuning
 def ExtractCommonSubtree(gf1: ht.GraphFrame, gf2: ht.GraphFrame, metric: str) -> (ht.GraphFrame):
    if (gf1.graph == gf2.graph):
       return gf1
@@ -76,7 +93,7 @@ def ExtractCommonSubtree(gf1: ht.GraphFrame, gf2: ht.GraphFrame, metric: str) ->
             s1 = 0
          elif nn._depth == 0:
             common_subtree.dataframe.loc[nn, metric] = s0
-      
+
       return common_subtree
 
 f1 = args.report[0]
