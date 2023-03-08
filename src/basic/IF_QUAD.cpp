@@ -81,11 +81,11 @@ void IF_QUAD::updateChecksum(VariantID vid, size_t tune_idx)
 void IF_QUAD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
-  deallocData(m_b);
-  deallocData(m_c);
-  deallocData(m_x1);
-  deallocData(m_x2);
+  deallocData(m_a, vid);
+  deallocData(m_b, vid);
+  deallocData(m_c, vid);
+  deallocData(m_x1, vid);
+  deallocData(m_x2, vid);
 }
 
 } // end namespace basic

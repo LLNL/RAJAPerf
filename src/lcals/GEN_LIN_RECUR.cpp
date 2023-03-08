@@ -83,10 +83,10 @@ void GEN_LIN_RECUR::updateChecksum(VariantID vid, size_t tune_idx)
 void GEN_LIN_RECUR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_b5);
-  deallocData(m_stb5);
-  deallocData(m_sa);
-  deallocData(m_sb);
+  deallocData(m_b5, vid);
+  deallocData(m_stb5, vid);
+  deallocData(m_sa, vid);
+  deallocData(m_sb, vid);
 }
 
 } // end namespace lcals

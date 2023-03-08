@@ -98,9 +98,9 @@ void LTIMES_NOVIEW::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 {
   (void) vid;
 
-  deallocData(m_phidat);
-  deallocData(m_elldat);
-  deallocData(m_psidat);
+  deallocData(m_phidat, vid);
+  deallocData(m_elldat, vid);
+  deallocData(m_psidat, vid);
 }
 
 } // end namespace apps

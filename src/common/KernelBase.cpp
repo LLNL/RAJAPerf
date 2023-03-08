@@ -173,7 +173,7 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 
   resetTimer();
 
-  resetDataInitCount();
+  detail::resetDataInitCount();
   this->setUp(vid, tune_idx);
 
   this->runKernel(vid, tune_idx);

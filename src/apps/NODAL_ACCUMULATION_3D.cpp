@@ -89,8 +89,8 @@ void NODAL_ACCUMULATION_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 {
   (void) vid;
 
-  deallocData(m_x);
-  deallocData(m_vol);
+  deallocData(m_x, vid);
+  deallocData(m_vol, vid);
 }
 
 } // end namespace apps
