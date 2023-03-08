@@ -77,8 +77,8 @@ void DOT::updateChecksum(VariantID vid, size_t tune_idx)
 void DOT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
-  deallocData(m_b);
+  deallocData(m_a, vid);
+  deallocData(m_b, vid);
 }
 
 } // end namespace stream

@@ -62,8 +62,8 @@ void SORTPAIRS::updateChecksum(VariantID vid, size_t tune_idx)
 void SORTPAIRS::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_i);
+  deallocData(m_x, vid);
+  deallocData(m_i, vid);
 }
 
 } // end namespace algorithm

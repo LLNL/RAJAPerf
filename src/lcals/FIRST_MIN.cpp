@@ -82,7 +82,7 @@ void FIRST_MIN::updateChecksum(VariantID vid, size_t tune_idx)
 void FIRST_MIN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
+  deallocData(m_x, vid);
 }
 
 } // end namespace lcals

@@ -74,8 +74,8 @@ void COPY::updateChecksum(VariantID vid, size_t tune_idx)
 void COPY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
-  deallocData(m_c);
+  deallocData(m_a, vid);
+  deallocData(m_c, vid);
 }
 
 } // end namespace stream
