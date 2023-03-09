@@ -100,6 +100,7 @@ f1 = args.report[0]
 f2 = args.baseline[0]
 tolerance=args.tolerance[0]
 
+
 gf1 = GenericFrame(ht.GraphFrame.from_caliperreader(f1))
 gf2 = GenericFrame(ht.GraphFrame.from_caliperreader(f2))
 
@@ -108,11 +109,14 @@ if 'min#inclusive#sum#time.duration' in gf1.inc_metrics:
 elif 'Min time/rank' in gf1.inc_metrics:
   metric = 'Min time/rank' 
 
-if len(gf1.graph) != len(gf2.graph):
-   gf1 = ExtractCommonSubtree(gf1,gf2,metric)
-   gf2 = ExtractCommonSubtree(gf2,gf1,metric)
+gf11 = gf1
+gf22 = gf2
 
-gf3 = gf1 - gf2
+if len(gf1.graph) != len(gf2.graph):
+   gf11 = ExtractCommonSubtree(gf1,gf2,metric)
+   gf22 = ExtractCommonSubtree(gf2,gf1,metric)
+
+gf3 = gf11 - gf22
 
 # Sort resulting DataFrame by ``time`` column in descending order.
 #sorted_df = gf3.dataframe.sort_values(by=[metric], ascending=False)
