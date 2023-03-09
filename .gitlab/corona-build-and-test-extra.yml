@@ -29,5 +29,12 @@ variables:
 # INFO: This job is activated in RAJA CI, but we don't use desul atomics here
 #rocm_5_1_1_clang_13_0_0_desul_atomics:
 #  variables:
-#    SPEC: "+rocm~openmp +desul amdgpu_target=gfx906 %clang@13.0.0 ^blt@develop ^hip@5.1.1"
+#    SPEC: "~openmp +rocm +desul amdgpu_target=gfx906 %clang@13.0.0 ^hip@5.1.1 ^blt@develop"
 #  extends: .build_and_test_on_corona
+
+# EXTRA
+rocm_5_1_1_clang_13_0_0_caliper:
+  variables:
+    SPEC: "~openmp +caliper +rocm amdgpu_target=gfx906 %clang@13.0.0 ^hip@5.1.1 ^blt@develop"
+  extends: .build_and_test_on_corona
+

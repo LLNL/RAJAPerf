@@ -270,17 +270,18 @@ then
         mkdir -p ${reports_dir}
         cp test/*.cali ${reports_dir}
 
-        baselines_dir=${project_dir}/test/caliper-baselines
-        for suffix in "Seq" "OpenMP"; do
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            echo "Hatchet comparison of Caliper data for ${suffix}"
-            echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            echo " -> Base vs RAJA"
-            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
-            echo " -> Base vs Lambda"
-            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/Lambda_${suffix}.cali
-            echo " -> Lambda vs RAJA"
-            ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Lambda_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
+        for suffix in "Seq" "OpenMP" "OpenMPTarget" "Cuda" "HIP"; do
+            if ( find ${reports_dir} -name '*${suffix}.cali' | grep -q '.' ); then
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                echo "Hatchet comparison of Caliper data for ${suffix}"
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                echo " -> Base vs RAJA"
+                ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
+                echo " -> Base vs Lambda"
+                ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Base_${suffix}.cali --baseline=${reports_dir}/Lambda_${suffix}.cali
+                echo " -> Lambda vs RAJA"
+                ${project_dir}/scripts/gitlab/hatchet-analysis.py --report=${reports_dir}/Lambda_${suffix}.cali --baseline=${reports_dir}/RAJA_${suffix}.cali
+            fi
         done
     fi
 
