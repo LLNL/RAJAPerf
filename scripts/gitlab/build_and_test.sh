@@ -81,7 +81,7 @@ then
     upstream_opt=""
     if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/.spack-db ]]
     then
-        upstream_opt="--upstream=${spack_upstream_path}/spack/opt/spack"
+        upstream_opt="--upstream=${spack_upstream_path}"
     fi
 
     # We force Spack to put all generated files (cache and configuration of
