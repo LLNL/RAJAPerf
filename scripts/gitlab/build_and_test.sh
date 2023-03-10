@@ -79,7 +79,7 @@ then
     prefix_opt="--prefix=${prefix}"
 
     upstream_opt=""
-    if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/spack/opt/spack/spack.yaml ]]
+    if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/.spack-db ]]
     then
         upstream_opt="--upstream=${spack_upstream_path}/spack/opt/spack"
     fi
