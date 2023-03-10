@@ -67,7 +67,7 @@ xl_16_1_1_12:
 # Overriding shared spec: Longer allocation + Extra flags
 xl_16_1_1_12_gcc_8_3_1:
   variables:
-    SPEC: " ${PROJECT_LASSEN_VARIANTS} %xl@16.1.1.12 cxxflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -qthreaded -std=c++14 -O3 -qstrict -qxlcompatmacros -qlanglvl=extended0x -qalias=noansi -qhot -qsmp=omp -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" cuda_arch=70 ${PROJECT_LASSEN_DEPS}"
+    SPEC: " ${PROJECT_LASSEN_VARIANTS} %xl@16.1.1.12 cxxflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1 -qthreaded -std=c++14 -O3 -qstrict -qxlcompatmacros -qlanglvl=extended0x -qalias=noansi -qhot -qsmp=omp -qnoeh -qsuppress=1500-029 -qsuppress=1500-036\" cflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" ${PROJECT_LASSEN_DEPS}"
     LASSEN_BUILD_AND_TEST_JOB_ALLOC: "1 -W 50"
   extends: .build_and_test_on_lassen
 
