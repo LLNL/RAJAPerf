@@ -535,7 +535,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--disable_warmup") ) {
 
-      disable_warmup = 1;
+      disable_warmup = true;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
