@@ -55,7 +55,7 @@ RunParams::RunParams(int argc, char** argv)
    invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf"),
-   disable_warmup(0)
+   disable_warmup(false)
 {
   parseCommandLineOptions(argc, argv);
 }
