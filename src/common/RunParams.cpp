@@ -54,10 +54,11 @@ RunParams::RunParams(int argc, char** argv)
    npasses_combiner_input(),
    invalid_npasses_combiner_input(),
    outdir(),
-   outfile_prefix("RAJAPerf")
+   outfile_prefix("RAJAPerf"),
 #ifdef RAJA_PERFSUITE_USE_CALIPER
-   ,add_to_spot_config()
+   add_to_spot_config(),
 #endif
+   disable_warmup(false)
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -118,6 +119,8 @@ void RunParams::print(std::ostream& str) const
     str << "\n add_to_spot_config = " << add_to_spot_config;
   }
 #endif
+
+  str << "\n disable_warmup = " << disable_warmup;
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -535,9 +538,13 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-       if (input_state != BadInput) {
-         input_state = DryRun;
-       }
+      if (input_state != BadInput) {
+        input_state = DryRun;
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--disable_warmup") ) {
+
+      disable_warmup = true;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
@@ -715,6 +722,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
+
+  str << "\t --disable_warmup (disable warmup tests)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
