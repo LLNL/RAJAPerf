@@ -276,9 +276,9 @@ then
                 echo "Hatchet comparison of Caliper data for ${suffix}"
                 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                 echo " -> RAJA vs Base"
-                ${project_dir}/scripts/gitlab/hatchet-analysis.py --baseline=${reports_dir}/RAJA_${suffix}.cali --report=${reports_dir}/Base_${suffix}.cali
+                ${project_dir}/scripts/gitlab/hatchet-analysis.py --baseline=${reports_dir}/Base_${suffix}.cali --report=${reports_dir}/RAJA_${suffix}.cali
                 echo " -> Lambda vs Base"
-                ${project_dir}/scripts/gitlab/hatchet-analysis.py --baseline=${reports_dir}/Lambda_${suffix}.cali --report=${reports_dir}/Base_${suffix}.cali
+                ${project_dir}/scripts/gitlab/hatchet-analysis.py --baseline=${reports_dir}/Base_${suffix}.cali --report=${reports_dir}/Lambda_${suffix}.cali
             fi
         done
     fi
