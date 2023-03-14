@@ -55,7 +55,7 @@ RunParams::RunParams(int argc, char** argv)
    invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf"),
-   disable_warmup(0)
+   disable_warmup(false)
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -535,7 +535,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--disable_warmup") ) {
 
-      disable_warmup = 1;
+      disable_warmup = true;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 

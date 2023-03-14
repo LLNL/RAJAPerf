@@ -849,10 +849,10 @@ void Executor::runSuite()
     return;
   }
 
-  vector<KernelBase*> warmup_kernels;
-
   if (!run_params.getDisableWarmup()) {
     getCout() << "\n\nRun warmup kernels...\n";
+
+    vector<KernelBase*> warmup_kernels;
 
     warmup_kernels.push_back(makeKernel<basic::DAXPY>());
     warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
