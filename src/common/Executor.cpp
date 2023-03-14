@@ -954,27 +954,29 @@ void Executor::runSuite()
     return;
   }
 
-  getCout() << "\n\nRun warmup kernels...\n";
+  if (!run_params.getDisableWarmup()) {
+    getCout() << "\n\nRun warmup kernels...\n";
 
-  vector<KernelBase*> warmup_kernels;
+    vector<KernelBase*> warmup_kernels;
 
-  warmup_kernels.push_back(makeKernel<basic::DAXPY>());
-  warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-  warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-  warmup_kernels.push_back(makeKernel<algorithm::SORT>());
-  warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
+    warmup_kernels.push_back(makeKernel<basic::DAXPY>());
+    warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
+    warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
+    warmup_kernels.push_back(makeKernel<algorithm::SORT>());
+    warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
 
-  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
-    KernelBase* warmup_kernel = warmup_kernels[ik];
+    for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+      KernelBase* warmup_kernel = warmup_kernels[ik];
 #ifdef RAJA_PERFSUITE_USE_CALIPER
-    warmup_kernel->caliperOff();
+      warmup_kernel->caliperOff();
 #endif
-    runKernel(warmup_kernel, true);
+      runKernel(warmup_kernel, true);
 #ifdef RAJA_PERFSUITE_USE_CALIPER
-    warmup_kernel->caliperOn();
+      warmup_kernel->caliperOn();
 #endif
-    delete warmup_kernel;
-    warmup_kernels[ik] = nullptr;
+      delete warmup_kernel;
+      warmup_kernels[ik] = nullptr;
+    }
   }
 
 
