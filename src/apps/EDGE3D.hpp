@@ -507,9 +507,9 @@ public:
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);
   template < size_t block_size >
-  void runCudaVariantImpl(VariantID vid);
+  void runCudaVariantBlock(VariantID vid);
   template < size_t block_size >
-  void runHipVariantImpl(VariantID vid);
+  void runHipVariantBlock(VariantID vid);
 
 private:
   static const size_t default_gpu_block_size = 256;

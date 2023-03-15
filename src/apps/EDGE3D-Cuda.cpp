@@ -59,9 +59,60 @@ __global__ void edge3d(Real_ptr sum,
    }
 }
 
+void EDGE3D::runCudaVariant(VariantID vid, size_t tune_idx)
+{
+  if ( vid == Base_CUDA ) {
+
+    size_t t = 0;
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runCudaVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else if ( vid == RAJA_CUDA ) {
+
+    size_t t = 0;
+
+    seq_for(gpu_block_sizes_type{}, [&](auto block_size) {
+
+      if (run_params.numValidGPUBlockSize() == 0u ||
+          run_params.validGPUBlockSize(block_size)) {
+
+        if (tune_idx == t) {
+
+          runCudaVariantBlock<block_size>(vid);
+
+        }
+
+        t += 1;
+
+      }
+
+    });
+
+  } else {
+
+    getCout() << "\n  EDGE3D : Unknown Cuda variant id = " << vid << std::endl;
+
+  }
+
+}
 
 template < size_t block_size >
-void EDGE3D::runCudaVariantImpl(VariantID vid)
+void EDGE3D::runCudaVariantBlock(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = m_domain->fpz;
