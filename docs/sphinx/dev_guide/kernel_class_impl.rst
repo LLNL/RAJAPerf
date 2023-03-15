@@ -65,23 +65,23 @@ The methods in the source file are:
   * ``setUp`` method, which allocates and initializes data required for the
     kernel to execute and produce results.
 
-  * ``tearDown`` method, which deallocates and resets any data that will be 
+  * ``tearDown`` method, which deallocates and resets any data that will be
     re-allocated and/or initialized in subsequent kernel executions.
   
-    .. important:: The ``tearDown`` method frees and/or resets all kernel
-                   data that is allocated and/or initialized in the ``setUp``
-                   method.
+    .. note:: The ``tearDown`` method frees and/or resets all kernel
+              data that is allocated and/or initialized in the ``setUp``
+              method.
 
   * ``updateChecksum`` method, which computes a checksum from the results of
-    an execution of the kernel and adds it to the checksum value, which is a 
-    member of the ``KernelBase`` class, for the variant and tuning index that 
+    an execution of the kernel and adds it to the checksum value, which is a
+    member of the ``KernelBase`` class, for the variant and tuning index that
     was run.
 
-    .. important:: The checksum must be computed in the same way for each
-                   variant of a  kernel so that checksums for different
-                   variants can be compared to help identify differences, and
-                   potential errors in implementations, compiler optimizations,
-                   programming model execution, etc.
+    .. note:: The checksum must be computed in the same way for each
+              variant of a  kernel so that checksums for different
+              variants can be compared to help identify differences, and
+              potential errors in implementations, compiler optimizations,
+              programming model execution, etc.
 
 The ``setUp``, ``tearDown``, and ``updateChecksum`` methods are
 called **each time a kernel variant is run**. We allocate and deallocate
@@ -202,7 +202,7 @@ kernel in the ``ADD-Cuda.cpp`` file are:
 
 Notable differences with the sequential variant file are:
 
-  * Most of the file is guarded using the ``RAJA_ENABLE_CUDA`` macro. 
+  * Most of the file is guarded using the ``RAJA_ENABLE_CUDA`` macro.
 
     ..note:: The contents of all non-sequential variant implementation files
              are guarded using the ``RAJA_ENABLE_<backend>`` macros.
