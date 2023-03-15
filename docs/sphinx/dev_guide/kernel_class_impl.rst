@@ -68,19 +68,20 @@ The methods in the source file are:
   * ``tearDown`` method, which deallocates and resets any data that will be 
     re-allocated and/or initialized in subsequent kernel executions.
   
-.. important:: The ``tearDown`` method frees and/or resets all kernel data that
-               is allocated and/or initialized in the ``setUp`` method.
+    .. important:: The ``tearDown`` method frees and/or resets all kernel
+                   data that is allocated and/or initialized in the ``setUp``
+                   method.
 
   * ``updateChecksum`` method, which computes a checksum from the results of
     an execution of the kernel and adds it to the checksum value, which is a 
     member of the ``KernelBase`` class, for the variant and tuning index that 
     was run.
 
-.. important:: The checksum must be computed in the same way for each variant 
-               of a  kernel so that checksums for different variants can be 
-               compared to help identify differences, and potential errors in 
-               implementations, compiler optimizations, programming model 
-               execution, etc.
+    .. important:: The checksum must be computed in the same way for each
+                   variant of a  kernel so that checksums for different
+                   variants can be compared to help identify differences, and
+                   potential errors in implementations, compiler optimizations,
+                   programming model execution, etc.
 
 The ``setUp``, ``tearDown``, and ``updateChecksum`` methods are
 called **each time a kernel variant is run**. We allocate and deallocate
@@ -209,15 +210,19 @@ Notable differences with the sequential variant file are:
   * In addition to using the ``ADD_DATA_SETUP`` macro, which is also used
     in the sequential variant implementation file discussed above, we
     define two other macros, ``ADD_DATA_SETUP_CUDA`` and 
-    ``ADD_DATA_TEARDOWN_CUDA``. These macros allocate GPU device data and 
-    initialize it by copying host CPU data to it, and copy data back to the 
-    host and deallocate the device data, respectively.
+    ``ADD_DATA_TEARDOWN_CUDA``. The first macro allocates GPU device data needed
+    to run a kernel and initialize the data by copying host CPU data to it. 
+    After a kernel executes, the second macro copies data needed to compute a
+    checksum to the host and then deallocates the device data.
   * A CUDA GPU kernel ``add`` is implemented for the ``Base_CUDA`` variant.
-  * The ``block_size`` template parameter for the ``ADD::runCudaVariantImpl``
-    method represents the *tuning parameter*.
+  * The method to exjcute the CUDA kernel variants ``ADD::runCudaVariantImpl``
+    is templated on a ``block_size`` parameter, which represents the 
+    *tuning parameter*, and is passes to the kernel lauch methods.
   * The ``RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE`` macro is
-    used to generate different kernel tunings that use the GPU thread-block
-    sizes specified via command-line input mentioned in :ref:`build_build-label`.
+    used (outside the method implementation, to generate different kernel 
+    tuning implementations at compile-time to run the GPU ``block_size``
+    versions specified via command-line input mentioned in 
+    :ref:`build_build-label`.
 
 .. important:: Following the established implementation patterns for kernels
                in the Suite help to ensure that the code is consistent, 
