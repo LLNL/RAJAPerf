@@ -63,7 +63,7 @@ In its entirety, the **ADD** kernel class header file ``ADD.hpp`` is:
 
 The key ingredients of a kernel class header file are:
 
-  * **Copyright statement** at the top of the file. 
+  * **Copyright statement** at the top of the file.
 
     .. note:: Each file in the RAJA Performance Suite must start with a 
               boilerplate comment for the project copyright information.
