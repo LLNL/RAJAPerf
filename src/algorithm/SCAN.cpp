@@ -75,8 +75,8 @@ void SCAN::updateChecksum(VariantID vid, size_t tune_idx)
 void SCAN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
 }
 
 } // end namespace algorithm
