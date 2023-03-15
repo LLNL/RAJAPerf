@@ -91,9 +91,11 @@ Notes about *problem size*
 This section describes how the Suite calculates problem sizes and the 
 rationale behind it.
 
-  * Problem size is always reported per process/MPI rank. To get the total 
-    problem size across all ranks when running with MPI, multiply the problem 
-    size by the number of MPI ranks.
+  * **The concept of problem size is subjective and can be interpreted 
+    differently depending on the kernel structure and what one is trying to 
+    measure.** For example, problem size could refer to the amount of data 
+    needed to be stored in memory to run the problem, or it could refer to 
+    the amount of parallel work that is possible, etc.
   * The Suite uses three notions of problem size for each kernel: *default*, 
     *target*, and *actual*. Default is the problem size defined for a kernel 
     and the size that is run if no run time options are provided to run a 
@@ -101,19 +103,18 @@ rationale behind it.
     settings and alterations to those if input is provided to change the 
     default. Actual is the problem size that is run based on how each kernel 
     calculates it based on defaults and run time input.
-  * **The concept of problem size is subjective and can be interpreted 
-    differently depending on the kernel structure and what one is trying to 
-    measure.** For example, problem size could refer to the amount of data 
-    needed to be stored in memory to run the problem, or it could refer to 
-    the amount of parallel work that is possible, etc.
-  * We employ the following, admittedly loose definition, which depends on the 
-    particular kernel structure. Of all *loop structures* (e.g., single loop, 
-    nested loops, etc.) that are run for a kernel (note that some kernels run 
-    multiple loops, possibly with different sizes or loop structures), problem 
-    size refers to the size of the data set required to generate the kernel 
-    result. The interpretation of this and the definition of problem size for 
-    each kernel in the suite is determined by the kernel developer and team 
-    discussion.
+  * We employ an admittedly loose definition of problem size for each kernel, 
+    which depends on the kernel structure. Of all *loop structures* 
+    (e.g., single loop, nested loops, etc.) that are run for a kernel (note 
+    that some kernels run multiple loops, possibly with different sizes or 
+    loop structures), problem size refers to the size of the data set required 
+    to generate the kernel result. The interpretation of this and the 
+    definition of problem size for each kernel in the suite is determined by 
+    the kernel developer and team discussion.
+
+.. note: Problem size is always reported per process/MPI rank. To get the total 
+         problem size over all ranks when running with MPI, multiply the 
+         problem size by the number of MPI ranks.
 
 Here are a few examples to give a better sense of how we determine problem 
 size for various kernels in the Suite.

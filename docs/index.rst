@@ -31,16 +31,15 @@ terminology used in the Suite implementation and discussion includes:
   * **Variant** refers to implementations of Suite kernels that share the same 
     implementation approach and programming model, such as *baseline OpenMP*, 
     *RAJA OpenMP*, etc.
-  * **Tuning** refers to an implementation of kernels with a particular 
-    execution parameterization, such as GPU thread-block size 128, GPU 
-    thread-block size 256, etc.
+  * **Tuning** refers to execution of kernels with a particular execution
+    parameterization, such as GPU thread-block size 128, 256, etc.
 
 The kernels in the Suite originate from various HPC benchmark suites and 
 applications. For example, the "Stream" group contains kernels from the Babel 
 Stream benchmark, the "Apps" group contains kernels extracted from
 real scientific computing applications, and so forth. Each kernel in the Suite 
 appears in multiple RAJA and non-RAJA (i.e., *baseline*) variants that use 
-parallel programming models supported by RAJA. Some kernels have multiple 
+parallel programming models supported by RAJA. Some kernels support multiple 
 tunings of a variant to explore the performance implications of options that 
 a programming model supports.
 
