@@ -533,7 +533,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = DryRun;
       }
 
-    } else if ( std::string(argv[i]) == std::string("--disable_warmup") ) {
+    } else if ( std::string(argv[i]) == std::string("--disable-warmup") ) {
 
       disable_warmup = true;
 
@@ -701,7 +701,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
-  str << "\t --disable_warmup (disable warmup tests)\n\n";
+  str << "\t --disable-warmup (disable warmup tests)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
