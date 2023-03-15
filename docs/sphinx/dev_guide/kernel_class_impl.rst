@@ -204,8 +204,8 @@ Notable differences with the sequential variant file are:
 
   * Most of the file is guarded using the ``RAJA_ENABLE_CUDA`` macro.
 
-    ..note:: The contents of all non-sequential variant implementation files
-             are guarded using the ``RAJA_ENABLE_<backend>`` macros.
+    .. note:: The contents of all non-sequential variant implementation files
+              are guarded using the ``RAJA_ENABLE_<backend>`` macros.
 
   * In addition to using the ``ADD_DATA_SETUP`` macro, which is also used
     in the sequential variant implementation file discussed above, we
