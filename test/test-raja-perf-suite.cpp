@@ -21,7 +21,7 @@ TEST(ShortSuiteTest, Basic)
 
 // Assemble command line args for basic test
 
-  std::vector< std::string > sargv = {};
+  std::vector< std::string > sargv{};
   sargv.emplace_back(std::string("dummy "));  // for executable name
   sargv.emplace_back(std::string("--checkrun"));
   sargv.emplace_back(std::string("3"));
