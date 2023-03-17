@@ -196,6 +196,8 @@ public:
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+  bool getDisableWarmup() const { return disable_warmup; }
+
 //@}
 
   /*!
@@ -267,6 +269,8 @@ private:
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
+
+  bool disable_warmup;
 
 };
 

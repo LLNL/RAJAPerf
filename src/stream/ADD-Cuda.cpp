@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// _add_run_cuda_start
 #include "ADD.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -35,7 +36,7 @@ namespace stream
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
-                     Index_type iend)
+                    Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
@@ -117,4 +118,5 @@ RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Cuda)
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
+// _add_run_cuda_end
 
