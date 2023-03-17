@@ -178,6 +178,15 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
+static inline std::string getHipArch()
+{  
+  hipDeviceProp_t devProp;
+  hipGetDeviceProperties(&devProp, 0);
+  std::string gcnArchName(devProp.gcnArchName);
+  std::string hipArch = gcnArchName.substr(0, 7);
+  if(hipArch.back() == ':' ) hipArch.pop_back();
+  return hipArch;
+}
 
 }  // closing brace for rajaperf namespace
 

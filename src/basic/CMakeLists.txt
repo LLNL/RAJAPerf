@@ -56,6 +56,12 @@ blt_add_library(
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          MAT_FUSED_MUL_ADD.cpp
+          MAT_FUSED_MUL_ADD-Seq.cpp
+          MAT_FUSED_MUL_ADD-Hip.cpp
+          MAT_FUSED_MUL_ADD-Cuda.cpp
+          MAT_FUSED_MUL_ADD-OMP.cpp
+          MAT_FUSED_MUL_ADD-OMPTarget.cpp
           MAT_MAT_SHARED.cpp
           MAT_MAT_SHARED-Seq.cpp
           MAT_MAT_SHARED-Hip.cpp
