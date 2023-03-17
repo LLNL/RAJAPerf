@@ -140,6 +140,11 @@ gcc_8_3_1_cuda_11_5_0_ats_disabled:
 # EXTRAS
 ##########
 
+clang_12_0_1_cuda_11_5_0_caliper:
+  variables:
+    SPEC: " +openmp +caliper +cuda cuda_arch=70 %clang@12.0.1 cxxflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" cflags==\"--gcc-toolchain=/usr/tce/packages/gcc/gcc-8.3.1\" ^cuda@11.5.0"
+  extends: .build_and_test_on_lassen
+
 clang_13_0_1_libcpp:
   variables:
     SPEC: " +openmp %clang@13.0.1+libcpp"
