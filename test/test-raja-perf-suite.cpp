@@ -19,45 +19,36 @@
 TEST(ShortSuiteTest, Basic)
 {
 // Assemble command line args for basic test
-  int argc = 4;
+  int argc = 5;
 
-//#if defined(RAJA_ENABLE_HIP) && \
-//     (HIP_VERSION_MAJOR < 5 || \
-//     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
-//  argc = 7;
-//#endif
-#if defined(RAJA_ENABLE_HIP) 
-  argc = 6;
+#if defined(RAJA_ENABLE_HIP) && \
+     (HIP_VERSION_MAJOR < 5 || \
+     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
+  argc = 7;
 #endif
 
 
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
-  argc = 6;
+  argc = 7;
 #endif
 
   std::vector< std::string > sargv(argc);
   sargv[0] = std::string("dummy ");  // for executable name
   sargv[1] = std::string("--checkrun");
-  sargv[2] = std::string("1");
+  sargv[2] = std::string("3");
   sargv[3] = std::string("--show-progress");
+  sargv[4] = std::string("--disable-warmup");
 
-#if 0
 #if defined(RAJA_ENABLE_HIP) && \
      (HIP_VERSION_MAJOR < 5 || \
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
-  sargv[4] = std::string("--exclude-kernels");
-  sargv[5] = std::string("Apps_HALOEXCHANGE_FUSED");
-  sargv[6] = std::string("Basic_PI_ATOMIC");
-#endif
-#endif
-#if defined(RAJA_ENABLE_HIP)
-  sargv[4] = std::string("--exclude-kernels");
-  sargv[5] = std::string("Basic_PI_ATOMIC");
+  sargv[5] = std::string("--exclude-kernels");
+  sargv[6] = std::string("HALOEXCHANGE_FUSED");
 #endif
 
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
-  sargv[4] = std::string("--exclude-kernels");
-  sargv[5] = std::string("FIRST_MIN");
+  sargv[5] = std::string("--exclude-kernels");
+  sargv[6] = std::string("FIRST_MIN");
 #endif
 
   char** argv = new char* [argc];
@@ -71,8 +62,6 @@ TEST(ShortSuiteTest, Basic)
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 #endif
-
-
 
   // STEP 1: Create suite executor object with input args defined above
   rajaperf::Executor executor(argc, argv);

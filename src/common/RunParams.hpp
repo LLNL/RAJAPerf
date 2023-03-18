@@ -200,7 +200,7 @@ public:
   const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
 #endif
 
-  const bool getDisableWarmup() const { return disable_warmup; }
+  bool getDisableWarmup() const { return disable_warmup; }
 
 //@}
 
