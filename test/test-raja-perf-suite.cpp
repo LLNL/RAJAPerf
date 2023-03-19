@@ -55,9 +55,8 @@ TEST(ShortSuiteTest, Basic)
   for (int is = 0; is < argc; ++is) { 
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
-
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
-  MPI_Init(&argc, &argv);
+  MPI_Init(NULL,NULL);
 
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
@@ -141,7 +140,6 @@ TEST(ShortSuiteTest, Basic)
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
   MPI_Finalize();
 #endif
-
 
   // clean up 
   delete [] argv; 
