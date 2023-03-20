@@ -217,3 +217,6 @@ or the variant represented in this file::
   gf1 = ht.GraphFrame.from_caliperreader("RAJA_Seq.cali")
   print(gf1.tree())
 
+`Find out more on hatchet <https://github.com/LLNL/hatchet>`_
+
+
