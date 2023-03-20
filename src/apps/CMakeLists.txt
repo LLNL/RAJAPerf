@@ -80,7 +80,9 @@ blt_add_library(
           PRESSURE-Hip.cpp 
           PRESSURE-Cuda.cpp 
           PRESSURE-OMP.cpp 
-          PRESSURE-OMPTarget.cpp 
+          PRESSURE-OMPTarget.cpp
+          SW4CK_KERNEL_2.cpp
+          SW4CK_KERNEL_2-Seq.cpp
           VOL3D.cpp
           VOL3D-Seq.cpp
           VOL3D-Hip.cpp 

@@ -91,6 +91,7 @@
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
+#include "apps/SW4CK_KERNEL_2.hpp"
 #include "apps/VOL3D.hpp"
 
 //
@@ -227,6 +228,7 @@ static const std::string KernelNames [] =
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
+  std::string("Apps_SW4CK_KERNEL_2"),
   std::string("Apps_VOL3D"),
 
 //
@@ -771,6 +773,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::PRESSURE(run_params);
        break;
     }
+    case Apps_SW4CK_KERNEL_2 : {
+       kernel = new apps::SW4CK_KERNEL_2(run_params);
+       break;
+    }      
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
        break;
