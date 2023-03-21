@@ -81,7 +81,7 @@ void INT_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
     m_px[i] -= m_px_initval;
   }
 
-  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize(), vid);
 }
 
 void INT_PREDICT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

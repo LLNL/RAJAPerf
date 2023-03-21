@@ -77,7 +77,7 @@ void NESTED_INIT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void NESTED_INIT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_array, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_array, m_array_length, vid);
 }
 
 void NESTED_INIT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

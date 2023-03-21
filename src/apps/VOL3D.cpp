@@ -89,7 +89,7 @@ void VOL3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void VOL3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor , vid);
 }
 
 void VOL3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

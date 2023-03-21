@@ -84,8 +84,8 @@ void POLYBENCH_JACOBI_1D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
 void POLYBENCH_JACOBI_1D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor );
-  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_A, m_N, checksum_scale_factor , vid);
+  checksum[vid][tune_idx] += calcChecksum(m_B, m_N, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_JACOBI_1D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

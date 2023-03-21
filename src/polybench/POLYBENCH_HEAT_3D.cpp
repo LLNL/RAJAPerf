@@ -87,8 +87,8 @@ void POLYBENCH_HEAT_3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
 void POLYBENCH_HEAT_3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_A, m_N*m_N*m_N, checksum_scale_factor );
-  checksum[vid][tune_idx] += calcChecksum(m_B, m_N*m_N*m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_A, m_N*m_N*m_N, checksum_scale_factor , vid);
+  checksum[vid][tune_idx] += calcChecksum(m_B, m_N*m_N*m_N, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_HEAT_3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
