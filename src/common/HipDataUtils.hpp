@@ -22,6 +22,7 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
+#include "RAJA/policy/hip/policy.hpp"
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 
 

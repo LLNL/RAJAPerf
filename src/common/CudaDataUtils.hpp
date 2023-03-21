@@ -22,6 +22,7 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
+#include "RAJA/policy/cuda/policy.hpp"
 #include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
 
 
