@@ -6,228 +6,178 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 /*
+
 NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
 NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
 NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 for (Index_type i = ibegin ; i < iend ; ++i ) {
-  const Real_type qpts_1d[NQ_1D] = { 1. };
-  const Real_type wgts_1d[NQ_1D] = { 1. };
-  Compute cell centered Jacobian
-  const Real_type jxx_cc =
-    (x1[i] - x0[i])*0.25 +
-    (x3[i] - x2[i])*0.25 +
-    (x4[i] - x5[i])*0.25 +
-    (x6[i] - x7[i])*0.25;
-  const Real_type jxy_cc =
-    (y1[i] - y0[i])*0.25 +
-    (y3[i] - y2[i])*0.25 +
-    (y4[i] - y5[i])*0.25 +
-    (y6[i] - y7[i])*0.25;
-  const Real_type jxz_cc =
-    (z1[i] - z0[i])*0.25 +
-    (z3[i] - z2[i])*0.25 +
-    (z4[i] - z5[i])*0.25 +
-    (z6[i] - z7[i])*0.25;
-  const Real_type jyx_cc =
-    (x3[i] - x0[i])*0.25 +
-    (x1[i] - x2[i])*0.25 +
-    (x4[i] - x7[i])*0.25 +
-    (x6[i] - x5[i])*0.25;
-  const Real_type jyy_cc =
-    (y3[i] - y0[i])*0.25 +
-    (y1[i] - y2[i])*0.25 +
-    (y4[i] - y7[i])*0.25 +
-    (y6[i] - y5[i])*0.25;
-  const Real_type jyz_cc =
-    (z3[i] - z0[i])*0.25 +
-    (z1[i] - z2[i])*0.25 +
-    (z4[i] - z7[i])*0.25 +
-    (z6[i] - z5[i])*0.25;
-  const Real_type jzx_cc =
-    (x4[i] - x0[i])*0.25 +
-    (x1[i] - x5[i])*0.25 +
-    (x6[i] - x2[i])*0.25 +
-    (x3[i] - x7[i])*0.25;
-  const Real_type jzy_cc =
-    (y4[i] - y0[i])*0.25 +
-    (y1[i] - y5[i])*0.25 +
-    (y6[i] - y2[i])*0.25 +
-    (y3[i] - y7[i])*0.25;
-  const Real_type jzz_cc =
-    (z4[i] - z0[i])*0.25 +
-    (z1[i] - z5[i])*0.25 +
-    (z6[i] - z2[i])*0.25 +
-    (z3[i] - z7[i])*0.25;
-  Compute cell centered Jacobian determinant
-  const Real_type detj_cc =
-    jxy_cc*jyz_cc*jzx_cc - jxz_cc*jyy_cc*jzx_cc + jxz_cc*jyx_cc*jzy_cc -
-    jxx_cc*jyz_cc*jzy_cc - jxy_cc*jyx_cc*jzz_cc + jxx_cc*jyy_cc*jzz_cc;
-  Real_type edge_matrix[NB*NB];
-  Initialize the matrix
-  for (int m = 0; m < NB; m++) {
-    for (int p = 0; p < NB; p++) {
-      edge_matrix[m*NB + p] = 0.0;
+
+  double x[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};
+  double y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};
+  double z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};
+  double edge_matrix[EB][EB];
+
+  // Get integration points and weights
+  double qpts_1d[MAX_QUAD_ORDER];
+  double wgts_1d[MAX_QUAD_ORDER];
+
+  get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
+
+  // Compute cell centered Jacobian
+  const double jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+
+  // Compute cell centered Jacobian determinant
+  const double detj_cc = compute_detj(
+    jxx_cc, jxy_cc, jxz_cc,
+    jyx_cc, jyy_cc, jyz_cc,
+    jzx_cc, jzy_cc, jzz_cc);
+
+  // Initialize the stiffness matrix
+  for (int m = 0; m < EB; m++) {
+    for (int p = m; p < EB; p++) {
+      matrix[m][p] = 0.0;
     }
   }
-  Compute values at each quadrature point
-  for ( int qi = 0; qi < NQ_1D; qi++ ) {
-    const Real_type xloc = qpts_1d[qi];
-    const Real_type tmpx = 1. - xloc;
-    Uses fake values, basis = 1
-    const Real_type dbasisx[NB] = {1.0};
-    for ( int qj = 0; qj < NQ_1D; qj++ ) {
-      const Real_type yloc = qpts_1d[qj];
-      const Real_type wgtxy = wgts_1d[qi]*wgts_1d[qj];
-      const Real_type tmpy = 1. - yloc;
-      const Real_type tmpxy    = tmpx*tmpy;
-      const Real_type xyloc    = xloc*yloc;
-      const Real_type tmpxyloc = tmpx*yloc;
-      const Real_type xloctmpy = xloc*tmpy;
-      const Real_type jzx =
-        (x4[i] - x0[i])*tmpxy    +
-        (x5[i] - x1[i])*xloctmpy +
-        (x6[i] - x2[i])*xyloc    +
-        (x7[i] - x3[i])*tmpxyloc;
-      const Real_type jzy =
-        (y4[i] - y0[i])*tmpxy    +
-        (y5[i] - y1[i])*xloctmpy +
-        (y6[i] - y2[i])*xyloc    +
-        (y7[i] - y3[i])*tmpxyloc;
-      const Real_type jzz =
-        (z4[i] - z0[i])*tmpxy    +
-        (z5[i] - z1[i])*xloctmpy +
-        (z6[i] - z2[i])*xyloc    +
-        (z7[i] - z3[i])*tmpxyloc;
-      const Real_type basisz[NB] = {1.0};
-      const Real_type dbasisy[NB] = {1.0};
-      Differeniate basis with respect to z at this quadrature point
-      for ( int qk = 0; qk < NQ_1D; qk++ ) {
-        const Real_type zloc = qpts_1d[qk];
-        const Real_type wgts = wgtxy*wgts_1d[qk];
-        const Real_type tmpz = 1. - zloc;
-        const Real_type tmpxz    = tmpx*tmpz;
-        const Real_type tmpyz    = tmpy*tmpz;
-        const Real_type xzloc    = xloc*zloc;
-        const Real_type yzloc    = yloc*zloc;
-        const Real_type tmpyzloc = tmpy*zloc;
-        const Real_type tmpxzloc = tmpx*zloc;
-        const Real_type yloctmpz = yloc*tmpz;
-        const Real_type xloctmpz = xloc*tmpz;
-        const Real_type jxx =
-          (x1[i] - x0[i])*tmpyz   +
-          (x2[i] - x3[i])*yloctmpz +
-          (x5[i] - x4[i])*tmpyzloc +
-          (x6[i] - x7[i])*yzloc;
-        const Real_type jxy =
-          (y1[i] - y0[i])*tmpyz    +
-          (y2[i] - y3[i])*yloctmpz +
-          (y5[i] - y4[i])*tmpyzloc +
-          (y6[i] - y7[i])*yzloc;
-        const Real_type jxz =
-          (z1[i] - z0[i])*tmpyz   +
-          (z2[i] - z3[i])*yloctmpz +
-          (z5[i] - z4[i])*tmpyzloc +
-          (z6[i] - z7[i])*yzloc;
-        const Real_type jyx =
-          (x3[i] - x0[i])*tmpxz    +
-          (x2[i] - x1[i])*xloctmpz +
-          (x7[i] - x4[i])*tmpxzloc +
-          (x6[i] - x5[i])*xzloc;
-        const Real_type jyy =
-          (y3[i] - y0[i])*tmpxz    +
-          (y2[i] - y1[i])*xloctmpz +
-          (y7[i] - y4[i])*tmpxzloc +
-          (y6[i] - y5[i])*xzloc;
-        const Real_type jyz =
-          (z3[i] - z0[i])*tmpxz    +
-          (z2[i] - z1[i])*xloctmpz +
-          (z7[i] - z4[i])*tmpxzloc +
-          (z6[i] - z5[i])*xzloc;
-        const Real_type basisx[NB] = {1.0};
-        const Real_type basisy[NB] = {1.0};
-        const Real_type dbasisz[NB] = {1.0};
-        Compute determinant of Jacobian matrix at this quadrature point
-        const Real_type detj_pre =
-          jxy*jyz*jzx - jxz*jyy*jzx + jxz*jyx*jzy -
-          jxx*jyz*jzy - jxy*jyx*jzz + jxx*jyy*jzz;
-        "Bad Zone" detection algorithm:
-        const Real_type detj_tol = 0.;
-        const Real_type detj = (std::fabs( detj_pre/detj_cc ) < detj_tol) ? detj_cc : detj_pre ;
-        const Real_type abs_detj = std::fabs(detj);
-        const Real_type abs_detj_pre = std::fabs(detj_pre);
-        const Real_type inv_detj_pre = 1.0/abs_detj_pre;
-        const Real_type inv_detj = inv_detj_pre;
-        const Real_type detjwgts = wgts*abs_detj;
-        const Real_type jinvxx =  (jyy*jzz - jyz*jzy)*inv_detj;
-        const Real_type jinvxy =  (jxz*jzy - jxy*jzz)*inv_detj;
-        const Real_type jinvxz =  (jxy*jyz - jxz*jyy)*inv_detj;
-        const Real_type jinvyx =  (jyz*jzx - jyx*jzz)*inv_detj;
-        const Real_type jinvyy =  (jxx*jzz - jxz*jzx)*inv_detj;
-        const Real_type jinvyz =  (jxz*jyx - jxx*jyz)*inv_detj;
-        const Real_type jinvzx =  (jyx*jzy - jyy*jzx)*inv_detj;
-        const Real_type jinvzy =  (jxy*jzx - jxx*jzy)*inv_detj;
-        const Real_type jinvzz =  (jxx*jyy - jxy*jyx)*inv_detj;
-        Real_type tdbasisx[NB];
-        Real_type tdbasisy[NB];
-        Real_type tdbasisz[NB];
-        Compute transformed basis function gradients
-        for (int m = 0; m < NB; m++) {
-          Transform is:  Grad(w_i) <- J^{-1} Grad(w_i)
-          tdbasisx[m] = jinvxx*dbasisx[m] + jinvxy*dbasisy[m] + jinvxz*dbasisz[m];
-          tdbasisy[m] = jinvyx*dbasisx[m] + jinvyy*dbasisy[m] + jinvyz*dbasisz[m];
-          tdbasisz[m] = jinvzx*dbasisx[m] + jinvzy*dbasisy[m] + jinvzz*dbasisz[m];
-        }
-        Real_type tbasisx[NB];
-        Real_type tbasisy[NB];
-        Real_type tbasisz[NB];
-        for (int m = 0; m < NB; m++) {
-          Transform is:  w_i <- J^{-1} w_i
-          tbasisx[m] = jinvxx*basisx[m] + jinvxy*basisy[m] + jinvxz*basisz[m];
-          tbasisy[m] = jinvyx*basisx[m] + jinvyy*basisy[m] + jinvyz*basisz[m];
-          tbasisz[m] = jinvzx*basisx[m] + jinvzy*basisy[m] + jinvzz*basisz[m];
-          Transform is:  Curl(w_i) <- (1/|J|)J^{T} Curl(w_i)
-          tdbasisx[m] = jxx*dbasisx[m] + jyx*dbasisy[m] + jzx*dbasisz[m];
-          tdbasisy[m] = jxy*dbasisx[m] + jyy*dbasisy[m] + jzy*dbasisz[m];
-          tdbasisz[m] = jxz*dbasisx[m] + jyz*dbasisy[m] + jzz*dbasisz[m];
-          tdbasisx[m] *= inv_detj_pre;
-          tdbasisy[m] *= inv_detj_pre;
-          tdbasisz[m] *= inv_detj_pre;
-        }
-        Compute the local mass plus stiffness matrix
-        for (int m = 0; m < NB; m++) {
-          const Real_type txm = tbasisx[m];
-          const Real_type tym = tbasisy[m];
-          const Real_type tzm = tbasisz[m];
-          const Real_type dtxm = tdbasisx[m];
-          const Real_type dtym = tdbasisy[m];
-          const Real_type dtzm = tdbasisz[m];
-          Compute the upper triangular portion
-          for (int p = m; p < NB; p++) {
-            inner product: <w_i, w_j>
-            const Real_type txp = tbasisx[p];
-            const Real_type typ = tbasisy[p];
-            const Real_type tzp = tbasisz[p];
-            const Real_type Mtemp = detjwgts*(txm*txp + tym*typ + tzm*tzp);
-            inner product: <Curl(w_i), Curl(w_j)>
-            const Real_type dtxp = tdbasisx[p];
-            const Real_type dtyp = tdbasisy[p];
-            const Real_type dtzp = tdbasisz[p];
-            const Real_type Stemp = detjwgts*(dtxm*dtxp + dtym*dtyp + dtzm*dtzp);
-            Add the entries to the matrix
-            const Real_type x = Mtemp + Stemp;
-            edge_matrix[p*NB + m] = x;
-            edge_matrix[m*NB + p] = x;
-          }
-        }
+
+  // Compute values at each quadrature point
+  for ( int i = 0; i < quad_order; i++ ) {
+
+    const double xloc = qpts_1d[i];
+    const double tmpx = 1. - xloc;
+
+    double dbasisx[EB] = {0};
+    curl_edgebasis_x(dbasisx, tmpx, xloc);
+
+    for ( int j = 0; j < quad_order; j++ ) {
+
+      const double yloc = qpts_1d[j];
+      const double wgtxy = wgts_1d[i]*wgts_1d[j];
+      const double tmpy = 1. - yloc;
+
+      double tmpxy    = tmpx*tmpy;
+      double xyloc    = xloc*yloc;
+      double tmpxyloc = tmpx*yloc;
+      double xloctmpy = xloc*tmpy;
+
+      const double jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const double jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const double jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      double ebasisz[EB] = {0};
+      edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      double dbasisy[EB] = {0};
+      curl_edgebasis_y(dbasisy, tmpy, yloc);
+
+      // Differeniate basis with respect to z at this quadrature point
+
+      for ( int k = 0; k < quad_order; k++ ) {
+
+        const double zloc = qpts_1d[k];
+        const double wgts = wgtxy*wgts_1d[k];
+        const double tmpz = 1. - zloc;
+
+        const double tmpxz    = tmpx*tmpz;
+        const double tmpyz    = tmpy*tmpz;
+
+        const double xzloc    = xloc*zloc;
+        const double yzloc    = yloc*zloc;
+
+        const double tmpyzloc = tmpy*zloc;
+        const double tmpxzloc = tmpx*zloc;
+
+        const double yloctmpz = yloc*tmpz;
+        const double xloctmpz = xloc*tmpz;
+
+        const double jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const double jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const double jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        double jinvxx, jinvxy, jinvxz,
+               jinvyx, jinvyy, jinvyz,
+               jinvzx, jinvzy, jinvzz,
+               detj_unfixed, detj, abs_detj, invdetj;
+
+        jacobian_inv(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          detj_cc, detj_tol,
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          detj_unfixed, detj, abs_detj, invdetj);
+
+        const double detjwgts = wgts*abs_detj;
+
+        double ebasisx[EB] = {0};
+        edgebasis_x(ebasisx, tmpyz, yloctmpz, tmpyzloc, yzloc);
+
+        double ebasisy[EB] = {0};
+        edgebasis_y(ebasisy, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        double dbasisz[EB] = {0};
+        curl_edgebasis_z(dbasisz, tmpz, zloc);
+
+        const double inv_abs_detj = 1./(abs_detj+ptiny);
+
+        double tebasisx[EB] = {0};
+        double tebasisy[EB] = {0};
+        double tebasisz[EB] = {0};
+
+        transform_edge_basis(
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          ebasisx, ebasisy, ebasisz,
+          tebasisx, tebasisy, tebasisz);
+
+        double tdbasisx[EB] = {0};
+        double tdbasisy[EB] = {0};
+        double tdbasisz[EB] = {0};
+
+        transform_curl_edge_basis(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          inv_abs_detj,
+          dbasisx, dbasisy, dbasisz,
+          tdbasisx, tdbasisy, tdbasisz);
+
+        // the inner product: alpha*<w_i, w_j>
+        inner_product(
+          detjwgts*alpha,
+          tebasisx, tebasisy, tebasisz,
+          tebasisx, tebasisy, tebasisz,
+          matrix, true);
+
+         // the inner product: beta*<Curl(w_i), Curl(w_j)>
+        inner_product(
+          detjwgts*beta,
+          tdbasisx, tdbasisy, tdbasisz,
+          tdbasisx, tdbasisy, tdbasisz,
+          matrix, true);
+
       }
     }
   }
   sum[i] = 0.0;
-  for (int m = 0; m < NB; m++) {
+  for (int m = 0; m < EB; m++) {
     Real_type check = 0.0;
-    for (int p = 0; p < NB; p++) {
-      check += edge_matrix[m*NB + p];
+    for (int p = 0; p < EB; p++) {
+      check += edge_matrix[m*EB + p];
     }
     sum[i] += check;
   }
@@ -237,6 +187,178 @@ for (Index_type i = ibegin ; i < iend ; ++i ) {
 
 #ifndef RAJAPerf_Apps_EDGE3D_HPP
 #define RAJAPerf_Apps_EDGE3D_HPP
+
+#define NQ_1D 2
+
+#include "ahelper.hpp"
+
+__host__ __device__
+inline void edge_MpSmatrix(
+  const double  (&x)[NB],
+  const double  (&y)[NB],
+  const double  (&z)[NB],
+  double        alpha,
+  double        beta,
+  const double  detj_tol,
+  const int     quad_type,
+  const int     quad_order,
+  double        (&matrix)[EB][EB])
+{
+  // Get integration points and weights
+  double qpts_1d[MAX_QUAD_ORDER];
+  double wgts_1d[MAX_QUAD_ORDER];
+
+  get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
+
+  // Compute cell centered Jacobian
+  const double jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const double jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+
+  // Compute cell centered Jacobian determinant
+  const double detj_cc = compute_detj(
+    jxx_cc, jxy_cc, jxz_cc,
+    jyx_cc, jyy_cc, jyz_cc,
+    jzx_cc, jzy_cc, jzz_cc);
+
+  // Initialize the stiffness matrix
+  for (int m = 0; m < EB; m++) {
+    for (int p = m; p < EB; p++) {
+      matrix[m][p] = 0.0;
+    }
+  }
+
+  // Compute values at each quadrature point
+  for ( int i = 0; i < quad_order; i++ ) {
+
+    const double xloc = qpts_1d[i];
+    const double tmpx = 1. - xloc;
+
+    double dbasisx[EB] = {0};
+    curl_edgebasis_x(dbasisx, tmpx, xloc);
+
+    for ( int j = 0; j < quad_order; j++ ) {
+
+      const double yloc = qpts_1d[j];
+      const double wgtxy = wgts_1d[i]*wgts_1d[j];
+      const double tmpy = 1. - yloc;
+
+      double tmpxy    = tmpx*tmpy;
+      double xyloc    = xloc*yloc;
+      double tmpxyloc = tmpx*yloc;
+      double xloctmpy = xloc*tmpy;
+
+      const double jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const double jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const double jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      double ebasisz[EB] = {0};
+      edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
+
+      double dbasisy[EB] = {0};
+      curl_edgebasis_y(dbasisy, tmpy, yloc);
+
+      // Differeniate basis with respect to z at this quadrature point
+
+      for ( int k = 0; k < quad_order; k++ ) {
+
+        const double zloc = qpts_1d[k];
+        const double wgts = wgtxy*wgts_1d[k];
+        const double tmpz = 1. - zloc;
+
+        const double tmpxz    = tmpx*tmpz;
+        const double tmpyz    = tmpy*tmpz;
+
+        const double xzloc    = xloc*zloc;
+        const double yzloc    = yloc*zloc;
+
+        const double tmpyzloc = tmpy*zloc;
+        const double tmpxzloc = tmpx*zloc;
+
+        const double yloctmpz = yloc*tmpz;
+        const double xloctmpz = xloc*tmpz;
+
+        const double jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const double jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const double jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const double jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        double jinvxx, jinvxy, jinvxz,
+               jinvyx, jinvyy, jinvyz,
+               jinvzx, jinvzy, jinvzz,
+               detj_unfixed, detj, abs_detj, invdetj;
+
+        jacobian_inv(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          detj_cc, detj_tol,
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          detj_unfixed, detj, abs_detj, invdetj);
+
+        const double detjwgts = wgts*abs_detj;
+
+        double ebasisx[EB] = {0};
+        edgebasis_x(ebasisx, tmpyz, yloctmpz, tmpyzloc, yzloc);
+
+        double ebasisy[EB] = {0};
+        edgebasis_y(ebasisy, tmpxz, xloctmpz, tmpxzloc, xzloc);
+
+        double dbasisz[EB] = {0};
+        curl_edgebasis_z(dbasisz, tmpz, zloc);
+
+        const double inv_abs_detj = 1./(abs_detj+ptiny);
+
+        double tebasisx[EB] = {0};
+        double tebasisy[EB] = {0};
+        double tebasisz[EB] = {0};
+
+        transform_edge_basis(
+          jinvxx, jinvxy, jinvxz,
+          jinvyx, jinvyy, jinvyz,
+          jinvzx, jinvzy, jinvzz,
+          ebasisx, ebasisy, ebasisz,
+          tebasisx, tebasisy, tebasisz);
+
+        double tdbasisx[EB] = {0};
+        double tdbasisy[EB] = {0};
+        double tdbasisz[EB] = {0};
+
+        transform_curl_edge_basis(
+          jxx, jxy, jxz,
+          jyx, jyy, jyz,
+          jzx, jzy, jzz,
+          inv_abs_detj,
+          dbasisx, dbasisy, dbasisz,
+          tdbasisx, tdbasisy, tdbasisz);
+
+        // the inner product: alpha*<w_i, w_j>
+        inner_product(
+          detjwgts*alpha,
+          tebasisx, tebasisy, tebasisz,
+          tebasisx, tebasisy, tebasisz,
+          matrix, true);
+
+         // the inner product: beta*<Curl(w_i), Curl(w_j)>
+        inner_product(
+          detjwgts*beta,
+          tdbasisx, tdbasisy, tdbasisz,
+          tdbasisx, tdbasisy, tdbasisz,
+          matrix, true);
+      }
+    }
+  }
+}
 
 #define EDGE3D_DATA_SETUP \
   Real_ptr x = m_x; \
@@ -248,230 +370,17 @@ for (Index_type i = ibegin ; i < iend ; ++i ) {
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
   Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
 
-//Number of Dofs/Qpts in 1D
-// NB = 12 is the need value
-// NB can vary to probe kernel performance
-#define NB 12
-#define NQ_1D 2
-
 #define EDGE3D_BODY \
-  const Real_type qpts_1d[NQ_1D] = { 1. };\
-  const Real_type wgts_1d[NQ_1D] = { 1. };\
-  /* Compute cell centered Jacobian */\
-  const Real_type jxx_cc =\
-    (x1[i] - x0[i])*0.25 +\
-    (x3[i] - x2[i])*0.25 +\
-    (x4[i] - x5[i])*0.25 +\
-    (x6[i] - x7[i])*0.25;\
-  const Real_type jxy_cc =\
-    (y1[i] - y0[i])*0.25 +\
-    (y3[i] - y2[i])*0.25 +\
-    (y4[i] - y5[i])*0.25 +\
-    (y6[i] - y7[i])*0.25;\
-  const Real_type jxz_cc =\
-    (z1[i] - z0[i])*0.25 +\
-    (z3[i] - z2[i])*0.25 +\
-    (z4[i] - z5[i])*0.25 +\
-    (z6[i] - z7[i])*0.25;\
-  const Real_type jyx_cc =\
-    (x3[i] - x0[i])*0.25 +\
-    (x1[i] - x2[i])*0.25 +\
-    (x4[i] - x7[i])*0.25 +\
-    (x6[i] - x5[i])*0.25;\
-  const Real_type jyy_cc =\
-    (y3[i] - y0[i])*0.25 +\
-    (y1[i] - y2[i])*0.25 +\
-    (y4[i] - y7[i])*0.25 +\
-    (y6[i] - y5[i])*0.25;\
-  const Real_type jyz_cc =\
-    (z3[i] - z0[i])*0.25 +\
-    (z1[i] - z2[i])*0.25 +\
-    (z4[i] - z7[i])*0.25 +\
-    (z6[i] - z5[i])*0.25;\
-  const Real_type jzx_cc =\
-    (x4[i] - x0[i])*0.25 +\
-    (x1[i] - x5[i])*0.25 +\
-    (x6[i] - x2[i])*0.25 +\
-    (x3[i] - x7[i])*0.25;\
-  const Real_type jzy_cc =\
-    (y4[i] - y0[i])*0.25 +\
-    (y1[i] - y5[i])*0.25 +\
-    (y6[i] - y2[i])*0.25 +\
-    (y3[i] - y7[i])*0.25;\
-  const Real_type jzz_cc =\
-    (z4[i] - z0[i])*0.25 +\
-    (z1[i] - z5[i])*0.25 +\
-    (z6[i] - z2[i])*0.25 +\
-    (z3[i] - z7[i])*0.25;\
-  /* Compute cell centered Jacobian determinant */ \
-  const Real_type detj_cc = \
-    jxy_cc*jyz_cc*jzx_cc - jxz_cc*jyy_cc*jzx_cc + jxz_cc*jyx_cc*jzy_cc -\
-    jxx_cc*jyz_cc*jzy_cc - jxy_cc*jyx_cc*jzz_cc + jxx_cc*jyy_cc*jzz_cc;\
-  Real_type edge_matrix[NB*NB];\
-  /* Initialize the matrix */\
-  for (int m = 0; m < NB; m++) {\
-    for (int p = 0; p < NB; p++) {\
-      edge_matrix[m*NB + p] = 0.0;\
-    }\
-  }\
-  /* Compute values at each quadrature point*/ \
-  for ( int qi = 0; qi < NQ_1D; qi++ ) {\
-    const Real_type xloc = qpts_1d[qi];\
-    const Real_type tmpx = 1. - xloc;\
-    /* Uses fake values, basis = 1 */ \
-    const Real_type dbasisx[NB] = {1.0}; \
-    for ( int qj = 0; qj < NQ_1D; qj++ ) {\
-      const Real_type yloc = qpts_1d[qj];\
-      const Real_type wgtxy = wgts_1d[qi]*wgts_1d[qj];\
-      const Real_type tmpy = 1. - yloc;\
-      const Real_type tmpxy    = tmpx*tmpy;\
-      const Real_type xyloc    = xloc*yloc;\
-      const Real_type tmpxyloc = tmpx*yloc;\
-      const Real_type xloctmpy = xloc*tmpy;\
-      const Real_type jzx =\
-        (x4[i] - x0[i])*tmpxy    +\
-        (x5[i] - x1[i])*xloctmpy +\
-        (x6[i] - x2[i])*xyloc    +\
-        (x7[i] - x3[i])*tmpxyloc;\
-      const Real_type jzy =\
-        (y4[i] - y0[i])*tmpxy    +\
-        (y5[i] - y1[i])*xloctmpy +\
-        (y6[i] - y2[i])*xyloc    +\
-        (y7[i] - y3[i])*tmpxyloc;\
-      const Real_type jzz =\
-        (z4[i] - z0[i])*tmpxy    +\
-        (z5[i] - z1[i])*xloctmpy +\
-        (z6[i] - z2[i])*xyloc    +\
-        (z7[i] - z3[i])*tmpxyloc;\
-      const Real_type basisz[NB] = {1.0}; \
-      const Real_type dbasisy[NB] = {1.0}; \
-      /* Differeniate basis with respect to z at this quadrature point */\
-      for ( int qk = 0; qk < NQ_1D; qk++ ) {\
-        const Real_type zloc = qpts_1d[qk];\
-        const Real_type wgts = wgtxy*wgts_1d[qk];\
-        const Real_type tmpz = 1. - zloc;\
-        const Real_type tmpxz    = tmpx*tmpz;\
-        const Real_type tmpyz    = tmpy*tmpz;\
-        const Real_type xzloc    = xloc*zloc;\
-        const Real_type yzloc    = yloc*zloc;\
-        const Real_type tmpyzloc = tmpy*zloc;\
-        const Real_type tmpxzloc = tmpx*zloc;\
-        const Real_type yloctmpz = yloc*tmpz;\
-        const Real_type xloctmpz = xloc*tmpz;\
-        const Real_type jxx =\
-          (x1[i] - x0[i])*tmpyz   +\
-          (x2[i] - x3[i])*yloctmpz +\
-          (x5[i] - x4[i])*tmpyzloc +\
-          (x6[i] - x7[i])*yzloc;\
-        const Real_type jxy =\
-          (y1[i] - y0[i])*tmpyz    +\
-          (y2[i] - y3[i])*yloctmpz +\
-          (y5[i] - y4[i])*tmpyzloc +\
-          (y6[i] - y7[i])*yzloc;\
-        const Real_type jxz =\
-          (z1[i] - z0[i])*tmpyz   +\
-          (z2[i] - z3[i])*yloctmpz +\
-          (z5[i] - z4[i])*tmpyzloc +\
-          (z6[i] - z7[i])*yzloc;\
-        const Real_type jyx =\
-          (x3[i] - x0[i])*tmpxz    +\
-          (x2[i] - x1[i])*xloctmpz +\
-          (x7[i] - x4[i])*tmpxzloc +\
-          (x6[i] - x5[i])*xzloc;\
-        const Real_type jyy =\
-          (y3[i] - y0[i])*tmpxz    +\
-          (y2[i] - y1[i])*xloctmpz +\
-          (y7[i] - y4[i])*tmpxzloc +\
-          (y6[i] - y5[i])*xzloc;\
-        const Real_type jyz =\
-          (z3[i] - z0[i])*tmpxz    +\
-          (z2[i] - z1[i])*xloctmpz +\
-          (z7[i] - z4[i])*tmpxzloc +\
-          (z6[i] - z5[i])*xzloc;\
-        const Real_type basisx[NB] = {1.0}; \
-        const Real_type basisy[NB] = {1.0}; \
-        const Real_type dbasisz[NB] = {1.0}; \
-        /* Compute determinant of Jacobian matrix at this quadrature point*/ \
-        const Real_type detj_pre =\
-          jxy*jyz*jzx - jxz*jyy*jzx + jxz*jyx*jzy -\
-          jxx*jyz*jzy - jxy*jyx*jzz + jxx*jyy*jzz;\
-        /* "Bad Zone" detection algorithm: */ \
-        const Real_type detj_tol = 0.;\
-        const Real_type detj = (std::fabs( detj_pre/detj_cc ) < detj_tol) ? detj_cc : detj_pre ;\
-        const Real_type abs_detj = std::fabs(detj);\
-        const Real_type abs_detj_pre = std::fabs(detj_pre);\
-        const Real_type inv_detj_pre = 1.0/abs_detj_pre;\
-        const Real_type inv_detj = inv_detj_pre;\
-        const Real_type detjwgts = wgts*abs_detj;\
-        const Real_type jinvxx =  (jyy*jzz - jyz*jzy)*inv_detj;\
-        const Real_type jinvxy =  (jxz*jzy - jxy*jzz)*inv_detj;\
-        const Real_type jinvxz =  (jxy*jyz - jxz*jyy)*inv_detj;\
-        const Real_type jinvyx =  (jyz*jzx - jyx*jzz)*inv_detj;\
-        const Real_type jinvyy =  (jxx*jzz - jxz*jzx)*inv_detj;\
-        const Real_type jinvyz =  (jxz*jyx - jxx*jyz)*inv_detj;\
-        const Real_type jinvzx =  (jyx*jzy - jyy*jzx)*inv_detj;\
-        const Real_type jinvzy =  (jxy*jzx - jxx*jzy)*inv_detj;\
-        const Real_type jinvzz =  (jxx*jyy - jxy*jyx)*inv_detj;\
-        Real_type tdbasisx[NB];\
-        Real_type tdbasisy[NB];\
-        Real_type tdbasisz[NB];\
-        /* Compute transformed basis function gradients */\
-        for (int m = 0; m < NB; m++) {\
-          /* Transform is:  Grad(w_i) <- J^{-1} Grad(w_i) */\
-          tdbasisx[m] = jinvxx*dbasisx[m] + jinvxy*dbasisy[m] + jinvxz*dbasisz[m];\
-          tdbasisy[m] = jinvyx*dbasisx[m] + jinvyy*dbasisy[m] + jinvyz*dbasisz[m];\
-          tdbasisz[m] = jinvzx*dbasisx[m] + jinvzy*dbasisy[m] + jinvzz*dbasisz[m];\
-        }\
-        Real_type tbasisx[NB];\
-        Real_type tbasisy[NB];\
-        Real_type tbasisz[NB];\
-        for (int m = 0; m < NB; m++) {\
-          /* Transform is:  w_i <- J^{-1} w_i */\
-          tbasisx[m] = jinvxx*basisx[m] + jinvxy*basisy[m] + jinvxz*basisz[m];\
-          tbasisy[m] = jinvyx*basisx[m] + jinvyy*basisy[m] + jinvyz*basisz[m];\
-          tbasisz[m] = jinvzx*basisx[m] + jinvzy*basisy[m] + jinvzz*basisz[m];\
-          /* Transform is:  Curl(w_i) <- (1/|J|)J^{T} Curl(w_i) */\
-          tdbasisx[m] = jxx*dbasisx[m] + jyx*dbasisy[m] + jzx*dbasisz[m];\
-          tdbasisy[m] = jxy*dbasisx[m] + jyy*dbasisy[m] + jzy*dbasisz[m];\
-          tdbasisz[m] = jxz*dbasisx[m] + jyz*dbasisy[m] + jzz*dbasisz[m];\
-          tdbasisx[m] *= inv_detj_pre;\
-          tdbasisy[m] *= inv_detj_pre;\
-          tdbasisz[m] *= inv_detj_pre;\
-        }\
-        /* Compute the local mass plus stiffness matrix */\
-        for (int m = 0; m < NB; m++) {\
-          const Real_type txm = tbasisx[m];\
-          const Real_type tym = tbasisy[m];\
-          const Real_type tzm = tbasisz[m];\
-          const Real_type dtxm = tdbasisx[m];\
-          const Real_type dtym = tdbasisy[m];\
-          const Real_type dtzm = tdbasisz[m];\
-          /* Compute the upper triangular portion */\
-          for (int p = m; p < NB; p++) {\
-            /* inner product: <w_i, w_j> */\
-            const Real_type txp = tbasisx[p];\
-            const Real_type typ = tbasisy[p];\
-            const Real_type tzp = tbasisz[p];\
-            const Real_type Mtemp = detjwgts*(txm*txp + tym*typ + tzm*tzp);\
-            /* inner product: <Curl(w_i), Curl(w_j)> */\
-            const Real_type dtxp = tdbasisx[p];\
-            const Real_type dtyp = tdbasisy[p];\
-            const Real_type dtzp = tdbasisz[p];\
-            const Real_type Stemp = detjwgts*(dtxm*dtxp + dtym*dtyp + dtzm*dtzp);\
-            /* Add the entries to the matrix*/\
-            const Real_type x = Mtemp + Stemp;\
-            edge_matrix[p*NB + m] = x;\
-            edge_matrix[m*NB + p] = x;\
-          }\
-        }\
-      }\
-    }\
-  }\
+  double X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
+  double Y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};\
+  double Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
+  double edge_matrix[EB][EB];\
+  edge_MpSmatrix(X, Y, Z, 1.0, 1.0, 0.0, 1.0, NQ_1D, edge_matrix);\
   sum[i] = 0.0;\
-  for (int m = 0; m < NB; m++) {\
+  for (int m = 0; m < EB; m++) {\
     Real_type check = 0.0;\
-    for (int p = 0; p < NB; p++) {\
-      check += edge_matrix[m*NB + p];\
+    for (int p = 0; p < EB; p++) {\
+      check += edge_matrix[m][p];\
     }\
     sum[i] += check;\
   }
