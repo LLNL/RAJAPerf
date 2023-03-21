@@ -212,6 +212,18 @@ void adviseHipData(T& ptr, int len, hipMemoryAdvise advice, int device)
               advice, device ) );
 }
 
+template <typename T>
+void adviseHipCoarseData(T& ptr, int len)
+{
+  adviseHipData(ptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
+}
+
+template <typename T>
+void adviseHipFineData(T& ptr, int len)
+{
+  adviseHipData(ptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+}
+
 /*!
  * \brief Allocate HIP device data array (dptr) and copy given hptr (host)
  * data to device array.

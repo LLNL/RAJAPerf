@@ -295,15 +295,15 @@ inline void allocData(DataSpace dataSpace, T& ptr, int len, int align, VariantID
 #if defined(RAJA_ENABLE_CUDA)
     case DataSpace::CudaPinned:
     {
-      allocCudaPinnedData(ptr, len, vid);
+      allocCudaPinnedData(ptr, len);
     } break;
     case DataSpace::CudaManaged:
     {
-      allocCudaManagedData(ptr, len, vid);
+      allocCudaManagedData(ptr, len);
     } break;
     case DataSpace::CudaDevice:
     {
-      allocCudaDeviceData(ptr, len, vid);
+      allocCudaDeviceData(ptr, len);
     } break;
 #endif
 
@@ -311,46 +311,46 @@ inline void allocData(DataSpace dataSpace, T& ptr, int len, int align, VariantID
     case DataSpace::HipHostAdviseFine:
     {
       allocHostData(ptr, len, align, vid);
-      adviseHipFineData(ptr, len, vid);
+      adviseHipFineData(ptr, len);
     } break;
     case DataSpace::HipHostAdviseCoarse:
     {
       allocHostData(ptr, len, align, vid);
-      adviseHipCoarseData(ptr, len, vid);
+      adviseHipCoarseData(ptr, len);
     } break;
     case DataSpace::HipPinned:
     {
-      allocHipPinnedData(ptr, len, vid);
+      allocHipPinnedData(ptr, len);
     } break;
     case DataSpace::HipPinnedFine:
     {
-      allocHipPinnedFineData(ptr, len, vid);
+      allocHipPinnedFineData(ptr, len);
     } break;
     case DataSpace::HipPinnedCoarse:
     {
-      allocHipPinnedCoarseData(ptr, len, vid);
+      allocHipPinnedCoarseData(ptr, len);
     } break;
     case DataSpace::HipManaged:
     {
-      allocHipManagedData(ptr, len, vid);
+      allocHipManagedData(ptr, len);
     } break;
     case DataSpace::HipManagedAdviseFine:
     {
-      allocHipManagedData(ptr, len, vid);
-      adviseHipFineData(ptr, len, vid);
+      allocHipManagedData(ptr, len);
+      adviseHipFineData(ptr, len);
     } break;
     case DataSpace::HipManagedAdviseCoarse:
     {
-      allocHipManagedData(ptr, len, vid);
-      adviseHipCoarseData(ptr, len, vid);
+      allocHipManagedData(ptr, len);
+      adviseHipCoarseData(ptr, len);
     } break;
     case DataSpace::HipDevice:
     {
-      allocHipDeviceData(ptr, len, vid);
+      allocHipDeviceData(ptr, len);
     } break;
     case DataSpace::HipDeviceFine:
     {
-      allocHipDeviceFineData(ptr, len, vid);
+      allocHipDeviceFineData(ptr, len);
     } break;
 #endif
 
@@ -386,44 +386,35 @@ inline void deallocData(DataSpace dataSpace, T& ptr, VariantID vid)
 #if defined(RAJA_ENABLE_CUDA)
     case DataSpace::CudaPinned:
     {
-      deallocCudaPinnedData(ptr, vid);
+      deallocCudaPinnedData(ptr);
     } break;
     case DataSpace::CudaManaged:
     {
-      deallocCudaManagedData(ptr, vid);
+      deallocCudaManagedData(ptr);
     } break;
     case DataSpace::CudaDevice:
     {
-      deallocCudaDeviceData(ptr, vid);
+      deallocCudaDeviceData(ptr);
     } break;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
     case DataSpace::HipPinned:
-    {
-      deallocHipPinnedData(ptr, vid);
-    } break;
     case DataSpace::HipPinnedFine:
-    {
-      deallocHipPinnedFineData(ptr, vid);
-    } break;
     case DataSpace::HipPinnedCoarse:
     {
-      deallocHipPinnedCoarseData(ptr, vid);
+      deallocHipPinnedData(ptr);
     } break;
     case DataSpace::HipManaged:
     case DataSpace::HipManagedAdviseFine:
     case DataSpace::HipManagedAdviseCoarse:
     {
-      deallocHipManagedData(ptr, vid);
+      deallocHipManagedData(ptr);
     } break;
     case DataSpace::HipDevice:
-    {
-      deallocHipDeviceData(ptr, vid);
-    } break;
     case DataSpace::HipDeviceFine:
     {
-      deallocHipDeviceFineData(ptr, vid);
+      deallocHipDeviceData(ptr);
     } break;
 #endif
 
