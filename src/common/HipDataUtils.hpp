@@ -133,8 +133,6 @@ void initHipDeviceData(T& dptr, const T hptr, int len)
   hipErrchk( hipMemcpy( dptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
                           hipMemcpyHostToDevice ) );
-
-  detail::incDataInitCount();
 }
 
 /*!

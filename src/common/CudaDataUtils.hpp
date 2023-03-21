@@ -137,8 +137,6 @@ void initCudaDeviceData(T& dptr, const T hptr, int len)
   cudaErrchk( cudaMemcpy( dptr, hptr,
                           len * sizeof(typename std::remove_pointer<T>::type),
                           cudaMemcpyHostToDevice ) );
-
-  detail::incDataInitCount();
 }
 
 /*!

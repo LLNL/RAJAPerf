@@ -66,7 +66,6 @@ void initOpenMPDeviceData(T& dptr, const T hptr, int len,
                           int hid = omp_get_initial_device())
 {
   copyOpenMPDeviceData(dptr, hptr, len, did, hid);
-  detail::incDataInitCount();
 }
 
 /*!
