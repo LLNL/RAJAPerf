@@ -14,6 +14,7 @@
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 
 namespace rajaperf
@@ -40,6 +41,14 @@ void incDataInitCount()
   data_init_count++;
 }
 
+/*
+ * Copy memory len bytes from src to dst.
+ */
+void copyHostData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+{
+  (void)vid;
+  std::memcpy(dst_ptr, src_ptr, len);
+}
 
 /*
  * Allocate and initialize aligned data arrays.
@@ -364,7 +373,7 @@ void initData(Real_type& d, VariantID vid)
 /*
  * Calculate and return checksum for data arrays.
  */
-long double calcChecksum(const Int_ptr ptr, int len,
+long double calcChecksum(Int_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
@@ -386,7 +395,7 @@ long double calcChecksum(const Int_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(const Real_ptr ptr, int len,
+long double calcChecksum(Real_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
@@ -408,7 +417,7 @@ long double calcChecksum(const Real_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(const Complex_ptr ptr, int len,
+long double calcChecksum(Complex_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;

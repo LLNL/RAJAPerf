@@ -28,6 +28,9 @@
 namespace rajaperf
 {
 
+namespace detail
+{
+
 /*!
  * \brief Device timer, returns a time in ns from an arbitrary starting point.
  * Note that this time is consistent across the whole device.
@@ -109,6 +112,17 @@ __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_y_direct>() 
 template < >
 __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() {
   return blockIdx.z;
+}
+
+
+/*
+ * Copy memory len bytes from src to dst.
+ */
+inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+{
+  (void)vid;
+  cudaErrchk( cudaMemcpy( dst_ptr, src_ptr, len,
+              cudaMemcpyDefault ) );
 }
 
 /*!
@@ -214,94 +228,6 @@ void deallocCudaPinnedData(T& pptr)
   pptr = nullptr;
 }
 
-
-/*!
- * \brief Copy given hptr (host) data to CUDA (cptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of proper size for copy operation to succeed.
- */
-template <typename T>
-void initCudaData(CudaDataSpace, T& cptr, const T hptr, int len)
-{
-  cudaErrchk( cudaMemcpy( cptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          cudaMemcpyDefault ) );
-
-  incDataInitCount();
-}
-
-/*!
- * \brief Allocate CUDA data array (cptr).
- */
-template <typename T>
-void allocCudaData(CudaDataSpace cudaDataSpace, T& cptr, int len)
-{
-  switch (cudaDataSpace) {
-    case CudaDataSpace::Host:
-    {
-      allocData(cptr, len);
-    } break;
-    case CudaDataSpace::Pinned:
-    {
-      allocCudaPinnedData(cptr, len);
-    } break;
-    case CudaDataSpace::Managed:
-    {
-      allocCudaManagedData(cptr, len);
-    } break;
-    case CudaDataSpace::Device:
-    {
-      allocCudaDeviceData(cptr, len);
-    } break;
-    default:
-    {
-      throw std::invalid_argument("allocCudaData : Unknown memory type");
-    } break;
-  }
-}
-
-/*!
- * \brief Allocate CUDA data array (cptr) and copy given hptr (host)
- * data to CUDA array.
- */
-template <typename T>
-void allocAndInitCudaData(CudaDataSpace cudaDataSpace, T& cptr, const T hptr, int len)
-{
-  allocCudaData(cudaDataSpace, cptr, len);
-  initCudaData(cudaDataSpace, cptr, hptr, len);
-}
-
-/*!
- * \brief Free Cuda data array.
- */
-template <typename T>
-void deallocCudaData(CudaDataSpace cudaDataSpace, T& cptr)
-{
-  switch (cudaDataSpace) {
-    case CudaDataSpace::Host:
-    {
-      deallocData(cptr);
-    } break;
-    case CudaDataSpace::Pinned:
-    {
-      deallocCudaPinnedData(cptr);
-    } break;
-    case CudaDataSpace::Managed:
-    {
-      deallocCudaManagedData(cptr);
-    } break;
-    case CudaDataSpace::Device:
-    {
-      deallocCudaDeviceData(cptr);
-    } break;
-    default:
-    {
-      throw std::invalid_argument("deallocCudaData : Unknown memory type");
-    } break;
-  }
-}
-
 /*!
  * \brief Copy given cptr (CUDA) data to host (hptr).
  *
@@ -309,12 +235,15 @@ void deallocCudaData(CudaDataSpace cudaDataSpace, T& cptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getCudaData(CudaDataSpace, T& hptr, const T cptr, int len)
+void getCudaData(T& hptr, const T cptr, int len)
 {
   cudaErrchk( cudaMemcpy( hptr, cptr,
               len * sizeof(typename std::remove_pointer<T>::type),
               cudaMemcpyDefault ) );
 }
+
+
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 

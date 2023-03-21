@@ -255,141 +255,100 @@ public:
   void allocData(T*& ptr, int len,
                  VariantID vid)
   {
-    rajaperf::detail::allocData(
-        ptr, len, getDataAlignment(), getDataSpace(vid));
+    rajaperf::detail::allocData(getDataSpace(vid),
+        ptr, len, getDataAlignment(), vid);
   }
 
   template <typename T>
   void allocAndInitData(T*& ptr, int len,
                         VariantID vid)
   {
-    rajaperf::detail::allocAndInitData(
-        ptr, len, getDataAlignment(), getDataSpace(vid));
+    rajaperf::detail::allocAndInitData(getDataSpace(vid),
+        ptr, len, getDataAlignment(), vid);
   }
 
   template <typename T>
   void allocAndInitDataConst(T*& ptr, int len, T val,
                              VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataConst(
-        ptr, len, getDataAlignment(), val, getDataSpace(vid));
+    rajaperf::detail::allocAndInitDataConst(getDataSpace(vid),
+        ptr, len, getDataAlignment(), val, vid);
   }
 
   template <typename T>
   void allocAndInitDataRandSign(T*& ptr, int len,
                                 VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandSign(
-        ptr, len, getDataAlignment(), getDataSpace(vid));
+    rajaperf::detail::allocAndInitDataRandSign(getDataSpace(vid),
+        ptr, len, getDataAlignment(), vid);
   }
 
   template <typename T>
   void allocAndInitDataRandValue(T*& ptr, int len,
                                  VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandValue(
-        ptr, len, getDataAlignment(), getDataSpace(vid));
+    rajaperf::detail::allocAndInitDataRandValue(getDataSpace(vid),
+        ptr, len, getDataAlignment(), vid);
   }
 
   template <typename T>
   void deallocData(T*& ptr,
                    VariantID vid)
   {
-    rajaperf::detail::deallocData(ptr, getDataSpace(vid));
+    rajaperf::detail::deallocData(getDataSpace(vid), ptr, vid);
   }
 
   template <typename T>
   void initData(T*& ptr, int len,
                 VariantID vid)
   {
-    rajaperf::detail::initData(ptr, len, getDataSpace(vid));
+    rajaperf::detail::initData(getDataSpace(vid), ptr, len, vid);
   }
 
   template <typename T>
   void initDataConst(T*& ptr, int len, T val,
                      VariantID vid)
   {
-    rajaperf::detail::initDataConst(ptr, len, val, getDataSpace(vid));
+    rajaperf::detail::initDataConst(getDataSpace(vid), ptr, len, val, vid);
   }
 
   template <typename T>
   void initDataRandSign(T*& ptr, int len,
                         VariantID vid)
   {
-    rajaperf::detail::initDataRandSign(ptr, len, getDataSpace(vid));
+    rajaperf::detail::initDataRandSign(getDataSpace(vid), ptr, len, vid);
   }
 
   template <typename T>
   void initDataRandValue(T*& ptr, int len,
                          VariantID vid)
   {
-    rajaperf::detail::initDataRandValue(ptr, len, getDataSpace(vid));
+    rajaperf::detail::initDataRandValue(getDataSpace(vid), ptr, len, vid);
   }
 
   template <typename T>
   void initData(T& d,
                 VariantID vid)
   {
-    rajaperf::detail::initData(d, getDataSpace(vid));
+    rajaperf::detail::initData(d, vid);
   }
 
-#if defined(RAJA_ENABLE_CUDA)
-  CudaDataSpace getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
   template <typename T>
-  void initCudaData(T& cptr, const T hptr, int len)
+  long double calcChecksum(T* ptr, int len,
+                           VariantID vid)
   {
-    rajaperf::initCudaData(getCudaDataSpace(), cptr, hptr, len);
+    return rajaperf::detail::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), 1.0, vid);
   }
-  template <typename T>
-  void allocCudaData(T& cptr, int len)
-  {
-    rajaperf::allocCudaData(getCudaDataSpace(), cptr, len);
-  }
-  template <typename T>
-  void allocAndInitCudaData(T& cptr, const T hptr, int len)
-  {
-    rajaperf::allocAndInitCudaData(getCudaDataSpace(), cptr, hptr, len);
-  }
-  template <typename T>
-  void deallocCudaData(T& cptr)
-  {
-    rajaperf::deallocCudaData(getCudaDataSpace(), cptr);
-  }
-  template <typename T>
-  void getCudaData(T& hptr, const T cptr, int len)
-  {
-    rajaperf::getCudaData(getCudaDataSpace(), hptr, cptr, len);
-  }
-#endif
 
-#if defined(RAJA_ENABLE_HIP)
-  HipDataSpace getHipDataSpace() const { return run_params.getHipDataSpace(); }
   template <typename T>
-  void initHipData(T& cptr, const T hptr, int len)
+  long double calcChecksum(T* ptr, int len,
+                           Real_type scale_factor,
+                           VariantID vid)
   {
-    rajaperf::initHipData(getHipDataSpace(), cptr, hptr, len);
+    return rajaperf::detail::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), scale_factor, vid);
   }
-  template <typename T>
-  void allocHipData(T& cptr, int len)
-  {
-    rajaperf::allocHipData(getHipDataSpace(), cptr, len);
-  }
-  template <typename T>
-  void allocAndInitHipData(T& cptr, const T hptr, int len)
-  {
-    rajaperf::allocAndInitHipData(getHipDataSpace(), cptr, hptr, len);
-  }
-  template <typename T>
-  void deallocHipData(T& cptr)
-  {
-    rajaperf::deallocHipData(getHipDataSpace(), cptr);
-  }
-  template <typename T>
-  void getHipData(T& hptr, const T cptr, int len)
-  {
-    rajaperf::getHipData(getHipDataSpace(), hptr, cptr, len);
-  }
-#endif
 
   void startTimer()
   {

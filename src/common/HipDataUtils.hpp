@@ -28,6 +28,9 @@
 namespace rajaperf
 {
 
+namespace detail
+{
+
 /*!
  * \brief Simple forall hip kernel that runs a lambda.
  */
@@ -106,6 +109,16 @@ inline int getHipDevice()
   int device = hipInvalidDeviceId;
   hipErrchk( hipGetDevice( &device ) );
   return device;
+}
+
+/*
+ * Copy memory len bytes from src to dst.
+ */
+inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+{
+  (void)vid;
+  hipErrchk( hipMemcpy( dst_ptr, src_ptr, len,
+             hipMemcpyDefault ) );
 }
 
 /*!
@@ -255,150 +268,6 @@ void deallocHipPinnedData(T& pptr)
   pptr = nullptr;
 }
 
-
-/*!
- * \brief Copy given hptr (host) data to HIP (cptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of proper size for copy operation to succeed.
- */
-template <typename T>
-void initHipData(HipDataSpace, T& cptr, const T hptr, int len)
-{
-  hipErrchk( hipMemcpy( cptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          hipMemcpyDefault ) );
-
-  incDataInitCount();
-}
-
-/*!
- * \brief Allocate HIP data array (cptr).
- */
-template <typename T>
-void allocHipData(HipDataSpace hipDataSpace, T& cptr, int len)
-{
-  switch (hipDataSpace) {
-
-    case HipDataSpace::Host:
-    {
-      allocData(cptr, len);
-    } break;
-    case HipDataSpace::HostAdviseFine:
-    {
-#ifdef RAJAPERF_USE_MEMADVISE_COARSE
-      allocData(cptr, len);
-      adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
-#else
-      throw std::invalid_argument("allocHipData : HostAdviseFine not available with this hip version");
-#endif
-    } break;
-    case HipDataSpace::HostAdviseCoarse:
-    {
-#ifdef RAJAPERF_USE_MEMADVISE_COARSE
-      allocData(cptr, len);
-      adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
-#else
-      throw std::invalid_argument("allocHipData : HostAdviseCoarse not available with this hip version");
-#endif
-    } break;
-    case HipDataSpace::Pinned:
-    {
-      allocHipPinnedData(cptr, len);
-    } break;
-    case HipDataSpace::PinnedFine:
-    {
-      allocHipPinnedFineData(cptr, len);
-    } break;
-    case HipDataSpace::PinnedCoarse:
-    {
-      allocHipPinnedCoarseData(cptr, len);
-    } break;
-    case HipDataSpace::Managed:
-    {
-      allocHipManagedData(cptr, len);
-    } break;
-    case HipDataSpace::ManagedAdviseFine:
-    {
-#ifdef RAJAPERF_USE_MEMADVISE_COARSE
-      allocHipManagedData(cptr, len);
-      adviseHipData(cptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
-#else
-      throw std::invalid_argument("allocHipData : ManagedAdviseFine not available with this hip version");
-#endif
-    } break;
-    case HipDataSpace::ManagedAdviseCoarse:
-    {
-#ifdef RAJAPERF_USE_MEMADVISE_COARSE
-      allocHipManagedData(cptr, len);
-      adviseHipData(cptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
-#else
-      throw std::invalid_argument("allocHipData : ManagedAdviseCoarse not available with this hip version");
-#endif
-    } break;
-    case HipDataSpace::Device:
-    {
-      allocHipDeviceData(cptr, len);
-    } break;
-    case HipDataSpace::DeviceFine:
-    {
-      allocHipDeviceFineData(cptr, len);
-    } break;
-    default:
-    {
-      throw std::invalid_argument("allocHipData : Unknown memory type");
-    } break;
-  }
-}
-
-/*!
- * \brief Allocate HIP data array (cptr) and copy given hptr (host)
- * data to HIP array.
- */
-template <typename T>
-void allocAndInitHipData(HipDataSpace hipDataSpace, T& cptr, const T hptr, int len)
-{
-  allocHipData(hipDataSpace, cptr, len);
-  initHipData(hipDataSpace, cptr, hptr, len);
-}
-
-/*!
- * \brief Free Hip data array.
- */
-template <typename T>
-void deallocHipData(HipDataSpace hipDataSpace, T& cptr)
-{
-  switch (hipDataSpace) {
-    case HipDataSpace::Host:
-    case HipDataSpace::HostAdviseFine:
-    case HipDataSpace::HostAdviseCoarse:
-    {
-      deallocData(cptr);
-    } break;
-    case HipDataSpace::Pinned:
-    case HipDataSpace::PinnedFine:
-    case HipDataSpace::PinnedCoarse:
-    {
-      deallocHipPinnedData(cptr);
-    } break;
-    case HipDataSpace::Managed:
-    case HipDataSpace::ManagedAdviseFine:
-    case HipDataSpace::ManagedAdviseCoarse:
-    {
-      deallocHipManagedData(cptr);
-    } break;
-    case HipDataSpace::Device:
-    case HipDataSpace::DeviceFine:
-    {
-      deallocHipDeviceData(cptr);
-    } break;
-    default:
-    {
-      throw std::invalid_argument("deallocHipData : Unknown memory type");
-    } break;
-  }
-}
-
 /*!
  * \brief Copy given cptr (HIP) data to host (hptr).
  *
@@ -406,12 +275,15 @@ void deallocHipData(HipDataSpace hipDataSpace, T& cptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getHipData(HipDataSpace, T& hptr, const T cptr, int len)
+void getHipData(T& hptr, const T cptr, int len)
 {
   hipErrchk( hipMemcpy( hptr, cptr,
               len * sizeof(typename std::remove_pointer<T>::type),
               hipMemcpyDefault ) );
 }
+
+
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 
