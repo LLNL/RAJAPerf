@@ -208,12 +208,12 @@ public:
 
   int getDataAlignment() const { return run_params.getDataAlignment(); }
 
-  DataSpace getSeqDataSpace() const { return DataSpace::Host; } // run_params.getSeqDataSpace();
-  DataSpace getOmpDataSpace() const { return DataSpace::Omp; } // run_params.getOmpDataSpace();
-  DataSpace getOmpTargetDataSpace() const { return DataSpace::OmpTarget; } // run_params.getOmpTargetDataSpace();
-  DataSpace getCudaDataSpace() const { return DataSpace::CudaDevice; } // run_params.getCudaDataSpace();
-  DataSpace getHipDataSpace() const { return DataSpace::HipDevice; } // run_params.getHipDataSpace();
-  DataSpace getKokkosDataSpace() const { return DataSpace::Host; } // run_params.getKokkosDataSpace();
+  DataSpace getSeqDataSpace() const { return run_params.getSeqDataSpace(); }
+  DataSpace getOmpDataSpace() const { return run_params.getOmpDataSpace(); }
+  DataSpace getOmpTargetDataSpace() const { return run_params.getOmpTargetDataSpace(); }
+  DataSpace getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
+  DataSpace getHipDataSpace() const { return run_params.getHipDataSpace(); }
+  DataSpace getKokkosDataSpace() const { return run_params.getKokkosDataSpace(); }
 
   DataSpace getDataSpace(VariantID vid) const
   {

@@ -550,7 +550,7 @@ const std::string& getFeatureName(FeatureID fid)
 /*
  *******************************************************************************
  *
- * Return memory space name associated with CudaDataSpace enum value.
+ * Return memory space name associated with DataSpace enum value.
  *
  *******************************************************************************
  */

@@ -113,8 +113,12 @@ void RunParams::print(std::ostream& str) const
 
   str << "\n disable_warmup = " << disable_warmup;
 
-  str << "\n cuda memory space = " << getCudaDataSpaceName(cudaDataSpace);
-  str << "\n hip memory space = " << getHipDataSpaceName(hipDataSpace);
+  str << "\n seq data space = " << getDataSpaceName(seqDataSpace);
+  str << "\n omp data space = " << getDataSpaceName(ompDataSpace);
+  str << "\n omp target data space = " << getDataSpaceName(ompTargetDataSpace);
+  str << "\n cuda data space = " << getDataSpaceName(cudaDataSpace);
+  str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
+  str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -213,16 +217,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       printVariantNames(getCout());
       input_state = InfoRequest;
 
-    } else if ( opt == std::string("--print-cuda_memory_spaces") ||
-                opt == std::string("-pcms") ) {
+    } else if ( opt == std::string("--print-data-spaces") ||
+                opt == std::string("-pds") ) {
 
-      printCudaDataSpaceNames(getCout());
-      input_state = InfoRequest;
-
-    } else if ( opt == std::string("--print-hip_memory_spaces") ||
-                opt == std::string("-pcms") ) {
-
-      printHipDataSpaceNames(getCout());
+      printDataSpaceNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -471,8 +469,18 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
-    } else if ( opt == std::string("--cuda_memory_space") ||
-                opt == std::string("-cms") ) {
+    } else if ( opt == std::string("--seq-data-space") ||
+                opt == std::string("-sds") ||
+                opt == std::string("--omp-data-space") ||
+                opt == std::string("-ods") ||
+                opt == std::string("--omptarget-data-space") ||
+                opt == std::string("-otds") ||
+                opt == std::string("--cuda-data-space") ||
+                opt == std::string("-cds") ||
+                opt == std::string("--hip-data-space") ||
+                opt == std::string("-hds") ||
+                opt == std::string("--kokkos-data-space") ||
+                opt == std::string("-kds") ) {
 
       bool got_someting = false;
       i++;
@@ -481,42 +489,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int cms = 0; cms < static_cast<int>(CudaDataSpace::NumSpaces); ++cms) {
-            if (getCudaDataSpaceName(static_cast<CudaDataSpace>(cms)) == opt) {
-              cudaDataSpace = static_cast<CudaDataSpace>(cms);
+          for (int ds = 0; ds < static_cast<int>(DataSpace::NumSpaces); ++ds) {
+            if (getDataSpaceName(static_cast<DataSpace>(ds)) == opt) {
               got_someting = true;
+              if (        opt == std::string("--seq-data-space") ||
+                          opt == std::string("-sds") ) {
+                seqDataSpace = static_cast<DataSpace>(ds);
+              } else if ( opt == std::string("--omp-data-space") ||
+                          opt == std::string("-ods") ) {
+                ompDataSpace = static_cast<DataSpace>(ds);
+              } else if ( opt == std::string("--omptarget-data-space") ||
+                          opt == std::string("-otds") ) {
+                ompTargetDataSpace = static_cast<DataSpace>(ds);
+              } else if ( opt == std::string("--cuda-data-space") ||
+                          opt == std::string("-cds") ) {
+                cudaDataSpace = static_cast<DataSpace>(ds);
+              } else if ( opt == std::string("--hip-data-space") ||
+                          opt == std::string("-hds") ) {
+                hipDataSpace = static_cast<DataSpace>(ds);
+              } else if ( opt == std::string("--kokkos-data-space") ||
+                          opt == std::string("-kds") ) {
+                kokkosDataSpace = static_cast<DataSpace>(ds);
+              } else {
+                got_someting = false;
+              }
+
               break;
             }
           }
           if (!got_someting) {
             getCout() << "\nBad input:"
-                      << " must give --cuda_memory_space a valid cuda memory space"
-                      << std::endl;
-            input_state = BadInput;
-          }
-        }
-      }
-
-    } else if ( opt == std::string("--hip_memory_space") ||
-                opt == std::string("-hms") ) {
-
-      bool got_someting = false;
-      i++;
-      if ( i < argc ) {
-        opt = std::string(argv[i]);
-        if ( opt.at(0) == '-' ) {
-          i--;
-        } else {
-          for (int hms = 0; hms < static_cast<int>(HipDataSpace::NumSpaces); ++hms) {
-            if (getHipDataSpaceName(static_cast<HipDataSpace>(hms)) == opt) {
-              hipDataSpace = static_cast<HipDataSpace>(hms);
-              got_someting = true;
-              break;
-            }
-          }
-          if (!got_someting) {
-            getCout() << "\nBad input:"
-                      << " must give --hip_memory_space a valid hip memory space"
+                      << " must give " << opt << " a valid data space"
                       << std::endl;
             input_state = BadInput;
           }
@@ -657,9 +660,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
 
-  str << "\t --print-cuda_memory_spaces, -pcms (print names of cuda memory spaces)\n\n";
-
-  str << "\t --print-hip_memory_spaces, -pcms (print names of hip memory spaces)\n\n";
+  str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
   str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
@@ -741,17 +742,41 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
-  str << "\t --cuda_memory_space, -cms <string> [Default is Device]\n"
-      << "\t      (names of memory space to use)\n";
+  str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
+      << "\t      (names of data space to use)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --cuda_memory_space Managed (run CUDA kernels with Managed memory)\n"
-      << "\t\t -cms Pinned (run CUDA kernels with Pinned memory)\n\n";
+      << "\t\t --seq-data-space Host (run sequential variants with Host memory)\n"
+      << "\t\t -sds CudaPinned (run sequential variants with Cuda Pinned memory)\n\n";
 
-  str << "\t --hip_memory_space, -hms <string> [Default is Device]\n"
-      << "\t      (names of memory space to use)\n";
+  str << "\t --omp-data-space, -ods <string> [Default is Omp]\n"
+      << "\t      (names of data space to use)\n";
   str << "\t\t Examples...\n"
-      << "\t\t --hip_memory_space Managed (run HIP kernels with Managed memory)\n"
-      << "\t\t -hms Pinned (run HIP kernels with Pinned memory)\n\n";
+      << "\t\t --omp-data-space Omp (run Omp variants with Omp memory)\n"
+      << "\t\t -ods Host (run Omp variants with Host memory)\n\n";
+
+  str << "\t --omptarget-data-space, -otds <string> [Default is OmpTarget]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n"
+      << "\t\t -otds CudaPinned (run Omp Target variants with Cuda Pinned memory)\n\n";
+
+  str << "\t --cuda-data-space, -cds <string> [Default is CudaDevice]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n"
+      << "\t\t -cds CudaPinned (run CUDA variants with Cuda Pinned memory)\n\n";
+
+  str << "\t --hip-data-space, -hds <string> [Default is HipDevice]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
+      << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
+
+  str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
+      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
@@ -835,23 +860,12 @@ void RunParams::printVariantNames(std::ostream& str) const
 }
 
 
-void RunParams::printCudaDataSpaceNames(std::ostream& str) const
+void RunParams::printDataSpaceNames(std::ostream& str) const
 {
-  str << "\nAvailable cuda memory spaces:";
+  str << "\nAvailable data spaces:";
   str << "\n-------------------\n";
-  for (int cms = 0; cms < static_cast<int>(CudaDataSpace::NumSpaces); ++cms) {
-    str << getCudaDataSpaceName(static_cast<CudaDataSpace>(cms)) << std::endl;
-  }
-  str.flush();
-}
-
-
-void RunParams::printHipDataSpaceNames(std::ostream& str) const
-{
-  str << "\nAvailable hip memory spaces:";
-  str << "\n-------------------\n";
-  for (int hms = 0; hms < static_cast<int>(HipDataSpace::NumSpaces); ++hms) {
-    str << getHipDataSpaceName(static_cast<HipDataSpace>(hms)) << std::endl;
+  for (int ds = 0; ds < static_cast<int>(DataSpace::NumSpaces); ++ds) {
+    str << getDataSpaceName(static_cast<DataSpace>(ds)) << std::endl;
   }
   str.flush();
 }

@@ -350,16 +350,7 @@ const std::string& getFeatureName(FeatureID vid);
  *
  *******************************************************************************
  */
-const std::string& getCudaDataSpaceName(CudaDataSpace cd);
-
-/*!
- *******************************************************************************
- *
- * \brief Return memory space name associated with HipDataSpace enum value.
- *
- *******************************************************************************
- */
-const std::string& getHipDataSpaceName(HipDataSpace hd);
+const std::string& getDataSpaceName(DataSpace cd);
 
 /*!
  *******************************************************************************
