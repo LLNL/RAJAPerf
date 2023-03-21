@@ -70,28 +70,34 @@ public:
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
+
   void setVariantDefined(VariantID vid);
   void addVariantTuningName(VariantID vid, std::string name)
   { variant_tuning_names[vid].emplace_back(std::move(name)); }
 
   virtual void setSeqTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
+
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   virtual void setOpenMPTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+
 #if defined(RAJA_ENABLE_CUDA)
   virtual void setCudaTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+
 #if defined(RAJA_ENABLE_HIP)
   virtual void setHipTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void setOpenMPTargetTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
+
 #if defined(RUN_KOKKOS)
   virtual void setKokkosTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
@@ -116,59 +122,69 @@ public:
   bool usesFeature(FeatureID fid) const { return uses_feature[fid]; };
 
   bool hasVariantDefined(VariantID vid) const
-    { return !variant_tuning_names[vid].empty(); }
+  { return !variant_tuning_names[vid].empty(); }
+
   bool hasVariantTuningDefined(VariantID vid, size_t tune_idx) const
-    {
-      if (hasVariantDefined(vid) && tune_idx < getNumVariantTunings(vid)) {
-        return true;
-      }
-      return false;
+  {
+    if (hasVariantDefined(vid) && tune_idx < getNumVariantTunings(vid)) {
+      return true;
     }
-  bool hasVariantTuningDefined(VariantID vid, std::string const& tuning_name) const
-    {
-      if (hasVariantDefined(vid)) {
-        for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
-          if (tuning_name == a_tuning_name) { return true; }
-        }
+    return false;
+  }
+  bool hasVariantTuningDefined(VariantID vid,
+                               std::string const& tuning_name) const
+  {
+    if (hasVariantDefined(vid)) {
+      for (std::string const& a_tuning_name : getVariantTuningNames(vid)) {
+        if (tuning_name == a_tuning_name) { return true; }
       }
-      return false;
     }
-  size_t getVariantTuningIndex(VariantID vid, std::string const& tuning_name) const
-    {
-      std::vector<std::string> const& tuning_names = getVariantTuningNames(vid);
-      for (size_t t = 0; t < tuning_names.size(); ++t) {
-        std::string const& a_tuning_name = tuning_names[t];
-        if (tuning_name == a_tuning_name) { return t; }
-      }
-      return getUnknownTuningIdx();
+    return false;
+  }
+
+  size_t getVariantTuningIndex(VariantID vid,
+                               std::string const& tuning_name) const
+  {
+    std::vector<std::string> const& tuning_names = getVariantTuningNames(vid);
+    for (size_t t = 0; t < tuning_names.size(); ++t) {
+      std::string const& a_tuning_name = tuning_names[t];
+      if (tuning_name == a_tuning_name) { return t; }
     }
+    return getUnknownTuningIdx();
+  }
+
   size_t getNumVariantTunings(VariantID vid) const
-    { return getVariantTuningNames(vid).size(); }
+  { return getVariantTuningNames(vid).size(); }
   std::string const& getVariantTuningName(VariantID vid, size_t tune_idx) const
-    { return getVariantTuningNames(vid).at(tune_idx); }
+  { return getVariantTuningNames(vid).at(tune_idx); }
   std::vector<std::string> const& getVariantTuningNames(VariantID vid) const
-    { return variant_tuning_names[vid]; }
+  { return variant_tuning_names[vid]; }
 
   //
   // Methods to get information about kernel execution for reports
   // containing kernel execution information
   //
   bool wasVariantTuningRun(VariantID vid, size_t tune_idx) const
-    {
-      if (tune_idx != getUnknownTuningIdx()) {
-        return num_exec[vid].at(tune_idx) > 0;
-      }
-      return false;
+  {
+    if (tune_idx != getUnknownTuningIdx()) {
+      return num_exec[vid].at(tune_idx) > 0;
     }
+    return false;
+  }
 
   // get runtime of executed variant/tuning
   double getLastTime() const { return timer.elapsed(); }
 
   // get timers accumulated over npasses
-  double getMinTime(VariantID vid, size_t tune_idx) const { return min_time[vid].at(tune_idx); }
-  double getMaxTime(VariantID vid, size_t tune_idx) const { return max_time[vid].at(tune_idx); }
-  double getTotTime(VariantID vid, size_t tune_idx) { return tot_time[vid].at(tune_idx); }
-  Checksum_type getChecksum(VariantID vid, size_t tune_idx) const { return checksum[vid].at(tune_idx); }
+  double getMinTime(VariantID vid, size_t tune_idx) const
+  { return min_time[vid].at(tune_idx); }
+  double getMaxTime(VariantID vid, size_t tune_idx) const
+  { return max_time[vid].at(tune_idx); }
+  double getTotTime(VariantID vid, size_t tune_idx) const
+  { return tot_time[vid].at(tune_idx); }
+
+  Checksum_type getChecksum(VariantID vid, size_t tune_idx) const
+  { return checksum[vid].at(tune_idx); }
 
   void execute(VariantID vid, size_t tune_idx);
 
@@ -242,6 +258,7 @@ public:
     rajaperf::detail::allocData(
         ptr, len, getDataAlignment(), getDataSpace(vid));
   }
+
   template <typename T>
   void allocAndInitData(T*& ptr, int len,
                         VariantID vid)
@@ -249,6 +266,7 @@ public:
     rajaperf::detail::allocAndInitData(
         ptr, len, getDataAlignment(), getDataSpace(vid));
   }
+
   template <typename T>
   void allocAndInitDataConst(T*& ptr, int len, T val,
                              VariantID vid)
@@ -256,6 +274,7 @@ public:
     rajaperf::detail::allocAndInitDataConst(
         ptr, len, getDataAlignment(), val, getDataSpace(vid));
   }
+
   template <typename T>
   void allocAndInitDataRandSign(T*& ptr, int len,
                                 VariantID vid)
@@ -263,6 +282,7 @@ public:
     rajaperf::detail::allocAndInitDataRandSign(
         ptr, len, getDataAlignment(), getDataSpace(vid));
   }
+
   template <typename T>
   void allocAndInitDataRandValue(T*& ptr, int len,
                                  VariantID vid)
@@ -270,36 +290,42 @@ public:
     rajaperf::detail::allocAndInitDataRandValue(
         ptr, len, getDataAlignment(), getDataSpace(vid));
   }
+
   template <typename T>
   void deallocData(T*& ptr,
                    VariantID vid)
   {
     rajaperf::detail::deallocData(ptr, getDataSpace(vid));
   }
+
   template <typename T>
   void initData(T*& ptr, int len,
                 VariantID vid)
   {
     rajaperf::detail::initData(ptr, len, getDataSpace(vid));
   }
+
   template <typename T>
   void initDataConst(T*& ptr, int len, T val,
                      VariantID vid)
   {
     rajaperf::detail::initDataConst(ptr, len, val, getDataSpace(vid));
   }
+
   template <typename T>
   void initDataRandSign(T*& ptr, int len,
                         VariantID vid)
   {
     rajaperf::detail::initDataRandSign(ptr, len, getDataSpace(vid));
   }
+
   template <typename T>
   void initDataRandValue(T*& ptr, int len,
                          VariantID vid)
   {
     rajaperf::detail::initDataRandValue(ptr, len, getDataSpace(vid));
   }
+
   template <typename T>
   void initData(T& d,
                 VariantID vid)
@@ -399,18 +425,23 @@ public:
   virtual void tearDown(VariantID vid, size_t tune_idx) = 0;
 
   virtual void runSeqVariant(VariantID vid, size_t tune_idx) = 0;
+
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   virtual void runOpenMPVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
+
 #if defined(RAJA_ENABLE_CUDA)
   virtual void runCudaVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
+
 #if defined(RAJA_ENABLE_HIP)
   virtual void runHipVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
+
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
+
 #if defined(RUN_KOKKOS)
   virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
   {
