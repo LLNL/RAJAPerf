@@ -30,7 +30,7 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
+  cudaErrchk(cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type)));
 
 
 #define FIR_DATA_TEARDOWN_CUDA

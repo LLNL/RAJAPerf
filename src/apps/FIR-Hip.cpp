@@ -30,7 +30,7 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
+  hipErrchk( hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice));
 
 
 #define FIR_DATA_TEARDOWN_HIP
