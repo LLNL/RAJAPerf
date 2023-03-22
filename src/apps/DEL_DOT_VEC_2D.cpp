@@ -71,8 +71,8 @@ DEL_DOT_VEC_2D::~DEL_DOT_VEC_2D()
 
 void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
-  allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
+  auto finalize_x = allocAndInitSetupDataConst(m_x, m_array_length, 0.0, vid);
+  auto finalize_y = allocAndInitSetupDataConst(m_y, m_array_length, 0.0, vid);
 
   Real_type dx = 0.2;
   Real_type dy = 0.1;

@@ -32,6 +32,7 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <utility>
 
 namespace rajaperf {
 
@@ -251,6 +252,11 @@ public:
     }
   }
 
+  DataSpace getHostAccessibleDataSpace(VariantID vid) const
+  {
+    return hostAccessibleDataSpace(getDataSpace(vid));
+  }
+
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, int len)
   {
@@ -296,6 +302,46 @@ public:
   {
     rajaperf::allocAndInitDataRandValue(getDataSpace(vid),
         ptr, len, getDataAlignment());
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> allocSetupData(T*& ptr, int len, VariantID vid)
+  {
+    rajaperf::allocData(getHostAccessibleDataSpace(vid),
+        ptr, len, getDataAlignment());
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> allocAndInitSetupData(T*& ptr, int len, VariantID vid)
+  {
+    rajaperf::allocAndInitData(getHostAccessibleDataSpace(vid),
+        ptr, len, getDataAlignment());
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> allocAndInitSetupDataConst(T*& ptr, int len, T val, VariantID vid)
+  {
+    rajaperf::allocAndInitDataConst(getHostAccessibleDataSpace(vid),
+        ptr, len, getDataAlignment(), val);
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> allocAndInitSetupDataRandSign(T*& ptr, int len, VariantID vid)
+  {
+    rajaperf::allocAndInitDataRandSign(getHostAccessibleDataSpace(vid),
+        ptr, len, getDataAlignment());
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
+  }
+
+  template <typename T>
+  rajaperf::AutoDataMover<T> allocAndInitSetupDataRandValue(T*& ptr, int len, VariantID vid)
+  {
+    rajaperf::allocAndInitDataRandValue(getHostAccessibleDataSpace(vid),
+        ptr, len, getDataAlignment());
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
   }
 
   template <typename T>

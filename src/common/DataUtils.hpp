@@ -52,7 +52,7 @@ void copyHostData(void* dst_ptr, const void* src_ptr, size_t len);
 /*!
  * \brief Allocate data arrays.
  */
-void* allocHostData(int len, int align);
+void* allocHostData(size_t len, size_t align);
 
 /*!
  * \brief Free data arrays.
@@ -70,7 +70,7 @@ void touchOmpData(T* ptr, int len)
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
   #pragma omp parallel for
   for (int i = 0; i < len; ++i) {
-    ptr[i] = std::numeric_limits<T>::max() - i;
+    ptr[i] = T{};
   };
 #else
   (void)ptr; (void)len;
@@ -504,6 +504,61 @@ inline void moveData(DataSpace new_dataSpace, DataSpace old_dataSpace,
     ptr = new_ptr;
   }
 }
+
+
+template <typename T>
+struct AutoDataMover
+{
+  AutoDataMover(DataSpace new_dataSpace, DataSpace old_dataSpace,
+                T*& ptr, int len, int align)
+    : m_ptr(&ptr)
+    , m_new_dataSpace(new_dataSpace)
+    , m_old_dataSpace(old_dataSpace)
+    , m_len(len)
+    , m_align(align)
+  { }
+
+  AutoDataMover(AutoDataMover const&) = delete;
+  AutoDataMover& operator=(AutoDataMover const&) = delete;
+
+  AutoDataMover(AutoDataMover&& rhs)
+    : m_ptr(std::exchange(rhs.m_ptr, nullptr))
+    , m_new_dataSpace(rhs.m_new_dataSpace)
+    , m_old_dataSpace(rhs.m_old_dataSpace)
+    , m_len(rhs.m_len)
+    , m_align(rhs.m_align)
+  { }
+  AutoDataMover& operator=(AutoDataMover&& rhs)
+  {
+    m_ptr = std::exchange(rhs.m_ptr, nullptr);
+    m_new_dataSpace = rhs.m_new_dataSpace;
+    m_old_dataSpace = rhs.m_old_dataSpace;
+    m_len = rhs.m_len;
+    m_align = rhs.m_align;
+    return *this;
+  }
+
+  void finalize()
+  {
+    if (m_ptr) {
+      moveData(m_new_dataSpace, m_old_dataSpace,
+          *m_ptr, m_len, m_align);
+      m_ptr = nullptr;
+    }
+  }
+
+  ~AutoDataMover()
+  {
+    finalize();
+  }
+
+private:
+  T** m_ptr;
+  DataSpace m_new_dataSpace;
+  DataSpace m_old_dataSpace;
+  int m_len;
+  int m_align;
+};
 
 /*!
  * \brief Allocate and initialize data array.
