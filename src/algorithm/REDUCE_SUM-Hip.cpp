@@ -29,12 +29,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define REDUCE_SUM_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_HIP \
-  deallocHipData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -78,8 +72,6 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     hipStream_t stream = 0;
 
@@ -151,8 +143,6 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     deallocHipDeviceData(temp_storage);
     deallocHipPinnedData(sum_storage);
 
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
-
   } else {
 
     getCout() << "\n  REDUCE_SUM : Unknown Hip variant id = " << vid << std::endl;
@@ -171,8 +161,6 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     Real_ptr dsum;
     allocHipDeviceData(dsum, 1);
@@ -199,11 +187,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     deallocHipDeviceData(dsum);
 
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -219,8 +203,6 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
 
   } else {
 

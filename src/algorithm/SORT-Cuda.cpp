@@ -21,13 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SORT_DATA_SETUP_CUDA \
-  allocAndInitCudaData(x, m_x, iend*run_reps);
-
-#define SORT_DATA_TEARDOWN_CUDA \
-  getCudaData(m_x, x, iend*run_reps); \
-  deallocCudaData(x);
-
 
 void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -39,8 +32,6 @@ void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   if ( vid == RAJA_CUDA ) {
 
-    SORT_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -48,8 +39,6 @@ void SORT::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     }
     stopTimer();
-
-    SORT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  SORT : Unknown Cuda variant id = " << vid << std::endl;

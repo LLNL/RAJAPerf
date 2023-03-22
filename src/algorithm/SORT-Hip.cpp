@@ -21,13 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SORT_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, iend*run_reps);
-
-#define SORT_DATA_TEARDOWN_HIP \
-  getHipData(m_x, x, iend*run_reps); \
-  deallocHipData(x);
-
 
 void SORT::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -39,8 +32,6 @@ void SORT::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   if ( vid == RAJA_HIP ) {
 
-    SORT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -48,8 +39,6 @@ void SORT::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     }
     stopTimer();
-
-    SORT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  SORT : Unknown Hip variant id = " << vid << std::endl;

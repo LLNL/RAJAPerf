@@ -24,12 +24,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define REDUCE_SUM_DATA_SETUP_CUDA \
-  allocAndInitCudaData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_CUDA \
-  deallocCudaData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -73,8 +67,6 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    REDUCE_SUM_DATA_SETUP_CUDA;
 
     cudaStream_t stream = 0;
 
@@ -124,8 +116,6 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     deallocCudaDeviceData(temp_storage);
     deallocCudaPinnedData(sum_storage);
 
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
-
   } else {
 
     getCout() << "\n  REDUCE_SUM : Unknown Cuda variant id = " << vid << std::endl;
@@ -144,8 +134,6 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    REDUCE_SUM_DATA_SETUP_CUDA;
 
     Real_ptr dsum;
     allocCudaDeviceData(dsum, 1);
@@ -173,11 +161,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
     deallocCudaDeviceData(dsum);
 
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE_SUM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -193,8 +177,6 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
 
