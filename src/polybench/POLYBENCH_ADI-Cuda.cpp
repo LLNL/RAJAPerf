@@ -21,20 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  allocAndInitCudaData(U, m_U, m_n * m_n); \
-  allocAndInitCudaData(V, m_V, m_n * m_n); \
-  allocAndInitCudaData(P, m_P, m_n * m_n); \
-  allocAndInitCudaData(Q, m_Q, m_n * m_n);
-
-#define POLYBENCH_ADI_TEARDOWN_CUDA \
-  getCudaData(m_U, U, m_n * m_n); \
-  deallocCudaData(U); \
-  deallocCudaData(V); \
-  deallocCudaData(P); \
-  deallocCudaData(Q);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void adi1(const Index_type n,
@@ -96,8 +82,6 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -120,11 +104,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -166,11 +146,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     POLYBENCH_ADI_VIEWS_RAJA;
 
@@ -240,8 +216,6 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
     } // run_reps
     stopTimer();
-
-    POLYBENCH_ADI_TEARDOWN_CUDA
 
   } else {
       getCout() << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;

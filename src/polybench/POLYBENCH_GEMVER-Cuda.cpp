@@ -39,30 +39,6 @@ namespace polybench
                 static_cast<size_t>(1));
 
 
-#define POLYBENCH_GEMVER_DATA_SETUP_CUDA \
-  allocAndInitCudaData(A, m_A, m_n * m_n); \
-  allocAndInitCudaData(u1, m_u1, m_n); \
-  allocAndInitCudaData(v1, m_v1, m_n); \
-  allocAndInitCudaData(u2, m_u2, m_n); \
-  allocAndInitCudaData(v2, m_v2, m_n); \
-  allocAndInitCudaData(w, m_w, m_n); \
-  allocAndInitCudaData(x, m_x, m_n); \
-  allocAndInitCudaData(y, m_y, m_n); \
-  allocAndInitCudaData(z, m_z, m_n);
-
-
-#define POLYBENCH_GEMVER_TEARDOWN_CUDA \
-  getCudaData(m_w, w, m_n); \
-  deallocCudaData(A); \
-  deallocCudaData(u1); \
-  deallocCudaData(v1); \
-  deallocCudaData(u2); \
-  deallocCudaData(v2); \
-  deallocCudaData(w); \
-  deallocCudaData(x); \
-  deallocCudaData(y); \
-  deallocCudaData(z);
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_gemmver_1(Real_ptr A,
@@ -155,8 +131,6 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_GEMVER_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -187,11 +161,7 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMVER_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_GEMVER_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -241,11 +211,7 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMVER_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_GEMVER_DATA_SETUP_CUDA;
 
     POLYBENCH_GEMVER_VIEWS_RAJA;
 
@@ -334,8 +300,6 @@ void POLYBENCH_GEMVER::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_GEMVER_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_GEMVER : Unknown Cuda variant id = " << vid << std::endl;

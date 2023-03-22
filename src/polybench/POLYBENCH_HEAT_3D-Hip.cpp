@@ -40,19 +40,6 @@ namespace polybench
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)));
 
 
-#define POLYBENCH_HEAT_3D_DATA_SETUP_HIP \
-  allocAndInitHipData(A, m_Ainit, m_N*m_N*m_N); \
-  allocAndInitHipData(B, m_Binit, m_N*m_N*m_N); \
-  static_assert(k_block_sz*j_block_sz*i_block_sz == block_size, "Invalid block_size");
-
-
-#define POLYBENCH_HEAT_3D_TEARDOWN_HIP \
-  getHipData(m_A, A, m_N*m_N*m_N); \
-  getHipData(m_B, B, m_N*m_N*m_N); \
-  deallocHipData(A); \
-  deallocHipData(B);
-
-
 template < size_t k_block_size, size_t j_block_size, size_t i_block_size >
 __launch_bounds__(k_block_size*j_block_size*i_block_size)
 __global__ void poly_heat_3D_1(Real_ptr A, Real_ptr B, Index_type N)
@@ -102,8 +89,6 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_HEAT_3D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -127,11 +112,7 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_HEAT_3D_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_HEAT_3D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -167,11 +148,7 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_HEAT_3D_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_HEAT_3D_DATA_SETUP_HIP;
 
     POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
@@ -219,8 +196,6 @@ void POLYBENCH_HEAT_3D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_HEAT_3D_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_HEAT_3D : Unknown Hip variant id = " << vid << std::endl;

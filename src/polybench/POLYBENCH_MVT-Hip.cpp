@@ -21,24 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_MVT_DATA_SETUP_HIP \
-  allocAndInitHipData(x1, m_x1, N); \
-  allocAndInitHipData(x2, m_x2, N); \
-  allocAndInitHipData(y1, m_y1, N); \
-  allocAndInitHipData(y2, m_y2, N); \
-  allocAndInitHipData(A, m_A, N * N);
-
-
-#define POLYBENCH_MVT_TEARDOWN_HIP \
-  getHipData(m_x1, x1, N); \
-  getHipData(m_x2, x2, N); \
-  deallocHipData(x1); \
-  deallocHipData(x2); \
-  deallocHipData(y1); \
-  deallocHipData(y2); \
-  deallocHipData(A);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
@@ -81,8 +63,6 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_MVT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -101,11 +81,7 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_MVT_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_MVT_DATA_SETUP_HIP;
 
     POLYBENCH_MVT_VIEWS_RAJA;
 
@@ -168,8 +144,6 @@ void POLYBENCH_MVT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_MVT_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_MVT : Unknown Hip variant id = " << vid << std::endl;

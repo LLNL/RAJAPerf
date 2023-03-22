@@ -49,26 +49,6 @@ namespace polybench
                 static_cast<size_t>(1));
 
 
-#define POLYBENCH_3MM_DATA_SETUP_CUDA \
-  allocAndInitCudaData(A, m_A, m_ni * m_nk); \
-  allocAndInitCudaData(B, m_B, m_nk * m_nj); \
-  allocAndInitCudaData(C, m_C, m_nj * m_nm); \
-  allocAndInitCudaData(D, m_D, m_nm * m_nl); \
-  allocAndInitCudaData(E, m_E, m_ni * m_nj); \
-  allocAndInitCudaData(F, m_F, m_nj * m_nl); \
-  allocAndInitCudaData(G, m_G, m_ni * m_nl);
-
-
-#define POLYBENCH_3MM_TEARDOWN_CUDA \
-  getCudaData(m_G, G, m_ni * m_nl); \
-  deallocCudaData(A); \
-  deallocCudaData(B); \
-  deallocCudaData(C); \
-  deallocCudaData(D); \
-  deallocCudaData(E); \
-  deallocCudaData(F); \
-  deallocCudaData(G);
-
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
@@ -170,8 +150,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_3MM_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -198,11 +176,7 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_3MM_TEARDOWN_CUDA;
-
   } else if (vid == Lambda_CUDA) {
-
-    POLYBENCH_3MM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -251,11 +225,7 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_3MM_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_3MM_DATA_SETUP_CUDA;
 
     POLYBENCH_3MM_VIEWS_RAJA;
 
@@ -345,8 +315,6 @@ void POLYBENCH_3MM::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_3MM_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_3MM : Unknown Cuda variant id = " << vid << std::endl;

@@ -39,20 +39,6 @@ namespace polybench
                   static_cast<size_t>(1));
 
 
-#define POLYBENCH_FDTD_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaData(hz, m_hz, m_nx * m_ny); \
-  allocAndInitCudaData(ex, m_ex, m_nx * m_ny); \
-  allocAndInitCudaData(ey, m_ey, m_nx * m_ny); \
-  allocAndInitCudaData(fict, m_fict, m_tsteps);
-
-
-#define POLYBENCH_FDTD_2D_TEARDOWN_CUDA \
-  getCudaData(m_hz, hz, m_nx * m_ny); \
-  deallocCudaData(ex); \
-  deallocCudaData(ey); \
-  deallocCudaData(fict);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
@@ -164,8 +150,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -196,11 +180,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -247,11 +227,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
 
     POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
@@ -312,8 +288,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
 
     } // run_reps
     stopTimer();
-
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Cuda variant id = " << vid << std::endl;

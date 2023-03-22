@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ADI_DATA_SETUP_HIP \
-  allocAndInitHipData(U, m_U, m_n * m_n); \
-  allocAndInitHipData(V, m_V, m_n * m_n); \
-  allocAndInitHipData(P, m_P, m_n * m_n); \
-  allocAndInitHipData(Q, m_Q, m_n * m_n);
-
-
-#define POLYBENCH_ADI_TEARDOWN_HIP \
-  getHipData(m_U, U, m_n * m_n); \
-  deallocHipData(U); \
-  deallocHipData(V); \
-  deallocHipData(P); \
-  deallocHipData(Q);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void adi1(const Index_type n,
@@ -97,8 +82,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_ADI_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -125,11 +108,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_ADI_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -175,11 +154,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_ADI_DATA_SETUP_HIP;
 
     POLYBENCH_ADI_VIEWS_RAJA;
 
@@ -249,8 +224,6 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 
     } // run_reps
     stopTimer();
-
-    POLYBENCH_ADI_TEARDOWN_HIP
 
   } else {
       getCout() << "\n  POLYBENCH_ADI : Unknown Hip variant id = " << vid << std::endl;
