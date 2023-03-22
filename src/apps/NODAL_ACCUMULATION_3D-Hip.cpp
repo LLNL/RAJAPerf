@@ -23,17 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define NODAL_ACCUMULATION_3D_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, m_nodal_array_length); \
-  allocAndInitHipData(vol, m_vol, m_zonal_array_length); \
-  allocAndInitHipData(real_zones, m_domain->real_zones, iend);
-
-#define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP \
-  getHipData(m_x, x, m_nodal_array_length); \
-  deallocHipData(x); \
-  deallocHipData(vol); \
-  deallocHipData(real_zones);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void nodal_accumulation_3d(Real_ptr vol,
@@ -64,8 +53,6 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
-
     NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
 
     startTimer();
@@ -82,11 +69,7 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    NODAL_ACCUMULATION_3D_DATA_SETUP_HIP;
 
     NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
 
@@ -105,8 +88,6 @@ void NODAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Hip variant id = " << vid << std::endl;

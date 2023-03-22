@@ -21,27 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP_HIP \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitHipData(vars[v], m_vars[v], m_var_size); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitHipData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitHipData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitHipData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
-  }
-
-#define HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocHipData(unpack_index_lists[l]); \
-    deallocHipData(pack_index_lists[l]); \
-    deallocHipData(buffers[l]); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getHipData(m_vars[v], vars[v], m_var_size); \
-    deallocHipData(vars[v]); \
-  }
-
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
@@ -118,8 +97,6 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    HALOEXCHANGE_FUSED_DATA_SETUP_HIP;
-
     HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_HIP;
 
     startTimer();
@@ -182,11 +159,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP;
 
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_HIP;
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::hip::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
@@ -265,8 +238,6 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown Hip variant id = " << vid << std::endl;

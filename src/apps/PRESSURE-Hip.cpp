@@ -21,21 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_DATA_SETUP_HIP \
-  allocAndInitHipData(compression, m_compression, iend); \
-  allocAndInitHipData(bvc, m_bvc, iend); \
-  allocAndInitHipData(p_new, m_p_new, iend); \
-  allocAndInitHipData(e_old, m_e_old, iend); \
-  allocAndInitHipData(vnewc, m_vnewc, iend);
-
-#define PRESSURE_DATA_TEARDOWN_HIP \
-  getHipData(m_p_new, p_new, iend); \
-  deallocHipData(compression); \
-  deallocHipData(bvc); \
-  deallocHipData(p_new); \
-  deallocHipData(e_old); \
-  deallocHipData(vnewc);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
@@ -74,8 +59,6 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PRESSURE_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -95,11 +78,7 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PRESSURE_DATA_SETUP_HIP;
 
     const bool async = true;
 
@@ -121,8 +100,6 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    PRESSURE_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;

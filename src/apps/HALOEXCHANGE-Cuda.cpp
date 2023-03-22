@@ -21,27 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_DATA_SETUP_CUDA \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitCudaData(vars[v], m_vars[v], m_var_size); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitCudaData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitCudaData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitCudaData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
-  }
-
-#define HALOEXCHANGE_DATA_TEARDOWN_CUDA \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocCudaData(unpack_index_lists[l]); \
-    deallocCudaData(pack_index_lists[l]); \
-    deallocCudaData(buffers[l]); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getCudaData(m_vars[v], vars[v], m_var_size); \
-    deallocCudaData(vars[v]); \
-  }
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
@@ -75,8 +54,6 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    HALOEXCHANGE_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,11 +91,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HALOEXCHANGE_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HALOEXCHANGE_DATA_SETUP_CUDA;
 
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
 
@@ -161,8 +134,6 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HALOEXCHANGE_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n HALOEXCHANGE : Unknown Cuda variant id = " << vid << std::endl;

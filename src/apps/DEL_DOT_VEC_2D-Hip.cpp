@@ -25,23 +25,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define DEL_DOT_VEC_2D_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, m_array_length); \
-  allocAndInitHipData(y, m_y, m_array_length); \
-  allocAndInitHipData(xdot, m_xdot, m_array_length); \
-  allocAndInitHipData(ydot, m_ydot, m_array_length); \
-  allocAndInitHipData(div, m_div, m_array_length); \
-  allocAndInitHipData(real_zones, m_domain->real_zones, iend);
-
-#define DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP \
-  getHipData(m_div, div, m_array_length); \
-  deallocHipData(x); \
-  deallocHipData(y); \
-  deallocHipData(xdot); \
-  deallocHipData(ydot); \
-  deallocHipData(div); \
-  deallocHipData(real_zones);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void deldotvec2d(Real_ptr div,
@@ -75,8 +58,6 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DEL_DOT_VEC_2D_DATA_SETUP_HIP;
-
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -100,11 +81,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_HIP;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -130,11 +107,7 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_HIP;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -156,8 +129,6 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  DEL_DOT_VEC_2D : Unknown Hip variant id = " << vid << std::endl;

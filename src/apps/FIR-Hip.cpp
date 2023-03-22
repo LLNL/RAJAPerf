@@ -30,15 +30,10 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  allocAndInitHipData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipData(out, m_out, getActualProblemSize()); \
   hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
 
 
-#define FIR_DATA_TEARDOWN_HIP \
-  getHipData(m_out, out, getActualProblemSize()); \
-  deallocHipData(in); \
-  deallocHipData(out);
+#define FIR_DATA_TEARDOWN_HIP
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -56,17 +51,12 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 
 #define FIR_DATA_SETUP_HIP \
   Real_ptr coeff; \
-\
-  allocAndInitHipData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitHipData(coeff, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipData(m_out, out, getActualProblemSize()); \
-  deallocHipData(in); \
-  deallocHipData(out); \
   deallocHipData(coeff);
 
 template < size_t block_size >

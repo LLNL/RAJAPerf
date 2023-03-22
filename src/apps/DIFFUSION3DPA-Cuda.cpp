@@ -22,21 +22,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define DIFFUSION3DPA_DATA_SETUP_CUDA                                          \
-  allocAndInitCudaData(Basis, m_B, DPA_Q1D *DPA_D1D);                    \
-  allocAndInitCudaData(dBasis, m_G, DPA_Q1D *DPA_D1D);                   \
-  allocAndInitCudaData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);    \
-  allocAndInitCudaData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);         \
-  allocAndInitCudaData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
-
-#define DIFFUSION3DPA_DATA_TEARDOWN_CUDA                                       \
-  getCudaData(m_Y, Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);                  \
-  deallocCudaData(Basis);                                                \
-  deallocCudaData(dBasis);                                               \
-  deallocCudaData(D);                                                    \
-  deallocCudaData(X);                                                    \
-  deallocCudaData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Diffusion3DPA(const Real_ptr Basis,
@@ -130,8 +115,6 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    DIFFUSION3DPA_DATA_SETUP_CUDA;
-
     dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
     startTimer();
@@ -144,14 +127,10 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    DIFFUSION3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
   case RAJA_CUDA: {
-
-    DIFFUSION3DPA_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -351,8 +330,6 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
 
     } // loop over kernel reps
     stopTimer();
-
-    DIFFUSION3DPA_DATA_TEARDOWN_CUDA;
 
     break;
   }

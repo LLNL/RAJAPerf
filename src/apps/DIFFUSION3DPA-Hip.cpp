@@ -22,21 +22,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define DIFFUSION3DPA_DATA_SETUP_HIP                                           \
-  allocAndInitHipData(Basis, m_B, DPA_Q1D *DPA_D1D);                     \
-  allocAndInitHipData(dBasis, m_G, DPA_Q1D *DPA_D1D);                    \
-  allocAndInitHipData(D, m_D, DPA_Q1D *DPA_Q1D *DPA_Q1D *SYM *m_NE);     \
-  allocAndInitHipData(X, m_X, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);          \
-  allocAndInitHipData(Y, m_Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);
-
-#define DIFFUSION3DPA_DATA_TEARDOWN_HIP                                        \
-  getHipData(m_Y, Y, DPA_D1D *DPA_D1D *DPA_D1D *m_NE);                   \
-  deallocHipData(Basis);                                                 \
-  deallocHipData(dBasis);                                                \
-  deallocHipData(D);                                                     \
-  deallocHipData(X);                                                     \
-  deallocHipData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Diffusion3DPA(const Real_ptr Basis,
@@ -130,8 +115,6 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    DIFFUSION3DPA_DATA_SETUP_HIP;
-
     dim3 nblocks(NE);
     dim3 nthreads_per_block(DPA_Q1D, DPA_Q1D, DPA_Q1D);
 
@@ -146,14 +129,10 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    DIFFUSION3DPA_DATA_TEARDOWN_HIP;
-
     break;
   }
 
   case RAJA_HIP: {
-
-    DIFFUSION3DPA_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -353,8 +332,6 @@ void DIFFUSION3DPA::runHipVariantImpl(VariantID vid) {
 
     } // loop over kernel reps
     stopTimer();
-
-    DIFFUSION3DPA_DATA_TEARDOWN_HIP;
 
     break;
   }

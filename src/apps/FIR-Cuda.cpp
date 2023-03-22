@@ -30,15 +30,10 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  allocAndInitCudaData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaData(out, m_out, getActualProblemSize()); \
   cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
 
 
-#define FIR_DATA_TEARDOWN_CUDA \
-  getCudaData(m_out, out, getActualProblemSize()); \
-  deallocCudaData(in); \
-  deallocCudaData(out);
+#define FIR_DATA_TEARDOWN_CUDA
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -52,21 +47,16 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    }
 }
 
-#else  // use global memry for coefficients
+#else  // use global memory for coefficients
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr coeff; \
-\
-  allocAndInitCudaData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
   allocAndInitCudaData(coeff, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  getCudaData(m_out, out, getActualProblemSize()); \
-  deallocCudaData(in); \
-  deallocCudaData(out); \
   deallocCudaData(coeff);
 
 template < size_t block_size >

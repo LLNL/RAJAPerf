@@ -26,30 +26,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitOpenMPDeviceData(vars[v], m_vars[v], m_var_size, did, hid); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitOpenMPDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l], did, hid); \
-    allocAndInitOpenMPDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l], did, hid); \
-    allocAndInitOpenMPDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l], did, hid); \
-  }
-
-#define HALOEXCHANGE_FUSED_DATA_TEARDOWN_OMP_TARGET \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocOpenMPDeviceData(unpack_index_lists[l], did); \
-    deallocOpenMPDeviceData(pack_index_lists[l], did); \
-    deallocOpenMPDeviceData(buffers[l], did); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getOpenMPDeviceData(m_vars[v], vars[v], m_var_size, hid, did); \
-    deallocOpenMPDeviceData(vars[v], did); \
-  }
-
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
   void** pack_ptrs; \
   allocOpenMPDeviceData(pack_ptrs, 4 * num_neighbors * num_vars, did); \
@@ -94,8 +70,6 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
   HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_OMP_TARGET;
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET;
 
@@ -179,11 +153,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET;
 
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_OMP_TARGET;
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<
         RAJA::basic_mempool::MemPool<RAJA::basic_mempool::generic_allocator>>;
@@ -257,8 +227,6 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 
     }
     stopTimer();
-
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown OMP Target variant id = " << vid << std::endl;

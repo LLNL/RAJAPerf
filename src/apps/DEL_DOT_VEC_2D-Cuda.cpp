@@ -25,23 +25,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define DEL_DOT_VEC_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaData(x, m_x, m_array_length); \
-  allocAndInitCudaData(y, m_y, m_array_length); \
-  allocAndInitCudaData(xdot, m_xdot, m_array_length); \
-  allocAndInitCudaData(ydot, m_ydot, m_array_length); \
-  allocAndInitCudaData(div, m_div, m_array_length); \
-  allocAndInitCudaData(real_zones, m_domain->real_zones, iend);
-
-#define DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA \
-  getCudaData(m_div, div, m_array_length); \
-  deallocCudaData(x); \
-  deallocCudaData(y); \
-  deallocCudaData(xdot); \
-  deallocCudaData(ydot); \
-  deallocCudaData(div); \
-  deallocCudaData(real_zones);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void deldotvec2d(Real_ptr div,
@@ -75,8 +58,6 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
-
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
     NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
@@ -100,11 +81,7 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -128,11 +105,7 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_CUDA;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -154,8 +127,6 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  DEL_DOT_VEC_2D : Unknown Cuda variant id = " << vid << std::endl;

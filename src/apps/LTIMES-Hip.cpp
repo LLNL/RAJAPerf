@@ -40,17 +40,6 @@ namespace apps
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_z, z_block_sz)));
 
 
-#define LTIMES_DATA_SETUP_HIP \
-  allocAndInitHipData(phidat, m_phidat, m_philen); \
-  allocAndInitHipData(elldat, m_elldat, m_elllen); \
-  allocAndInitHipData(psidat, m_psidat, m_psilen);
-
-#define LTIMES_DATA_TEARDOWN_HIP \
-  getHipData(m_phidat, phidat, m_philen); \
-  deallocHipData(phidat); \
-  deallocHipData(elldat); \
-  deallocHipData(psidat);
-
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)
 __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
@@ -92,8 +81,6 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    LTIMES_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -110,11 +97,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    LTIMES_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -137,11 +120,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    LTIMES_DATA_SETUP_HIP;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
@@ -182,8 +161,6 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    LTIMES_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;

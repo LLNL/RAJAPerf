@@ -30,26 +30,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(xdot, m_xdot, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(ydot, m_ydot, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(div, m_div, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(real_zones, m_domain->real_zones, iend, did, hid);
-
-#define DEL_DOT_VEC_2D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_div, div, m_array_length, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(xdot, did); \
-  deallocOpenMPDeviceData(ydot, did); \
-  deallocOpenMPDeviceData(div, did); \
-  deallocOpenMPDeviceData(real_zones, did);
-
 
 void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -60,8 +40,6 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
   DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -83,11 +61,7 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
     }
     stopTimer();
 
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    DEL_DOT_VEC_2D_DATA_SETUP_OMP_TARGET;
 
     NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
     NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
@@ -110,8 +84,6 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
 
     }
     stopTimer();
-
-    DEL_DOT_VEC_2D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  DEL_DOT_VEC_2D : Unknown OMP Target variant id = " << vid << std::endl;

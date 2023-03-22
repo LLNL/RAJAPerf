@@ -21,42 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define ENERGY_DATA_SETUP_HIP \
-  allocAndInitHipData(e_new, m_e_new, iend); \
-  allocAndInitHipData(e_old, m_e_old, iend); \
-  allocAndInitHipData(delvc, m_delvc, iend); \
-  allocAndInitHipData(p_new, m_p_new, iend); \
-  allocAndInitHipData(p_old, m_p_old, iend); \
-  allocAndInitHipData(q_new, m_q_new, iend); \
-  allocAndInitHipData(q_old, m_q_old, iend); \
-  allocAndInitHipData(work, m_work, iend); \
-  allocAndInitHipData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitHipData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitHipData(bvc, m_bvc, iend); \
-  allocAndInitHipData(pbvc, m_pbvc, iend); \
-  allocAndInitHipData(ql_old, m_ql_old, iend); \
-  allocAndInitHipData(qq_old, m_qq_old, iend); \
-  allocAndInitHipData(vnewc, m_vnewc, iend);
-
-#define ENERGY_DATA_TEARDOWN_HIP \
-  getHipData(m_e_new, e_new, iend); \
-  getHipData(m_q_new, q_new, iend); \
-  deallocHipData(e_new); \
-  deallocHipData(e_old); \
-  deallocHipData(delvc); \
-  deallocHipData(p_new); \
-  deallocHipData(p_old); \
-  deallocHipData(q_new); \
-  deallocHipData(q_old); \
-  deallocHipData(work); \
-  deallocHipData(compHalfStep); \
-  deallocHipData(pHalfStep); \
-  deallocHipData(bvc); \
-  deallocHipData(pbvc); \
-  deallocHipData(ql_old); \
-  deallocHipData(qq_old); \
-  deallocHipData(vnewc);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void energycalc1(Real_ptr e_new, Real_ptr e_old, Real_ptr delvc,
@@ -154,8 +118,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    ENERGY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -207,11 +169,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    ENERGY_DATA_SETUP_HIP;
 
     const bool async = true;
 
@@ -254,8 +212,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    ENERGY_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;

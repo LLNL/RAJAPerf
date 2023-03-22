@@ -19,23 +19,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define CONVECTION3DPA_DATA_SETUP_HIP                                         \
-  allocAndInitHipData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitHipData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitHipData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitHipData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitHipData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitHipData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
-
-#define CONVECTION3DPA_DATA_TEARDOWN_HIP                                       \
-  getHipData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocHipData(Basis);                                                \
-  deallocHipData(tBasis);                                               \
-  deallocHipData(dBasis);                                               \
-  deallocHipData(D);                                                    \
-  deallocHipData(X);                                                    \
-  deallocHipData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Convection3DPA(const Real_ptr Basis, const Real_ptr tBasis,
@@ -153,8 +136,6 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    CONVECTION3DPA_DATA_SETUP_HIP;
-
     dim3 nblocks(NE);
     dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
 
@@ -169,14 +150,10 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
-
     break;
   }
 
   case RAJA_HIP: {
-
-    CONVECTION3DPA_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -358,8 +335,6 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
 
     } // loop over kernel reps
     stopTimer();
-
-    CONVECTION3DPA_DATA_TEARDOWN_HIP;
 
     break;
   }
