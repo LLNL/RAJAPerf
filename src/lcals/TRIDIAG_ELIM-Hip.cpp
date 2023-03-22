@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define TRIDIAG_ELIM_DATA_SETUP_HIP \
-  allocAndInitHipData(xout, m_xout, m_N); \
-  allocAndInitHipData(xin, m_xin, m_N); \
-  allocAndInitHipData(y, m_y, m_N); \
-  allocAndInitHipData(z, m_z, m_N);
-
-#define TRIDIAG_ELIM_DATA_TEARDOWN_HIP \
-  getHipData(m_xout, xout, m_N); \
-  deallocHipData(xout); \
-  deallocHipData(xin); \
-  deallocHipData(y); \
-  deallocHipData(z);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
@@ -57,8 +44,6 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRIDIAG_ELIM_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +55,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIDIAG_ELIM_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    TRIDIAG_ELIM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,8 +67,6 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    TRIDIAG_ELIM_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  TRIDIAG_ELIM : Unknown Hip variant id = " << vid << std::endl;

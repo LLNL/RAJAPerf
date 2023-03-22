@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define EOS_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, m_array_length); \
-  allocAndInitHipData(y, m_y, m_array_length); \
-  allocAndInitHipData(z, m_z, m_array_length); \
-  allocAndInitHipData(u, m_u, m_array_length);
-
-#define EOS_DATA_TEARDOWN_HIP \
-  getHipData(m_x, x, m_array_length); \
-  deallocHipData(x); \
-  deallocHipData(y); \
-  deallocHipData(z); \
-  deallocHipData(u);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
@@ -58,8 +45,6 @@ void EOS::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    EOS_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -72,11 +57,7 @@ void EOS::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EOS_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    EOS_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -88,8 +69,6 @@ void EOS::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    EOS_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  EOS : Unknown Hip variant id = " << vid << std::endl;

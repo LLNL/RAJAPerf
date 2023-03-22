@@ -21,15 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_DIFF_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, m_N); \
-  allocAndInitHipData(y, m_y, m_N);
-
-#define FIRST_DIFF_DATA_TEARDOWN_HIP \
-  getHipData(m_x, x, m_N); \
-  deallocHipData(x); \
-  deallocHipData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_diff(Real_ptr x, Real_ptr y,
@@ -53,8 +44,6 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    FIRST_DIFF_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +55,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    FIRST_DIFF_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -82,8 +67,6 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    FIRST_DIFF_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  FIRST_DIFF : Unknown Hip variant id = " << vid << std::endl;

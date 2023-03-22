@@ -22,21 +22,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define PLANCKIAN_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, iend); \
-  allocAndInitHipData(y, m_y, iend); \
-  allocAndInitHipData(u, m_u, iend); \
-  allocAndInitHipData(v, m_v, iend); \
-  allocAndInitHipData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_HIP \
-  getHipData(m_w, w, iend); \
-  deallocHipData(x); \
-  deallocHipData(y); \
-  deallocHipData(u); \
-  deallocHipData(v); \
-  deallocHipData(w);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
@@ -61,8 +46,6 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PLANCKIAN_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +58,7 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PLANCKIAN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,8 +70,6 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    PLANCKIAN_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Hip variant id = " << vid << std::endl;

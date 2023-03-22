@@ -40,36 +40,6 @@ namespace lcals
                static_cast<size_t>(1));
 
 
-#define HYDRO_2D_DATA_SETUP_CUDA \
-\
-  allocAndInitCudaData(zadat, m_za, m_array_length); \
-  allocAndInitCudaData(zbdat, m_zb, m_array_length); \
-  allocAndInitCudaData(zmdat, m_zm, m_array_length); \
-  allocAndInitCudaData(zpdat, m_zp, m_array_length); \
-  allocAndInitCudaData(zqdat, m_zq, m_array_length); \
-  allocAndInitCudaData(zrdat, m_zr, m_array_length); \
-  allocAndInitCudaData(zudat, m_zu, m_array_length); \
-  allocAndInitCudaData(zvdat, m_zv, m_array_length); \
-  allocAndInitCudaData(zzdat, m_zz, m_array_length); \
-  allocAndInitCudaData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitCudaData(zzoutdat, m_zzout, m_array_length);
-
-
-#define HYDRO_2D_DATA_TEARDOWN_CUDA \
-  getCudaData(m_zrout, zroutdat, m_array_length); \
-  getCudaData(m_zzout, zzoutdat, m_array_length); \
-  deallocCudaData(zadat); \
-  deallocCudaData(zbdat); \
-  deallocCudaData(zmdat); \
-  deallocCudaData(zpdat); \
-  deallocCudaData(zqdat); \
-  deallocCudaData(zrdat); \
-  deallocCudaData(zudat); \
-  deallocCudaData(zvdat); \
-  deallocCudaData(zzdat); \
-  deallocCudaData(zroutdat); \
-  deallocCudaData(zzoutdat);
-
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
@@ -131,8 +101,6 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    HYDRO_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -162,11 +130,7 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HYDRO_2D_DATA_SETUP_CUDA;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -213,8 +177,6 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;

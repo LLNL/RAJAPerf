@@ -21,13 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define INT_PREDICT_DATA_SETUP_HIP \
-  allocAndInitHipData(px, m_px, m_array_length);
-
-#define INT_PREDICT_DATA_TEARDOWN_HIP \
-  getHipData(m_px, px, m_array_length); \
-  deallocHipData(px);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void int_predict(Real_ptr px,
@@ -55,8 +48,6 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INT_PREDICT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +62,7 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INT_PREDICT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,8 +74,6 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    INT_PREDICT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;

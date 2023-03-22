@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define TRIDIAG_ELIM_DATA_SETUP_CUDA \
-  allocAndInitCudaData(xout, m_xout, m_N); \
-  allocAndInitCudaData(xin, m_xin, m_N); \
-  allocAndInitCudaData(y, m_y, m_N); \
-  allocAndInitCudaData(z, m_z, m_N);
-
-#define TRIDIAG_ELIM_DATA_TEARDOWN_CUDA \
-  getCudaData(m_xout, xout, m_N); \
-  deallocCudaData(xout); \
-  deallocCudaData(xin); \
-  deallocCudaData(y); \
-  deallocCudaData(z);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void eos(Real_ptr xout, Real_ptr xin, Real_ptr y, Real_ptr z,
@@ -57,8 +44,6 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRIDIAG_ELIM_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +56,7 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    TRIDIAG_ELIM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,8 +68,6 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    TRIDIAG_ELIM_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  TRIDIAG_ELIM : Unknown Cuda variant id = " << vid << std::endl;

@@ -21,13 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define INT_PREDICT_DATA_SETUP_CUDA \
-  allocAndInitCudaData(px, m_px, m_array_length);
-
-#define INT_PREDICT_DATA_TEARDOWN_CUDA \
-  getCudaData(m_px, px, m_array_length); \
-  deallocCudaData(px);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void int_predict(Real_ptr px,
@@ -55,8 +48,6 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INT_PREDICT_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +62,7 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INT_PREDICT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,8 +74,6 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    INT_PREDICT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  INT_PREDICT : Unknown Cuda variant id = " << vid << std::endl;

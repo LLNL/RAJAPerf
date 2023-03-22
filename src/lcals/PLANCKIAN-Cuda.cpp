@@ -22,21 +22,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define PLANCKIAN_DATA_SETUP_CUDA \
-  allocAndInitCudaData(x, m_x, iend); \
-  allocAndInitCudaData(y, m_y, iend); \
-  allocAndInitCudaData(u, m_u, iend); \
-  allocAndInitCudaData(v, m_v, iend); \
-  allocAndInitCudaData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_CUDA \
-  getCudaData(m_w, w, iend); \
-  deallocCudaData(x); \
-  deallocCudaData(y); \
-  deallocCudaData(u); \
-  deallocCudaData(v); \
-  deallocCudaData(w);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
@@ -61,8 +46,6 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    PLANCKIAN_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +58,7 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PLANCKIAN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,8 +70,6 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
