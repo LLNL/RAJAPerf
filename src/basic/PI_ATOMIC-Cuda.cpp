@@ -56,8 +56,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       pi_atomic<block_size><<<grid_size, block_size>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
@@ -77,8 +77,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       });
       cudaErrchk( cudaGetLastError() );
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
@@ -96,8 +96,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();

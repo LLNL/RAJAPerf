@@ -190,11 +190,9 @@ inline void deallocCudaPinnedData(void* pptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void initCudaDeviceData(T& dptr, const T hptr, int len)
+void initCudaDeviceData(T* dptr, const T* hptr, int len)
 {
-  cudaErrchk( cudaMemcpy( dptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          cudaMemcpyHostToDevice ) );
+  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(T), cudaMemcpyHostToDevice ) );
 }
 
 /*!
@@ -204,11 +202,9 @@ void initCudaDeviceData(T& dptr, const T hptr, int len)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getCudaDeviceData(T& hptr, const T dptr, int len)
+void getCudaDeviceData(T* hptr, const T* dptr, int len)
 {
-  cudaErrchk( cudaMemcpy( hptr, dptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaMemcpyDeviceToHost ) );
+  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(T), cudaMemcpyDeviceToHost ) );
 }
 
 }  // closing brace for rajaperf namespace

@@ -240,11 +240,9 @@ inline void deallocHipPinnedData(void* pptr)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void initHipDeviceData(T& dptr, const T hptr, int len)
+void initHipDeviceData(T* dptr, const T* hptr, int len)
 {
-  hipErrchk( hipMemcpy( dptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          hipMemcpyHostToDevice ) );
+  hipErrchk( hipMemcpy( dptr, hptr, len * sizeof(T), hipMemcpyHostToDevice ) );
 }
 /*!
  * \brief Copy given dptr (HIP device) data to host (hptr).
@@ -253,11 +251,9 @@ void initHipDeviceData(T& dptr, const T hptr, int len)
  * and of propoer size for copy operation to succeed.
  */
 template <typename T>
-void getHipDeviceData(T& hptr, const T dptr, int len)
+void getHipDeviceData(T* hptr, const T* dptr, int len)
 {
-  hipErrchk( hipMemcpy( hptr, dptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              hipMemcpyDeviceToHost ) );
+  hipErrchk( hipMemcpy( hptr, dptr, len * sizeof(T), hipMemcpyDeviceToHost ) );
 }
 
 }  // closing brace for rajaperf namespace

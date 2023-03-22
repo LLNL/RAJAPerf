@@ -56,8 +56,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, 0, 0, pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
@@ -79,8 +79,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
@@ -98,8 +98,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();

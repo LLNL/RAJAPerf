@@ -40,9 +40,9 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initOpenMPDeviceData(pi, &m_pi_init, 1, did, hid);
+      initOpenMPDeviceData(pi, &m_pi_init, 1);
 
-      #pragma omp target is_device_ptr(pi) device( did )
+      #pragma omp target is_device_ptr(pi)
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin; i < iend; ++i ) {
         double x = (double(i) + 0.5) * dx;
@@ -50,8 +50,8 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         *pi += dx / (1.0 + x * x);
       }
 
-      getOpenMPDeviceData(m_pi, pi, 1, hid, did);
-      *m_pi *= 4.0;
+      getOpenMPDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
@@ -61,7 +61,7 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initOpenMPDeviceData(pi, &m_pi_init, 1, did, hid);
+      initOpenMPDeviceData(pi, &m_pi_init, 1);
 
       RAJA::forall<RAJA::omp_target_parallel_for_exec<threads_per_team>>(
         RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
@@ -69,8 +69,8 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
           RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getOpenMPDeviceData(m_pi, pi, 1, hid, did);
-      *m_pi *= 4.0;
+      getOpenMPDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
