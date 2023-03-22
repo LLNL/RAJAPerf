@@ -108,7 +108,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocHipDeviceData(mem,6);
+    allocData(DataSpace::HipDevice, mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -141,7 +141,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(mem);
+    deallocData(DataSpace::HipDevice, mem);
 
   } else if ( vid == RAJA_HIP ) {
 

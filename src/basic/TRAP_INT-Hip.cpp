@@ -90,7 +90,7 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::HipDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,7 +113,7 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(sumx);
+    deallocData(DataSpace::HipDevice, sumx);
 
   } else if ( vid == RAJA_HIP ) {
 

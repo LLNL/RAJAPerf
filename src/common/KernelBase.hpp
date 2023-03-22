@@ -252,6 +252,18 @@ public:
   }
 
   template <typename T>
+  void allocData(DataSpace dataSpace, T& ptr, int len)
+  {
+    rajaperf::allocData(dataSpace,
+        ptr, len, getDataAlignment());
+  }
+  template <typename T>
+  void deallocData(DataSpace dataSpace, T& ptr)
+  {
+    rajaperf::deallocData(dataSpace, ptr);
+  }
+
+  template <typename T>
   void allocData(T*& ptr, int len, VariantID vid)
   {
     rajaperf::allocData(getDataSpace(vid),

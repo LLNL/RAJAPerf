@@ -53,11 +53,12 @@ __global__ void fir(Real_ptr out, Real_ptr in,
   Real_ptr coeff; \
   \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitCudaData(coeff, tcoeff, FIR_COEFFLEN);
+  allocData(DataSpace::CudaDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::CudaDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  deallocCudaData(coeff);
+  deallocData(DataSpace::CudaDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

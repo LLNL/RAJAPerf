@@ -28,7 +28,7 @@ namespace apps
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
   void** pack_ptrs; \
-  allocOpenMPDeviceData(pack_ptrs, 4 * num_neighbors * num_vars, did); \
+  allocData(DataSpace::OmpTarget, pack_ptrs, 4 * num_neighbors * num_vars); \
   Real_ptr*   pack_buffer_ptrs = reinterpret_cast<Real_ptr*>(pack_ptrs) + 0 * num_neighbors * num_vars; \
   Int_ptr*    pack_list_ptrs   = reinterpret_cast<Int_ptr*>(pack_ptrs) + 1 * num_neighbors * num_vars; \
   Real_ptr*   pack_var_ptrs    = reinterpret_cast<Real_ptr*>(pack_ptrs) + 2 * num_neighbors * num_vars; \
@@ -39,7 +39,7 @@ namespace apps
   Real_ptr*   h_pack_var_ptrs    = reinterpret_cast<Real_ptr*>(h_pack_ptrs) + 2 * num_neighbors * num_vars; \
   Index_type* h_pack_len_ptrs    = reinterpret_cast<Index_type*>(h_pack_ptrs) + 3 * num_neighbors * num_vars; \
   void** unpack_ptrs; \
-  allocOpenMPDeviceData(unpack_ptrs, 4 * num_neighbors * num_vars, did); \
+  allocData(DataSpace::OmpTarget, unpack_ptrs, 4 * num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs = reinterpret_cast<Real_ptr*>(unpack_ptrs) + 0 * num_neighbors * num_vars; \
   Int_ptr*    unpack_list_ptrs   = reinterpret_cast<Int_ptr*>(unpack_ptrs) + 1 * num_neighbors * num_vars; \
   Real_ptr*   unpack_var_ptrs    = reinterpret_cast<Real_ptr*>(unpack_ptrs) + 2 * num_neighbors * num_vars; \
@@ -51,15 +51,15 @@ namespace apps
   Index_type* h_unpack_len_ptrs    = reinterpret_cast<Index_type*>(h_unpack_ptrs) + 3 * num_neighbors * num_vars;
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_PACK_OMP_TARGET \
-  copyOpenMPDeviceData(pack_ptrs, h_pack_ptrs, 4 * num_neighbors * num_vars, did, hid);
+  initOpenMPDeviceData(pack_ptrs, h_pack_ptrs, 4 * num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_COPY_UNPACK_OMP_TARGET \
-  copyOpenMPDeviceData(unpack_ptrs, h_unpack_ptrs, 4 * num_neighbors * num_vars, did, hid);
+  initOpenMPDeviceData(unpack_ptrs, h_unpack_ptrs, 4 * num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(pack_ptrs, did); \
+  deallocData(DataSpace::OmpTarget, pack_ptrs); \
   delete[] h_pack_ptrs; \
-  deallocOpenMPDeviceData(unpack_ptrs, did); \
+  deallocData(DataSpace::OmpTarget, unpack_ptrs); \
   delete[] h_unpack_ptrs;
 
 

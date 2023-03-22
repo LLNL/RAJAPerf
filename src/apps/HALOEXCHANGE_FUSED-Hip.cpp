@@ -26,28 +26,28 @@ namespace apps
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocHipPinnedData(pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocHipPinnedData(pack_list_ptrs,   num_neighbors * num_vars); \
-  allocHipPinnedData(pack_var_ptrs,    num_neighbors * num_vars); \
-  allocHipPinnedData(pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocHipPinnedData(unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocHipPinnedData(unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::HipPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::HipPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_HIP \
-  deallocHipPinnedData(pack_buffer_ptrs); \
-  deallocHipPinnedData(pack_list_ptrs); \
-  deallocHipPinnedData(pack_var_ptrs); \
-  deallocHipPinnedData(pack_len_ptrs); \
-  deallocHipPinnedData(unpack_buffer_ptrs); \
-  deallocHipPinnedData(unpack_list_ptrs); \
-  deallocHipPinnedData(unpack_var_ptrs); \
-  deallocHipPinnedData(unpack_len_ptrs);
+  deallocData(DataSpace::HipPinned, pack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_list_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_var_ptrs); \
+  deallocData(DataSpace::HipPinned, pack_len_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_buffer_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_list_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_var_ptrs); \
+  deallocData(DataSpace::HipPinned, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

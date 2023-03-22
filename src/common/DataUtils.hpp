@@ -52,40 +52,30 @@ void copyHostData(void* dst_ptr, const void* src_ptr, size_t len);
 /*!
  * \brief Allocate data arrays.
  */
-void allocHostData(Int_ptr& ptr, int len, int align);
-///
-void allocHostData(Index_type*& ptr, int len, int align);
-///
-void allocHostData(Real_ptr& ptr, int len, int align);
-///
-void allocHostData(Complex_ptr& ptr, int len, int align);
+void* allocHostData(int len, int align);
 
 /*!
  * \brief Free data arrays.
  */
-void deallocHostData(Int_ptr& ptr);
-///
-void deallocHostData(Index_type*& ptr);
-///
-void deallocHostData(Real_ptr& ptr);
-///
-void deallocHostData(Complex_ptr& ptr);
+void deallocHostData(void* ptr);
 
 
-/*!
- * \brief Touch Int_type data array with omp threads.
+/*
+ * \brief Touch data array with omp threads.
  */
-void touchOmpData(Int_ptr& ptr, int len);
-
-/*!
- * \brief Touch Real_type data array with omp threads.
- */
-void touchOmpData(Real_ptr& ptr, int len);
-
-/*!
- * \brief Touch Complex_type data array with omp threads.
- */
-void touchOmpData(Complex_ptr& ptr, int len);
+template < typename T >
+void touchOmpData(T* ptr, int len)
+{
+// First touch...
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  #pragma omp parallel for
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = std::numeric_limits<T>::max() - i;
+  };
+#else
+  (void)ptr; (void)len;
+#endif
+}
 
 /*!
  * \brief Initialize Int_type data array.
@@ -287,88 +277,91 @@ inline bool isHipDataSpace(DataSpace dataSpace)
  * \brief Allocate data array (ptr).
  */
 template <typename T>
-inline void allocData(DataSpace dataSpace, T& ptr, int len, int align)
+inline void allocData(DataSpace dataSpace, T& ptr_ref, int len, int align)
 {
+  void* ptr = nullptr;
+  size_t nbytes = len*sizeof(std::remove_pointer_t<T>);
+
   switch (dataSpace) {
     case DataSpace::Host:
     {
-      detail::allocHostData(ptr, len, align);
+      ptr = detail::allocHostData(nbytes, align);
     } break;
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
     case DataSpace::Omp:
     {
-      detail::allocHostData(ptr, len, align);
-      detail::touchOmpData(ptr, len);
+      ptr = detail::allocHostData(nbytes, align);
+      detail::touchOmpData(static_cast<T>(ptr), len);
     } break;
 #endif
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
     case DataSpace::OmpTarget:
     {
-      detail::allocOpenMPDeviceData(ptr, len);
+      ptr = detail::allocOpenMPDeviceData(nbytes);
     } break;
 #endif
 
 #if defined(RAJA_ENABLE_CUDA)
     case DataSpace::CudaPinned:
     {
-      detail::allocCudaPinnedData(ptr, len);
+      ptr = detail::allocCudaPinnedData(nbytes);
     } break;
     case DataSpace::CudaManaged:
     {
-      detail::allocCudaManagedData(ptr, len);
+      ptr = detail::allocCudaManagedData(nbytes);
     } break;
     case DataSpace::CudaDevice:
     {
-      detail::allocCudaDeviceData(ptr, len);
+      ptr = detail::allocCudaDeviceData(nbytes);
     } break;
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
     case DataSpace::HipHostAdviseFine:
     {
-      detail::allocHostData(ptr, len, align);
-      detail::adviseHipFineData(ptr, len);
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipFineData(ptr, nbytes);
     } break;
     case DataSpace::HipHostAdviseCoarse:
     {
-      detail::allocHostData(ptr, len, align);
-      detail::adviseHipCoarseData(ptr, len);
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipCoarseData(ptr, nbytes);
     } break;
     case DataSpace::HipPinned:
     {
-      detail::allocHipPinnedData(ptr, len);
+      ptr = detail::allocHipPinnedData(nbytes);
     } break;
     case DataSpace::HipPinnedFine:
     {
-      detail::allocHipPinnedFineData(ptr, len);
+      ptr = detail::allocHipPinnedFineData(nbytes);
     } break;
     case DataSpace::HipPinnedCoarse:
     {
-      detail::allocHipPinnedCoarseData(ptr, len);
+      ptr = detail::allocHipPinnedCoarseData(nbytes);
     } break;
     case DataSpace::HipManaged:
     {
-      detail::allocHipManagedData(ptr, len);
+      ptr = detail::allocHipManagedData(nbytes);
     } break;
     case DataSpace::HipManagedAdviseFine:
     {
-      detail::allocHipManagedData(ptr, len);
-      detail::adviseHipFineData(ptr, len);
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipFineData(ptr, nbytes);
     } break;
     case DataSpace::HipManagedAdviseCoarse:
     {
-      detail::allocHipManagedData(ptr, len);
-      detail::adviseHipCoarseData(ptr, len);
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipCoarseData(ptr, nbytes);
     } break;
     case DataSpace::HipDevice:
     {
-      detail::allocHipDeviceData(ptr, len);
+      ptr = detail::allocHipDeviceData(nbytes);
     } break;
     case DataSpace::HipDeviceFine:
     {
-      detail::allocHipDeviceFineData(ptr, len);
+      ptr = detail::allocHipDeviceFineData(nbytes);
     } break;
 #endif
 
@@ -377,6 +370,7 @@ inline void allocData(DataSpace dataSpace, T& ptr, int len, int align)
       throw std::invalid_argument("allocData : Unknown data space");
     } break;
   }
+  ptr_ref = static_cast<T>(ptr);
 }
 
 /*!
@@ -441,6 +435,7 @@ inline void deallocData(DataSpace dataSpace, T& ptr)
       throw std::invalid_argument("deallocData : Unknown data space");
     } break;
   }
+  ptr = nullptr;
 }
 
 /*!
@@ -451,9 +446,11 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                      DataSpace src_dataSpace, const T* src_ptr,
                      int len)
 {
+  size_t nbytes = len*sizeof(T);
+
   if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
       hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
-    detail::copyHostData(dst_ptr, src_ptr, sizeof(T)*len);
+    detail::copyHostData(dst_ptr, src_ptr, nbytes);
   }
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
@@ -463,7 +460,7 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                                                           : omp_get_initial_device();
     auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? omp_get_default_device()
                                                           : omp_get_initial_device();
-    detail::copyOpenMPTargetData(dst_ptr, src_ptr, sizeof(T)*len,
+    detail::copyOpenMPTargetData(dst_ptr, src_ptr, nbytes,
         dst_did, src_did);
   }
 #endif
@@ -471,14 +468,14 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
 #if defined(RAJA_ENABLE_CUDA)
   else if (isCudaDataSpace(dst_dataSpace) ||
            isCudaDataSpace(src_dataSpace)) {
-    detail::copyCudaData(dst_ptr, src_ptr, sizeof(T)*len);
+    detail::copyCudaData(dst_ptr, src_ptr, nbytes);
   }
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
   else if (isHipDataSpace(dst_dataSpace) ||
            isHipDataSpace(src_dataSpace)) {
-    detail::copyHipData(dst_ptr, src_ptr, sizeof(T)*len);
+    detail::copyHipData(dst_ptr, src_ptr, nbytes);
   }
 #endif
 

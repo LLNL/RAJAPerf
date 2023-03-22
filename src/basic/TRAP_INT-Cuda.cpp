@@ -90,7 +90,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr sumx;
-    allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::CudaDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,7 +114,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(sumx);
+    deallocData(DataSpace::CudaDevice, sumx);
 
   } else if ( vid == RAJA_CUDA ) {
 

@@ -261,13 +261,13 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocCudaPinnedData(len, 1);
+    allocData(DataSpace::CudaPinned, len, 1);
     Index_type* block_counts;
-    allocCudaDeviceData(block_counts, grid_size);
+    allocData(DataSpace::CudaDevice, block_counts, grid_size);
     Index_type* grid_counts;
-    allocCudaDeviceData(grid_counts, grid_size);
+    allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
-    allocCudaDeviceData(block_readys, grid_size);
+    allocData(DataSpace::CudaDevice, block_readys, grid_size);
     cudaErrchk( cudaMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
 
     startTimer();
@@ -286,10 +286,10 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaPinnedData(len);
-    deallocCudaDeviceData(block_counts);
-    deallocCudaDeviceData(grid_counts);
-    deallocCudaDeviceData(block_readys);
+    deallocData(DataSpace::CudaPinned, len);
+    deallocData(DataSpace::CudaDevice, block_counts);
+    deallocData(DataSpace::CudaDevice, grid_counts);
+    deallocData(DataSpace::CudaDevice, block_readys);
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;

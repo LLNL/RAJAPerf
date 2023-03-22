@@ -53,11 +53,12 @@ __global__ void fir(Real_ptr out, Real_ptr in,
   Real_ptr coeff; \
   \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitHipData(coeff, tcoeff, FIR_COEFFLEN);
+  allocAndInitData(DataSpace::HipDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::HipDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  deallocHipData(coeff);
+  deallocData(DataSpace::HipDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

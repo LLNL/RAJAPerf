@@ -53,108 +53,23 @@ void copyHostData(void* dst_ptr, const void* src_ptr, size_t len)
 /*
  * Allocate data arrays of given type.
  */
-void allocHostData(Int_ptr& ptr, int len, int align)
+void* allocHostData(size_t len, size_t align)
 {
-  ptr = RAJA::allocate_aligned_type<Int_type>(
-      align, len*sizeof(Int_type));
-}
-///
-void allocHostData(Index_type*& ptr, int len, int align)
-{
-  ptr = RAJA::allocate_aligned_type<Index_type>(
-      align, len*sizeof(Index_type));
-}
-
-void allocHostData(Real_ptr& ptr, int len, int align)
-{
-  ptr = RAJA::allocate_aligned_type<Real_type>(
-      align, len*sizeof(Real_type));
-}
-
-void allocHostData(Complex_ptr& ptr, int len, int align)
-{
-  ptr = RAJA::allocate_aligned_type<Complex_type>(
-      align, len*sizeof(Complex_type));
+  return RAJA::allocate_aligned_type<Int_type>(
+      align, len);
 }
 
 
 /*
  * Free data arrays of given type.
  */
-void deallocHostData(Int_ptr& ptr)
+void deallocHostData(void* ptr)
 {
   if (ptr) {
     RAJA::free_aligned(ptr);
-    ptr = nullptr;
   }
 }
 
-void deallocHostData(Index_type*& ptr)
-{
-  if (ptr) {
-    RAJA::free_aligned(ptr);
-    ptr = nullptr;
-  }
-}
-
-void deallocHostData(Real_ptr& ptr)
-{
-  if (ptr) {
-    RAJA::free_aligned(ptr);
-    ptr = nullptr;
-  }
-}
-
-void deallocHostData(Complex_ptr& ptr)
-{
-  if (ptr) {
-    RAJA::free_aligned(ptr);
-    ptr = nullptr;
-  }
-}
-
-
-/*
- * \brief Touch Int_type data array with omp threads.
- */
-void touchOmpData(Int_ptr& ptr, int len)
-{
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  #pragma omp parallel for
-  for (int i = 0; i < len; ++i) {
-    ptr[i] = -987654321;
-  };
-#endif
-}
-
-/*
- * \brief Touch Real_type data array with omp threads.
- */
-void touchOmpData(Real_ptr& ptr, int len)
-{
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  #pragma omp parallel for
-  for (int i = 0; i < len; ++i) {
-    ptr[i] = -(i + 1.11111111)/(i + 1.23456789);
-  };
-#endif
-}
-
-/*
- * \brief Touch Complex_type data array with omp threads.
- */
-void touchOmpData(Complex_ptr& ptr, int len)
-{
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  #pragma omp parallel for
-  for (int i = 0; i < len; ++i) {
-    ptr[i] = -(i + 1.11111111)/(i + 1.23456789);
-  };
-#endif
-}
 
 /*
  * \brief Initialize Int_type data array to

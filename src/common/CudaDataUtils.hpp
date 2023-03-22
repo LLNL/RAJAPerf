@@ -29,9 +29,6 @@
 namespace rajaperf
 {
 
-namespace detail
-{
-
 /*!
  * \brief Device timer, returns a time in ns from an arbitrary starting point.
  * Note that this time is consistent across the whole device.
@@ -116,6 +113,9 @@ __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() 
 }
 
 
+namespace detail
+{
+
 /*
  * Copy memory len bytes from src to dst.
  */
@@ -124,6 +124,64 @@ inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len)
   cudaErrchk( cudaMemcpy( dst_ptr, src_ptr, len,
               cudaMemcpyDefault ) );
 }
+
+/*!
+ * \brief Allocate CUDA device data array (dptr).
+ */
+inline void* allocCudaDeviceData(size_t len)
+{
+  void* dptr = nullptr;
+  cudaErrchk( cudaMalloc( &dptr, len ) );
+  return dptr;
+}
+
+/*!
+ * \brief Allocate CUDA managed data array (dptr).
+ */
+inline void* allocCudaManagedData(size_t len)
+{
+  void* mptr = nullptr;
+  cudaErrchk( cudaMallocManaged( &mptr, len, cudaMemAttachGlobal ) );
+  return mptr;
+}
+
+/*!
+ * \brief Allocate CUDA pinned data array (pptr).
+ */
+inline void* allocCudaPinnedData(size_t len)
+{
+  void* pptr = nullptr;
+  cudaErrchk( cudaHostAlloc( &pptr, len, cudaHostAllocMapped ) );
+  return pptr;
+}
+
+
+/*!
+ * \brief Free device data array.
+ */
+inline void deallocCudaDeviceData(void* dptr)
+{
+  cudaErrchk( cudaFree( dptr ) );
+}
+
+/*!
+ * \brief Free managed data array.
+ */
+inline void deallocCudaManagedData(void* mptr)
+{
+  cudaErrchk( cudaFree( mptr ) );
+}
+
+/*!
+ * \brief Free pinned data array.
+ */
+inline void deallocCudaPinnedData(void* pptr)
+{
+  cudaErrchk( cudaFreeHost( pptr ) );
+}
+
+}  // closing brace for detail namespace
+
 
 /*!
  * \brief Copy given hptr (host) data to CUDA device (dptr).
@@ -140,49 +198,6 @@ void initCudaDeviceData(T& dptr, const T hptr, int len)
 }
 
 /*!
- * \brief Allocate CUDA device data array (dptr).
- */
-template <typename T>
-void allocCudaDeviceData(T& dptr, int len)
-{
-  cudaErrchk( cudaMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
-}
-
-/*!
- * \brief Allocate CUDA managed data array (dptr).
- */
-template <typename T>
-void allocCudaManagedData(T& mptr, int len)
-{
-  cudaErrchk( cudaMallocManaged( (void**)&mptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaMemAttachGlobal ) );
-}
-
-/*!
- * \brief Allocate CUDA pinned data array (pptr).
- */
-template <typename T>
-void allocCudaPinnedData(T& pptr, int len)
-{
-  cudaErrchk( cudaHostAlloc( (void**)&pptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaHostAllocMapped ) );
-}
-
-/*!
- * \brief Allocate CUDA device data array (dptr) and copy given hptr (host)
- * data to device array.
- */
-template <typename T>
-void allocAndInitCudaDeviceData(T& dptr, const T hptr, int len)
-{
-  allocCudaDeviceData(dptr, len);
-  initCudaDeviceData(dptr, hptr, len);
-}
-
-/*!
  * \brief Copy given dptr (CUDA device) data to host (hptr).
  *
  * Method assumes both host and device data arrays are allocated
@@ -195,53 +210,6 @@ void getCudaDeviceData(T& hptr, const T dptr, int len)
               len * sizeof(typename std::remove_pointer<T>::type),
               cudaMemcpyDeviceToHost ) );
 }
-
-/*!
- * \brief Free device data array.
- */
-template <typename T>
-void deallocCudaDeviceData(T& dptr)
-{
-  cudaErrchk( cudaFree( dptr ) );
-  dptr = nullptr;
-}
-
-/*!
- * \brief Free managed data array.
- */
-template <typename T>
-void deallocCudaManagedData(T& mptr)
-{
-  cudaErrchk( cudaFree( mptr ) );
-  mptr = nullptr;
-}
-
-/*!
- * \brief Free pinned data array.
- */
-template <typename T>
-void deallocCudaPinnedData(T& pptr)
-{
-  cudaErrchk( cudaFreeHost( pptr ) );
-  pptr = nullptr;
-}
-
-/*!
- * \brief Copy given cptr (CUDA) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void getCudaData(T& hptr, const T cptr, int len)
-{
-  cudaErrchk( cudaMemcpy( hptr, cptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              cudaMemcpyDefault ) );
-}
-
-
-}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 

@@ -107,7 +107,7 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocCudaDeviceData(mem,6);
+    allocData(DataSpace::CudaDevice, mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -138,7 +138,7 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(mem);
+    deallocData(DataSpace::CudaDevice, mem);
 
   } else if ( vid == RAJA_CUDA ) {
 

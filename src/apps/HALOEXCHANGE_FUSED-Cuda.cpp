@@ -26,28 +26,28 @@ namespace apps
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocCudaPinnedData(pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_list_ptrs,   num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_var_ptrs,    num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocCudaPinnedData(unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::CudaPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
-  deallocCudaPinnedData(pack_buffer_ptrs); \
-  deallocCudaPinnedData(pack_list_ptrs); \
-  deallocCudaPinnedData(pack_var_ptrs); \
-  deallocCudaPinnedData(pack_len_ptrs); \
-  deallocCudaPinnedData(unpack_buffer_ptrs); \
-  deallocCudaPinnedData(unpack_list_ptrs); \
-  deallocCudaPinnedData(unpack_var_ptrs); \
-  deallocCudaPinnedData(unpack_len_ptrs);
+  deallocData(DataSpace::CudaPinned, pack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_len_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

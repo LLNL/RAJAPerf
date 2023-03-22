@@ -56,7 +56,7 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -76,7 +76,7 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     stopTimer();
 
     // Free temporary storage
-    deallocCudaDeviceData(temp_storage);
+    deallocData(DataSpace::CudaDevice, temp_storage);
 
   } else if ( vid == RAJA_CUDA ) {
 

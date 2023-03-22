@@ -70,7 +70,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr dprod;
-    allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
+    allocData(DataSpace::CudaDevice, dprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -90,7 +90,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(dprod);
+    deallocData(DataSpace::CudaDevice, dprod);
 
   } else if ( vid == RAJA_CUDA ) {
 

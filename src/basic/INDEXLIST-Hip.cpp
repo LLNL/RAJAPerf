@@ -261,13 +261,13 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocHipPinnedData(len, 1);
+    allocData(DataSpace::HipPinned, len, 1);
     Index_type* block_counts;
-    allocHipDeviceData(block_counts, grid_size);
+    allocData(DataSpace::HipDevice, block_counts, grid_size);
     Index_type* grid_counts;
-    allocHipDeviceData(grid_counts, grid_size);
+    allocData(DataSpace::HipDevice, grid_counts, grid_size);
     unsigned* block_readys;
-    allocHipDeviceData(block_readys, grid_size);
+    allocData(DataSpace::HipDevice, block_readys, grid_size);
     hipErrchk( hipMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
 
     startTimer();
@@ -286,10 +286,10 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipPinnedData(len);
-    deallocHipDeviceData(block_counts);
-    deallocHipDeviceData(grid_counts);
-    deallocHipDeviceData(block_readys);
+    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipDevice, block_counts);
+    deallocData(DataSpace::HipDevice, grid_counts);
+    deallocData(DataSpace::HipDevice, block_readys);
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;

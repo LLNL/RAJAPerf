@@ -29,10 +29,10 @@ namespace basic
   int did = omp_get_default_device(); \
   \
   Index_type* counts = nullptr; \
-  allocOpenMPDeviceData(counts, iend+1, did);
+  allocData(DataSpace::OmpTarget, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(counts, did);
+  deallocData(DataSpace::OmpTarget, counts);
 
 #endif
 

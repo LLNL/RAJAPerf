@@ -38,20 +38,26 @@ inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
 }
 
 /*!
- * \brief Copy given hptr (host) data to device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
+ * \brief Allocate device data array (dptr) and copy given hptr (host)
+ * data to device array.
  */
-template <typename T>
-void copyOpenMPDeviceData(T& dptr, const T hptr, int len,
-                          int did = omp_get_default_device(),
-                          int hid = omp_get_initial_device())
+inline void* allocOpenMPDeviceData(size_t len,
+                           int did = omp_get_default_device())
 {
-  omp_target_memcpy( dptr, hptr,
-                     len * sizeof(typename std::remove_pointer<T>::type),
-                     0, 0, did, hid );
+  return omp_target_alloc( len, did);
 }
+
+/*!
+ * \brief Free device data array.
+ */
+inline void deallocOpenMPDeviceData(void* dptr,
+                             int did = omp_get_default_device())
+{
+  omp_target_free( dptr, did );
+}
+
+}  // closing brace for detail namespace
+
 
 /*!
  * \brief Copy given hptr (host) data to device (dptr).
@@ -65,32 +71,6 @@ void initOpenMPDeviceData(T& dptr, const T hptr, int len,
                           int hid = omp_get_initial_device())
 {
   copyOpenMPDeviceData(dptr, hptr, len, did, hid);
-}
-
-/*!
- * \brief Allocate device data array (dptr) and copy given hptr (host)
- * data to device array.
- */
-template <typename T>
-void allocOpenMPDeviceData(T& dptr, int len,
-                           int did = omp_get_default_device())
-{
-  dptr = static_cast<T>( omp_target_alloc(
-                         len * sizeof(typename std::remove_pointer<T>::type),
-                         did) );
-}
-
-/*!
- * \brief Allocate device data array (dptr) and copy given hptr (host)
- * data to device array.
- */
-template <typename T>
-void allocAndInitOpenMPDeviceData(T& dptr, const T hptr, int len,
-                                  int did = omp_get_default_device(),
-                                  int hid = omp_get_initial_device())
-{
-  allocOpenMPDeviceData(dptr, len, did);
-  initOpenMPDeviceData(dptr, hptr, len, did, hid);
 }
 
 /*!
@@ -108,20 +88,6 @@ void getOpenMPDeviceData(T& hptr, const T dptr, int len,
                      len * sizeof(typename std::remove_pointer<T>::type),
                      0, 0, hid, did );
 }
-
-/*!
- * \brief Free device data array.
- */
-template <typename T>
-void deallocOpenMPDeviceData(T& dptr,
-                             int did = omp_get_default_device())
-{
-  omp_target_free( dptr, did );
-  dptr = 0;
-}
-
-
-}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 

@@ -85,10 +85,10 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Int_ptr vmem_init;
-    allocCudaPinnedData(vmem_init, 3);
+    allocData(DataSpace::CudaPinned, vmem_init, 3);
 
     Int_ptr vmem;
-    allocCudaDeviceData(vmem, 3);
+    allocData(DataSpace::CudaDevice, vmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -118,8 +118,8 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(vmem);
-    deallocCudaPinnedData(vmem_init);
+    deallocData(DataSpace::CudaDevice, vmem);
+    deallocData(DataSpace::CudaPinned, vmem_init);
 
   } else if ( vid == RAJA_CUDA ) {
 

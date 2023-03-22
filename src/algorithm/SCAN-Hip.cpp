@@ -72,7 +72,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -103,7 +103,7 @@ void SCAN::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
+    deallocData(DataSpace::HipDevice, temp_storage);
 
   } else if ( vid == RAJA_HIP ) {
 

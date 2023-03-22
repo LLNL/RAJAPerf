@@ -31,11 +31,12 @@ namespace apps
   Real_ptr coeff; \
   \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitOpenMPDeviceData(coeff, tcoeff, FIR_COEFFLEN);
+  allocAndInitData(DataSpace::OmpTarget, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::OmpTarget, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(coeff, did);
+  deallocData(DataSpace::OmpTarget, coeff, did);
 
 
 void FIR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

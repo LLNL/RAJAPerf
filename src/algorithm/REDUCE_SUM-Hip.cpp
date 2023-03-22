@@ -78,7 +78,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocHipPinnedData(sum_storage, 1);
+    allocData(DataSpace::HipPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -105,7 +105,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -140,8 +140,8 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(sum_storage);
+    deallocData(DataSpace::HipDevice, temp_storage);
+    deallocData(DataSpace::HipPinned, sum_storage);
 
   } else {
 
@@ -163,7 +163,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocData(DataSpace::HipDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -185,7 +185,7 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
+    deallocData(DataSpace::HipDevice, dsum);
 
   } else if ( vid == RAJA_HIP ) {
 

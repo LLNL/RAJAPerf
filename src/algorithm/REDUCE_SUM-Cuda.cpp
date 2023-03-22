@@ -73,7 +73,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocCudaPinnedData(sum_storage, 1);
+    allocData(DataSpace::CudaPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -89,7 +89,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -113,8 +113,8 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocCudaDeviceData(temp_storage);
-    deallocCudaPinnedData(sum_storage);
+    deallocData(DataSpace::CudaDevice, temp_storage);
+    deallocData(DataSpace::CudaPinned, sum_storage);
 
   } else {
 
@@ -136,7 +136,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr dsum;
-    allocCudaDeviceData(dsum, 1);
+    allocData(DataSpace::CudaDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -159,7 +159,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(dsum);
+    deallocData(DataSpace::CudaDevice, dsum);
 
   } else if ( vid == RAJA_CUDA ) {
 
