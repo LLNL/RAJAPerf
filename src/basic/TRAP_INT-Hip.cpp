@@ -37,11 +37,6 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-#define TRAP_INT_DATA_SETUP_HIP // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void trapint(Real_type x0, Real_type xp,
@@ -94,8 +89,6 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRAP_INT_DATA_SETUP_HIP;
-
     Real_ptr sumx;
     allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
 
@@ -122,11 +115,7 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
 
     deallocHipDeviceData(sumx);
 
-    TRAP_INT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    TRAP_INT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -142,8 +131,6 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    TRAP_INT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;

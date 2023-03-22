@@ -33,16 +33,6 @@ namespace basic
   const size_t items_per_thread = 15;
 
 
-#define INDEXLIST_DATA_SETUP_CUDA \
-  allocAndInitCudaData(x, m_x, iend); \
-  allocAndInitCudaData(list, m_list, iend);
-
-#define INDEXLIST_DATA_TEARDOWN_CUDA \
-  getCudaData(m_list, list, iend); \
-  deallocCudaData(x); \
-  deallocCudaData(list);
-
-
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
 template < size_t block_size, size_t items_per_thread >
@@ -267,8 +257,6 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INDEXLIST_DATA_SETUP_CUDA;
-
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
@@ -302,8 +290,6 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     deallocCudaDeviceData(block_counts);
     deallocCudaDeviceData(grid_counts);
     deallocCudaDeviceData(block_readys);
-
-    INDEXLIST_DATA_TEARDOWN_CUDA;
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;

@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define PI_ATOMIC_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(pi, m_pi, 1);
-
-#define PI_ATOMIC_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(pi);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void atomic_pi(Real_ptr pi,
@@ -53,8 +47,6 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PI_ATOMIC_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +62,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -97,11 +85,7 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -119,8 +103,6 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;

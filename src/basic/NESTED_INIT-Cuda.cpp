@@ -41,13 +41,6 @@ namespace basic
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
 
 
-#define NESTED_INIT_DATA_SETUP_CUDA \
-  allocAndInitCudaData(array, m_array, m_array_length);
-
-#define NESTED_INIT_DATA_TEARDOWN_CUDA \
-  getCudaData(m_array, array, m_array_length); \
-  deallocCudaData(array);
-
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
 __launch_bounds__(i_block_size*j_block_size*k_block_size)
 __global__ void nested_init(Real_ptr array,
@@ -87,8 +80,6 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    NESTED_INIT_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -103,11 +94,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    NESTED_INIT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,11 +113,7 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    NESTED_INIT_DATA_SETUP_CUDA;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -164,8 +147,6 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    NESTED_INIT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  NESTED_INIT : Unknown Cuda variant id = " << vid << std::endl;

@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define DAXPY_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, iend); \
-  allocAndInitHipData(y, m_y, iend);
-
-#define DAXPY_DATA_TEARDOWN_HIP \
-  getHipData(m_y, y, iend); \
-  deallocHipData(x); \
-  deallocHipData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void daxpy(Real_ptr y, Real_ptr x,
@@ -55,8 +46,6 @@ void DAXPY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DAXPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +57,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +74,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -105,8 +86,6 @@ void DAXPY::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DAXPY_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;

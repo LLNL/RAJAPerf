@@ -33,16 +33,6 @@ namespace basic
   const size_t items_per_thread = 8;
 
 
-#define INDEXLIST_DATA_SETUP_HIP \
-  allocAndInitHipData(x, m_x, iend); \
-  allocAndInitHipData(list, m_list, iend);
-
-#define INDEXLIST_DATA_TEARDOWN_HIP \
-  getHipData(m_list, list, iend); \
-  deallocHipData(x); \
-  deallocHipData(list);
-
-
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
 template < size_t block_size, size_t items_per_thread >
@@ -267,8 +257,6 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INDEXLIST_DATA_SETUP_HIP;
-
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
@@ -302,8 +290,6 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     deallocHipDeviceData(block_counts);
     deallocHipDeviceData(grid_counts);
     deallocHipDeviceData(block_readys);
-
-    INDEXLIST_DATA_TEARDOWN_HIP;
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;

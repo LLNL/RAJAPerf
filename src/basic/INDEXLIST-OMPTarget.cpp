@@ -25,18 +25,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define INDEXLIST_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-  \
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(list, m_list, iend, did, hid);
-
-#define INDEXLIST_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_list, list, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(list, did);
-
 #endif
 
 
@@ -54,8 +42,6 @@ void INDEXLIST::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   switch ( vid ) {
 
     case Base_OpenMPTarget : {
-
-      INDEXLIST_DATA_SETUP_OMP_TARGET;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -78,8 +64,6 @@ void INDEXLIST::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
       }
       stopTimer();
-
-      INDEXLIST_DATA_TEARDOWN_OMP_TARGET;
 
       break;
     }

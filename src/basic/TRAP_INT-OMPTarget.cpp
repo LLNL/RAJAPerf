@@ -41,11 +41,6 @@ Real_type trap_int_func(Real_type x,
   const size_t threads_per_team = 256;
 
 
-#define TRAP_INT_DATA_SETUP_OMP_TARGET  // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_OMP_TARGET // nothing to do here...
-
-
 void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -55,8 +50,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    TRAP_INT_DATA_SETUP_OMP_TARGET;
 
     #pragma omp target enter data map(to:x0,xp,y,yp,h)
 
@@ -81,8 +74,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    TRAP_INT_DATA_SETUP_OMP_TARGET;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -97,8 +88,6 @@ void TRAP_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     }
     stopTimer();
-
-    TRAP_INT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  TRAP_INT : Unknown OMP Targetvariant id = " << vid << std::endl;

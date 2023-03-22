@@ -26,15 +26,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define PI_ATOMIC_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(pi, m_pi, 1, did, hid);
-
-#define PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(pi, did);
-
 
 void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -45,8 +36,6 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   PI_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,11 +56,7 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    PI_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,8 +74,6 @@ void PI_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     }
     stopTimer();
-
-    PI_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown OMP Target variant id = " << vid << std::endl;

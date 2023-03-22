@@ -21,22 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define IF_QUAD_DATA_SETUP_HIP \
-  allocAndInitHipData(a, m_a, iend); \
-  allocAndInitHipData(b, m_b, iend); \
-  allocAndInitHipData(c, m_c, iend); \
-  allocAndInitHipData(x1, m_x1, iend); \
-  allocAndInitHipData(x2, m_x2, iend);
-
-#define IF_QUAD_DATA_TEARDOWN_HIP \
-  getHipData(m_x1, x1, iend); \
-  getHipData(m_x2, x2, iend); \
-  deallocHipData(a); \
-  deallocHipData(b); \
-  deallocHipData(c); \
-  deallocHipData(x1); \
-  deallocHipData(x2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void ifquad(Real_ptr x1, Real_ptr x2,
@@ -62,8 +46,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    IF_QUAD_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +57,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    IF_QUAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    IF_QUAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -96,11 +74,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    IF_QUAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    IF_QUAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -112,8 +86,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;

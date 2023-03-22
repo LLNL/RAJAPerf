@@ -21,23 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define MULADDSUB_DATA_SETUP_HIP \
-  allocAndInitHipData(out1, m_out1, iend); \
-  allocAndInitHipData(out2, m_out2, iend); \
-  allocAndInitHipData(out3, m_out3, iend); \
-  allocAndInitHipData(in1, m_in1, iend); \
-  allocAndInitHipData(in2, m_in2, iend);
-
-#define MULADDSUB_DATA_TEARDOWN_HIP \
-  getHipData(m_out1, out1, iend); \
-  getHipData(m_out2, out2, iend); \
-  getHipData(m_out3, out3, iend); \
-  deallocHipData(out1); \
-  deallocHipData(out2); \
-  deallocHipData(out3); \
-  deallocHipData(in1); \
-  deallocHipData(in2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3,
@@ -63,8 +46,6 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MULADDSUB_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -76,11 +57,7 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MULADDSUB_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -97,11 +74,7 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MULADDSUB_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,8 +86,6 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    MULADDSUB_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  MULADDSUB : Unknown Hip variant id = " << vid << std::endl;
