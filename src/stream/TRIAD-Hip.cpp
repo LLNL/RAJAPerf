@@ -21,17 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define TRIAD_DATA_SETUP_HIP \
-  allocAndInitHipData(a, m_a, iend); \
-  allocAndInitHipData(b, m_b, iend); \
-  allocAndInitHipData(c, m_c, iend);
-
-#define TRIAD_DATA_TEARDOWN_HIP \
-  getHipData(m_a, a, iend); \
-  deallocHipData(a); \
-  deallocHipData(b); \
-  deallocHipData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void triad(Real_ptr a, Real_ptr b, Real_ptr c, Real_type alpha,
@@ -55,8 +44,6 @@ void TRIAD::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRIAD_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +55,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    TRIAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +72,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    TRIAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -105,8 +84,6 @@ void TRIAD::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    TRIAD_DATA_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  TRIAD : Unknown Hip variant id = " << vid << std::endl;

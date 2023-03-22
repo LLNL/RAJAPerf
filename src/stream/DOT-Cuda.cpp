@@ -22,14 +22,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define DOT_DATA_SETUP_CUDA \
-  allocAndInitCudaData(a, m_a, iend); \
-  allocAndInitCudaData(b, m_b, iend);
-
-#define DOT_DATA_TEARDOWN_CUDA \
-  deallocCudaData(a); \
-  deallocCudaData(b);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
@@ -77,8 +69,6 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DOT_DATA_SETUP_CUDA;
-
     Real_ptr dprod;
     allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
 
@@ -100,13 +90,9 @@ void DOT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_CUDA;
-
     deallocCudaDeviceData(dprod);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    DOT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -122,8 +108,6 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DOT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;

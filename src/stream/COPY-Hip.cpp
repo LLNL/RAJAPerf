@@ -21,15 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define COPY_DATA_SETUP_HIP \
-  allocAndInitHipData(a, m_a, iend); \
-  allocAndInitHipData(c, m_c, iend);
-
-#define COPY_DATA_TEARDOWN_HIP \
-  getHipData(m_c, c, iend); \
-  deallocHipData(a); \
-  deallocHipData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
@@ -53,8 +44,6 @@ void COPY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    COPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +55,7 @@ void COPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    COPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,11 +72,7 @@ void COPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    COPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -103,8 +84,6 @@ void COPY::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    COPY_DATA_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  COPY : Unknown Hip variant id = " << vid << std::endl;
