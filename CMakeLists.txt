@@ -200,3 +200,7 @@ add_subdirectory(src)
 if (RAJA_PERFSUITE_ENABLE_TESTS)
   add_subdirectory(test)
 endif()
+
+if (RAJA_PERFSUITE_ENABLE_DOCUMENTATION)
+  add_subdirectory(docs)
+endif ()
