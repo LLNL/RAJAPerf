@@ -119,9 +119,8 @@ __device__ inline Index_type lambda_cuda_get_index<RAJA::cuda_block_z_direct>() 
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+inline void copyCudaData(void* dst_ptr, const void* src_ptr, size_t len)
 {
-  (void)vid;
   cudaErrchk( cudaMemcpy( dst_ptr, src_ptr, len,
               cudaMemcpyDefault ) );
 }

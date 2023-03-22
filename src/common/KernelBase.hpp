@@ -252,102 +252,65 @@ public:
   }
 
   template <typename T>
-  void allocData(T*& ptr, int len,
-                 VariantID vid)
+  void allocData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocData(getDataSpace(vid),
-        ptr, len, getDataAlignment(), vid);
+    rajaperf::allocData(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitData(T*& ptr, int len,
-                        VariantID vid)
+  void allocAndInitData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocAndInitData(getDataSpace(vid),
-        ptr, len, getDataAlignment(), vid);
+    rajaperf::allocAndInitData(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitDataConst(T*& ptr, int len, T val,
-                             VariantID vid)
+  void allocAndInitDataConst(T*& ptr, int len, T val, VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataConst(getDataSpace(vid),
-        ptr, len, getDataAlignment(), val, vid);
+    rajaperf::allocAndInitDataConst(getDataSpace(vid),
+        ptr, len, getDataAlignment(), val);
   }
 
   template <typename T>
-  void allocAndInitDataRandSign(T*& ptr, int len,
-                                VariantID vid)
+  void allocAndInitDataRandSign(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandSign(getDataSpace(vid),
-        ptr, len, getDataAlignment(), vid);
+    rajaperf::allocAndInitDataRandSign(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitDataRandValue(T*& ptr, int len,
-                                 VariantID vid)
+  void allocAndInitDataRandValue(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandValue(getDataSpace(vid),
-        ptr, len, getDataAlignment(), vid);
+    rajaperf::allocAndInitDataRandValue(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void deallocData(T*& ptr,
-                   VariantID vid)
+  void deallocData(T*& ptr, VariantID vid)
   {
-    rajaperf::detail::deallocData(getDataSpace(vid), ptr, vid);
+    rajaperf::deallocData(getDataSpace(vid), ptr);
   }
 
   template <typename T>
-  void initData(T*& ptr, int len,
-                VariantID vid)
+  void initData(T& d, VariantID vid)
   {
-    rajaperf::detail::initData(getDataSpace(vid), ptr, len, vid);
+    (void)vid;
+    rajaperf::detail::initData(d);
   }
 
   template <typename T>
-  void initDataConst(T*& ptr, int len, T val,
-                     VariantID vid)
+  long double calcChecksum(T* ptr, int len, VariantID vid)
   {
-    rajaperf::detail::initDataConst(getDataSpace(vid), ptr, len, val, vid);
+    return rajaperf::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), 1.0);
   }
 
   template <typename T>
-  void initDataRandSign(T*& ptr, int len,
-                        VariantID vid)
+  long double calcChecksum(T* ptr, int len, Real_type scale_factor, VariantID vid)
   {
-    rajaperf::detail::initDataRandSign(getDataSpace(vid), ptr, len, vid);
-  }
-
-  template <typename T>
-  void initDataRandValue(T*& ptr, int len,
-                         VariantID vid)
-  {
-    rajaperf::detail::initDataRandValue(getDataSpace(vid), ptr, len, vid);
-  }
-
-  template <typename T>
-  void initData(T& d,
-                VariantID vid)
-  {
-    rajaperf::detail::initData(d, vid);
-  }
-
-  template <typename T>
-  long double calcChecksum(T* ptr, int len,
-                           VariantID vid)
-  {
-    return rajaperf::detail::calcChecksum(getDataSpace(vid),
-      ptr, len, getDataAlignment(), 1.0, vid);
-  }
-
-  template <typename T>
-  long double calcChecksum(T* ptr, int len,
-                           Real_type scale_factor,
-                           VariantID vid)
-  {
-    return rajaperf::detail::calcChecksum(getDataSpace(vid),
-      ptr, len, getDataAlignment(), scale_factor, vid);
+    return rajaperf::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), scale_factor);
   }
 
   void startTimer()

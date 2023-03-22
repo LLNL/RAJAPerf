@@ -30,10 +30,9 @@ namespace detail
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid,
+inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
                           int dst_did, int src_did)
 {
-  (void)vid;
   omp_target_memcpy( dst_ptr, src_ptr, len,
                      0, 0, dst_did, src_did );
 }

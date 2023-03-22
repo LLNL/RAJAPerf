@@ -115,9 +115,8 @@ inline int getHipDevice()
 /*
  * Copy memory len bytes from src to dst.
  */
-inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len)
 {
-  (void)vid;
   hipErrchk( hipMemcpy( dst_ptr, src_ptr, len,
              hipMemcpyDefault ) );
 }

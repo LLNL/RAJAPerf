@@ -44,84 +44,35 @@ void incDataInitCount()
 /*
  * Copy memory len bytes from src to dst.
  */
-void copyHostData(void* dst_ptr, const void* src_ptr, size_t len, VariantID vid)
+void copyHostData(void* dst_ptr, const void* src_ptr, size_t len)
 {
-  (void)vid;
   std::memcpy(dst_ptr, src_ptr, len);
-}
-
-/*
- * Allocate and initialize aligned data arrays.
- */
-void allocAndInitData(Int_ptr& ptr, int len, int align, VariantID vid)
-{
-  allocHostData(ptr, len, align, vid);
-  initData(ptr, len, vid);
-}
-
-void allocAndInitData(Real_ptr& ptr, int len, int align, VariantID vid )
-{
-  allocHostData(ptr, len, align, vid);
-  initData(ptr, len, vid);
-}
-
-void allocAndInitDataConst(Real_ptr& ptr, int len, int align, Real_type val,
-                           VariantID vid)
-{
-  allocHostData(ptr, len, align, vid);
-  initDataConst(ptr, len, val, vid);
-}
-
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, int align, VariantID vid)
-{
-  allocHostData(ptr, len, align, vid);
-  initDataRandSign(ptr, len, vid);
-}
-
-void allocAndInitDataRandValue(Real_ptr& ptr, int len, int align, VariantID vid)
-{
-  allocHostData(ptr, len, align, vid);
-  initDataRandValue(ptr, len, vid);
-}
-
-void allocAndInitData(Complex_ptr& ptr, int len, int align, VariantID vid)
-{
-  allocHostData(ptr, len, align, vid);
-  initData(ptr, len, vid);
 }
 
 
 /*
  * Allocate data arrays of given type.
  */
-void allocHostData(Int_ptr& ptr, int len, int align,
-               VariantID vid)
+void allocHostData(Int_ptr& ptr, int len, int align)
 {
-  (void)vid;
   ptr = RAJA::allocate_aligned_type<Int_type>(
       align, len*sizeof(Int_type));
 }
 ///
-void allocHostData(Index_type*& ptr, int len, int align,
-               VariantID vid)
+void allocHostData(Index_type*& ptr, int len, int align)
 {
-  (void)vid;
   ptr = RAJA::allocate_aligned_type<Index_type>(
       align, len*sizeof(Index_type));
 }
 
-void allocHostData(Real_ptr& ptr, int len, int align,
-               VariantID vid)
+void allocHostData(Real_ptr& ptr, int len, int align)
 {
-  (void)vid;
   ptr = RAJA::allocate_aligned_type<Real_type>(
       align, len*sizeof(Real_type));
 }
 
-void allocHostData(Complex_ptr& ptr, int len, int align,
-               VariantID vid)
+void allocHostData(Complex_ptr& ptr, int len, int align)
 {
-  (void)vid;
   ptr = RAJA::allocate_aligned_type<Complex_type>(
       align, len*sizeof(Complex_type));
 }
@@ -130,40 +81,32 @@ void allocHostData(Complex_ptr& ptr, int len, int align,
 /*
  * Free data arrays of given type.
  */
-void deallocHostData(Int_ptr& ptr,
-                 VariantID vid)
+void deallocHostData(Int_ptr& ptr)
 {
-  (void)vid;
   if (ptr) {
     RAJA::free_aligned(ptr);
     ptr = nullptr;
   }
 }
 
-void deallocHostData(Index_type*& ptr,
-                 VariantID vid)
+void deallocHostData(Index_type*& ptr)
 {
-  (void)vid;
   if (ptr) {
     RAJA::free_aligned(ptr);
     ptr = nullptr;
   }
 }
 
-void deallocHostData(Real_ptr& ptr,
-                 VariantID vid)
+void deallocHostData(Real_ptr& ptr)
 {
-  (void)vid;
   if (ptr) {
     RAJA::free_aligned(ptr);
     ptr = nullptr;
   }
 }
 
-void deallocHostData(Complex_ptr& ptr,
-                 VariantID vid)
+void deallocHostData(Complex_ptr& ptr)
 {
-  (void)vid;
   if (ptr) {
     RAJA::free_aligned(ptr);
     ptr = nullptr;
@@ -172,25 +115,53 @@ void deallocHostData(Complex_ptr& ptr,
 
 
 /*
+ * \brief Touch Int_type data array with omp threads.
+ */
+void touchOmpData(Int_ptr& ptr, int len)
+{
+// First touch...
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  #pragma omp parallel for
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = -987654321;
+  };
+#endif
+}
+
+/*
+ * \brief Touch Real_type data array with omp threads.
+ */
+void touchOmpData(Real_ptr& ptr, int len)
+{
+// First touch...
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  #pragma omp parallel for
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = -(i + 1.11111111)/(i + 1.23456789);
+  };
+#endif
+}
+
+/*
+ * \brief Touch Complex_type data array with omp threads.
+ */
+void touchOmpData(Complex_ptr& ptr, int len)
+{
+// First touch...
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+  #pragma omp parallel for
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = -(i + 1.11111111)/(i + 1.23456789);
+  };
+#endif
+}
+
+/*
  * \brief Initialize Int_type data array to
  * randomly signed positive and negative values.
  */
-void initData(Int_ptr& ptr, int len, VariantID vid)
+void initData(Int_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0;
-    };
-  }
-#endif
-
   srand(4793);
 
   Real_type signfact = 0.0;
@@ -216,23 +187,9 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
  * positive values (0.0, 1.0) based on their array position
  * (index) and the order in which this method is called.
  */
-void initData(Real_ptr& ptr, int len, VariantID vid)
+void initData(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
-
-// first touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    };
-  }
-#endif
 
   for (int i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
@@ -244,24 +201,8 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Real_type data array to constant values.
  */
-void initDataConst(Real_ptr& ptr, int len, Real_type val,
-                   VariantID vid)
+void initDataConst(Real_ptr& ptr, int len, Real_type val)
 {
-
-// first touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0;
-    };
-  }
-#else
-  (void) vid;
-#endif
-
   for (int i = 0; i < len; ++i) {
     ptr[i] = val;
   };
@@ -272,22 +213,8 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
 /*
  * Initialize Real_type data array with random sign.
  */
-void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandSign(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0.0;
-    };
-  }
-#endif
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
   srand(4793);
@@ -304,22 +231,8 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Real_type data array with random values.
  */
-void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandValue(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0.0;
-    };
-  }
-#endif
-
   srand(4793);
 
   for (int i = 0; i < len; ++i) {
@@ -332,23 +245,10 @@ void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Complex_type data array.
  */
-void initData(Complex_ptr& ptr, int len, VariantID vid)
+void initData(Complex_ptr& ptr, int len)
 {
-  (void) vid;
-
   Complex_type factor = ( data_init_count % 2 ?  Complex_type(0.1,0.2) :
                                                  Complex_type(0.2,0.3) );
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    };
-  }
-#endif
 
   for (int i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
@@ -360,10 +260,8 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize scalar data.
  */
-void initData(Real_type& d, VariantID vid)
+void initData(Real_type& d)
 {
-  (void) vid;
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
   d = factor*1.1/1.12345;
 
