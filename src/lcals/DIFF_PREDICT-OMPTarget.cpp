@@ -24,7 +24,7 @@ namespace lcals
   //
   // Define threads per team for target execution
   //
-  const size_t threads_per_team = 256
+  const size_t threads_per_team = 256;
 
 
 void DIFF_PREDICT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
