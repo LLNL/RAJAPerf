@@ -27,8 +27,8 @@
   Real_ptr A = m_A; \
   Real_ptr B = m_B; \
   \
-  copyData(A, m_Ainit, m_N, vid); \
-  copyData(B, m_Binit, m_N, vid); \
+  copyData(getDataSpace(vid), A, getDataSpace(vid), m_Ainit, m_N); \
+  copyData(getDataSpace(vid), B, getDataSpace(vid), m_Binit, m_N); \
   \
   const Index_type N = m_N; \
   const Index_type tsteps = m_tsteps;

@@ -263,6 +263,15 @@ public:
     rajaperf::allocData(dataSpace,
         ptr, len, getDataAlignment());
   }
+
+  template <typename T>
+  void copyData(DataSpace dst_dataSpace, T* dst_ptr,
+                DataSpace src_dataSpace, const T* src_ptr,
+                int len)
+  {
+    rajaperf::copyData(dst_dataSpace, dst_ptr, src_dataSpace, src_ptr, len);
+  }
+
   template <typename T>
   void deallocData(DataSpace dataSpace, T& ptr)
   {
@@ -310,12 +319,6 @@ public:
     rajaperf::moveData(getHostAccessibleDataSpace(vid), getDataSpace(vid),
         ptr, len, getDataAlignment());
     return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
-  }
-
-  template <typename T>
-  void copyData(T* dst_ptr, const T* src_ptr, int len, VariantID vid)
-  {
-    rajaperf::copyData(getDataSpace(vid), dst_ptr, getDataSpace(vid), src_ptr, len);
   }
 
   template <typename T>
