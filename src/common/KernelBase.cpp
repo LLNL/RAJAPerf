@@ -15,8 +15,11 @@
 
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid, const RunParams& params) :
-  run_params(params)
+KernelBase::KernelBase(KernelID kid, const RunParams& params)
+  : run_params(params)
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  , did(getOpenMPTargetDevice())
+#endif
 {
   kernel_id = kid;
   name = getFullKernelName(kernel_id);

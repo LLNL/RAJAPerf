@@ -409,6 +409,10 @@ protected:
   std::vector<Checksum_type> checksum[NumVariants];
   Checksum_type checksum_scale_factor;
 
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  int did;
+#endif
+
 private:
   KernelBase() = delete;
 
