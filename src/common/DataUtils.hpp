@@ -463,10 +463,10 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   else if (isOpenMPTargetDataSpace(dst_dataSpace) ||
            isOpenMPTargetDataSpace(src_dataSpace)) {
-    auto dst_did = isOpenMPTargetDataSpace(dst_dataSpace) ? omp_get_default_device()
-                                                          : omp_get_initial_device();
-    auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? omp_get_default_device()
-                                                          : omp_get_initial_device();
+    auto dst_did = isOpenMPTargetDataSpace(dst_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
+    auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
     detail::copyOpenMPTargetData(dst_ptr, src_ptr, nbytes,
         dst_did, src_did);
   }

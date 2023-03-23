@@ -25,9 +25,24 @@
 namespace rajaperf
 {
 
+/*!
+ * \brief Get OpenMPTarget compute device id.
+ */
+inline int getOpenMPTargetDevice()
+{
+  return omp_get_default_device();
+}
+
+/*!
+ * \brief Get OpenMPTarget host device id.
+ */
+inline int getOpenMPTargetHost()
+{
+  return omp_get_initial_device();
+}
+
 namespace detail
 {
-
 
 /*
  * Copy memory len bytes from src to dst.
@@ -44,7 +59,7 @@ inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
  * data to device array.
  */
 inline void* allocOpenMPDeviceData(size_t len,
-                           int did = omp_get_default_device())
+                           int did = getOpenMPTargetDevice())
 {
   return omp_target_alloc( len, did);
 }
@@ -53,7 +68,7 @@ inline void* allocOpenMPDeviceData(size_t len,
  * \brief Free device data array.
  */
 inline void deallocOpenMPDeviceData(void* dptr,
-                             int did = omp_get_default_device())
+                             int did = getOpenMPTargetDevice())
 {
   omp_target_free( dptr, did );
 }
@@ -69,8 +84,8 @@ inline void deallocOpenMPDeviceData(void* dptr,
  */
 template <typename T>
 void initOpenMPDeviceData(T* dptr, const T* hptr, int len,
-                          int did = omp_get_default_device(),
-                          int hid = omp_get_initial_device())
+                          int did = getOpenMPTargetDevice(),
+                          int hid = getOpenMPTargetHost())
 {
   omp_target_memcpy( dptr, const_cast<T*>(hptr), len * sizeof(T), 0, 0, did, hid);
 }
@@ -83,8 +98,8 @@ void initOpenMPDeviceData(T* dptr, const T* hptr, int len,
  */
 template <typename T>
 void getOpenMPDeviceData(T* hptr, const T* dptr, int len,
-                         int hid = omp_get_initial_device(),
-                         int did = omp_get_default_device())
+                         int hid = getOpenMPTargetHost(),
+                         int did = getOpenMPTargetDevice())
 {
   omp_target_memcpy( hptr, const_cast<T*>(dptr), len * sizeof(T), 0, 0, hid, did );
 }
