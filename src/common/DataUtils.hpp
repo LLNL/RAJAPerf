@@ -537,6 +537,7 @@ struct AutoDataMover
   { }
   AutoDataMover& operator=(AutoDataMover&& rhs)
   {
+    finalize();
     m_ptr = std::exchange(rhs.m_ptr, nullptr);
     m_new_dataSpace = rhs.m_new_dataSpace;
     m_old_dataSpace = rhs.m_old_dataSpace;
