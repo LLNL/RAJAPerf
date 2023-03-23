@@ -126,6 +126,18 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val)
 }
 
 /*
+ * Initialize Index_type data array to constant values.
+ */
+void initDataConst(Index_type*& ptr, int len, Index_type val)
+{
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = val;
+  };
+
+  incDataInitCount();
+}
+
+/*
  * Initialize Real_type data array with random sign.
  */
 void initDataRandSign(Real_ptr& ptr, int len)

@@ -78,6 +78,14 @@ void NODAL_ACCUMULATION_3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 {
   allocAndInitDataConst(m_x, m_nodal_array_length, 0.0, vid);
   allocAndInitDataConst(m_vol, m_zonal_array_length, 1.0, vid);
+  allocAndInitDataConst(m_real_zones, m_domain->n_real_zones,
+                        static_cast<Index_type>(-1), vid);
+
+  {
+    auto reset_rz = scopedMoveData(m_real_zones, m_domain->n_real_zones, vid);
+
+    setRealZones_3d(m_real_zones, *m_domain);
+  }
 }
 
 void NODAL_ACCUMULATION_3D::updateChecksum(VariantID vid, size_t tune_idx)

@@ -53,8 +53,6 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,12 +69,9 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
     camp::resources::Resource working_res{camp::resources::Cuda()};
-    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                             m_domain->n_real_zones,
-                                             working_res);
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             working_res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

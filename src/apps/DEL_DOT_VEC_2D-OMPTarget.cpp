@@ -41,11 +41,6 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
 
   if ( vid == Base_OpenMPTarget ) {
 
-    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -63,15 +58,9 @@ void DEL_DOT_VEC_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
 
   } else if ( vid == RAJA_OpenMPTarget ) {
 
-    NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ;
-    NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ;
-    NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ;
-    NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ;
-
     camp::resources::Resource working_res{camp::resources::Omp::get_default()};
-    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                             m_domain->n_real_zones,
-                                             working_res);
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             working_res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

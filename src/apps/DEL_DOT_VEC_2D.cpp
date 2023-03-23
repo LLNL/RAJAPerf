@@ -73,14 +73,18 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_real_zones, m_domain->n_real_zones,
+                        static_cast<Index_type>(-1), vid);
 
   {
     auto reset_x = scopedMoveData(m_x, m_array_length, vid);
     auto reset_y = scopedMoveData(m_y, m_array_length, vid);
+    auto reset_rz = scopedMoveData(m_real_zones, m_domain->n_real_zones, vid);
 
     Real_type dx = 0.2;
     Real_type dy = 0.1;
     setMeshPositions_2d(m_x, dx, m_y, dy, *m_domain);
+    setRealZones_2d(m_real_zones, *m_domain);
   }
 
   allocAndInitData(m_xdot, m_array_length, vid);

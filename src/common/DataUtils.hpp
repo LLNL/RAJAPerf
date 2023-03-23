@@ -103,6 +103,13 @@ void initData(Real_ptr& ptr, int len);
 void initDataConst(Real_ptr& ptr, int len, Real_type val);
 
 /*!
+ * \brief Initialize Index_type data array.
+ *
+ * Array entries are set to given constant value.
+ */
+void initDataConst(Index_type*& ptr, int len, Index_type val);
+
+/*!
  * \brief Initialize Real_type data array with random sign.
  *
  * Array entries are initialized in the same way as the method
@@ -579,12 +586,11 @@ inline void allocAndInitData(DataSpace dataSpace, T*& ptr, int len, int align)
 /*!
  * \brief Allocate and initialize aligned Real_type data array.
  *
- * Array entries are initialized using the method
- * initDataConst(Real_ptr& ptr...) below.
+ * Array entries are initialized using the method initDataConst.
  */
 template <typename T>
 inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, int len, int align,
-                                  Real_type val)
+                                  T val)
 {
   DataSpace init_dataSpace = hostAccessibleDataSpace(dataSpace);
 
@@ -598,7 +604,7 @@ inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, int len, int ali
 /*!
  * \brief Allocate and initialize aligned Real_type data array with random sign.
  *
- * Array is initialized using method initDataRandSign(Real_ptr& ptr...) below.
+ * Array is initialized using method initDataRandSign.
  */
 template <typename T>
 inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, int len, int align)
@@ -616,7 +622,7 @@ inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, int len, int 
  * \brief Allocate and initialize aligned Real_type data array with random
  *        values.
  *
- * Array is initialized using method initDataRandValue(Real_ptr& ptr...) below.
+ * Array is initialized using method initDataRandValue.
  */
 template <typename T>
 inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, int len, int align)
