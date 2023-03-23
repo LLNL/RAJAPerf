@@ -313,6 +313,12 @@ public:
   }
 
   template <typename T>
+  void copyData(T* dst_ptr, const T* src_ptr, int len, VariantID vid)
+  {
+    rajaperf::copyData(getDataSpace(vid), dst_ptr, getDataSpace(vid), src_ptr, len);
+  }
+
+  template <typename T>
   void deallocData(T*& ptr, VariantID vid)
   {
     rajaperf::deallocData(getDataSpace(vid), ptr);

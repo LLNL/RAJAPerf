@@ -80,8 +80,8 @@ void POLYBENCH_JACOBI_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
   (void) vid;
   allocAndInitData(m_Ainit, m_N*m_N, vid);
   allocAndInitData(m_Binit, m_N*m_N, vid);
-  allocAndInitDataConst(m_A, m_N*m_N, 0.0, vid);
-  allocAndInitDataConst(m_B, m_N*m_N, 0.0, vid);
+  allocData(m_A, m_N*m_N, vid);
+  allocData(m_B, m_N*m_N, vid);
 }
 
 void POLYBENCH_JACOBI_2D::updateChecksum(VariantID vid, size_t tune_idx)
