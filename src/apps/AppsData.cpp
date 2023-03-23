@@ -40,7 +40,7 @@ void setRealZones_2d(Index_type* real_zones,
      for (Index_type i = imin; i < imax; i++) {
         Index_type ip = i + j*jp ;
 
-        Index_type id = i + j*j_stride ;
+        Index_type id = (i-imin) + (j-jmin)*j_stride ;
         real_zones[id] = ip;
      }
   }
@@ -73,9 +73,9 @@ void setRealZones_3d(Index_type* real_zones,
   for (Index_type k = kmin; k < kmax; k++) {
      for (Index_type j = jmin; j < jmax; j++) {
         for (Index_type i = imin; i < imax; i++) {
-           Index_type ip = i + j*jp + kp*k ;
+           Index_type ip = i + j*jp + k*kp ;
 
-           Index_type id = i + j*j_stride + k_stride*k ;
+           Index_type id = (i-imin) + (j-jmin)*j_stride + (k-kmin)*k_stride ;
            real_zones[id] = ip;
         }
      }
@@ -160,7 +160,7 @@ void setMeshPositions_3d(Real_ptr x, Real_type dx,
   for (Index_type k = kmin - npnl; k < kmax + npnr; k++) {
      for (Index_type j = jmin - npnl; j < jmax + npnr; j++) {
         for (Index_type i = imin - npnl; i < imax + npnr; i++) {
-           Index_type iz = i + j*jp + kp*k ;
+           Index_type iz = i + j*jp + k*kp ;
 
            x0[iz] = x2[iz] = x4[iz] = x6[iz] = i*dx;
            x1[iz] = x3[iz] = x5[iz] = x7[iz] = (i+1)*dx;
