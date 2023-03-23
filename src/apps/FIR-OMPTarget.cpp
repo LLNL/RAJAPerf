@@ -31,7 +31,7 @@ namespace apps
   Real_ptr coeff; \
   \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitData(DataSpace::OmpTarget, coeff, FIR_COEFFLEN); \
+  allocData(DataSpace::OmpTarget, coeff, FIR_COEFFLEN); \
   copyData(DataSpace::OmpTarget, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 

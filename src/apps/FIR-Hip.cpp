@@ -53,7 +53,7 @@ __global__ void fir(Real_ptr out, Real_ptr in,
   Real_ptr coeff; \
   \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitData(DataSpace::HipDevice, coeff, FIR_COEFFLEN); \
+  allocData(DataSpace::HipDevice, coeff, FIR_COEFFLEN); \
   copyData(DataSpace::HipDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
