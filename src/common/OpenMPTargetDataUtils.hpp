@@ -19,6 +19,8 @@
 
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
 
+#include <omp.h>
+
 
 namespace rajaperf
 {
