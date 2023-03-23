@@ -305,41 +305,9 @@ public:
   }
 
   template <typename T>
-  rajaperf::AutoDataMover<T> allocSetupData(T*& ptr, int len, VariantID vid)
+  rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::allocData(getHostAccessibleDataSpace(vid),
-        ptr, len, getDataAlignment());
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
-  }
-
-  template <typename T>
-  rajaperf::AutoDataMover<T> allocAndInitSetupData(T*& ptr, int len, VariantID vid)
-  {
-    rajaperf::allocAndInitData(getHostAccessibleDataSpace(vid),
-        ptr, len, getDataAlignment());
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
-  }
-
-  template <typename T>
-  rajaperf::AutoDataMover<T> allocAndInitSetupDataConst(T*& ptr, int len, T val, VariantID vid)
-  {
-    rajaperf::allocAndInitDataConst(getHostAccessibleDataSpace(vid),
-        ptr, len, getDataAlignment(), val);
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
-  }
-
-  template <typename T>
-  rajaperf::AutoDataMover<T> allocAndInitSetupDataRandSign(T*& ptr, int len, VariantID vid)
-  {
-    rajaperf::allocAndInitDataRandSign(getHostAccessibleDataSpace(vid),
-        ptr, len, getDataAlignment());
-    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
-  }
-
-  template <typename T>
-  rajaperf::AutoDataMover<T> allocAndInitSetupDataRandValue(T*& ptr, int len, VariantID vid)
-  {
-    rajaperf::allocAndInitDataRandValue(getHostAccessibleDataSpace(vid),
+    rajaperf::moveData(getHostAccessibleDataSpace(vid), getDataSpace(vid),
         ptr, len, getDataAlignment());
     return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
   }

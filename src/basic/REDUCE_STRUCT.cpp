@@ -67,14 +67,20 @@ void REDUCE_STRUCT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_init_sum = 0.0;
   m_init_min = std::numeric_limits<Real_type>::max();
   m_init_max = std::numeric_limits<Real_type>::lowest();
-  auto finalize_x = allocAndInitSetupData(m_x, getActualProblemSize(), vid);
-  auto finalize_y = allocAndInitSetupData(m_y, getActualProblemSize(), vid);
-  Real_type dx = Lx/(Real_type)(getActualProblemSize());
-  Real_type dy = Ly/(Real_type)(getActualProblemSize());
-  for (int i=0;i<getActualProblemSize();i++){ \
-    m_x[i] = i*dx;
-    m_y[i] = i*dy;
-  } 
+  allocAndInitData(m_x, getActualProblemSize(), vid);
+  allocAndInitData(m_y, getActualProblemSize(), vid);
+
+  {
+    auto reset_x = scopedMoveData(m_x, getActualProblemSize(), vid);
+    auto reset_y = scopedMoveData(m_y, getActualProblemSize(), vid);
+
+    Real_type dx = Lx/(Real_type)(getActualProblemSize());
+    Real_type dy = Ly/(Real_type)(getActualProblemSize());
+    for (int i=0;i<getActualProblemSize();i++){ \
+      m_x[i] = i*dx;
+      m_y[i] = i*dy;
+    }
+  }
 }
 
 void REDUCE_STRUCT::updateChecksum(VariantID vid, size_t tune_idx)

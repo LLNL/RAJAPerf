@@ -572,9 +572,7 @@ inline void allocAndInitData(DataSpace dataSpace, T*& ptr, int len, int align)
 
   detail::initData(ptr, len);
 
-  if (init_dataSpace != dataSpace) {
-    moveData(dataSpace, init_dataSpace, ptr, len, align);
-  }
+  moveData(dataSpace, init_dataSpace, ptr, len, align);
 }
 
 
@@ -594,9 +592,7 @@ inline void allocAndInitDataConst(DataSpace dataSpace, T*& ptr, int len, int ali
 
   detail::initDataConst(ptr, len, val);
 
-  if (init_dataSpace != dataSpace) {
-    moveData(dataSpace, init_dataSpace, ptr, len, align);
-  }
+  moveData(dataSpace, init_dataSpace, ptr, len, align);
 }
 
 /*!
@@ -613,9 +609,7 @@ inline void allocAndInitDataRandSign(DataSpace dataSpace, T*& ptr, int len, int 
 
   detail::initDataRandSign(ptr, len);
 
-  if (init_dataSpace != dataSpace) {
-    moveData(dataSpace, init_dataSpace, ptr, len, align);
-  }
+  moveData(dataSpace, init_dataSpace, ptr, len, align);
 }
 
 /*!
@@ -633,9 +627,7 @@ inline void allocAndInitDataRandValue(DataSpace dataSpace, T*& ptr, int len, int
 
   detail::initDataRandValue(ptr, len);
 
-  if (init_dataSpace != dataSpace) {
-    moveData(dataSpace, init_dataSpace, ptr, len, align);
-  }
+  moveData(dataSpace, init_dataSpace, ptr, len, align);
 }
 
 /*
