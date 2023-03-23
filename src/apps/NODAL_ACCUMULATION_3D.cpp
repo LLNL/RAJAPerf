@@ -41,7 +41,7 @@ NODAL_ACCUMULATION_3D::NODAL_ACCUMULATION_3D(const RunParams& params)
   // touched data size, not actual number of stores and loads
   setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
                   (0*sizeof(Real_type) + 1*sizeof(Real_type)) * getItsPerRep() +
-                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * (m_domain->imax+1 - m_domain->imin)*(m_domain->jmax+1 - m_domain->jmin)*(m_domain->kmax+1 - m_domain->kmin));
+                  (1*sizeof(Real_type) + 1*sizeof(Real_type)) * m_domain->n_real_nodes);
   setFLOPsPerRep(9 * getItsPerRep());
 
   checksum_scale_factor = 0.001 *

@@ -56,6 +56,7 @@ public:
       jmax = rzmax + NPNR;
       jp = imax - imin + 1 + NPNL + NPNR;
       n_real_zones = (imax - imin);
+      n_real_nodes = (imax+1 - imin);
 
       if ( ndims == 2 ) {
          kmin = 0;
@@ -63,12 +64,14 @@ public:
          kp = 0;
          nnalls = jp * (jmax - jmin + 1 + NPNL + NPNR) ;
          n_real_zones *= (jmax - jmin);
+         n_real_nodes *= (jmax+1 - jmin);
       } else if ( ndims == 3 ) {
          kmin = NPNL;
          kmax = rzmax + NPNR;
          kp = jp * (jmax - jmin + 1 + NPNL + NPNR);
          nnalls = kp * (kmax - kmin + 1 + NPNL + NPNR) ;
          n_real_zones *= (jmax - jmin) * (kmax - kmin);
+         n_real_nodes *= (jmax+1 - jmin) * (kmax+1 - kmin);
       }
 
       fpn = 0;
@@ -108,6 +111,7 @@ public:
    Index_type lpz;
 
    Index_type  n_real_zones;
+   Index_type  n_real_nodes;
 };
 
 //
