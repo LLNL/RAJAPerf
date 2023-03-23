@@ -36,7 +36,7 @@ namespace apps
 
 
 #define FIR_DATA_TEARDOWN_OMP_TARGET \
-  deallocData(DataSpace::OmpTarget, coeff, did);
+  deallocData(DataSpace::OmpTarget, coeff);
 
 
 void FIR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

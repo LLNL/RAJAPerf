@@ -26,8 +26,6 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define INDEXLIST_3LOOP_DATA_SETUP_OMP_TARGET \
-  int did = omp_get_default_device(); \
-  \
   Index_type* counts = nullptr; \
   allocData(DataSpace::OmpTarget, counts, iend+1);
 
