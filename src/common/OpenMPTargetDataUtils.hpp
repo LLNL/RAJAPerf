@@ -35,7 +35,7 @@ namespace detail
 inline void copyOpenMPTargetData(void* dst_ptr, const void* src_ptr, size_t len,
                           int dst_did, int src_did)
 {
-  omp_target_memcpy( dst_ptr, src_ptr, len,
+  omp_target_memcpy( dst_ptr, const_cast<void*>(src_ptr), len,
                      0, 0, dst_did, src_did );
 }
 
@@ -72,7 +72,7 @@ void initOpenMPDeviceData(T* dptr, const T* hptr, int len,
                           int did = omp_get_default_device(),
                           int hid = omp_get_initial_device())
 {
-  omp_target_memcpy( dptr, hptr, len * sizeof(T), 0, 0, did, hid);
+  omp_target_memcpy( dptr, const_cast<T*>(hptr), len * sizeof(T), 0, 0, did, hid);
 }
 
 /*!
@@ -86,7 +86,7 @@ void getOpenMPDeviceData(T* hptr, const T* dptr, int len,
                          int hid = omp_get_initial_device(),
                          int did = omp_get_default_device())
 {
-  omp_target_memcpy( hptr, dptr, len * sizeof(T), 0, 0, hid, did );
+  omp_target_memcpy( hptr, const_cast<T*>(dptr), len * sizeof(T), 0, 0, hid, did );
 }
 
 }  // closing brace for rajaperf namespace
