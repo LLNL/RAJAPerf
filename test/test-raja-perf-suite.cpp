@@ -40,14 +40,14 @@ TEST(ShortSuiteTest, Basic)
   sargv.emplace_back(std::string("FIRST_MIN"));
 #endif
 
-  char *unit_test = getenv("RAJA_PERF_UNIT_TEST");
+  char *unit_test = getenv("RAJA_PERFSUITE_UNIT_TEST");
   if (unit_test != NULL) {
     sargv.emplace_back(std::string("-k"));
     sargv.emplace_back(std::string(unit_test));
   }
 
   char** argv = new char* [sargv.size()];
-  for (int is = 0; is < sargv.size(); ++is) {
+  for (size_t is = 0; is < sargv.size(); ++is) {
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
 
