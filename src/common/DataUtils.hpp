@@ -160,6 +160,11 @@ long double calcChecksum(Complex_ptr d, int len,
 
 
 /*!
+ * \brief Get if data space is available in this config.
+ */
+bool isAvailableDataSpace(DataSpace dataSpace);
+
+/*!
  * \brief Get an host accessible data space for this dataSpace.
  *
  * Intended to be a space that is quick to copy to from the given space if

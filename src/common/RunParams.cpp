@@ -483,6 +483,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-kds") ) {
 
       bool got_someting = false;
+      bool got_something_available = false;
       i++;
       if ( i < argc ) {
         auto opt_name = std::move(opt);
@@ -490,27 +491,29 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int ds = 0; ds < static_cast<int>(DataSpace::NumSpaces); ++ds) {
-            if (getDataSpaceName(static_cast<DataSpace>(ds)) == opt) {
+          for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+            DataSpace ds = static_cast<DataSpace>(ids);
+            if (getDataSpaceName(ds) == opt) {
               got_someting = true;
+              got_something_available = isAvailableDataSpace(ds);
               if (        opt_name == std::string("--seq-data-space") ||
                           opt_name == std::string("-sds") ) {
-                seqDataSpace = static_cast<DataSpace>(ds);
+                seqDataSpace = ds;
               } else if ( opt_name == std::string("--omp-data-space") ||
                           opt_name == std::string("-ods") ) {
-                ompDataSpace = static_cast<DataSpace>(ds);
+                ompDataSpace = ds;
               } else if ( opt_name == std::string("--omptarget-data-space") ||
                           opt_name == std::string("-otds") ) {
-                ompTargetDataSpace = static_cast<DataSpace>(ds);
+                ompTargetDataSpace = ds;
               } else if ( opt_name == std::string("--cuda-data-space") ||
                           opt_name == std::string("-cds") ) {
-                cudaDataSpace = static_cast<DataSpace>(ds);
+                cudaDataSpace = ds;
               } else if ( opt_name == std::string("--hip-data-space") ||
                           opt_name == std::string("-hds") ) {
-                hipDataSpace = static_cast<DataSpace>(ds);
+                hipDataSpace = ds;
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
-                kokkosDataSpace = static_cast<DataSpace>(ds);
+                kokkosDataSpace = ds;
               } else {
                 got_someting = false;
               }
@@ -521,6 +524,11 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           if (!got_someting) {
             getCout() << "\nBad input:"
                       << " must give " << opt_name << " a valid data space"
+                      << std::endl;
+            input_state = BadInput;
+          } else if (!got_something_available) {
+            getCout() << "\nBad input:"
+                      << " must give " << opt_name << " a data space this is available in this config"
                       << std::endl;
             input_state = BadInput;
           }
@@ -865,8 +873,19 @@ void RunParams::printDataSpaceNames(std::ostream& str) const
 {
   str << "\nAvailable data spaces:";
   str << "\n-------------------\n";
-  for (int ds = 0; ds < static_cast<int>(DataSpace::NumSpaces); ++ds) {
-    str << getDataSpaceName(static_cast<DataSpace>(ds)) << std::endl;
+  for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    if (isAvailableDataSpace(ds)) {
+      str << getDataSpaceName(ds) << std::endl;
+    }
+  }
+  str << "\nUnavailable data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    if (!isAvailableDataSpace(ds)) {
+      str << getDataSpaceName(ds) << std::endl;
+    }
   }
   str.flush();
 }

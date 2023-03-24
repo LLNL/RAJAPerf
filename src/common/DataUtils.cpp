@@ -562,6 +562,55 @@ long double calcChecksum(Complex_ptr ptr, int len,
 
 
 /*!
+ * \brief Get if data space is available in this config.
+ */
+bool isAvailableDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+      return true;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+      return true;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+      return true;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      return true;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return true;
+#endif
+
+    default:
+      return false;
+  }
+}
+
+/*!
  * \brief Get an host accessible data space for this dataSpace.
  */
 DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
