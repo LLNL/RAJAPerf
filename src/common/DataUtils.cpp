@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 #include <unistd.h>
 
 namespace rajaperf
