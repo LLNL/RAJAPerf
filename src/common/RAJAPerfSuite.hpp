@@ -355,6 +355,15 @@ const std::string& getDataSpaceName(DataSpace cd);
 /*!
  *******************************************************************************
  *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace);
+
+/*!
+ *******************************************************************************
+ *
  * \brief Construct and return kernel object for given KernelID enum value.
  *
  *        IMPORTANT: Caller assumes ownerhip of returned object.

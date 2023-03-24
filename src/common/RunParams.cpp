@@ -495,7 +495,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
             DataSpace ds = static_cast<DataSpace>(ids);
             if (getDataSpaceName(ds) == opt) {
               got_someting = true;
-              got_something_available = isAvailableDataSpace(ds);
+              got_something_available = isDataSpaceAvailable(ds);
               if (        opt_name == std::string("--seq-data-space") ||
                           opt_name == std::string("-sds") ) {
                 seqDataSpace = ds;
@@ -875,7 +875,7 @@ void RunParams::printDataSpaceNames(std::ostream& str) const
   str << "\n-------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
-    if (isAvailableDataSpace(ds)) {
+    if (isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
   }
@@ -883,7 +883,7 @@ void RunParams::printDataSpaceNames(std::ostream& str) const
   str << "\n-------------------\n";
   for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
     DataSpace ds = static_cast<DataSpace>(ids);
-    if (!isAvailableDataSpace(ds)) {
+    if (!isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
   }
