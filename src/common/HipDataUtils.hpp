@@ -195,10 +195,12 @@ inline void adviseHipData(void* ptr, int len, hipMemoryAdvise advice, int device
   hipErrchk( hipMemAdvise( ptr, len, advice, device ) );
 }
 
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
 inline void adviseHipCoarseData(void* ptr, size_t len)
 {
   adviseHipData(ptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
 }
+#endif
 
 inline void adviseHipFineData(void* ptr, size_t len)
 {

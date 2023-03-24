@@ -198,11 +198,13 @@ void* allocData(DataSpace dataSpace, int nbytes, int align)
       ptr = detail::allocHostData(nbytes, align);
       detail::adviseHipFineData(ptr, nbytes);
     } break;
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
     case DataSpace::HipHostAdviseCoarse:
     {
       ptr = detail::allocHostData(nbytes, align);
       detail::adviseHipCoarseData(ptr, nbytes);
     } break;
+#endif
     case DataSpace::HipPinned:
     {
       ptr = detail::allocHipPinnedData(nbytes);
@@ -224,11 +226,13 @@ void* allocData(DataSpace dataSpace, int nbytes, int align)
       ptr = detail::allocHipManagedData(nbytes);
       detail::adviseHipFineData(ptr, nbytes);
     } break;
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
     case DataSpace::HipManagedAdviseCoarse:
     {
       ptr = detail::allocHipManagedData(nbytes);
       detail::adviseHipCoarseData(ptr, nbytes);
     } break;
+#endif
     case DataSpace::HipDevice:
     {
       ptr = detail::allocHipDeviceData(nbytes);
@@ -299,8 +303,12 @@ void deallocData(DataSpace dataSpace, void* ptr)
   switch (dataSpace) {
     case DataSpace::Host:
     case DataSpace::Omp:
+#if defined(RAJA_ENABLE_HIP)
     case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
     case DataSpace::HipHostAdviseCoarse:
+#endif
+#endif
     {
       detail::deallocHostData(ptr);
     } break;
@@ -336,7 +344,9 @@ void deallocData(DataSpace dataSpace, void* ptr)
     } break;
     case DataSpace::HipManaged:
     case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
     case DataSpace::HipManagedAdviseCoarse:
+#endif
     {
       detail::deallocHipManagedData(ptr);
     } break;
