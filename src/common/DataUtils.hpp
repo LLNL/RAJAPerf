@@ -60,22 +60,23 @@ void* allocHostData(size_t len, size_t align);
 void deallocHostData(void* ptr);
 
 
-/*
- * \brief Touch data array with omp threads.
+/*!
+ * \brief Allocate data array in dataSpace.
  */
-template < typename T >
-void touchOmpData(T* ptr, int len)
-{
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  #pragma omp parallel for
-  for (int i = 0; i < len; ++i) {
-    ptr[i] = T{};
-  };
-#else
-  (void)ptr; (void)len;
-#endif
-}
+void* allocData(DataSpace dataSpace, int nbytes, int align);
+
+/*!
+ * \brief Copy data from one dataSpace to another.
+ */
+void copyData(DataSpace dst_dataSpace, void* dst_ptr,
+              DataSpace src_dataSpace, const void* src_ptr,
+              size_t nbytes);
+
+/*!
+ * \brief Free data arrays in dataSpace.
+ */
+void deallocData(DataSpace dataSpace, void* ptr);
+
 
 /*!
  * \brief Initialize Int_type data array.
@@ -167,281 +168,37 @@ long double calcChecksum(Complex_ptr d, int len,
  * Intended to be a space that is quick to copy to from the given space if
  * the given space is not accessible on the Host.
  */
-inline DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::Host:
-    case DataSpace::Omp:
-    case DataSpace::CudaPinned:
-    case DataSpace::HipHostAdviseFine:
-    case DataSpace::HipHostAdviseCoarse:
-    case DataSpace::HipPinned:
-    case DataSpace::HipPinnedFine:
-    case DataSpace::HipPinnedCoarse:
-      return dataSpace;
-
-    case DataSpace::OmpTarget:
-      return DataSpace::Host;
-
-    case DataSpace::CudaManaged:
-    case DataSpace::CudaDevice:
-      return DataSpace::CudaPinned;
-
-    case DataSpace::HipManaged:
-    case DataSpace::HipManagedAdviseFine:
-    case DataSpace::HipManagedAdviseCoarse:
-      return dataSpace;
-
-    case DataSpace::HipDevice:
-    case DataSpace::HipDeviceFine:
-      return DataSpace::HipPinned;
-
-    default:
-    {
-      throw std::invalid_argument("hostAccessibleDataSpace : Unknown data space");
-    } break;
-  }
-}
-
-/*!
- * \brief Get if the data space is a host DataSpace.
- */
-inline bool isHostDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::Host:
-      return true;
-    default:
-      return false;
-  }
-}
-
-/*!
- * \brief Get if the data space is a omp DataSpace.
- */
-inline bool isOpenMPDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::Omp:
-      return true;
-    default:
-      return false;
-  }
-}
-
-/*!
- * \brief Get if the data space is a omp target DataSpace.
- */
-inline bool isOpenMPTargetDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::OmpTarget:
-      return true;
-    default:
-      return false;
-  }
-}
-
-/*!
- * \brief Get if the data space is a cuda DataSpace.
- */
-inline bool isCudaDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::CudaPinned:
-    case DataSpace::CudaManaged:
-    case DataSpace::CudaDevice:
-      return true;
-    default:
-      return false;
-  }
-}
-
-/*!
- * \brief Get if the data space is a hip DataSpace.
- */
-inline bool isHipDataSpace(DataSpace dataSpace)
-{
-  switch (dataSpace) {
-    case DataSpace::HipHostAdviseFine:
-    case DataSpace::HipHostAdviseCoarse:
-    case DataSpace::HipPinned:
-    case DataSpace::HipPinnedFine:
-    case DataSpace::HipPinnedCoarse:
-    case DataSpace::HipManaged:
-    case DataSpace::HipManagedAdviseFine:
-    case DataSpace::HipManagedAdviseCoarse:
-    case DataSpace::HipDevice:
-    case DataSpace::HipDeviceFine:
-      return true;
-    default:
-      return false;
-  }
-}
-
+DataSpace hostAccessibleDataSpace(DataSpace dataSpace);
 
 /*!
  * \brief Allocate data array (ptr).
  */
 template <typename T>
-inline void allocData(DataSpace dataSpace, T& ptr_ref, int len, int align)
+inline void allocData(DataSpace dataSpace, T*& ptr_ref, int len, int align)
 {
-  void* ptr = nullptr;
-  size_t nbytes = len*sizeof(std::remove_pointer_t<T>);
-
-  switch (dataSpace) {
-    case DataSpace::Host:
-    {
-      ptr = detail::allocHostData(nbytes, align);
-    } break;
+  size_t nbytes = len*sizeof(T);
+  T* ptr = static_cast<T*>(detail::allocData(dataSpace, nbytes, align));
 
 #if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-    case DataSpace::Omp:
-    {
-      ptr = detail::allocHostData(nbytes, align);
-      detail::touchOmpData(static_cast<T>(ptr), len);
-    } break;
-#endif
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case DataSpace::OmpTarget:
-    {
-      ptr = detail::allocOpenMPDeviceData(nbytes);
-    } break;
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case DataSpace::CudaPinned:
-    {
-      ptr = detail::allocCudaPinnedData(nbytes);
-    } break;
-    case DataSpace::CudaManaged:
-    {
-      ptr = detail::allocCudaManagedData(nbytes);
-    } break;
-    case DataSpace::CudaDevice:
-    {
-      ptr = detail::allocCudaDeviceData(nbytes);
-    } break;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-    case DataSpace::HipHostAdviseFine:
-    {
-      ptr = detail::allocHostData(nbytes, align);
-      detail::adviseHipFineData(ptr, nbytes);
-    } break;
-    case DataSpace::HipHostAdviseCoarse:
-    {
-      ptr = detail::allocHostData(nbytes, align);
-      detail::adviseHipCoarseData(ptr, nbytes);
-    } break;
-    case DataSpace::HipPinned:
-    {
-      ptr = detail::allocHipPinnedData(nbytes);
-    } break;
-    case DataSpace::HipPinnedFine:
-    {
-      ptr = detail::allocHipPinnedFineData(nbytes);
-    } break;
-    case DataSpace::HipPinnedCoarse:
-    {
-      ptr = detail::allocHipPinnedCoarseData(nbytes);
-    } break;
-    case DataSpace::HipManaged:
-    {
-      ptr = detail::allocHipManagedData(nbytes);
-    } break;
-    case DataSpace::HipManagedAdviseFine:
-    {
-      ptr = detail::allocHipManagedData(nbytes);
-      detail::adviseHipFineData(ptr, nbytes);
-    } break;
-    case DataSpace::HipManagedAdviseCoarse:
-    {
-      ptr = detail::allocHipManagedData(nbytes);
-      detail::adviseHipCoarseData(ptr, nbytes);
-    } break;
-    case DataSpace::HipDevice:
-    {
-      ptr = detail::allocHipDeviceData(nbytes);
-    } break;
-    case DataSpace::HipDeviceFine:
-    {
-      ptr = detail::allocHipDeviceFineData(nbytes);
-    } break;
-#endif
-
-    default:
-    {
-      throw std::invalid_argument("allocData : Unknown data space");
-    } break;
+  if (dataSpace == DataSpace::Omp) {
+    // perform first touch on Omp Data
+    #pragma omp parallel for
+    for (int i = 0; i < len; ++i) {
+      ptr[i] = T{};
+    };
   }
-  ptr_ref = static_cast<T>(ptr);
+#endif
+
+  ptr_ref = ptr;
 }
 
 /*!
  * \brief Deallocate data array (ptr).
  */
 template <typename T>
-inline void deallocData(DataSpace dataSpace, T& ptr)
+inline void deallocData(DataSpace dataSpace, T*& ptr)
 {
-  switch (dataSpace) {
-    case DataSpace::Host:
-    case DataSpace::Omp:
-    case DataSpace::HipHostAdviseFine:
-    case DataSpace::HipHostAdviseCoarse:
-    {
-      detail::deallocHostData(ptr);
-    } break;
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-    case DataSpace::OmpTarget:
-    {
-      detail::deallocOpenMPDeviceData(ptr);
-    } break;
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-    case DataSpace::CudaPinned:
-    {
-      detail::deallocCudaPinnedData(ptr);
-    } break;
-    case DataSpace::CudaManaged:
-    {
-      detail::deallocCudaManagedData(ptr);
-    } break;
-    case DataSpace::CudaDevice:
-    {
-      detail::deallocCudaDeviceData(ptr);
-    } break;
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-    case DataSpace::HipPinned:
-    case DataSpace::HipPinnedFine:
-    case DataSpace::HipPinnedCoarse:
-    {
-      detail::deallocHipPinnedData(ptr);
-    } break;
-    case DataSpace::HipManaged:
-    case DataSpace::HipManagedAdviseFine:
-    case DataSpace::HipManagedAdviseCoarse:
-    {
-      detail::deallocHipManagedData(ptr);
-    } break;
-    case DataSpace::HipDevice:
-    case DataSpace::HipDeviceFine:
-    {
-      detail::deallocHipDeviceData(ptr);
-    } break;
-#endif
-
-    default:
-    {
-      throw std::invalid_argument("deallocData : Unknown data space");
-    } break;
-  }
+  detail::deallocData(dataSpace, ptr);
   ptr = nullptr;
 }
 
@@ -454,41 +211,7 @@ inline void copyData(DataSpace dst_dataSpace, T* dst_ptr,
                      int len)
 {
   size_t nbytes = len*sizeof(T);
-
-  if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
-      hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
-    detail::copyHostData(dst_ptr, src_ptr, nbytes);
-  }
-
-#if defined(RAJA_ENABLE_TARGET_OPENMP)
-  else if (isOpenMPTargetDataSpace(dst_dataSpace) ||
-           isOpenMPTargetDataSpace(src_dataSpace)) {
-    auto dst_did = isOpenMPTargetDataSpace(dst_dataSpace) ? getOpenMPTargetDevice()
-                                                          : getOpenMPTargetHost();
-    auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? getOpenMPTargetDevice()
-                                                          : getOpenMPTargetHost();
-    detail::copyOpenMPTargetData(dst_ptr, src_ptr, nbytes,
-        dst_did, src_did);
-  }
-#endif
-
-#if defined(RAJA_ENABLE_CUDA)
-  else if (isCudaDataSpace(dst_dataSpace) ||
-           isCudaDataSpace(src_dataSpace)) {
-    detail::copyCudaData(dst_ptr, src_ptr, nbytes);
-  }
-#endif
-
-#if defined(RAJA_ENABLE_HIP)
-  else if (isHipDataSpace(dst_dataSpace) ||
-           isHipDataSpace(src_dataSpace)) {
-    detail::copyHipData(dst_ptr, src_ptr, nbytes);
-  }
-#endif
-
-  else {
-    throw std::invalid_argument("copyData : Unknown data space");
-  }
+  detail::copyData(dst_dataSpace, dst_ptr, src_dataSpace, src_ptr, nbytes);
 }
 
 /*!

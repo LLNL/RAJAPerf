@@ -156,6 +156,52 @@ void KernelBase::setVariantDefined(VariantID vid)
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
 }
 
+int KernelBase::getDataAlignment() const
+{
+  return run_params.getDataAlignment();
+}
+
+DataSpace KernelBase::getDataSpace(VariantID vid) const
+{
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosDataSpace();
+
+    default:
+      throw std::invalid_argument("getDataSpace : Unknown variant id");
+  }
+}
+
+DataSpace KernelBase::getHostAccessibleDataSpace(VariantID vid) const
+{
+  return hostAccessibleDataSpace(getDataSpace(vid));
+}
+
 void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;

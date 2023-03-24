@@ -207,55 +207,10 @@ public:
 #endif
   }
 
-  int getDataAlignment() const { return run_params.getDataAlignment(); }
+  int getDataAlignment() const;
 
-  DataSpace getSeqDataSpace() const { return run_params.getSeqDataSpace(); }
-  DataSpace getOmpDataSpace() const { return run_params.getOmpDataSpace(); }
-  DataSpace getOmpTargetDataSpace() const { return run_params.getOmpTargetDataSpace(); }
-  DataSpace getCudaDataSpace() const { return run_params.getCudaDataSpace(); }
-  DataSpace getHipDataSpace() const { return run_params.getHipDataSpace(); }
-  DataSpace getKokkosDataSpace() const { return run_params.getKokkosDataSpace(); }
-
-  DataSpace getDataSpace(VariantID vid) const
-  {
-    switch ( vid ) {
-
-      case Base_Seq :
-      case Lambda_Seq :
-      case RAJA_Seq :
-        return getSeqDataSpace();
-
-      case Base_OpenMP :
-      case Lambda_OpenMP :
-      case RAJA_OpenMP :
-        return getOmpDataSpace();
-
-      case Base_OpenMPTarget :
-      case RAJA_OpenMPTarget :
-        return getOmpTargetDataSpace();
-
-      case Base_CUDA :
-      case Lambda_CUDA :
-      case RAJA_CUDA :
-        return getCudaDataSpace();
-
-      case Base_HIP :
-      case Lambda_HIP :
-      case RAJA_HIP :
-        return getHipDataSpace();
-
-      case Kokkos_Lambda :
-        return getKokkosDataSpace();
-
-      default:
-        throw std::invalid_argument("getDataSpace : Unknown variant id");
-    }
-  }
-
-  DataSpace getHostAccessibleDataSpace(VariantID vid) const
-  {
-    return hostAccessibleDataSpace(getDataSpace(vid));
-  }
+  DataSpace getDataSpace(VariantID vid) const;
+  DataSpace getHostAccessibleDataSpace(VariantID vid) const;
 
   template <typename T>
   void allocData(DataSpace dataSpace, T& ptr, int len)

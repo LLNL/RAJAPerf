@@ -23,6 +23,83 @@ namespace rajaperf
 namespace detail
 {
 
+/*!
+ * \brief Get if the data space is a host DataSpace.
+ */
+bool isHostDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a omp DataSpace.
+ */
+bool isOpenMPDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Omp:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a omp target DataSpace.
+ */
+bool isOpenMPTargetDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::OmpTarget:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a cuda DataSpace.
+ */
+bool isCudaDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a hip DataSpace.
+ */
+bool isHipDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
 static int data_init_count = 0;
 
 /*
@@ -67,6 +144,211 @@ void deallocHostData(void* ptr)
 {
   if (ptr) {
     RAJA::free_aligned(ptr);
+  }
+}
+
+
+/*
+ * Allocate data arrays of given dataSpace.
+ */
+void* allocData(DataSpace dataSpace, int nbytes, int align)
+{
+  void* ptr = nullptr;
+
+  switch (dataSpace) {
+    case DataSpace::Host:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+    } break;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+    {
+      ptr = detail::allocOpenMPDeviceData(nbytes);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    {
+      ptr = detail::allocCudaPinnedData(nbytes);
+    } break;
+    case DataSpace::CudaManaged:
+    {
+      ptr = detail::allocCudaManagedData(nbytes);
+    } break;
+    case DataSpace::CudaDevice:
+    {
+      ptr = detail::allocCudaDeviceData(nbytes);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipFineData(ptr, nbytes);
+    } break;
+    case DataSpace::HipHostAdviseCoarse:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipCoarseData(ptr, nbytes);
+    } break;
+    case DataSpace::HipPinned:
+    {
+      ptr = detail::allocHipPinnedData(nbytes);
+    } break;
+    case DataSpace::HipPinnedFine:
+    {
+      ptr = detail::allocHipPinnedFineData(nbytes);
+    } break;
+    case DataSpace::HipPinnedCoarse:
+    {
+      ptr = detail::allocHipPinnedCoarseData(nbytes);
+    } break;
+    case DataSpace::HipManaged:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+    } break;
+    case DataSpace::HipManagedAdviseFine:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipFineData(ptr, nbytes);
+    } break;
+    case DataSpace::HipManagedAdviseCoarse:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipCoarseData(ptr, nbytes);
+    } break;
+    case DataSpace::HipDevice:
+    {
+      ptr = detail::allocHipDeviceData(nbytes);
+    } break;
+    case DataSpace::HipDeviceFine:
+    {
+      ptr = detail::allocHipDeviceFineData(nbytes);
+    } break;
+#endif
+
+    default:
+    {
+      throw std::invalid_argument("allocData : Unknown data space");
+    } break;
+  }
+
+  return ptr;
+}
+
+/*!
+ * \brief Copy data from one dataSpace to another.
+ */
+void copyData(DataSpace dst_dataSpace, void* dst_ptr,
+              DataSpace src_dataSpace, const void* src_ptr,
+              size_t nbytes)
+{
+  if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
+      hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
+    detail::copyHostData(dst_ptr, src_ptr, nbytes);
+  }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  else if (isOpenMPTargetDataSpace(dst_dataSpace) ||
+           isOpenMPTargetDataSpace(src_dataSpace)) {
+    auto dst_did = isOpenMPTargetDataSpace(dst_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
+    auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
+    detail::copyOpenMPTargetData(dst_ptr, src_ptr, nbytes,
+        dst_did, src_did);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  else if (isCudaDataSpace(dst_dataSpace) ||
+           isCudaDataSpace(src_dataSpace)) {
+    detail::copyCudaData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  else if (isHipDataSpace(dst_dataSpace) ||
+           isHipDataSpace(src_dataSpace)) {
+    detail::copyHipData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+  else {
+    throw std::invalid_argument("copyData : Unknown data space");
+  }
+}
+
+/*!
+ * \brief Deallocate data array (ptr).
+ */
+void deallocData(DataSpace dataSpace, void* ptr)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+    case DataSpace::Omp:
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    {
+      detail::deallocHostData(ptr);
+    } break;
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+    {
+      detail::deallocOpenMPDeviceData(ptr);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    {
+      detail::deallocCudaPinnedData(ptr);
+    } break;
+    case DataSpace::CudaManaged:
+    {
+      detail::deallocCudaManagedData(ptr);
+    } break;
+    case DataSpace::CudaDevice:
+    {
+      detail::deallocCudaDeviceData(ptr);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    {
+      detail::deallocHipPinnedData(ptr);
+    } break;
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+    {
+      detail::deallocHipManagedData(ptr);
+    } break;
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+    {
+      detail::deallocHipDeviceData(ptr);
+    } break;
+#endif
+
+    default:
+    {
+      throw std::invalid_argument("deallocData : Unknown data space");
+    } break;
   }
 }
 
@@ -265,5 +547,45 @@ long double calcChecksum(Complex_ptr ptr, int len,
 }
 
 }  // closing brace for detail namespace
+
+
+/*!
+ * \brief Get an host accessible data space for this dataSpace.
+ */
+DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+    case DataSpace::Omp:
+    case DataSpace::CudaPinned:
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+      return dataSpace;
+
+    case DataSpace::OmpTarget:
+      return DataSpace::Host;
+
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      return DataSpace::CudaPinned;
+
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+      return dataSpace;
+
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return DataSpace::HipPinned;
+
+    default:
+    {
+      throw std::invalid_argument("hostAccessibleDataSpace : Unknown data space");
+    } break;
+  }
+}
 
 }  // closing brace for rajaperf namespace
