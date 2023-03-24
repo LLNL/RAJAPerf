@@ -14,8 +14,6 @@
 #include "common/DataUtils.hpp"
 #include "common/RunParams.hpp"
 #include "common/GPUUtils.hpp"
-#include "common/CudaDataUtils.hpp"
-#include "common/HipDataUtils.hpp"
 
 #include "RAJA/util/Timer.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)

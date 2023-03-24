@@ -16,9 +16,6 @@
 
 #include "RAJAPerfSuite.hpp"
 #include "RPTypes.hpp"
-#include "common/OpenMPTargetDataUtils.hpp"
-#include "common/CudaDataUtils.hpp"
-#include "common/HipDataUtils.hpp"
 
 #include <limits>
 #include <new>

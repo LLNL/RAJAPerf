@@ -9,6 +9,7 @@
 #include "KernelBase.hpp"
 
 #include "RunParams.hpp"
+#include "OpenMPTargetDataUtils.hpp"
 
 #include <cmath>
 #include <limits>

@@ -9,6 +9,7 @@
 #include "DataUtils.hpp"
 #include "CudaDataUtils.hpp"
 #include "HipDataUtils.hpp"
+#include "OpenMPTargetDataUtils.hpp"
 
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
