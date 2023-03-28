@@ -37,14 +37,14 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-#if 0
+#if 1
         Index_type count = 0;
 
 #warning needs parallel something
         for (Index_type i = ibegin; i < iend; ++i ) {
           if ( x[i] < 0.0 ) {
             list[count++] = i;
-            y[i] = 1;
+            //y[i] = 1;
           }
         }
 
