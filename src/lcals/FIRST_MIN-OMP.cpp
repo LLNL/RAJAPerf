@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -17,7 +17,6 @@ namespace rajaperf
 namespace lcals
 {
 
-FIRST_MIN_MINLOC_COMPARE;
 
 void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -36,17 +35,18 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        //#pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+        #pragma omp declare reduction(minloc : MyMinLoc : \
+                                      omp_out = MinLoc_compare(omp_out, omp_in)) \
+                                      initializer (omp_priv = omp_orig)
 
         FIRST_MIN_MINLOC_INIT;
 
-        //#pragma omp parallel for reduction(minloc:mymin)
+        #pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
           FIRST_MIN_BODY;
         }
 
-        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+        m_minloc = mymin.loc;
 
       }
       stopTimer();
@@ -63,12 +63,13 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        //#pragma omp declare reduction(minloc : MyMinLoc : \
-                                      omp_out = MinLoc_compare(omp_out, omp_in))
+        #pragma omp declare reduction(minloc : MyMinLoc : \
+                                      omp_out = MinLoc_compare(omp_out, omp_in)) \
+                                      initializer (omp_priv = omp_orig)
 
         FIRST_MIN_MINLOC_INIT;
 
-        //#pragma omp parallel for reduction(minloc:mymin)
+        #pragma omp parallel for reduction(minloc:mymin)
         for (Index_type i = ibegin; i < iend; ++i ) {
           if ( firstmin_base_lam(i) < mymin.val ) {
             mymin.val = x[i];
@@ -76,7 +77,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
           }
         }
 
-        m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+        m_minloc = mymin.loc;
 
       }
       stopTimer();
@@ -97,7 +98,7 @@ void FIRST_MIN::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
           FIRST_MIN_BODY_RAJA;
         });
 
-        m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+        m_minloc = loc.getLoc();
 
       }
       stopTimer();

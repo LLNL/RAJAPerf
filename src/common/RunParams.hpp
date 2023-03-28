@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -125,6 +125,8 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
+  size_t getDataAlignment() const { return data_alignment; }
+
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
   {
@@ -194,6 +196,8 @@ public:
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+  bool getDisableWarmup() const { return disable_warmup; }
+
 //@}
 
   /*!
@@ -232,6 +236,7 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
+  size_t data_alignment;
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
@@ -264,6 +269,8 @@ private:
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
+
+  bool disable_warmup;
 
 };
 

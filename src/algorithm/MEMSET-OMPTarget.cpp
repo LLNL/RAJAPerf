@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -33,6 +33,7 @@ namespace algorithm
   allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid);
 
 #define MEMSET_DATA_TEARDOWN_OMP_TARGET \
+  getOpenMPDeviceData(m_x, x, iend, hid, did); \
   deallocOpenMPDeviceData(x, did); \
 
 

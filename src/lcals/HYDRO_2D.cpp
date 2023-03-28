@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -106,17 +106,17 @@ void HYDRO_2D::updateChecksum(VariantID vid, size_t tune_idx)
 void HYDRO_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_zrout);
-  deallocData(m_zzout);
-  deallocData(m_za);
-  deallocData(m_zb);
-  deallocData(m_zm);
-  deallocData(m_zp);
-  deallocData(m_zq);
-  deallocData(m_zr);
-  deallocData(m_zu);
-  deallocData(m_zv);
-  deallocData(m_zz);
+  deallocData(m_zrout, vid);
+  deallocData(m_zzout, vid);
+  deallocData(m_za, vid);
+  deallocData(m_zb, vid);
+  deallocData(m_zm, vid);
+  deallocData(m_zp, vid);
+  deallocData(m_zq, vid);
+  deallocData(m_zr, vid);
+  deallocData(m_zu, vid);
+  deallocData(m_zv, vid);
+  deallocData(m_zz, vid);
 }
 
 } // end namespace lcals

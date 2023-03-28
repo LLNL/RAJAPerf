@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -168,7 +168,7 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 
   resetTimer();
 
-  resetDataInitCount();
+  detail::resetDataInitCount();
   this->setUp(vid, tune_idx);
 
   this->runKernel(vid, tune_idx);

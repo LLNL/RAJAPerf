@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -87,11 +87,11 @@ void MASS3DPA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_B);
-  deallocData(m_Bt);
-  deallocData(m_D);
-  deallocData(m_X);
-  deallocData(m_Y);
+  deallocData(m_B, vid);
+  deallocData(m_Bt, vid);
+  deallocData(m_D, vid);
+  deallocData(m_X, vid);
+  deallocData(m_Y, vid);
 }
 
 } // end namespace apps

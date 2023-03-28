@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -34,6 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   data_alignment(RAJA::DATA_ALIGN),
    gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
@@ -53,7 +54,8 @@ RunParams::RunParams(int argc, char** argv)
    npasses_combiner_input(),
    invalid_npasses_combiner_input(),
    outdir(),
-   outfile_prefix("RAJAPerf")
+   outfile_prefix("RAJAPerf"),
+   disable_warmup(false)
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -98,6 +100,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n data_alignment = " << data_alignment;
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
@@ -107,6 +110,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n reference_variant = " << reference_variant;
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
+
+  str << "\n disable_warmup = " << disable_warmup;
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -316,6 +321,33 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if ( opt == std::string("-align") ||
+                opt == std::string("--data_alignment") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long align = ::atoll( argv[i] );
+        long long min_align = alignof(std::max_align_t);
+        if ( align < min_align ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_align
+                << std::endl;
+          input_state = BadInput;
+        } else if ( (align & (align-1)) != 0 ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a power of 2"
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          data_alignment = align;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
     } else if ( opt == std::string("--gpu_block_size") ) {
 
       bool got_someting = false;
@@ -497,9 +529,13 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-       if (input_state != BadInput) {
-         input_state = DryRun;
-       }
+      if (input_state != BadInput) {
+        input_state = DryRun;
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--disable-warmup") ) {
+
+      disable_warmup = true;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
@@ -590,6 +626,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
 
+  str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
+      << "\t      (minimum memory alignment for host allocations)\n"
+      << "\t      (must be a power of 2 at least as large as the default alignment)\n";
+  str << "\t\t Example...\n"
+      << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
+
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
       << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
@@ -658,6 +700,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
+
+  str << "\t --disable-warmup (disable warmup tests)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";

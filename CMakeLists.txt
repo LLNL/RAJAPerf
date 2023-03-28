@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -9,7 +9,11 @@
 # C is required for googletest to find Threads
 project(RAJAPerfSuite LANGUAGES CXX C)
 
-cmake_minimum_required(VERSION 3.14.5)
+if (ENABLE_HIP)
+  cmake_minimum_required(VERSION 3.23)
+else()
+  cmake_minimum_required(VERSION 3.20)
+endif()
 
 option(ENABLE_RAJA_SEQUENTIAL "Run sequential variants of RAJA kernels. Disable
 this, and all other variants, to run _only_ raw C loops." On)
@@ -23,7 +27,7 @@ if (PERFSUITE_ENABLE_WARNINGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
-if(ENABLE_KOKKOS)
+if (ENABLE_KOKKOS)
   set(CMAKE_CXX_STANDARD 17)
   set(BLT_CXX_STD c++17)
 elseif (ENABLE_STDPAR)
@@ -97,8 +101,8 @@ if (ENABLE_STDPAR)
   add_definitions(-DRUN_STDPAR)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 0)
-set(RAJA_PERFSUITE_VERSION_MINOR 11)
+set(RAJA_PERFSUITE_VERSION_MAJOR 2022)
+set(RAJA_PERFSUITE_VERSION_MINOR 10)
 set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
@@ -135,7 +139,7 @@ if (ENABLE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --extended-lambda --expt-relaxed-constexpr")
   else()
     set(CMAKE_CUDA_STANDARD 14)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict -arch ${CUDA_ARCH} --expt-extended-lambda --expt-relaxed-constexpr")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -restrict --expt-extended-lambda --expt-relaxed-constexpr")
   endif()
 
   set(RAJAPERF_COMPILER "${CUDA_NVCC_EXECUTABLE}")
@@ -202,3 +206,7 @@ add_subdirectory(src)
 if (RAJA_PERFSUITE_ENABLE_TESTS)
   add_subdirectory(test)
 endif()
+
+if (RAJA_PERFSUITE_ENABLE_DOCUMENTATION)
+  add_subdirectory(docs)
+endif ()

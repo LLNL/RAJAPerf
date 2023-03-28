@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -115,13 +115,13 @@ void POLYBENCH_3MM::updateChecksum(VariantID vid, size_t tune_idx)
 void POLYBENCH_3MM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
-  deallocData(m_D);
-  deallocData(m_E);
-  deallocData(m_F);
-  deallocData(m_G);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_C, vid);
+  deallocData(m_D, vid);
+  deallocData(m_E, vid);
+  deallocData(m_F, vid);
+  deallocData(m_G, vid);
 }
 
 } // end namespace basic

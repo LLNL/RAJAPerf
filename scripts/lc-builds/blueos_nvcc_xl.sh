@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
@@ -11,11 +11,11 @@ if [[ $# -ne 3 ]]; then
   echo
   echo "You must pass 3 arguments to the script (in this order): "
   echo "   1) compiler version number for nvcc"
-  echo "   2) CUDA compute architecture"
-  echo "   3) compiler version number for xl. "
+  echo "   2) CUDA compute architecture (number only, not 'sm_70' for example)"
+  echo "   3) compiler version number for xl"
   echo
   echo "For example: "
-  echo "    blueos_nvcc_xl.sh 11.1.1 sm_70 2021.03.31"
+  echo "    blueos_nvcc_xl.sh 11.1.1 70 2021.03.31"
   exit
 fi
 
@@ -36,7 +36,7 @@ echo
 rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
-module load cmake/3.14.5
+module load cmake/3.20.2
 
 cmake \
   -DCMAKE_BUILD_TYPE=Release \
@@ -47,7 +47,7 @@ cmake \
   -DENABLE_CUDA=On \
   -DCUDA_TOOLKIT_ROOT_DIR=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER} \
   -DCMAKE_CUDA_COMPILER=/usr/tce/packages/cuda/cuda-${COMP_NVCC_VER}/bin/nvcc \
-  -DCUDA_ARCH=${COMP_ARCH} \
+  -DCMAKE_CUDA_ARCHITECTURES=${COMP_ARCH} \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   "$@" \
   ..

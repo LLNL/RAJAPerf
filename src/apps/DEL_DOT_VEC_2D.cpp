@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -99,11 +99,11 @@ void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 {
   (void) vid;
 
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_xdot);
-  deallocData(m_ydot);
-  deallocData(m_div);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
+  deallocData(m_xdot, vid);
+  deallocData(m_ydot, vid);
+  deallocData(m_div, vid);
 }
 
 } // end namespace apps

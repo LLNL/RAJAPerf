@@ -1,0 +1,33 @@
+###############################################################################
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/LICENSE file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+#############################################################################
+
+########################
+# Overridden shared jobs
+########################
+# We duplicate the shared jobs description and add necessary changes for RAJA.
+# We keep ${PROJECT_<MACHINE>_VARIANTS} and ${PROJECT_<MACHINE>_DEPS} So that
+# the comparison with the original job is easier.
+
+# No overridden jobs so far.
+
+############
+# Extra jobs
+############
+# We do not recommend using ${PROJECT_<MACHINE>_VARIANTS} and
+# ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
+# describe the spec here.
+
+# With GitLab CI, included files cannot be empty.
+variables:
+  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
+
+# INFO: This job is activated in RAJA CI, but we don't use desul atomics here
+#rocmcc_5_1_1_hip_desul_atomics:
+#  variables:
+#    SPEC: "+rocm~openmp +desul amdgpu_target=gfx906 %rocmcc@5.1.1 ^blt@develop ^hip@5.1.1"
+#  extends: .build_and_test_on_corona

@@ -1,0 +1,30 @@
+###############################################################################
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
+# and RAJA Performance Suite project contributors.
+# See the RAJAPerf/LICENSE file for details.
+#
+# SPDX-License-Identifier: (BSD-3-Clause)
+##############################################################################
+
+# Uncomment pipelines to subscribe to a shared pipeline.
+
+# Trigger a build-and-test pipeline for ruby, corona and lassen
+ruby-build-and-test:
+  variables:
+    CI_MACHINE: "ruby"
+  extends: [.build-and-test]
+
+corona-build-and-test:
+  variables:
+    CI_MACHINE: "corona"
+  extends: [.build-and-test]
+
+tioga-build-and-test:
+  variables:
+    CI_MACHINE: "tioga"
+  extends: [.build-and-test]
+
+lassen-build-and-test:
+  variables:
+    CI_MACHINE: "lassen"
+  extends: [.build-and-test]

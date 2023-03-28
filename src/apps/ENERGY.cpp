@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -89,10 +89,10 @@ void ENERGY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   allocAndInitData(m_qq_old, getActualProblemSize(), vid);
   allocAndInitData(m_vnewc, getActualProblemSize(), vid);
 
-  initData(m_rho0);
-  initData(m_e_cut);
-  initData(m_emin);
-  initData(m_q_cut);
+  initData(m_rho0, vid);
+  initData(m_e_cut, vid);
+  initData(m_emin, vid);
+  initData(m_q_cut, vid);
 }
 
 void ENERGY::updateChecksum(VariantID vid, size_t tune_idx)
@@ -105,21 +105,21 @@ void ENERGY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_e_new);
-  deallocData(m_e_old);
-  deallocData(m_delvc);
-  deallocData(m_p_new);
-  deallocData(m_p_old);
-  deallocData(m_q_new);
-  deallocData(m_q_old);
-  deallocData(m_work);
-  deallocData(m_compHalfStep);
-  deallocData(m_pHalfStep);
-  deallocData(m_bvc);
-  deallocData(m_pbvc);
-  deallocData(m_ql_old);
-  deallocData(m_qq_old);
-  deallocData(m_vnewc);
+  deallocData(m_e_new, vid);
+  deallocData(m_e_old, vid);
+  deallocData(m_delvc, vid);
+  deallocData(m_p_new, vid);
+  deallocData(m_p_old, vid);
+  deallocData(m_q_new, vid);
+  deallocData(m_q_old, vid);
+  deallocData(m_work, vid);
+  deallocData(m_compHalfStep, vid);
+  deallocData(m_pHalfStep, vid);
+  deallocData(m_bvc, vid);
+  deallocData(m_pbvc, vid);
+  deallocData(m_ql_old, vid);
+  deallocData(m_qq_old, vid);
+  deallocData(m_vnewc, vid);
 }
 
 } // end namespace apps

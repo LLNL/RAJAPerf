@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -109,7 +109,7 @@ void initHipDeviceData(T& dptr, const T hptr, int len)
                           len * sizeof(typename std::remove_pointer<T>::type),
                           hipMemcpyHostToDevice ) );
 
-  incDataInitCount();
+  detail::incDataInitCount();
 }
 
 /*!
