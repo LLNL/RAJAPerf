@@ -336,11 +336,8 @@ public:
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
-<<<<<<< HEAD
   virtual void runStdParVariant(VariantID vid, size_t tune_idx) = 0;
-=======
 
->>>>>>> upstream/develop
 #if defined(RUN_KOKKOS)
   virtual void runKokkosVariant(VariantID vid, size_t tune_idx)
   {
