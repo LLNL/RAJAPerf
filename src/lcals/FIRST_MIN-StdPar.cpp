@@ -37,10 +37,19 @@ void FIRST_MIN::runStdParVariant(VariantID vid, size_t tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+#if 0
         auto result =
         std::min_element( std::execution::par_unseq,
                           &x[ibegin], &x[iend]);
         auto loc = std::distance(&x[ibegin], result);
+#else
+        for (Index_type i = ibegin; i < iend; ++i ) {
+          if ( x[i] < mymin.val ) {
+            mymin.val = x[i];
+            mymin.loc = i;
+          }
+        }
+#endif
 
         m_minloc = std::max(m_minloc, loc);
 
@@ -62,7 +71,7 @@ void FIRST_MIN::runStdParVariant(VariantID vid, size_t tune_idx)
         FIRST_MIN_MINLOC_INIT;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          if ( firstmin_base_lam(i) < mymin.val ) { \
+          if ( firstmin_base_lam(i) < mymin.val ) {
             mymin.val = x[i];
             mymin.loc = i;
           }
