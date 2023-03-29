@@ -78,7 +78,7 @@ option to the executable::
 
   $ ./bin/raja-perf.exe --help
 
-or
+or::
 
   $ ./bin/raja-perf.exe -h
 
