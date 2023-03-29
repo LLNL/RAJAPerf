@@ -381,9 +381,66 @@
 #ifndef RAJAPerf_Apps_SW4CK_KERNEL_2_HPP
 #define RAJAPerf_Apps_SW4CK_KERNEL_2_HPP
 
-#define SW4CK_KERNEL_2_DATA_SETUP
-
 using float_sw4 = double;
+
+#define SW4CK_KERNEL_2_DATA_SETUP                           \
+  float_sw4 a1 = 0;                                         \
+  float_sw4 sgn = 1;                                        \
+  if (op == '=') {                                          \
+    a1 = 0;                                                 \
+    sgn = 1;                                                \
+  } else if (op == '+') {                                   \
+    a1 = 1;                                                 \
+    sgn = 1;                                                \
+  } else if (op == '-') {                                   \
+    a1 = 1;                                                 \
+    sgn = -1;                                               \
+  }                                                         \
+                                                            \
+  const float_sw4 i6 = 1.0 / 6;                             \
+  const float_sw4 tf = 0.75;                                \
+  const float_sw4 c1 = 2.0 / 3;                             \
+  const float_sw4 c2 = -1.0 / 12;                           \
+                                                            \
+  const int ni = ilast - ifirst + 1;                        \
+  const int nij = ni * (jlast - jfirst + 1);                \
+  const int nijk = nij * (klast - kfirst + 1);              \
+  const int base = -(ifirst + ni * jfirst + nij * kfirst);  \
+  const int base3 = base - nijk;                            \
+  const int base4 = base - nijk;                            \
+  const int ifirst0 = ifirst;                               \
+  const int jfirst0 = jfirst;                               \
+                                                            \
+  Real_ptr a_mu = m_a_mu;                                   \
+  Real_ptr a_lambda = m_a_lambda;                           \
+  Real_ptr a_jac = m_a_jac;                                 \
+  Real_ptr a_u = m_a_u;                                     \
+  Real_ptr a_lu = m_a_lu;                                   \
+  Real_ptr a_met = m_a_met;                                 \
+  Real_ptr a_strx = m_a_strx;                               \
+  Real_ptr a_stry = m_a_stry;
+/*
+  Real_ptr a_acof = m_a_acof;                                  \
+  Real_ptr a_bope = m_a_bope;                               \ 
+  Real_ptr a_ghcof = m_a_ghcof;                             \ 
+  Real_ptr a_acof_no_gp = m_a_acof_no_gp;      \ 
+  Real_ptr a_ghcof_no_gp = m_a_ghcof_no_gp;
+*/
+
+// Direct reuse of fortran code by these macro definitions:
+#define mu(i, j, k) a_mu[base + (i) + ni * (j) + nij * (k)]
+#define la(i, j, k) a_lambda[base + (i) + ni * (j) + nij * (k)]
+#define jac(i, j, k) a_jac[base + (i) + ni * (j) + nij * (k)]
+#define u(c, i, j, k) a_u[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
+#define lu(c, i, j, k) a_lu[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
+#define met(c, i, j, k) a_met[base4 + (i) + ni * (j) + nij * (k) + nijk * (c)]
+#define strx(i) a_strx[i - ifirst0]
+#define stry(j) a_stry[j - jfirst0]
+#define acof(i, j, k) a_acof[(i - 1) + 6 * (j - 1) + 48 * (k - 1)]
+#define bope(i, j) a_bope[i - 1 + 6 * (j - 1)]
+#define ghcof(i) a_ghcof[i - 1]
+#define acof_no_gp(i, j, k) a_acof_no_gp[(i - 1) + 6 * (j - 1) + 48 * (k - 1)]
+#define ghcof_no_gp(i) a_ghcof_no_gp[i - 1]
 
 // 5 ops
 #define SW4CK_KERNEL_2_BODY_1                                \
@@ -798,7 +855,6 @@ using float_sw4 = double;
   lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
 
 
-
 #include "common/KernelBase.hpp"
 
   namespace rajaperf {
@@ -836,15 +892,15 @@ using float_sw4 = double;
     Real_ptr m_a_lambda;
     Real_ptr m_a_jac;
     Real_ptr m_a_u;
-    Real_ptr a_lu;
-    Real_ptr a_met;
-    Real_ptr a_strx;
-    Real_ptr a_stry;
-    Real_ptr a_acof;
-    Real_ptr a_bope;
-    Real_ptr a_ghcof;
-    Real_ptr a_acof_no_gp;
-    Real_ptr a_ghcof_no_gp;
+    Real_ptr m_a_lu;
+    Real_ptr m_a_met;
+    Real_ptr m_a_strx;
+    Real_ptr m_a_stry;
+    Real_ptr m_a_acof;
+    Real_ptr m_a_bope;
+    Real_ptr m_a_ghcof;
+    Real_ptr m_a_acof_no_gp;
+    Real_ptr m_a_ghcof_no_gp;
 
   };
 
