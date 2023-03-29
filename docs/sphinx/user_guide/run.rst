@@ -32,12 +32,18 @@ This will run a few iterations of each kernel and variant that was built
 based on the CMake options specified to configure the build. 
 
 You can also run an individual kernel by setting an environment variable
-to the name of the kernel you want to run. For example::
+to the name of the kernel you want to run. For example, 
+if you use a csh/tcsh shell::
 
   $ setenv RAJA_PERFSUITE_UNIT_TEST DAXPY
   $ ./test/test-raja-perf-suite.exe 
 
-will run all compiled variants of the 'DAXPY' kernel.
+or, if you use a bash shell::
+
+  $ RAJA_PERFSUITE_UNIT_TEST=DAXPY ./test/test-raja-perf-suite.exe
+
+In either case, the test will run all compiled variants of the 'DAXPY' 
+kernel.
 
 .. _run_suite-label:
 
