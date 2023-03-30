@@ -306,7 +306,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Teams"),
+  std::string("Launch"),
 
   std::string("Sort"),
   std::string("Scan"),
