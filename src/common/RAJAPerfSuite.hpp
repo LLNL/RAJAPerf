@@ -144,6 +144,8 @@ enum KernelID {
   Apps_MASS3DPA,
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
+  Apps_SW4CK_KERNEL_2,
+  Apps_SW4CK_KERNEL_5,
   Apps_VOL3D,
 
 //
