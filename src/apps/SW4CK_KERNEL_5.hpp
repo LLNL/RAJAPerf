@@ -653,21 +653,21 @@ using float_sw4 = double;
   const int ifirst0 = ifirst;                               \
   const int jfirst0 = jfirst;                               \
                                                             \
-  Real_ptr a_mu = m_a_mu;                                   \
-  Real_ptr a_lambda = m_a_lambda;                           \
-  Real_ptr a_jac = m_a_jac;                                 \
-  Real_ptr a_u = m_a_u;                                     \
-  Real_ptr a_lu = m_a_lu;                                   \
-  Real_ptr a_met = m_a_met;                                 \
-  Real_ptr a_strx = m_a_strx;                               \
-  Real_ptr a_stry = m_a_stry;
-/*
-  Real_ptr a_acof = m_a_acof;                                  \
-  Real_ptr a_bope = m_a_bope;                               \ 
-  Real_ptr a_ghcof = m_a_ghcof;                             \ 
-  Real_ptr a_acof_no_gp = m_a_acof_no_gp;      \ 
-  Real_ptr a_ghcof_no_gp = m_a_ghcof_no_gp;
-*/
+  Real_ptr a_mu = m_a_mu;                                         \
+  Real_ptr a_lambda = m_a_lambda;                                 \
+  Real_ptr a_jac = m_a_jac;                                       \
+  Real_ptr a_u = m_a_u;                                           \
+  Real_ptr a_lu = m_a_lu;                                         \
+  Real_ptr a_met = m_a_met;                                       \
+  Real_ptr a_strx = m_a_strx;                                     \
+  Real_ptr a_stry = m_a_stry;                                     \
+  Real_ptr a_bope = m_a_bope;                                     \
+  Real_ptr a_ghcof_no_gp = m_a_ghcof_no_gp;                       \
+  Real_ptr a_acof_no_gp = m_a_acof_no_gp;
+
+//not used
+//Real_ptr a_acof = m_a_acof;
+//Real_ptr a_ghcof = m_a_ghcof;
 
 // Direct reuse of fortran code by these macro definitions:
 #define mu(i, j, k) a_mu[base + (i) + ni * (j) + nij * (k)]
@@ -722,7 +722,7 @@ using float_sw4 = double;
      mux2 * (u(1, i - 1, j, k) - u(1, i, j, k)) +                       \
      mux3 * (u(1, i + 1, j, k) - u(1, i, j, k)) +                       \
      mux4 * (u(1, i + 2, j, k) - u(1, i, j, k))) *                      \
-    istry;  
+    istry;
 
 // qq derivative (u) (u-eq)
 // 43 ops, tot=101
@@ -747,7 +747,7 @@ using float_sw4 = double;
      mux2 * (u(1, i, j - 1, k) - u(1, i, j, k)) +                       \
      mux3 * (u(1, i, j + 1, k) - u(1, i, j, k)) +                       \
      mux4 * (u(1, i, j + 2, k) - u(1, i, j, k))) *                      \
-    istrx;  
+    istrx;
 
 
 // pp derivative (v) (v-eq)
@@ -799,7 +799,7 @@ using float_sw4 = double;
      mux2 * (u(2, i, j - 1, k) - u(2, i, j, k)) +                       \
      mux3 * (u(2, i, j + 1, k) - u(2, i, j, k)) +                       \
      mux4 * (u(2, i, j + 2, k) - u(2, i, j, k))) *                      \
-    istrx;  
+    istrx;
 
 // pp derivative (w) (w-eq)
 // 43 ops, tot=240
@@ -854,22 +854,27 @@ using float_sw4 = double;
 // 54*8*8+25*8 = 3656 ops, tot=3939
 #define SW4CK_KERNEL_5_BODY_8                                           \
   float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;       \
+
+// #if defined(MAGIC_SYNC) && defined(RAJA_GPU_DEVICE_COMPILE_PASS_ACTIVE)
+//  __syncthreads();
+// #endif
+
+#define SW4CK_KERNEL_5_BODY_8_1                                         \
   /*#pragma unroll 8 */                                                 \
-  #ifdef MAGIC_SYNC                                                     \
-  __syncthreads();                                                      \
-  #endif                                                                \
   for (int q = nk - 7; q <= nk; q++) {                                  \
-  mucofu2 = 0;                                                          \
-  mucofuv = 0;                                                          \
-  mucofuw = 0;                                                          \
-  mucofvw = 0;                                                          \
-  mucofv2 = 0;                                                          \
-  mucofw2 = 0;                                                          \
-  #ifdef AMD_UNROLL_FIX                                                 \
-    #pragma unroll 8                                                    \
-    #endif                                                              \
-    for (int m = nk - 7; m <= nk; m++) {                                \
-      mucofu2 += acof_no_gp(nk - k + 1, nk - q + 1, nk - m + 1) *       \
+    mucofu2 = 0;                                                        \
+    mucofuv = 0;                                                        \
+    mucofuw = 0;                                                        \
+    mucofvw = 0;                                                        \
+    mucofv2 = 0;                                                        \
+    mucofw2 = 0;                                                        \
+
+//  #ifdef AMD_UNROLL_FIX
+//    #pragma unroll 8
+//    #endif
+#define SW4CK_KERNEL_5_BODY_8_2  \
+for (int m = nk - 7; m <= nk; m++) {                                    \
+    mucofu2 += acof_no_gp(nk - k + 1, nk - q + 1, nk - m + 1) *         \
         ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *            \
          strx(i) * met(2, i, j, m) * strx(i) +                          \
          mu(i, j, m) * (met(3, i, j, m) * stry(j) *                     \
@@ -964,7 +969,7 @@ using float_sw4 = double;
       c1 * (u(2, i + 1, j + 1, k) - u(2, i - 1, j + 1, k))) -           \
      mu(i, j - 1, k) * met(1, i, j - 1, k) * met(1, i, j - 1, k) *      \
      (c2 * (u(2, i + 2, j - 1, k) - u(2, i - 2, j - 1, k)) +            \
-      c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));  
+      c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));
 
 // qp-derivatives (u-eq)
 // 38 ops. tot=4087
@@ -983,7 +988,7 @@ using float_sw4 = double;
       c1 * (u(2, i + 1, j + 1, k) - u(2, i - 1, j + 1, k))) -           \
      mu(i, j - 1, k) * met(1, i, j - 1, k) * met(1, i, j - 1, k) *      \
      (c2 * (u(2, i + 2, j - 1, k) - u(2, i - 2, j - 1, k)) +            \
-      c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));  
+      c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));
 
 // pq-derivatives (v-eq)
 // 38 ops. , tot=4125
@@ -1005,7 +1010,7 @@ using float_sw4 = double;
       c1 * (u(1, i + 1, j - 1, k) - u(1, i - 1, j - 1, k))));
 
 
-//* qp-derivatives (v-eq)
+// qp-derivatives (v-eq)
 // 38 ops., tot=4163
 #define SW4CK_KERNEL_5_BODY_13                                          \
   r2 +=                                                                 \
@@ -1077,7 +1082,7 @@ using float_sw4 = double;
                 met(1, i - 1, j, k) * dvdrm1 * stry(j) +                \
                 la(i - 1, j, k) * met(4, i - 1, j, k) *                 \
                 met(1, i - 1, j, k) * dwdrm1))) *                       \
-    istry;  
+    istry;
 
 // rp derivatives (v-eq)
 // 42 ops, tot=4464
@@ -1098,7 +1103,7 @@ using float_sw4 = double;
           (mu(i - 1, j, k) * met(3, i - 1, j, k) *                      \
            met(1, i - 1, j, k) * dudrm1 +                               \
            mu(i - 1, j, k) * met(2, i - 1, j, k) *                      \
-           met(1, i - 1, j, k) * dvdrm1 * strx(i - 1) * istry));  
+           met(1, i - 1, j, k) * dvdrm1 * strx(i - 1) * istry));
 
 // rp derivatives (w-eq)
 // 38 ops, tot=4502
@@ -1203,7 +1208,7 @@ using float_sw4 = double;
            met(3, i, j - 1, k) * met(1, i, j - 1, k) * dvdrm1 *         \
            stry(j - 1) * istrx +                                        \
            la(i, j - 1, k) * met(4, i, j - 1, k) *                      \
-           met(1, i, j - 1, k) * dwdrm1 * istrx));  
+           met(1, i, j - 1, k) * dwdrm1 * istrx));
 
 // rq derivatives (w-eq)
 // 39 ops, tot=4845
@@ -1311,7 +1316,7 @@ using float_sw4 = double;
 #define SW4CK_KERNEL_5_BODY_23                                          \
   lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;               \
   lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;               \
-  lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac; 
+  lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
 
 #include "common/KernelBase.hpp"
 
