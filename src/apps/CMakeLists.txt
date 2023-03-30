@@ -15,12 +15,12 @@ blt_add_library(
           CONVECTION3DPA-Seq.cpp
           CONVECTION3DPA-OMP.cpp
           CONVECTION3DPA-OMPTarget.cpp
-          DEL_DOT_VEC_2D.cpp 
-          DEL_DOT_VEC_2D-Seq.cpp 
-          DEL_DOT_VEC_2D-Hip.cpp 
-          DEL_DOT_VEC_2D-Cuda.cpp 
-          DEL_DOT_VEC_2D-OMP.cpp 
-          DEL_DOT_VEC_2D-OMPTarget.cpp 
+          DEL_DOT_VEC_2D.cpp
+          DEL_DOT_VEC_2D-Seq.cpp
+          DEL_DOT_VEC_2D-Hip.cpp
+          DEL_DOT_VEC_2D-Cuda.cpp
+          DEL_DOT_VEC_2D-OMP.cpp
+          DEL_DOT_VEC_2D-OMPTarget.cpp
           DIFFUSION3DPA.cpp
           DIFFUSION3DPA-Cuda.cpp
           DIFFUSION3DPA-Hip.cpp
@@ -29,10 +29,10 @@ blt_add_library(
           DIFFUSION3DPA-OMPTarget.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
-          ENERGY-Hip.cpp 
-          ENERGY-Cuda.cpp 
-          ENERGY-OMP.cpp 
-          ENERGY-OMPTarget.cpp 
+          ENERGY-Hip.cpp
+          ENERGY-Cuda.cpp
+          ENERGY-OMP.cpp
+          ENERGY-OMPTarget.cpp
           FIR.cpp
           FIR-Seq.cpp
           FIR-Hip.cpp
@@ -75,20 +75,22 @@ blt_add_library(
           NODAL_ACCUMULATION_3D-Cuda.cpp
           NODAL_ACCUMULATION_3D-OMP.cpp
           NODAL_ACCUMULATION_3D-OMPTarget.cpp
-          PRESSURE.cpp 
-          PRESSURE-Seq.cpp 
-          PRESSURE-Hip.cpp 
-          PRESSURE-Cuda.cpp 
-          PRESSURE-OMP.cpp 
+          PRESSURE.cpp
+          PRESSURE-Seq.cpp
+          PRESSURE-Hip.cpp
+          PRESSURE-Cuda.cpp
+          PRESSURE-OMP.cpp
           PRESSURE-OMPTarget.cpp
           SW4CK_KERNEL_2.cpp
           SW4CK_KERNEL_2-Seq.cpp
+          SW4CK_KERNEL_5.cpp
+          SW4CK_KERNEL_5-Seq.cpp
           VOL3D.cpp
           VOL3D-Seq.cpp
-          VOL3D-Hip.cpp 
-          VOL3D-Cuda.cpp 
-          VOL3D-OMP.cpp 
-          VOL3D-OMPTarget.cpp 
+          VOL3D-Hip.cpp
+          VOL3D-Cuda.cpp
+          VOL3D-OMP.cpp
+          VOL3D-OMPTarget.cpp
           WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
