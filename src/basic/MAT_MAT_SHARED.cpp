@@ -43,7 +43,7 @@ MAT_MAT_SHARED::MAT_MAT_SHARED(const RunParams &params)
                                            getActualProblemSize() );
 
 
-  setUsesFeature(Teams);
+  setUsesFeature(Launch);
 
   setVariantDefined(Base_Seq);
   setVariantDefined(Lambda_Seq);
