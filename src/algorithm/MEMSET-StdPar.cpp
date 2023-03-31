@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -147,3 +149,6 @@ void MEMSET::setStdParTuningDefinitions(VariantID vid)
 
 } // end namespace algorithm
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

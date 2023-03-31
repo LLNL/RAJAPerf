@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -87,3 +89,6 @@ void REDUCE_SUM::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
 } // end namespace algorithm
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

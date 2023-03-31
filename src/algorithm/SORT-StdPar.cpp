@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -56,3 +58,6 @@ void SORT::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace algorithm
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+
