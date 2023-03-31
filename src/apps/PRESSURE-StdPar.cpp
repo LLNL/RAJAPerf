@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -96,3 +98,6 @@ void PRESSURE::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // iend-ibegin namespace apps
 } // iend-ibegin namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

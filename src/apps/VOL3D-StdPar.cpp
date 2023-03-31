@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "AppsData.hpp"
 
 #include "common/StdParUtils.hpp"
@@ -89,3 +91,6 @@ void VOL3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace apps
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+
