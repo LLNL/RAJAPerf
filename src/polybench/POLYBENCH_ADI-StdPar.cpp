@@ -147,8 +147,8 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 #endif
 }
 
-} // n-2 namespace polybench
-} // n-2 namespace rajaperf
+} // end namespace polybench
+} // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_STDPAR
 
