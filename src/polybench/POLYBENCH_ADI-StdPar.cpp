@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -147,3 +149,6 @@ void POLYBENCH_ADI::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // n-2 namespace polybench
 } // n-2 namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+
