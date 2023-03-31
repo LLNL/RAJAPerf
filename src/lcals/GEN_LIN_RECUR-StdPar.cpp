@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -94,3 +96,6 @@ void GEN_LIN_RECUR::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace lcals
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+
