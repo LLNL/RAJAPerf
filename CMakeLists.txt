@@ -7,7 +7,9 @@
 ###############################################################################
 
 # C is required for googletest to find Threads
-project(RAJAPerfSuite LANGUAGES CXX C)
+cmake_policy(SET CMP0048 NEW)
+
+project(RAJAPerfSuite VERSION 2022.10.0 LANGUAGES CXX C)
 
 if (ENABLE_HIP)
   cmake_minimum_required(VERSION 3.23)
@@ -95,9 +97,10 @@ if (ENABLE_OPENMP)
   add_definitions(-DRUN_OPENMP)
 endif ()
 
-set(RAJA_PERFSUITE_VERSION_MAJOR 2022)
-set(RAJA_PERFSUITE_VERSION_MINOR 10)
-set(RAJA_PERFSUITE_VERSION_PATCHLEVEL 0)
+set(RAJA_PERFSUITE_VERSION_MAJOR ${RAJAPerfSuite_VERSION_MAJOR})
+set(RAJA_PERFSUITE_VERSION_MINOR ${RAJAPerfSuite_VERSION_MINOR})
+set(RAJA_PERFSUITE_VERSION_PATCHLEVEL ${RAJAPerfSuite_VERSION_PATCH})
+message(STATUS "CMAKE_PROJECT_VERSION:" ${CMAKE_PROJECT_VERSION})
 
 set(RAJA_PERFSUITE_DEPENDS RAJA)
 
@@ -123,6 +126,33 @@ if ((ENABLE_HIP) AND (NOT ENABLE_KOKKOS))
   list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip)
   list(APPEND RAJA_PERFSUITE_DEPENDS blt::hip_runtime)
 endif()
+
+#
+# Are we using Caliper
+#
+set(RAJA_PERFSUITE_USE_CALIPER off CACHE BOOL "")
+if (RAJA_PERFSUITE_USE_CALIPER)
+   find_package(caliper REQUIRED)
+   list(APPEND RAJA_PERFSUITE_DEPENDS caliper)
+   add_definitions(-DRAJA_PERFSUITE_USE_CALIPER)
+   message(STATUS "Using Caliper")
+   find_package(adiak REQUIRED)
+   # use ${adiak_LIBRARIES} since version could have adiak vs adiak::adiak export
+   list(APPEND RAJA_PERFSUITE_DEPENDS ${adiak_LIBRARIES})
+   if (ENABLE_CUDA)
+      # Adiak will propagate -pthread from spectrum mpi from a spack install of Caliper with +mpi; and needs to be handled even if RAJAPerf is non MPI program
+      # We should delegate to BLT to handle unguarded -pthread from any dependencies, but currently BLT doesn't
+      set_target_properties(${adiak_LIBRARIES} PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      # the following for adiak-0.2.2
+      if (TARGET adiak::mpi)
+        set_target_properties(adiak::mpi PROPERTIES INTERFACE_COMPILE_OPTIONS "$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>;$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-pthread>")
+      endif ()
+   endif ()
+   message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
+   message(STATUS "Adiak includes : ${adiak_INCLUDE_DIRS}")
+   include_directories(${caliper_INCLUDE_DIR})
+   include_directories(${adiak_INCLUDE_DIRS})
+endif ()
 
 set(RAJAPERF_BUILD_SYSTYPE $ENV{SYS_TYPE})
 set(RAJAPERF_BUILD_HOST $ENV{HOSTNAME})
@@ -151,7 +181,7 @@ else()
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/src/rajaperf_config.hpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/include/rajaperf_config.hpp)
+               ${CMAKE_CURRENT_BINARY_DIR}/include/rajaperf_config.hpp)
 
 include_directories($<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
 

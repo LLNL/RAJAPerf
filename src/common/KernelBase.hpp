@@ -29,7 +29,45 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <map>
 #include <limits>
+
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+
+#define CALI_START \
+    if(doCaliperTiming) { \
+      std::string tstr = getVariantTuningName(running_variant,running_tuning); \
+      std::string kstr = getName(); \
+      std::string ktstr = kstr + "." + tstr; \
+      std::string gstr = getGroupName(kstr); \
+      std::string vstr = getVariantName(running_variant); \
+      doOnceCaliMetaBegin(running_variant,running_tuning); \
+      CALI_MARK_BEGIN(vstr.c_str()); \
+      CALI_MARK_BEGIN(gstr.c_str()); \
+      CALI_MARK_BEGIN(kstr.c_str()); \
+      CALI_MARK_BEGIN(ktstr.c_str()); \
+    }
+
+#define CALI_STOP \
+    if(doCaliperTiming) { \
+      std::string tstr = getVariantTuningName(running_variant,running_tuning); \
+      std::string kstr = getName(); \
+      std::string ktstr = kstr + "." + tstr; \
+      std::string gstr = getGroupName(kstr); \
+      std::string vstr = getVariantName(running_variant); \
+      CALI_MARK_END(ktstr.c_str()); \
+      CALI_MARK_END(kstr.c_str()); \
+      CALI_MARK_END(gstr.c_str()); \
+      CALI_MARK_END(vstr.c_str()); \
+      doOnceCaliMetaEnd(running_variant,running_tuning); \
+    }
+
+#else
+
+#define CALI_START
+#define CALI_STOP
+
+#endif
 
 namespace rajaperf {
 
@@ -289,6 +327,7 @@ public:
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+    CALI_START;
     timer.start();
   }
 
@@ -298,7 +337,7 @@ public:
 #ifdef RAJA_PERFSUITE_ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    timer.stop(); recordExecTime();
+    timer.stop(); CALI_STOP; recordExecTime();
   }
 
   void resetTimer() { timer.reset(); }
@@ -341,6 +380,187 @@ public:
   }
 #endif
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  void caliperOn() { doCaliperTiming = true; }
+  void caliperOff() { doCaliperTiming = false; }
+  void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
+  void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
+  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, const std::string& addToConfig)
+  {
+    static bool ran_spot_config_check = false;
+    bool config_ok = true;
+    const std::string problem_size_json_spec = R"json(
+    {
+        "name"        : "problem_size", 
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "problem size",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#ProblemSize)", "as": "ProblemSize" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#ProblemSize)", "as": "ProblemSize" },
+            }
+        ]
+    }
+)json";
+
+    const std::string reps_json_spec = R"json(
+    {
+        "name"        : "reps",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "reps",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#Reps)", "as": "Reps" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#Reps)", "as": "Reps" },
+            }
+        ]
+    }
+)json";
+
+    const std::string iters_json_spec = R"json(
+    {
+        "name"        : "iters_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "iterations per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#Iterations/Rep)", "as": "Iterations/Rep" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#Iterations/Rep)", "as": "Iterations/Rep" },
+            }
+        ]
+    }
+)json";
+
+    const std::string kernels_json_spec = R"json(
+    {
+        "name"        : "kernels_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "kernels per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#Kernels/Rep)", "as": "Kernels/Rep" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#Kernels/Rep)", "as": "Kernels/Rep" },
+            }
+        ]
+    }
+)json";
+
+    const std::string bytes_json_spec = R"json(
+    {
+        "name"        : "bytes_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "bytes per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#Bytes/Rep)", "as": "Bytes/Rep" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#Bytes/Rep)", "as": "Bytes/Rep" },
+            }
+        ]
+    }
+)json";
+
+    const std::string flops_rep_json_spec = R"json(
+    {
+        "name"        : "flops_p_rep",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "flops per rep",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#Flops/Rep)", "as": "Flops/Rep" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#Flops/Rep)", "as": "Flops/Rep" },
+            }
+        ]
+    }
+)json";
+
+    if(!ran_spot_config_check && (!addToConfig.empty())) {
+      cali::ConfigManager cm;
+      std::string check_profile = "spot()," + addToConfig;
+      std::string msg = cm.check(check_profile.c_str());
+      if(!msg.empty()) {
+        std::cerr << "Problem with Cali Config: " << check_profile << "\n";
+        std::cerr << "Check your command line argument: " << addToConfig << "\n";
+        config_ok = false;
+        exit(-1);
+      }
+      ran_spot_config_check = true;
+      std::cout << "Caliper ran Spot config check\n";
+    }
+
+    if(config_ok) {
+      cali::ConfigManager m;
+      mgr.insert(std::make_pair(vid, m));
+      std::string od("./");
+      if (outdir.size()) {
+        od = outdir + "/";
+      }
+      std::string vstr = getVariantName(vid);
+      std::string profile = "spot(output=" + od + vstr + ".cali)";
+      if(!addToConfig.empty()) {
+        profile += "," + addToConfig;
+      }
+      std::cout << "Profile: " << profile << std::endl;
+      mgr[vid].add_option_spec(problem_size_json_spec.c_str());
+      mgr[vid].set_default_parameter("problem_size", "true");
+      mgr[vid].add_option_spec(reps_json_spec.c_str());
+      mgr[vid].set_default_parameter("reps", "true");
+      mgr[vid].add_option_spec(iters_json_spec.c_str());
+      mgr[vid].set_default_parameter("iters_p_rep", "true");
+      mgr[vid].add_option_spec(kernels_json_spec.c_str());
+      mgr[vid].set_default_parameter("kernels_p_rep", "true");
+      mgr[vid].add_option_spec(bytes_json_spec.c_str());
+      mgr[vid].set_default_parameter("bytes_p_rep", "true");
+      mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
+      mgr[vid].set_default_parameter("flops_p_rep", "true");
+      mgr[vid].add(profile.c_str());
+    }
+  }
+
+  static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
+  static void setCaliperMgrStop(VariantID vid) { mgr[vid].stop(); }
+  static void setCaliperMgrFlush() 
+  { // we're going to flush all the variants at once
+    std::cout << "flushing " << mgr.size() << " variants\n";
+    for(auto const &kv : mgr) {
+      // set Adiak key first
+      std::string variant=getVariantName(kv.first);
+      adiak::value("variant",variant.c_str());
+      mgr[kv.first].flush(); 
+    }
+  }
+
+  std::string getGroupName(const std::string &kname )
+  {
+    std::size_t found = kname.find("_");
+    return kname.substr(0,found);
+  }
+
+#endif
+
 protected:
   const RunParams& run_params;
 
@@ -381,6 +601,22 @@ private:
   std::vector<int> num_exec[NumVariants];
 
   RAJA::Timer timer;
+
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  bool doCaliperTiming = true; // warmup can use this to exclude timing
+  std::vector<bool> doCaliMetaOnce[NumVariants];
+  cali_id_t ProblemSize_attr; // in ctor cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  cali_id_t Reps_attr;
+  cali_id_t Iters_Rep_attr;
+  cali_id_t Kernels_Rep_attr;
+  cali_id_t Bytes_Rep_attr;
+  cali_id_t Flops_Rep_attr;
+
+
+      // we need a Caliper Manager object per variant
+// we can inline this with c++17
+  static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
+#endif
 
   std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
   std::vector<RAJA::Timer::ElapsedType> max_time[NumVariants];

@@ -210,3 +210,44 @@ sizes. The CMake option for this is
 
 will build versions of GPU kernels that use 64, 128, 256, 512, and 1024 threads
 per GPU thread-block.
+
+Building with Caliper
+---------------------
+
+RAJAPerf Suite may also use Caliper instrumentation, with per variant output into 
+Spot/Hatchet .cali files. Original timing is nested within Caliper annotations and 
+so is not impacted when Caliper support is turned on. While Caliper is low-overhead
+it is not zero, so it will add a small amount of timing skew in its data as 
+compared to the original. For much more on Caliper, read it's documentation here:
+[Caliper] (http://software.llnl.gov/Caliper/)
+
+Caliper *annotation* is in the following tree structure
+
+Variant
+   Group
+     Kernel
+       Kernel.Tuning
+
+| Build against these Caliper versions
+|
+|   **caliper@2.9.0** (preferred target)
+|   **caliper@master** (if using older Spack version)
+
+In Cmake scripts add
+  **-DRAJA_PERFSUITE_USE_CALIPER=On** 
+
+Add to **-DCMAKE_PREFIX_PATH**
+  ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+
+or use 
+  -Dcaliper_DIR -Dadiak_DIR package prefixes
+
+For Spack : raja_perf +caliper ^caliper@2.9.0
+
+For Uberenv: python3 scripts/uberenv/uberenv.py --spec +caliper ^caliper@2.9.0
+
+If you intend on passing nvtx or roctx annotation to Nvidia or AMD profiling tools, 
+build Caliper with +cuda cuda_arch=XX or +rocm respectively. Then you can specify
+an additional Caliper service for nvtx or roctx like so: roctx example:
+
+CALI_SERVICES_ENABLE=roctx rocprof --roctx-trace --hip-trace raja-perf.exe 

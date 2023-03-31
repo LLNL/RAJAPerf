@@ -24,6 +24,7 @@
 
 # We define the following GitLab pipeline variables:
 variables:
+# Required information about GitHub repository
   GITHUB_PROJECT_NAME: "RAJAPerf"
   GITHUB_PROJECT_ORG: "LLNL"
 # Use the umdev service user to run CI. This prevents from running pipelines as

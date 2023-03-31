@@ -18,7 +18,6 @@
 
 TEST(ShortSuiteTest, Basic)
 {
-
 // Assemble command line args for basic test
   int argc = 5;
 
@@ -27,6 +26,7 @@ TEST(ShortSuiteTest, Basic)
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
   argc = 7;
 #endif
+
 
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
   argc = 7;
@@ -55,6 +55,12 @@ TEST(ShortSuiteTest, Basic)
   for (int is = 0; is < argc; ++is) { 
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Init(NULL,NULL);
+
+  int num_ranks;
+  MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+#endif
 
   // STEP 1: Create suite executor object with input args defined above
   rajaperf::Executor executor(argc, argv);
@@ -131,6 +137,9 @@ TEST(ShortSuiteTest, Basic)
     }  // loop over variants
 
   } // loop over kernels
+#ifdef RAJA_PERFSUITE_ENABLE_MPI
+  MPI_Finalize();
+#endif
 
   // clean up 
   delete [] argv; 

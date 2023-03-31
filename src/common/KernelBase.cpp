@@ -39,6 +39,16 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params) :
   running_tuning = getUnknownTuningIdx();
 
   checksum_scale_factor = 1.0;
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  // Init Caliper column metadata attributes; aggregatable attributes need to be initialized before manager.start()
+  ProblemSize_attr = cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  Reps_attr = cali_create_attribute("Reps",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  Iters_Rep_attr = cali_create_attribute("Iterations/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  Kernels_Rep_attr = cali_create_attribute("Kernels/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  Bytes_Rep_attr = cali_create_attribute("Bytes/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+  Flops_Rep_attr = cali_create_attribute("Flops/Rep",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
+#endif
+
 }
 
 
@@ -151,6 +161,9 @@ void KernelBase::setVariantDefined(VariantID vid)
   min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
   max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  doCaliMetaOnce[vid].resize(variant_tuning_names[vid].size(),true);
+#endif
 }
 
 void KernelBase::execute(VariantID vid, size_t tune_idx)
@@ -191,6 +204,12 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     return;
   }
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  if(doCaliperTiming) {
+    KernelBase::setCaliperMgrStart(vid);
+  }
+#endif
+   
   switch ( vid ) {
 
     case Base_Seq :
@@ -261,6 +280,11 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
     }
 
   }
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+  if(doCaliperTiming) {
+    setCaliperMgrStop(vid); 
+  }
+#endif
 }
 
 void KernelBase::print(std::ostream& os) const
@@ -331,4 +355,30 @@ void KernelBase::print(std::ostream& os) const
   os << std::endl;
 }
 
+#ifdef RAJA_PERFSUITE_USE_CALIPER
+void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
+{
+  // attributes are class variables initialized in ctor
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    cali_set_double(ProblemSize_attr,(double)getActualProblemSize());
+    cali_set_double(Reps_attr,(double)getRunReps());
+    cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
+    cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
+    cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
+    cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
+  }
+}
+
+void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
+{
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    doCaliMetaOnce[vid].at(tune_idx) = false;
+  }
+}
+
+// initialize a KernelBase static 
+std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
+#endif
 }  // closing brace for rajaperf namespace
+
+
