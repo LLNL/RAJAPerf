@@ -11,7 +11,7 @@
 
 #include "DIFFUSION3DPA.hpp"
 
-#if defined(RAJA_ENABLE_STDPAR)
+#if defined(BUILD_STDPAR)
 
 #include "RAJA/RAJA.hpp"
 
@@ -133,5 +133,5 @@ void DIFFUSION3DPA::runStdParVariant(VariantID vid, size_t tune_idx)
 } // end namespace apps
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_STDPAR
+#endif  // BUILD_STDPAR
 

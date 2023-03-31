@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_STDPAR)
+#if defined(BUILD_STDPAR)
 
 #include "common/StdParUtils.hpp"
 
@@ -121,5 +121,5 @@ void INDEXLIST::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 } // end namespace basic
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_STDPAR
+#endif  // BUILD_STDPAR
 

@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_STDPAR)
+#if defined(BUILD_STDPAR)
 
 #include "common/StdParUtils.hpp"
 
@@ -65,5 +65,5 @@ void SCAN::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 } // end namespace algorithm
 } // end namespace rajaperf
 
-#endif  // RAJA_ENABLE_STDPAR
+#endif  // BUILD_STDPAR
 
