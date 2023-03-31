@@ -223,7 +223,7 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Teams,
+  Launch,
 
   Sort,
   Scan,

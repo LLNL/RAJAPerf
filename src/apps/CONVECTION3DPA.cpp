@@ -50,7 +50,7 @@ CONVECTION3DPA::CONVECTION3DPA(const RunParams& params)
                          (1 + 2*CPA_Q1D) * CPA_D1D * CPA_D1D * CPA_D1D // 8
                          ));
 
-  setUsesFeature(Teams);
+  setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
