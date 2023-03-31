@@ -101,7 +101,5 @@ void ADD::runStdParVariant(VariantID vid, size_t tune_idx)
 } // end namespace stream
 } // end namespace rajaperf
 
-#else
-#error JEFF
 #endif  // BUILD_STDPAR
 
