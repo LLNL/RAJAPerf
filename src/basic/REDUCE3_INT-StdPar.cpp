@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include <array>
 #include "common/StdParUtils.hpp"
 
@@ -110,3 +112,6 @@ void REDUCE3_INT::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace basic
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

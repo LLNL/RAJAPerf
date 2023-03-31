@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -141,3 +143,6 @@ void INDEXLIST_3LOOP::runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
 } // end namespace basic
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #ifndef _OPENMP
 #error Currently, OpenMP atomics are required here.
 #endif
@@ -105,3 +107,6 @@ void PI_ATOMIC::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace basic
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+

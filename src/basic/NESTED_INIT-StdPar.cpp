@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_ENABLE_STDPAR)
+
 #include "common/StdParUtils.hpp"
 
 #include <iostream>
@@ -108,3 +110,6 @@ void NESTED_INIT::runStdParVariant(VariantID vid, size_t tune_idx)
 
 } // end namespace basic
 } // end namespace rajaperf
+
+#endif  // RAJA_ENABLE_STDPAR
+
