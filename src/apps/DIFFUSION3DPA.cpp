@@ -51,7 +51,7 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
                          7 * DPA_D1D * DPA_Q1D * DPA_D1D * DPA_D1D +
                          3 * DPA_D1D * DPA_D1D * DPA_D1D));
 
-  setUsesFeature(Teams);
+  setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
