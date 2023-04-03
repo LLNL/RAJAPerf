@@ -20,44 +20,39 @@ TEST(ShortSuiteTest, Basic)
 {
 
 // Assemble command line args for basic test
-  int argc = 5;
+
+  std::vector< std::string > sargv{};
+  sargv.emplace_back(std::string("dummy "));  // for executable name
+  sargv.emplace_back(std::string("--checkrun"));
+  sargv.emplace_back(std::string("3"));
+  sargv.emplace_back(std::string("--show-progress"));
+  sargv.emplace_back(std::string("--disable-warmup"));
 
 #if defined(RAJA_ENABLE_HIP) && \
      (HIP_VERSION_MAJOR < 5 || \
      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
-  argc = 7;
+  sargv.emplace_back(std::string("--exclude-kernels"));
+  sargv.emplace_back(std::string("HALOEXCHANGE_FUSED"));
 #endif
 
 #if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
-  argc = 7;
+  sargv.emplace_back(std::string("--exclude-kernels"));
+  sargv.emplace_back(std::string("FIRST_MIN"));
 #endif
 
-  std::vector< std::string > sargv(argc);
-  sargv[0] = std::string("dummy ");  // for executable name
-  sargv[1] = std::string("--checkrun");
-  sargv[2] = std::string("3");
-  sargv[3] = std::string("--show-progress");
-  sargv[4] = std::string("--disable-warmup");
+  char *unit_test = getenv("RAJA_PERFSUITE_UNIT_TEST");
+  if (unit_test != NULL) {
+    sargv.emplace_back(std::string("-k"));
+    sargv.emplace_back(std::string(unit_test));
+  }
 
-#if defined(RAJA_ENABLE_HIP) && \
-     (HIP_VERSION_MAJOR < 5 || \
-     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR < 1))
-  sargv[5] = std::string("--exclude-kernels");
-  sargv[6] = std::string("HALOEXCHANGE_FUSED");
-#endif
-
-#if (defined(RAJA_COMPILER_CLANG) && __clang_major__ == 11)
-  sargv[5] = std::string("--exclude-kernels");
-  sargv[6] = std::string("FIRST_MIN");
-#endif
-
-  char** argv = new char* [argc];
-  for (int is = 0; is < argc; ++is) { 
+  char** argv = new char* [sargv.size()];
+  for (size_t is = 0; is < sargv.size(); ++is) {
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
 
   // STEP 1: Create suite executor object with input args defined above
-  rajaperf::Executor executor(argc, argv);
+  rajaperf::Executor executor(sargv.size(), argv);
 
   // STEP 2: Assemble kernels and variants to run
   executor.setupSuite();
