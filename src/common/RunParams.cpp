@@ -533,7 +533,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = DryRun;
       }
 
-    } else if ( std::string(argv[i]) == std::string("--disable_warmup") ) {
+    } else if ( std::string(argv[i]) == std::string("--disable-warmup") ) {
 
       disable_warmup = true;
 
@@ -701,7 +701,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
-  str << "\t --disable_warmup (disable warmup tests)\n\n";
+  str << "\t --disable-warmup (disable warmup tests)\n\n";
 
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
@@ -718,10 +718,7 @@ void RunParams::printKernelNames(std::ostream& str) const
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
+    str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
   }
   str.flush();
 }
@@ -732,10 +729,7 @@ void RunParams::printFullKernelNames(std::ostream& str) const
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
+    str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
   }
   str.flush();
 }
@@ -781,14 +775,11 @@ void RunParams::printFeatureKernels(std::ostream& str) const
     str << getFeatureName(tfid) << std::endl;
     for (int kid = 0; kid < NumKernels; ++kid) {
       KernelID tkid = static_cast<KernelID>(kid);
-///   RDH DISABLE COUPLE KERNEL
-      if (tkid != Apps_COUPLE) {
-         KernelBase* kern = getKernelObject(tkid, *this);
-         if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFullKernelName(tkid) << std::endl;
-         }
-         delete kern;
+      KernelBase* kern = getKernelObject(tkid, *this);
+      if ( kern->usesFeature(tfid) ) {
+        str << "\t" << getFullKernelName(tkid) << std::endl;
       }
+      delete kern;
     }  // loop over kernels
     str << std::endl;
   }  // loop over features
@@ -801,18 +792,15 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
     KernelID tkid = static_cast<KernelID>(kid);
-/// RDH DISABLE COUPLE KERNEL
-    if (tkid != Apps_COUPLE) {
-      str << getFullKernelName(tkid) << std::endl;
-      KernelBase* kern = getKernelObject(tkid, *this);
-      for (int fid = 0; fid < NumFeatures; ++fid) {
-        FeatureID tfid = static_cast<FeatureID>(fid);
-        if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFeatureName(tfid) << std::endl;
-        }
-      }  // loop over features
-      delete kern;
-    }
+    str << getFullKernelName(tkid) << std::endl;
+    KernelBase* kern = getKernelObject(tkid, *this);
+    for (int fid = 0; fid < NumFeatures; ++fid) {
+      FeatureID tfid = static_cast<FeatureID>(fid);
+      if ( kern->usesFeature(tfid) ) {
+         str << "\t" << getFeatureName(tfid) << std::endl;
+      }
+    }  // loop over features
+    delete kern;
   }  // loop over kernels
   str.flush();
 }

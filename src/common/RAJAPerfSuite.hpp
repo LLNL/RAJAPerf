@@ -132,7 +132,6 @@ enum KernelID {
 // Apps kernels...
 //
   Apps_CONVECTION3DPA,
-  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
   Apps_EDGE3D,
@@ -218,7 +217,7 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Teams,
+  Launch,
 
   Sort,
   Scan,

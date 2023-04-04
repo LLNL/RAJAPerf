@@ -12,7 +12,7 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -44,7 +44,7 @@ using namespace std;
 
 namespace {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
 void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
                MPI_Op op, MPI_Comm comm)
@@ -594,11 +594,7 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin();
          kid != run_kern.end(); ++kid) {
-///   RDH DISABLE COUPLE KERNEL until we find a reasonable way to do
-///   complex numbers in GPU code
-      if ( *kid != Apps_COUPLE ) {
-        kernels.push_back( getKernelObject(*kid, run_params) );
-      }
+      kernels.push_back( getKernelObject(*kid, run_params) );
     }
 
     if ( !(run_params.getInvalidVariantInput().empty()) ||
@@ -737,7 +733,7 @@ void Executor::reportRunSummary(ostream& str) const
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
   if ( to_file ) {
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
     str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
@@ -979,7 +975,7 @@ void Executor::outputRunData()
 unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {
@@ -1376,7 +1372,7 @@ void Executor::writeChecksumReport(ostream& file)
 {
   if ( file ) {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 #endif
@@ -1411,7 +1407,7 @@ void Executor::writeChecksumReport(ostream& file)
     //
     file << equal_line << endl;
     file << "Checksum Report ";
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     file << "for " << num_ranks << " MPI ranks ";
 #endif
     file << endl;
@@ -1423,7 +1419,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << "Average Checksum  "
          <<left<< setw(checksum_width) << "Max Checksum Diff  "
          <<left<< setw(checksum_width) << "Checksum Diff StdDev"
@@ -1435,7 +1431,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "  "
          <<left<< setw(checksum_width) << "  "
          <<left<< setw(checksum_width) << "(vs. first variant listed)  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << ""
 #endif
          << endl;
@@ -1483,7 +1479,7 @@ void Executor::writeChecksumReport(ostream& file)
         }
       }
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
       // get stats for checksums
       std::vector<std::vector<Checksum_type>> checksums_sum(variant_ids.size());
@@ -1573,7 +1569,7 @@ void Executor::writeChecksumReport(ostream& file)
           if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
                  << showpoint << setprecision(prec)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << checksums_avg[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_max[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv][tune_idx] << endl;
@@ -1583,7 +1579,7 @@ void Executor::writeChecksumReport(ostream& file)
 #endif
           } else {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run" << endl;

@@ -10,7 +10,7 @@
 
 #include "RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -79,7 +79,6 @@
 // Apps kernels...
 //
 #include "apps/CONVECTION3DPA.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
 #include "apps/EDGE3D.hpp"
@@ -216,7 +215,6 @@ static const std::string KernelNames [] =
 // Apps kernels...
 //
   std::string("Apps_CONVECTION3DPA"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_EDGE3D"),
@@ -304,7 +302,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Teams"),
+  std::string("Launch"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -725,10 +723,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::CONVECTION3DPA(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
+
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
@@ -845,7 +840,7 @@ std::ostream& getNullStream()
 std::ostream& getCout()
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {
