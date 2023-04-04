@@ -195,7 +195,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 
     using workgroup_policy = RAJA::WorkGroupPolicy <
                                  RAJA::hip_work_async<block_size>,
-#ifdef RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL
+#if defined(RAJA_ENABLE_HIP_INDIRECT_FUNCTION_CALL)
                                  RAJA::unordered_hip_loop_y_block_iter_x_threadblock_average,
 #else
                                  RAJA::ordered,
