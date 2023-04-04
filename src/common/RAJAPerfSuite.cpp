@@ -10,7 +10,7 @@
 
 #include "RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -300,7 +300,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Teams"),
+  std::string("Launch"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -834,7 +834,7 @@ std::ostream& getNullStream()
 std::ostream& getCout()
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {
