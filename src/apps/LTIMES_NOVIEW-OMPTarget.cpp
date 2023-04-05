@@ -21,20 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(phidat, m_phidat, m_philen, did, hid); \
-  allocAndInitOpenMPDeviceData(elldat, m_elldat, m_elllen, did, hid); \
-  allocAndInitOpenMPDeviceData(psidat, m_psidat, m_psilen, did, hid);
-
-#define LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_phidat, phidat, m_philen, hid, did); \
-  deallocOpenMPDeviceData(phidat, did); \
-  deallocOpenMPDeviceData(elldat, did); \
-  deallocOpenMPDeviceData(psidat, did);
-
 
 void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -43,8 +29,6 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
   LTIMES_NOVIEW_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,11 +48,7 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    LTIMES_NOVIEW_DATA_SETUP_OMP_TARGET;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -93,8 +73,6 @@ void LTIMES_NOVIEW::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
     }
     stopTimer();
-
-    LTIMES_NOVIEW_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n LTIMES_NOVIEW : Unknown OMP Target variant id = " << vid << std::endl;

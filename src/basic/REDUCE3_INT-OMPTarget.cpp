@@ -26,15 +26,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define REDUCE3_INT_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(vec, m_vec, iend, did, hid);
-
-#define REDUCE3_INT_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(vec, did); \
-
 
 void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -45,8 +36,6 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
   REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    REDUCE3_INT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -71,11 +60,7 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    REDUCE3_INT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -96,8 +81,6 @@ void REDUCE3_INT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     }
     stopTimer();
-
-    REDUCE3_INT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  REDUCE3_INT : Unknown OMP Target variant id = " << vid << std::endl;

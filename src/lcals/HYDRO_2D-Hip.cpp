@@ -40,35 +40,6 @@ namespace lcals
                static_cast<size_t>(1));
 
 
-#define HYDRO_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(zadat, m_za, m_array_length); \
-  allocAndInitHipDeviceData(zbdat, m_zb, m_array_length); \
-  allocAndInitHipDeviceData(zmdat, m_zm, m_array_length); \
-  allocAndInitHipDeviceData(zpdat, m_zp, m_array_length); \
-  allocAndInitHipDeviceData(zqdat, m_zq, m_array_length); \
-  allocAndInitHipDeviceData(zrdat, m_zr, m_array_length); \
-  allocAndInitHipDeviceData(zudat, m_zu, m_array_length); \
-  allocAndInitHipDeviceData(zvdat, m_zv, m_array_length); \
-  allocAndInitHipDeviceData(zzdat, m_zz, m_array_length); \
-  allocAndInitHipDeviceData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitHipDeviceData(zzoutdat, m_zzout, m_array_length);
-
-
-#define HYDRO_2D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_zrout, zroutdat, m_array_length); \
-  getHipDeviceData(m_zzout, zzoutdat, m_array_length); \
-  deallocHipDeviceData(zadat); \
-  deallocHipDeviceData(zbdat); \
-  deallocHipDeviceData(zmdat); \
-  deallocHipDeviceData(zpdat); \
-  deallocHipDeviceData(zqdat); \
-  deallocHipDeviceData(zrdat); \
-  deallocHipDeviceData(zudat); \
-  deallocHipDeviceData(zvdat); \
-  deallocHipDeviceData(zzdat); \
-  deallocHipDeviceData(zroutdat); \
-  deallocHipDeviceData(zzoutdat);
-
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
@@ -130,8 +101,6 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    HYDRO_2D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -164,11 +133,7 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HYDRO_2D_DATA_SETUP_HIP;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -215,8 +180,6 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HYDRO_2D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;

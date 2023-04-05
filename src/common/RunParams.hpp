@@ -138,6 +138,13 @@ public:
     return false;
   }
 
+  DataSpace getSeqDataSpace() const { return seqDataSpace; }
+  DataSpace getOmpDataSpace() const { return ompDataSpace; }
+  DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
+  DataSpace getCudaDataSpace() const { return cudaDataSpace; }
+  DataSpace getHipDataSpace() const { return hipDataSpace; }
+  DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
+
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -216,6 +223,7 @@ private:
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
+  void printDataSpaceNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
@@ -246,6 +254,13 @@ private:
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */
+
+  DataSpace seqDataSpace = DataSpace::Host;
+  DataSpace ompDataSpace = DataSpace::Omp;
+  DataSpace ompTargetDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaDataSpace = DataSpace::CudaDevice;
+  DataSpace hipDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosDataSpace = DataSpace::Host;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for

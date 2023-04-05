@@ -26,21 +26,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define HYDRO_1D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(z, m_z, m_array_length, did, hid);
-
-#define HYDRO_1D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_x, x, m_array_length, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(z, did); \
-
-
 void HYDRO_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -50,8 +35,6 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   HYDRO_1D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    HYDRO_1D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -65,11 +48,7 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    HYDRO_1D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -81,8 +60,6 @@ void HYDRO_1D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     }
     stopTimer();
-
-    HYDRO_1D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  HYDRO_1D : Unknown OMP Target variant id = " << vid << std::endl;

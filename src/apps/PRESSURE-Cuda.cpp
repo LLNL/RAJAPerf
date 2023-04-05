@@ -21,21 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(compression, m_compression, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
-
-#define PRESSURE_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_p_new, p_new, iend); \
-  deallocCudaDeviceData(compression); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(vnewc);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
@@ -74,8 +59,6 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    PRESSURE_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -95,11 +78,7 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PRESSURE_DATA_SETUP_CUDA;
 
     const bool async = true;
 
@@ -128,8 +107,6 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    PRESSURE_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  PRESSURE : Unknown Cuda variant id = " << vid << std::endl;

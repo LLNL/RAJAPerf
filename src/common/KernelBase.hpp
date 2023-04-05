@@ -30,6 +30,7 @@
 #include <vector>
 #include <iostream>
 #include <limits>
+#include <utility>
 
 namespace rajaperf {
 
@@ -204,83 +205,100 @@ public:
 #endif
   }
 
-  int getDataAlignment() const { return run_params.getDataAlignment(); }
+  int getDataAlignment() const;
+
+  DataSpace getDataSpace(VariantID vid) const;
+  DataSpace getHostAccessibleDataSpace(VariantID vid) const;
 
   template <typename T>
-  void allocData(T*& ptr, int len,
-                 VariantID vid)
+  void allocData(DataSpace dataSpace, T& ptr, int len)
   {
-    rajaperf::detail::allocData(ptr, len, getDataAlignment(), vid);
+    rajaperf::allocData(dataSpace,
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitData(T*& ptr, int len,
-                        VariantID vid)
+  void copyData(DataSpace dst_dataSpace, T* dst_ptr,
+                DataSpace src_dataSpace, const T* src_ptr,
+                int len)
   {
-    rajaperf::detail::allocAndInitData(ptr, len, getDataAlignment(), vid);
+    rajaperf::copyData(dst_dataSpace, dst_ptr, src_dataSpace, src_ptr, len);
   }
 
   template <typename T>
-  void allocAndInitDataConst(T*& ptr, int len, T val,
-                             VariantID vid)
+  void deallocData(DataSpace dataSpace, T& ptr)
   {
-    rajaperf::detail::allocAndInitDataConst(ptr, len, getDataAlignment(), val, vid);
+    rajaperf::deallocData(dataSpace, ptr);
   }
 
   template <typename T>
-  void allocAndInitDataRandSign(T*& ptr, int len,
-                                VariantID vid)
+  void allocData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandSign(ptr, len, getDataAlignment(), vid);
+    rajaperf::allocData(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void allocAndInitDataRandValue(T*& ptr, int len,
-                                 VariantID vid)
+  void allocAndInitData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::allocAndInitDataRandValue(ptr, len, getDataAlignment(), vid);
+    rajaperf::allocAndInitData(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void deallocData(T*& ptr,
-                   VariantID vid)
+  void allocAndInitDataConst(T*& ptr, int len, T val, VariantID vid)
   {
-    rajaperf::detail::deallocData(ptr, vid);
+    rajaperf::allocAndInitDataConst(getDataSpace(vid),
+        ptr, len, getDataAlignment(), val);
   }
 
   template <typename T>
-  void initData(T*& ptr, int len,
-                VariantID vid)
+  void allocAndInitDataRandSign(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::initData(ptr, len, vid);
+    rajaperf::allocAndInitDataRandSign(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void initDataConst(T*& ptr, int len, T val,
-                     VariantID vid)
+  void allocAndInitDataRandValue(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::initDataConst(ptr, len, val, vid);
+    rajaperf::allocAndInitDataRandValue(getDataSpace(vid),
+        ptr, len, getDataAlignment());
   }
 
   template <typename T>
-  void initDataRandSign(T*& ptr, int len,
-                        VariantID vid)
+  rajaperf::AutoDataMover<T> scopedMoveData(T*& ptr, int len, VariantID vid)
   {
-    rajaperf::detail::initDataRandSign(ptr, len, vid);
+    rajaperf::moveData(getHostAccessibleDataSpace(vid), getDataSpace(vid),
+        ptr, len, getDataAlignment());
+    return {getDataSpace(vid), getHostAccessibleDataSpace(vid), ptr, len, getDataAlignment()};
   }
 
   template <typename T>
-  void initDataRandValue(T*& ptr, int len,
-                         VariantID vid)
+  void deallocData(T*& ptr, VariantID vid)
   {
-    rajaperf::detail::initDataRandValue(ptr, len, vid);
+    rajaperf::deallocData(getDataSpace(vid), ptr);
   }
 
   template <typename T>
-  void initData(T& d,
-                VariantID vid)
+  void initData(T& d, VariantID vid)
   {
-    rajaperf::detail::initData(d, vid);
+    (void)vid;
+    rajaperf::detail::initData(d);
+  }
+
+  template <typename T>
+  long double calcChecksum(T* ptr, int len, VariantID vid)
+  {
+    return rajaperf::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), 1.0);
+  }
+
+  template <typename T>
+  long double calcChecksum(T* ptr, int len, Real_type scale_factor, VariantID vid)
+  {
+    return rajaperf::calcChecksum(getDataSpace(vid),
+      ptr, len, getDataAlignment(), scale_factor);
   }
 
   void startTimer()
@@ -346,6 +364,10 @@ protected:
 
   std::vector<Checksum_type> checksum[NumVariants];
   Checksum_type checksum_scale_factor;
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  int did;
+#endif
 
 private:
   KernelBase() = delete;

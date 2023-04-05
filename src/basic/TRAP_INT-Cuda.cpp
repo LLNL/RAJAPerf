@@ -37,11 +37,6 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-#define TRAP_INT_DATA_SETUP_CUDA  // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void trapint(Real_type x0, Real_type xp,
@@ -94,10 +89,8 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRAP_INT_DATA_SETUP_CUDA;
-
     Real_ptr sumx;
-    allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::CudaDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -121,13 +114,9 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(sumx);
-
-    TRAP_INT_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, sumx);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    TRAP_INT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -143,8 +132,6 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    TRAP_INT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;

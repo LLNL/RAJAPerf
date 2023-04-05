@@ -26,44 +26,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define ENERGY_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(e_new, m_e_new, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(e_old, m_e_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(delvc, m_delvc, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(p_new, m_p_new, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(p_old, m_p_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(q_new, m_q_new, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(q_old, m_q_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(work, m_work, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(compHalfStep, m_compHalfStep, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(pHalfStep, m_pHalfStep, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(bvc, m_bvc, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(pbvc, m_pbvc, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(ql_old, m_ql_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(qq_old, m_qq_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(vnewc, m_vnewc, iend, did, hid);
-
-#define ENERGY_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_e_new, e_new, iend, hid, did); \
-  getOpenMPDeviceData(m_q_new, q_new, iend, hid, did); \
-  deallocOpenMPDeviceData(e_new, did); \
-  deallocOpenMPDeviceData(e_old, did); \
-  deallocOpenMPDeviceData(delvc, did); \
-  deallocOpenMPDeviceData(p_new, did); \
-  deallocOpenMPDeviceData(p_old, did); \
-  deallocOpenMPDeviceData(q_new, did); \
-  deallocOpenMPDeviceData(q_old, did); \
-  deallocOpenMPDeviceData(work, did); \
-  deallocOpenMPDeviceData(compHalfStep, did); \
-  deallocOpenMPDeviceData(pHalfStep, did); \
-  deallocOpenMPDeviceData(bvc, did); \
-  deallocOpenMPDeviceData(pbvc, did); \
-  deallocOpenMPDeviceData(ql_old, did); \
-  deallocOpenMPDeviceData(qq_old, did); \
-  deallocOpenMPDeviceData(vnewc, did);
 
 void ENERGY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -74,8 +36,6 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
   ENERGY_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    ENERGY_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -127,11 +87,7 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    ENERGY_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -172,8 +128,6 @@ void ENERGY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
     }
     stopTimer();
-
-    ENERGY_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  ENERGY : Unknown OMP Target variant id = " << vid << std::endl;

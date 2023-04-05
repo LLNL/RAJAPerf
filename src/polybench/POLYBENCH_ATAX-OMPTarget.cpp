@@ -26,24 +26,6 @@ namespace polybench
   //
   const size_t threads_per_team = 256;
 
-#define POLYBENCH_ATAX_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(tmp, m_tmp, N, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, N, did, hid); \
-  allocAndInitOpenMPDeviceData(x, m_x, N, did, hid); \
-  allocAndInitOpenMPDeviceData(A, m_A, N * N, did, hid);
-
-
-#define POLYBENCH_ATAX_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_y, y, N, hid, did); \
-  deallocOpenMPDeviceData(tmp, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(A, did);
-
-
 void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -51,8 +33,6 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
   POLYBENCH_ATAX_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_ATAX_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,11 +60,7 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_OMP_TARGET;
-
   } else if (vid == RAJA_OpenMPTarget) {
-
-    POLYBENCH_ATAX_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
@@ -149,8 +125,6 @@ void POLYBENCH_ATAX::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSE
 
     }
     stopTimer();
-
-    POLYBENCH_ATAX_TEARDOWN_OMP_TARGET;
 
   } else {
       getCout() << "\n  POLYBENCH_ATAX : Unknown OMP Target variant id = " << vid << std::endl;

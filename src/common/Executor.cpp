@@ -711,6 +711,26 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
+    str << "\nData Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
+    }
+    str << endl;
+
     str << "\nVariants and Tunings"
         << "\n--------\n";
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {

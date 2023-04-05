@@ -26,24 +26,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define IF_QUAD_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(x1, m_x1, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(x2, m_x2, iend, did, hid);
-
-#define IF_QUAD_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_x1, x1, iend, hid, did); \
-  getOpenMPDeviceData(m_x2, x2, iend, hid, did); \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(b, did); \
-  deallocOpenMPDeviceData(c, did); \
-  deallocOpenMPDeviceData(x1, did); \
-  deallocOpenMPDeviceData(x2, did);
 
 void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -54,8 +36,6 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
   IF_QUAD_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    IF_QUAD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -69,11 +49,7 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
     }
     stopTimer();
 
-    IF_QUAD_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    IF_QUAD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -85,8 +61,6 @@ void IF_QUAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  IF_QUAD : Unknown OMP Target variant id = " << vid << std::endl;

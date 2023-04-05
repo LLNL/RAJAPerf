@@ -22,17 +22,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define ADD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define ADD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_c, c, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
@@ -56,8 +45,6 @@ void ADD::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    ADD_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -69,11 +56,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    ADD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -88,11 +71,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    ADD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,8 +83,6 @@ void ADD::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    ADD_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
