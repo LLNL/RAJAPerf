@@ -304,7 +304,7 @@ public:
   void startTimer()
   {
     synchronize();
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     timer.start();
@@ -313,7 +313,7 @@ public:
   void stopTimer()
   {
     synchronize();
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     timer.stop(); recordExecTime();

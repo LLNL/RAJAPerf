@@ -9,7 +9,7 @@
 #include "RAJAPerfSuite.hpp"
 #include "OutputUtils.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -46,7 +46,7 @@ std::string recursiveMkdir(const std::string& in_path)
 
   if ( path.empty() ) return std::string();
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   int rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -139,7 +139,7 @@ std::string recursiveMkdir(const std::string& in_path)
 
   delete[] path_buf;
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   // Rank 0 lets the other processes know it made the directories
   if (rank == 0) {
     MPI_Barrier(MPI_COMM_WORLD);
