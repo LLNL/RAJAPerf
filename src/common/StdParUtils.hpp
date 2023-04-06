@@ -50,6 +50,31 @@ static inline void std::__throw_bad_array_new_length() { std::abort(); }
 #include <openacc.h>
 #endif
 
+#if __cpp_lib_atomic_ref
+#include <atomic>
+#endif
+
+template <typename T>
+void ATOMIC_ADD(T * target, const T value)
+{
+#if defined(NVCXX_GPU_ENABLED)
+          //atomicAdd(target, value);
+          atomicaddd(target, value);
+#elif defined(_OPENMP)
+          #pragma omp atomic
+          *target += value;
+#elif defined(_OPENACC)
+          #pragma acc atomic
+          *target += value;
+#elif __cpp_lib_atomic_ref
+          auto pt = std::atomic_ref<T>(target);
+          pt += value;
+#else
+#warning No atomic
+          *target += value;
+#endif
+}
+
 // This implementation was authored by David Olsen
 
 #include <algorithm>
