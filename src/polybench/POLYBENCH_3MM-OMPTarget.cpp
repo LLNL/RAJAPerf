@@ -21,29 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_3MM_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
-  allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
-  allocAndInitOpenMPDeviceData(C, m_C, m_nj * m_nm, did, hid); \
-  allocAndInitOpenMPDeviceData(D, m_D, m_nm * m_nl, did, hid); \
-  allocAndInitOpenMPDeviceData(E, m_E, m_ni * m_nj, did, hid); \
-  allocAndInitOpenMPDeviceData(F, m_F, m_nj * m_nl, did, hid); \
-  allocAndInitOpenMPDeviceData(G, m_G, m_ni * m_nl, did, hid);
-
-
-#define POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_G, G, m_ni * m_nl, hid, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(B, did); \
-  deallocOpenMPDeviceData(C, did); \
-  deallocOpenMPDeviceData(D, did); \
-  deallocOpenMPDeviceData(E, did); \
-  deallocOpenMPDeviceData(F, did); \
-  deallocOpenMPDeviceData(G, did);
-
 void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -51,8 +28,6 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
   POLYBENCH_3MM_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_3MM_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -96,11 +71,7 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
     }
     stopTimer();
 
-    POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    POLYBENCH_3MM_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_3MM_VIEWS_RAJA;
 
@@ -181,8 +152,6 @@ void POLYBENCH_3MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
     }
     stopTimer();
-
-    POLYBENCH_3MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  POLYBENCH_3MM : Unknown OMP Target variant id = " << vid << std::endl;

@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_HEAT_3D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(A, m_Ainit, m_N*m_N*m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(B, m_Binit, m_N*m_N*m_N, did, hid);
-
-
-#define POLYBENCH_HEAT_3D_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_A, A, m_N*m_N*m_N, hid, did); \
-  getOpenMPDeviceData(m_B, B, m_N*m_N*m_N, hid, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(B, did);
-
-
 void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -43,8 +28,6 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_HEAT_3D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -76,11 +59,7 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
     }
     stopTimer();
 
-    POLYBENCH_HEAT_3D_TEARDOWN_OMP_TARGET;
-
   } else if (vid == RAJA_OpenMPTarget) {
-
-    POLYBENCH_HEAT_3D_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_HEAT_3D_VIEWS_RAJA;
 
@@ -117,8 +96,6 @@ void POLYBENCH_HEAT_3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
 
     }
     stopTimer();
-
-    POLYBENCH_HEAT_3D_TEARDOWN_OMP_TARGET;
 
   } else {
       getCout() << "\n  POLYBENCH_HEAT_3D : Unknown OMP Target variant id = " << vid << std::endl;

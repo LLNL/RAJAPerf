@@ -10,7 +10,7 @@
 
 #include "RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -79,7 +79,6 @@
 // Apps kernels...
 //
 #include "apps/CONVECTION3DPA.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
@@ -215,7 +214,6 @@ static const std::string KernelNames [] =
 // Apps kernels...
 //
   std::string("Apps_CONVECTION3DPA"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
@@ -316,6 +314,46 @@ static const std::string FeatureNames [] =
   std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
 
 }; // END FeatureNames
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string DataSpaceNames [] =
+{
+  std::string("Host"),
+
+  std::string("Omp"),
+
+  std::string("OmpTarget"),
+
+  std::string("CudaPinned"),
+  std::string("CudaManaged"),
+  std::string("CudaDevice"),
+
+  std::string("HipHostAdviseFine"),
+  std::string("HipHostAdviseCoarse"),
+  std::string("HipPinned"),
+  std::string("HipPinnedFine"),
+  std::string("HipPinnedCoarse"),
+  std::string("HipManaged"),
+  std::string("HipManagedAdviseFine"),
+  std::string("HipManagedAdviseCoarse"),
+  std::string("HipDevice"),
+  std::string("HipDeviceFine"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
 
 
 /*
@@ -505,6 +543,77 @@ const std::string& getFeatureName(FeatureID fid)
 {
   return FeatureNames[fid];
 }
+
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with DataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace ds)
+{
+  return DataSpaceNames[static_cast<int>(ds)];
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+    case DataSpace::Host:
+      ret_val = true; break;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      ret_val = true; break;
+#endif
+
+    default:
+      ret_val = false; break;
+  }
+
+  return ret_val;
+}
+
 
 /*
  *******************************************************************************
@@ -723,10 +832,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::CONVECTION3DPA(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
+
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
@@ -839,7 +945,7 @@ std::ostream& getNullStream()
 std::ostream& getCout()
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {

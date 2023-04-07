@@ -53,8 +53,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -79,8 +77,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -103,8 +99,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
       }
       stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }

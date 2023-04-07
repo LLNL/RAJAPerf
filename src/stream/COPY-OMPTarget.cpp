@@ -26,19 +26,6 @@ namespace stream
   //
   const size_t threads_per_team = 256;
 
-#define COPY_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
-
-#define COPY_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_c, c, iend, hid, did); \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(c, did);
-
-
 void COPY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -48,8 +35,6 @@ void COPY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
   COPY_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    COPY_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -63,11 +48,7 @@ void COPY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    COPY_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -79,8 +60,6 @@ void COPY::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
     }
     stopTimer();
-
-    COPY_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  COPY : Unknown OMP Target variant id = " << vid << std::endl;

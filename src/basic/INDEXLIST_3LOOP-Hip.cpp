@@ -23,15 +23,10 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_HIP \
   Index_type* counts; \
-  allocHipDeviceData(counts, iend+1); \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(list, m_list, iend);
+  allocData(DataSpace::HipDevice, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(counts); \
-  getHipDeviceData(m_list, list, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(list);
+  deallocData(DataSpace::HipDevice, counts);
 
 
 template < size_t block_size >
@@ -77,7 +72,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     INDEXLIST_3LOOP_DATA_SETUP_HIP;
 
     Index_type* len;
-    allocHipPinnedData(len, 1);
+    allocData(DataSpace::HipPinned, len, 1);
 
     hipStream_t stream = RAJA::resources::Hip::get_default().get_stream();
 
@@ -107,7 +102,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
 #endif
 
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -148,8 +143,8 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(len);
+    deallocData(DataSpace::HipDevice, temp_storage);
+    deallocData(DataSpace::HipPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_HIP;
 

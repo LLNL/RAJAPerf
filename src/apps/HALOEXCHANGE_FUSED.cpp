@@ -87,6 +87,7 @@ void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
     allocAndInitData(m_vars[v], m_var_size, vid);
+    auto reset_var = scopedMoveData(m_vars[v], m_var_size, vid);
 
     Real_ptr var = m_vars[v];
 
@@ -113,7 +114,7 @@ void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 void HALOEXCHANGE_FUSED::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
-    checksum[vid][tune_idx] += calcChecksum(var, m_var_size);
+    checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
   }
 }
 
@@ -261,6 +262,7 @@ void HALOEXCHANGE_FUSED::create_pack_lists(
                                  (extent.k_max - extent.k_min) ;
 
     allocAndInitData(pack_index_lists[l], pack_index_list_lengths[l], vid);
+    auto reset_list = scopedMoveData(pack_index_lists[l], pack_index_list_lengths[l], vid);
 
     Int_ptr pack_list = pack_index_lists[l];
 
@@ -406,6 +408,7 @@ void HALOEXCHANGE_FUSED::create_unpack_lists(
                                    (extent.k_max - extent.k_min) ;
 
     allocAndInitData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
+    auto reset_list = scopedMoveData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
 
     Int_ptr unpack_list = unpack_index_lists[l];
 

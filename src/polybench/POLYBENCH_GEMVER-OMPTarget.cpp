@@ -26,34 +26,6 @@ namespace polybench
   //
   const size_t threads_per_team = 256;
 
-#define POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(A, m_A, m_n * m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(u1, m_u1, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(v1, m_v1, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(u2, m_u2, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(v2, m_v2, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(w, m_w, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(x, m_x, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_n, did, hid); \
-  allocAndInitOpenMPDeviceData(z, m_z, m_n, did, hid);
-
-#define POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_w, w, m_n, hid, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(u1, did); \
-  deallocOpenMPDeviceData(v1, did); \
-  deallocOpenMPDeviceData(u2, did); \
-  deallocOpenMPDeviceData(v2, did); \
-  deallocOpenMPDeviceData(w, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(z, did);
-
-
-
 void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -61,8 +33,6 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
   POLYBENCH_GEMVER_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,11 +74,7 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
     } // end run_reps
     stopTimer();
 
-    POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    POLYBENCH_GEMVER_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_GEMVER_VIEWS_RAJA;
 
@@ -183,8 +149,6 @@ void POLYBENCH_GEMVER::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNU
 
     }
     stopTimer();
-
-    POLYBENCH_GEMVER_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  POLYBENCH_GEMVER : Unknown OMP Target variant id = " << vid << std::endl;

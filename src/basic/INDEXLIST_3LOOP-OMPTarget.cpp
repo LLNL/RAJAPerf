@@ -26,19 +26,11 @@ namespace basic
   const size_t threads_per_team = 256;
 
 #define INDEXLIST_3LOOP_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-  \
   Index_type* counts = nullptr; \
-  allocOpenMPDeviceData(counts, iend+1, did); \
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(list, m_list, iend, did, hid);
+  allocData(DataSpace::OmpTarget, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(counts, did); \
-  getOpenMPDeviceData(m_list, list, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(list, did);
+  deallocData(DataSpace::OmpTarget, counts);
 
 #endif
 

@@ -37,8 +37,6 @@ void PI_REDUCE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   if ( vid == Base_OpenMPTarget ) {
 
-    int did = omp_get_default_device();
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 

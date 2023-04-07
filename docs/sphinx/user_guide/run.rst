@@ -12,11 +12,46 @@
 Running the RAJA Performance Suite
 *********************************************
 
-This section describes how to run the Suite and which execution options are 
-available.
+This section describes how to run the Suite, after the Suite code is compiled 
+following the instructions provided in :ref:`build-label`. 
 
-After the Suite code is compiled, following the instructions provided in
-:ref:`build-label`, the executable will reside in the ``bin`` subdirectory 
+.. _run_test-label:
+
+==================
+Running a test
+==================
+
+After compilation, a test executable will reside in the ``test`` subdirectory
+of the build space. We use this test for our continuous integration testing
+to make sure everything works when changes are made to the code. 
+To run the test, type the test executable name::
+
+  $ ./test/test-raja-perf-suite.exe
+
+This will run a few iterations of each kernel and variant that was built 
+based on the CMake options specified to configure the build. 
+
+You can also run an individual kernel by setting an environment variable
+to the name of the kernel you want to run. For example, 
+if you use a csh/tcsh shell::
+
+  $ setenv RAJA_PERFSUITE_UNIT_TEST DAXPY
+  $ ./test/test-raja-perf-suite.exe 
+
+or, if you use a bash shell::
+
+  $ RAJA_PERFSUITE_UNIT_TEST=DAXPY ./test/test-raja-perf-suite.exe
+
+In either case, the test will run all compiled variants of the 'DAXPY' 
+kernel.
+
+.. _run_suite-label:
+
+==================
+Running the Suite
+==================
+
+After compilation, the main executable will reside in the ``bin`` subdirectory 
 of the build space. The executable will be able to run all kernels and 
 variants that have been built depending on which CMake options were specified
 to configure the build.
@@ -49,7 +84,7 @@ option to the executable::
 
   $ ./bin/raja-perf.exe --help
 
-or
+or::
 
   $ ./bin/raja-perf.exe -h
 

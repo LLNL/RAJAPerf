@@ -26,16 +26,6 @@ namespace algorithm
   //
   const size_t threads_per_team = 256;
 
-#define MEMSET_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid);
-
-#define MEMSET_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_x, x, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-
 
 void MEMSET::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -46,8 +36,6 @@ void MEMSET::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
   MEMSET_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    MEMSET_DATA_SETUP_OMP_TARGET
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -62,11 +50,7 @@ void MEMSET::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_OMP_TARGET
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    MEMSET_DATA_SETUP_OMP_TARGET
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -79,8 +63,6 @@ void MEMSET::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_OMP_TARGET
 
   } else {
     getCout() << "\n  MEMSET : Unknown OMP Target variant id = " << vid << std::endl;

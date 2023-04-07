@@ -184,9 +184,9 @@ void COUPLE::updateChecksum(VariantID vid, size_t tune_idx)
 {
   Index_type max_loop_index = m_domain->lrn;
 
-  checksum[vid][tune_idx] += calcChecksum(m_t0, max_loop_index);
-  checksum[vid][tune_idx] += calcChecksum(m_t1, max_loop_index);
-  checksum[vid][tune_idx] += calcChecksum(m_t2, max_loop_index);
+  checksum[vid][tune_idx] += calcChecksum(m_t0, max_loop_index, vid);
+  checksum[vid][tune_idx] += calcChecksum(m_t1, max_loop_index, vid);
+  checksum[vid][tune_idx] += calcChecksum(m_t2, max_loop_index, vid);
 }
 
 void COUPLE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
