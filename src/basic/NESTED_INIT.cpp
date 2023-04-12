@@ -64,6 +64,9 @@ NESTED_INIT::NESTED_INIT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 NESTED_INIT::~NESTED_INIT()

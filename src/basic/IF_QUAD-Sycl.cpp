@@ -13,52 +13,51 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "INIT3.hpp"
+#include "IF_QUAD.hpp"
 
 #include "RAJA/RAJA.hpp"
 
 #if defined(RAJA_ENABLE_SYCL)
 
-#include "common/SyclDataUtils.hpp"
-
 #include <iostream>
+
+#include <sycl.hpp>
+#include "common/SyclDataUtils.hpp"
 
 namespace rajaperf
 {
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(out1, m_out1, iend, qu); \
-  allocAndInitSyclDeviceData(out2, m_out2, iend, qu); \
-  allocAndInitSyclDeviceData(out3, m_out3, iend, qu); \
-  allocAndInitSyclDeviceData(in1, m_in1, iend, qu); \
-  allocAndInitSyclDeviceData(in2, m_in2, iend, qu);
+#define IF_QUAD_DATA_SETUP_SYCL \
+  allocAndInitSyclDeviceData(a, m_a, iend, qu); \
+  allocAndInitSyclDeviceData(b, m_b, iend, qu); \
+  allocAndInitSyclDeviceData(c, m_c, iend, qu); \
+  allocAndInitSyclDeviceData(x1, m_x1, iend, qu); \
+  allocAndInitSyclDeviceData(x2, m_x2, iend, qu);
 
-#define INIT3_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_out1, out1, iend, qu); \
-  getSyclDeviceData(m_out2, out2, iend, qu); \
-  getSyclDeviceData(m_out3, out3, iend, qu); \
-  deallocSyclDeviceData(out1, qu); \
-  deallocSyclDeviceData(out2, qu); \
-  deallocSyclDeviceData(out3, qu); \
-  deallocSyclDeviceData(in1, qu); \
-  deallocSyclDeviceData(in2, qu);
+#define IF_QUAD_DATA_TEARDOWN_SYCL \
+  getSyclDeviceData(m_x1, x1, iend, qu); \
+  getSyclDeviceData(m_x2, x2, iend, qu); \
+  deallocSyclDeviceData(a, qu); \
+  deallocSyclDeviceData(b, qu); \
+  deallocSyclDeviceData(c, qu); \
+  deallocSyclDeviceData(x1, qu); \
+  deallocSyclDeviceData(x2, qu);
 
 template <size_t work_group_size >
-void INIT3::runSyclVariantImpl(VariantID vid)
+void IF_QUAD::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  INIT3_DATA_SETUP;
+  IF_QUAD_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
-
-    INIT3_DATA_SETUP_SYCL;
-
     if (work_group_size > 0) {
+
+      IF_QUAD_DATA_SETUP_SYCL;
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,71 +66,74 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
         qu->submit([&] (sycl::handler& h) {
           h.parallel_for(sycl::nd_range<1>(global_size, work_group_size),
-                                           [=] (sycl::nd_item<1> item ) {
+                         [=] (sycl::nd_item<1> item ) {
   
             Index_type i = item.get_global_id(0);
-            if (i < iend) {
-              INIT3_BODY
-            }
   
+            if (i < iend) {
+              IF_QUAD_BODY
+            }
           });
         });
-  
       }
-      qu->wait();
+      qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
   
+      IF_QUAD_DATA_TEARDOWN_SYCL;
+
     } else {
+
+      IF_QUAD_DATA_SETUP_SYCL;
   
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
   
         qu->submit([&] (sycl::handler& h) {
           h.parallel_for(sycl::range<1>(iend),
-                                        [=] (sycl::item<1> item ) {
+                         [=] (sycl::item<1> item) {
   
             Index_type i = item.get_id(0);
-            INIT3_BODY
+            IF_QUAD_BODY
   
           });
         });
-  
       }
-      qu->wait();
+      qu->wait(); // Wait for computation to finish before stopping timer
       stopTimer();
   
-    } 
+      IF_QUAD_DATA_TEARDOWN_SYCL;
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    }
+
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      std::cout << "\n  IF_QUAD : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
 
-    INIT3_DATA_SETUP_SYCL;
+    IF_QUAD_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
-        RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-        INIT3_BODY;
-      });
+       RAJA::forall< RAJA::sycl_exec<work_group_size, true> >(
+         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
+         IF_QUAD_BODY;
+       });
 
     }
     qu->wait();
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    IF_QUAD_DATA_TEARDOWN_SYCL;
 
   } else {
-     std::cout << "\n  INIT3 : Unknown Sycl variant id = " << vid << std::endl;
+     std::cout << "\n  IF_QUAD : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(IF_QUAD, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

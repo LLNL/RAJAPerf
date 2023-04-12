@@ -58,6 +58,9 @@ REDUCE3_INT::REDUCE3_INT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );
+
+  setVariantDefined( Base_SYCL );
+  setVariantDefined( RAJA_SYCL );
 }
 
 REDUCE3_INT::~REDUCE3_INT()

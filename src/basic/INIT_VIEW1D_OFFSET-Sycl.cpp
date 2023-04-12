@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "INIT3.hpp"
+#include "INIT_VIEW1D_OFFSET.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -28,35 +28,25 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_SYCL \
-  allocAndInitSyclDeviceData(out1, m_out1, iend, qu); \
-  allocAndInitSyclDeviceData(out2, m_out2, iend, qu); \
-  allocAndInitSyclDeviceData(out3, m_out3, iend, qu); \
-  allocAndInitSyclDeviceData(in1, m_in1, iend, qu); \
-  allocAndInitSyclDeviceData(in2, m_in2, iend, qu);
+#define INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL \
+  allocAndInitSyclDeviceData(a, m_a, iend, qu);
 
-#define INIT3_DATA_TEARDOWN_SYCL \
-  getSyclDeviceData(m_out1, out1, iend, qu); \
-  getSyclDeviceData(m_out2, out2, iend, qu); \
-  getSyclDeviceData(m_out3, out3, iend, qu); \
-  deallocSyclDeviceData(out1, qu); \
-  deallocSyclDeviceData(out2, qu); \
-  deallocSyclDeviceData(out3, qu); \
-  deallocSyclDeviceData(in1, qu); \
-  deallocSyclDeviceData(in2, qu);
+#define INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL \
+  getSyclDeviceData(m_a, a, iend, qu); \
+  deallocSyclDeviceData(a, qu);
 
 template <size_t work_group_size >
-void INIT3::runSyclVariantImpl(VariantID vid)
+void INIT_VIEW1D_OFFSET::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  INIT3_DATA_SETUP;
+  INIT_VIEW1D_OFFSET_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
 
-    INIT3_DATA_SETUP_SYCL;
+    INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -71,7 +61,7 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
             Index_type i = item.get_global_id(0);
             if (i < iend) {
-              INIT3_BODY
+              INIT_VIEW1D_OFFSET_BODY
             }
   
           });
@@ -91,7 +81,7 @@ void INIT3::runSyclVariantImpl(VariantID vid)
                                         [=] (sycl::item<1> item ) {
   
             Index_type i = item.get_id(0);
-            INIT3_BODY
+            INIT_VIEW1D_OFFSET_BODY
   
           });
         });
@@ -102,36 +92,36 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
     } 
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      std::cout << "\n  INIT_VIEW1D_OFFSET : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
 
-    INIT3_DATA_SETUP_SYCL;
+    INIT_VIEW1D_OFFSET_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-        INIT3_BODY;
+        INIT_VIEW1D_OFFSET_BODY;
       });
 
     }
     qu->wait();
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    INIT_VIEW1D_OFFSET_DATA_TEARDOWN_SYCL;
 
   } else {
-     std::cout << "\n  INIT3 : Unknown Sycl variant id = " << vid << std::endl;
+     std::cout << "\n  INIT_VIEW1D_OFFSET : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D_OFFSET, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

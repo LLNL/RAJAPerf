@@ -13,7 +13,7 @@
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#include "INIT3.hpp"
+#include "MULADDSUB.hpp"
 
 #include "RAJA/RAJA.hpp"
 
@@ -28,14 +28,14 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_SYCL \
+#define MULADDSUB_DATA_SETUP_SYCL \
   allocAndInitSyclDeviceData(out1, m_out1, iend, qu); \
   allocAndInitSyclDeviceData(out2, m_out2, iend, qu); \
   allocAndInitSyclDeviceData(out3, m_out3, iend, qu); \
   allocAndInitSyclDeviceData(in1, m_in1, iend, qu); \
   allocAndInitSyclDeviceData(in2, m_in2, iend, qu);
 
-#define INIT3_DATA_TEARDOWN_SYCL \
+#define MULADDSUB_DATA_TEARDOWN_SYCL \
   getSyclDeviceData(m_out1, out1, iend, qu); \
   getSyclDeviceData(m_out2, out2, iend, qu); \
   getSyclDeviceData(m_out3, out3, iend, qu); \
@@ -46,17 +46,17 @@ namespace basic
   deallocSyclDeviceData(in2, qu);
 
 template <size_t work_group_size >
-void INIT3::runSyclVariantImpl(VariantID vid)
+void MULADDSUB::runSyclVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
-  INIT3_DATA_SETUP;
+  MULADDSUB_DATA_SETUP;
 
   if ( vid == Base_SYCL ) {
 
-    INIT3_DATA_SETUP_SYCL;
+    MULADDSUB_DATA_SETUP_SYCL;
 
     if (work_group_size > 0) {
   
@@ -71,7 +71,7 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
             Index_type i = item.get_global_id(0);
             if (i < iend) {
-              INIT3_BODY
+              MULADDSUB_BODY
             }
   
           });
@@ -88,10 +88,10 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
         qu->submit([&] (sycl::handler& h) {
           h.parallel_for(sycl::range<1>(iend),
-                                        [=] (sycl::item<1> item ) {
+                         [=] (sycl::item<1> item ) {
   
             Index_type i = item.get_id(0);
-            INIT3_BODY
+            MULADDSUB_BODY
   
           });
         });
@@ -102,36 +102,36 @@ void INIT3::runSyclVariantImpl(VariantID vid)
   
     } 
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    MULADDSUB_DATA_TEARDOWN_SYCL;
   } else if ( vid == RAJA_SYCL ) {
 
     if ( work_group_size == 0 ) {
-      std::cout << "\n  INIT3 : RAJA_SYCL does not support auto work group size" << std::endl;
+      std::cout << "\n  MULADDSUB : RAJA_SYCL does not support auto work group size" << std::endl;
       return;
     }
 
-    INIT3_DATA_SETUP_SYCL;
+    MULADDSUB_DATA_SETUP_SYCL;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::forall< RAJA::sycl_exec<work_group_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] (Index_type i) {
-        INIT3_BODY;
+        MULADDSUB_BODY;
       });
 
     }
     qu->wait();
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_SYCL;
+    MULADDSUB_DATA_TEARDOWN_SYCL;
 
   } else {
-     std::cout << "\n  INIT3 : Unknown Sycl variant id = " << vid << std::endl;
+     std::cout << "\n  MULADDSUB : Unknown Sycl variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Sycl)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MULADDSUB, Sycl)
 
 } // end namespace basic
 } // end namespace rajaperf

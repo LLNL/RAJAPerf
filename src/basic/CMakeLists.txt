@@ -14,6 +14,7 @@ blt_add_library(
           DAXPY-Cuda.cpp
           DAXPY-OMP.cpp
           DAXPY-OMPTarget.cpp
+          DAXPY-Sycl.cpp
           DAXPY_ATOMIC.cpp
           DAXPY_ATOMIC-Seq.cpp
           DAXPY_ATOMIC-Hip.cpp
@@ -26,6 +27,7 @@ blt_add_library(
           IF_QUAD-Cuda.cpp
           IF_QUAD-OMP.cpp
           IF_QUAD-OMPTarget.cpp
+          IF_QUAD-Sycl.cpp
           INDEXLIST.cpp
           INDEXLIST-Seq.cpp
           INDEXLIST-Hip.cpp
@@ -51,12 +53,14 @@ blt_add_library(
           INIT_VIEW1D-Cuda.cpp
           INIT_VIEW1D-OMP.cpp
           INIT_VIEW1D-OMPTarget.cpp
+          INIT_VIEW1D-Sycl.cpp
           INIT_VIEW1D_OFFSET.cpp
           INIT_VIEW1D_OFFSET-Seq.cpp
           INIT_VIEW1D_OFFSET-Hip.cpp
           INIT_VIEW1D_OFFSET-Cuda.cpp
           INIT_VIEW1D_OFFSET-OMP.cpp
           INIT_VIEW1D_OFFSET-OMPTarget.cpp
+          INIT_VIEW1D_OFFSET-Sycl.cpp
           MAT_MAT_SHARED.cpp
           MAT_MAT_SHARED-Seq.cpp
           MAT_MAT_SHARED-Hip.cpp
@@ -69,12 +73,14 @@ blt_add_library(
           MULADDSUB-Cuda.cpp
           MULADDSUB-OMP.cpp
           MULADDSUB-OMPTarget.cpp
+          MULADDSUB-Sycl.cpp
           NESTED_INIT.cpp
           NESTED_INIT-Seq.cpp
           NESTED_INIT-Hip.cpp
           NESTED_INIT-Cuda.cpp
           NESTED_INIT-OMP.cpp
           NESTED_INIT-OMPTarget.cpp
+          NESTED_INIT-Sycl.cpp
           PI_ATOMIC.cpp
           PI_ATOMIC-Seq.cpp
           PI_ATOMIC-Hip.cpp
@@ -93,6 +99,7 @@ blt_add_library(
           REDUCE3_INT-Cuda.cpp
           REDUCE3_INT-OMP.cpp
           REDUCE3_INT-OMPTarget.cpp
+          REDUCE3_INT-Sycl.cpp
           REDUCE_STRUCT.cpp
           REDUCE_STRUCT-Seq.cpp
           REDUCE_STRUCT-Hip.cpp
@@ -105,5 +112,6 @@ blt_add_library(
           TRAP_INT-Cuda.cpp
           TRAP_INT-OMPTarget.cpp
           TRAP_INT-OMP.cpp
+          TRAP_INT-Sycl.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
