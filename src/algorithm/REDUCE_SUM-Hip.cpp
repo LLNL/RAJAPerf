@@ -29,12 +29,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define REDUCE_SUM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -79,14 +73,12 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
     hipStream_t stream = 0;
 
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocHipPinnedData(sum_storage, 1);
+    allocData(DataSpace::HipPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -113,7 +105,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -148,10 +140,8 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(sum_storage);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, temp_storage);
+    deallocData(DataSpace::HipPinned, sum_storage);
 
   } else {
 
@@ -172,10 +162,8 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocData(DataSpace::HipDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -197,13 +185,9 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, dsum);
 
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -219,8 +203,6 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
 
   } else {
 

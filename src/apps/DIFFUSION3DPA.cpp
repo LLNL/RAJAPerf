@@ -51,7 +51,7 @@ DIFFUSION3DPA::DIFFUSION3DPA(const RunParams& params)
                          7 * DPA_D1D * DPA_Q1D * DPA_D1D * DPA_D1D +
                          3 * DPA_D1D * DPA_D1D * DPA_D1D));
 
-  setUsesFeature(Teams);
+  setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
   setVariantDefined( RAJA_Seq );
@@ -83,7 +83,7 @@ void DIFFUSION3DPA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void DIFFUSION3DPA::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE);
+  checksum[vid][tune_idx] += calcChecksum(m_Y, DPA_D1D*DPA_D1D*DPA_D1D*m_NE, vid);
 }
 
 void DIFFUSION3DPA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

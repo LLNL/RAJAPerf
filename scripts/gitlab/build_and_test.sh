@@ -147,7 +147,7 @@ then
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     # Map CPU core allocations
-    declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32)
+    declare -A core_counts=(["lassen"]=40 ["ruby"]=28 ["corona"]=32 ["rzansel"]=48 ["tioga"]=32)
 
     # If using Multi-project, set up the submodule
     if [[ -n ${raja_version} ]]
@@ -173,7 +173,7 @@ then
 
     date
 
-    if [[ "${truehostname}" == "corona" ]]
+    if [[ "${truehostname}" == "corona"  || "${truehostname}" == "tioga" ]]
     then
         module unload rocm
     fi

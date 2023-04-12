@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(A, m_Ainit, m_N*m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(B, m_Binit, m_N*m_N, did, hid);
-
-
-#define POLYBENCH_JACOBI_2D_TEARDOWN_CUDA \
-  getOpenMPDeviceData(m_A, A, m_N*m_N, hid, did); \
-  getOpenMPDeviceData(m_B, B, m_N*m_N, hid, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(B, did);
-
-
 void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -43,8 +28,6 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_
   POLYBENCH_JACOBI_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -72,11 +55,7 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_OpenMPTarget) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
 
     POLYBENCH_JACOBI_2D_VIEWS_RAJA;
 
@@ -111,8 +90,6 @@ void POLYBENCH_JACOBI_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_
 
     }
     stopTimer();
-
-    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown OMP Target variant id = " << vid << std::endl;

@@ -70,7 +70,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr dpi;
-    allocAndInitHipDeviceData(dpi, &m_pi_init, 1);
+    allocData(DataSpace::HipDevice, dpi, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,7 +92,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(dpi);
+    deallocData(DataSpace::HipDevice, dpi);
 
   } else if ( vid == RAJA_HIP ) {
 

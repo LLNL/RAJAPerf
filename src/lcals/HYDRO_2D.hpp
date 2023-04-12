@@ -125,8 +125,6 @@
   zrout(k,j) = zr(k,j) + t*zu(k,j); \
   zzout(k,j) = zz(k,j) + t*zv(k,j);
 
-
-
 #include "common/KernelBase.hpp"
 
 namespace rajaperf

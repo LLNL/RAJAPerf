@@ -38,20 +38,6 @@ namespace polybench
                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nx, i_block_sz)), \
                   static_cast<size_t>(1));
 
-#define POLYBENCH_FDTD_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(hz, m_hz, m_nx * m_ny); \
-  allocAndInitHipDeviceData(ex, m_ex, m_nx * m_ny); \
-  allocAndInitHipDeviceData(ey, m_ey, m_nx * m_ny); \
-  allocAndInitHipDeviceData(fict, m_fict, m_tsteps);
-
-
-#define POLYBENCH_FDTD_2D_TEARDOWN_HIP \
-  getHipDeviceData(m_hz, hz, m_nx * m_ny); \
-  deallocHipDeviceData(ex); \
-  deallocHipDeviceData(ey); \
-  deallocHipDeviceData(fict);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_fdtd2d_1(Real_ptr ey, Real_ptr fict,
@@ -163,8 +149,6 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_FDTD_2D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -199,11 +183,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -259,11 +239,7 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_HIP;
 
     POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
@@ -324,8 +300,6 @@ void POLYBENCH_FDTD_2D::runHipVariantImpl(VariantID vid)
 
     } // run_reps
     stopTimer();
-
-    POLYBENCH_FDTD_2D_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Hip variant id = " << vid << std::endl;

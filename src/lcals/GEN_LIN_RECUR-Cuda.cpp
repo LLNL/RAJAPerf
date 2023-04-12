@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define GEN_LIN_RECUR_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(b5, m_b5, m_N); \
-  allocAndInitCudaDeviceData(stb5, m_stb5, m_N); \
-  allocAndInitCudaDeviceData(sa, m_sa, m_N); \
-  allocAndInitCudaDeviceData(sb, m_sb, m_N);
-
-#define GEN_LIN_RECUR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_b5, b5, m_N); \
-  deallocCudaDeviceData(b5); \
-  deallocCudaDeviceData(stb5); \
-  deallocCudaDeviceData(sa); \
-  deallocCudaDeviceData(sb);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void genlinrecur1(Real_ptr b5, Real_ptr stb5,
@@ -70,8 +57,6 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    GEN_LIN_RECUR_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -90,11 +75,7 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -111,8 +92,6 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    GEN_LIN_RECUR_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  GEN_LIN_RECUR : Unknown Cuda variant id = " << vid << std::endl;

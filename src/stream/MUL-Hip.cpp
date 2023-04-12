@@ -21,15 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define MUL_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(b, m_b, iend); \
-  allocAndInitHipDeviceData(c, m_c, iend);
-
-#define MUL_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_b, b, iend); \
-  deallocHipDeviceData(b); \
-  deallocHipDeviceData(c)
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
@@ -53,8 +44,6 @@ void MUL::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MUL_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +55,7 @@ void MUL::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MUL_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,11 +72,7 @@ void MUL::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MUL_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -103,8 +84,6 @@ void MUL::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    MUL_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  MUL : Unknown Hip variant id = " << vid << std::endl;

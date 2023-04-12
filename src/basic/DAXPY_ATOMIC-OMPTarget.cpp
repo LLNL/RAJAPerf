@@ -26,18 +26,6 @@ namespace basic
   //
   const size_t threads_per_team = 256;
 
-#define DAXPY_ATOMIC_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid);
-
-#define DAXPY_ATOMIC_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_y, y, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did);
-
 
 void DAXPY_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -48,8 +36,6 @@ void DAXPY_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
   DAXPY_ATOMIC_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,11 +50,7 @@ void DAXPY_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     }
     stopTimer();
 
-    DAXPY_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,8 +62,6 @@ void DAXPY_ATOMIC::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     }
     stopTimer();
-
-    DAXPY_ATOMIC_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  DAXPY_ATOMIC : Unknown OMP Target variant id = " << vid << std::endl;

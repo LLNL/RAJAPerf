@@ -21,26 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_2MM_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(tmp, m_tmp, m_ni * m_nj, did, hid); \
-  allocAndInitOpenMPDeviceData(A, m_A, m_ni * m_nk, did, hid); \
-  allocAndInitOpenMPDeviceData(B, m_B, m_nk * m_nj, did, hid); \
-  allocAndInitOpenMPDeviceData(C, m_C, m_nj * m_nl, did, hid); \
-  allocAndInitOpenMPDeviceData(D, m_D, m_ni * m_nl, did, hid);
-
-
-#define POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_D, D, m_ni * m_nl, hid, did); \
-  deallocOpenMPDeviceData(tmp, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(B, did); \
-  deallocOpenMPDeviceData(C, did); \
-  deallocOpenMPDeviceData(D, did);
-
-
 void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -48,8 +28,6 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
   POLYBENCH_2MM_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_2MM_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -81,11 +59,7 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
     }
     stopTimer();
 
-    POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    POLYBENCH_2MM_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_2MM_VIEWS_RAJA;
 
@@ -140,8 +114,6 @@ void POLYBENCH_2MM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
     }
     stopTimer();
-
-    POLYBENCH_2MM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  POLYBENCH_2MM : Unknown OMP Target variant id = " << vid << std::endl;
