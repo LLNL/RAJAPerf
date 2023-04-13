@@ -50,7 +50,7 @@ TEST(ShortSuiteTest, Basic)
   for (size_t is = 0; is < sargv.size(); ++is) {
     argv[is] = const_cast<char*>(sargv[is].c_str());
   }
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Init(NULL,NULL);
 
   int num_ranks;
@@ -132,7 +132,7 @@ TEST(ShortSuiteTest, Basic)
     }  // loop over variants
 
   } // loop over kernels
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Finalize();
 #endif
 

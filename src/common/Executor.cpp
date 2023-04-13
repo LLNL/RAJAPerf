@@ -42,7 +42,7 @@ namespace rajaperf {
 
 using namespace std;
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 vector<string> split(const string str, const string regex_str)
 {
     regex regexz(regex_str);
@@ -116,7 +116,7 @@ Executor::Executor(int argc, char** argv)
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   struct configuration cc;
   adiak::init(NULL);
   adiak::user();
@@ -212,7 +212,7 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
-#ifdef RAJA_PERFSUITE_USE_CALIPER 
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   adiak::fini();
 #endif
 }
@@ -709,7 +709,7 @@ void Executor::setupSuite()
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
         KernelBase::setCaliperMgrVariant(*vid,run_params.getOutputDirName(),run_params.getAddToSpotConfig());
 #endif
       }
@@ -983,11 +983,11 @@ void Executor::runSuite()
 
     for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
       KernelBase* warmup_kernel = warmup_kernels[ik];
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
       warmup_kernel->caliperOff();
 #endif
       runKernel(warmup_kernel, true);
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
       warmup_kernel->caliperOn();
 #endif
       delete warmup_kernel;
@@ -1014,7 +1014,7 @@ void Executor::runSuite()
 
   } // loop over passes through suite
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   // Flush Caliper data
   KernelBase::setCaliperMgrFlush();
 #endif

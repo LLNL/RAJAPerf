@@ -169,12 +169,12 @@ Caliper's topdown service generates derived metrics from raw PAPI counters; a hi
 
 > Backend Bound = 1 - (Frontend Bound + Bad Speculation + Retiring)
 
-Caveats: 
+.. warning::
 
-1. When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
-2. Small kernels should be run at large problem sizes to minimize anomalous readings 
-3. Measured values are only relevant for the innermost level of the Caliper tree hierarchy, i.e. kernel.tuning under investigation
-4. Some lower level derived quantities may still appear anomalous with negative values. Collecting raw counters can help identify the discrepancy
+  1. When collecting PAPI data in this way you'll be limited to running only one variant, since Caliper maintains only a single PAPI context.
+  2. Small kernels should be run at large problem sizes to minimize anomalous readings.
+  3. Measured values are only relevant for the innermost level of the Caliper tree hierarchy, i.e. kernel.tuning under investigation.
+  4. Some lower level derived quantities may still appear anomalous with negative values. Collecting raw counters can help identify the discrepancy.
 
 ``-atsc topdown-counters.all``
 
@@ -205,9 +205,10 @@ A Hatchet based snippet to fetch topdown.toplevel metric values at the leaf (Ker
     return values,md  
 
 
-> Caveat for the code snippet above. If you run -atsc topdown.toplevel,profile.mpi  then the MPI Barrier routine will be nested at the leaf node vs expected Kernel.Tuning
+.. note::
+  For the code snippet above. If you run -atsc topdown.toplevel,profile.mpi  then the MPI Barrier routine will be nested at the leaf node vs expected Kernel.Tuning
 
-> Other caveats:  raw counter values are often noisy and require a lot of accommodation to collect accurate data; these include turning off Hyperthreading, turning off Prefetch as is done in Intel's Memory Latency Checker (requires Root), adding LFENCE instruction to serialize and bracket code under test, disable preemption and hard interrupts. See Andreas Abel's dissertation "Automatic Generation of Models of Microarchitectures" for more info on this and for a comprehensive look at the nanobench machinery.
+  Raw counter values are often noisy and require a lot of accommodation to collect accurate data; these include turning off Hyperthreading, turning off Prefetch as is done in Intel's Memory Latency Checker (requires root access), adding LFENCE instruction to serialize and bracket code under test, disable preemption and hard interrupts. See Andreas Abel's dissertation "Automatic Generation of Models of Microarchitectures" for more info on this and for a comprehensive look at the nanobench machinery.
 
 `Yasin's Paper <https://www.researchgate.net/publication/269302126_A_Top-Down_method_for_performance_analysis_and_counters_architecture>`_
 
@@ -240,7 +241,11 @@ For CUDA, assuming you built Caliper with CUDA support, you can collect and comb
 
 ``CALI_CONFIG="event-trace(event.timestamps,trace.cuda=true,cuda.activities)" ./raja-perf.exe -v RAJA_CUDA Base_CUDA -k Algorithm_REDUCE_SUM -sp``
 
-However, when you run cali2traceevent.py you need to add --sort option before the filenames.
+.. warning::
+  When you run cali2traceevent.py you need to add --sort option before the filenames.
+  This is needed because the trace.cuda event records need to be sorted before processing.
+  Failing to do so may result in a Python traceback.
+  New versions of the Caliper Python package have this option built in by default to avoid this issue.
 
 ``~/workspace/Caliper/python/cali2traceevent.py --sort file.cali file.json``
 

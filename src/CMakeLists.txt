@@ -254,5 +254,9 @@ install( TARGETS raja-perf.exe
        )
 endif()
 
+# Uncomment the following to help with cmake file debugging
 #blt_print_target_properties(TARGET raja-perf.exe)
+
+# See the BLT documentation for other options to expose target's children properties
+# or limit the properties printed with regular expressions
 

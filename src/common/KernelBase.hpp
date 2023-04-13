@@ -33,7 +33,7 @@
 #include <limits>
 #include <utility>
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 
 #define CALI_START \
     if(doCaliperTiming) { \
@@ -398,7 +398,7 @@ public:
   }
 #endif
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
@@ -624,7 +624,7 @@ private:
 
   RAJA::Timer timer;
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   bool doCaliperTiming = true; // warmup can use this to exclude timing
   std::vector<bool> doCaliMetaOnce[NumVariants];
   cali_id_t ProblemSize_attr; // in ctor cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
