@@ -100,6 +100,5 @@ blt_add_library(
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
           VOL3D-StdPar.cpp
-          WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
