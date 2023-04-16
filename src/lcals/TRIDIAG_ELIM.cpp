@@ -72,7 +72,7 @@ void TRIDIAG_ELIM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void TRIDIAG_ELIM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_xout, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_xout, getActualProblemSize(), vid);
 }
 
 void TRIDIAG_ELIM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

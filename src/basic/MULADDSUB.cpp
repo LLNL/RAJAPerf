@@ -73,9 +73,9 @@ void MULADDSUB::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void MULADDSUB::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize());
-  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize());
-  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_out1, getActualProblemSize(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_out2, getActualProblemSize(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_out3, getActualProblemSize(), vid);
 }
 
 void MULADDSUB::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

@@ -22,21 +22,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define MASS3DPA_DATA_SETUP_HIP                                           \
-  allocAndInitHipDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                    \
-  allocAndInitHipDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                  \
-  allocAndInitHipDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);     \
-  allocAndInitHipDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);     \
-  allocAndInitHipDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
-
-#define MASS3DPA_DATA_TEARDOWN_HIP                                        \
-  getHipDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);              \
-  deallocHipDeviceData(B);                                                \
-  deallocHipDeviceData(Bt);                                               \
-  deallocHipDeviceData(D);                                                \
-  deallocHipDeviceData(X);                                                \
-  deallocHipDeviceData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
@@ -112,8 +97,6 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
   case Base_HIP: {
 
-    MASS3DPA_DATA_SETUP_HIP;
-
     dim3 nblocks(NE);
     dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
@@ -128,14 +111,10 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    MASS3DPA_DATA_TEARDOWN_HIP;
-
     break;
   }
 
   case RAJA_HIP: {
-
-    MASS3DPA_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -267,8 +246,6 @@ void MASS3DPA::runHipVariantImpl(VariantID vid) {
 
     }  // loop over kernel reps
     stopTimer();
-
-    MASS3DPA_DATA_TEARDOWN_HIP;
 
     break;
   }

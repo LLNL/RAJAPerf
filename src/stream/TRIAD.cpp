@@ -77,7 +77,7 @@ void TRIAD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void TRIAD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize(), checksum_scale_factor , vid);
 }
 
 void TRIAD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

@@ -80,10 +80,16 @@ void VOL3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_z, m_array_length, 0.0, vid);
 
-  Real_type dx = 0.3;
-  Real_type dy = 0.2;
-  Real_type dz = 0.1;
-  setMeshPositions_3d(m_x, dx, m_y, dy, m_z, dz, *m_domain);
+  {
+    auto reset_x = scopedMoveData(m_x, m_array_length, vid);
+    auto reset_y = scopedMoveData(m_y, m_array_length, vid);
+    auto reset_z = scopedMoveData(m_z, m_array_length, vid);
+
+    Real_type dx = 0.3;
+    Real_type dy = 0.2;
+    Real_type dz = 0.1;
+    setMeshPositions_3d(m_x, dx, m_y, dy, m_z, dz, *m_domain);
+  }
 
   allocAndInitDataConst(m_vol, m_array_length, 0.0, vid);
 
@@ -92,7 +98,7 @@ void VOL3D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void VOL3D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_vol, m_array_length, checksum_scale_factor , vid);
 }
 
 void VOL3D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

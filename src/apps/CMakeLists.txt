@@ -13,93 +13,93 @@ blt_add_library(
           CONVECTION3DPA-Cuda.cpp
           CONVECTION3DPA-Hip.cpp
           CONVECTION3DPA-Seq.cpp
-          CONVECTION3DPA-StdPar.cpp
           CONVECTION3DPA-OMP.cpp
           CONVECTION3DPA-OMPTarget.cpp
+          CONVECTION3DPA-StdPar.cpp
           DEL_DOT_VEC_2D.cpp 
           DEL_DOT_VEC_2D-Seq.cpp 
           DEL_DOT_VEC_2D-Hip.cpp 
           DEL_DOT_VEC_2D-Cuda.cpp 
           DEL_DOT_VEC_2D-OMP.cpp 
           DEL_DOT_VEC_2D-OMPTarget.cpp 
+          DEL_DOT_VEC_2D-StdPar.cpp 
           DIFFUSION3DPA.cpp
           DIFFUSION3DPA-Cuda.cpp
           DIFFUSION3DPA-Hip.cpp
           DIFFUSION3DPA-Seq.cpp
           DIFFUSION3DPA-OMP.cpp
           DIFFUSION3DPA-OMPTarget.cpp
+          DIFFUSION3DPA-StdPar.cpp
           ENERGY.cpp
           ENERGY-Seq.cpp
           ENERGY-Hip.cpp 
           ENERGY-Cuda.cpp 
           ENERGY-OMP.cpp 
           ENERGY-OMPTarget.cpp 
+          ENERGY-StdPar.cpp
           FIR.cpp
           FIR-Seq.cpp
           FIR-Hip.cpp
           FIR-Cuda.cpp
           FIR-OMP.cpp
           FIR-OMPTarget.cpp
+          FIR-StdPar.cpp
           HALOEXCHANGE.cpp
           HALOEXCHANGE-Seq.cpp
           HALOEXCHANGE-Hip.cpp
           HALOEXCHANGE-Cuda.cpp
           HALOEXCHANGE-OMP.cpp
           HALOEXCHANGE-OMPTarget.cpp
+          HALOEXCHANGE-StdPar.cpp
           HALOEXCHANGE_FUSED.cpp
           HALOEXCHANGE_FUSED-Seq.cpp
           HALOEXCHANGE_FUSED-Hip.cpp
           HALOEXCHANGE_FUSED-Cuda.cpp
           HALOEXCHANGE_FUSED-OMP.cpp
           HALOEXCHANGE_FUSED-OMPTarget.cpp
+          HALOEXCHANGE_FUSED-StdPar.cpp
           LTIMES.cpp
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp
           LTIMES-Cuda.cpp
           LTIMES-OMP.cpp
           LTIMES-OMPTarget.cpp
+          LTIMES-StdPar.cpp
           LTIMES_NOVIEW.cpp
           LTIMES_NOVIEW-Seq.cpp
           LTIMES_NOVIEW-Hip.cpp
           LTIMES_NOVIEW-Cuda.cpp
           LTIMES_NOVIEW-OMP.cpp
           LTIMES_NOVIEW-OMPTarget.cpp
+          LTIMES_NOVIEW-StdPar.cpp
           MASS3DPA.cpp
           MASS3DPA-Cuda.cpp
           MASS3DPA-Hip.cpp
           MASS3DPA-Seq.cpp
           MASS3DPA-OMP.cpp
           MASS3DPA-OMPTarget.cpp
+          MASS3DPA-StdPar.cpp
           NODAL_ACCUMULATION_3D.cpp
           NODAL_ACCUMULATION_3D-Seq.cpp
-          NODAL_ACCUMULATION_3D-StdPar.cpp
           NODAL_ACCUMULATION_3D-Hip.cpp
           NODAL_ACCUMULATION_3D-Cuda.cpp
           NODAL_ACCUMULATION_3D-OMP.cpp
           NODAL_ACCUMULATION_3D-OMPTarget.cpp
+          NODAL_ACCUMULATION_3D-StdPar.cpp
           PRESSURE.cpp 
           PRESSURE-Seq.cpp 
           PRESSURE-Hip.cpp 
           PRESSURE-Cuda.cpp 
           PRESSURE-OMP.cpp 
           PRESSURE-OMPTarget.cpp 
+          PRESSURE-StdPar.cpp 
           VOL3D.cpp
           VOL3D-Seq.cpp
           VOL3D-Hip.cpp 
           VOL3D-Cuda.cpp 
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
-          WIP-COUPLE.cpp
-          DEL_DOT_VEC_2D-StdPar.cpp 
-          ENERGY-StdPar.cpp
-          FIR-StdPar.cpp
-          HALOEXCHANGE-StdPar.cpp
-          HALOEXCHANGE_FUSED-StdPar.cpp
-          LTIMES-StdPar.cpp
-          LTIMES_NOVIEW-StdPar.cpp
-          MASS3DPA-StdPar.cpp
-          PRESSURE-StdPar.cpp 
           VOL3D-StdPar.cpp
-          DIFFUSION3DPA-StdPar.cpp
+          WIP-COUPLE.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )

@@ -77,7 +77,7 @@ void PRESSURE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void PRESSURE::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize(), vid);
 }
 
 void PRESSURE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

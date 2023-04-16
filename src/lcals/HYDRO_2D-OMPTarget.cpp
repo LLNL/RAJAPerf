@@ -21,39 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define HYDRO_2D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(zadat, m_za, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zbdat, m_zb, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zmdat, m_zm, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zpdat, m_zp, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zqdat, m_zq, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zrdat, m_zr, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zudat, m_zu, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zvdat, m_zv, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zzdat, m_zz, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zroutdat, m_zrout, m_array_length, did, hid); \
-  allocAndInitOpenMPDeviceData(zzoutdat, m_zzout, m_array_length, did, hid);
-
-#define HYDRO_2D_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_zrout, zroutdat, m_array_length, hid, did); \
-  getOpenMPDeviceData(m_zzout, zzoutdat, m_array_length, hid, did); \
-  deallocOpenMPDeviceData(zadat, did); \
-  deallocOpenMPDeviceData(zbdat, did); \
-  deallocOpenMPDeviceData(zmdat, did); \
-  deallocOpenMPDeviceData(zpdat, did); \
-  deallocOpenMPDeviceData(zqdat, did); \
-  deallocOpenMPDeviceData(zrdat, did); \
-  deallocOpenMPDeviceData(zudat, did); \
-  deallocOpenMPDeviceData(zvdat, did); \
-  deallocOpenMPDeviceData(zzdat, did); \
-  deallocOpenMPDeviceData(zroutdat, did); \
-  deallocOpenMPDeviceData(zzoutdat, did);
-
-
-
 void HYDRO_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -65,8 +32,6 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    HYDRO_2D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -101,11 +66,7 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    HYDRO_2D_DATA_SETUP_OMP_TARGET;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -143,8 +104,6 @@ void HYDRO_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     }
     stopTimer();
-
-    HYDRO_2D_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  HYDRO_2D : Unknown OMP Target variant id = " << vid << std::endl;

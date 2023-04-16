@@ -55,7 +55,12 @@
   Real_ptr fx1,fx2,fx3,fx4 ; \
   Real_ptr fy1,fy2,fy3,fy4 ; \
 \
-  Index_ptr real_zones = m_domain->real_zones;
+  NDSET2D(m_domain->jp, x,x1,x2,x3,x4) ; \
+  NDSET2D(m_domain->jp, y,y1,y2,y3,y4) ; \
+  NDSET2D(m_domain->jp, xdot,fx1,fx2,fx3,fx4) ; \
+  NDSET2D(m_domain->jp, ydot,fy1,fy2,fy3,fy4) ; \
+\
+  Index_ptr real_zones = m_real_zones;
 
 #define DEL_DOT_VEC_2D_BODY_INDEX \
   Index_type i = real_zones[ii];
@@ -136,6 +141,7 @@ private:
   Real_type m_half;
 
   ADomain* m_domain;
+  Index_type* m_real_zones;
   Index_type m_array_length;
 };
 

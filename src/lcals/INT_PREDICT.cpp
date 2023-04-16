@@ -80,11 +80,15 @@ void INT_PREDICT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void INT_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  for (Index_type i = 0; i < getActualProblemSize(); ++i) {
-    m_px[i] -= m_px_initval;
+  {
+    auto reset_px = scopedMoveData(m_px, m_array_length, vid);
+
+    for (Index_type i = 0; i < getActualProblemSize(); ++i) {
+      m_px[i] -= m_px_initval;
+    }
   }
 
-  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize(), vid);
 }
 
 void INT_PREDICT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

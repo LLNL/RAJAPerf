@@ -37,7 +37,9 @@
   \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7; \
   \
-  Index_ptr real_zones = m_domain->real_zones;
+  NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ; \
+  \
+  Index_ptr real_zones = m_real_zones;
 
 #define NODAL_ACCUMULATION_3D_BODY_INDEX \
   Index_type i = real_zones[ii];
@@ -112,6 +114,7 @@ private:
   Real_ptr m_vol;
 
   ADomain* m_domain;
+  Index_type* m_real_zones;
   Index_type m_nodal_array_length;
   Index_type m_zonal_array_length;
 };

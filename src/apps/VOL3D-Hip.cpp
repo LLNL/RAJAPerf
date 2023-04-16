@@ -23,19 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define VOL3D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length); \
-  allocAndInitHipDeviceData(vol, m_vol, m_array_length);
-
-#define VOL3D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_vol, vol, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
-  deallocHipDeviceData(vol);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void vol3d(Real_ptr vol,
@@ -73,12 +60,6 @@ void VOL3D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    VOL3D_DATA_SETUP_HIP;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -95,15 +76,7 @@ void VOL3D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    VOL3D_DATA_SETUP_HIP;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,8 +88,6 @@ void VOL3D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    VOL3D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  VOL3D : Unknown Hip variant id = " << vid << std::endl;

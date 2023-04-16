@@ -71,7 +71,7 @@ void DAXPY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void DAXPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid].at(tune_idx) += calcChecksum(m_y, getActualProblemSize());
+  checksum[vid].at(tune_idx) += calcChecksum(m_y, getActualProblemSize(), vid);
 }
 
 void DAXPY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

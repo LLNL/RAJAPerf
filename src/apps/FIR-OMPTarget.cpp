@@ -28,22 +28,15 @@ namespace apps
   const size_t threads_per_team = 256;
 
 #define FIR_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
   Real_ptr coeff; \
-\
-  allocAndInitOpenMPDeviceData(in, m_in, getActualProblemSize(), did, hid); \
-  allocAndInitOpenMPDeviceData(out, m_out, getActualProblemSize(), did, hid); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitOpenMPDeviceData(coeff, tcoeff, FIR_COEFFLEN, did, hid);
+  allocData(DataSpace::OmpTarget, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::OmpTarget, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_out, out, getActualProblemSize(), hid, did); \
-  deallocOpenMPDeviceData(in, did); \
-  deallocOpenMPDeviceData(out, did); \
-  deallocOpenMPDeviceData(coeff, did);
+  deallocData(DataSpace::OmpTarget, coeff);
 
 
 void FIR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

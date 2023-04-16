@@ -76,7 +76,7 @@ void INDEXLIST_3LOOP::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void INDEXLIST_3LOOP::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_list, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_list, getActualProblemSize(), vid);
   checksum[vid][tune_idx] += Checksum_type(m_len);
 }
 

@@ -71,8 +71,14 @@ FIRST_MIN::~FIRST_MIN()
 void FIRST_MIN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_N, 0.0, vid);
-  m_x[ m_N / 2 ] = -1.0e+10;
-  m_xmin_init = m_x[0];
+
+  {
+    auto reset_x = scopedMoveData(m_x, m_N, vid);
+
+    m_x[ m_N / 2 ] = -1.0e+10;
+    m_xmin_init = m_x[0];
+  }
+
   m_initloc = 0;
   m_minloc = -1;
 }

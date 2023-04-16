@@ -24,16 +24,14 @@
 #define RAJAPerf_POLYBENCH_JACOBI_1D_HPP
 
 #define POLYBENCH_JACOBI_1D_DATA_SETUP \
-  Real_ptr A = m_Ainit; \
-  Real_ptr B = m_Binit; \
+  Real_ptr A = m_A; \
+  Real_ptr B = m_B; \
+  \
+  copyData(getDataSpace(vid), A, getDataSpace(vid), m_Ainit, m_N); \
+  copyData(getDataSpace(vid), B, getDataSpace(vid), m_Binit, m_N); \
+  \
   const Index_type N = m_N; \
   const Index_type tsteps = m_tsteps;
-
-#define POLYBENCH_JACOBI_1D_DATA_RESET \
-  m_Ainit = m_A; \
-  m_Binit = m_B; \
-  m_A = A; \
-  m_B = B;
 
 
 #define POLYBENCH_JACOBI_1D_BODY1 \

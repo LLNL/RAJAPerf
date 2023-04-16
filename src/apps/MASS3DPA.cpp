@@ -80,7 +80,7 @@ void MASS3DPA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void MASS3DPA::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE);
+  checksum[vid][tune_idx] += calcChecksum(m_Y, MPA_D1D*MPA_D1D*MPA_D1D*m_NE, vid);
 }
 
 void MASS3DPA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

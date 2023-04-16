@@ -69,7 +69,7 @@ void REDUCE_SUM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void REDUCE_SUM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid].at(tune_idx) += calcChecksum(&m_sum, 1);
+  checksum[vid].at(tune_idx) += calcChecksum(&m_sum, 1, vid);
 }
 
 void REDUCE_SUM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

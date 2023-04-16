@@ -21,17 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define HYDRO_1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length);
-
-#define HYDRO_1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
@@ -56,8 +45,6 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    HYDRO_1D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +57,7 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HYDRO_1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,8 +69,6 @@ void HYDRO_1D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HYDRO_1D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  HYDRO_1D : Unknown Cuda variant id = " << vid << std::endl;

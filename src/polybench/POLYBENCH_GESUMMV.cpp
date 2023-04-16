@@ -79,7 +79,7 @@ void POLYBENCH_GESUMMV::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
 void POLYBENCH_GESUMMV::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_y, m_N);
+  checksum[vid][tune_idx] += calcChecksum(m_y, m_N, vid);
 }
 
 void POLYBENCH_GESUMMV::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

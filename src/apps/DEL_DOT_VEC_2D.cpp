@@ -39,7 +39,7 @@ DEL_DOT_VEC_2D::DEL_DOT_VEC_2D(const RunParams& params)
   setKernelsPerRep(1);
   setBytesPerRep( (0*sizeof(Index_type) + 1*sizeof(Index_type)) * getItsPerRep() +
                   (1*sizeof(Real_type)  + 0*sizeof(Real_type) ) * getItsPerRep() +
-                  (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * (m_domain->imax+1-m_domain->imin)*(m_domain->jmax+1-m_domain->jmin) ) ; // touched data size, not actual number of stores and loads
+                  (0*sizeof(Real_type)  + 4*sizeof(Real_type) ) * m_domain->n_real_nodes ) ; // touched data size, not actual number of stores and loads
   setFLOPsPerRep(54 * m_domain->n_real_zones);
 
   setUsesFeature(Forall);
@@ -76,10 +76,19 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   allocAndInitDataConst(m_x, m_array_length, 0.0, vid);
   allocAndInitDataConst(m_y, m_array_length, 0.0, vid);
+  allocAndInitDataConst(m_real_zones, m_domain->n_real_zones,
+                        static_cast<Index_type>(-1), vid);
 
-  Real_type dx = 0.2;
-  Real_type dy = 0.1;
-  setMeshPositions_2d(m_x, dx, m_y, dy, *m_domain);
+  {
+    auto reset_x = scopedMoveData(m_x, m_array_length, vid);
+    auto reset_y = scopedMoveData(m_y, m_array_length, vid);
+    auto reset_rz = scopedMoveData(m_real_zones, m_domain->n_real_zones, vid);
+
+    Real_type dx = 0.2;
+    Real_type dy = 0.1;
+    setMeshPositions_2d(m_x, dx, m_y, dy, *m_domain);
+    setRealZones_2d(m_real_zones, *m_domain);
+  }
 
   allocAndInitData(m_xdot, m_array_length, vid);
   allocAndInitData(m_ydot, m_array_length, vid);
@@ -92,7 +101,7 @@ void DEL_DOT_VEC_2D::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void DEL_DOT_VEC_2D::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_div, m_array_length);
+  checksum[vid][tune_idx] += calcChecksum(m_div, m_array_length, vid);
 }
 
 void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
@@ -101,6 +110,7 @@ void DEL_DOT_VEC_2D::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   deallocData(m_x, vid);
   deallocData(m_y, vid);
+  deallocData(m_real_zones, vid);
   deallocData(m_xdot, vid);
   deallocData(m_ydot, vid);
   deallocData(m_div, vid);

@@ -71,7 +71,7 @@ void PLANCKIAN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void PLANCKIAN::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_w, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_w, getActualProblemSize(), vid);
 }
 
 void PLANCKIAN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

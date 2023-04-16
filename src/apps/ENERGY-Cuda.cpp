@@ -21,42 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define ENERGY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(e_new, m_e_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(delvc, m_delvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(p_old, m_p_old, iend); \
-  allocAndInitCudaDeviceData(q_new, m_q_new, iend); \
-  allocAndInitCudaDeviceData(q_old, m_q_old, iend); \
-  allocAndInitCudaDeviceData(work, m_work, iend); \
-  allocAndInitCudaDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitCudaDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitCudaDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitCudaDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
-
-#define ENERGY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_e_new, e_new, iend); \
-  getCudaDeviceData(m_q_new, q_new, iend); \
-  deallocCudaDeviceData(e_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(delvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(p_old); \
-  deallocCudaDeviceData(q_new); \
-  deallocCudaDeviceData(q_old); \
-  deallocCudaDeviceData(work); \
-  deallocCudaDeviceData(compHalfStep); \
-  deallocCudaDeviceData(pHalfStep); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(pbvc); \
-  deallocCudaDeviceData(ql_old); \
-  deallocCudaDeviceData(qq_old); \
-  deallocCudaDeviceData(vnewc);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void energycalc1(Real_ptr e_new, Real_ptr e_old, Real_ptr delvc,
@@ -154,8 +118,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    ENERGY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -207,11 +169,7 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    ENERGY_DATA_SETUP_CUDA;
 
     const bool async = true;
 
@@ -260,8 +218,6 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    ENERGY_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  ENERGY : Unknown Cuda variant id = " << vid << std::endl;

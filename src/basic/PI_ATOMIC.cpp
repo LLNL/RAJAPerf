@@ -69,11 +69,12 @@ void PI_ATOMIC::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_dx = 1.0 / double(getActualProblemSize());
   allocAndInitDataConst(m_pi, 1, 0.0, vid);
   m_pi_init = 0.0;
+  m_pi_final = -static_cast<int>(vid);
 }
 
 void PI_ATOMIC::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += Checksum_type(*m_pi);
+  checksum[vid][tune_idx] += static_cast<Checksum_type>(m_pi_final);
 }
 
 void PI_ATOMIC::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

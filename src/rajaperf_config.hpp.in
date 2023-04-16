@@ -28,6 +28,15 @@
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
 #cmakedefine RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN
 
+#if defined(RAJA_ENABLE_HIP)
+#include <hip/hip_version.h>
+#if (HIP_VERSION_MAJOR > 5) || \
+    (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2)
+// enable memadvise coarse with rocm version >= 4.3
+#define RAJAPERF_USE_MEMADVISE_COARSE
+#endif
+#endif
+
 namespace rajaperf {
 
 struct configuration {

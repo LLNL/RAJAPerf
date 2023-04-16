@@ -71,7 +71,7 @@ void COPY::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void COPY::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_c, getActualProblemSize(), vid);
 }
 
 void COPY::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

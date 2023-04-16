@@ -55,8 +55,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET;
-
       break;
     }
 
@@ -97,8 +95,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       }
       stopTimer();
-
-      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
@@ -149,8 +145,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       }
       stopTimer();
-
-      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }

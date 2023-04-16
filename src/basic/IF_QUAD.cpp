@@ -77,8 +77,8 @@ void IF_QUAD::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void IF_QUAD::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor );
-  checksum[vid][tune_idx] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_x1, getActualProblemSize(), checksum_scale_factor , vid);
+  checksum[vid][tune_idx] += calcChecksum(m_x2, getActualProblemSize(), checksum_scale_factor , vid);
 }
 
 void IF_QUAD::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

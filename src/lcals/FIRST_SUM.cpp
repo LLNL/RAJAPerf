@@ -71,7 +71,7 @@ void FIRST_SUM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void FIRST_SUM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize(), vid);
 }
 
 void FIRST_SUM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

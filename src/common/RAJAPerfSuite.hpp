@@ -132,7 +132,6 @@ enum KernelID {
 // Apps kernels...
 //
   Apps_CONVECTION3DPA,
-  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
   Apps_ENERGY,
@@ -239,6 +238,47 @@ enum FeatureID {
 /*!
  *******************************************************************************
  *
+ * \brief Enumeration defining unique id for each Data memory space
+ * used in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct DataSpace {
+
+  Host = 0,
+
+  Omp,
+
+  OmpTarget,
+
+  CudaPinned,
+  CudaManaged,
+  CudaDevice,
+
+  HipHostAdviseFine,
+  HipHostAdviseCoarse,
+  HipPinned,
+  HipPinnedFine,
+  HipPinnedCoarse,
+  HipManaged,
+  HipManagedAdviseFine,
+  HipManagedAdviseCoarse,
+  HipDevice,
+  HipDeviceFine,
+
+  NumSpaces // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
  * \brief Return group name associated with GroupID enum value.
  *
  *******************************************************************************
@@ -304,6 +344,24 @@ bool isVariantGPU(VariantID vid);
  *******************************************************************************
  */
 const std::string& getFeatureName(FeatureID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return memory space name associated with CudaDataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace cd);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace);
 
 /*!
  *******************************************************************************

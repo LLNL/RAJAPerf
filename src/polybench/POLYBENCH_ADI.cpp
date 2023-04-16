@@ -82,7 +82,7 @@ void POLYBENCH_ADI::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void POLYBENCH_ADI::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_U, m_n * m_n, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_ADI::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
