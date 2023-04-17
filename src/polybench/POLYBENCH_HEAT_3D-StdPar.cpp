@@ -99,8 +99,6 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET;
-
       break;
     }
 
@@ -176,8 +174,6 @@ void POLYBENCH_HEAT_3D::runStdParVariant(VariantID vid, size_t tune_idx)
 
       }
       stopTimer();
-
-      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }
