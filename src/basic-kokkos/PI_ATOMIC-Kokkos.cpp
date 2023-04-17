@@ -59,7 +59,7 @@ void PI_ATOMIC::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   }
 
   default: {
-    std::cout << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  PI_ATOMIC : Unknown variant id = " << vid << std::endl;
   }
   }
 }

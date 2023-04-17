@@ -1,0 +1,106 @@
+# GCC
+
+```
+cmake .. -DCMAKE_C_COMPILER=gcc-11  -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_FLAGS="-std=c++20 -Wno-volatile -Wno-unused-parameter" -DENABLE_STDPAR=1 && make -j`nproc`
+```
+
+# NVC++
+
+## Patches
+
+```
+$ diff /opt/nvidia/hpc_sdk/Linux_$(uname -m)/${V}/compilers/include/nvhpc/algorithm_execution.hpp
+1066c1066
+<     _ASSERT_RANDOM_ACCESS(_FIt);
+---
+>     //_ASSERT_RANDOM_ACCESS(_FIt);
+```
+
+```
+$ diff /opt/nvidia/hpc_sdk/Linux_$(uname -m)/${V}/compilers/include/nvhpc/numeric_execution.hpp
+386c386
+<     _ASSERT_RANDOM_ACCESS(_FIt);
+---
+>     //_ASSERT_RANDOM_ACCESS(_FIt);
+```
+
+## OpenMP/OpenACC for atomics
+
+```
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=multicore -acc=multicore -mp=multicore -tp=haswell" -DENABLE_STDPAR=1 && make -j8
+```
+
+```
+cmake .. -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ -DCMAKE_CXX_FLAGS="-std=c++20 --diag_suppress=volatile_inc_dec_deprecated -stdpar=gpu -tp=haswell -acc" -DENABLE_STDPAR=1 && make -j8
+```
+
+## CPU
+
+Just disable the lambda one I guess...
+
+-------------------------------------------------------
+Basic_MAT_MAT_SHARED
+........................................................
+Base_StdPar-default        1136.6199452543779141       0.0000000000000000000
+Lambda_StdPar-default      -nan                        -nan
+
+Probably just not atomic...
+
+-------------------------------------------------------
+Basic_PI_ATOMIC
+........................................................
+Base_StdPar-default        0.55899274342205662602      2.5825999101679185666
+Lambda_StdPar-default      3.1415926535899751926       0.0000000000000000000
+
+Check these to make sure no stupid float<->double stuff happening.
+
+-------------------------------------------------------
+Polybench_GEMVER
+........................................................
+Base_Seq-default           16695345.016927006001       0.0000000000000000000
+Lambda_Seq-default         16695345.016927005882       1.1914380593225359917e-10
+RAJA_Seq-default           16695345.016927006608       -6.0663296608254313469e-10
+Base_StdPar-default        16695345.016927005745       2.5647750589996576309e-10
+Lambda_StdPar-default      16695345.016927006608       -6.0663296608254313469e-10
+
+-------------------------------------------------------
+Polybench_MVT
+........................................................
+Base_Seq-default           6821556.1519041797419       0.0000000000000000000
+Lambda_Seq-default         6821556.1519041797419       0.0000000000000000000
+RAJA_Seq-default           6821556.1519041792999       4.4201442506164312363e-10
+Base_StdPar-default        6821556.1519041792999       4.4201442506164312363e-10
+Lambda_StdPar-default      6821556.1519041792999       4.4201442506164312363e-10
+
+-------------------------------------------------------
+Stream_DOT
+........................................................
+Base_Seq-default           39999973.379841431975       0.0000000000000000000
+Lambda_Seq-default         39999973.379841439426       -7.4505805969238281250e-09
+RAJA_Seq-default           39999973.379841662943       -2.3096799850463867188e-07
+Base_StdPar-default        39999973.379841439426       -7.4505805969238281250e-09
+Lambda_StdPar-default      39999973.379841439426       -7.4505805969238281250e-09
+
+-------------------------------------------------------
+Algorithm_REDUCE_SUM
+........................................................
+RAJA_Seq-default           268294.10758353886195       1.5483237802982330322e-08
+
+## GPU
+
+Lambda_Seq has the bug too so just disable the Lambda versions...
+
+-------------------------------------------------------
+Basic_MAT_MAT_SHARED
+........................................................
+Base_Seq-default           1136.6199452543779141       0.0000000000000000000
+Lambda_Seq-default         -6.0464819976872759102e+32  6.0464819976872759102e+32
+RAJA_Seq-default           1136.6199452543779141       0.0000000000000000000
+Base_StdPar-default        1136.6199452543779141       0.0000000000000000000
+Lambda_StdPar-default      -6.0464819976872759102e+32  6.0464819976872759102e+32
+
+# Intel
+
+```
+cmake .. -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_CXX_FLAGS="-std=c++20  -Wno-unused-parameter -Wno-deprecated-volatile -tbb" -DENABLE_STDPAR=1 && make -j8
+```

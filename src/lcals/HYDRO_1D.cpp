@@ -58,6 +58,9 @@ HYDRO_1D::HYDRO_1D(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
 }
 
 HYDRO_1D::~HYDRO_1D()

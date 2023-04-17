@@ -64,6 +64,9 @@ VOL3D::VOL3D(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
 }
 
 VOL3D::~VOL3D()

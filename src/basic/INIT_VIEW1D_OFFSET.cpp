@@ -53,6 +53,9 @@ INIT_VIEW1D_OFFSET::INIT_VIEW1D_OFFSET(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+
   setVariantDefined( Kokkos_Lambda );
 }
 

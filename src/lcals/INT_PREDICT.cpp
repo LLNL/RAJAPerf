@@ -51,6 +51,9 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
   setVariantDefined( RAJA_HIP );
 
   setVariantDefined( Kokkos_Lambda );
+
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
 }
 
 INT_PREDICT::~INT_PREDICT()

@@ -56,7 +56,7 @@ void MULADDSUB::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   }
 
   default: {
-    std::cout << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  MULADDSUB : Unknown variant id = " << vid << std::endl;
   }
   }
   moveDataToHostFromKokkosView(out1, out1_view, iend);

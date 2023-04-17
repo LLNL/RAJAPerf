@@ -54,6 +54,9 @@ PI_ATOMIC::PI_ATOMIC(const RunParams& params)
   setVariantDefined( Lambda_HIP );
   setVariantDefined( RAJA_HIP );
 
+  setVariantDefined( Base_StdPar );
+  setVariantDefined( Lambda_StdPar );
+
   setVariantDefined( Kokkos_Lambda );
 }
 

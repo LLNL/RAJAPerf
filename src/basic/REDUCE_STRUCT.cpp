@@ -56,6 +56,9 @@ REDUCE_STRUCT::REDUCE_STRUCT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
+  //setVariantDefined( Lambda_StdPar );
 }
 
 REDUCE_STRUCT::~REDUCE_STRUCT()

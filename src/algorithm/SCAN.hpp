@@ -61,6 +61,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runStdParVariant(VariantID vid, size_t tune_idx);
 
 private:
   static const size_t default_gpu_block_size = 0;

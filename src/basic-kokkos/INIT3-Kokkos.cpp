@@ -57,7 +57,7 @@ void INIT3::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
   }
 
   default: {
-    std::cout << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  INIT3 : Unknown variant id = " << vid << std::endl;
   }
   }
 

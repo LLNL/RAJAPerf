@@ -134,6 +134,14 @@ void KernelBase::setVariantDefined(VariantID vid)
 #endif
       break;
     }
+
+    case Base_StdPar :
+    case Lambda_StdPar :
+    {
+      setStdParTuningDefinitions(vid);
+      break;
+    }
+
 // Required for running Kokkos
     case Kokkos_Lambda :
     {
@@ -297,6 +305,14 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 #endif
       break;
     }
+
+    case Base_StdPar :
+    case Lambda_StdPar :
+    {
+      runStdParVariant(vid, tune_idx);
+      break;
+    }
+
     case Kokkos_Lambda :
     {
 #if defined(RUN_KOKKOS)

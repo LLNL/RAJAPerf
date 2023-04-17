@@ -1087,10 +1087,10 @@ void Executor::writeCSVReport(ostream& file, CSVRepMode mode,
           if ( (mode == CSVRepMode::Speedup) &&
                (!kern->hasVariantTuningDefined(reference_vid, reference_tune_idx) ||
                 !kern->hasVariantTuningDefined(vid, tuning_name)) ) {
-            file << "Not run";
+            file << "NotRun";
           } else if ( (mode == CSVRepMode::Timing) &&
                       !kern->hasVariantTuningDefined(vid, tuning_name) ) {
-            file << "Not run";
+            file << "NotRun";
           } else {
             file << setprecision(prec) << std::fixed
                  << getReportDataEntry(mode, combiner, kern, vid,

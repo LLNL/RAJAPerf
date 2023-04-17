@@ -18,11 +18,9 @@
 /// Note: this part of the kernel is modified to avoid
 ///       excessively large checksums
 /// for (Index_type i = 0; i < N; i++) {
-///   Real_type dot = 0.0;
 ///   for (Index_type j = 0; j < N; j++) {
-///     dot += beta * A[j][i] * y[j];
+///     x[i] = x[i] + beta * A[j][i] * y[j];
 ///   }
-///   x[i] = dot;
 /// }
 ///
 /// for (Index_type i = 0; i < N; i++) {
@@ -98,7 +96,7 @@
   xview(i) += zview(i);
 
 #define POLYBENCH_GEMVER_BODY6_RAJA \
-  dot = wview(i);
+  dot = w[i];
 
 #define POLYBENCH_GEMVER_BODY7_RAJA \
   dot +=  alpha * Aview(i,j) * xview(j);
@@ -152,6 +150,7 @@ public:
   void runCudaVariant(VariantID vid, size_t tune_idx);
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
+  void runStdParVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);

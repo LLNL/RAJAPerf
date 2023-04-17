@@ -102,6 +102,9 @@ public:
   { addVariantTuningName(vid, getDefaultTuningName()); }
 #endif
 
+  virtual void setStdParTuningDefinitions(VariantID vid)
+  { addVariantTuningName(vid, getDefaultTuningName()); }
+
   //
   // Getter methods used to generate kernel execution summary
   // and kernel details report ouput.
@@ -351,6 +354,7 @@ public:
 #if defined(RAJA_ENABLE_TARGET_OPENMP)
   virtual void runOpenMPTargetVariant(VariantID vid, size_t tune_idx) = 0;
 #endif
+  virtual void runStdParVariant(VariantID vid, size_t tune_idx) = 0;
 
 #if defined(RUN_KOKKOS)
   virtual void runKokkosVariant(VariantID vid, size_t tune_idx)

@@ -171,6 +171,7 @@ public:
   void runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
   void runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
   void runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
+  void runStdParVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {(void) vid;}
 
 private:
   Complex_ptr m_t0;

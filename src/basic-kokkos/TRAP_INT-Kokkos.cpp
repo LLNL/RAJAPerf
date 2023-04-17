@@ -59,7 +59,7 @@ void TRAP_INT::runKokkosVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
   }
 
   default: {
-    std::cout << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  TRAP_INT : Unknown variant id = " << vid << std::endl;
   }
   }
 }

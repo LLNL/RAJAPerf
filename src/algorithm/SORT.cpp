@@ -41,6 +41,8 @@ SORT::SORT(const RunParams& params)
   setVariantDefined( RAJA_CUDA );
 
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Base_StdPar );
 }
 
 SORT::~SORT()

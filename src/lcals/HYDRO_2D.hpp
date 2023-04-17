@@ -60,7 +60,7 @@
   const Real_type s = m_s; \
   const Real_type t = m_t; \
 \
-  const Index_type kn = m_kn; \
+  const Index_type kn = m_kn; (void)kn; \
   const Index_type jn = m_jn;
 
 #define HYDRO_2D_BODY1  \
@@ -152,6 +152,7 @@ public:
   void runHipVariant(VariantID vid, size_t tune_idx);
   void runOpenMPTargetVariant(VariantID vid, size_t tune_idx);
   void runKokkosVariant(VariantID vid, size_t tune_idx);
+  void runStdParVariant(VariantID vid, size_t tune_idx);
 
   void setCudaTuningDefinitions(VariantID vid);
   void setHipTuningDefinitions(VariantID vid);

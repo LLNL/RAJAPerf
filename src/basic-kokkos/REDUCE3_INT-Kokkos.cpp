@@ -65,7 +65,7 @@ void REDUCE3_INT::runKokkosVariant(VariantID vid,
   }
 
   default: {
-    std::cout << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
+    getCout() << "\n  REDUCE3_INT : Unknown variant id = " << vid << std::endl;
   }
   }
 
