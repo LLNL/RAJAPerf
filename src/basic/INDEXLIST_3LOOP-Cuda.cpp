@@ -23,15 +23,10 @@ namespace basic
 
 #define INDEXLIST_3LOOP_DATA_SETUP_CUDA \
   Index_type* counts; \
-  allocCudaDeviceData(counts, iend+1); \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(list, m_list, iend);
+  allocData(DataSpace::CudaDevice, counts, iend+1);
 
 #define INDEXLIST_3LOOP_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(counts); \
-  getCudaDeviceData(m_list, list, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(list);
+  deallocData(DataSpace::CudaDevice, counts);
 
 
 template < size_t block_size >
@@ -77,7 +72,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
     INDEXLIST_3LOOP_DATA_SETUP_CUDA;
 
     Index_type* len;
-    allocCudaPinnedData(len, 1);
+    allocData(DataSpace::CudaPinned, len, 1);
 
     cudaStream_t stream = RAJA::resources::Cuda::get_default().get_stream();
 
@@ -96,7 +91,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                                                 stream));
 
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -126,8 +121,8 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(temp_storage);
-    deallocCudaPinnedData(len);
+    deallocData(DataSpace::CudaDevice, temp_storage);
+    deallocData(DataSpace::CudaPinned, len);
 
     INDEXLIST_3LOOP_DATA_TEARDOWN_CUDA;
 

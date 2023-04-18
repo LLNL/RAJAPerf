@@ -21,16 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define NESTED_INIT_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(array, m_array, m_array_length, did, hid);
-
-#define NESTED_INIT_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_array, array, m_array_length, hid, did); \
-  deallocOpenMPDeviceData(array, did);
-
 
 void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -39,8 +29,6 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
   NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -58,11 +46,7 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    NESTED_INIT_DATA_SETUP_OMP_TARGET;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -84,8 +68,6 @@ void NESTED_INIT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
 
     }
     stopTimer();
-
-    NESTED_INIT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  NESTED_INIT : Unknown variant id = " << vid << std::endl;

@@ -26,22 +26,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define TRIDIAG_ELIM_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(xout, m_xout, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(xin, m_xin, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(z, m_z, m_N, did, hid);
-
-#define TRIDIAG_ELIM_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_xout, xout, m_N, hid, did); \
-  deallocOpenMPDeviceData(xout, did); \
-  deallocOpenMPDeviceData(xin, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(z, did);
-
 
 void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -52,8 +36,6 @@ void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
   TRIDIAG_ELIM_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    TRIDIAG_ELIM_DATA_SETUP_OMP_TARGET
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -67,11 +49,7 @@ void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
     }
     stopTimer();
 
-    TRIDIAG_ELIM_DATA_TEARDOWN_OMP_TARGET
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    TRIDIAG_ELIM_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -83,8 +61,6 @@ void TRIDIAG_ELIM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     }
     stopTimer();
-
-    TRIDIAG_ELIM_DATA_TEARDOWN_OMP_TARGET
 
   } else {
      getCout() << "\n  TRIDIAG_ELIM : Unknown OMP Tagretvariant id = " << vid << std::endl;

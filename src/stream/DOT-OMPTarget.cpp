@@ -26,17 +26,6 @@ namespace stream
   //
   const size_t threads_per_team = 256;
 
-#define DOT_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid);
-
-#define DOT_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(b, did);
-
 void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -46,8 +35,6 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   DOT_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    DOT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -66,11 +53,7 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    DOT_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,8 +69,6 @@ void DOT::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     }
     stopTimer();
-
-    DOT_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  DOT : Unknown OMP Target variant id = " << vid << std::endl;

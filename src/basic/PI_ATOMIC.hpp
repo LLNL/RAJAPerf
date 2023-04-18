@@ -70,6 +70,7 @@ private:
   Real_type m_dx;
   Real_ptr m_pi;
   Real_type m_pi_init;
+  Real_type m_pi_final;
 };
 
 } // end namespace basic

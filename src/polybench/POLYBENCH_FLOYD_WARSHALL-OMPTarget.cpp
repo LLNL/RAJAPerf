@@ -21,20 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(pin, m_pin, m_N * m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(pout, m_pout, m_N * m_N, did, hid);
-
-
-#define POLYBENCH_FLOYD_WARSHALL_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_pout, pout, m_N * m_N, hid, did); \
-  deallocOpenMPDeviceData(pin, did); \
-  deallocOpenMPDeviceData(pout, did);
-
-
 void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -42,8 +28,6 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t RAJA
   POLYBENCH_FLOYD_WARSHALL_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -63,11 +47,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t RAJA
     }
     stopTimer();
 
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
@@ -94,8 +74,6 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPTargetVariant(VariantID vid, size_t RAJA
 
     }
     stopTimer();
-
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_OMP_TARGET;
 
   } else {
       getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown OMP Target variant id = " << vid << std::endl;

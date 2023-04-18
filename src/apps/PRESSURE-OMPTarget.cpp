@@ -26,24 +26,6 @@ namespace apps
   //
   const size_t threads_per_team = 256;
 
-#define PRESSURE_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(compression, m_compression, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(bvc, m_bvc, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(p_new, m_p_new, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(e_old, m_e_old, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(vnewc, m_vnewc, iend, did, hid);
-
-#define PRESSURE_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_p_new, p_new, iend, hid, did); \
-  deallocOpenMPDeviceData(compression, did); \
-  deallocOpenMPDeviceData(bvc, did); \
-  deallocOpenMPDeviceData(p_new, did); \
-  deallocOpenMPDeviceData(e_old, did); \
-  deallocOpenMPDeviceData(vnewc, did);
-
 
 void PRESSURE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -54,8 +36,6 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   PRESSURE_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    PRESSURE_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -75,11 +55,7 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    PRESSURE_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -100,8 +76,6 @@ void PRESSURE::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
     }
     stopTimer();
-
-    PRESSURE_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
     getCout() << "\n  PRESSURE : Unknown OMP Target variant id = " << vid << std::endl;

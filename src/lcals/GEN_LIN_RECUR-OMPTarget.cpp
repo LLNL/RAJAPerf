@@ -26,22 +26,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define GEN_LIN_RECUR_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(b5, m_b5, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(stb5, m_stb5, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(sa, m_sa, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(sb, m_sb, m_N, did, hid);
-
-#define GEN_LIN_RECUR_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_b5, b5, m_N, hid, did); \
-  deallocOpenMPDeviceData(b5, did); \
-  deallocOpenMPDeviceData(stb5, did); \
-  deallocOpenMPDeviceData(sa, did); \
-  deallocOpenMPDeviceData(sb, did);
-
 
 void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -50,8 +34,6 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
   GEN_LIN_RECUR_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_OMP_TARGET
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -71,11 +53,7 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_OMP_TARGET
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,8 +70,6 @@ void GEN_LIN_RECUR::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
     }
     stopTimer();
-
-    GEN_LIN_RECUR_DATA_TEARDOWN_OMP_TARGET
 
   } else {
      getCout() << "\n  GEN_LIN_RECUR : Unknown OMP Tagretvariant id = " << vid << std::endl;

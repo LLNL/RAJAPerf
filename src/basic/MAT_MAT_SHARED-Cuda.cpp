@@ -19,20 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-#define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
-  const Index_type NN = m_N * m_N;                                             \
-  allocAndInitCudaDeviceData(A, m_A, NN);                                      \
-  allocAndInitCudaDeviceData(B, m_B, NN);                                      \
-  allocAndInitCudaDeviceData(C, m_C, NN);
-
-#define MAT_MAT_SHARED_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_A, A, NN);                                               \
-  getCudaDeviceData(m_B, B, NN);                                               \
-  getCudaDeviceData(m_C, C, NN);                                               \
-  deallocCudaDeviceData(A);                                                    \
-  deallocCudaDeviceData(B);                                                    \
-  deallocCudaDeviceData(C);
-
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
@@ -81,8 +67,6 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
 
   if (vid == Base_CUDA) {
 
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -92,11 +76,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
-
   } else if (vid == Lambda_CUDA) {
-
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -194,11 +174,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -286,8 +262,6 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
 
     }  // loop over kernel reps
     stopTimer();
-
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
 
   } else {
     getCout() << "\n  MAT_MAT_SHARED : Unknown Cuda variant id = " << vid

@@ -318,6 +318,46 @@ static const std::string FeatureNames [] =
 }; // END FeatureNames
 
 
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string DataSpaceNames [] =
+{
+  std::string("Host"),
+
+  std::string("Omp"),
+
+  std::string("OmpTarget"),
+
+  std::string("CudaPinned"),
+  std::string("CudaManaged"),
+  std::string("CudaDevice"),
+
+  std::string("HipHostAdviseFine"),
+  std::string("HipHostAdviseCoarse"),
+  std::string("HipPinned"),
+  std::string("HipPinnedFine"),
+  std::string("HipPinnedCoarse"),
+  std::string("HipManaged"),
+  std::string("HipManagedAdviseFine"),
+  std::string("HipManagedAdviseCoarse"),
+  std::string("HipDevice"),
+  std::string("HipDeviceFine"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
+
+
 /*
  *******************************************************************************
  *
@@ -505,6 +545,77 @@ const std::string& getFeatureName(FeatureID fid)
 {
   return FeatureNames[fid];
 }
+
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with DataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace ds)
+{
+  return DataSpaceNames[static_cast<int>(ds)];
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+    case DataSpace::Host:
+      ret_val = true; break;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      ret_val = true; break;
+#endif
+
+    default:
+      ret_val = false; break;
+  }
+
+  return ret_val;
+}
+
 
 /*
  *******************************************************************************
