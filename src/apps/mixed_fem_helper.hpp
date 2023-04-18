@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "RAJA/RAJA.hpp"
+
 #define NB 8
 #define EB 12
 #define FB 6
@@ -12,7 +14,7 @@ constexpr double ptiny = 1.0e-50;
 // Common FEM functions
 //
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void LinAlg_qrule_Lobatto(
   int    order,
   double *qpts1D,
@@ -96,7 +98,7 @@ inline void LinAlg_qrule_Lobatto(
 
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void LinAlg_qrule_Legendre(
   int    order,
   double *qpts1D,
@@ -180,7 +182,7 @@ inline void LinAlg_qrule_Legendre(
 
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void get_quadrature_rule(
   const int    quad_type,
   const int    quad_order,
@@ -201,7 +203,7 @@ inline void get_quadrature_rule(
   }
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double compute_detj(
   const double jxx,
   const double jxy,
@@ -219,7 +221,7 @@ constexpr double compute_detj(
 }
 
 template<int M>
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void transform_basis(
   const double txx,
   const double txy,
@@ -247,7 +249,7 @@ constexpr void transform_basis(
 }
 
 template<int M, int P>
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void inner_product(
   const double weight,
   const double (&basis_1_x)[M],
@@ -284,7 +286,7 @@ constexpr void inner_product(
   }
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void bad_zone_algorithm(
   const double detj_unfixed,
   const double detj_cc,
@@ -302,7 +304,7 @@ inline void bad_zone_algorithm(
   inv_detj = 1.0/(detj + ptiny);
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void jacobian_inv(
   const double jxx,
   const double jxy,
@@ -349,7 +351,7 @@ inline void jacobian_inv(
   jinvzz =  (jxx*jyy - jxy*jyx)*inv_detj;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jzx(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -359,6 +361,9 @@ constexpr double Jzx(
   const double  xyloc,
   const double  tmpxyloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (x[4] - x[0])*tmpxy    +
     (x[5] - x[1])*xloctmpy +
@@ -366,7 +371,7 @@ constexpr double Jzx(
     (x[7] - x[3])*tmpxyloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jzy(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -376,6 +381,9 @@ constexpr double Jzy(
   const double  xyloc,
   const double  tmpxyloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (y[4] - y[0])*tmpxy    +
     (y[5] - y[1])*xloctmpy +
@@ -383,7 +391,7 @@ constexpr double Jzy(
     (y[7] - y[3])*tmpxyloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jzz(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -393,6 +401,9 @@ constexpr double Jzz(
   const double  xyloc,
   const double  tmpxyloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (z[4] - z[0])*tmpxy    +
     (z[5] - z[1])*xloctmpy +
@@ -400,7 +411,7 @@ constexpr double Jzz(
     (z[7] - z[3])*tmpxyloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jxx(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -410,6 +421,9 @@ constexpr double Jxx(
   const double  tmpyzloc,
   const double  yzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (x[1] - x[0])*tmpyz   +
     (x[2] - x[3])*yloctmpz +
@@ -417,7 +431,7 @@ constexpr double Jxx(
     (x[6] - x[7])*yzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jxy(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -427,6 +441,9 @@ constexpr double Jxy(
   const double  tmpyzloc,
   const double  yzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (y[1] - y[0])*tmpyz    +
     (y[2] - y[3])*yloctmpz +
@@ -434,7 +451,7 @@ constexpr double Jxy(
     (y[6] - y[7])*yzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jxz(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -444,6 +461,9 @@ constexpr double Jxz(
   const double  tmpyzloc,
   const double  yzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (z[1] - z[0])*tmpyz   +
     (z[2] - z[3])*yloctmpz +
@@ -451,7 +471,7 @@ constexpr double Jxz(
     (z[6] - z[7])*yzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jyx(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -461,6 +481,9 @@ constexpr double Jyx(
   const double  tmpxzloc,
   const double  xzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (x[3] - x[0])*tmpxz    +
     (x[2] - x[1])*xloctmpz +
@@ -468,7 +491,7 @@ constexpr double Jyx(
     (x[6] - x[5])*xzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jyy(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -478,6 +501,9 @@ constexpr double Jyy(
   const double  tmpxzloc,
   const double  xzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (y[3] - y[0])*tmpxz    +
     (y[2] - y[1])*xloctmpz +
@@ -485,7 +511,7 @@ constexpr double Jyy(
     (y[6] - y[5])*xzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr double Jyz(
   const double  (&x)[NB],
   const double  (&y)[NB],
@@ -495,6 +521,9 @@ constexpr double Jyz(
   const double  tmpxzloc,
   const double  xzloc)
 {
+  (void) x[0];
+  (void) y[0];
+  (void) z[0];
   return
     (z[3] - z[0])*tmpxz    +
     (z[2] - z[1])*xloctmpz +
@@ -505,7 +534,7 @@ constexpr double Jyz(
 //-----------------------------------------
 // Node basis
 //-----------------------------------------
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void nodebasis(
   double (&basis)[NB],
   const double tmpxy,
@@ -525,7 +554,7 @@ constexpr void nodebasis(
   basis[7] = tmpxyloc*zloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void dnodebasis_dx(
   double (&dbasis)[NB],
   const double tmpyz,
@@ -543,7 +572,7 @@ constexpr void dnodebasis_dx(
   dbasis[7] = -yzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void dnodebasis_dy(
   double (&dbasis)[NB],
   const double tmpxz,
@@ -561,7 +590,7 @@ constexpr void dnodebasis_dy(
   dbasis[7] =  tmpxzloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void dnodebasis_dz(
   double (&dbasis)[NB],
   const double tmpxy,
@@ -579,7 +608,7 @@ constexpr void dnodebasis_dz(
   dbasis[7] =  tmpxyloc;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void transform_node_dbasis(
   const double jinvxx,
   const double jinvxy,
@@ -609,7 +638,7 @@ constexpr void transform_node_dbasis(
 //-----------------------------------------
 // Edge basis
 //-----------------------------------------
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void edgebasis_x(
   double (&basisx)[EB],
   const double tmpyz,
@@ -632,7 +661,7 @@ constexpr void edgebasis_x(
 }
 
 // Evaluate basis with respect to y at this quadrature point
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void edgebasis_y(
   double (&basisy)[EB],
   const double tmpxz,
@@ -655,7 +684,7 @@ constexpr void edgebasis_y(
 }
 
 // Evaluate basis with respect to z at this quadrature point
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void edgebasis_z(
   double (&basisz)[EB],
   const double tmpxy,
@@ -678,7 +707,7 @@ constexpr void edgebasis_z(
 }
 
 // Differeniate basis with respect to x at this quadrature point
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void curl_edgebasis_x(
   double (&dbasisx)[EB],
   const double tmpx,
@@ -699,7 +728,7 @@ constexpr void curl_edgebasis_x(
 }
 
 // Differeniate basis with respect to y at this quadrature point
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void curl_edgebasis_y(
   double (&dbasisy)[EB],
   const double tmpy,
@@ -720,7 +749,7 @@ constexpr void curl_edgebasis_y(
 }
 
 // Differeniate basis with respect to z at this quadrature point
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void curl_edgebasis_z(
   double (&dbasisz)[EB],
   const double tmpz,
@@ -740,7 +769,7 @@ constexpr void curl_edgebasis_z(
   dbasisz[11] =  0.0;  //
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void edgebasis(
   const double xloc,
   const double yloc,
@@ -771,7 +800,7 @@ constexpr void edgebasis(
   edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void transform_edge_basis(
   const double jinvxx,
   const double jinvxy,
@@ -799,7 +828,7 @@ constexpr void transform_edge_basis(
 }
 
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void transform_curl_edge_basis(
   const double jxx,
   const double jxy,
@@ -830,7 +859,7 @@ constexpr void transform_curl_edge_basis(
 //-----------------------------------------
 // Face basis
 //-----------------------------------------
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void face_basis_x(
   double (&basisx)[FB],
   const double tmpx,
@@ -844,7 +873,7 @@ constexpr void face_basis_x(
   basisx[5] = 0.0;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void face_basis_y(
   double (&basisy)[FB],
   const double tmpy,
@@ -858,7 +887,7 @@ constexpr void face_basis_y(
   basisy[5] = 0.0;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void face_basis_z(
   double (&basisz)[FB],
   const double tmpz,
@@ -872,7 +901,7 @@ constexpr void face_basis_z(
   basisz[5] = zpt;
 }
 
-__host__ __device__
+RAJA_HOST_DEVICE
 constexpr void transform_face_basis(
   const double jxx,
   const double jxy,

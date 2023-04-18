@@ -190,9 +190,9 @@ for (Index_type i = ibegin ; i < iend ; ++i ) {
 
 #define NQ_1D 2
 
-#include "ahelper.hpp"
+#include "mixed_fem_helper.hpp"
 
-__host__ __device__
+RAJA_HOST_DEVICE
 inline void edge_MpSmatrix(
   const double  (&x)[NB],
   const double  (&y)[NB],
