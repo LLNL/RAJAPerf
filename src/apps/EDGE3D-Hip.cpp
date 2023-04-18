@@ -40,7 +40,7 @@ __global__ void edge3d(Real_ptr sum,
                       const Real_ptr z6, const Real_ptr z7,
                       Index_type ibegin, Index_type iend)
 {
-   Index_type ii = ibegin + blockIdx.x * block_size + threadIdx.x;
+   Index_type i = ibegin + blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      EDGE3D_BODY;
    }
