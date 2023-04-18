@@ -23,19 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define EDGE3D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length); \
-  allocAndInitHipDeviceData(sum, m_sum, m_array_length);
-
-#define EDGE3D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_sum, sum, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
-  deallocHipDeviceData(sum);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void edge3d(Real_ptr sum,
@@ -53,8 +40,7 @@ __global__ void edge3d(Real_ptr sum,
                       const Real_ptr z6, const Real_ptr z7,
                       Index_type ibegin, Index_type iend)
 {
-   Index_type ii = blockIdx.x * block_size + threadIdx.x;
-   Index_type i = ii + ibegin;
+   Index_type ii = ibegin + blockIdx.x * block_size + threadIdx.x;
    if (i < iend) {
      EDGE3D_BODY;
    }
@@ -72,12 +58,6 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    EDGE3D_DATA_SETUP_HIP;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -93,15 +73,7 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EDGE3D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    EDGE3D_DATA_SETUP_HIP;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -113,8 +85,6 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    EDGE3D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  EDGE3D : Unknown Hip variant id = " << vid << std::endl;
