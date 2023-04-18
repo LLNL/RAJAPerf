@@ -23,19 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define EDGE3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(sum, m_sum, m_array_length);
-
-#define EDGE3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_sum, sum, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(sum);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void edge3d(Real_ptr sum,
@@ -71,8 +58,6 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    EDGE3D_DATA_SETUP_CUDA;
-
     NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
     NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
     NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
@@ -92,8 +77,6 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EDGE3D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
 
     EDGE3D_DATA_SETUP_CUDA;
@@ -112,8 +95,6 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    EDGE3D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  EDGE3D : Unknown Cuda variant id = " << vid << std::endl;
