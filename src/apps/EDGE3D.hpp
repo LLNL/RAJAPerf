@@ -368,7 +368,11 @@ inline void edge_MpSmatrix(
 \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ; \
+\
+  NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 #define EDGE3D_BODY \
   double X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
