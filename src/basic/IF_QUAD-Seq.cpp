@@ -26,9 +26,11 @@ void IF_QUAD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   IF_QUAD_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto ifquad_lam = [=](Index_type i) {
                       IF_QUAD_BODY;
                     };
+#endif
 
   switch ( vid ) {
 

@@ -26,9 +26,11 @@ void FIRST_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   FIRST_SUM_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto firstsum_lam = [=](Index_type i) {
                         FIRST_SUM_BODY;
                       };
+#endif
 
   switch ( vid ) {
 

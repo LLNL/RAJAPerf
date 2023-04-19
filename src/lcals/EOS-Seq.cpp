@@ -26,9 +26,11 @@ void EOS::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   EOS_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto eos_lam = [=](Index_type i) {
                    EOS_BODY;
                  };
+#endif
 
   switch ( vid ) {
 

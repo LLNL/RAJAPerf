@@ -26,9 +26,11 @@ void MUL::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   MUL_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto mul_lam = [=](Index_type i) {
                    MUL_BODY;
                  };
+#endif
 
   switch ( vid ) {
 

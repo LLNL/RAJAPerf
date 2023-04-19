@@ -24,10 +24,12 @@ void LTIMES_NOVIEW::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
   LTIMES_NOVIEW_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto ltimesnoview_lam = [=](Index_type d, Index_type z,
                               Index_type g, Index_type m) {
                                 LTIMES_NOVIEW_BODY;
                           };
+#endif
 
   switch ( vid ) {
 

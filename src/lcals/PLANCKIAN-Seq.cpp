@@ -27,9 +27,11 @@ void PLANCKIAN::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   PLANCKIAN_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto planckian_lam = [=](Index_type i) {
                          PLANCKIAN_BODY;
                        };
+#endif
 
   switch ( vid ) {
 
