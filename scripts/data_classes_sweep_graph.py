@@ -143,12 +143,15 @@ g_known_kernel_groups = {
       "kind": "throughput(GProblem size/s)",
       "kernels": [ "Basic_PI_REDUCE", "Basic_REDUCE3_INT", "Basic_REDUCE_STRUCT",
                    "Basic_TRAP_INT", "Lcals_FIRST_MIN", "Stream_DOT",
-                   "Algorithm_REDUCE_SUM", ]
+                   "Algorithm_REDUCE_SUM",
+                   
+                   "Basic_PI_ATOMIC",]
    },
    "other": {
       "kind": "throughput(GProblem size/s)",
-      "kernels": [ "Polybench_ADI", "Polybench_ATAX", "Polybench_FLOYD_WARSHALL",
-                   "Polybench_GEMVER", "Polybench_GESUMMV", "Polybench_MVT",
+      "kernels": [ "Basic_PI_ATOMIC", "Polybench_ADI", "Polybench_ATAX",
+                   "Polybench_FLOYD_WARSHALL", "Polybench_GEMVER",
+                   "Polybench_GESUMMV", "Polybench_MVT",
                    "Apps_LTIMES", "Apps_LTIMES_NOVIEW", "Algorithm_SORT",
                    "Algorithm_SORTPAIRS", ]
    },
@@ -567,7 +570,7 @@ class Data:
    def MultiAxesTreeKeyGenerator0(data_tree):
       assert (len(data_tree.axes) == 0)
       if False:
-         yield {}
+         yield {} #unreachable
    
    def MultiAxesTreeKeyGenerator1(data_tree):
       assert (len(data_tree.axes) == 1)
@@ -622,7 +625,7 @@ class Data:
    def MultiAxesTreeItemGenerator0(data_tree):
       assert (len(data_tree.axes) == 0)
       if False:
-         yield ({}, None,)
+         yield ({}, None,) #unreachable
    
    def MultiAxesTreeItemGenerator1(data_tree):
       assert (len(data_tree.axes) == 1)
@@ -711,7 +714,7 @@ class Data:
    def MultiAxesTreePartialItemGenerator0(data_tree, partial_axes_index):
       assert (len(data_tree.axes) == 0)
       if False:
-         yield ({}, None,)
+         yield ({}, None,) #unreachable
    
    def MultiAxesTreePartialItemGenerator1(data_tree, partial_axes_index):
       assert (len(data_tree.axes) == 1)
@@ -752,7 +755,7 @@ class Data:
          for axis_index in self.axes:
             if not axis_index in axes_index:
                axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
                return False
@@ -764,10 +767,10 @@ class Data:
          for axis_index in self.axes:
             if not axis_index in axes_index:
                axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
-               raise NameError("Missing index {}".format(index))
+               raise NameError("Missing index {}".format(Data.get_axes_index_str(axes_index,index)))
             data = data[index]
          return data
       
@@ -777,7 +780,7 @@ class Data:
             axis_index = self.axes[i]
             if not axis_index in axes_index:
                axis_name = Data.axes[axis_index]
-               raise NameError("Missing axis {}".format(axis_name))
+               raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
             index = axes_index[axis_index]
             if not index in data:
                data[index] = {}
@@ -785,7 +788,7 @@ class Data:
          axis_index = self.axes[len(self.axes) - 1]
          if not axis_index in axes_index:
             axis_name = Data.axes[axis_index]
-            raise NameError("Missing axis {}".format(axis_name))
+            raise NameError("Missing axis {}".format(Data.get_axis_name(axis_index)))
          index = axes_index[axis_index]
          data[index] = val
       
@@ -802,7 +805,7 @@ class Data:
          axes_names = ""
          for axis_index in self.axes:
             if axes_names:
-               axes_names = "{}, {}".format(axes_names, Data.axes[axis_index])
+               axes_names = "{}, {}".format(axes_names, Data.get_axis_name(axis_index))
             else:
                axes_names = "[{}".format(Data.axes[axis_index])
          return "{}]".format(axes_names)

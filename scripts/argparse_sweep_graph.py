@@ -43,6 +43,7 @@ def check_hatchet_import():
          cr = importlib.import_module("hatchet")
          import_submodules(cr)
          depends_found = True
+         #print(cr.__file__)
       except:
          print("Can't load Hatchet")
          traceback.print_exc()

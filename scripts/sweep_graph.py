@@ -1,29 +1,13 @@
 #!/usr/bin/env python3
-
 import math
 import os
 import sys
 import csv
-
 import glob
 import numpy as np
-
 import matplotlib.pyplot as plt
-
-import argparse_sweep_graph
+import argparse_sweep_graph as ac
 import data_classes_sweep_graph as dc
-# the following is edited specifically for Hatchet, but future make exclude pkgs generic
-# We exclude roundtrip and vis in import check since we're not in Hatchet interactive mode 
-
-def get_size_from_dir_name(sweep_subdir_name):
-   # print(sweep_subdir_name)
-   run_size_name = sweep_subdir_name.replace("SIZE_", "")
-   try:
-      run_size = int(run_size_name)
-      return str(run_size)
-   except ValueError:
-      raise NameError("Expected SIZE_<run_size>".format(sweep_subdir_name))
-
 def read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index):
    #print("read_runinfo_file")
    #print(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
@@ -779,7 +763,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
    for hname in kernel_data["hnames"]:
 
       h_i = kernel_data["hnames"][hname]
-      xoffset = hbin_size * ((h_i+1)/(h_n+1) - 0.5)
+      xoffset = hbin_size * ((h_i+0.5)/h_n)
       hcolor = kernel_data["hcolor"][hname]
       hbins = kernel_data["hbins"][hname]
 
@@ -791,7 +775,7 @@ def plot_data_histogram(outputfile_name, haxis, hkinds):
       xaxis = []
       haxis = []
       for i, hval in hbins.items():
-         xval = (i + 0.5) * hbin_size + xoffset
+         xval = i * hbin_size + xoffset
          xaxis.append(xval)
          haxis.append(hval)
 
@@ -838,7 +822,7 @@ def main(argv):
    plt.rcParams.update(params)
    
   
-   parser = argparse_sweep_graph.process_argparse()
+   parser = ac.process_argparse()
    args, unknown = parser.parse_args(argv)
    print(args)
 
@@ -1039,7 +1023,7 @@ def main(argv):
             sweep_subdir_path = os.path.join(sweep_dir_path, sweep_subdir_name)
             # print(sweep_dir_name, sweep_subdir_path)
 
-            run_size_name = get_size_from_dir_name(sweep_subdir_name)
+            run_size_name = ac.get_size_from_dir_name(sweep_subdir_name)
             if run_size_name in args.prescan["sweep_sizes"]:
                if not run_size_name in dc.Data.run_sizes:
                   dc.Data.add_run_size(run_size_name)
