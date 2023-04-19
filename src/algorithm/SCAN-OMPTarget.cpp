@@ -25,7 +25,9 @@ namespace algorithm
   //
   // Define threads per team for target execution
   //
+#if _OPENMP >= 201811 && defined(RAJA_PERFSUITE_ENABLE_OPENMP5_SCAN)
   const size_t threads_per_team = 256;
+#endif
 
 
 void SCAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))

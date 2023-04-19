@@ -22,9 +22,9 @@ namespace apps
 {
 
   //
-  // Define threads per team for target execution
+  // Define threads per team for target execution (unused)
   //
-  const size_t threads_per_team = 256;
+//const size_t threads_per_team = 256;
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_OMP_TARGET \
   void** pack_ptrs; \
