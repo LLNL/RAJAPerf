@@ -40,7 +40,7 @@
 namespace rajaperf {
 
 struct configuration {
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 constexpr static const char* adiak_perfsuite_version = "@CMAKE_PROJECT_VERSION@";
 constexpr static const char* adiak_raja_version = "@RAJA_LOADED@";
 constexpr static const char* adiak_cmake_build_type = "@CMAKE_BUILD_TYPE@";

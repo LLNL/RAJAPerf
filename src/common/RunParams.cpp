@@ -55,7 +55,7 @@ RunParams::RunParams(int argc, char** argv)
    invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf"),
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
    add_to_spot_config(),
 #endif
    disable_warmup(false)
@@ -114,8 +114,8 @@ void RunParams::print(std::ostream& str) const
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
-  if(add_to_spot_config.length() > 0) {
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  if (add_to_spot_config.length() > 0) {
     str << "\n add_to_spot_config = " << add_to_spot_config;
   }
 #endif
@@ -639,7 +639,7 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
 
       }
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
     } else if ( std::string(argv[i]) == std::string("--add-to-spot-config") ||
                std::string(argv[i]) == std::string("-atsc") ) {
 
@@ -847,7 +847,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   str << "\t --add-to-spot-config, -atsc <string> [Default is none]\n"
       << "\t\t appends additional parameters to the built-in Caliper spot config\n";
   str << "\t\t Example to include some PAPI counters (Intel arch)\n"

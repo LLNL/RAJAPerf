@@ -19,7 +19,7 @@
 #include <string>
 #include <ostream>
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>

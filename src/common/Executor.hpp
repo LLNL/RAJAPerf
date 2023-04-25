@@ -12,7 +12,7 @@
 #include "common/RAJAPerfSuite.hpp"
 #include "common/RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 #include "rajaperf_config.hpp"
 #endif
 

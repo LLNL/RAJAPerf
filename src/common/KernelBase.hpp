@@ -33,10 +33,10 @@
 #include <limits>
 #include <utility>
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
 
 #define CALI_START \
-    if(doCaliperTiming) { \
+    if (doCaliperTiming) { \
       std::string tstr = getVariantTuningName(running_variant,running_tuning); \
       std::string kstr = getName(); \
       std::string ktstr = kstr + "." + tstr; \
@@ -50,7 +50,7 @@
     }
 
 #define CALI_STOP \
-    if(doCaliperTiming) { \
+    if (doCaliperTiming) { \
       std::string tstr = getVariantTuningName(running_variant,running_tuning); \
       std::string kstr = getName(); \
       std::string ktstr = kstr + "." + tstr; \
@@ -398,12 +398,13 @@ public:
   }
 #endif
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
-  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, const std::string& addToConfig)
+  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, 
+                                   const std::string& addToConfig)
   {
     static bool ran_spot_config_check = false;
     bool config_ok = true;
@@ -624,7 +625,7 @@ private:
 
   RAJA::Timer timer;
 
-#ifdef RAJA_PERFSUITE_USE_CALIPER
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
   bool doCaliperTiming = true; // warmup can use this to exclude timing
   std::vector<bool> doCaliMetaOnce[NumVariants];
   cali_id_t ProblemSize_attr; // in ctor cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
