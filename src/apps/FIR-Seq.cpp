@@ -32,9 +32,11 @@ void FIR::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   Real_type coeff[FIR_COEFFLEN];
   std::copy(std::begin(coeff_array), std::end(coeff_array), std::begin(coeff));
 
+#if defined(RUN_RAJA_SEQ)
   auto fir_lam = [=](Index_type i) {
                    FIR_BODY;
                  };
+#endif
 
   switch ( vid ) {
 

@@ -26,9 +26,11 @@ void DIFF_PREDICT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   DIFF_PREDICT_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto diffpredict_lam = [=](Index_type i) {
                            DIFF_PREDICT_BODY;
                          };
+#endif
 
   switch ( vid ) {
 
