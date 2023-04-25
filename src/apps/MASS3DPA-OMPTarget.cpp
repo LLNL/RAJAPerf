@@ -19,17 +19,14 @@
 namespace rajaperf {
 namespace apps {
 
+void MASS3DPA::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+{
+  if ( vid == Base_OpenMPTarget ) {
 
-void MASS3DPA::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
-  const Index_type run_reps = getRunReps();
+  } else if ( vid == RAJA_OpenMPTarget ) {
 
-  switch (vid) {
-
-  default: {
-
-    getCout() << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
-    break;
-  }
+  } else {
+     getCout() << "\n MASS3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
   }
 }
 
