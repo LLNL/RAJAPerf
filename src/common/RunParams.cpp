@@ -115,7 +115,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n outfile_prefix = " << outfile_prefix;
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-  if(add_to_spot_config.length() > 0) {
+  if (add_to_spot_config.length() > 0) {
     str << "\n add_to_spot_config = " << add_to_spot_config;
   }
 #endif

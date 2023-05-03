@@ -710,7 +710,9 @@ void Executor::setupSuite()
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-        KernelBase::setCaliperMgrVariant(*vid,run_params.getOutputDirName(),run_params.getAddToSpotConfig());
+        KernelBase::setCaliperMgrVariant(*vid,
+                                         run_params.getOutputDirName(),
+                                         run_params.getAddToSpotConfig());
 #endif
       }
 
