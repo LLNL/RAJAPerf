@@ -218,8 +218,10 @@ RAJAPerf Suite may also use Caliper instrumentation, with per variant output int
 Spot/Hatchet .cali files. Original timing is nested within Caliper annotations and 
 so is not impacted when Caliper support is turned on. While Caliper is low-overhead
 it is not zero, so it will add a small amount of timing skew in its data as 
-compared to the original. For much more on Caliper, read it's documentation here:
-[Caliper] (http://software.llnl.gov/Caliper/)
+compared to the original. For much more on Caliper and Hatchet, read their documentation here:
+ | - `Caliper Documentation <http://software.llnl.gov/Caliper/>`_ 
+ | - `Hatchet User Guide <https://llnl-hatchet.readthedocs.io/en/latest/user_guide.html>`_ 
+
 
 Caliper *annotation* is in the following tree structure
 
@@ -251,3 +253,4 @@ build Caliper with +cuda cuda_arch=XX or +rocm respectively. Then you can specif
 an additional Caliper service for nvtx or roctx like so: roctx example:
 
 CALI_SERVICES_ENABLE=roctx rocprof --roctx-trace --hip-trace raja-perf.exe 
+

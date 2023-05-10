@@ -23,6 +23,38 @@ sys.path.append(input_deploy_dir_str + "/spotdb")
 
 import hatchet as ht
 
+# Free function example to extract PAPI topdown.toplevel metric values at the
+# Kernel.Tuning nodes
+# For the case when you run -atsc topdown.toplevel
+#
+# Caveat for the code snippet below. Avoid running  
+# -atsc topdown.toplevel,profile.mpi`` since the MPI Barrier routine 
+# will be nested at the leaf node vs. expected Kernel.Tuning
+def load_toplevel(ht):
+    md = {}
+    metric = []
+    metric.append('any#any#topdown.retiring')
+    metric.append('any#any#topdown.backend_bound')
+    metric.append('any#any#topdown.frontend_bound')
+    metric.append('any#any#topdown.bad_speculation')
+    values = np.zeros((3, 4))
+    files = sorted(glob.glob('data/*topleve*.cali'))
+    findex = 0
+    for f in files:
+        print(f)
+        gf = cr.GraphFrame.from_caliperreader(f)
+        tt = gf.graph.roots[0].traverse(order="pre")
+        for nn in tt:
+            # test if leaf node
+            if not nn.children:
+                for mindex in range(0, 4):
+                    values[findex, mindex] = gf.dataframe.loc[nn, metric[mindex]]
+        findex += 1
+    for mindex in range(0,len(metric)):
+        md[metric[mindex]] = np.average(values[:,mindex])
+    return values,md  
+
+
 # This class turns an existing GraphFrame into a "generic" one by renaming
 # the root node into a generic node. We can then compare 2 "generic" graph
 # frame. In practice we use it to allow Hatchet to compare performance trees

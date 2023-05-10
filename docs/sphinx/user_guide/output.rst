@@ -208,6 +208,14 @@ For example print out the OpenMP Max Threads value recorded at runtime::
 or the variant represented in this file::  
   
   print('Variant: ' + r.globals['variant'])
+ 
+
+.. note:: The script above was written using caliper-reader 0.3.0, 
+          but is fairly generic. Other version usage notes may be 
+          found at the link below
+
+`caliper-reader <https://pypi.org/project/caliper-reader/>`_ 
+
 
 3: Using the *Hatchet* Python module::
 

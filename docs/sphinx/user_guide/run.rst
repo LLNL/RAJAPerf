@@ -191,35 +191,10 @@ starting weights (sum to 1.0) which include:
 ``-atsc topdown-counters.all``
 
 A Hatchet-based snippet to fetch ``topdown.toplevel`` metric values at the leaf 
-(Kernel.Tuning) nodes across several files using ``-atsc topdown.toplevel``::
+(Kernel.Tuning) nodes across several files can be found in the source tree at:
+ | scripts/gitlab/hatchet-analysis.py
+ | def load_toplevel(ht)
 
- def load_toplevel(cr):
-    md = {}
-    metric = []
-    metric.append('any#any#topdown.retiring')
-    metric.append('any#any#topdown.backend_bound')
-    metric.append('any#any#topdown.frontend_bound')
-    metric.append('any#any#topdown.bad_speculation')
-    values = np.zeros((3, 4))
-    files = sorted(glob.glob('data/*topleve*.cali'))
-    findex = 0
-    for f in files:
-        print(f)
-        gf = cr.GraphFrame.from_caliperreader(f)
-        tt = gf.graph.roots[0].traverse(order="pre")
-        for nn in tt:
-            # test if leaf node
-            if not nn.children:
-                for mindex in range(0, 4):
-                    values[findex, mindex] = gf.dataframe.loc[nn, metric[mindex]]
-        findex += 1
-    for mindex in range(0,len(metric)):
-        md[metric[mindex]] = np.average(values[:,mindex])
-    return values,md  
-
-.. note:: Caveat for the code snippet above. If you run 
-          ``-atsc topdown.toplevel,profile.mpi`` then the MPI Barrier routine 
-          will be nested at the leaf node vs. expected Kernel.Tuning
 
 .. note:: Other caveats: Raw counter values are often noisy and require a lot 
           of accommodation to collect accurate data including: 
