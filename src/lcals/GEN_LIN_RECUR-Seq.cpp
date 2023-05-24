@@ -24,12 +24,14 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
 
   GEN_LIN_RECUR_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto genlinrecur_lam1 = [=](Index_type k) {
                             GEN_LIN_RECUR_BODY1;
                           };
   auto genlinrecur_lam2 = [=](Index_type i) {
                             GEN_LIN_RECUR_BODY2;
                           };
+#endif
 
   switch ( vid ) {
 

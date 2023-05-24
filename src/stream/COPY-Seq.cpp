@@ -26,9 +26,11 @@ void COPY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   COPY_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto copy_lam = [=](Index_type i) {
                     COPY_BODY;
                   };
+#endif
 
   switch ( vid ) {
 

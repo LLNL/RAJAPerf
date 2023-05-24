@@ -26,9 +26,11 @@ void DAXPY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   DAXPY_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto daxpy_lam = [=](Index_type i) {
                      DAXPY_BODY;
                    };
+#endif
 
   switch ( vid ) {
 
