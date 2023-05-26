@@ -22,10 +22,6 @@
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
 
-# With GitLab CI, included files cannot be empty.
-variables:
-  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
-
 # INFO: This job is activated in RAJA CI, but we don't use desul atomics here
 #rocmcc_5_1_1_hip_desul_atomics:
 #  variables:
