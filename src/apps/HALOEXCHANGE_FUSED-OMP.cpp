@@ -24,7 +24,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_FUSED_DATA_SETUP;
+  HALOEXCHANGE_DATA_SETUP;
 
   switch ( vid ) {
 
@@ -60,7 +60,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
             Real_ptr   var    = pack_ptr_holders[j].var;
             Index_type len    = pack_lens[j];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_FUSED_PACK_BODY;
+              HALOEXCHANGE_PACK_BODY;
             }
           }
         }
@@ -72,7 +72,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
           Real_ptr   var    = pack_ptr_holders[j].var;
           Index_type len    = pack_lens[j];
           for (Index_type i = 0; i < len; i++) {
-            HALOEXCHANGE_FUSED_PACK_BODY;
+            HALOEXCHANGE_PACK_BODY;
           }
         }
 #endif
@@ -102,7 +102,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
             Real_ptr   var    = unpack_ptr_holders[j].var;
             Index_type len    = unpack_lens[j];
             for (Index_type i = 0; i < len; i++) {
-              HALOEXCHANGE_FUSED_UNPACK_BODY;
+              HALOEXCHANGE_UNPACK_BODY;
             }
           }
         }
@@ -114,7 +114,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
           Real_ptr   var    = unpack_ptr_holders[j].var;
           Index_type len    = unpack_lens[j];
           for (Index_type i = 0; i < len; i++) {
-            HALOEXCHANGE_FUSED_UNPACK_BODY;
+            HALOEXCHANGE_UNPACK_BODY;
           }
         }
 #endif
@@ -261,7 +261,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_fused_pack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_FUSED_PACK_BODY;
+                  HALOEXCHANGE_PACK_BODY;
                 };
             pool_pack.enqueue(
                 RAJA::TypedRangeSegment<Index_type>(0, len),
@@ -279,7 +279,7 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
           for (Index_type v = 0; v < num_vars; ++v) {
             Real_ptr var = vars[v];
             auto haloexchange_fused_unpack_base_lam = [=](Index_type i) {
-                  HALOEXCHANGE_FUSED_UNPACK_BODY;
+                  HALOEXCHANGE_UNPACK_BODY;
                 };
             pool_unpack.enqueue(
                 RAJA::TypedRangeSegment<Index_type>(0, len),

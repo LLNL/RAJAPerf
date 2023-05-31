@@ -18,7 +18,7 @@
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_FUSED_PACK_BODY;
+///       HALOEXCHANGE_PACK_BODY;
 ///     }
 ///     buffer += len;
 ///   }
@@ -35,7 +35,7 @@
 ///   for (Index_type v = 0; v < num_vars; ++v) {
 ///     Real_ptr var = vars[v];
 ///     for (Index_type i = 0; i < len; i++) {
-///       HALOEXCHANGE_FUSED_UNPACK_BODY;
+///       HALOEXCHANGE_UNPACK_BODY;
 ///     }
 ///     buffer += len;
 ///   }
@@ -44,17 +44,6 @@
 
 #ifndef RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
 #define RAJAPerf_Apps_HALOEXCHANGE_FUSED_HPP
-
-#define HALOEXCHANGE_FUSED_DATA_SETUP \
-  std::vector<Real_ptr> vars = m_vars; \
-  std::vector<Real_ptr> buffers = m_buffers; \
-\
-  Index_type num_neighbors = s_num_neighbors; \
-  Index_type num_vars = m_num_vars; \
-  std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
-  std::vector<Index_type> pack_index_list_lengths = m_pack_index_list_lengths; \
-  std::vector<Int_ptr> unpack_index_lists = m_unpack_index_lists; \
-  std::vector<Index_type> unpack_index_list_lengths = m_unpack_index_list_lengths;
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP \
   struct ptr_holder { \
@@ -73,17 +62,11 @@
   delete[] unpack_ptr_holders; \
   delete[] unpack_lens;
 
-#define HALOEXCHANGE_FUSED_PACK_BODY \
-  buffer[i] = var[list[i]];
-
-#define HALOEXCHANGE_FUSED_UNPACK_BODY \
-  var[list[i]] = buffer[i];
-
 
 #define HALOEXCHANGE_FUSED_MANUAL_LAMBDA_FUSER_SETUP \
   auto make_pack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_FUSED_PACK_BODY; \
+      HALOEXCHANGE_PACK_BODY; \
     }; \
   }; \
   using pack_lambda_type = decltype(make_pack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -92,7 +75,7 @@
   Index_type* pack_lens = new Index_type[num_neighbors * num_vars]; \
   auto make_unpack_lambda = [](Real_ptr buffer, Int_ptr list, Real_ptr var) { \
     return [=](Index_type i) { \
-      HALOEXCHANGE_FUSED_UNPACK_BODY; \
+      HALOEXCHANGE_UNPACK_BODY; \
     }; \
   }; \
   using unpack_lambda_type = decltype(make_unpack_lambda(Real_ptr(), Int_ptr(), Real_ptr())); \
@@ -107,30 +90,22 @@
   delete[] unpack_lens;
 
 
-#include "common/KernelBase.hpp"
+#include "HALOEXCHANGE_base.hpp"
 
 #include "RAJA/RAJA.hpp"
 
-#include <vector>
-
 namespace rajaperf
 {
-class RunParams;
-
 namespace apps
 {
 
-class HALOEXCHANGE_FUSED : public KernelBase
+class HALOEXCHANGE_FUSED : public HALOEXCHANGE_base
 {
 public:
 
   HALOEXCHANGE_FUSED(const RunParams& params);
 
   ~HALOEXCHANGE_FUSED();
-
-  void setUp(VariantID vid, size_t tune_idx);
-  void updateChecksum(VariantID vid, size_t tune_idx);
-  void tearDown(VariantID vid, size_t tune_idx);
 
   void runSeqVariant(VariantID vid, size_t tune_idx);
   void runOpenMPVariant(VariantID vid, size_t tune_idx);
@@ -148,45 +123,6 @@ public:
 private:
   static const size_t default_gpu_block_size = 1024;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
-
-  static const int s_num_neighbors = 26;
-
-  Index_type m_grid_dims[3];
-  Index_type m_halo_width;
-  Index_type m_num_vars;
-
-  Index_type m_grid_dims_default[3];
-  Index_type m_halo_width_default;
-  Index_type m_num_vars_default;
-
-  Index_type m_grid_plus_halo_dims[3];
-  Index_type m_var_size;
-  Index_type m_var_halo_size;
-
-  std::vector<Real_ptr> m_vars;
-  std::vector<Real_ptr> m_buffers;
-
-  std::vector<Int_ptr> m_pack_index_lists;
-  std::vector<Index_type > m_pack_index_list_lengths;
-  std::vector<Int_ptr> m_unpack_index_lists;
-  std::vector<Index_type > m_unpack_index_list_lengths;
-
-  void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                         std::vector<Index_type >& pack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid);
-  void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid);
-  void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                           std::vector<Index_type >& unpack_index_list_lengths,
-                           const Index_type halo_width, const Index_type* grid_dims,
-                           const Index_type num_neighbors,
-                           VariantID vid);
-  void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                            const Index_type num_neighbors,
-                            VariantID vid);
 };
 
 } // end namespace apps
