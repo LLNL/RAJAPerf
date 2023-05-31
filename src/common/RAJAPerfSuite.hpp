@@ -138,6 +138,9 @@ enum KernelID {
   Apps_FIR,
   Apps_HALOEXCHANGE,
   Apps_HALOEXCHANGE_FUSED,
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  Apps_MPI_HALOEXCHANGE,
+#endif
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
   Apps_MASS3DPA,
@@ -226,6 +229,8 @@ enum FeatureID {
   Atomic,
 
   View,
+
+  MPI,
 
   NumFeatures // Keep this one last and NEVER comment out (!!)
 

@@ -95,10 +95,14 @@ using Checksum_type = long double;
 #if defined(RP_USE_DOUBLE)
 ///
 using Real_type = double;
+///
+#define Real_MPI_type MPI_DOUBLE
 
 #elif defined(RP_USE_FLOAT)
 ///
 using Real_type = float;
+///
+#define Real_MPI_type MPI_FLOAT
 
 #else
 #error Real_type is undefined!

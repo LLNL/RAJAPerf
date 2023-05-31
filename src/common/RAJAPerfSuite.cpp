@@ -85,6 +85,9 @@
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
 #include "apps/HALOEXCHANGE_FUSED.hpp"
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+#include "apps/MPI_HALOEXCHANGE.hpp"
+#endif
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
 #include "apps/MASS3DPA.hpp"
@@ -220,6 +223,9 @@ static const std::string KernelNames [] =
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
   std::string("Apps_HALOEXCHANGE_FUSED"),
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  std::string("Apps_MPI_HALOEXCHANGE"),
+#endif
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
   std::string("Apps_MASS3DPA"),
@@ -857,6 +863,12 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::HALOEXCHANGE_FUSED(run_params);
        break;
     }
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    case Apps_MPI_HALOEXCHANGE : {
+       kernel = new apps::MPI_HALOEXCHANGE(run_params);
+       break;
+    }
+#endif
     case Apps_LTIMES : {
        kernel = new apps::LTIMES(run_params);
        break;

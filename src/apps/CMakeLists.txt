@@ -52,6 +52,12 @@ blt_add_library(
           HALOEXCHANGE_FUSED-Cuda.cpp
           HALOEXCHANGE_FUSED-OMP.cpp
           HALOEXCHANGE_FUSED-OMPTarget.cpp
+          MPI_HALOEXCHANGE.cpp
+          MPI_HALOEXCHANGE-Seq.cpp
+          MPI_HALOEXCHANGE-Hip.cpp
+          MPI_HALOEXCHANGE-Cuda.cpp
+          MPI_HALOEXCHANGE-OMP.cpp
+          MPI_HALOEXCHANGE-OMPTarget.cpp
           LTIMES.cpp
           LTIMES-Seq.cpp
           LTIMES-Hip.cpp
