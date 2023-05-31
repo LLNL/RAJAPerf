@@ -89,6 +89,15 @@ public:
   void tearDown(VariantID vid, size_t tune_idx);
 
 protected:
+  enum struct location : int
+  {
+    low_phony,
+    low_interior,
+    all_interior,
+    high_interior,
+    high_phony
+  };
+
   struct Extent
   {
     Index_type i_min;
@@ -120,6 +129,10 @@ protected:
   std::vector<Index_type > m_pack_index_list_lengths;
   std::vector<Int_ptr> m_unpack_index_lists;
   std::vector<Index_type > m_unpack_index_list_lengths;
+
+  Extent make_extent(
+    location x_extent, location y_extent, location z_extent,
+    const Index_type halo_width, const Index_type* grid_dims);
 
   void create_pack_lists(
       std::vector<Int_ptr>& pack_index_lists,

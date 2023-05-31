@@ -10,6 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include <utility>
 #include <cmath>
 
 namespace rajaperf
@@ -118,6 +119,59 @@ void HALOEXCHANGE_base::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   m_vars.clear();
 }
 
+
+enum struct location : int
+{
+  low_phony,
+  low_interior,
+  all_interior,
+  high_interior,
+  high_phony
+};
+
+HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_extent(
+    HALOEXCHANGE_base::location x_extent,
+    HALOEXCHANGE_base::location y_extent,
+    HALOEXCHANGE_base::location z_extent,
+    const Index_type halo_width, const Index_type* grid_dims)
+{
+  auto get_bounds = [&](location loc, Index_type dim_size) {
+    std::pair<Index_type, Index_type> bounds;
+    switch (loc) {
+    case location::low_phony:
+      bounds.first  = 0;
+      bounds.second = halo_width;
+      break;
+    case location::low_interior:
+      bounds.first  = halo_width;
+      bounds.second = halo_width + halo_width;
+      break;
+    case location::all_interior:
+      bounds.first  = halo_width;
+      bounds.second = halo_width + dim_size;
+      break;
+    case location::high_interior:
+      bounds.first  = halo_width + dim_size - halo_width;
+      bounds.second = halo_width + dim_size;
+      break;
+    case location::high_phony:
+      bounds.first  = halo_width + dim_size;
+      bounds.second = halo_width + dim_size + halo_width;
+      break;
+    default:
+      throw std::runtime_error("make_extent: Invalid location");
+    }
+    return bounds;
+  };
+  auto x_bounds = get_bounds(x_extent, grid_dims[0]);
+  auto y_bounds = get_bounds(y_extent, grid_dims[1]);
+  auto z_bounds = get_bounds(z_extent, grid_dims[2]);
+  return {x_bounds.first, x_bounds.second,
+          y_bounds.first, y_bounds.second,
+          z_bounds.first, z_bounds.second};
+}
+
+
 //
 // Function to generate index lists for packing.
 //
@@ -130,89 +184,91 @@ void HALOEXCHANGE_base::create_pack_lists(
 {
   std::vector<Extent> pack_index_list_extents(num_neighbors);
 
+  // The pack extents have high and low flipped compared to the unpack extents.
+
   // faces
-  pack_index_list_extents[0]  = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[1]  = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[2]  = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[3]  = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[4]  = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[5]  = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
+  pack_index_list_extents[0]  = make_extent(location::low_interior,
+                                            location::all_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[1]  = make_extent(location::high_interior,
+                                            location::all_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[2]  = make_extent(location::all_interior,
+                                            location::low_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[3]  = make_extent(location::all_interior,
+                                            location::high_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[4]  = make_extent(location::all_interior,
+                                            location::all_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[5]  = make_extent(location::all_interior,
+                                            location::all_interior,
+                                            location::high_interior, halo_width, grid_dims);
 
   // edges
-  pack_index_list_extents[6]  = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[7]  = Extent{halo_width  , halo_width   + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[8]  = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[9]  = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , grid_dims[2] + halo_width};
-  pack_index_list_extents[10] = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[11] = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[12] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[13] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[14] = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[15] = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[16] = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[17] = Extent{halo_width  , grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
+  pack_index_list_extents[6]  = make_extent(location::low_interior,
+                                            location::low_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[7]  = make_extent(location::low_interior,
+                                            location::high_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[8]  = make_extent(location::high_interior,
+                                            location::low_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[9]  = make_extent(location::high_interior,
+                                            location::high_interior,
+                                            location::all_interior, halo_width, grid_dims);
+  pack_index_list_extents[10] = make_extent(location::low_interior,
+                                            location::all_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[11] = make_extent(location::low_interior,
+                                            location::all_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[12] = make_extent(location::high_interior,
+                                            location::all_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[13] = make_extent(location::high_interior,
+                                            location::all_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[14] = make_extent(location::all_interior,
+                                            location::low_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[15] = make_extent(location::all_interior,
+                                            location::low_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[16] = make_extent(location::all_interior,
+                                            location::high_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[17] = make_extent(location::all_interior,
+                                            location::high_interior,
+                                            location::high_interior, halo_width, grid_dims);
 
   // corners
-  pack_index_list_extents[18] = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[19] = Extent{halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[20] = Extent{halo_width  , halo_width   + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[21] = Extent{halo_width  , halo_width   + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[22] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[23] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       halo_width  , halo_width   + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
-  pack_index_list_extents[24] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       halo_width  , halo_width   + halo_width};
-  pack_index_list_extents[25] = Extent{grid_dims[0], grid_dims[0] + halo_width,
-                                       grid_dims[1], grid_dims[1] + halo_width,
-                                       grid_dims[2], grid_dims[2] + halo_width};
+  pack_index_list_extents[18] = make_extent(location::low_interior,
+                                            location::low_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[19] = make_extent(location::low_interior,
+                                            location::low_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[20] = make_extent(location::low_interior,
+                                            location::high_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[21] = make_extent(location::low_interior,
+                                            location::high_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[22] = make_extent(location::high_interior,
+                                            location::low_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[23] = make_extent(location::high_interior,
+                                            location::low_interior,
+                                            location::high_interior, halo_width, grid_dims);
+  pack_index_list_extents[24] = make_extent(location::high_interior,
+                                            location::high_interior,
+                                            location::low_interior, halo_width, grid_dims);
+  pack_index_list_extents[25] = make_extent(location::high_interior,
+                                            location::high_interior,
+                                            location::high_interior, halo_width, grid_dims);
 
   const Index_type grid_i_stride = 1;
   const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
@@ -274,89 +330,91 @@ void HALOEXCHANGE_base::create_unpack_lists(
 {
   std::vector<Extent> unpack_index_list_extents(num_neighbors);
 
+  // The pack extents have high and low flipped compared to the unpack extents.
+
   // faces
-  unpack_index_list_extents[0]  = Extent{0                        ,                  halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[1]  = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[2]  = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         0                        ,                  halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[3]  = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[4]  = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[5]  = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
+  unpack_index_list_extents[0]  = make_extent(location::high_phony,
+                                              location::all_interior,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[1]  = make_extent(location::low_phony,
+                                              location::all_interior,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[2]  = make_extent(location::all_interior,
+                                              location::high_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[3]  = make_extent(location::all_interior,
+                                              location::low_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[4]  = make_extent(location::all_interior,
+                                              location::all_interior,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[5]  = make_extent(location::all_interior,
+                                              location::all_interior,
+                                              location::low_phony, halo_width, grid_dims);
 
   // edges
-  unpack_index_list_extents[6]  = Extent{0                        ,                  halo_width,
-                                         0                        ,                  halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[7]  = Extent{0                        ,                  halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[8]  = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         0                        ,                  halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[9]  = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         halo_width               , grid_dims[2] +   halo_width};
-  unpack_index_list_extents[10] = Extent{0                        ,                  halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[11] = Extent{0                        ,                  halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[12] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[13] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         halo_width               , grid_dims[1] +   halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[14] = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         0                        ,                  halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[15] = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         0                        ,                  halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[16] = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[17] = Extent{halo_width               , grid_dims[0] +   halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
+  unpack_index_list_extents[6]  = make_extent(location::high_phony,
+                                              location::high_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[7]  = make_extent(location::high_phony,
+                                              location::low_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[8]  = make_extent(location::low_phony,
+                                              location::high_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[9]  = make_extent(location::low_phony,
+                                              location::low_phony,
+                                              location::all_interior, halo_width, grid_dims);
+  unpack_index_list_extents[10] = make_extent(location::high_phony,
+                                              location::all_interior,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[11] = make_extent(location::high_phony,
+                                              location::all_interior,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[12] = make_extent(location::low_phony,
+                                              location::all_interior,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[13] = make_extent(location::low_phony,
+                                              location::all_interior,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[14] = make_extent(location::all_interior,
+                                              location::high_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[15] = make_extent(location::all_interior,
+                                              location::high_phony,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[16] = make_extent(location::all_interior,
+                                              location::low_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[17] = make_extent(location::all_interior,
+                                              location::low_phony,
+                                              location::low_phony, halo_width, grid_dims);
 
   // corners
-  unpack_index_list_extents[18] = Extent{0                        ,                  halo_width,
-                                         0                        ,                  halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[19] = Extent{0                        ,                  halo_width,
-                                         0                        ,                  halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[20] = Extent{0                        ,                  halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[21] = Extent{0                        ,                  halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[22] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         0                        ,                  halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[23] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         0                        ,                  halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
-  unpack_index_list_extents[24] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         0                        ,                  halo_width};
-  unpack_index_list_extents[25] = Extent{grid_dims[0] + halo_width, grid_dims[0] + 2*halo_width,
-                                         grid_dims[1] + halo_width, grid_dims[1] + 2*halo_width,
-                                         grid_dims[2] + halo_width, grid_dims[2] + 2*halo_width};
+  unpack_index_list_extents[18] = make_extent(location::high_phony,
+                                              location::high_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[19] = make_extent(location::high_phony,
+                                              location::high_phony,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[20] = make_extent(location::high_phony,
+                                              location::low_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[21] = make_extent(location::high_phony,
+                                              location::low_phony,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[22] = make_extent(location::low_phony,
+                                              location::high_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[23] = make_extent(location::low_phony,
+                                              location::high_phony,
+                                              location::low_phony, halo_width, grid_dims);
+  unpack_index_list_extents[24] = make_extent(location::low_phony,
+                                              location::low_phony,
+                                              location::high_phony, halo_width, grid_dims);
+  unpack_index_list_extents[25] = make_extent(location::low_phony,
+                                              location::low_phony,
+                                              location::low_phony, halo_width, grid_dims);
 
   const Index_type grid_i_stride = 1;
   const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
