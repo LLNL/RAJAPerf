@@ -87,6 +87,7 @@
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DEA.hpp"
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
@@ -222,6 +223,7 @@ static const std::string KernelNames [] =
   std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DEA"),
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
@@ -865,6 +867,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
+    case Apps_MASS3DEA : {
+       kernel = new apps::MASS3DEA(run_params);
+       break;
+    }      
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
        break;

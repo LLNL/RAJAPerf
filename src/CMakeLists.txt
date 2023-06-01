@@ -69,6 +69,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DEA.cpp
+  apps/MASS3DEA-Seq.cpp
+  apps/MASS3DEA-OMPTarget.cpp  
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
