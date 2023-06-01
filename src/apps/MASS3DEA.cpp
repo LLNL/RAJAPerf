@@ -37,9 +37,9 @@ MASS3DEA::MASS3DEA(const RunParams& params)
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( MEA_Q1D*MEA_D1D*sizeof(Real_type)  + //B
-                  MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE*sizeof(Real_type) + //D
-                  ea_mat_entries*m_NE*sizeof(Real_type) ); //M_e
+  setBytesPerRep( MEA_Q1D*MEA_D1D*sizeof(Real_type)  + // B
+                  MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE*sizeof(Real_type) + // D
+                  ea_mat_entries*m_NE*sizeof(Real_type) ); // M_e
 
   setFLOPsPerRep(m_NE * 7 * ea_mat_entries);
                  
