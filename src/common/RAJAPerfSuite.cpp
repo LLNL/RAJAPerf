@@ -357,6 +357,10 @@ static const std::string DataSpaceNames [] =
   std::string("HipDevice"),
   std::string("HipDeviceFine"),
 
+  std::string("Unknown Memory"), // Keep this at the end and DO NOT remove....
+
+  std::string("Copy"),
+
   std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
 
 }; // END VariantNames
@@ -566,7 +570,7 @@ const std::string& getDataSpaceName(DataSpace ds)
 /*!
  *******************************************************************************
  *
- * Return true if the allocate associated with DataSpace enum value is available.
+ * Return true if the allocator associated with DataSpace enum value is available.
  *
  *******************************************************************************
  */
@@ -620,6 +624,26 @@ bool isDataSpaceAvailable(DataSpace dataSpace)
   return ret_val;
 }
 
+/*!
+ *******************************************************************************
+ *
+ * Return true if the DataSpace enum value is a psuedo DataSpace.
+ *
+ *******************************************************************************
+ */
+bool isPseudoDataSpace(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+    case DataSpace::Copy:
+      ret_val = true; break;
+    default:
+      ret_val = false; break;
+  }
+
+  return ret_val;
+}
 
 /*
  *******************************************************************************

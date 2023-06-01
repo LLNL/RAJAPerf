@@ -58,29 +58,60 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
     m_mpi_ranks[l] = m_my_mpi_rank; // send and recv to own rank
   }
 
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
+
   m_pack_buffers.resize(s_num_neighbors, nullptr);
+  m_send_buffers.resize(s_num_neighbors, nullptr);
   for (Index_type l = 0; l < s_num_neighbors; ++l) {
     Index_type buffer_len = m_num_vars * m_pack_index_list_lengths[l];
-    allocAndInitData(m_pack_buffers[l], buffer_len, vid);
+    if (separate_buffers) {
+      allocAndInitData(getDataSpace(vid), m_pack_buffers[l], buffer_len);
+      allocAndInitData(DataSpace::Host, m_send_buffers[l], buffer_len);
+    } else {
+      allocAndInitData(getMPIDataSpace(vid), m_pack_buffers[l], buffer_len);
+      m_send_buffers[l] = m_pack_buffers[l];
+    }
   }
 
   m_unpack_buffers.resize(s_num_neighbors, nullptr);
+  m_recv_buffers.resize(s_num_neighbors, nullptr);
   for (Index_type l = 0; l < s_num_neighbors; ++l) {
-    Index_type buffer_len = m_num_vars * m_pack_index_list_lengths[l];
-    allocAndInitData(m_unpack_buffers[l], buffer_len, vid);
+    Index_type buffer_len = m_num_vars * m_unpack_index_list_lengths[l];
+    if (separate_buffers) {
+      allocAndInitData(getDataSpace(vid), m_unpack_buffers[l], buffer_len);
+      allocAndInitData(DataSpace::Host, m_recv_buffers[l], buffer_len);
+    } else {
+      allocAndInitData(getMPIDataSpace(vid), m_unpack_buffers[l], buffer_len);
+      m_recv_buffers[l] = m_unpack_buffers[l];
+    }
   }
+
 }
 
 void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
 {
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
+
   for (int l = 0; l < s_num_neighbors; ++l) {
-    deallocData(m_unpack_buffers[l], vid);
+    if (separate_buffers) {
+      deallocData(DataSpace::Host, m_recv_buffers[l]);
+      deallocData(getDataSpace(vid), m_unpack_buffers[l]);
+    } else {
+      deallocData(getMPIDataSpace(vid), m_unpack_buffers[l]);
+    }
   }
+  m_recv_buffers.clear();
   m_unpack_buffers.clear();
 
   for (int l = 0; l < s_num_neighbors; ++l) {
-    deallocData(m_pack_buffers[l], vid);
+    if (separate_buffers) {
+      deallocData(DataSpace::Host, m_send_buffers[l]);
+      deallocData(getDataSpace(vid), m_pack_buffers[l]);
+    } else {
+      deallocData(getMPIDataSpace(vid), m_pack_buffers[l]);
+    }
   }
+  m_send_buffers.clear();
   m_pack_buffers.clear();
 
   m_mpi_ranks.clear();

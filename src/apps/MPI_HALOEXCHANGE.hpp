@@ -54,8 +54,15 @@
   std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \
   std::vector<MPI_Request> unpack_mpi_requests(num_neighbors); \
   \
+  const DataSpace dataSpace = getDataSpace(vid); \
+  \
+  const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy); \
+  \
   std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
-  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers;
+  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers; \
+  \
+  std::vector<Real_ptr> send_buffers = m_send_buffers; \
+  std::vector<Real_ptr> recv_buffers = m_recv_buffers;
 
 
 #include "HALOEXCHANGE_base.hpp"
@@ -104,6 +111,9 @@ private:
 
   std::vector<Real_ptr> m_pack_buffers;
   std::vector<Real_ptr> m_unpack_buffers;
+
+  std::vector<Real_ptr> m_send_buffers;
+  std::vector<Real_ptr> m_recv_buffers;
 };
 
 } // end namespace apps

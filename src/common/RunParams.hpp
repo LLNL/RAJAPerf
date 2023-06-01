@@ -145,6 +145,13 @@ public:
   DataSpace getHipDataSpace() const { return hipDataSpace; }
   DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
 
+  DataSpace getSeqMPIDataSpace() const { return seqMPIDataSpace; }
+  DataSpace getOmpMPIDataSpace() const { return ompMPIDataSpace; }
+  DataSpace getOmpTargetMPIDataSpace() const { return ompTargetMPIDataSpace; }
+  DataSpace getCudaMPIDataSpace() const { return cudaMPIDataSpace; }
+  DataSpace getHipMPIDataSpace() const { return hipMPIDataSpace; }
+  DataSpace getKokkosMPIDataSpace() const { return kokkosMPIDataSpace; }
+
   double getPFTolerance() const { return pf_tol; }
 
   int getCheckRunReps() const { return checkrun_reps; }
@@ -261,6 +268,13 @@ private:
   DataSpace cudaDataSpace = DataSpace::CudaDevice;
   DataSpace hipDataSpace = DataSpace::HipDevice;
   DataSpace kokkosDataSpace = DataSpace::Host;
+
+  DataSpace seqMPIDataSpace = DataSpace::Host;
+  DataSpace ompMPIDataSpace = DataSpace::Omp;
+  DataSpace ompTargetMPIDataSpace = DataSpace::Copy;
+  DataSpace cudaMPIDataSpace = DataSpace::CudaPinned;
+  DataSpace hipMPIDataSpace = DataSpace::HipPinned;
+  DataSpace kokkosMPIDataSpace = DataSpace::Copy;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for

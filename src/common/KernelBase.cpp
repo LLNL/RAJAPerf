@@ -199,6 +199,42 @@ DataSpace KernelBase::getDataSpace(VariantID vid) const
   }
 }
 
+DataSpace KernelBase::getMPIDataSpace(VariantID vid) const
+{
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqMPIDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpMPIDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetMPIDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaMPIDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipMPIDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosMPIDataSpace();
+
+    default:
+      throw std::invalid_argument("getDataSpace : Unknown variant id");
+  }
+}
+
 DataSpace KernelBase::getHostAccessibleDataSpace(VariantID vid) const
 {
   return hostAccessibleDataSpace(getDataSpace(vid));

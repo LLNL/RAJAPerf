@@ -480,10 +480,23 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("--hip-data-space") ||
                 opt == std::string("-hds") ||
                 opt == std::string("--kokkos-data-space") ||
-                opt == std::string("-kds") ) {
+                opt == std::string("-kds") ||
+                opt == std::string("--seq-mpi-data-space") ||
+                opt == std::string("-smpids") ||
+                opt == std::string("--omp-mpi-data-space") ||
+                opt == std::string("-ompids") ||
+                opt == std::string("--omptarget-mpi-data-space") ||
+                opt == std::string("-ompitds") ||
+                opt == std::string("--cuda-mpi-data-space") ||
+                opt == std::string("-cmpids") ||
+                opt == std::string("--hip-mpi-data-space") ||
+                opt == std::string("-hmpids") ||
+                opt == std::string("--kokkos-mpi-data-space") ||
+                opt == std::string("-kmpids") ) {
 
       bool got_someting = false;
       bool got_something_available = false;
+      bool got_something_pseudo = false;
       i++;
       if ( i < argc ) {
         auto opt_name = std::move(opt);
@@ -491,11 +504,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+          for (int ids = 0; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
             DataSpace ds = static_cast<DataSpace>(ids);
             if (getDataSpaceName(ds) == opt) {
               got_someting = true;
               got_something_available = isDataSpaceAvailable(ds);
+              got_something_pseudo = isPseudoDataSpace(ds);
               if (        opt_name == std::string("--seq-data-space") ||
                           opt_name == std::string("-sds") ) {
                 seqDataSpace = ds;
@@ -514,6 +528,30 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
               } else if ( opt_name == std::string("--kokkos-data-space") ||
                           opt_name == std::string("-kds") ) {
                 kokkosDataSpace = ds;
+              } else if ( opt_name == std::string("--seq-mpi-data-space") ||
+                          opt_name == std::string("-smpids") ) {
+                seqMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omp-mpi-data-space") ||
+                          opt_name == std::string("-ompids") ) {
+                ompMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--omptarget-mpi-data-space") ||
+                          opt_name == std::string("-otmpids") ) {
+                ompTargetMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--cuda-mpi-data-space") ||
+                          opt_name == std::string("-cmpids") ) {
+                cudaMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--hip-mpi-data-space") ||
+                          opt_name == std::string("-hmpids") ) {
+                hipMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
+              } else if ( opt_name == std::string("--kokkos-mpi-data-space") ||
+                          opt_name == std::string("-kmpids") ) {
+                kokkosMPIDataSpace = ds;
+                got_something_available = got_something_available || got_something_pseudo;
               } else {
                 got_someting = false;
               }
@@ -752,40 +790,76 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with sequential execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --seq-data-space Host (run sequential variants with Host memory)\n"
       << "\t\t -sds CudaPinned (run sequential variants with Cuda Pinned memory)\n\n";
 
   str << "\t --omp-data-space, -ods <string> [Default is Omp]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with OpenMP execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --omp-data-space Omp (run Omp variants with Omp memory)\n"
       << "\t\t -ods Host (run Omp variants with Host memory)\n\n";
 
   str << "\t --omptarget-data-space, -otds <string> [Default is OmpTarget]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with OpenMP target execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --omptarget-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n"
       << "\t\t -otds CudaPinned (run Omp Target variants with Cuda Pinned memory)\n\n";
 
   str << "\t --cuda-data-space, -cds <string> [Default is CudaDevice]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with cuda execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --cuda-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n"
       << "\t\t -cds CudaPinned (run CUDA variants with Cuda Pinned memory)\n\n";
 
   str << "\t --hip-data-space, -hds <string> [Default is HipDevice]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with hip execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
       << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
 
   str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use with kokkos execution)\n";
   str << "\t\t Examples...\n"
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
+
+  str << "\t --seq-mpi-data-space, -smpids <string> [Default is Host]\n"
+      << "\t      (name of data space to use with MPI and sequential execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-mpi-data-space Host (run sequential variants with Host memory for MPI buffers)\n"
+      << "\t\t -smpids Copy (run sequential variants and copy to Host memory for MPI buffers)\n\n";
+
+  str << "\t --omp-mpi-data-space, -ompids <string> [Default is Omp]\n"
+      << "\t      (name of data space to use with MPI and OpenMP execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-mpi-data-space Omp (run Omp variants with Omp memory for MPI buffers)\n"
+      << "\t\t -ompids Host (run Omp variants with Host memory for MPI buffers)\n\n";
+
+  str << "\t --omptarget-mpi-data-space, -otmpids <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and OpenMP target execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-mpi-data-space Copy (run Omp Target variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -otmpids OmpTarget (run Omp Target variants with OmpTarget memory for MPI buffers (assumes MPI can access OmpTarget memory))\n\n";
+
+  str << "\t --cuda-mpi-data-space, -cmpids <string> [Default is CudaPinned]\n"
+      << "\t      (name of data space to use with MPI and cuda execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-mpi-data-space CudaPinned (run CUDA variants with Cuda Pinned memory for MPI buffers)\n"
+      << "\t\t -cmpids CudaDevice (run CUDA variants with Cuda Device memory for MPI buffers (assumes MPI is cuda/gpu aware))\n\n";
+
+  str << "\t --hip-mpi-data-space, -hmpids <string> [Default is HipPinned]\n"
+      << "\t      (name of data space to use with MPI and hip execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-mpi-data-space Copy (run HIP variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -hmpids hipDevice (run HIP variants with Hip Device memory for MPI buffers (assumes MPI is hip/gpu aware))\n\n";
+
+  str << "\t --kokkos-mpi-data-space, -kmpids <string> [Default is Copy]\n"
+      << "\t      (name of data space to use with MPI and kokkos execution)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-mpi-data-space Copy (run KOKKOS variants and copy to Host memory for MPI buffers)\n"
+      << "\t\t -kmpids HipPinned (run KOKKOS variants with Hip Pinned memory for MPI buffers)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
@@ -880,6 +954,12 @@ void RunParams::printDataSpaceNames(std::ostream& str) const
     if (!isDataSpaceAvailable(ds)) {
       str << getDataSpaceName(ds) << std::endl;
     }
+  }
+  str << "\nPseudo data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = static_cast<int>(DataSpace::NumSpaces)+1; ids < static_cast<int>(DataSpace::EndPseudoSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    str << getDataSpaceName(ds) << std::endl;
   }
   str.flush();
 }
