@@ -38,54 +38,29 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
         MASS3DEA_0_CPU
 
-         CPU_FOREACH(dy, y, MPA_D1D) {
-          CPU_FOREACH(dx, x, MPA_D1D){
-            MASS3DEA_1
-          }
-          CPU_FOREACH(dx, x, MPA_Q1D) {
-            MASS3DEA_2
-          }
-        }
-
-        CPU_FOREACH(dy, y, MPA_D1D) {
-          CPU_FOREACH(qx, x, MPA_Q1D) {
-            MASS3DEA_3
+        CPU_FOREACH(iz, z, 1) {
+          CPU_FOREACH(d, x, MEA_D1D) {
+            CPU_FOREACH(q, y, MEA_Q1D) {
+              MASS3DEA_1
+            }
           }
         }
 
-        CPU_FOREACH(qy, y, MPA_Q1D) {
-          CPU_FOREACH(qx, x, MPA_Q1D) {
-            MASS3DEA_4
+        MASS3DEA_2_CPU
+
+        CPU_FOREACH(k1, x, MEA_Q1D) {
+          CPU_FOREACH(k2, y, MEA_Q1D) {
+            CPU_FOREACH(k3, z, MEA_Q1D) {
+              MASS3DEA_3
+            }
           }
         }
 
-        CPU_FOREACH(qy, y, MPA_Q1D) {
-          CPU_FOREACH(qx, x, MPA_Q1D) {
-            MASS3DEA_5
-          }
-        }
-
-        CPU_FOREACH(d, y, MPA_D1D) {
-          CPU_FOREACH(q, x, MPA_Q1D) {
-            MASS3DEA_6
-          }
-        }
-
-        CPU_FOREACH(qy, y, MPA_Q1D) {
-          CPU_FOREACH(dx, x, MPA_D1D) {
-            MASS3DEA_7
-          }
-        }
-
-        CPU_FOREACH(dy, y, MPA_D1D) {
-          CPU_FOREACH(dx, x, MPA_D1D) {
-            MASS3DEA_8
-          }
-        }
-
-        CPU_FOREACH(dy, y, MPA_D1D) {
-          CPU_FOREACH(dx, x, MPA_D1D) {
-            MASS3DEA_9
+        CPU_FOREACH(i1, x, MEA_D1D) {
+          CPU_FOREACH(i2, y, MEA_D1D) {
+            CPU_FOREACH(i3, z, MEA_D1D) {
+              MASS3DEA_4
+            }
           }
         }
 
@@ -107,6 +82,8 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
     using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
 
+    using inner_z = RAJA::LoopPolicy<RAJA::loop_exec>;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -120,108 +97,54 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
               MASS3DEA_0_CPU
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                [&](int dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                    [&](int dx) {
-                      MASS3DEA_1
+              RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+                [&](int ) {
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                    [&](int d) {
+                      RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                        [&](int q) {
+                          MASS3DEA_1
+                        }
+                      ); // RAJA::loop<inner_y>
                     }
-                  );  // RAJA::loop<inner_x>
-
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                    [&](int dx) {
-                      MASS3DEA_2
-                    }
-                  );  // RAJA::loop<inner_x>
-                }  // lambda (dy)
-              );  // RAJA::loop<inner_y>
+                  ); // RAJA::loop<inner_x>
+                }
+              ); // RAJA::loop<inner_z>
 
               ctx.teamSync();
 
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                [&](int dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                    [&](int qx) {
-                      MASS3DEA_3
+              MASS3DEA_2_CPU
+
+              RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                [&](int k1) {
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                    [&](int k2) {
+                      RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                        [&](int k3) {
+                          MASS3DEA_3
+                        }
+                      ); // RAJA::loop<inner_x>
                     }
-                  );  // RAJA::loop<inner_x>
+                  ); // RAJA::loop<inner_y>
                 }
-              );  // RAJA::loop<inner_y>
+              ); // RAJA::loop<inner_z>
 
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                [&](int qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                    [&](int qx) {
-                      MASS3DEA_4
+              RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                [&](int i1) {
+                  RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                    [&](int i2) {
+                      RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                        [&](int i3) {
+                          MASS3DEA_4
+                        }
+                      ); // RAJA::loop<inner_x>
                     }
-                  );  // RAJA::loop<inner_x>
+                  ); // RAJA::loop<inner_y>
                 }
-              );  // RAJA::loop<inner_y>
+              ); // RAJA::loop<inner_z>
 
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                [&](int qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                    [&](int qx) {
-                      MASS3DEA_5
-                    }
-                  );  // RAJA::loop<inner_x>
-                }
-              );  // RAJA::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                [&](int d) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                    [&](int q) {
-                      MASS3DEA_6
-                    }
-                  );  // RAJA::loop<inner_x>
-                }
-              );  // RAJA::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
-                [&](int qy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                    [&](int dx) {
-                      MASS3DEA_7
-                    }
-                  );  // RAJA::loop<inner_x>
-                }
-              );  // RAJA::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                [&](int dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                    [&](int dx) {
-                      MASS3DEA_8
-                    }
-                  );  // RAJA::loop<inner_x>
-                }
-              );  // RAJA::loop<inner_y>
-
-              ctx.teamSync();
-
-              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                [&](int dy) {
-                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
-                    [&](int dx) {
-                      MASS3DEA_9
-                    }
-                  );  // RAJA::loop<inner_x>
-                }
-              );  // RAJA::loop<inner_y>
-
-            }  // lambda (e)
-          );  // RAJA::loop<outer_x>
+            } // lambda (e)
+          );    // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
       );  // // RAJA::launch
