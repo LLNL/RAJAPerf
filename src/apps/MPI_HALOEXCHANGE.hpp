@@ -48,7 +48,6 @@
 #define MPI_HALOEXCHANGE_DATA_SETUP \
   HALOEXCHANGE_base_DATA_SETUP \
   \
-  const int my_mpi_rank = m_my_mpi_rank; \
   std::vector<int> mpi_ranks = m_mpi_ranks; \
   \
   std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \

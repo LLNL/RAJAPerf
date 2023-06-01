@@ -26,8 +26,8 @@ MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
   setUsesFeature(MPI);
 
   setVariantDefined( Base_Seq );
-  // setVariantDefined( Lambda_Seq );
-  // setVariantDefined( RAJA_Seq );
+  setVariantDefined( Lambda_Seq );
+  setVariantDefined( RAJA_Seq );
 
   // setVariantDefined( Base_OpenMP );
   // setVariantDefined( Lambda_OpenMP );
