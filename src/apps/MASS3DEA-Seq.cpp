@@ -18,8 +18,8 @@
 namespace rajaperf {
 namespace apps {
 
-
-void MASS3DEA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
+void MASS3DEA::runSeqVariant(VariantID vid,
+                             size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
   const Index_type run_reps = getRunReps();
 
   MASS3DEA_DATA_SETUP;
@@ -33,67 +33,34 @@ void MASS3DEA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
       for (int e = 0; e < NE; ++e) {
 
-        RAJA_TEAM_SHARED double s_B[MEA_Q1D][MEA_D1D];
+        MASS3DEA_0_CPU
 
-        CPU_FOREACH(iz, z, 0)
-        {
-          CPU_FOREACH(d,x,MEA_D1D)
-          {
-            CPU_FOREACH(q,y,MEA_Q1D)
-            {
-              s_B[q][d] = B_(q,d);
+        CPU_FOREACH(iz, z, 1) {
+          CPU_FOREACH(d, x, MEA_D1D) {
+            CPU_FOREACH(q, y, MEA_Q1D) {
+              MASS3DEA_1
             }
           }
         }
-        double (*l_B)[MEA_D1D] = (double (*)[MEA_D1D])s_B;        
 
-        RAJA_TEAM_SHARED double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
-        CPU_FOREACH(k1,x,MEA_Q1D)
-        {
-          CPU_FOREACH(k2,y,MEA_Q1D)
-          {
-            CPU_FOREACH(k3,z,MEA_Q1D)
-            {
-              s_D[k1][k2][k3] = D_(k1,k2,k3,e);
+        MASS3DEA_2_CPU
+
+        CPU_FOREACH(k1, x, MEA_Q1D) {
+          CPU_FOREACH(k2, y, MEA_Q1D) {
+            CPU_FOREACH(k3, z, MEA_Q1D) {
+              MASS3DEA_3
             }
           }
         }
-                
-        CPU_FOREACH(i1,x,MEA_D1D)
-        {
-          CPU_FOREACH(i2,y,MEA_D1D)
-          {
-            CPU_FOREACH(i3,z,MEA_D1D)
-            {
-              for (int j1 = 0; j1 < MEA_D1D; ++j1)
-              {
-                for (int j2 = 0; j2 < MEA_D1D; ++j2)
-                {
-                  for (int j3 = 0; j3 < MEA_D1D; ++j3)
-                  {
-                    double val = 0.0;
-                    for (int k1 = 0; k1 < MEA_Q1D; ++k1)
-                      {
-                        for (int k2 = 0; k2 < MEA_Q1D; ++k2)
-                          {
-                            for (int k3 = 0; k3 < MEA_Q1D; ++k3)
-                              {
-                                val += l_B[k1][i1] * l_B[k1][j1]
-                                  * l_B[k2][i2] * l_B[k2][j2]
-                                  * l_B[k3][i3] * l_B[k3][j3]
-                                  * s_D[k1][k2][k3];
-                              }
-                          }
-                      }
-                    
-                    M_(i1, i2, i3, j1, j2, j3, e) = val;
-                  }
-                }
-              }
+
+        CPU_FOREACH(i1, x, MEA_D1D) {
+          CPU_FOREACH(i2, y, MEA_D1D) {
+            CPU_FOREACH(i3, z, MEA_D1D) {
+              MASS3DEA_4
             }
           }
         }
-        
+
       } // element loop
     }
     stopTimer();
@@ -104,7 +71,7 @@ void MASS3DEA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 #if defined(RUN_RAJA_SEQ)
   case RAJA_Seq: {
 
-    //Currently Teams requires two policies if compiled with a device
+    // Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
     using outer_x = RAJA::LoopPolicy<RAJA::loop_exec>;
@@ -113,24 +80,72 @@ void MASS3DEA::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
     using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
 
+    using inner_z = RAJA::LoopPolicy<RAJA::loop_exec>;
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::launch<launch_policy>(
-        RAJA::LaunchParams(),
-        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
+          RAJA::LaunchParams(),
+          [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
-            [&](int e) {
+            RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+              [&](int e) {
 
+                  MASS3DEA_0_CPU
 
-            }  // lambda (e)
-          );  // RAJA::loop<outer_x>
+                  RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
+                    [&](int ) {
+                      RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                        [&](int d) {
+                          RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                            [&](int q) {
+                              MASS3DEA_1
+                            }
+                          ); // RAJA::loop<inner_y>
+                        }
+                      ); // RAJA::loop<inner_x>
+                    }
+                  ); // RAJA::loop<inner_z>
 
-        }  // outer lambda (ctx)
-      );  // RAJA::launch
+                  ctx.teamSync();
 
-    }  // loop over kernel reps
+                  MASS3DEA_2_CPU
+
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                    [&](int k1) {
+                      RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                        [&](int k2) {
+                          RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
+                            [&](int k3) {
+                              MASS3DEA_3
+                            }
+                          ); // RAJA::loop<inner_x>
+                        }
+                      ); // RAJA::loop<inner_y>
+                    }
+                  ); // RAJA::loop<inner_z>
+
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                    [&](int i1) {
+                      RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                        [&](int i2) {
+                          RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, MEA_D1D),
+                            [&](int i3) {
+                              MASS3DEA_4
+                            }
+                          ); // RAJA::loop<inner_x>
+                        }
+                      ); // RAJA::loop<inner_y>
+                    }
+                  ); // RAJA::loop<inner_z>
+
+                } // lambda (e)
+            );    // RAJA::loop<outer_x>
+          }       // outer lambda (ctx)
+      );          // RAJA::launch
+
+    } // loop over kernel reps
     stopTimer();
 
     return;

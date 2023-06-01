@@ -26,27 +26,23 @@ MASS3DEA::MASS3DEA(const RunParams& params)
   m_NE_default = 8000;
 
   setDefaultProblemSize(m_NE_default*MEA_Q1D*MEA_Q1D*MEA_Q1D);
-  setDefaultReps(50);
+  setDefaultReps(1);
 
-  m_NE = std::max(getTargetProblemSize()/(MEA_Q1D*MEA_Q1D*MEA_Q1D), Index_type(1));
+  const int ea_mat_entries = MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D*MEA_D1D;
+  
+  m_NE = std::max(getTargetProblemSize()/(ea_mat_entries), Index_type(1));
 
-  setActualProblemSize( m_NE*MEA_Q1D*MEA_Q1D*MEA_Q1D );
+  setActualProblemSize( m_NE*ea_mat_entries);
 
   setItsPerRep(getActualProblemSize());
   setKernelsPerRep(1);
 
-  setBytesPerRep( MEA_Q1D*MEA_D1D*sizeof(Real_type)  +
-                  MEA_Q1D*MEA_D1D*sizeof(Real_type)  +
-                  MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE*sizeof(Real_type) +
-                  MEA_D1D*MEA_D1D*MEA_D1D*m_NE*sizeof(Real_type) +
-                  MEA_D1D*MEA_D1D*MEA_D1D*m_NE*sizeof(Real_type) );
+  setBytesPerRep( MEA_Q1D*MEA_D1D*sizeof(Real_type)  + //B
+                  MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE*sizeof(Real_type) + //D
+                  ea_mat_entries*m_NE*sizeof(Real_type) ); //M_e
 
-  setFLOPsPerRep(m_NE * (2 * MEA_D1D * MEA_D1D * MEA_D1D * MEA_Q1D +
-                         2 * MEA_D1D * MEA_D1D * MEA_Q1D * MEA_Q1D +
-                         2 * MEA_D1D * MEA_Q1D * MEA_Q1D * MEA_Q1D + MEA_Q1D * MEA_Q1D * MEA_Q1D +
-                         2 * MEA_Q1D * MEA_Q1D * MEA_Q1D * MEA_D1D +
-                         2 * MEA_Q1D * MEA_Q1D * MEA_D1D * MEA_D1D +
-                         2 * MEA_Q1D * MEA_D1D * MEA_D1D * MEA_D1D + MEA_D1D * MEA_D1D * MEA_D1D));
+  setFLOPsPerRep(m_NE * 7 * ea_mat_entries);
+                 
   setUsesFeature(Launch);
 
   setVariantDefined( Base_Seq );
@@ -71,7 +67,6 @@ void MASS3DEA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
 
   allocAndInitDataConst(m_B, int(MEA_Q1D*MEA_D1D), Real_type(1.0), vid);
-  allocAndInitDataConst(m_Bt,int(MEA_Q1D*MEA_D1D), Real_type(1.0), vid);
   allocAndInitDataConst(m_D, int(MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE), Real_type(1.0), vid);
   allocAndInitDataConst(m_M, int(MEA_D1D*MEA_D1D*MEA_D1D*
                                  MEA_D1D*MEA_D1D*MEA_D1D*m_NE), Real_type(1.0), vid);
@@ -88,7 +83,6 @@ void MASS3DEA::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   (void) vid;
 
   deallocData(m_B, vid);
-  deallocData(m_Bt, vid);
   deallocData(m_D, vid);
   deallocData(m_M, vid);
 }
