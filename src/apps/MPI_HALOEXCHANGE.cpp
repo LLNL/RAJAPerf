@@ -36,8 +36,8 @@ MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
   setVariantDefined( Base_OpenMPTarget );
   setVariantDefined( RAJA_OpenMPTarget );
 
-  // setVariantDefined( Base_CUDA );
-  // setVariantDefined( RAJA_CUDA );
+  setVariantDefined( Base_CUDA );
+  setVariantDefined( RAJA_CUDA );
 
   // setVariantDefined( Base_HIP );
   // setVariantDefined( RAJA_HIP );
