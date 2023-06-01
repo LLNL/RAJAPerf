@@ -155,6 +155,18 @@ protected:
       std::vector<Int_ptr>& unpack_index_lists,
       const Index_type num_neighbors,
       VariantID vid);
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  void create_rank_list(
+      int my_mpi_rank, int mpi_size,
+      std::vector<int>& mpi_ranks,
+      const Index_type num_neighbors,
+      VariantID vid);
+
+  void destroy_rank_list(
+      const Index_type num_neighbors,
+      VariantID vid);
+#endif
 };
 
 } // end namespace apps

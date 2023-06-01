@@ -51,12 +51,11 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
 {
   HALOEXCHANGE_base::setUp(vid, tune_idx);
 
+  MPI_Comm_size(MPI_COMM_WORLD, &m_mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &m_my_mpi_rank);
 
   m_mpi_ranks.resize(s_num_neighbors, -1);
-  for (Index_type l = 0; l < s_num_neighbors; ++l) {
-    m_mpi_ranks[l] = m_my_mpi_rank; // send and recv to own rank
-  }
+  HALOEXCHANGE_base::create_rank_list(m_my_mpi_rank, m_mpi_size, m_mpi_ranks, s_num_neighbors, vid);
 
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
@@ -114,6 +113,7 @@ void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
   m_send_buffers.clear();
   m_pack_buffers.clear();
 
+  HALOEXCHANGE_base::destroy_rank_list(s_num_neighbors, vid);
   m_mpi_ranks.clear();
 
   HALOEXCHANGE_base::tearDown(vid, tune_idx);

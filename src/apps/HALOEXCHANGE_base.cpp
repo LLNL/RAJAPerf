@@ -453,5 +453,31 @@ void HALOEXCHANGE_base::destroy_unpack_lists(
   }
 }
 
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
+void HALOEXCHANGE_base::create_rank_list(
+    int my_mpi_rank, int mpi_size,
+    std::vector<int>& mpi_ranks,
+    const Index_type num_neighbors,
+    VariantID RAJAPERF_UNUSED_ARG(vid))
+{
+  for (Index_type l = 0; l < num_neighbors; ++l) {
+    mpi_ranks[l] = my_mpi_rank; // send and recv to own rank
+  }
+}
+
+//
+// Function to destroy unpacking index lists.
+//
+void HALOEXCHANGE_base::destroy_rank_list(
+    const Index_type RAJAPERF_UNUSED_ARG(num_neighbors),
+    VariantID RAJAPERF_UNUSED_ARG(vid))
+{
+
+}
+
+#endif
+
 } // end namespace apps
 } // end namespace rajaperf

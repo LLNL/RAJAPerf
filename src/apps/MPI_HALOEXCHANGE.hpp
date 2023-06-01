@@ -105,6 +105,7 @@ private:
   static const size_t default_gpu_block_size = 256;
   using gpu_block_sizes_type = gpu_block_size::make_list_type<default_gpu_block_size>;
 
+  int m_mpi_size = -1;
   int m_my_mpi_rank = -1;
   std::vector<int> m_mpi_ranks;
 
