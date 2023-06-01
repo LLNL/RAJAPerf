@@ -44,5 +44,26 @@ HALOEXCHANGE_FUSED::~HALOEXCHANGE_FUSED()
 {
 }
 
+void HALOEXCHANGE_FUSED::setUp(VariantID vid, size_t tune_idx)
+{
+  HALOEXCHANGE_base::setUp(vid, tune_idx);
+
+  m_buffers.resize(s_num_neighbors, nullptr);
+  for (Index_type l = 0; l < s_num_neighbors; ++l) {
+    Index_type buffer_len = m_num_vars * m_pack_index_list_lengths[l];
+    allocAndInitData(m_buffers[l], buffer_len, vid);
+  }
+}
+
+void HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t tune_idx)
+{
+  for (int l = 0; l < s_num_neighbors; ++l) {
+    deallocData(m_buffers[l], vid);
+  }
+  m_buffers.clear();
+
+  HALOEXCHANGE_base::tearDown(vid, tune_idx);
+}
+
 } // end namespace apps
 } // end namespace rajaperf

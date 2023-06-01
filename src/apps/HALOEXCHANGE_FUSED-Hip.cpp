@@ -93,7 +93,7 @@ void HALOEXCHANGE_FUSED::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_DATA_SETUP;
+  HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 

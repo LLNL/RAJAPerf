@@ -45,10 +45,9 @@
 #ifndef RAJAPerf_Apps_HALOEXCHANGE_base_HPP
 #define RAJAPerf_Apps_HALOEXCHANGE_base_HPP
 
-#define HALOEXCHANGE_DATA_SETUP \
+#define HALOEXCHANGE_base_DATA_SETUP \
   std::vector<Real_ptr> vars = m_vars; \
-  std::vector<Real_ptr> buffers = m_buffers; \
-\
+  \
   Index_type num_neighbors = s_num_neighbors; \
   Index_type num_vars = m_num_vars; \
   std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
@@ -123,7 +122,6 @@ protected:
   Index_type m_var_halo_size;
 
   std::vector<Real_ptr> m_vars;
-  std::vector<Real_ptr> m_buffers;
 
   std::vector<Int_ptr> m_pack_index_lists;
   std::vector<Index_type > m_pack_index_list_lengths;

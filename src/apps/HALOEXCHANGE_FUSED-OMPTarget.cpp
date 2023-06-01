@@ -67,7 +67,7 @@ void HALOEXCHANGE_FUSED::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_U
 {
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_DATA_SETUP;
+  HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
 

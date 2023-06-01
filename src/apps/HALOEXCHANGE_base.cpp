@@ -83,12 +83,6 @@ void HALOEXCHANGE_base::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
   m_unpack_index_lists.resize(s_num_neighbors, nullptr);
   m_unpack_index_list_lengths.resize(s_num_neighbors, 0);
   create_unpack_lists(m_unpack_index_lists, m_unpack_index_list_lengths, m_halo_width, m_grid_dims, s_num_neighbors, vid);
-
-  m_buffers.resize(s_num_neighbors, nullptr);
-  for (Index_type l = 0; l < s_num_neighbors; ++l) {
-    Index_type buffer_len = m_num_vars * m_pack_index_list_lengths[l];
-    allocAndInitData(m_buffers[l], buffer_len, vid);
-  }
 }
 
 void HALOEXCHANGE_base::updateChecksum(VariantID vid, size_t tune_idx)
@@ -100,11 +94,6 @@ void HALOEXCHANGE_base::updateChecksum(VariantID vid, size_t tune_idx)
 
 void HALOEXCHANGE_base::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  for (int l = 0; l < s_num_neighbors; ++l) {
-    deallocData(m_buffers[l], vid);
-  }
-  m_buffers.clear();
-
   destroy_unpack_lists(m_unpack_index_lists, s_num_neighbors, vid);
   m_unpack_index_list_lengths.clear();
   m_unpack_index_lists.clear();

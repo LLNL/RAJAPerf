@@ -22,7 +22,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 {
   const Index_type run_reps = getRunReps();
 
-  HALOEXCHANGE_DATA_SETUP;
+  HALOEXCHANGE_FUSED_DATA_SETUP;
 
   switch ( vid ) {
 

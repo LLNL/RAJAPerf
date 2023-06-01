@@ -46,13 +46,16 @@
 #define RAJAPerf_Apps_MPI_HALOEXCHANGE_HPP
 
 #define MPI_HALOEXCHANGE_DATA_SETUP \
-  HALOEXCHANGE_DATA_SETUP \
+  HALOEXCHANGE_base_DATA_SETUP \
   \
   const int my_mpi_rank = m_my_mpi_rank; \
   std::vector<int> mpi_ranks = m_mpi_ranks; \
   \
   std::vector<MPI_Request> pack_mpi_requests(num_neighbors); \
-  std::vector<MPI_Request> unpack_mpi_requests(num_neighbors);
+  std::vector<MPI_Request> unpack_mpi_requests(num_neighbors); \
+  \
+  std::vector<Real_ptr> pack_buffers = m_pack_buffers; \
+  std::vector<Real_ptr> unpack_buffers = m_unpack_buffers;
 
 
 #include "HALOEXCHANGE_base.hpp"
@@ -98,6 +101,9 @@ private:
 
   int m_my_mpi_rank = -1;
   std::vector<int> m_mpi_ranks;
+
+  std::vector<Real_ptr> m_pack_buffers;
+  std::vector<Real_ptr> m_unpack_buffers;
 };
 
 } // end namespace apps
