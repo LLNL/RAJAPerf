@@ -22,25 +22,35 @@ namespace apps
 MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
   : HALOEXCHANGE_base(rajaperf::Apps_MPI_HALOEXCHANGE, params)
 {
+  MPI_Comm_size(MPI_COMM_WORLD, &m_mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &m_my_mpi_rank);
+
+  const int mpi_dim = std::cbrt(m_mpi_size);
+  m_mpi_dims[0] = mpi_dim;
+  m_mpi_dims[1] = mpi_dim;
+  m_mpi_dims[2] = mpi_dim;
+
   setUsesFeature(Forall);
   setUsesFeature(MPI);
 
-  setVariantDefined( Base_Seq );
-  setVariantDefined( Lambda_Seq );
-  setVariantDefined( RAJA_Seq );
+  if (m_mpi_dims[0] * m_mpi_dims[1] * m_mpi_dims[2] == m_mpi_size) {
+    setVariantDefined( Base_Seq );
+    setVariantDefined( Lambda_Seq );
+    setVariantDefined( RAJA_Seq );
 
-  setVariantDefined( Base_OpenMP );
-  setVariantDefined( Lambda_OpenMP );
-  setVariantDefined( RAJA_OpenMP );
+    setVariantDefined( Base_OpenMP );
+    setVariantDefined( Lambda_OpenMP );
+    setVariantDefined( RAJA_OpenMP );
 
-  setVariantDefined( Base_OpenMPTarget );
-  setVariantDefined( RAJA_OpenMPTarget );
+    setVariantDefined( Base_OpenMPTarget );
+    setVariantDefined( RAJA_OpenMPTarget );
 
-  setVariantDefined( Base_CUDA );
-  setVariantDefined( RAJA_CUDA );
+    setVariantDefined( Base_CUDA );
+    setVariantDefined( RAJA_CUDA );
 
-  setVariantDefined( Base_HIP );
-  setVariantDefined( RAJA_HIP );
+    setVariantDefined( Base_HIP );
+    setVariantDefined( RAJA_HIP );
+  }
 }
 
 MPI_HALOEXCHANGE::~MPI_HALOEXCHANGE()
@@ -49,19 +59,7 @@ MPI_HALOEXCHANGE::~MPI_HALOEXCHANGE()
 
 void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
 {
-  HALOEXCHANGE_base::setUp(vid, tune_idx);
-
-  MPI_Comm_size(MPI_COMM_WORLD, &m_mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &m_my_mpi_rank);
-
-  const int mpi_dim = std::cbrt(m_mpi_size);
-  const int mpi_dims[3] = {mpi_dim, mpi_dim, mpi_dim};
-  if (mpi_dims[0] * mpi_dims[1] * mpi_dims[2] != m_mpi_size) {
-    throw std::runtime_error("mpi dims do not match mpi size");
-  }
-
-  m_mpi_ranks.resize(s_num_neighbors, -1);
-  HALOEXCHANGE_base::create_rank_list(m_my_mpi_rank, mpi_dims, m_mpi_ranks, s_num_neighbors, vid);
+  setUp_base(m_my_mpi_rank, m_mpi_dims, vid, tune_idx);
 
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
@@ -90,7 +88,6 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
       m_recv_buffers[l] = m_unpack_buffers[l];
     }
   }
-
 }
 
 void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
@@ -119,10 +116,7 @@ void MPI_HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
   m_send_buffers.clear();
   m_pack_buffers.clear();
 
-  HALOEXCHANGE_base::destroy_rank_list(s_num_neighbors, vid);
-  m_mpi_ranks.clear();
-
-  HALOEXCHANGE_base::tearDown(vid, tune_idx);
+  tearDown_base(vid, tune_idx);
 }
 
 } // end namespace apps

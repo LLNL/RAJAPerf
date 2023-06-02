@@ -62,7 +62,8 @@ HALOEXCHANGE_base::~HALOEXCHANGE_base()
 {
 }
 
-void HALOEXCHANGE_base::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int (&mpi_dims)[3],
+                                   VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
@@ -76,13 +77,16 @@ void HALOEXCHANGE_base::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
     }
   }
 
+  m_mpi_ranks.resize(s_num_neighbors, -1);
   m_pack_index_lists.resize(s_num_neighbors, nullptr);
   m_pack_index_list_lengths.resize(s_num_neighbors, 0);
-  create_pack_lists(m_pack_index_lists, m_pack_index_list_lengths, m_halo_width, m_grid_dims, s_num_neighbors, vid);
-
   m_unpack_index_lists.resize(s_num_neighbors, nullptr);
   m_unpack_index_list_lengths.resize(s_num_neighbors, 0);
-  create_unpack_lists(m_unpack_index_lists, m_unpack_index_list_lengths, m_halo_width, m_grid_dims, s_num_neighbors, vid);
+  create_lists(my_mpi_rank, mpi_dims, m_mpi_ranks,
+      m_pack_index_lists, m_pack_index_list_lengths,
+      m_unpack_index_lists, m_unpack_index_list_lengths,
+      m_halo_width, m_grid_dims,
+      s_num_neighbors, vid);
 }
 
 void HALOEXCHANGE_base::updateChecksum(VariantID vid, size_t tune_idx)
@@ -92,15 +96,14 @@ void HALOEXCHANGE_base::updateChecksum(VariantID vid, size_t tune_idx)
   }
 }
 
-void HALOEXCHANGE_base::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
+void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
-  destroy_unpack_lists(m_unpack_index_lists, s_num_neighbors, vid);
+  destroy_lists(m_pack_index_lists, m_unpack_index_lists, s_num_neighbors, vid);
   m_unpack_index_list_lengths.clear();
   m_unpack_index_lists.clear();
-
-  destroy_pack_lists(m_pack_index_lists, s_num_neighbors, vid);
   m_pack_index_list_lengths.clear();
   m_pack_index_lists.clear();
+  m_mpi_ranks.clear();
 
   for (int v = 0; v < m_num_vars; ++v) {
     deallocData(m_vars[v], vid);
@@ -109,7 +112,7 @@ void HALOEXCHANGE_base::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 }
 
 
-static constexpr int neighbor_offsets[26][3]{
+const int HALOEXCHANGE_base::neighbor_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
 
   // faces
   {-1,  0,  0},
@@ -148,13 +151,14 @@ static constexpr int neighbor_offsets[26][3]{
 HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
     const HALOEXCHANGE_base::message_type msg_type,
     const int (&neighbor_offset)[3],
+    const bool (&crossing_periodic_boundary)[3],
     const Index_type halo_width, const Index_type* grid_dims)
 {
   if (msg_type != message_type::send &&
       msg_type != message_type::recv) {
     throw std::runtime_error("make_boundary_extent: Invalid message type");
   }
-  auto get_bounds = [&](int offset, Index_type dim_size) {
+  auto get_bounds = [&](int offset, Index_type dim_size, bool periodic) {
     std::pair<Index_type, Index_type> bounds;
     switch (offset) {
     case -1:
@@ -162,8 +166,13 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
         bounds.first  = halo_width;
         bounds.second = halo_width + halo_width;
       } else { // (msg_type == message_type::recv)
-        bounds.first  = 0;
-        bounds.second = halo_width;
+        if (periodic) {
+          bounds.first  = halo_width + dim_size;
+          bounds.second = halo_width + dim_size + halo_width;
+        } else {
+          bounds.first  = 0;
+          bounds.second = halo_width;
+        }
       }
       break;
     case 0:
@@ -175,8 +184,13 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
         bounds.first  = halo_width + dim_size - halo_width;
         bounds.second = halo_width + dim_size;
       } else { // (msg_type == message_type::recv)
-        bounds.first  = halo_width + dim_size;
-        bounds.second = halo_width + dim_size + halo_width;
+        if (periodic) {
+          bounds.first  = 0;
+          bounds.second = halo_width;
+        } else {
+          bounds.first  = halo_width + dim_size;
+          bounds.second = halo_width + dim_size + halo_width;
+        }
       }
       break;
     default:
@@ -184,9 +198,9 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
     }
     return bounds;
   };
-  auto x_bounds = get_bounds(neighbor_offset[0], grid_dims[0]);
-  auto y_bounds = get_bounds(neighbor_offset[1], grid_dims[1]);
-  auto z_bounds = get_bounds(neighbor_offset[2], grid_dims[2]);
+  auto x_bounds = get_bounds(neighbor_offset[0], grid_dims[0], crossing_periodic_boundary[0]);
+  auto y_bounds = get_bounds(neighbor_offset[1], grid_dims[1], crossing_periodic_boundary[1]);
+  auto z_bounds = get_bounds(neighbor_offset[2], grid_dims[2], crossing_periodic_boundary[2]);
   return {x_bounds.first, x_bounds.second,
           y_bounds.first, y_bounds.second,
           z_bounds.first, z_bounds.second};
@@ -194,137 +208,29 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
 
 
 //
-// Function to generate index lists for packing.
+// Function to generate mpi decomposition and index lists for packing and unpacking.
 //
-void HALOEXCHANGE_base::create_pack_lists(
+
+void HALOEXCHANGE_base::create_lists(
+    int my_mpi_rank,
+    const int (&mpi_dims)[3],
+    std::vector<int>& mpi_ranks,
     std::vector<Int_ptr>& pack_index_lists,
     std::vector<Index_type >& pack_index_list_lengths,
-    const Index_type halo_width, const Index_type* grid_dims,
-    const Index_type num_neighbors,
-    VariantID vid)
-{
-  const Index_type grid_i_stride = 1;
-  const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
-  const Index_type grid_k_stride = grid_j_stride * (grid_dims[1] + 2*halo_width);
-
-  for (Index_type l = 0; l < num_neighbors; ++l) {
-
-    Extent extent = make_boundary_extent(message_type::send, neighbor_offsets[l],
-                                         halo_width, grid_dims);
-
-    pack_index_list_lengths[l] = (extent.i_max - extent.i_min) *
-                                 (extent.j_max - extent.j_min) *
-                                 (extent.k_max - extent.k_min) ;
-
-    allocAndInitData(pack_index_lists[l], pack_index_list_lengths[l], vid);
-    auto reset_list = scopedMoveData(pack_index_lists[l], pack_index_list_lengths[l], vid);
-
-    Int_ptr pack_list = pack_index_lists[l];
-
-    Index_type list_idx = 0;
-    for (Index_type kk = extent.k_min; kk < extent.k_max; ++kk) {
-      for (Index_type jj = extent.j_min; jj < extent.j_max; ++jj) {
-        for (Index_type ii = extent.i_min; ii < extent.i_max; ++ii) {
-
-          Index_type pack_idx = ii * grid_i_stride +
-                                jj * grid_j_stride +
-                                kk * grid_k_stride ;
-
-          pack_list[list_idx] = pack_idx;
-
-          list_idx += 1;
-        }
-      }
-    }
-  }
-}
-
-//
-// Function to destroy packing index lists.
-//
-void HALOEXCHANGE_base::destroy_pack_lists(
-    std::vector<Int_ptr>& pack_index_lists,
-    const Index_type num_neighbors,
-    VariantID vid)
-{
-  for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(pack_index_lists[l], vid);
-  }
-}
-
-//
-// Function to generate index lists for unpacking.
-//
-void HALOEXCHANGE_base::create_unpack_lists(
     std::vector<Int_ptr>& unpack_index_lists,
     std::vector<Index_type >& unpack_index_list_lengths,
     const Index_type halo_width, const Index_type* grid_dims,
     const Index_type num_neighbors,
     VariantID vid)
 {
-  const Index_type grid_i_stride = 1;
-  const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
-  const Index_type grid_k_stride = grid_j_stride * (grid_dims[1] + 2*halo_width);
-
-  for (Index_type l = 0; l < num_neighbors; ++l) {
-
-    Extent extent = make_boundary_extent(message_type::recv, neighbor_offsets[l],
-                                         halo_width, grid_dims);
-
-    unpack_index_list_lengths[l] = (extent.i_max - extent.i_min) *
-                                   (extent.j_max - extent.j_min) *
-                                   (extent.k_max - extent.k_min) ;
-
-    allocAndInitData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
-    auto reset_list = scopedMoveData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
-
-    Int_ptr unpack_list = unpack_index_lists[l];
-
-    Index_type list_idx = 0;
-    for (Index_type kk = extent.k_min; kk < extent.k_max; ++kk) {
-      for (Index_type jj = extent.j_min; jj < extent.j_max; ++jj) {
-        for (Index_type ii = extent.i_min; ii < extent.i_max; ++ii) {
-
-          Index_type unpack_idx = ii * grid_i_stride +
-                                  jj * grid_j_stride +
-                                  kk * grid_k_stride ;
-
-          unpack_list[list_idx] = unpack_idx;
-
-          list_idx += 1;
-        }
-      }
-    }
-  }
-}
-
-//
-// Function to destroy unpacking index lists.
-//
-void HALOEXCHANGE_base::destroy_unpack_lists(
-    std::vector<Int_ptr>& unpack_index_lists,
-    const Index_type num_neighbors,
-    VariantID vid)
-{
-  for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(unpack_index_lists[l], vid);
-  }
-}
-
-
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-
-void HALOEXCHANGE_base::create_rank_list(
-    int my_mpi_rank,
-    const int (&mpi_dims)[3],
-    std::vector<int>& mpi_ranks,
-    const Index_type num_neighbors,
-    VariantID RAJAPERF_UNUSED_ARG(vid))
-{
   int my_mpi_idx[3]{-1,-1,-1};
   my_mpi_idx[2] = my_mpi_rank / (mpi_dims[0]*mpi_dims[1]);
   my_mpi_idx[1] = (my_mpi_rank - my_mpi_idx[2]*(mpi_dims[0]*mpi_dims[1])) / mpi_dims[0];
   my_mpi_idx[0] = my_mpi_rank - my_mpi_idx[2]*(mpi_dims[0]*mpi_dims[1]) - my_mpi_idx[1]*mpi_dims[0];
+
+  const Index_type grid_i_stride = 1;
+  const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
+  const Index_type grid_k_stride = grid_j_stride * (grid_dims[1] + 2*halo_width);
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
 
@@ -333,32 +239,106 @@ void HALOEXCHANGE_base::create_rank_list(
     int neighbor_mpi_idx[3] = {my_mpi_idx[0]+mpi_offset[0],
                                my_mpi_idx[1]+mpi_offset[1],
                                my_mpi_idx[2]+mpi_offset[2]};
+    bool crossing_periodic_boundary[3] = {false, false, false};
 
     // fix neighbor indices on periodic boundaries
     // this assumes that the offsets are at most 1 and at least -1
     for (int dim = 0; dim < 3; ++dim) {
       if (neighbor_mpi_idx[dim] >= mpi_dims[dim]) {
         neighbor_mpi_idx[dim] = 0;
+        crossing_periodic_boundary[dim] = true;
       } else if (neighbor_mpi_idx[dim] < 0) {
         neighbor_mpi_idx[dim] = mpi_dims[dim]-1;
+        crossing_periodic_boundary[dim] = true;
       }
     }
 
     mpi_ranks[l] = neighbor_mpi_idx[0] + mpi_dims[0]*(neighbor_mpi_idx[1] + mpi_dims[1]*neighbor_mpi_idx[2]);
+
+    {
+      // pack and send
+      Extent extent = make_boundary_extent(message_type::send,
+                                           neighbor_offsets[l],
+                                           crossing_periodic_boundary,
+                                           halo_width, grid_dims);
+
+      pack_index_list_lengths[l] = (extent.i_max - extent.i_min) *
+                                   (extent.j_max - extent.j_min) *
+                                   (extent.k_max - extent.k_min) ;
+
+      allocAndInitData(pack_index_lists[l], pack_index_list_lengths[l], vid);
+      auto reset_list = scopedMoveData(pack_index_lists[l], pack_index_list_lengths[l], vid);
+
+      Int_ptr pack_list = pack_index_lists[l];
+
+      Index_type list_idx = 0;
+      for (Index_type kk = extent.k_min; kk < extent.k_max; ++kk) {
+        for (Index_type jj = extent.j_min; jj < extent.j_max; ++jj) {
+          for (Index_type ii = extent.i_min; ii < extent.i_max; ++ii) {
+
+            Index_type pack_idx = ii * grid_i_stride +
+                                  jj * grid_j_stride +
+                                  kk * grid_k_stride ;
+
+            pack_list[list_idx] = pack_idx;
+
+            list_idx += 1;
+          }
+        }
+      }
+    }
+
+    {
+      // receive and unpack
+      Extent extent = make_boundary_extent(message_type::recv,
+                                           neighbor_offsets[l],
+                                           crossing_periodic_boundary,
+                                           halo_width, grid_dims);
+
+      unpack_index_list_lengths[l] = (extent.i_max - extent.i_min) *
+                                     (extent.j_max - extent.j_min) *
+                                     (extent.k_max - extent.k_min) ;
+
+      allocAndInitData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
+      auto reset_list = scopedMoveData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
+
+      Int_ptr unpack_list = unpack_index_lists[l];
+
+      Index_type list_idx = 0;
+      for (Index_type kk = extent.k_min; kk < extent.k_max; ++kk) {
+        for (Index_type jj = extent.j_min; jj < extent.j_max; ++jj) {
+          for (Index_type ii = extent.i_min; ii < extent.i_max; ++ii) {
+
+            Index_type unpack_idx = ii * grid_i_stride +
+                                    jj * grid_j_stride +
+                                    kk * grid_k_stride ;
+
+            unpack_list[list_idx] = unpack_idx;
+
+            list_idx += 1;
+          }
+        }
+      }
+    }
   }
 }
 
 //
-// Function to destroy unpacking index lists.
+// Function to destroy packing and unpacking index lists.
 //
-void HALOEXCHANGE_base::destroy_rank_list(
-    const Index_type RAJAPERF_UNUSED_ARG(num_neighbors),
-    VariantID RAJAPERF_UNUSED_ARG(vid))
+void HALOEXCHANGE_base::destroy_lists(
+    std::vector<Int_ptr>& pack_index_lists,
+    std::vector<Int_ptr>& unpack_index_lists,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
-
+  for (Index_type l = 0; l < num_neighbors; ++l) {
+    deallocData(pack_index_lists[l], vid);
+  }
+  for (Index_type l = 0; l < num_neighbors; ++l) {
+    deallocData(unpack_index_lists[l], vid);
+  }
 }
-
-#endif
 
 } // end namespace apps
 } // end namespace rajaperf

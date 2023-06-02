@@ -83,9 +83,10 @@ public:
 
   ~HALOEXCHANGE_base();
 
-  void setUp(VariantID vid, size_t tune_idx);
+  void setUp_base(const int my_mpi_rank, const int (&mpi_dims)[3],
+             VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
-  void tearDown(VariantID vid, size_t tune_idx);
+  void tearDown_base(VariantID vid, size_t tune_idx);
 
 protected:
   enum struct message_type : int
@@ -105,6 +106,7 @@ protected:
   };
 
   static const int s_num_neighbors = 26;
+  static const int neighbor_offsets[s_num_neighbors][3];
 
   Index_type m_grid_dims[3];
   Index_type m_halo_width;
@@ -120,6 +122,8 @@ protected:
 
   std::vector<Real_ptr> m_vars;
 
+  std::vector<int> m_mpi_ranks;
+
   std::vector<Int_ptr> m_pack_index_lists;
   std::vector<Index_type > m_pack_index_list_lengths;
   std::vector<Int_ptr> m_unpack_index_lists;
@@ -127,45 +131,26 @@ protected:
 
   Extent make_boundary_extent(
     const message_type msg_type,
-    const int (&neighbor_offset)[3],
+    const int (&neighbor_offset)[3], const bool (&crossing_periodic_boundary)[3],
     const Index_type halo_width, const Index_type* grid_dims);
 
-  void create_pack_lists(
+  void create_lists(
+      int my_mpi_rank,
+      const int (&mpi_dims)[3],
+      std::vector<int>& mpi_ranks,
       std::vector<Int_ptr>& pack_index_lists,
       std::vector<Index_type >& pack_index_list_lengths,
-      const Index_type halo_width, const Index_type* grid_dims,
-      const Index_type num_neighbors,
-      VariantID vid);
-
-  void destroy_pack_lists(
-      std::vector<Int_ptr>& pack_index_lists,
-      const Index_type num_neighbors,
-      VariantID vid);
-
-  void create_unpack_lists(
       std::vector<Int_ptr>& unpack_index_lists,
       std::vector<Index_type >& unpack_index_list_lengths,
       const Index_type halo_width, const Index_type* grid_dims,
       const Index_type num_neighbors,
       VariantID vid);
 
-  void destroy_unpack_lists(
+  void destroy_lists(
+      std::vector<Int_ptr>& pack_index_lists,
       std::vector<Int_ptr>& unpack_index_lists,
       const Index_type num_neighbors,
       VariantID vid);
-
-#if defined(RAJA_PERFSUITE_ENABLE_MPI)
-  void create_rank_list(
-      int my_mpi_rank,
-      const int (&mpi_dims)[3],
-      std::vector<int>& mpi_ranks,
-      const Index_type num_neighbors,
-      VariantID vid);
-
-  void destroy_rank_list(
-      const Index_type num_neighbors,
-      VariantID vid);
-#endif
 };
 
 } // end namespace apps

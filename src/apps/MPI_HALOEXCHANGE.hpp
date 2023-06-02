@@ -107,7 +107,7 @@ private:
 
   int m_mpi_size = -1;
   int m_my_mpi_rank = -1;
-  std::vector<int> m_mpi_ranks;
+  int m_mpi_dims[3] = {-1, -1, -1};
 
   std::vector<Real_ptr> m_pack_buffers;
   std::vector<Real_ptr> m_unpack_buffers;

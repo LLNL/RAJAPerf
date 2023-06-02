@@ -46,7 +46,9 @@ HALOEXCHANGE::~HALOEXCHANGE()
 
 void HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
 {
-  HALOEXCHANGE_base::setUp(vid, tune_idx);
+  int my_mpi_rank = 0;
+  const int mpi_dims[3] = {1,1,1};
+  setUp_base(my_mpi_rank, mpi_dims, vid, tune_idx);
 
   m_buffers.resize(s_num_neighbors, nullptr);
   for (Index_type l = 0; l < s_num_neighbors; ++l) {
@@ -62,7 +64,7 @@ void HALOEXCHANGE::tearDown(VariantID vid, size_t tune_idx)
   }
   m_buffers.clear();
 
-  HALOEXCHANGE_base::tearDown(vid, tune_idx);
+  tearDown_base(vid, tune_idx);
 }
 
 } // end namespace apps
