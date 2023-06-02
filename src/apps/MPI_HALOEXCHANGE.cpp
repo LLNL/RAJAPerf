@@ -12,7 +12,7 @@
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
-#include <cmath>
+#include <array>
 
 namespace rajaperf
 {
@@ -22,18 +22,14 @@ namespace apps
 MPI_HALOEXCHANGE::MPI_HALOEXCHANGE(const RunParams& params)
   : HALOEXCHANGE_base(rajaperf::Apps_MPI_HALOEXCHANGE, params)
 {
-  MPI_Comm_size(MPI_COMM_WORLD, &m_mpi_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &m_my_mpi_rank);
-
-  const int mpi_dim = std::cbrt(m_mpi_size);
-  m_mpi_dims[0] = mpi_dim;
-  m_mpi_dims[1] = mpi_dim;
-  m_mpi_dims[2] = mpi_dim;
+  m_mpi_size = params.getMPISize();
+  m_my_mpi_rank = params.getMPIRank();
+  m_mpi_dims = params.getMPI3DDivision();
 
   setUsesFeature(Forall);
   setUsesFeature(MPI);
 
-  if (m_mpi_dims[0] * m_mpi_dims[1] * m_mpi_dims[2] == m_mpi_size) {
+  if (params.validMPI3DDivision()) {
     setVariantDefined( Base_Seq );
     setVariantDefined( Lambda_Seq );
     setVariantDefined( RAJA_Seq );
@@ -59,7 +55,7 @@ MPI_HALOEXCHANGE::~MPI_HALOEXCHANGE()
 
 void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
 {
-  setUp_base(m_my_mpi_rank, m_mpi_dims, vid, tune_idx);
+  setUp_base(m_my_mpi_rank, m_mpi_dims.data(), vid, tune_idx);
 
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 

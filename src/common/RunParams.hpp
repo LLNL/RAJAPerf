@@ -11,6 +11,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <iosfwd>
 
 #include "RAJAPerfSuite.hpp"
@@ -138,6 +139,11 @@ public:
     return false;
   }
 
+  int getMPISize() const { return mpi_size; }
+  int getMPIRank() const { return mpi_rank; }
+  bool validMPI3DDivision() const { return (mpi_3d_division[0]*mpi_3d_division[1]*mpi_3d_division[2] == mpi_size); }
+  std::array<int, 3> const& getMPI3DDivision() const { return mpi_3d_division; }
+
   DataSpace getSeqDataSpace() const { return seqDataSpace; }
   DataSpace getOmpDataSpace() const { return ompDataSpace; }
   DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
@@ -253,6 +259,9 @@ private:
   double size_factor;    /*!< default kernel size multipier (input option) */
   size_t data_alignment;
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
+  int mpi_size;           /*!< Number of MPI ranks */
+  int mpi_rank;           /*!< Rank of this MPI process */
+  std::array<int, 3> mpi_3d_division; /*!< Number of MPI ranks in each dimension of a 3D grid */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
                               each PM case to pass/fail acceptance */

@@ -71,6 +71,7 @@
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
 #include <vector>
+#include <array>
 
 namespace rajaperf
 {
@@ -107,7 +108,7 @@ private:
 
   int m_mpi_size = -1;
   int m_my_mpi_rank = -1;
-  int m_mpi_dims[3] = {-1, -1, -1};
+  std::array<int, 3> m_mpi_dims = {-1, -1, -1};
 
   std::vector<Real_ptr> m_pack_buffers;
   std::vector<Real_ptr> m_unpack_buffers;

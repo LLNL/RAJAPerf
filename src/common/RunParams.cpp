@@ -36,6 +36,9 @@ RunParams::RunParams(int argc, char** argv)
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
    gpu_block_sizes(),
+   mpi_size(1),
+   mpi_rank(0),
+   mpi_3d_division({-1, -1, -1}),
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
@@ -104,6 +107,11 @@ void RunParams::print(std::ostream& str) const
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
+  }
+  str << "\n mpi_size = " << mpi_size;
+  str << "\n mpi_3d_division = ";
+  for (size_t j = 0; j < 3; ++j) {
+    str << "\n\t" << mpi_3d_division[j];
   }
   str << "\n pf_tol = " << pf_tol;
   str << "\n checkrun_reps = " << checkrun_reps;
@@ -189,6 +197,11 @@ void RunParams::print(std::ostream& str) const
 void RunParams::parseCommandLineOptions(int argc, char** argv)
 {
   getCout() << "\n\nReading command line input..." << std::endl;
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+#endif
 
   for (int i = 1; i < argc; ++i) {
 
@@ -388,6 +401,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       if (!got_someting) {
         getCout() << "\nBad input:"
                   << " must give --gpu_block_size one or more values (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("--mpi_3d_division") ) {
+
+      int num_got = 0;
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          num_got += 1;
+          int number = ::atoi( opt.c_str() );
+          if ( number <= 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --mpi_3d_division POSITIVE values (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else if (num_got <= 3) {
+            mpi_3d_division[num_got-1] = number;
+          }
+          ++i;
+        }
+      }
+      if (num_got != 3) {
+        getCout() << "\nBad input:"
+                  << " must give --mpi_3d_division three values (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -691,6 +735,14 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
   if (npasses_combiner_input.empty()) {
     npasses_combiners.emplace_back(CombinerOpt::Average);
   }
+
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+  if (mpi_3d_division[0] == -1) {
+    mpi_3d_division[0] = std::ceil(std::cbrt(mpi_size));
+    mpi_3d_division[1] = mpi_3d_division[0];
+    mpi_3d_division[2] = mpi_3d_division[0];
+  }
+#endif
 }
 
 
@@ -757,6 +809,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (Support is determined by kernel implementation and cmake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
+
+  str << "\t --mpi_3d_division <space-separated ints> [no default]\n"
+      << "\t      (number of mpi ranks in each dimension in a 3d grid)\n"
+      << "\t      (3D MPI kernels will be skipped if the product of mpi_3d_division is not equal to the number of ranks)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --mpi_3d_division 2 3 5 (runs 3d MPI kernels on a 2 by 3 by 5 grid)\n\n";
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";

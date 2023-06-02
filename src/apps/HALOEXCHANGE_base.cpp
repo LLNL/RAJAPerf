@@ -62,7 +62,7 @@ HALOEXCHANGE_base::~HALOEXCHANGE_base()
 {
 }
 
-void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int (&mpi_dims)[3],
+void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
                                    VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   m_vars.resize(m_num_vars, nullptr);
@@ -213,7 +213,7 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
 
 void HALOEXCHANGE_base::create_lists(
     int my_mpi_rank,
-    const int (&mpi_dims)[3],
+    const int* mpi_dims,
     std::vector<int>& mpi_ranks,
     std::vector<Int_ptr>& pack_index_lists,
     std::vector<Index_type >& pack_index_list_lengths,

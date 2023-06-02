@@ -83,7 +83,7 @@ public:
 
   ~HALOEXCHANGE_base();
 
-  void setUp_base(const int my_mpi_rank, const int (&mpi_dims)[3],
+  void setUp_base(const int my_mpi_rank, const int* mpi_dims,
              VariantID vid, size_t tune_idx);
   void updateChecksum(VariantID vid, size_t tune_idx);
   void tearDown_base(VariantID vid, size_t tune_idx);
@@ -136,7 +136,7 @@ protected:
 
   void create_lists(
       int my_mpi_rank,
-      const int (&mpi_dims)[3],
+      const int* mpi_dims,
       std::vector<int>& mpi_ranks,
       std::vector<Int_ptr>& pack_index_lists,
       std::vector<Index_type >& pack_index_list_lengths,
