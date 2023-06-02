@@ -88,13 +88,10 @@ public:
   void tearDown(VariantID vid, size_t tune_idx);
 
 protected:
-  enum struct location : int
+  enum struct message_type : int
   {
-    low_phony,
-    low_interior,
-    all_interior,
-    high_interior,
-    high_phony
+    send,
+    recv
   };
 
   struct Extent
@@ -128,8 +125,9 @@ protected:
   std::vector<Int_ptr> m_unpack_index_lists;
   std::vector<Index_type > m_unpack_index_list_lengths;
 
-  Extent make_extent(
-    location x_extent, location y_extent, location z_extent,
+  Extent make_boundary_extent(
+    const message_type msg_type,
+    const int (&neighbor_offset)[3],
     const Index_type halo_width, const Index_type* grid_dims);
 
   void create_pack_lists(
@@ -158,7 +156,8 @@ protected:
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
   void create_rank_list(
-      int my_mpi_rank, int mpi_size,
+      int my_mpi_rank,
+      const int (&mpi_dims)[3],
       std::vector<int>& mpi_ranks,
       const Index_type num_neighbors,
       VariantID vid);

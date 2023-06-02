@@ -54,8 +54,14 @@ void MPI_HALOEXCHANGE::setUp(VariantID vid, size_t tune_idx)
   MPI_Comm_size(MPI_COMM_WORLD, &m_mpi_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &m_my_mpi_rank);
 
+  const int mpi_dim = std::cbrt(m_mpi_size);
+  const int mpi_dims[3] = {mpi_dim, mpi_dim, mpi_dim};
+  if (mpi_dims[0] * mpi_dims[1] * mpi_dims[2] != m_mpi_size) {
+    throw std::runtime_error("mpi dims do not match mpi size");
+  }
+
   m_mpi_ranks.resize(s_num_neighbors, -1);
-  HALOEXCHANGE_base::create_rank_list(m_my_mpi_rank, m_mpi_size, m_mpi_ranks, s_num_neighbors, vid);
+  HALOEXCHANGE_base::create_rank_list(m_my_mpi_rank, mpi_dims, m_mpi_ranks, s_num_neighbors, vid);
 
   const bool separate_buffers = (getMPIDataSpace(vid) == DataSpace::Copy);
 
