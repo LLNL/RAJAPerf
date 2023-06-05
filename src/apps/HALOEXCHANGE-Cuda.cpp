@@ -55,6 +55,8 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
+    auto stream = camp::resources::Cuda::get_default().get_stream();
+
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,12 +68,12 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_pack<block_size><<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, 0, stream>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }
-      synchronize();
+      synchronize(stream);
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
@@ -81,12 +83,12 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block>>>(buffer, list, var, len);
+          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, 0, stream>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
       }
-      synchronize();
+      synchronize(stream);
 
     }
     stopTimer();
@@ -94,6 +96,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   } else if ( vid == RAJA_CUDA ) {
 
     using EXEC_POL = RAJA::cuda_exec<block_size, true /*async*/>;
+    auto res = camp::resources::Cuda::get_default();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -107,13 +110,13 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           auto haloexchange_pack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_PACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(
+          RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_pack_base_lam );
           buffer += len;
         }
       }
-      synchronize();
+      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
@@ -124,13 +127,13 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           auto haloexchange_unpack_base_lam = [=] __device__ (Index_type i) {
                 HALOEXCHANGE_UNPACK_BODY;
               };
-          RAJA::forall<EXEC_POL>(
+          RAJA::forall<EXEC_POL>(res,
               RAJA::TypedRangeSegment<Index_type>(0, len),
               haloexchange_unpack_base_lam );
           buffer += len;
         }
       }
-      synchronize();
+      res.wait();
 
     }
     stopTimer();

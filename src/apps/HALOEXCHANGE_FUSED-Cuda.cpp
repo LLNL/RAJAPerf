@@ -98,6 +98,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA;
+    auto stream = camp::resources::Cuda::get_default().get_stream();
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,10 +124,10 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       Index_type pack_len_ave = (pack_len_sum + pack_index-1) / pack_index;
       dim3 pack_nthreads_per_block(block_size);
       dim3 pack_nblocks((pack_len_ave + block_size-1) / block_size, pack_index);
-      haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block>>>(
+      haloexchange_fused_pack<block_size><<<pack_nblocks, pack_nthreads_per_block, 0, stream>>>(
           pack_buffer_ptrs, pack_list_ptrs, pack_var_ptrs, pack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
-      synchronize();
+      synchronize(stream);
 
       Index_type unpack_index = 0;
       Index_type unpack_len_sum = 0;
@@ -149,10 +150,10 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
       Index_type unpack_len_ave = (unpack_len_sum + unpack_index-1) / unpack_index;
       dim3 unpack_nthreads_per_block(block_size);
       dim3 unpack_nblocks((unpack_len_ave + block_size-1) / block_size, unpack_index);
-      haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block>>>(
+      haloexchange_fused_unpack<block_size><<<unpack_nblocks, unpack_nthreads_per_block, 0, stream>>>(
           unpack_buffer_ptrs, unpack_list_ptrs, unpack_var_ptrs, unpack_len_ptrs);
       cudaErrchk( cudaGetLastError() );
-      synchronize();
+      synchronize(stream);
 
     }
     stopTimer();
@@ -186,6 +187,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
                                      RAJA::xargs<>,
                                      Allocator >;
 
+    auto res = camp::resources::Cuda::get_default();
     workpool pool_pack  (allocatorHolder.template getAllocator<char>());
     workpool pool_unpack(allocatorHolder.template getAllocator<char>());
     pool_pack.reserve(num_neighbors * num_vars, 1024ull*1024ull);
@@ -210,8 +212,8 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
         }
       }
       workgroup group_pack = pool_pack.instantiate();
-      worksite site_pack = group_pack.run();
-      synchronize();
+      worksite site_pack = group_pack.run(res);
+      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
@@ -229,8 +231,8 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
         }
       }
       workgroup group_unpack = pool_unpack.instantiate();
-      worksite site_unpack = group_unpack.run();
-      synchronize();
+      worksite site_unpack = group_unpack.run(res);
+      res.wait();
 
     }
     stopTimer();

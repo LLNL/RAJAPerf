@@ -205,6 +205,20 @@ public:
 #endif
   }
 
+#if defined(RAJA_ENABLE_CUDA)
+  void synchronize(cudaStream_t stream)
+  {
+    cudaErrchk( cudaStreamSynchronize(stream) );
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  void synchronize(hipStream_t stream)
+  {
+    hipErrchk( hipStreamSynchronize(stream) );
+  }
+#endif
+
   int getDataAlignment() const;
 
   DataSpace getDataSpace(VariantID vid) const;
