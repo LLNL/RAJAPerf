@@ -35,9 +35,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = unpack_index_list_lengths[l];
-          int mpi_rank = mpi_ranks[l];
           MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+              mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -58,9 +57,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
                      len*num_vars);
           }
 
-          int mpi_rank = mpi_ranks[l];
           MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &pack_mpi_requests[l]);
+              mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
         }
 
         for (Index_type ll = 0; ll < num_neighbors; ++ll) {
@@ -101,9 +99,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = unpack_index_list_lengths[l];
-          int mpi_rank = mpi_ranks[l];
           MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+              mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -127,9 +124,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
                      len*num_vars);
           }
 
-          int mpi_rank = mpi_ranks[l];
           MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &pack_mpi_requests[l]);
+              mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
         }
 
         for (Index_type ll = 0; ll < num_neighbors; ++ll) {
@@ -174,9 +170,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
           Index_type len = unpack_index_list_lengths[l];
-          int mpi_rank = mpi_ranks[l];
           MPI_Irecv(recv_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &unpack_mpi_requests[l]);
+              mpi_ranks[l], recv_tags[l], MPI_COMM_WORLD, &unpack_mpi_requests[l]);
         }
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
@@ -200,9 +195,8 @@ void MPI_HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
                      len*num_vars);
           }
 
-          int mpi_rank = mpi_ranks[l];
           MPI_Isend(send_buffers[l], len*num_vars, Real_MPI_type,
-              mpi_rank, l, MPI_COMM_WORLD, &pack_mpi_requests[l]);
+              mpi_ranks[l], send_tags[l], MPI_COMM_WORLD, &pack_mpi_requests[l]);
         }
 
         for (Index_type ll = 0; ll < num_neighbors; ++ll) {

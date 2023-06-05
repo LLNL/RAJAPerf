@@ -50,8 +50,10 @@
   \
   Index_type num_neighbors = s_num_neighbors; \
   Index_type num_vars = m_num_vars; \
+  std::vector<int> send_tags = m_send_tags; \
   std::vector<Int_ptr> pack_index_lists = m_pack_index_lists; \
   std::vector<Index_type> pack_index_list_lengths = m_pack_index_list_lengths; \
+  std::vector<int> recv_tags = m_recv_tags; \
   std::vector<Int_ptr> unpack_index_lists = m_unpack_index_lists; \
   std::vector<Index_type> unpack_index_list_lengths = m_unpack_index_list_lengths;
 
@@ -106,7 +108,7 @@ protected:
   };
 
   static const int s_num_neighbors = 26;
-  static const int neighbor_offsets[s_num_neighbors][3];
+  static const int boundary_offsets[s_num_neighbors][3];
 
   Index_type m_grid_dims[3];
   Index_type m_halo_width;
@@ -124,22 +126,27 @@ protected:
 
   std::vector<int> m_mpi_ranks;
 
+  std::vector<int> m_send_tags;
   std::vector<Int_ptr> m_pack_index_lists;
   std::vector<Index_type > m_pack_index_list_lengths;
+
+  std::vector<int> m_recv_tags;
   std::vector<Int_ptr> m_unpack_index_lists;
   std::vector<Index_type > m_unpack_index_list_lengths;
 
   Extent make_boundary_extent(
     const message_type msg_type,
-    const int (&neighbor_offset)[3], const bool (&crossing_periodic_boundary)[3],
+    const int (&boundary_offset)[3],
     const Index_type halo_width, const Index_type* grid_dims);
 
   void create_lists(
       int my_mpi_rank,
       const int* mpi_dims,
       std::vector<int>& mpi_ranks,
+      std::vector<int>& send_tags,
       std::vector<Int_ptr>& pack_index_lists,
       std::vector<Index_type >& pack_index_list_lengths,
+      std::vector<int>& recv_tags,
       std::vector<Int_ptr>& unpack_index_lists,
       std::vector<Index_type >& unpack_index_list_lengths,
       const Index_type halo_width, const Index_type* grid_dims,

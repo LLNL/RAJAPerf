@@ -12,6 +12,7 @@
 
 #include <utility>
 #include <cmath>
+#include <map>
 
 namespace rajaperf
 {
@@ -78,13 +79,15 @@ void HALOEXCHANGE_base::setUp_base(const int my_mpi_rank, const int* mpi_dims,
   }
 
   m_mpi_ranks.resize(s_num_neighbors, -1);
+  m_send_tags.resize(s_num_neighbors, -1);
   m_pack_index_lists.resize(s_num_neighbors, nullptr);
   m_pack_index_list_lengths.resize(s_num_neighbors, 0);
+  m_recv_tags.resize(s_num_neighbors, -1);
   m_unpack_index_lists.resize(s_num_neighbors, nullptr);
   m_unpack_index_list_lengths.resize(s_num_neighbors, 0);
   create_lists(my_mpi_rank, mpi_dims, m_mpi_ranks,
-      m_pack_index_lists, m_pack_index_list_lengths,
-      m_unpack_index_lists, m_unpack_index_list_lengths,
+      m_send_tags, m_pack_index_lists, m_pack_index_list_lengths,
+      m_recv_tags, m_unpack_index_lists, m_unpack_index_list_lengths,
       m_halo_width, m_grid_dims,
       s_num_neighbors, vid);
 }
@@ -101,8 +104,10 @@ void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
   destroy_lists(m_pack_index_lists, m_unpack_index_lists, s_num_neighbors, vid);
   m_unpack_index_list_lengths.clear();
   m_unpack_index_lists.clear();
+  m_recv_tags.clear();
   m_pack_index_list_lengths.clear();
   m_pack_index_lists.clear();
+  m_send_tags.clear();
   m_mpi_ranks.clear();
 
   for (int v = 0; v < m_num_vars; ++v) {
@@ -112,7 +117,7 @@ void HALOEXCHANGE_base::tearDown_base(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 }
 
 
-const int HALOEXCHANGE_base::neighbor_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
+const int HALOEXCHANGE_base::boundary_offsets[HALOEXCHANGE_base::s_num_neighbors][3]{
 
   // faces
   {-1,  0,  0},
@@ -150,15 +155,14 @@ const int HALOEXCHANGE_base::neighbor_offsets[HALOEXCHANGE_base::s_num_neighbors
 
 HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
     const HALOEXCHANGE_base::message_type msg_type,
-    const int (&neighbor_offset)[3],
-    const bool (&crossing_periodic_boundary)[3],
+    const int (&boundary_offset)[3],
     const Index_type halo_width, const Index_type* grid_dims)
 {
   if (msg_type != message_type::send &&
       msg_type != message_type::recv) {
     throw std::runtime_error("make_boundary_extent: Invalid message type");
   }
-  auto get_bounds = [&](int offset, Index_type dim_size, bool periodic) {
+  auto get_bounds = [&](int offset, Index_type dim_size) {
     std::pair<Index_type, Index_type> bounds;
     switch (offset) {
     case -1:
@@ -166,13 +170,8 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
         bounds.first  = halo_width;
         bounds.second = halo_width + halo_width;
       } else { // (msg_type == message_type::recv)
-        if (periodic) {
-          bounds.first  = halo_width + dim_size;
-          bounds.second = halo_width + dim_size + halo_width;
-        } else {
-          bounds.first  = 0;
-          bounds.second = halo_width;
-        }
+        bounds.first  = 0;
+        bounds.second = halo_width;
       }
       break;
     case 0:
@@ -184,13 +183,8 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
         bounds.first  = halo_width + dim_size - halo_width;
         bounds.second = halo_width + dim_size;
       } else { // (msg_type == message_type::recv)
-        if (periodic) {
-          bounds.first  = 0;
-          bounds.second = halo_width;
-        } else {
-          bounds.first  = halo_width + dim_size;
-          bounds.second = halo_width + dim_size + halo_width;
-        }
+        bounds.first  = halo_width + dim_size;
+        bounds.second = halo_width + dim_size + halo_width;
       }
       break;
     default:
@@ -198,9 +192,9 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
     }
     return bounds;
   };
-  auto x_bounds = get_bounds(neighbor_offset[0], grid_dims[0], crossing_periodic_boundary[0]);
-  auto y_bounds = get_bounds(neighbor_offset[1], grid_dims[1], crossing_periodic_boundary[1]);
-  auto z_bounds = get_bounds(neighbor_offset[2], grid_dims[2], crossing_periodic_boundary[2]);
+  auto x_bounds = get_bounds(boundary_offset[0], grid_dims[0]);
+  auto y_bounds = get_bounds(boundary_offset[1], grid_dims[1]);
+  auto z_bounds = get_bounds(boundary_offset[2], grid_dims[2]);
   return {x_bounds.first, x_bounds.second,
           y_bounds.first, y_bounds.second,
           z_bounds.first, z_bounds.second};
@@ -210,13 +204,14 @@ HALOEXCHANGE_base::Extent HALOEXCHANGE_base::make_boundary_extent(
 //
 // Function to generate mpi decomposition and index lists for packing and unpacking.
 //
-
 void HALOEXCHANGE_base::create_lists(
     int my_mpi_rank,
     const int* mpi_dims,
     std::vector<int>& mpi_ranks,
+    std::vector<int>& send_tags,
     std::vector<Int_ptr>& pack_index_lists,
     std::vector<Index_type >& pack_index_list_lengths,
+    std::vector<int>& recv_tags,
     std::vector<Int_ptr>& unpack_index_lists,
     std::vector<Index_type >& unpack_index_list_lengths,
     const Index_type halo_width, const Index_type* grid_dims,
@@ -228,28 +223,38 @@ void HALOEXCHANGE_base::create_lists(
   my_mpi_idx[1] = (my_mpi_rank - my_mpi_idx[2]*(mpi_dims[0]*mpi_dims[1])) / mpi_dims[0];
   my_mpi_idx[0] = my_mpi_rank - my_mpi_idx[2]*(mpi_dims[0]*mpi_dims[1]) - my_mpi_idx[1]*mpi_dims[0];
 
+  auto get_boundary_idx = [&](const int (&boundary_offset)[3]) {
+    return (boundary_offset[0]+1) + 3*(boundary_offset[1]+1) + 9*(boundary_offset[2]+1);
+  };
+
+  std::map<int, int> boundary_idx_to_tag;
+  for (Index_type l = 0; l < num_neighbors; ++l) {
+    boundary_idx_to_tag[get_boundary_idx(boundary_offsets[l])] = l;
+  }
+
   const Index_type grid_i_stride = 1;
   const Index_type grid_j_stride = grid_dims[0] + 2*halo_width;
   const Index_type grid_k_stride = grid_j_stride * (grid_dims[1] + 2*halo_width);
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
 
-    const int (&mpi_offset)[3] = neighbor_offsets[l];
+    const int (&boundary_offset)[3] = boundary_offsets[l];
 
-    int neighbor_mpi_idx[3] = {my_mpi_idx[0]+mpi_offset[0],
-                               my_mpi_idx[1]+mpi_offset[1],
-                               my_mpi_idx[2]+mpi_offset[2]};
-    bool crossing_periodic_boundary[3] = {false, false, false};
+    int neighbor_boundary_offset[3]{-1, -1, -1};
+    for (int dim = 0; dim < 3; ++dim) {
+      neighbor_boundary_offset[dim] = -boundary_offset[dim];
+    }
 
-    // fix neighbor indices on periodic boundaries
-    // this assumes that the offsets are at most 1 and at least -1
+    int neighbor_mpi_idx[3] = {my_mpi_idx[0]+boundary_offset[0],
+                               my_mpi_idx[1]+boundary_offset[1],
+                               my_mpi_idx[2]+boundary_offset[2]};
+
+    // fix neighbor mpi index on periodic boundaries
     for (int dim = 0; dim < 3; ++dim) {
       if (neighbor_mpi_idx[dim] >= mpi_dims[dim]) {
         neighbor_mpi_idx[dim] = 0;
-        crossing_periodic_boundary[dim] = true;
       } else if (neighbor_mpi_idx[dim] < 0) {
         neighbor_mpi_idx[dim] = mpi_dims[dim]-1;
-        crossing_periodic_boundary[dim] = true;
       }
     }
 
@@ -257,9 +262,9 @@ void HALOEXCHANGE_base::create_lists(
 
     {
       // pack and send
+      send_tags[l] = boundary_idx_to_tag[get_boundary_idx(boundary_offset)];
       Extent extent = make_boundary_extent(message_type::send,
-                                           neighbor_offsets[l],
-                                           crossing_periodic_boundary,
+                                           boundary_offset,
                                            halo_width, grid_dims);
 
       pack_index_list_lengths[l] = (extent.i_max - extent.i_min) *
@@ -290,9 +295,9 @@ void HALOEXCHANGE_base::create_lists(
 
     {
       // receive and unpack
+      recv_tags[l] = boundary_idx_to_tag[get_boundary_idx(neighbor_boundary_offset)];
       Extent extent = make_boundary_extent(message_type::recv,
-                                           neighbor_offsets[l],
-                                           crossing_periodic_boundary,
+                                           boundary_offset,
                                            halo_width, grid_dims);
 
       unpack_index_list_lengths[l] = (extent.i_max - extent.i_min) *

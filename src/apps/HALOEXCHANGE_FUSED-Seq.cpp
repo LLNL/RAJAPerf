@@ -36,7 +36,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         Index_type pack_index = 0;
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[send_tags[l]];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -60,7 +60,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         Index_type unpack_index = 0;
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[recv_tags[l]];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -100,7 +100,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         Index_type pack_index = 0;
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[send_tags[l]];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -122,7 +122,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         Index_type unpack_index = 0;
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[recv_tags[l]];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -186,7 +186,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[send_tags[l]];
           Int_ptr list = pack_index_lists[l];
           Index_type  len  = pack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
@@ -204,7 +204,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         worksite site_pack = group_pack.run();
 
         for (Index_type l = 0; l < num_neighbors; ++l) {
-          Real_ptr buffer = buffers[l];
+          Real_ptr buffer = buffers[recv_tags[l]];
           Int_ptr list = unpack_index_lists[l];
           Index_type  len  = unpack_index_list_lengths[l];
           for (Index_type v = 0; v < num_vars; ++v) {
