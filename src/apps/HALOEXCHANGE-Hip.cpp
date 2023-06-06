@@ -73,8 +73,8 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
           hipErrchk( hipGetLastError() );
           buffer += len;
         }
+        synchronize(stream);
       }
-      synchronize(stream);
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
@@ -117,8 +117,8 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
               haloexchange_pack_base_lam );
           buffer += len;
         }
+        res.wait();
       }
-      res.wait();
 
       for (Index_type l = 0; l < num_neighbors; ++l) {
         Real_ptr buffer = buffers[recv_tags[l]];
