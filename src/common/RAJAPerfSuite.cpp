@@ -87,6 +87,7 @@
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include "apps/MPI_HALOEXCHANGE.hpp"
+#include "apps/MPI_HALOEXCHANGE_FUSED.hpp"
 #endif
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
@@ -225,6 +226,7 @@ static const std::string KernelNames [] =
   std::string("Apps_HALOEXCHANGE_FUSED"),
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
   std::string("Apps_MPI_HALOEXCHANGE"),
+  std::string("Apps_MPI_HALOEXCHANGE_FUSED"),
 #endif
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
@@ -890,6 +892,10 @@ KernelBase* getKernelObject(KernelID kid,
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
     case Apps_MPI_HALOEXCHANGE : {
        kernel = new apps::MPI_HALOEXCHANGE(run_params);
+       break;
+    }
+    case Apps_MPI_HALOEXCHANGE_FUSED : {
+       kernel = new apps::MPI_HALOEXCHANGE_FUSED(run_params);
        break;
     }
 #endif
