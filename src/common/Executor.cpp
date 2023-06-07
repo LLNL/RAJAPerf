@@ -709,6 +709,13 @@ void Executor::reportRunSummary(ostream& str) const
     str << "\t Kernel rep factor = " << run_params.getRepFactor() << endl;
     str << "\t Output files will be named " << ofiles << endl;
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+    str << "\nRunning with " << run_params.getMPISize() << " MPI procs" << endl;
+    auto div3d = run_params.getMPI3DDivision();
+    const char* valid3d = run_params.validMPI3DDivision() ? "" : "invalid";
+    str << "\t 3D division = " << div3d[0] << " x " << div3d[1] << " x " << div3d[2] << " " << valid3d << endl;
+#endif
+
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
     str << "\nData Spaces"

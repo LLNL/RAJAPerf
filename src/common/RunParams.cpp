@@ -737,10 +737,51 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
   }
 
 #if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
+  // assumes number is >= 0
+  // returns {0} if number is 0
+  //         {1} if number is 1
+  //         {prime factors in non-decreasing order} otherwise
+  auto factorize = [](int number) {
+    std::vector<int> prime_factors;
+    int factor = 2;
+    while (factor <= std::sqrt(number)) {
+      int quotient = number / factor;
+      if (quotient * factor == number) {
+        prime_factors.emplace_back(factor);
+        number = quotient;
+      } else {
+        factor++;
+      }
+    }
+    prime_factors.emplace_back(number);
+    return prime_factors;
+  };
+
+  // Uses prime factors to set division
+  // to a relatively square grid
+  auto set_division = [](int* division, const int dims,
+                          std::vector<int> const& prime_factors) {
+    for (int d = 0; d < dims; ++d) {
+      division[d] = 1;
+    }
+
+    for (int factor : prime_factors) {
+
+      int min_d = 0;
+      for (int d = 1; d < dims; ++d) {
+        if (division[d] < division[min_d]) {
+          min_d = d;
+        }
+      }
+
+      division[min_d] *= factor;
+    }
+  };
+
   if (mpi_3d_division[0] == -1) {
-    mpi_3d_division[0] = std::ceil(std::cbrt(mpi_size));
-    mpi_3d_division[1] = mpi_3d_division[0];
-    mpi_3d_division[2] = mpi_3d_division[0];
+    std::vector<int> prime_factors = factorize(mpi_size);
+    set_division(mpi_3d_division.data(), 3, prime_factors);
   }
 #endif
 }
