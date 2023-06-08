@@ -26,6 +26,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <regex>
 #include <unordered_map>
 
 #include <iostream>
@@ -41,6 +42,16 @@
 namespace rajaperf {
 
 using namespace std;
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+vector<string> split(const string str, const string regex_str)
+{
+  regex regexz(regex_str);
+  vector<string> list(sregex_token_iterator(str.begin(), str.end(), regexz, -1),
+                                sregex_token_iterator());
+  return list;
+}
+#endif
 
 namespace {
 
@@ -105,6 +116,94 @@ Executor::Executor(int argc, char** argv)
     reference_vid(NumVariants),
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  struct configuration cc;
+  adiak::init(NULL);
+  adiak::user();
+  adiak::launchdate();
+  adiak::libraries();
+  adiak::cmdline();
+  adiak::clustername();
+  adiak::value("perfsuite_version", cc.adiak_perfsuite_version);
+  adiak::value("raja_version", cc.adiak_raja_version);
+  adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
+  adiak::value("cmake_cxx_flags", cc.adiak_cmake_cxx_flags);
+  adiak::value("cmake_exe_linker_flags", cc.adiak_cmake_exe_linker_flags);
+  adiak::value("rajaperf_compiler", cc.adiak_rajaperf_compiler);
+  adiak::value("rajaperf_compiler_options", cc.adiak_rajaperf_compiler_options);
+  adiak::value("compiler_version", cc.adiak_compiler_version);
+
+  auto tokens = split(cc.adiak_rajaperf_compiler, "/");
+  string compiler_exec = tokens.back();
+  string compiler = compiler_exec + "-" + cc.adiak_compiler_version;
+  cout << "Compiler: " << compiler << "\n";
+  adiak::value("compiler", compiler.c_str());
+  auto tsize = tokens.size();
+  if (tsize >= 3) {
+    // pickup path version <compiler-version-hash|date>/bin/exec
+    string path_version = tokens[tsize-3];
+    //cout << "Compiler path version: " << path_version << "\n";
+    auto s = split(path_version,"-");
+    if (s.size() >= 2) {
+      string path_version_short = s[0] + "-" + s[1];
+      //cout << "Compiler path version short: " << path_version_short << "\n";
+      adiak::value("Compiler_path_version",path_version_short.c_str());
+    } 
+  }
+
+  if (strlen(cc.adiak_cuda_compiler_version) > 0) {
+    adiak::value("cuda_compiler_version", cc.adiak_cuda_compiler_version);
+  }
+  if (strlen(cc.adiak_gpu_targets) > 0) {
+    adiak::value("gpu_targets", cc.adiak_gpu_targets);
+  }
+  if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
+    adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
+  }
+  if (strlen(cc.adiak_gpu_targets_block_sizes) > 0) {
+    adiak::value("gpu_targets_block_sizes", cc.adiak_gpu_targets_block_sizes);
+  }
+  if (strlen(cc.adiak_raja_hipcc_flags) > 0) {
+    adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
+  }
+  if (strlen(cc.adiak_mpi_cxx_compiler) > 0) {
+    adiak::value("mpi_cxx_compiler", cc.adiak_mpi_cxx_compiler);
+  }
+  if (strlen(cc.adiak_systype_build) > 0) {
+    adiak::value("systype_build", cc.adiak_systype_build);
+  }
+  if (strlen(cc.adiak_machine_build) > 0) {
+    adiak::value("machine_build", cc.adiak_machine_build);
+  }
+
+  adiak::value("ProblemSizeRunParam",(double)1.0);
+  adiak::value("SizeMeaning",run_params.SizeMeaningToStr(run_params.getSizeMeaning()).c_str());
+  if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
+    adiak::value("ProblemSizeRunParam",(double)run_params.getSizeFactor());
+  } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
+    adiak::value("ProblemSizeRunParam",(double)run_params.getSize());
+  }
+
+  // Openmp section
+#if defined(_OPENMP)
+  std::string strval = "";
+  std::string test = std::to_string(_OPENMP);
+
+  std::unordered_map<unsigned,std::string> map{
+    {200505,"2.5"},{200805,"3.0"},{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201611,"4.5"},{201811,"5.0"},{202011,"5.1"},{202111,"5.2"}};
+
+  try {
+    strval = map.at(_OPENMP);
+  } catch(...) {
+    strval="Version Not Detected";
+  }
+  std::cerr << "_OPENMP:" << test << " at version: " << strval << "\n";
+  adiak::value("omp_version",strval.c_str());
+  strval = std::to_string(omp_get_max_threads());
+  adiak::value("omp_max_threads",strval.c_str());
+#endif
+
+#endif
 }
 
 
@@ -113,6 +212,9 @@ Executor::~Executor()
   for (size_t ik = 0; ik < kernels.size(); ++ik) {
     delete kernels[ik];
   }
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  adiak::fini();
+#endif
 }
 
 
@@ -607,6 +709,11 @@ void Executor::setupSuite()
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
+      #if defined(RAJA_PERFSUITE_USE_CALIPER)
+          KernelBase::setCaliperMgrVariant(*vid,
+                                            run_params.getOutputDirName(),
+                                            run_params.getAddToSpotConfig());
+      #endif
       }
 
       //
@@ -932,7 +1039,13 @@ void Executor::runSuite()
 
     for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
       KernelBase* warmup_kernel = warmup_kernels[ik];
+      #if defined(RAJA_PERFSUITE_USE_CALIPER)
+        warmup_kernel->caliperOff();
+      #endif
       runKernel(warmup_kernel, true);
+      #if defined(RAJA_PERFSUITE_USE_CALIPER)
+        warmup_kernel->caliperOn();
+      #endif
       delete warmup_kernel;
       warmup_kernels[ik] = nullptr;
     }
@@ -954,6 +1067,10 @@ void Executor::runSuite()
 
   } // loop over passes through suite
 
+  #if defined(RAJA_PERFSUITE_USE_CALIPER)
+    // Flush Caliper data
+    KernelBase::setCaliperMgrFlush();
+  #endif
 }
 
 template < typename Kernel >
