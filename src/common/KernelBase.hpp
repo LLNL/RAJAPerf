@@ -39,7 +39,7 @@
     if (doCaliperTiming) { \
       std::string kstr = getName(); \
       std::string gstr = getGroupName(kstr); \
-      std::string vstr = getVariantName(running_variant); \
+      std::string vstr = "RAJAPerf"; \
       doOnceCaliMetaBegin(running_variant,running_tuning); \
       CALI_MARK_BEGIN(vstr.c_str()); \
       CALI_MARK_BEGIN(gstr.c_str()); \
@@ -50,7 +50,7 @@
     if (doCaliperTiming) { \
       std::string kstr = getName(); \
       std::string gstr = getGroupName(kstr); \
-      std::string vstr = getVariantName(running_variant); \
+      std::string vstr = "RAJAPerf"; \
       CALI_MARK_END(kstr.c_str()); \
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
