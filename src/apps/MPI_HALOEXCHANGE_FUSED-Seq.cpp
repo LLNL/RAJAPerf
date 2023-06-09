@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
 #include <iostream>
 
 namespace rajaperf
@@ -325,3 +327,5 @@ void MPI_HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
 } // end namespace apps
 } // end namespace rajaperf
+
+#endif

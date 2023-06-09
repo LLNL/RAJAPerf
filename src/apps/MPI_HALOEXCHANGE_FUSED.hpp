@@ -112,6 +112,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
 namespace rajaperf
 {
 namespace apps
@@ -159,4 +161,5 @@ private:
 } // end namespace apps
 } // end namespace rajaperf
 
+#endif
 #endif // closing endif for header file include guard

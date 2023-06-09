@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_CUDA)
+#if defined(RAJA_ENABLE_CUDA) && defined(RAJA_ENABLE_TARGET_OPENMP)
 
 #include "common/CudaDataUtils.hpp"
 

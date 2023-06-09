@@ -10,6 +10,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
+
 #include <cmath>
 
 namespace rajaperf
@@ -115,3 +117,5 @@ void MPI_HALOEXCHANGE_FUSED::tearDown(VariantID vid, size_t tune_idx)
 
 } // end namespace apps
 } // end namespace rajaperf
+
+#endif

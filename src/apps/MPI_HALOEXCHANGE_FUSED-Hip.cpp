@@ -10,7 +10,7 @@
 
 #include "RAJA/RAJA.hpp"
 
-#if defined(RAJA_ENABLE_HIP)
+#if defined(RAJA_ENABLE_HIP) && defined(RAJA_ENABLE_TARGET_OPENMP)
 
 #include "common/HipDataUtils.hpp"
 
