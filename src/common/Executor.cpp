@@ -612,6 +612,9 @@ void Executor::setupSuite()
       //
       // Make a single ordering of tuning names for each variant across kernels.
       //
+
+      // Determine which tunings to execute from input.
+      const Svector& selected_tuning_names = run_params.getTuningInput();
       for (VariantID vid : variant_ids) {
         std::unordered_map<std::string, size_t> tuning_names_order_map;
         for (const KernelBase* kernel : kernels) {
@@ -619,11 +622,19 @@ void Executor::setupSuite()
                kernel->getVariantTuningNames(vid)) {
             if (tuning_names_order_map.find(tuning_name) ==
                 tuning_names_order_map.end()) {
-              tuning_names_order_map.emplace(
-                  tuning_name, tuning_names_order_map.size());
+              if (selected_tuning_names.size() == 0 || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) {
+                tuning_names_order_map.emplace(
+                    tuning_name, tuning_names_order_map.size());
+              }
             }
           }
         }
+        // Add tunings to metadata
+        std::vector<std::string> final_tunings;
+        for (const auto &key: tuning_names_order_map) {
+          final_tunings.push_back(key.first);
+        }
+        adiak::value("tunings", final_tunings);
         tuning_names[vid].resize(tuning_names_order_map.size());
         for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
           tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
