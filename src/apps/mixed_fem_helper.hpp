@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#pragma once
+#ifndef MIXED_FEM_HELPER
+#define MIXED_FEM_HELPER
 
 #include "RAJA/RAJA.hpp"
 
@@ -937,3 +938,5 @@ constexpr void transform_face_basis(
     basisx, basisy, basisz,
     tbasisx, tbasisy, tbasisz);
 }
+
+#endif
