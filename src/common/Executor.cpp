@@ -615,6 +615,7 @@ void Executor::setupSuite()
 
       // Determine which tunings to execute from input.
       const Svector& selected_tuning_names = run_params.getTuningInput();
+      const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
       for (VariantID vid : variant_ids) {
         std::unordered_map<std::string, size_t> tuning_names_order_map;
         for (const KernelBase* kernel : kernels) {
@@ -622,9 +623,11 @@ void Executor::setupSuite()
                kernel->getVariantTuningNames(vid)) {
             if (tuning_names_order_map.find(tuning_name) ==
                 tuning_names_order_map.end()) {
-              if (selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) {
-                tuning_names_order_map.emplace(
-                    tuning_name, tuning_names_order_map.size());
+              if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
+                    &&
+                  find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exlusion list
+                    tuning_names_order_map.emplace(
+                        tuning_name, tuning_names_order_map.size()); // Add tuning name to map
               }
             }
           }

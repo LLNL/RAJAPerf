@@ -49,6 +49,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_exclude_variant_input(),
    tuning_input(),
    invalid_tuning_input(),
+   exclude_tuning_input(),
+   invalid_exclude_tuning_input(),
    feature_input(),
    invalid_feature_input(),
    exclude_feature_input(),
@@ -165,6 +167,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_tuning_input = ";
   for (size_t j = 0; j < invalid_tuning_input.size(); ++j) {
     str << "\n\t" << invalid_tuning_input[j];
+  }
+
+  str << "\n exclude_tuning_input = ";
+  for (size_t j = 0; j < exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << exclude_tuning_input[j];
+  }
+  str << "\n invalid_exclude_tuning_input = ";
+  for (size_t j = 0; j < invalid_exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_tuning_input[j];
   }
 
   str << "\n feature_input = ";
@@ -557,6 +568,22 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
           done = true;
         } else {
           tuning_input.push_back(opt);
+          ++i;
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--exclude-tunings") ||
+                std::string(argv[i]) == std::string("-et") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_tuning_input.push_back(opt);
           ++i;
         }
       }
