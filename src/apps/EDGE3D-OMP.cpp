@@ -30,9 +30,10 @@ void EDGE3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   EDGE3D_DATA_SETUP;
 
-  auto edge3d_lam = [=](Index_type i) {
-                     EDGE3D_BODY;
-                   };
+  auto edge3d_lam =
+    [=](Index_type i) {
+      EDGE3D_BODY;
+    };
 
   switch ( vid ) {
 
