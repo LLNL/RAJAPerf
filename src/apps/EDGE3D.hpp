@@ -380,14 +380,15 @@ inline void edge_MpSmatrix(
   double Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
   double edge_matrix[EB][EB];\
   edge_MpSmatrix(X, Y, Z, 1.0, 1.0, 0.0, 1.0, NQ_1D, edge_matrix);\
-  sum[i] = 0.0;\
+  double local_sum = 0.0;\
   for (int m = 0; m < EB; m++) {\
     Real_type check = 0.0;\
     for (int p = 0; p < EB; p++) {\
       check += edge_matrix[m][p];\
     }\
-    sum[i] += check;\
-  }
+    local_sum += check;\
+  }\
+  sum[i] = local_sum;\
 
 #include "common/KernelBase.hpp"
 
