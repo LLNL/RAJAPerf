@@ -28,9 +28,11 @@ void VOL3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   VOL3D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto vol3d_lam = [=](Index_type i) {
                      VOL3D_BODY;
                    };
+#endif
 
   switch ( vid ) {
 
