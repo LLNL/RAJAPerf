@@ -43,12 +43,11 @@ EDGE3D::EDGE3D(const RunParams& params)
   constexpr size_t matrix_size = NB*NB;
   constexpr size_t basis_size = NB;
 
-  constexpr size_t reals_per_element =
-    2*NQ_1D + // quadrature size and weights
-    12*basis_size + // 3 basis, 3 tbasis, 3 dbasis, 3 tdbasis
-    matrix_size;
+  // touched data size, not actual number of stores and loads
+  // see VOL3D.cpp
+  setBytesPerRep( (1*sizeof(Real_type) + 0*sizeof(Real_type)) * getItsPerRep() +
+                  (0*sizeof(Real_type) + 3*sizeof(Real_type)) * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
 
-  // touched data size, not actual number of stores and loads ?
   setBytesPerRep( number_of_elements*reals_per_element*sizeof(Real_type) );
 
   // Only consider the operations in the innermost loop
