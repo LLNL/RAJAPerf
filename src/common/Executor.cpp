@@ -622,7 +622,7 @@ void Executor::setupSuite()
                kernel->getVariantTuningNames(vid)) {
             if (tuning_names_order_map.find(tuning_name) ==
                 tuning_names_order_map.end()) {
-              if (selected_tuning_names.size() == 0 || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) {
+              if (selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) {
                 tuning_names_order_map.emplace(
                     tuning_name, tuning_names_order_map.size());
               }
