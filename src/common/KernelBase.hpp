@@ -72,12 +72,7 @@ public:
 
   void setVariantDefined(VariantID vid);
   void addVariantTuningName(VariantID vid, std::string name)
-  { // Sub-select tuning from command line argument
-    const std::vector<std::string>& selected_tuning_names = run_params.getTuningInput();
-    if (selected_tuning_names.empty() || std::find(selected_tuning_names.begin(), selected_tuning_names.end(), name) != selected_tuning_names.end()) {
-      variant_tuning_names[vid].emplace_back(std::move(name));
-    }
-  }
+  { variant_tuning_names[vid].emplace_back(std::move(name)); }
 
   virtual void setSeqTuningDefinitions(VariantID vid)
   { addVariantTuningName(vid, getDefaultTuningName()); }
