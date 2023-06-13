@@ -53,27 +53,7 @@ void EDGE3D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tu
                                        sum) device( did )
       #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
       for (Index_type i = ibegin ; i < iend ; ++i ) {
-        edge3d_lam(i);
-      }
-
-    }
-    stopTimer();
-
-  } else if ( vid == Lambda_OpenMPTarget ) {
-
-    EDGE3D_DATA_SETUP_OMP_TARGET;
-
-    startTimer();
-    for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
-
-      #pragma omp target is_device_ptr(x0,x1,x2,x3,x4,x5,x6,x7, \
-                                       y0,y1,y2,y3,y4,y5,y6,y7, \
-                                       z0,z1,z2,z3,z4,z5,z6,z7, \
-                                       sum) device( did )
-      #pragma omp teams distribute parallel for thread_limit(threads_per_team) schedule(static, 1)
-      for (Index_type i = ibegin ; i < iend ; ++i ) {
         EDGE3D_BODY;
-
       }
 
     }
