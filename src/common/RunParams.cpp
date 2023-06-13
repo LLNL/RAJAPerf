@@ -804,6 +804,21 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
+  str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
+      << "\t      (names of tunings to run)\n"
+      << "\t      Note: knowing which tunings are available requires knowledge about the variants,\n"
+      << "\t      since available tunings depend on the given variant (and potentially other args).\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --tunings default (run all default tunings)\n"
+      << "\t\t -t default block_128 (run default and block_128 tunings)\n\n";
+
+  str << "\t --exclude-tunings, -et <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of tunings to exclude)\n"
+      << "\t      See --tunings for more information.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-tunings library (exclude all library tunings)\n"
+      << "\t\t -et default library (exclude default and library tunings)\n\n";
+
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (names of data space to use)\n";
   str << "\t\t Examples...\n"
