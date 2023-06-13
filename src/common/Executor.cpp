@@ -625,7 +625,7 @@ void Executor::setupSuite()
                 tuning_names_order_map.end()) {
               if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
                     &&
-                  find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exlusion list
+                  find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exclusion list
                     tuning_names_order_map.emplace(
                         tuning_name, tuning_names_order_map.size()); // Add tuning name to map
               }
