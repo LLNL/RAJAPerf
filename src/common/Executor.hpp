@@ -17,6 +17,7 @@
 #include <memory>
 #include <utility>
 #include <set>
+#include <unordered_map>
 
 namespace rajaperf {
 
@@ -86,6 +87,7 @@ private:
   std::vector<KernelBase*> kernels;
   std::vector<VariantID>   variant_ids;
   std::vector<std::string> tuning_names[NumVariants];
+  std::unordered_map<std::string, size_t> tuning_names_order_map;
 
   VariantID reference_vid;
   size_t    reference_tune_idx;
