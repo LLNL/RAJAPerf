@@ -184,6 +184,10 @@ Executor::Executor(int argc, char** argv)
     adiak::value("ProblemSizeRunParam",(double)run_params.getSize());
   }
 
+  if (run_params.numValidGPUBlockSize() > 0) {
+    adiak::value("runtime_gpu_block_sizes", run_params.getGPUBlockSizeInput());
+  }
+
   // Openmp section
 #if defined(_OPENMP)
   std::string strval = "";

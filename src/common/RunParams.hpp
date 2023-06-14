@@ -151,6 +151,9 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
+  const std::vector<size_t>& getGPUBlockSizeInput() const
+                                  { return gpu_block_sizes; }
+
   const std::vector<std::string>& getKernelInput() const
                                   { return kernel_input; }
   void setInvalidKernelInput( std::vector<std::string>& svec )
