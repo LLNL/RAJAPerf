@@ -626,7 +626,7 @@ void Executor::setupSuite()
       }
       // Check for invalid tuning input
       Svector invalid;
-      for (string tuning_name: selected_tuning_names) {
+      for (string const& tuning_name: selected_tuning_names) {
         if (all_tunings.find(tuning_name) == all_tunings.end()) {
           invalid.push_back(tuning_name);
         }
@@ -634,7 +634,7 @@ void Executor::setupSuite()
       run_params.setInvalidTuningInput(invalid);
       // Check for invalid exclude tuning input
       invalid.clear();
-      for (string tuning_name: excluded_tuning_names) {
+      for (string const& tuning_name: excluded_tuning_names) {
         if (all_tunings.find(tuning_name) == all_tunings.end()) {
           invalid.push_back(tuning_name);
         }
