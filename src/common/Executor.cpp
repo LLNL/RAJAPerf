@@ -26,7 +26,6 @@
 #include <list>
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 #include <iostream>
 #include <iomanip>
@@ -649,7 +648,6 @@ void Executor::setupSuite()
 
       if (run_params.getInputState() != RunParams::BadInput) { // If tunings input is valid
         for (VariantID vid : variant_ids) {
-          std::unordered_map<std::string, size_t> tuning_names_order_map;
           for (const KernelBase* kernel : kernels) {
             for (std::string const& tuning_name :
                 kernel->getVariantTuningNames(vid)) {
@@ -970,22 +968,28 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 
     if ( run_params.showProgress() ) {
       if ( kernel->hasVariantDefined(vid) ) {
-        getCout() << "   Running ";
+        getCout() << "\tRunning ";
       } else {
-        getCout() << "   No ";
+        getCout() << "\tNo ";
       }
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
     for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
-
-      if ( run_params.showProgress() ) {
-        getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
+      std::string tuning_name = kernel->getVariantTuningName(vid, tune_idx);
+      if (tuning_names_order_map.find(tuning_name) != tuning_names_order_map.end()) { // Check if valid tuning
+        if ( run_params.showProgress() ) {
+          getCout() << "\t\tRunning "
+                    << tuning_name << " tuning";
+        }
+        kernel->execute(vid, tune_idx); // Execute kernel
+        if ( run_params.showProgress() ) {
+          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+        }
       }
-      kernel->execute(vid, tune_idx);
-      if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+      else {
+        getCout() << "\t\tNo "
+                  << tuning_name << " tuning" << endl;
       }
     }
   } // loop over variants
