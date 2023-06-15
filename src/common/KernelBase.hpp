@@ -398,7 +398,8 @@ public:
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
   static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, 
-                                   const std::string& addToConfig)
+                                   const std::string& addToConfig,
+                                   const std::vector<std::string>& tuning_input)
   {
     static bool ran_spot_config_check = false;
     bool config_ok = true;
@@ -532,7 +533,11 @@ public:
         od = outdir + "/";
       }
       std::string vstr = getVariantName(vid);
-      std::string profile = "spot(output=" + od + vstr + ".cali)";
+      std::string tstr = "";
+      if (tuning_input.size() == 1) { // If only 1 tuning, add to file name
+        tstr = "-" + tuning_input.front();
+      }
+      std::string profile = "spot(output=" + od + vstr + tstr + ".cali)";
       if(!addToConfig.empty()) {
         profile += "," + addToConfig;
       }

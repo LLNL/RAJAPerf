@@ -716,7 +716,8 @@ void Executor::setupSuite()
       #if defined(RAJA_PERFSUITE_USE_CALIPER)
           KernelBase::setCaliperMgrVariant(*vid,
                                             run_params.getOutputDirName(),
-                                            run_params.getAddToSpotConfig());
+                                            run_params.getAddToSpotConfig(),
+                                            run_params.getTuningInput());
       #endif
       }
 
