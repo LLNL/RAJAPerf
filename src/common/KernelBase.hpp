@@ -40,7 +40,7 @@
       std::string kstr = getName(); \
       std::string gstr = getGroupName(kstr); \
       std::string vstr = "RAJAPerf"; \
-      doOnceCaliMetaBegin(running_variant,running_tuning); \
+      CaliMeta(); \
       CALI_MARK_BEGIN(vstr.c_str()); \
       CALI_MARK_BEGIN(gstr.c_str()); \
       CALI_MARK_BEGIN(kstr.c_str()); \
@@ -54,7 +54,6 @@
       CALI_MARK_END(kstr.c_str()); \
       CALI_MARK_END(gstr.c_str()); \
       CALI_MARK_END(vstr.c_str()); \
-      doOnceCaliMetaEnd(running_variant,running_tuning); \
     }
 
 #else
@@ -395,8 +394,7 @@ public:
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   void caliperOn() { doCaliperTiming = true; }
   void caliperOff() { doCaliperTiming = false; }
-  void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
-  void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
+  void CaliMeta();
   static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, 
                                    const std::string& addToConfig,
                                    const std::vector<std::string>& tuning_input)
@@ -626,7 +624,6 @@ private:
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   bool doCaliperTiming = true; // warmup can use this to exclude timing
-  std::vector<bool> doCaliMetaOnce[NumVariants];
   cali_id_t ProblemSize_attr; // in ctor cali_create_attribute("ProblemSize",CALI_TYPE_DOUBLE,CALI_ATTR_ASVALUE | CALI_ATTR_AGGREGATABLE | CALI_ATTR_SKIP_EVENTS);
   cali_id_t Reps_attr;
   cali_id_t Iters_Rep_attr;
