@@ -1072,10 +1072,6 @@ void Executor::runSuite()
 
   } // loop over passes through suite
 
-  #if defined(RAJA_PERFSUITE_USE_CALIPER)
-    // Flush Caliper data
-    KernelBase::setCaliperMgrFlush();
-  #endif
 }
 
 template < typename Kernel >
@@ -1117,6 +1113,9 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
     }
+    #if defined(RAJA_PERFSUITE_USE_CALIPER)
+      KernelBase::setCaliperMgrFlush(getVariantName(vid));
+    #endif
   } // loop over variants
 }
 

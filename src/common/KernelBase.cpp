@@ -273,7 +273,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    KernelBase::setCaliperMgrStart(vid);
+    KernelBase::setCaliperMgrStart();
   }
 #endif
 
@@ -349,7 +349,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
   }
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    setCaliperMgrStop(vid); 
+    setCaliperMgrStop();
   }
 #endif
 }
@@ -434,7 +434,7 @@ void KernelBase::CaliMeta()
   cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
 }
 
-// initialize a KernelBase static 
-std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
+// initialize a KernelBase static
+cali::ConfigManager KernelBase::mgr;
 #endif
 }  // closing brace for rajaperf namespace

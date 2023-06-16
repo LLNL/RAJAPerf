@@ -524,8 +524,6 @@ public:
     }
 
     if(config_ok) {
-      cali::ConfigManager m;
-      mgr.insert(std::make_pair(vid, m));
       std::string od("./");
       if (outdir.size()) {
         od = outdir + "/";
@@ -540,33 +538,28 @@ public:
         profile += "," + addToConfig;
       }
       std::cout << "Profile: " << profile << std::endl;
-      mgr[vid].add_option_spec(problem_size_json_spec.c_str());
-      mgr[vid].set_default_parameter("problem_size", "true");
-      mgr[vid].add_option_spec(reps_json_spec.c_str());
-      mgr[vid].set_default_parameter("reps", "true");
-      mgr[vid].add_option_spec(iters_json_spec.c_str());
-      mgr[vid].set_default_parameter("iters_p_rep", "true");
-      mgr[vid].add_option_spec(kernels_json_spec.c_str());
-      mgr[vid].set_default_parameter("kernels_p_rep", "true");
-      mgr[vid].add_option_spec(bytes_json_spec.c_str());
-      mgr[vid].set_default_parameter("bytes_p_rep", "true");
-      mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
-      mgr[vid].set_default_parameter("flops_p_rep", "true");
-      mgr[vid].add(profile.c_str());
+      mgr.add_option_spec(problem_size_json_spec.c_str());
+      mgr.set_default_parameter("problem_size", "true");
+      mgr.add_option_spec(reps_json_spec.c_str());
+      mgr.set_default_parameter("reps", "true");
+      mgr.add_option_spec(iters_json_spec.c_str());
+      mgr.set_default_parameter("iters_p_rep", "true");
+      mgr.add_option_spec(kernels_json_spec.c_str());
+      mgr.set_default_parameter("kernels_p_rep", "true");
+      mgr.add_option_spec(bytes_json_spec.c_str());
+      mgr.set_default_parameter("bytes_p_rep", "true");
+      mgr.add_option_spec(flops_rep_json_spec.c_str());
+      mgr.set_default_parameter("flops_p_rep", "true");
+      mgr.add(profile.c_str());
     }
   }
 
-  static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
-  static void setCaliperMgrStop(VariantID vid) { mgr[vid].stop(); }
-  static void setCaliperMgrFlush() 
-  { // we're going to flush all the variants at once
-    std::cout << "flushing " << mgr.size() << " variants\n";
-    for(auto const &kv : mgr) {
-      // set Adiak key first
-      std::string variant=getVariantName(kv.first);
-      adiak::value("variant",variant.c_str());
-      mgr[kv.first].flush(); 
-    }
+  static void setCaliperMgrStart() { mgr.start(); }
+  static void setCaliperMgrStop() { mgr.stop(); }
+  static void setCaliperMgrFlush(std::string variant_name)
+  {
+    adiak::value("variant",variant_name.c_str());
+    mgr.flush();
   }
 
   std::string getGroupName(const std::string &kname )
@@ -634,7 +627,7 @@ private:
 
       // we need a Caliper Manager object per variant
 // we can inline this with c++17
-  static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
+  static cali::ConfigManager mgr;
 #endif
 
   std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
