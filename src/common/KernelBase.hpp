@@ -98,6 +98,7 @@ public:
   void setKernelsPerRep(Index_type nkerns) { kernels_per_rep = nkerns; };
   void setBytesPerRep(Index_type bytes) { bytes_per_rep = bytes;}
   void setFLOPsPerRep(Index_type FLOPs) { FLOPs_per_rep = FLOPs; }
+  void setBlockSize(Index_type size) { kernel_block_size = size; }
 
   void setUsesFeature(FeatureID fid) { uses_feature[fid] = true; }
 
@@ -145,6 +146,7 @@ public:
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
+  Index_type getBlockSize() const { return kernel_block_size; }
 
   Index_type getTargetProblemSize() const;
   Index_type getRunReps() const;
@@ -508,6 +510,23 @@ public:
         ]
     }
 )json";
+    const std::string block_size_json_spec = R"json(
+    {
+        "name"        : "block_size",
+        "type"        : "boolean",
+        "category"    : "metric",
+        "description" : "block size",
+        "query" :
+        [
+            { "level"    : "local",
+              "select": { "expr": "any(max#BlockSize)", "as": "BlockSize" },
+            },
+            { "level"    : "cross",
+              "select": { "expr": "any(any#max#BlockSize)", "as": "BlockSize" },
+            }
+        ]
+    }
+)json";
 
     if(!ran_spot_config_check && (!addToConfig.empty())) {
       cali::ConfigManager cm;
@@ -550,6 +569,8 @@ public:
       mgr.set_default_parameter("bytes_p_rep", "true");
       mgr.add_option_spec(flops_rep_json_spec.c_str());
       mgr.set_default_parameter("flops_p_rep", "true");
+      mgr.add_option_spec(block_size_json_spec.c_str());
+      mgr.set_default_parameter("block_size", "true");
       mgr.add(profile.c_str());
     }
   }
@@ -607,6 +628,7 @@ private:
   Index_type kernels_per_rep;
   Index_type bytes_per_rep;
   Index_type FLOPs_per_rep;
+  Index_type kernel_block_size;
 
   VariantID running_variant;
   size_t running_tuning;
@@ -623,6 +645,7 @@ private:
   cali_id_t Kernels_Rep_attr;
   cali_id_t Bytes_Rep_attr;
   cali_id_t Flops_Rep_attr;
+  cali_id_t BlockSize_attr;
 
 
       // we need a Caliper Manager object per variant
