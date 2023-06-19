@@ -22,23 +22,23 @@ import subprocess
 #sys.path.insert(0, os.path.abspath('_exts'))
 
 # Call doxygen in ReadtheDocs
-#read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
-#if read_the_docs_build:
-#    # Generate an RST file for Doxygen index, this is replaced by the real
-#    # index.html by hooking into the Sphinx build-finished event at the bottom of
-#    # this file
-#    cwd=os.getcwd()
-#    fpath=os.path.join(cwd,"doxygen/html")
-#    if (os.path.isdir(fpath) == 0):
-#        os.makedirs(fpath)
-#    with open(os.path.join(fpath,"index.rst"), 'w') as f:
-#        print("Writing file {}", f)
-#        f.write(".. _doxygen:\n")
-#        f.write("\n")
-#        f.write("*******\n")
-#        f.write("Doxygen\n")
-#        f.write("*******\n")
-#
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs_build:
+    # Generate an RST file for Doxygen index, this is replaced by the real
+    # index.html by hooking into the Sphinx build-finished event at the bottom of
+    # this file
+    cwd=os.getcwd()
+    fpath=os.path.join(cwd,"doxygen/html")
+    if (os.path.isdir(fpath) == 0):
+        os.makedirs(fpath)
+    with open(os.path.join(fpath,"index.rst"), 'w') as f:
+        print("Writing file {}", f)
+        f.write(".. _doxygen:\n")
+        f.write("\n")
+        f.write("*******\n")
+        f.write("Doxygen\n")
+        f.write("*******\n")
+
 # Get current directory
 conf_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -332,20 +332,20 @@ texinfo_documents = [
 
 # Generate Doxygen, and overwrite the index.rst in doxygen/html
 # Only do this on readthedocs
-#def gendoxy(app, exception):
-#    if read_the_docs_build:
-#        buildpath=os.path.join(conf_directory,"_build/html/doxygen/html")
-#        if (os.path.isdir(buildpath) == 0):
-#            os.makedirs(buildpath)
-#
-#        if (os.path.exists(os.path.join(buildpath, 'index.html"'))):
-#            print("Removing existing index.html")
-#            os.remove(os.path.join(buildpath, "index.html"))
-#
-#        # Call doxygen
-#        from subprocess import call
-#        call(['doxygen', "./doxygen/Doxyfile"])
-#
-#
-#def setup(app):
-#    app.connect('build-finished', gendoxy)
+def gendoxy(app, exception):
+    if read_the_docs_build:
+        buildpath=os.path.join(conf_directory,"_build/html/doxygen/html")
+        if (os.path.isdir(buildpath) == 0):
+            os.makedirs(buildpath)
+
+        if (os.path.exists(os.path.join(buildpath, 'index.html"'))):
+            print("Removing existing index.html")
+            os.remove(os.path.join(buildpath, "index.html"))
+
+        # Call doxygen
+        from subprocess import call
+        call(['doxygen', "./doxygen/Doxyfile"])
+
+
+def setup(app):
+    app.connect('build-finished', gendoxy)
