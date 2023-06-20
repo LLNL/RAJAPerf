@@ -976,7 +976,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
     }
 
     for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
-      std::string tuning_name = kernel->getVariantTuningName(vid, tune_idx);
+      std::string const& tuning_name = kernel->getVariantTuningName(vid, tune_idx);
       if (tuning_names_order_map.find(tuning_name) != tuning_names_order_map.end()) { // Check if valid tuning
         if ( run_params.showProgress() ) {
           getCout() << "\t\tRunning "
