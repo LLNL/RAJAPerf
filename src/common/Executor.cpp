@@ -988,7 +988,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         }
       }
       else {
-        getCout() << "\t\tNo "
+        getCout() << "\t\tSkipping "
                   << tuning_name << " tuning" << endl;
       }
     }
