@@ -94,7 +94,7 @@ void INIT_VIEW1D_OFFSET::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D_OFFSET, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT_VIEW1D_OFFSET, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf
