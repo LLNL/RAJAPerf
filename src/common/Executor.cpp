@@ -665,14 +665,15 @@ void Executor::setupSuite()
             }
           }
 
-          std::vector<std::string> final_tunings;
-          for (const auto &key: tuning_names_order_map) {
-            final_tunings.push_back(key.first);
-          }
           // Add tunings to metadata
           #if defined(RAJA_PERFSUITE_USE_CALIPER)
+            std::vector<std::string> final_tunings;
+            for (const auto &key: tuning_names_order_map) {
+              final_tunings.push_back(key.first);
+            }
             adiak::value("tunings", final_tunings);
           #endif
+
           tuning_names[vid].resize(tuning_names_order_map.size());
           for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
             tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
