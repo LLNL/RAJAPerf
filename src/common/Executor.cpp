@@ -665,15 +665,6 @@ void Executor::setupSuite()
             }
           }
 
-          // Add tunings to metadata
-          #if defined(RAJA_PERFSUITE_USE_CALIPER)
-            std::vector<std::string> final_tunings;
-            for (const auto &key: tuning_names_order_map) {
-              final_tunings.push_back(key.first);
-            }
-            adiak::value("tunings", final_tunings);
-          #endif
-
           tuning_names[vid].resize(tuning_names_order_map.size());
           for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
             tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
@@ -687,6 +678,17 @@ void Executor::setupSuite()
             tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
           }
         }
+
+        // Add tunings to Adiak metadata
+        #if defined(RAJA_PERFSUITE_USE_CALIPER)
+          std::set<std::string> tunings_set;
+          for (VariantID vid : variant_ids) {
+            for (std::string const& tuning_name : tuning_names[vid]) {
+              tunings_set.emplace(tuning_name);
+            }
+          }
+          adiak::value("tunings", tunings_set);
+        #endif
 
         //
         // If we've gotten to this point, we have good input to run.
