@@ -984,8 +984,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
       std::string const& tuning_name = kernel->getVariantTuningName(vid, tune_idx);
       if (find(tuning_names[vid].begin(), tuning_names[vid].end(), tuning_name) != tuning_names[vid].end()) { // Check if valid tuning
         if ( run_params.showProgress() ) {
-          getCout() << "\t\tRunning "
-                    << tuning_name << " tuning";
+          getCout() << "\t\tRunning " << tuning_name << " tuning";
         }
         kernel->execute(vid, tune_idx); // Execute kernel
         if ( run_params.showProgress() ) {
@@ -993,8 +992,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         }
       }
       else {
-        getCout() << "\t\tSkipping "
-                  << tuning_name << " tuning" << endl;
+        getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
     }
   } // loop over variants
