@@ -146,7 +146,7 @@ public:
   Index_type getKernelsPerRep() const { return kernels_per_rep; };
   Index_type getBytesPerRep() const { return bytes_per_rep; }
   Index_type getFLOPsPerRep() const { return FLOPs_per_rep; }
-  Index_type getBlockSize() const { return kernel_block_size; }
+  double getBlockSize() const { return kernel_block_size; }
 
   Index_type getTargetProblemSize() const;
   Index_type getRunReps() const;
@@ -628,7 +628,7 @@ private:
   Index_type kernels_per_rep;
   Index_type bytes_per_rep;
   Index_type FLOPs_per_rep;
-  Index_type kernel_block_size;
+  double kernel_block_size = nan(""); // Set default value for non GPU kernels
 
   VariantID running_variant;
   size_t running_tuning;

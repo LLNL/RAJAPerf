@@ -72,7 +72,7 @@ KernelBase::KernelBase(KernelID kid, const RunParams& params)
                                          CALI_ATTR_ASVALUE | 
                                          CALI_ATTR_AGGREGATABLE | 
                                          CALI_ATTR_SKIP_EVENTS);
-  BlockSize_attr = cali_create_attribute("BlockSize", CALI_TYPE_INT,
+  BlockSize_attr = cali_create_attribute("BlockSize", CALI_TYPE_DOUBLE,
                                            CALI_ATTR_ASVALUE |
                                            CALI_ATTR_AGGREGATABLE |
                                            CALI_ATTR_SKIP_EVENTS);
@@ -436,7 +436,9 @@ void KernelBase::CaliMeta()
   cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
   cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
   cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
-  cali_set_int(BlockSize_attr, (int)getBlockSize());
+  double const block_size = getBlockSize();
+  if (!isnan(block_size))
+    cali_set_double(BlockSize_attr, block_size);
 }
 
 // initialize a KernelBase static
