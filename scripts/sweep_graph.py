@@ -2111,31 +2111,36 @@ def main(argv):
          raise NameError("Ran out of sweep markers for {}".format(sweep_dir_name))
       Data.sweep_markers[sweep_index] = g_markers[sweep_index]
 
+      ordered_sweep_subdir_names = []
       for r0,sweep_subdir_names,f0 in os.walk(sweep_dir_path):
          for sweep_subdir_name in sweep_subdir_names:
-            sweep_subdir_path = os.path.join(sweep_dir_path, sweep_subdir_name)
-            # print(sweep_dir_name, sweep_subdir_path)
+            ordered_sweep_subdir_names.append(sweep_subdir_name);
+      ordered_sweep_subdir_names.sort()
 
-            run_size_name = get_size_from_dir_name(sweep_subdir_name)
+      for sweep_subdir_name in ordered_sweep_subdir_names:
+         sweep_subdir_path = os.path.join(sweep_dir_path, sweep_subdir_name)
+         # print(sweep_dir_name, sweep_subdir_path)
 
-            if not run_size_name in Data.run_sizes:
-               Data.add_run_size(run_size_name)
-            run_size_index = Data.run_sizes[run_size_name]
+         run_size_name = get_size_from_dir_name(sweep_subdir_name)
 
-            sweep_subdir_timing_file_path = ""
-            sweep_subdir_runinfo_file_path = ""
-            for r1,d1,sweep_subdir_file_names in os.walk(sweep_subdir_path):
-               for sweep_subdir_file_name in sweep_subdir_file_names:
-                  sweep_subdir_file_path = os.path.join(sweep_subdir_path, sweep_subdir_file_name)
-                  if sweep_subdir_file_name == timing_filename:
-                     sweep_subdir_timing_file_path = sweep_subdir_file_path
-                  elif sweep_subdir_file_name == runinfo_filename:
-                     sweep_subdir_runinfo_file_path = sweep_subdir_file_path
+         if not run_size_name in Data.run_sizes:
+            Data.add_run_size(run_size_name)
+         run_size_index = Data.run_sizes[run_size_name]
 
-            if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
-               # print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
-               read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
-               read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
+         sweep_subdir_timing_file_path = ""
+         sweep_subdir_runinfo_file_path = ""
+         for r1,d1,sweep_subdir_file_names in os.walk(sweep_subdir_path):
+            for sweep_subdir_file_name in sweep_subdir_file_names:
+               sweep_subdir_file_path = os.path.join(sweep_subdir_path, sweep_subdir_file_name)
+               if sweep_subdir_file_name == timing_filename:
+                  sweep_subdir_timing_file_path = sweep_subdir_file_path
+               elif sweep_subdir_file_name == runinfo_filename:
+                  sweep_subdir_runinfo_file_path = sweep_subdir_file_path
+
+         if sweep_subdir_timing_file_path != "" and sweep_subdir_runinfo_file_path != "":
+            # print(sweep_subdir_timing_file_path, sweep_subdir_runinfo_file_path)
+            read_runinfo_file(sweep_index, sweep_subdir_runinfo_file_path, run_size_index)
+            read_timing_file(sweep_index, sweep_subdir_timing_file_path, run_size_index)
 
    kinds_string = ""
    for kindTree in Data.kinds.values():
