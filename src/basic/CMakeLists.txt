@@ -8,7 +8,13 @@
 
 blt_add_library(
   NAME basic
-  SOURCES DAXPY.cpp
+  SOURCES COPY8.cpp
+          COPY8-Seq.cpp
+          COPY8-Hip.cpp
+          COPY8-Cuda.cpp
+          COPY8-OMP.cpp
+          COPY8-OMPTarget.cpp
+          DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp
           DAXPY-Cuda.cpp
