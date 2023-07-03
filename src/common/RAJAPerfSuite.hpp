@@ -144,6 +144,7 @@ enum KernelID {
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
+  Apps_ZONAL_ACCUMULATION_3D,
 
 //
 // Algorithm kernels...
