@@ -97,21 +97,9 @@
   D[qx + MEA_Q1D * qy + MEA_Q1D * MEA_Q1D * qz +                               \
     MEA_Q1D * MEA_Q1D * MEA_Q1D * e]
 
-#define MASS3DEA_0_CPU double s_B[MEA_Q1D][MEA_D1D];
-
-#define MASS3DEA_0_GPU __shared__ double s_B[MEA_Q1D][MEA_D1D];
-
 #define MASS3DEA_0 RAJA_TEAM_SHARED double s_B[MEA_Q1D][MEA_D1D];
 
 #define MASS3DEA_1 s_B[q][d] = B_MEA_(q, d);
-
-#define MASS3DEA_2_CPU                                                         \
-  double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                             \
-  double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
-
-#define MASS3DEA_2_GPU                                                         \
-  double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                             \
-  __shared__ double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
 
 #define MASS3DEA_2                                                             \
   double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                             \

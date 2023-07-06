@@ -25,7 +25,7 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
 
   const int e = blockIdx.x;
 
-  MASS3DEA_0_GPU
+  MASS3DEA_0
 
   GPU_FOREACH_THREAD(iz, z, 1) {
     GPU_FOREACH_THREAD(d, x, MEA_D1D) {
@@ -35,7 +35,7 @@ __global__ void Mass3DEA(const Real_ptr B, const Real_ptr D, Real_ptr M) {
     }
   }
 
-  MASS3DEA_2_GPU
+  MASS3DEA_2
 
   GPU_FOREACH_THREAD(k1, x, MEA_Q1D) {
     GPU_FOREACH_THREAD(k2, y, MEA_Q1D) {

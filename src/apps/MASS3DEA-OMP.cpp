@@ -36,7 +36,7 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 #pragma omp parallel for
       for (int e = 0; e < NE; ++e) {
 
-        MASS3DEA_0_CPU
+        MASS3DEA_0
 
         CPU_FOREACH(iz, z, 1) {
           CPU_FOREACH(d, x, MEA_D1D) {
@@ -46,7 +46,7 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
           }
         }
 
-        MASS3DEA_2_CPU
+        MASS3DEA_2
 
         CPU_FOREACH(k1, x, MEA_Q1D) {
           CPU_FOREACH(k2, y, MEA_Q1D) {
@@ -95,7 +95,7 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
           RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
-              MASS3DEA_0_CPU
+              MASS3DEA_0
 
               RAJA::loop<inner_z>(ctx, RAJA::RangeSegment(0, 1),
                 [&](int ) {
@@ -113,7 +113,7 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
               ctx.teamSync();
 
-              MASS3DEA_2_CPU
+              MASS3DEA_2
 
               RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
                 [&](int k1) {
