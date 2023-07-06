@@ -69,7 +69,7 @@ void MASS3DEA::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   allocAndInitDataConst(m_B, int(MEA_Q1D*MEA_D1D), Real_type(1.0), vid);
   allocAndInitDataConst(m_D, int(MEA_Q1D*MEA_Q1D*MEA_Q1D*m_NE), Real_type(1.0), vid);
   allocAndInitDataConst(m_M, int(MEA_D1D*MEA_D1D*MEA_D1D*
-                                 MEA_D1D*MEA_D1D*MEA_D1D*m_NE), Real_type(1.0), vid);
+                                 MEA_D1D*MEA_D1D*MEA_D1D*m_NE), Real_type(0.0), vid);
 }
 
 void MASS3DEA::updateChecksum(VariantID vid, size_t tune_idx)

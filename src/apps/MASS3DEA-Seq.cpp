@@ -108,8 +108,6 @@ void MASS3DEA::runSeqVariant(VariantID vid,
                     }
                   ); // RAJA::loop<inner_z>
 
-                  ctx.teamSync();
-
                   MASS3DEA_2
 
                   RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_Q1D),
@@ -125,6 +123,8 @@ void MASS3DEA::runSeqVariant(VariantID vid,
                       ); // RAJA::loop<inner_y>
                     }
                   ); // RAJA::loop<inner_z>
+
+                  ctx.teamSync();
 
                   RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MEA_D1D),
                     [&](int i1) {
