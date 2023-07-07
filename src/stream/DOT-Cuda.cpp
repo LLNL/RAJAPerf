@@ -91,7 +91,8 @@ void DOT::runCudaVariantImpl(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size, res.get_stream()>>>(
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
+      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 

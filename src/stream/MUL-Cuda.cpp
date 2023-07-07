@@ -61,7 +61,8 @@ void MUL::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      mul<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( b, c, alpha,
+      constexpr size_t shmem = 0;
+      mul<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( b, c, alpha,
                                       iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -78,7 +79,8 @@ void MUL::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
+      constexpr size_t shmem = 0;
+      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         MUL_BODY;
       });

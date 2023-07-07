@@ -61,7 +61,8 @@ void COPY::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((copy<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((copy<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
           c, a, iend );
       hipErrchk( hipGetLastError() );
 
@@ -82,8 +83,9 @@ void COPY::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(copy_lambda)>),
-        grid_size, block_size, 0, res.get_stream(), ibegin, iend, copy_lambda);
+        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, copy_lambda);
       hipErrchk( hipGetLastError() );
 
     }
