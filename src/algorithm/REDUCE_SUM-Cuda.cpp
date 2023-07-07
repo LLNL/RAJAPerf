@@ -161,8 +161,9 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       reduce_sum<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size, res.get_stream()>>>( x,
+                  shmem, res.get_stream()>>>( x,
                                                    dsum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );

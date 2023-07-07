@@ -107,7 +107,8 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      memcpy<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
+      constexpr size_t shmem = 0;
+      memcpy<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
           x, y, iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -128,7 +129,8 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
+      constexpr size_t shmem = 0;
+      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
           ibegin, iend, memcpy_lambda );
       cudaErrchk( cudaGetLastError() );
 
