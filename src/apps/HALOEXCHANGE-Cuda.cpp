@@ -91,7 +91,8 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(buffer, list, var, len);
+          constexpr size_t shmem = 0;
+          haloexchange_pack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }
@@ -106,7 +107,8 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
           Real_ptr var = vars[v];
           dim3 nthreads_per_block(block_size);
           dim3 nblocks((len + block_size-1) / block_size);
-          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(buffer, list, var, len);
+          constexpr size_t shmem = 0;
+          haloexchange_unpack<block_size><<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(buffer, list, var, len);
           cudaErrchk( cudaGetLastError() );
           buffer += len;
         }

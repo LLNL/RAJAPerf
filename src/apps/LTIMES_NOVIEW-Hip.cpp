@@ -101,9 +101,10 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
 
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((ltimes_noview<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          phidat, elldat, psidat,
                          num_d,
                          num_m, num_g, num_z);
@@ -123,6 +124,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
 
       LTIMES_NOVIEW_THREADS_PER_BLOCK_HIP;
       LTIMES_NOVIEW_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto ltimes_noview_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
@@ -132,7 +134,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((ltimes_noview_lam<LTIMES_NOVIEW_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(ltimes_noview_lambda)>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          num_m, num_g, num_z,
                          ltimes_noview_lambda);
       hipErrchk( hipGetLastError() );

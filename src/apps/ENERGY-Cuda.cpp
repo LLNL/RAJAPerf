@@ -162,13 +162,14 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       energycalc1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( e_new, e_old, delvc,
+       energycalc1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
        cudaErrchk( cudaGetLastError() );
 
-       energycalc2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( delvc, q_new,
+       energycalc2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc, q_new,
                                                compHalfStep, pHalfStep,
                                                e_new, bvc, pbvc,
                                                ql_old, qq_old,
@@ -176,18 +177,18 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                                                iend );
        cudaErrchk( cudaGetLastError() );
 
-       energycalc3<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( e_new, delvc,
+       energycalc3<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
        cudaErrchk( cudaGetLastError() );
 
-       energycalc4<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( e_new, work,
+       energycalc4<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( e_new, work,
                                                e_cut, emin,
                                                iend );
        cudaErrchk( cudaGetLastError() );
 
-       energycalc5<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( delvc,
+       energycalc5<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                ql_old, qq_old,
@@ -197,7 +198,7 @@ void ENERGY::runCudaVariantImpl(VariantID vid)
                                                iend );
        cudaErrchk( cudaGetLastError() );
 
-       energycalc6<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( delvc,
+       energycalc6<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                q_new,

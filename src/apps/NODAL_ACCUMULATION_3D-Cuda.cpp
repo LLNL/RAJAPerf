@@ -74,8 +74,9 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      nodal_accumulation_3d<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(vol,
+      nodal_accumulation_3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        real_zones,
                                        ibegin, iend);

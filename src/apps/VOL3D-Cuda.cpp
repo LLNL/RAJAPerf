@@ -85,8 +85,9 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      vol3d<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(vol,
+      vol3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        y0, y1, y2, y3, y4, y5, y6, y7,
                                        z0, z1, z2, z3, z4, z5, z6, z7,

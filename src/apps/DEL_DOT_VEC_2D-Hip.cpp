@@ -89,7 +89,8 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      hipLaunchKernelGGL((deldotvec2d<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(), div,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((deldotvec2d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -124,8 +125,9 @@ void DEL_DOT_VEC_2D::runHipVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(deldotvec2d_lambda)>),
-        grid_size, block_size, 0, res.get_stream(),
+        grid_size, block_size, shmem, res.get_stream(),
         0, iend, deldotvec2d_lambda);
       hipErrchk( hipGetLastError() );
 

@@ -139,7 +139,8 @@ void DIFFUSION3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Diffusion3DPA<block_size><<<NE, nthreads_per_block, 0, res.get_stream()>>>(
+      constexpr size_t shmem = 0;
+      Diffusion3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>(
           Basis, dBasis, D, X, Y, symmetric);
 
       cudaErrchk(cudaGetLastError());

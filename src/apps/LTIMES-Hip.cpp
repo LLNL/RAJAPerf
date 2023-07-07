@@ -101,9 +101,10 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          phidat, elldat, psidat,
                          num_d,
                          num_m, num_g, num_z);
@@ -123,6 +124,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto ltimes_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
@@ -132,7 +134,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
         };
 
       hipLaunchKernelGGL((ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(ltimes_lambda)>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          num_m, num_g, num_z, ltimes_lambda);
       hipErrchk( hipGetLastError() );
 

@@ -163,8 +163,9 @@ void CONVECTION3DPA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((Convection3DPA<block_size>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          Basis, tBasis, dBasis, D, X, Y);
 
       hipErrchk(hipGetLastError());

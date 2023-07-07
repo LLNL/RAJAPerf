@@ -102,9 +102,10 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_CUDA;
       LTIMES_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(phidat, elldat, psidat,
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(phidat, elldat, psidat,
                                               num_d,
                                               num_m, num_g, num_z);
       cudaErrchk( cudaGetLastError() );
@@ -123,9 +124,10 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_CUDA;
       LTIMES_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(num_m, num_g, num_z,
+                <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(num_m, num_g, num_z,
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
           for (Index_type d = 0; d < num_d; ++d ) {
             LTIMES_BODY;

@@ -162,13 +162,14 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       hipLaunchKernelGGL((energycalc1<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  e_new, e_old, delvc,
+       hipLaunchKernelGGL((energycalc1<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc2<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  delvc, q_new,
+       hipLaunchKernelGGL((energycalc2<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc, q_new,
                                                compHalfStep, pHalfStep,
                                                e_new, bvc, pbvc,
                                                ql_old, qq_old,
@@ -176,18 +177,18 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc3<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  e_new, delvc,
+       hipLaunchKernelGGL((energycalc3<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc4<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  e_new, work,
+       hipLaunchKernelGGL((energycalc4<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, work,
                                                e_cut, emin,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc5<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  delvc,
+       hipLaunchKernelGGL((energycalc5<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                ql_old, qq_old,
@@ -197,7 +198,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc6<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  delvc,
+       hipLaunchKernelGGL((energycalc6<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                q_new,

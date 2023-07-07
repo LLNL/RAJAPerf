@@ -106,14 +106,15 @@ void FIR::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
 #if defined(USE_CUDA_CONSTANT_MEMORY)
-       fir<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( out, in,
+       fir<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( out, in,
                                        coefflen,
                                        iend );
        cudaErrchk( cudaGetLastError() );
 #else
-       fir<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( out, in,
+       fir<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( out, in,
                                        coeff,
                                        coefflen,
                                        iend );

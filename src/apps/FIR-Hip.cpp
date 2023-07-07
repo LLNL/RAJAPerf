@@ -106,14 +106,15 @@ void FIR::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
 #if defined(USE_HIP_CONSTANT_MEMORY)
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
                                        coefflen,
                                        iend );
        hipErrchk( hipGetLastError() );
 #else
-       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), 0, res.get_stream(),  out, in,
+       hipLaunchKernelGGL((fir<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out, in,
                                        coeff,
                                        coefflen,
                                        iend );

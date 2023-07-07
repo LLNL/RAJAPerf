@@ -82,13 +82,14 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       pressurecalc1<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( bvc, compression,
+       pressurecalc1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( bvc, compression,
                                                  cls,
                                                  iend );
        cudaErrchk( cudaGetLastError() );
 
-       pressurecalc2<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( p_new, bvc, e_old,
+       pressurecalc2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
