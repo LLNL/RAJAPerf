@@ -96,9 +96,10 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_CUDA;
       NESTED_INIT_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       nested_init<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                 <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(array,
+                 <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(array,
                                                    ni, nj, nk);
       cudaErrchk( cudaGetLastError() );
 
@@ -116,9 +117,10 @@ void NESTED_INIT::runCudaVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_CUDA;
       NESTED_INIT_NBLOCKS_CUDA;
+      constexpr size_t shmem = 0;
 
       nested_init_lam<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-                     <<<nblocks, nthreads_per_block, 0, res.get_stream()>>>(ni, nj, nk,
+                     <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(ni, nj, nk,
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
           NESTED_INIT_BODY;
         }

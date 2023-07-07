@@ -110,8 +110,9 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
       reduce3int<block_size><<<grid_size, block_size,
-                   3*sizeof(Int_type)*block_size, res.get_stream()>>>(vec,
+                   shmem, res.get_stream()>>>(vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,
                                                     vmem + 2, m_vmax_init,

@@ -105,7 +105,8 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      indexlist_conditional<block_size><<<grid_size, block_size, 0, stream>>>(
+      constexpr size_t shmem = 0;
+      indexlist_conditional<block_size><<<grid_size, block_size, shmem, stream>>>(
           x, counts, iend );
       cudaErrchk( cudaGetLastError() );
 
@@ -118,7 +119,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
                                                   scan_size,
                                                   stream));
 
-      indexlist_make_list<block_size><<<grid_size, block_size, 0, stream>>>(
+      indexlist_make_list<block_size><<<grid_size, block_size, shmem, stream>>>(
           list, counts, len, iend );
       cudaErrchk( cudaGetLastError() );
 

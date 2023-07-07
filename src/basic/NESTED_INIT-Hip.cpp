@@ -96,9 +96,10 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((nested_init<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          array, ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
@@ -116,6 +117,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto nested_init_lambda = [=] __device__ (Index_type i, Index_type j,
                                                 Index_type k) {
@@ -123,7 +125,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((nested_init_lam<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(nested_init_lambda) >),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, res.get_stream(),
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nj, nk, nested_init_lambda);
       hipErrchk( hipGetLastError() );
 

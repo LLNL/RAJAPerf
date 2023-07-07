@@ -128,10 +128,11 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
 
       hipLaunchKernelGGL((reduce_struct<block_size>), 
                          dim3(grid_size), dim3(block_size), 
-                         6*sizeof(Real_type)*block_size, res.get_stream(),
+                         shmem, res.get_stream(),
 	                 points.x, points.y,
                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax

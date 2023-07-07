@@ -81,8 +81,9 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
                                  hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL( (pi_reduce<block_size>), dim3(grid_size), dim3(block_size),
-                          sizeof(Real_type)*block_size, res.get_stream(),
+                          shmem, res.get_stream(),
                           dx, dpi, m_pi_init, iend );
       hipErrchk( hipGetLastError() );
 

@@ -81,8 +81,9 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       pi_reduce<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size, res.get_stream()>>>( dx,
+                  shmem, res.get_stream()>>>( dx,
                                                    dpi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );

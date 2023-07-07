@@ -64,7 +64,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      pi_atomic<block_size><<<grid_size, block_size, 0, res.get_stream()>>>( pi, dx, iend );
+      constexpr size_t shmem = 0;
+      pi_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaMemcpyAsync( m_pi, pi, sizeof(Real_type),
@@ -88,7 +89,8 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
                                    cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size, 0, res.get_stream()>>>(
+      constexpr size_t shmem = 0;
+      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
           double x = (double(i) + 0.5) * dx;
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));

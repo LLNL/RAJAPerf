@@ -110,7 +110,8 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
                                  hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, res.get_stream(),
+      constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
+      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                                                     vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,

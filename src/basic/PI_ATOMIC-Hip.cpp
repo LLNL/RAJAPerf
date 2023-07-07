@@ -64,7 +64,8 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
                                  hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, 0, res.get_stream(), pi, dx, iend );
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, shmem, res.get_stream(), pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
       hipErrchk( hipMemcpyAsync( m_pi, pi, sizeof(Real_type),
@@ -93,8 +94,9 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(atomic_pi_lambda)>),
-          grid_size, block_size, 0, res.get_stream(), ibegin, iend, atomic_pi_lambda);
+          grid_size, block_size, shmem, res.get_stream(), ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
       hipErrchk( hipMemcpyAsync( m_pi, pi, sizeof(Real_type),

@@ -73,6 +73,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   dim3 blockDim(tile_size, tile_size);
   dim3 gridDim(RAJA_DIVIDE_CEILING_INT(N, blockDim.x),
                RAJA_DIVIDE_CEILING_INT(N, blockDim.y));
+  constexpr size_t shmem = 0;
 
   const Index_type Nx = gridDim.x;
   const Index_type Ny = gridDim.y;
@@ -88,7 +89,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), 0, res.get_stream(),
+      hipLaunchKernelGGL((mat_mat_shared<tile_size>), dim3(gridDim), dim3(blockDim), shmem, res.get_stream(),
                          N, C, A, B);
 
       hipErrchk( hipGetLastError() );
@@ -195,7 +196,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((lambda_hip<tile_size*tile_size, decltype(mat_mat_shared_lam)>),
-        gridDim, blockDim, 0, res.get_stream(), mat_mat_shared_lam);
+        gridDim, blockDim, shmem, res.get_stream(), mat_mat_shared_lam);
 
       hipErrchk( hipGetLastError() );
     }
