@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define DAXPY_ATOMIC_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
-
-#define DAXPY_ATOMIC_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void daxpy_atomic(Real_ptr y, Real_ptr x,
@@ -56,8 +47,6 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DAXPY_ATOMIC_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +59,7 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -90,11 +75,7 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -106,8 +87,6 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DAXPY_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  DAXPY_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;

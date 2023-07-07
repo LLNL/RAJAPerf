@@ -21,15 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_DIFF_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N); \
-  allocAndInitCudaDeviceData(y, m_y, m_N);
-
-#define FIRST_DIFF_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_N); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_diff(Real_ptr x, Real_ptr y,
@@ -55,8 +46,6 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    FIRST_DIFF_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -69,11 +58,7 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    FIRST_DIFF_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -85,8 +70,6 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    FIRST_DIFF_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  FIRST_DIFF : Unknown Cuda variant id = " << vid << std::endl;

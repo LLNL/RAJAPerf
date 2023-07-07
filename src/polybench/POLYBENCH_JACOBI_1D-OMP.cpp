@@ -57,8 +57,6 @@ void POLYBENCH_JACOBI_1D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -83,8 +81,6 @@ void POLYBENCH_JACOBI_1D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -107,8 +103,6 @@ void POLYBENCH_JACOBI_1D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED
 
       }
       stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }

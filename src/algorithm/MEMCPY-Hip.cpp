@@ -21,15 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMCPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define MEMCPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memcpy(Real_ptr x, Real_ptr y,
@@ -54,8 +45,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -64,11 +53,7 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -77,8 +62,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -101,8 +84,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -116,11 +97,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -139,11 +116,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -155,8 +128,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 

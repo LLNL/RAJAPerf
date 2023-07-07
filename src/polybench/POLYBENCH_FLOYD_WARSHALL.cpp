@@ -75,14 +75,14 @@ void POLYBENCH_FLOYD_WARSHALL::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(t
 
 void POLYBENCH_FLOYD_WARSHALL::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_pout, m_N*m_N, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_FLOYD_WARSHALL::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_pin);
-  deallocData(m_pout);
+  deallocData(m_pin, vid);
+  deallocData(m_pout, vid);
 }
 
 } // end namespace polybench

@@ -39,18 +39,6 @@ namespace polybench
                static_cast<size_t>(1));
 
 
-#define POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(A, m_Ainit, m_N*m_N); \
-  allocAndInitCudaDeviceData(B, m_Binit, m_N*m_N);
-
-
-#define POLYBENCH_JACOBI_2D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_A, A, m_N*m_N); \
-  getCudaDeviceData(m_B, B, m_N*m_N); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B);
-
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_jacobi_2D_1(Real_ptr A, Real_ptr B, Index_type N)
@@ -99,8 +87,6 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -123,11 +109,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -159,11 +141,7 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_CUDA;
 
     POLYBENCH_JACOBI_2D_VIEWS_RAJA;
 
@@ -209,8 +187,6 @@ void POLYBENCH_JACOBI_2D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_JACOBI_2D_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Cuda variant id = " << vid << std::endl;

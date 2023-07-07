@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_MIN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_N);
-
-#define FIRST_MIN_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -75,8 +69,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    FIRST_MIN_DATA_SETUP_HIP;
-
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
 
@@ -115,11 +107,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
     hipErrchk( hipFree( dminloc ) );
     delete[] mymin_block;
 
-    FIRST_MIN_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    FIRST_MIN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -136,8 +124,6 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    FIRST_MIN_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;

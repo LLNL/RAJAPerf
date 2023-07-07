@@ -39,19 +39,6 @@ namespace polybench
                static_cast<size_t>(1));
 
 
-#define POLYBENCH_GEMM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, ni*nk); \
-  allocAndInitHipDeviceData(B, m_B, nk*nj); \
-  allocAndInitHipDeviceData(C, m_C, ni*nj);
-
-
-#define POLYBENCH_GEMM_TEARDOWN_HIP \
-  getHipDeviceData(m_C, C, ni*nj); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C);
-
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_gemm(Real_ptr C, Real_ptr A, Real_ptr B,
@@ -96,8 +83,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -114,11 +99,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMM_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -144,11 +125,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMM_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
 
     POLYBENCH_GEMM_VIEWS_RAJA;
 
@@ -203,8 +180,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
       }
       stopTimer();
-
-    POLYBENCH_GEMM_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;

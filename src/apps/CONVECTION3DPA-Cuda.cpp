@@ -19,23 +19,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define CONVECTION3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(Basis, m_B, CPA_Q1D *CPA_D1D);                    \
-  allocAndInitCudaDeviceData(tBasis, m_Bt, CPA_Q1D *CPA_D1D);                  \
-  allocAndInitCudaDeviceData(dBasis, m_G, CPA_Q1D *CPA_D1D);                   \
-  allocAndInitCudaDeviceData(D, m_D, CPA_Q1D *CPA_Q1D *CPA_Q1D *CPA_VDIM *m_NE); \
-  allocAndInitCudaDeviceData(X, m_X, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);         \
-  allocAndInitCudaDeviceData(Y, m_Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);
-
-#define CONVECTION3DPA_DATA_TEARDOWN_CUDA                                       \
-  getCudaDeviceData(m_Y, Y, CPA_D1D *CPA_D1D *CPA_D1D *m_NE);                  \
-  deallocCudaDeviceData(Basis);                                                \
-  deallocCudaDeviceData(tBasis);                                               \
-  deallocCudaDeviceData(dBasis);                                               \
-  deallocCudaDeviceData(D);                                                    \
-  deallocCudaDeviceData(X);                                                    \
-  deallocCudaDeviceData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Convection3DPA(const Real_ptr Basis, const Real_ptr tBasis,
@@ -155,8 +138,6 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    CONVECTION3DPA_DATA_SETUP_CUDA;
-
     dim3 nthreads_per_block(CPA_Q1D, CPA_Q1D, CPA_Q1D);
 
     startTimer();
@@ -170,14 +151,10 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    CONVECTION3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
   case RAJA_CUDA: {
-
-    CONVECTION3DPA_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -359,8 +336,6 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
 
     } // loop over kernel reps
     stopTimer();
-
-    CONVECTION3DPA_DATA_TEARDOWN_CUDA;
 
     break;
   }

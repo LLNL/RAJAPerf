@@ -41,13 +41,6 @@ namespace basic
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nk, k_block_sz)));
 
 
-#define NESTED_INIT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(array, m_array, m_array_length);
-
-#define NESTED_INIT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_array, array, m_array_length); \
-  deallocHipDeviceData(array);
-
 template< size_t i_block_size, size_t j_block_size, size_t k_block_size >
   __launch_bounds__(i_block_size*j_block_size*k_block_size)
 __global__ void nested_init(Real_ptr array,
@@ -89,8 +82,6 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    NESTED_INIT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -106,11 +97,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    NESTED_INIT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -132,11 +119,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NESTED_INIT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    NESTED_INIT_DATA_SETUP_HIP;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -171,8 +154,6 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    NESTED_INIT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  NESTED_INIT : Unknown Hip variant id = " << vid << std::endl;

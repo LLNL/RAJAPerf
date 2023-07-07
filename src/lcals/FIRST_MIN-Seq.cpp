@@ -60,9 +60,9 @@ void FIRST_MIN::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
         FIRST_MIN_MINLOC_INIT;
 
         for (Index_type i = ibegin; i < iend; ++i ) {
-          if ( firstmin_base_lam(i) < mymin.val ) { \
-            mymin.val = x[i]; \
-            mymin.loc = i; \
+          if ( firstmin_base_lam(i) < mymin.val ) {
+            mymin.val = x[i];
+            mymin.loc = i;
           }
         }
 

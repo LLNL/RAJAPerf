@@ -21,55 +21,33 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_FUSED_DATA_SETUP_CUDA \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitCudaDeviceData(vars[v], m_vars[v], m_var_size); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitCudaDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitCudaDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitCudaDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
-  }
-
-
-#define HALOEXCHANGE_FUSED_DATA_TEARDOWN_CUDA \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocCudaDeviceData(unpack_index_lists[l]); \
-    deallocCudaDeviceData(pack_index_lists[l]); \
-    deallocCudaDeviceData(buffers[l]); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getCudaDeviceData(m_vars[v], vars[v], m_var_size); \
-    deallocCudaDeviceData(vars[v]); \
-  }
-
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA \
   Real_ptr*   pack_buffer_ptrs; \
   Int_ptr*    pack_list_ptrs; \
   Real_ptr*   pack_var_ptrs; \
   Index_type* pack_len_ptrs; \
-  allocCudaPinnedData(pack_buffer_ptrs, num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_list_ptrs,   num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_var_ptrs,    num_neighbors * num_vars); \
-  allocCudaPinnedData(pack_len_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, pack_len_ptrs,    num_neighbors * num_vars); \
   Real_ptr*   unpack_buffer_ptrs; \
   Int_ptr*    unpack_list_ptrs; \
   Real_ptr*   unpack_var_ptrs; \
   Index_type* unpack_len_ptrs; \
-  allocCudaPinnedData(unpack_buffer_ptrs, num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_list_ptrs,   num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_var_ptrs,    num_neighbors * num_vars); \
-  allocCudaPinnedData(unpack_len_ptrs,    num_neighbors * num_vars);
+  allocData(DataSpace::CudaPinned, unpack_buffer_ptrs, num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_list_ptrs,   num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_var_ptrs,    num_neighbors * num_vars); \
+  allocData(DataSpace::CudaPinned, unpack_len_ptrs,    num_neighbors * num_vars);
 
 #define HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA \
-  deallocCudaPinnedData(pack_buffer_ptrs); \
-  deallocCudaPinnedData(pack_list_ptrs); \
-  deallocCudaPinnedData(pack_var_ptrs); \
-  deallocCudaPinnedData(pack_len_ptrs); \
-  deallocCudaPinnedData(unpack_buffer_ptrs); \
-  deallocCudaPinnedData(unpack_list_ptrs); \
-  deallocCudaPinnedData(unpack_var_ptrs); \
-  deallocCudaPinnedData(unpack_len_ptrs);
+  deallocData(DataSpace::CudaPinned, pack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, pack_len_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_buffer_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_list_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_var_ptrs); \
+  deallocData(DataSpace::CudaPinned, unpack_len_ptrs);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -120,8 +98,6 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
   HALOEXCHANGE_FUSED_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_CUDA;
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_SETUP_CUDA;
 
@@ -187,11 +163,7 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
 
     HALOEXCHANGE_FUSED_MANUAL_FUSER_TEARDOWN_CUDA;
 
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HALOEXCHANGE_FUSED_DATA_SETUP_CUDA;
 
     using AllocatorHolder = RAJAPoolAllocatorHolder<RAJA::cuda::pinned_mempool_type>;
     using Allocator = AllocatorHolder::Allocator<char>;
@@ -266,8 +238,6 @@ void HALOEXCHANGE_FUSED::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HALOEXCHANGE_FUSED_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n HALOEXCHANGE_FUSED : Unknown Cuda variant id = " << vid << std::endl;

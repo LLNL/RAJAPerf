@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define REDUCE3_INT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(vec, m_vec, iend);
-
-#define REDUCE3_INT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(vec);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -92,13 +86,11 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE3_INT_DATA_SETUP_CUDA;
-
     Int_ptr vmem_init;
-    allocCudaPinnedData(vmem_init, 3);
+    allocData(DataSpace::CudaPinned, vmem_init, 3);
 
     Int_ptr vmem;
-    allocCudaDeviceData(vmem, 3);
+    allocData(DataSpace::CudaDevice, vmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -130,14 +122,10 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_CUDA;
-
-    deallocCudaDeviceData(vmem);
-    deallocCudaPinnedData(vmem_init);
+    deallocData(DataSpace::CudaDevice, vmem);
+    deallocData(DataSpace::CudaPinned, vmem_init);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE3_INT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -157,8 +145,6 @@ void REDUCE3_INT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE3_INT_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  REDUCE3_INT : Unknown Cuda variant id = " << vid << std::endl;

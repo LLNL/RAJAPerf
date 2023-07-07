@@ -19,20 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-#define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
-  const Index_type NN = m_N * m_N;                                             \
-  allocAndInitHipDeviceData(A, m_A, NN);                                       \
-  allocAndInitHipDeviceData(B, m_B, NN);                                       \
-  allocAndInitHipDeviceData(C, m_C, NN);
-
-#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_A, A, NN);                                                \
-  getHipDeviceData(m_B, B, NN);                                                \
-  getHipDeviceData(m_C, C, NN);                                                \
-  deallocHipDeviceData(A);                                                     \
-  deallocHipDeviceData(B);                                                     \
-  deallocHipDeviceData(C);
-
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
@@ -84,8 +70,6 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
   if (vid == Base_HIP) {
 
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -96,11 +80,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -202,11 +182,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
@@ -293,8 +269,6 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
     }  // loop over kernel reps
     stopTimer();
-
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
     getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid

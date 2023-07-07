@@ -21,15 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMCPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
-
-#define MEMCPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memcpy(Real_ptr x, Real_ptr y,
@@ -54,8 +45,6 @@ void MEMCPY::runCudaVariantLibrary(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MEMCPY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -64,11 +53,7 @@ void MEMCPY::runCudaVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -77,8 +62,6 @@ void MEMCPY::runCudaVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_CUDA;
 
   } else {
 
@@ -101,8 +84,6 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MEMCPY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -115,11 +96,7 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -137,11 +114,7 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMCPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -153,8 +126,6 @@ void MEMCPY::runCudaVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_CUDA;
 
   } else {
 

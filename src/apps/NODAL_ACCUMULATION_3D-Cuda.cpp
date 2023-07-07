@@ -23,17 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_nodal_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_zonal_array_length); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
-
-#define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_nodal_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(vol); \
-  deallocCudaDeviceData(real_zones);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void nodal_accumulation_3d(Real_ptr vol,
@@ -66,10 +55,6 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -85,17 +70,10 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
-    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                             m_domain->n_real_zones,
-                                             res);
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -107,8 +85,6 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Cuda variant id = " << vid << std::endl;

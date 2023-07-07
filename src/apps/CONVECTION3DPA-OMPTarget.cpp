@@ -19,17 +19,14 @@
 namespace rajaperf {
 namespace apps {
 
-void CONVECTION3DPA::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) {
-  const Index_type run_reps = getRunReps();
+void CONVECTION3DPA::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)) 
+{
+  if ( vid == Base_OpenMPTarget ) {
 
-  switch (vid) {
+  } else if ( vid == RAJA_OpenMPTarget ) {
 
-  default: {
-
-    getCout() << "\n CONVECTION3DPA : Unknown OpenMPTarget variant id = " << vid
-              << std::endl;
-    break;
-  }
+  } else {
+     getCout() << "\n CONVECTION3DPA : Unknown OpenMPTarget variant id = " << vid << std::endl;
   }
 }
 

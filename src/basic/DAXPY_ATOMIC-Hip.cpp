@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define DAXPY_ATOMIC_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define DAXPY_ATOMIC_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void daxpy_atomic(Real_ptr y, Real_ptr x,
@@ -56,8 +47,6 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DAXPY_ATOMIC_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +59,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,11 +77,7 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DAXPY_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -108,8 +89,6 @@ void DAXPY_ATOMIC::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DAXPY_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  DAXPY_ATOMIC : Unknown Hip variant id = " << vid << std::endl;

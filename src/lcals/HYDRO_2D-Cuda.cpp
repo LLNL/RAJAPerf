@@ -40,36 +40,6 @@ namespace lcals
                static_cast<size_t>(1));
 
 
-#define HYDRO_2D_DATA_SETUP_CUDA \
-\
-  allocAndInitCudaDeviceData(zadat, m_za, m_array_length); \
-  allocAndInitCudaDeviceData(zbdat, m_zb, m_array_length); \
-  allocAndInitCudaDeviceData(zmdat, m_zm, m_array_length); \
-  allocAndInitCudaDeviceData(zpdat, m_zp, m_array_length); \
-  allocAndInitCudaDeviceData(zqdat, m_zq, m_array_length); \
-  allocAndInitCudaDeviceData(zrdat, m_zr, m_array_length); \
-  allocAndInitCudaDeviceData(zudat, m_zu, m_array_length); \
-  allocAndInitCudaDeviceData(zvdat, m_zv, m_array_length); \
-  allocAndInitCudaDeviceData(zzdat, m_zz, m_array_length); \
-  allocAndInitCudaDeviceData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitCudaDeviceData(zzoutdat, m_zzout, m_array_length);
-
-
-#define HYDRO_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_zrout, zroutdat, m_array_length); \
-  getCudaDeviceData(m_zzout, zzoutdat, m_array_length); \
-  deallocCudaDeviceData(zadat); \
-  deallocCudaDeviceData(zbdat); \
-  deallocCudaDeviceData(zmdat); \
-  deallocCudaDeviceData(zpdat); \
-  deallocCudaDeviceData(zqdat); \
-  deallocCudaDeviceData(zrdat); \
-  deallocCudaDeviceData(zudat); \
-  deallocCudaDeviceData(zvdat); \
-  deallocCudaDeviceData(zzdat); \
-  deallocCudaDeviceData(zroutdat); \
-  deallocCudaDeviceData(zzoutdat);
-
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
@@ -133,8 +103,6 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    HYDRO_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -166,11 +134,7 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HYDRO_2D_DATA_SETUP_CUDA;
 
     HYDRO_2D_VIEWS_RAJA;
 
@@ -220,8 +184,6 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;

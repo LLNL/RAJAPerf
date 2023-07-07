@@ -26,6 +26,7 @@ void ENERGY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   ENERGY_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto energy_lam1 = [=](Index_type i) {
                        ENERGY_BODY1;
                      };
@@ -44,6 +45,7 @@ void ENERGY::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   auto energy_lam6 = [=](Index_type i) {
                        ENERGY_BODY6;
                      };
+#endif
 
   switch ( vid ) {
 

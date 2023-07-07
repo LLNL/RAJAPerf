@@ -37,17 +37,6 @@ namespace polybench
                static_cast<size_t>(1));
 
 
-#define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(pin, m_pin, m_N * m_N); \
-  allocAndInitCudaDeviceData(pout, m_pout, m_N * m_N);
-
-
-#define POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA \
-  getCudaDeviceData(m_pout, pout, m_N * m_N); \
-  deallocCudaDeviceData(pin); \
-  deallocCudaDeviceData(pout);
-
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
@@ -87,8 +76,6 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -108,11 +95,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -135,11 +118,7 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_CUDA;
 
     POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
@@ -176,8 +155,6 @@ void POLYBENCH_FLOYD_WARSHALL::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Cuda variant id = " << vid << std::endl;

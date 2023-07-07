@@ -23,19 +23,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define VOL3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_array_length);
-
-#define VOL3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_vol, vol, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(vol);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void vol3d(Real_ptr vol,
@@ -75,12 +62,6 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    VOL3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -98,15 +79,7 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    VOL3D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    VOL3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ;
-    NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -118,8 +91,6 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    VOL3D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  VOL3D : Unknown Cuda variant id = " << vid << std::endl;

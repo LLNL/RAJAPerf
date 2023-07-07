@@ -21,27 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define HALOEXCHANGE_DATA_SETUP_HIP \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    allocAndInitHipDeviceData(vars[v], m_vars[v], m_var_size); \
-  } \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    allocAndInitHipDeviceData(buffers[l], m_buffers[l], m_num_vars*m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(pack_index_lists[l], m_pack_index_lists[l], m_pack_index_list_lengths[l]); \
-    allocAndInitHipDeviceData(unpack_index_lists[l], m_unpack_index_lists[l], m_unpack_index_list_lengths[l]); \
-  }
-
-#define HALOEXCHANGE_DATA_TEARDOWN_HIP \
-  for (Index_type l = 0; l < num_neighbors; ++l) { \
-    deallocHipDeviceData(unpack_index_lists[l]); \
-    deallocHipDeviceData(pack_index_lists[l]); \
-    deallocHipDeviceData(buffers[l]); \
-  } \
-  for (Index_type v = 0; v < m_num_vars; ++v) { \
-    getHipDeviceData(m_vars[v], vars[v], m_var_size); \
-    deallocHipDeviceData(vars[v]); \
-  }
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void haloexchange_pack(Real_ptr buffer, Int_ptr list, Real_ptr var,
@@ -77,8 +56,6 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
   HALOEXCHANGE_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    HALOEXCHANGE_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -120,11 +97,7 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HALOEXCHANGE_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HALOEXCHANGE_DATA_SETUP_HIP;
 
     using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
 
@@ -167,8 +140,6 @@ void HALOEXCHANGE::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    HALOEXCHANGE_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n HALOEXCHANGE : Unknown Hip variant id = " << vid << std::endl;

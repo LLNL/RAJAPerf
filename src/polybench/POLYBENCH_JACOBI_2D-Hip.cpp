@@ -39,18 +39,6 @@ namespace polybench
                static_cast<size_t>(1));
 
 
-#define POLYBENCH_JACOBI_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_Ainit, m_N*m_N); \
-  allocAndInitHipDeviceData(B, m_Binit, m_N*m_N);
-
-
-#define POLYBENCH_JACOBI_2D_TEARDOWN_HIP \
-  getHipDeviceData(m_A, A, m_N*m_N); \
-  getHipDeviceData(m_B, B, m_N*m_N); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
-
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_jacobi_2D_1(Real_ptr A, Real_ptr B, Index_type N)
@@ -99,8 +87,6 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -125,11 +111,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -165,11 +147,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
 
     POLYBENCH_JACOBI_2D_VIEWS_RAJA;
 
@@ -215,8 +193,6 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;

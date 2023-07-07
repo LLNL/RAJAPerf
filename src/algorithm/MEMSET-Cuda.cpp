@@ -21,13 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define MEMSET_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend);
-
-#define MEMSET_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, iend); \
-  deallocCudaDeviceData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void memset(Real_ptr x, Real_type val,
@@ -52,8 +45,6 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MEMSET_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -62,11 +53,7 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMSET_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -75,8 +62,6 @@ void MEMSET::runCudaVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_CUDA;
 
   } else {
 
@@ -99,8 +84,6 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MEMSET_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -115,11 +98,7 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    MEMSET_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -137,11 +116,7 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MEMSET_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -153,8 +128,6 @@ void MEMSET::runCudaVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_CUDA;
 
   } else {
 

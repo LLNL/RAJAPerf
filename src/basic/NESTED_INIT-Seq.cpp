@@ -24,9 +24,11 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
   NESTED_INIT_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto nestedinit_lam = [=](Index_type i, Index_type j, Index_type k) {
                           NESTED_INIT_BODY;
                         };
+#endif
 
   switch ( vid ) {
 

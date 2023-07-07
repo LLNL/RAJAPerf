@@ -24,15 +24,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SCAN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
-
-#define SCAN_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
-
 
 void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -45,8 +36,6 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   SCAN_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    SCAN_DATA_SETUP_CUDA;
 
     cudaStream_t stream = res.get_stream();
 
@@ -69,7 +58,7 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
     startTimer();
@@ -89,13 +78,9 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
     stopTimer();
 
     // Free temporary storage
-    deallocCudaDeviceData(temp_storage);
-
-    SCAN_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, temp_storage);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    SCAN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,8 +89,6 @@ void SCAN::runCudaVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
     }
     stopTimer();
-
-    SCAN_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  SCAN : Unknown Cuda variant id = " << vid << std::endl;

@@ -21,18 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_JACOBI_1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_Ainit, m_N); \
-  allocAndInitHipDeviceData(B, m_Binit, m_N);
-
-
-#define POLYBENCH_JACOBI_1D_TEARDOWN_HIP \
-  getHipDeviceData(m_A, A, m_N); \
-  getHipDeviceData(m_B, B, m_N); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_jacobi_1D_1(Real_ptr A, Real_ptr B, Index_type N)
@@ -67,8 +55,6 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_JACOBI_1D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -90,11 +76,7 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_1D_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_JACOBI_1D_DATA_SETUP_HIP;
 
     using EXEC_POL = RAJA::hip_exec<block_size, true /*async*/>;
 
@@ -117,8 +99,6 @@ void POLYBENCH_JACOBI_1D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_JACOBI_1D_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_1D : Unknown Hip variant id = " << vid << std::endl;

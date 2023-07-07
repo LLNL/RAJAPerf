@@ -21,23 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define MULADDSUB_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(out1, m_out1, iend); \
-  allocAndInitCudaDeviceData(out2, m_out2, iend); \
-  allocAndInitCudaDeviceData(out3, m_out3, iend); \
-  allocAndInitCudaDeviceData(in1, m_in1, iend); \
-  allocAndInitCudaDeviceData(in2, m_in2, iend);
-
-#define MULADDSUB_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, iend); \
-  getCudaDeviceData(m_out2, out2, iend); \
-  getCudaDeviceData(m_out3, out3, iend); \
-  deallocCudaDeviceData(out1); \
-  deallocCudaDeviceData(out2); \
-  deallocCudaDeviceData(out3); \
-  deallocCudaDeviceData(in1); \
-  deallocCudaDeviceData(in2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void muladdsub(Real_ptr out1, Real_ptr out2, Real_ptr out3,
@@ -65,8 +48,6 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MULADDSUB_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -79,11 +60,7 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    MULADDSUB_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -99,11 +76,7 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MULADDSUB_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MULADDSUB_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -115,8 +88,6 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    MULADDSUB_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  MULADDSUB : Unknown Cuda variant id = " << vid << std::endl;

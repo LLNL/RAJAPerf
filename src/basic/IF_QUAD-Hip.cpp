@@ -21,22 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define IF_QUAD_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend); \
-  allocAndInitHipDeviceData(c, m_c, iend); \
-  allocAndInitHipDeviceData(x1, m_x1, iend); \
-  allocAndInitHipDeviceData(x2, m_x2, iend);
-
-#define IF_QUAD_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x1, x1, iend); \
-  getHipDeviceData(m_x2, x2, iend); \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b); \
-  deallocHipDeviceData(c); \
-  deallocHipDeviceData(x1); \
-  deallocHipDeviceData(x2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void ifquad(Real_ptr x1, Real_ptr x2,
@@ -64,8 +48,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    IF_QUAD_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -78,11 +60,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    IF_QUAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    IF_QUAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -100,11 +78,7 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    IF_QUAD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    IF_QUAD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -116,8 +90,6 @@ void IF_QUAD::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    IF_QUAD_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  IF_QUAD : Unknown Hip variant id = " << vid << std::endl;

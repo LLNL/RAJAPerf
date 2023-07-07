@@ -21,13 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend);
-
-#define INIT_VIEW1D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_a, a, iend); \
-  deallocHipDeviceData(a);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void initview1d(Real_ptr a,
@@ -55,8 +48,6 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INIT_VIEW1D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -69,11 +60,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    INIT_VIEW1D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,11 +78,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INIT_VIEW1D_DATA_SETUP_HIP;
 
     INIT_VIEW1D_VIEW_RAJA;
 
@@ -109,8 +92,6 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  INIT_VIEW1D : Unknown Hip variant id = " << vid << std::endl;

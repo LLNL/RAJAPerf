@@ -21,12 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_MIN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N);
-
-#define FIRST_MIN_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(x);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -75,8 +69,6 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    FIRST_MIN_DATA_SETUP_CUDA;
-
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
     MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
 
@@ -91,7 +83,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
       constexpr size_t shmem = sizeof(MyMinLoc)*block_size;
       first_min<block_size><<<grid_size, block_size,
-                              shmem, res.get_stream()>>>(x, dminloc, iend);
+                              shmem, res.get_stream()>>>(x, dminloc, mymin, iend);
       cudaErrchk( cudaGetLastError() );
 
       cudaErrchk( cudaMemcpyAsync( mymin_block, dminloc,
@@ -112,11 +104,7 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
     cudaErrchk( cudaFree( dminloc ) );
     delete[] mymin_block;
 
-    FIRST_MIN_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    FIRST_MIN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -133,8 +121,6 @@ void FIRST_MIN::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    FIRST_MIN_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  FIRST_MIN : Unknown Cuda variant id = " << vid << std::endl;

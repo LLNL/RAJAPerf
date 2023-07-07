@@ -21,19 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define EOS_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(u, m_u, m_array_length);
-
-#define EOS_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(u);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void eos(Real_ptr x, Real_ptr y, Real_ptr z, Real_ptr u,
@@ -60,8 +47,6 @@ void EOS::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    EOS_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +60,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EOS_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    EOS_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,8 +72,6 @@ void EOS::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    EOS_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  EOS : Unknown Cuda variant id = " << vid << std::endl;

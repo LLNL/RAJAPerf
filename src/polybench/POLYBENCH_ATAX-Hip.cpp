@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ATAX_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(tmp, m_tmp, N); \
-  allocAndInitHipDeviceData(y, m_y, N); \
-  allocAndInitHipDeviceData(x, m_x, N); \
-  allocAndInitHipDeviceData(A, m_A, N * N);
-
-
-#define POLYBENCH_ATAX_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, N); \
-  deallocHipDeviceData(tmp); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(A);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
@@ -92,8 +77,6 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_ATAX_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -113,11 +96,7 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_ATAX_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -154,11 +133,7 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_ATAX_DATA_SETUP_HIP;
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
@@ -235,8 +210,6 @@ void POLYBENCH_ATAX::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_ATAX_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_ATAX : Unknown Hip variant id = " << vid << std::endl;

@@ -21,14 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define DIFF_PREDICT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(px, m_px, m_array_length); \
-  allocAndInitHipDeviceData(cx, m_cx, m_array_length);
-
-#define DIFF_PREDICT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_px, px, m_array_length); \
-  deallocHipDeviceData(px); \
-  deallocHipDeviceData(cx);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -56,8 +48,6 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DIFF_PREDICT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +61,7 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DIFF_PREDICT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DIFF_PREDICT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,8 +73,6 @@ void DIFF_PREDICT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    DIFF_PREDICT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  DIFF_PREDICT : Unknown Hip variant id = " << vid << std::endl;

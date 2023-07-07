@@ -21,13 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
-
-#define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getActualProblemSize()); \
-  deallocCudaDeviceData(a);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void initview1d(Real_ptr a,
@@ -55,8 +48,6 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INIT_VIEW1D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +59,7 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    INIT_VIEW1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -88,11 +75,7 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INIT_VIEW1D_DATA_SETUP_CUDA;
 
     INIT_VIEW1D_VIEW_RAJA;
 
@@ -106,8 +89,6 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;

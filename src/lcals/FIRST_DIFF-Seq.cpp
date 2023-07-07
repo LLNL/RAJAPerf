@@ -26,9 +26,11 @@ void FIRST_DIFF::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 
   FIRST_DIFF_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto firstdiff_lam = [=](Index_type i) {
                          FIRST_DIFF_BODY;
                        };
+#endif
 
   switch ( vid ) {
 

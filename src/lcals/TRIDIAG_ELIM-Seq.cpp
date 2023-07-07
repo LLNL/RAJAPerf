@@ -26,9 +26,11 @@ void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   TRIDIAG_ELIM_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto tridiag_elim_lam = [=](Index_type i) {
                             TRIDIAG_ELIM_BODY;
                           };
+#endif
 
   switch ( vid ) {
 

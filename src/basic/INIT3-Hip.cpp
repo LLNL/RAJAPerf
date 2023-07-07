@@ -21,23 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(out1, m_out1, iend); \
-  allocAndInitHipDeviceData(out2, m_out2, iend); \
-  allocAndInitHipDeviceData(out3, m_out3, iend); \
-  allocAndInitHipDeviceData(in1, m_in1, iend); \
-  allocAndInitHipDeviceData(in2, m_in2, iend);
-
-#define INIT3_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out1, out1, iend); \
-  getHipDeviceData(m_out2, out2, iend); \
-  getHipDeviceData(m_out3, out3, iend); \
-  deallocHipDeviceData(out1); \
-  deallocHipDeviceData(out2); \
-  deallocHipDeviceData(out3); \
-  deallocHipDeviceData(in1); \
-  deallocHipDeviceData(in2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3,
@@ -65,8 +48,6 @@ void INIT3::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INIT3_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -79,11 +60,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    INIT3_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -101,11 +78,7 @@ void INIT3::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INIT3_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -117,8 +90,6 @@ void INIT3::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    INIT3_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  INIT3 : Unknown Hip variant id = " << vid << std::endl;

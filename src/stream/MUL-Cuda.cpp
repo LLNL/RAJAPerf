@@ -21,15 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define MUL_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define MUL_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_b, b, iend); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c)
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void mul(Real_ptr b, Real_ptr c, Real_type alpha,
@@ -55,8 +46,6 @@ void MUL::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    MUL_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -69,11 +58,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    MUL_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +74,7 @@ void MUL::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MUL_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    MUL_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -105,8 +86,6 @@ void MUL::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    MUL_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  MUL : Unknown Cuda variant id = " << vid << std::endl;

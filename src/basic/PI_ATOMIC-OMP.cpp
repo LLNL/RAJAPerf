@@ -42,7 +42,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
           #pragma omp atomic
           *pi += dx / (1.0 + x * x);
         }
-        *pi *= 4.0;
+        m_pi_final = *pi * 4.0;
 
       }
       stopTimer();
@@ -66,7 +66,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
         for (Index_type i = ibegin; i < iend; ++i ) {
           piatomic_base_lam(i);
         }
-        *pi *= 4.0;
+        m_pi_final = *pi * 4.0;
 
       }
       stopTimer();
@@ -85,7 +85,7 @@ void PI_ATOMIC::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
             double x = (double(i) + 0.5) * dx;
             RAJA::atomicAdd<RAJA::omp_atomic>(pi, dx / (1.0 + x * x));
         });
-        *pi *= 4.0;
+        m_pi_final = *pi * 4.0;
 
       }
       stopTimer();

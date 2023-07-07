@@ -21,12 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define PI_ATOMIC_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(pi, m_pi, 1);
-
-#define PI_ATOMIC_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(pi);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pi_atomic(Real_ptr pi,
@@ -55,8 +49,6 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    PI_ATOMIC_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,19 +60,15 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       pi_atomic<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( m_pi, pi, sizeof(Real_type),
+      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
                                    cudaMemcpyDeviceToHost, res.get_stream() ) );
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      *m_pi *= 4.0;
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -97,19 +85,15 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       });
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaMemcpyAsync( m_pi, pi, sizeof(Real_type),
+      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
                                    cudaMemcpyDeviceToHost, res.get_stream() ) );
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      *m_pi *= 4.0;
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,15 +107,13 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      cudaErrchk( cudaMemcpyAsync( m_pi, pi, sizeof(Real_type),
+      cudaErrchk( cudaMemcpyAsync( &m_pi_final, pi, sizeof(Real_type),
                                    cudaMemcpyDeviceToHost, res.get_stream() ) );
       cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
-      *m_pi *= 4.0;
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
-
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;

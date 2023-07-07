@@ -21,15 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define COPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define COPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_c, c, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
@@ -55,8 +46,6 @@ void COPY::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    COPY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -69,11 +58,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    COPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +74,7 @@ void COPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    COPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -105,8 +86,6 @@ void COPY::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    COPY_DATA_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;

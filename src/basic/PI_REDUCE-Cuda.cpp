@@ -72,7 +72,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
   if ( vid == Base_CUDA ) {
 
     Real_ptr dpi;
-    allocAndInitCudaDeviceData(dpi, &m_pi_init, 1);
+    allocData(DataSpace::CudaDevice, dpi, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -96,7 +96,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(dpi);
+    deallocData(DataSpace::CudaDevice, dpi);
 
   } else if ( vid == RAJA_CUDA ) {
 

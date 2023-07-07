@@ -34,6 +34,7 @@ RunParams::RunParams(int argc, char** argv)
    size_meaning(SizeMeaning::Unset),
    size(0.0),
    size_factor(0.0),
+   data_alignment(RAJA::DATA_ALIGN),
    gpu_stream(1),
    gpu_block_sizes(),
    pf_tol(0.1),
@@ -54,7 +55,8 @@ RunParams::RunParams(int argc, char** argv)
    npasses_combiner_input(),
    invalid_npasses_combiner_input(),
    outdir(),
-   outfile_prefix("RAJAPerf")
+   outfile_prefix("RAJAPerf"),
+   disable_warmup(false)
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -99,6 +101,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size_meaning = " << SizeMeaningToStr(getSizeMeaning());
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
+  str << "\n data_alignment = " << data_alignment;
   str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
@@ -109,6 +112,15 @@ void RunParams::print(std::ostream& str) const
   str << "\n reference_variant = " << reference_variant;
   str << "\n outdir = " << outdir;
   str << "\n outfile_prefix = " << outfile_prefix;
+
+  str << "\n disable_warmup = " << disable_warmup;
+
+  str << "\n seq data space = " << getDataSpaceName(seqDataSpace);
+  str << "\n omp data space = " << getDataSpaceName(ompDataSpace);
+  str << "\n omp target data space = " << getDataSpaceName(ompTargetDataSpace);
+  str << "\n cuda data space = " << getDataSpaceName(cudaDataSpace);
+  str << "\n hip data space = " << getDataSpaceName(hipDataSpace);
+  str << "\n kokkos data space = " << getDataSpaceName(kokkosDataSpace);
 
   str << "\n kernel_input = ";
   for (size_t j = 0; j < kernel_input.size(); ++j) {
@@ -205,6 +217,12 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                 opt == std::string("-pv") ) {
 
       printVariantNames(getCout());
+      input_state = InfoRequest;
+
+    } else if ( opt == std::string("--print-data-spaces") ||
+                opt == std::string("-pds") ) {
+
+      printDataSpaceNames(getCout());
       input_state = InfoRequest;
 
     } else if ( opt == std::string("--print-features") ||
@@ -314,6 +332,33 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
       } else {
         getCout() << "\nBad input:"
                   << " must give --size a value (int)"
+                  << std::endl;
+        input_state = BadInput;
+      }
+
+    } else if ( opt == std::string("-align") ||
+                opt == std::string("--data_alignment") ) {
+
+      i++;
+      if ( i < argc ) {
+        long long align = ::atoll( argv[i] );
+        long long min_align = alignof(std::max_align_t);
+        if ( align < min_align ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a value of at least " << min_align
+                << std::endl;
+          input_state = BadInput;
+        } else if ( (align & (align-1)) != 0 ) {
+          getCout() << "\nBad input:"
+                << " must give " << opt << " a power of 2"
+                << std::endl;
+          input_state = BadInput;
+        } else {
+          data_alignment = align;
+        }
+      } else {
+        getCout() << "\nBad input:"
+                  << " must give " << opt << " a value (int)"
                   << std::endl;
         input_state = BadInput;
       }
@@ -430,6 +475,72 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         }
       }
 
+    } else if ( opt == std::string("--seq-data-space") ||
+                opt == std::string("-sds") ||
+                opt == std::string("--omp-data-space") ||
+                opt == std::string("-ods") ||
+                opt == std::string("--omptarget-data-space") ||
+                opt == std::string("-otds") ||
+                opt == std::string("--cuda-data-space") ||
+                opt == std::string("-cds") ||
+                opt == std::string("--hip-data-space") ||
+                opt == std::string("-hds") ||
+                opt == std::string("--kokkos-data-space") ||
+                opt == std::string("-kds") ) {
+
+      bool got_someting = false;
+      bool got_something_available = false;
+      i++;
+      if ( i < argc ) {
+        auto opt_name = std::move(opt);
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+        } else {
+          for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+            DataSpace ds = static_cast<DataSpace>(ids);
+            if (getDataSpaceName(ds) == opt) {
+              got_someting = true;
+              got_something_available = isDataSpaceAvailable(ds);
+              if (        opt_name == std::string("--seq-data-space") ||
+                          opt_name == std::string("-sds") ) {
+                seqDataSpace = ds;
+              } else if ( opt_name == std::string("--omp-data-space") ||
+                          opt_name == std::string("-ods") ) {
+                ompDataSpace = ds;
+              } else if ( opt_name == std::string("--omptarget-data-space") ||
+                          opt_name == std::string("-otds") ) {
+                ompTargetDataSpace = ds;
+              } else if ( opt_name == std::string("--cuda-data-space") ||
+                          opt_name == std::string("-cds") ) {
+                cudaDataSpace = ds;
+              } else if ( opt_name == std::string("--hip-data-space") ||
+                          opt_name == std::string("-hds") ) {
+                hipDataSpace = ds;
+              } else if ( opt_name == std::string("--kokkos-data-space") ||
+                          opt_name == std::string("-kds") ) {
+                kokkosDataSpace = ds;
+              } else {
+                got_someting = false;
+              }
+
+              break;
+            }
+          }
+          if (!got_someting) {
+            getCout() << "\nBad input:"
+                      << " must give " << opt_name << " a valid data space"
+                      << std::endl;
+            input_state = BadInput;
+          } else if (!got_something_available) {
+            getCout() << "\nBad input:"
+                      << " must give " << opt_name << " a data space this is available in this config"
+                      << std::endl;
+            input_state = BadInput;
+          }
+        }
+      }
+
     } else if ( std::string(argv[i]) == std::string("--features") ||
                 std::string(argv[i]) == std::string("-f") ) {
 
@@ -503,9 +614,13 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
     } else if ( std::string(argv[i]) == std::string("--dryrun") ) {
 
-       if (input_state != BadInput) {
-         input_state = DryRun;
-       }
+      if (input_state != BadInput) {
+        input_state = DryRun;
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--disable-warmup") ) {
+
+      disable_warmup = true;
 
     } else if ( std::string(argv[i]) == std::string("--checkrun") ) {
 
@@ -560,6 +675,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
 
+  str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
+
   str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
   str << "\t --print-feature-kernels, -pfk \n"
@@ -595,6 +712,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+
+  str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
+      << "\t      (minimum memory alignment for host allocations)\n"
+      << "\t      (must be a power of 2 at least as large as the default alignment)\n";
+  str << "\t\t Example...\n"
+      << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
   str << "\t --gpu_stream_0 [default is off; i.e. use RAJA default stream]\n"
       << "\t      (use stream 0 with hip and cuda kernel variants)\n"
@@ -638,6 +761,42 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
+  str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --seq-data-space Host (run sequential variants with Host memory)\n"
+      << "\t\t -sds CudaPinned (run sequential variants with Cuda Pinned memory)\n\n";
+
+  str << "\t --omp-data-space, -ods <string> [Default is Omp]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omp-data-space Omp (run Omp variants with Omp memory)\n"
+      << "\t\t -ods Host (run Omp variants with Host memory)\n\n";
+
+  str << "\t --omptarget-data-space, -otds <string> [Default is OmpTarget]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --omptarget-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n"
+      << "\t\t -otds CudaPinned (run Omp Target variants with Cuda Pinned memory)\n\n";
+
+  str << "\t --cuda-data-space, -cds <string> [Default is CudaDevice]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --cuda-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n"
+      << "\t\t -cds CudaPinned (run CUDA variants with Cuda Pinned memory)\n\n";
+
+  str << "\t --hip-data-space, -hds <string> [Default is HipDevice]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
+      << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
+
+  str << "\t --kokkos-data-space, -kds <string> [Default is Host]\n"
+      << "\t      (names of data space to use)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
+      << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
+
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n";
   str << "\t\t Examples...\n"
@@ -669,6 +828,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
+  str << "\t --disable-warmup (disable warmup tests)\n\n";
+
   str << "\t --checkrun <int> [default is 1]\n"
 << "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
   str << "\t\t Example...\n"
@@ -684,10 +845,7 @@ void RunParams::printKernelNames(std::ostream& str) const
   str << "\nAvailable kernels:";
   str << "\n------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
+    str << getKernelName(static_cast<KernelID>(kid)) << std::endl;
   }
   str.flush();
 }
@@ -698,10 +856,7 @@ void RunParams::printFullKernelNames(std::ostream& str) const
   str << "\nAvailable kernels (<group name>_<kernel name>):";
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
-/// RDH DISABLE COUPLE KERNEL
-    if (static_cast<KernelID>(kid) != Apps_COUPLE) {
-      str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
-    }
+    str << getFullKernelName(static_cast<KernelID>(kid)) << std::endl;
   }
   str.flush();
 }
@@ -713,6 +868,28 @@ void RunParams::printVariantNames(std::ostream& str) const
   str << "\n-------------------\n";
   for (int vid = 0; vid < NumVariants; ++vid) {
     str << getVariantName(static_cast<VariantID>(vid)) << std::endl;
+  }
+  str.flush();
+}
+
+
+void RunParams::printDataSpaceNames(std::ostream& str) const
+{
+  str << "\nAvailable data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    if (isDataSpaceAvailable(ds)) {
+      str << getDataSpaceName(ds) << std::endl;
+    }
+  }
+  str << "\nUnavailable data spaces:";
+  str << "\n-------------------\n";
+  for (int ids = 0; ids < static_cast<int>(DataSpace::NumSpaces); ++ids) {
+    DataSpace ds = static_cast<DataSpace>(ids);
+    if (!isDataSpaceAvailable(ds)) {
+      str << getDataSpaceName(ds) << std::endl;
+    }
   }
   str.flush();
 }
@@ -747,14 +924,11 @@ void RunParams::printFeatureKernels(std::ostream& str) const
     str << getFeatureName(tfid) << std::endl;
     for (int kid = 0; kid < NumKernels; ++kid) {
       KernelID tkid = static_cast<KernelID>(kid);
-///   RDH DISABLE COUPLE KERNEL
-      if (tkid != Apps_COUPLE) {
-         KernelBase* kern = getKernelObject(tkid, *this);
-         if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFullKernelName(tkid) << std::endl;
-         }
-         delete kern;
+      KernelBase* kern = getKernelObject(tkid, *this);
+      if ( kern->usesFeature(tfid) ) {
+        str << "\t" << getFullKernelName(tkid) << std::endl;
       }
+      delete kern;
     }  // loop over kernels
     str << std::endl;
   }  // loop over features
@@ -767,18 +941,15 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str << "\n-----------------------------------------\n";
   for (int kid = 0; kid < NumKernels; ++kid) {
     KernelID tkid = static_cast<KernelID>(kid);
-/// RDH DISABLE COUPLE KERNEL
-    if (tkid != Apps_COUPLE) {
-      str << getFullKernelName(tkid) << std::endl;
-      KernelBase* kern = getKernelObject(tkid, *this);
-      for (int fid = 0; fid < NumFeatures; ++fid) {
-        FeatureID tfid = static_cast<FeatureID>(fid);
-        if ( kern->usesFeature(tfid) ) {
-           str << "\t" << getFeatureName(tfid) << std::endl;
-        }
-      }  // loop over features
-      delete kern;
-    }
+    str << getFullKernelName(tkid) << std::endl;
+    KernelBase* kern = getKernelObject(tkid, *this);
+    for (int fid = 0; fid < NumFeatures; ++fid) {
+      FeatureID tfid = static_cast<FeatureID>(fid);
+      if ( kern->usesFeature(tfid) ) {
+         str << "\t" << getFeatureName(tfid) << std::endl;
+      }
+    }  // loop over features
+    delete kern;
   }  // loop over kernels
   str.flush();
 }

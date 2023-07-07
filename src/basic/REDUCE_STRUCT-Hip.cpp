@@ -22,14 +22,6 @@ namespace basic
 {
 
 
-#define REDUCE_STRUCT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(points.x, m_x, points.N); \
-  allocAndInitHipDeviceData(points.y, m_y, points.N); \
-  
-#define REDUCE_STRUCT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(points.x); \
-  deallocHipDeviceData(points.y); 
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_struct(Real_ptr x, Real_ptr y,
@@ -117,10 +109,8 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_STRUCT_DATA_SETUP_HIP;
-
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocHipDeviceData(mem,6);
+    allocData(DataSpace::HipDevice, mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -155,13 +145,9 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
-
-    deallocHipDeviceData(mem);
+    deallocData(DataSpace::HipDevice, mem);
 
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_STRUCT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -188,8 +174,6 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_STRUCT_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown Hip variant id = " << vid << std::endl;

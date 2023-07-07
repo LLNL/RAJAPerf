@@ -49,26 +49,6 @@ namespace polybench
                 static_cast<size_t>(1));
 
 
-#define POLYBENCH_3MM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitHipDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitHipDeviceData(C, m_C, m_nj * m_nm); \
-  allocAndInitHipDeviceData(D, m_D, m_nm * m_nl); \
-  allocAndInitHipDeviceData(E, m_E, m_ni * m_nj); \
-  allocAndInitHipDeviceData(F, m_F, m_nj * m_nl); \
-  allocAndInitHipDeviceData(G, m_G, m_ni * m_nl);
-
-
-#define POLYBENCH_3MM_TEARDOWN_HIP \
-  getHipDeviceData(m_G, G, m_ni * m_nl); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C); \
-  deallocHipDeviceData(D); \
-  deallocHipDeviceData(E); \
-  deallocHipDeviceData(F); \
-  deallocHipDeviceData(G);
-
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)
 __global__ void poly_3mm_1(Real_ptr E, Real_ptr A, Real_ptr B,
@@ -171,8 +151,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_3MM_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -203,11 +181,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_3MM_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
-
-    POLYBENCH_3MM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -260,11 +234,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_3MM_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_3MM_DATA_SETUP_HIP;
 
     POLYBENCH_3MM_VIEWS_RAJA;
 
@@ -357,8 +327,6 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_3MM_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_3MM : Unknown Hip variant id = " << vid << std::endl;

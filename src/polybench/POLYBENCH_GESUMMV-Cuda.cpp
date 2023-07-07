@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_GESUMMV_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, N); \
-  allocAndInitCudaDeviceData(y, m_y, N); \
-  allocAndInitCudaDeviceData(A, m_A, N*N); \
-  allocAndInitCudaDeviceData(B, m_B, N*N);
-
-
-#define POLYBENCH_GESUMMV_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(A); \
-  deallocCudaDeviceData(B);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_gesummv(Real_ptr x, Real_ptr y,
@@ -66,8 +51,6 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_GESUMMV_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -82,11 +65,7 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_CUDA;
 
     POLYBENCH_GESUMMV_VIEWS_RAJA;
 
@@ -132,8 +111,6 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
 
       }
       stopTimer();
-
-    POLYBENCH_GESUMMV_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_GESUMMV : Unknown Cuda variant id = " << vid << std::endl;

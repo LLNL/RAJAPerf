@@ -91,16 +91,16 @@ void LTIMES_NOVIEW::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void LTIMES_NOVIEW::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_phidat, m_philen, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_phidat, m_philen, checksum_scale_factor , vid);
 }
 
 void LTIMES_NOVIEW::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_phidat);
-  deallocData(m_elldat);
-  deallocData(m_psidat);
+  deallocData(m_phidat, vid);
+  deallocData(m_elldat, vid);
+  deallocData(m_psidat, vid);
 }
 
 } // end namespace apps

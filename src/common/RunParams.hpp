@@ -125,6 +125,8 @@ public:
 
   double getSizeFactor() const { return size_factor; }
 
+  size_t getDataAlignment() const { return data_alignment; }
+
   int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
@@ -136,6 +138,13 @@ public:
     }
     return false;
   }
+
+  DataSpace getSeqDataSpace() const { return seqDataSpace; }
+  DataSpace getOmpDataSpace() const { return ompDataSpace; }
+  DataSpace getOmpTargetDataSpace() const { return ompTargetDataSpace; }
+  DataSpace getCudaDataSpace() const { return cudaDataSpace; }
+  DataSpace getHipDataSpace() const { return hipDataSpace; }
+  DataSpace getKokkosDataSpace() const { return kokkosDataSpace; }
 
   double getPFTolerance() const { return pf_tol; }
 
@@ -195,6 +204,8 @@ public:
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
+  bool getDisableWarmup() const { return disable_warmup; }
+
 //@}
 
   /*!
@@ -213,6 +224,7 @@ private:
   void printFullKernelNames(std::ostream& str) const;
   void printKernelNames(std::ostream& str) const;
   void printVariantNames(std::ostream& str) const;
+  void printDataSpaceNames(std::ostream& str) const;
   void printGroupNames(std::ostream& str) const;
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
@@ -233,6 +245,7 @@ private:
   SizeMeaning size_meaning; /*!< meaning of size value */
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
+  size_t data_alignment;
 
   int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
@@ -244,6 +257,13 @@ private:
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
                                         calculations */
+
+  DataSpace seqDataSpace = DataSpace::Host;
+  DataSpace ompDataSpace = DataSpace::Omp;
+  DataSpace ompTargetDataSpace = DataSpace::OmpTarget;
+  DataSpace cudaDataSpace = DataSpace::CudaDevice;
+  DataSpace hipDataSpace = DataSpace::HipDevice;
+  DataSpace kokkosDataSpace = DataSpace::Host;
 
   //
   // Arrays to hold input strings for valid/invalid input. Helpful for
@@ -267,6 +287,8 @@ private:
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
+
+  bool disable_warmup;
 
 };
 

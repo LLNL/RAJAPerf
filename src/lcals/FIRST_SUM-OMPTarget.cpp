@@ -26,18 +26,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define FIRST_SUM_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, m_N, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, m_N, did, hid);
-
-#define FIRST_SUM_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_x, x, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did);
-
 
 void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -48,8 +36,6 @@ void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   FIRST_SUM_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    FIRST_SUM_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,11 +50,7 @@ void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     }
     stopTimer();
 
-    FIRST_SUM_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    FIRST_SUM_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,8 +62,6 @@ void FIRST_SUM::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     }
     stopTimer();
-
-    FIRST_SUM_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  FIRST_SUM : Unknown OMP Target variant id = " << vid << std::endl;

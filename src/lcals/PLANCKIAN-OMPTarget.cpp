@@ -27,24 +27,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define PLANCKIAN_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(u, m_u, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(v, m_v, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(w, m_w, iend, did, hid);
-
-#define PLANCKIAN_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_w, w, iend, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(u, did); \
-  deallocOpenMPDeviceData(v, did); \
-  deallocOpenMPDeviceData(w, did);
-
 
 void PLANCKIAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -55,8 +37,6 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
   PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    PLANCKIAN_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -70,11 +50,7 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    PLANCKIAN_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,8 +62,6 @@ void PLANCKIAN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
     }
     stopTimer();
-
-    PLANCKIAN_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  PLANCKIAN : Unknown OMP Target variant id = " << vid << std::endl;

@@ -37,16 +37,6 @@ namespace polybench
                static_cast<size_t>(1));
 
 
-#define POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(pin, m_pin, m_N * m_N); \
-  allocAndInitHipDeviceData(pout, m_pout, m_N * m_N);
-
-
-#define POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP \
-  getHipDeviceData(m_pout, pout, m_N * m_N); \
-  deallocHipDeviceData(pin); \
-  deallocHipDeviceData(pout);
-
 template < size_t j_block_size, size_t i_block_size >
 __launch_bounds__(j_block_size*i_block_size)
 __global__ void poly_floyd_warshall(Real_ptr pout, Real_ptr pin,
@@ -86,8 +76,6 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -108,11 +96,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -139,11 +123,7 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_FLOYD_WARSHALL_DATA_SETUP_HIP;
 
     POLYBENCH_FLOYD_WARSHALL_VIEWS_RAJA;
 
@@ -180,8 +160,6 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_FLOYD_WARSHALL_TEARDOWN_HIP;
 
   } else {
       getCout() << "\n  POLYBENCH_FLOYD_WARSHALL : Unknown Hip variant id = " << vid << std::endl;

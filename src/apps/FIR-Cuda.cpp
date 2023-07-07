@@ -30,15 +30,10 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
-  cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type));
+  cudaErrchk(cudaMemcpyToSymbol(coeff, coeff_array, FIR_COEFFLEN * sizeof(Real_type)));
 
 
-#define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getActualProblemSize()); \
-  deallocCudaDeviceData(in); \
-  deallocCudaDeviceData(out);
+#define FIR_DATA_TEARDOWN_CUDA
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -52,22 +47,18 @@ __global__ void fir(Real_ptr out, Real_ptr in,
    }
 }
 
-#else  // use global memry for coefficients
+#else  // use global memory for coefficients
 
 #define FIR_DATA_SETUP_CUDA \
   Real_ptr coeff; \
-\
-  allocAndInitCudaDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitCudaDeviceData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitCudaDeviceData(coeff, tcoeff, FIR_COEFFLEN);
+  allocData(DataSpace::CudaDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::CudaDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out, out, getActualProblemSize()); \
-  deallocCudaDeviceData(in); \
-  deallocCudaDeviceData(out); \
-  deallocCudaDeviceData(coeff);
+  deallocData(DataSpace::CudaDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)

@@ -26,20 +26,6 @@ namespace stream
   //
   const size_t threads_per_team = 256;
 
-#define ADD_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
-
-#define ADD_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_c, c, iend, hid, did); \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(b, did); \
-  deallocOpenMPDeviceData(c, did);
-
 void ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -49,8 +35,6 @@ void ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
   ADD_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    ADD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,11 +48,7 @@ void ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    ADD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,8 +60,6 @@ void ADD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     }
     stopTimer();
-
-    ADD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  ADD : Unknown OMP Target variant id = " << vid << std::endl;

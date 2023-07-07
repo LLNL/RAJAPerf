@@ -22,21 +22,6 @@
 namespace rajaperf {
 namespace apps {
 
-#define MASS3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                  \
-  allocAndInitCudaDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                \
-  allocAndInitCudaDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);   \
-  allocAndInitCudaDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);   \
-  allocAndInitCudaDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
-
-#define MASS3DPA_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);            \
-  deallocCudaDeviceData(B);                                              \
-  deallocCudaDeviceData(Bt);                                             \
-  deallocCudaDeviceData(D);                                              \
-  deallocCudaDeviceData(X);                                              \
-  deallocCudaDeviceData(Y);
-
 template < size_t block_size >
   __launch_bounds__(block_size)
 __global__ void Mass3DPA(const Real_ptr B, const Real_ptr Bt,
@@ -114,8 +99,6 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    MASS3DPA_DATA_SETUP_CUDA;
-
     dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
     constexpr size_t shmem = 0;
 
@@ -128,14 +111,10 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    MASS3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
   case RAJA_CUDA: {
-
-    MASS3DPA_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -268,8 +247,6 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
     }  // loop over kernel reps
     stopTimer();
-
-    MASS3DPA_DATA_TEARDOWN_CUDA;
 
     break;
   }

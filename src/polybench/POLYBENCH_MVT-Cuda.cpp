@@ -21,24 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_MVT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x1, m_x1, N); \
-  allocAndInitCudaDeviceData(x2, m_x2, N); \
-  allocAndInitCudaDeviceData(y1, m_y1, N); \
-  allocAndInitCudaDeviceData(y2, m_y2, N); \
-  allocAndInitCudaDeviceData(A, m_A, N * N);
-
-
-#define POLYBENCH_MVT_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x1, x1, N); \
-  getCudaDeviceData(m_x2, x2, N); \
-  deallocCudaDeviceData(x1); \
-  deallocCudaDeviceData(x2); \
-  deallocCudaDeviceData(y1); \
-  deallocCudaDeviceData(y2); \
-  deallocCudaDeviceData(A);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_mvt_1(Real_ptr A, Real_ptr x1, Real_ptr y1,
@@ -83,8 +65,6 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_MVT_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -100,11 +80,7 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_MVT_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_MVT_DATA_SETUP_CUDA;
 
     POLYBENCH_MVT_VIEWS_RAJA;
 
@@ -175,8 +151,6 @@ void POLYBENCH_MVT::runCudaVariantImpl(VariantID vid)
 
     }
     stopTimer();
-
-    POLYBENCH_MVT_TEARDOWN_CUDA;
 
   } else {
       getCout() << "\n  POLYBENCH_MVT : Unknown Cuda variant id = " << vid << std::endl;
