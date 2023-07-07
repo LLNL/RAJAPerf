@@ -32,13 +32,14 @@ template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
+                          MyMinLoc mininit,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  minloc[ threadIdx.x ] = dminloc[blockIdx.x];
+  minloc[ threadIdx.x ] = mininit;
 
   for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
@@ -92,6 +93,7 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
                            shmem, res.get_stream(), x,
                            dminloc,
+                           mymin,
                            iend );
       hipErrchk( hipGetLastError() );
 
