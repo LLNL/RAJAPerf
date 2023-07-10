@@ -28,15 +28,13 @@
 #    SPEC: "~openmp +rocm +desul amdgpu_target=gfx906 %rocmcc@5.1.1 ^hip@5.1.1 ^blt@develop"
 #  extends: .build_and_test_on_corona
 
+# With GitLab CI, included files cannot be empty.
+variables:
+  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
+
 # EXTRA 
 # Turned off due to Spack package error.
 # rocmcc_5_4_1_hip_caliper:
 #   variables:
 #     SPEC: "~openmp +caliper +rocm amdgpu_target=gfx906 %rocmcc@5.4.1 ^hip@5.4.1 ^blt@develop"
 #   extends: .build_and_test_on_corona
-
-# Redundant with RADIUSS shared CI
-rocmcc_5_5_0_hip:
-  variables:
-    SPEC: "+rocm amdgpu_target=gfx906 %rocmcc@5.5.0 ^hip@5.5.0 ^blt@develop"
-  extends: .build_and_test_on_corona
