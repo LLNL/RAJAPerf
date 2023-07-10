@@ -15,9 +15,9 @@ RAJA Performance Suite
 [![Documentation Status](https://readthedocs.org/projects/rajaperf/badge/?version=develop)](https://raja.readthedocs.io/en/develop/?badge=develop)
 
 The RAJA Performance Suite is a companion project to the [RAJA] C++ performance
-portability abstraction library. The Performance Suite designed to eplore
+portability abstraction library. The Performance Suite designed to explore
 performance of loop-based computational kernels found in HPC applications.
-Specifically, it is used to assess and monitor runtime performance of kernels 
+Specifically, it is used to assess and monitor run time performance of kernels 
 implemented using [RAJA] compare those to variants implemented using common 
 parallel programming models, such as OpenMP and CUDA, directly.
 
