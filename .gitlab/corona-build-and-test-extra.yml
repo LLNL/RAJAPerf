@@ -35,3 +35,8 @@
 #     SPEC: "~openmp +caliper +rocm amdgpu_target=gfx906 %rocmcc@5.4.1 ^hip@5.4.1 ^blt@develop"
 #   extends: .build_and_test_on_corona
 
+# Redundant with RADIUSS shared CI
+rocmcc_5_5_0_hip:
+  variables:
+    SPEC: "+rocm amdgpu_target=gfx906 %rocmcc@5.5.0 ^hip@5.5.0 ^blt@develop"
+  extends: .build_and_test_on_corona
