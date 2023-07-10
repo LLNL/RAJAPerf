@@ -30,7 +30,7 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  hipErrchk( hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice));
+  hipErrchk( hipMemcpyToSymbolAsync(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice, res.get_stream()) );
 
 
 #define FIR_DATA_TEARDOWN_HIP
