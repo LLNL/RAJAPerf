@@ -270,7 +270,8 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
     allocData(DataSpace::HipDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::HipDevice, block_readys, grid_size);
-    hipErrchk( hipMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
+    hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
+    hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

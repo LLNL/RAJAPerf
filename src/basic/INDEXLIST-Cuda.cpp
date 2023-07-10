@@ -270,7 +270,8 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::CudaDevice, block_readys, grid_size);
-    cudaErrchk( cudaMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
+    cudaErrchk( cudaMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
+    cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
