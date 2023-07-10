@@ -28,9 +28,10 @@
 #    SPEC: "~openmp +rocm +desul amdgpu_target=gfx906 %rocmcc@5.1.1 ^hip@5.1.1 ^blt@develop"
 #  extends: .build_and_test_on_corona
 
-# EXTRA
-rocmcc_5_4_1_hip_caliper:
-  variables:
-    SPEC: "~openmp +caliper +rocm amdgpu_target=gfx906 %rocmcc@5.4.1 ^hip@5.4.1 ^blt@develop"
-  extends: .build_and_test_on_corona
+# EXTRA 
+# Turned off due to Spack package error.
+# rocmcc_5_4_1_hip_caliper:
+#   variables:
+#     SPEC: "~openmp +caliper +rocm amdgpu_target=gfx906 %rocmcc@5.4.1 ^hip@5.4.1 ^blt@develop"
+#   extends: .build_and_test_on_corona
 
