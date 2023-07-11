@@ -32,10 +32,3 @@ intel_19_1_2_gcc_8_5_0:
 # We do not recommend using ${PROJECT_<MACHINE>_VARIANTS} and
 # ${PROJECT_<MACHINE>_DEPS} in the extra jobs. There is no reason not to fully
 # describe the spec here.
-
-gcc_8_5_0_caliper:
-  variables:
-    SPEC: " +openmp +caliper %gcc@8.5.0"
-    RUBY_BUILD_AND_TEST_JOB_ALLOC: "--time=60 --nodes=1"
-  extends: .build_and_test_on_ruby
-

@@ -61,12 +61,6 @@ gcc_8_3_1_cuda_11_5_0_ats_disabled:
 # OTHERS
 ##########
 
-clang_12_0_1_gcc_8_3_1_cuda_11_2_0_caliper:
-  variables:
-    SPEC: " ~shared +openmp +caliper +cuda cuda_arch=70 %clang@12.0.1.gcc.8.3.1 ^cuda@11.2.0+allow-unsupported-compilers"
-    MODULE_LIST: "cuda/11.2.0"
-  extends: .build_and_test_on_lassen
-
 clang_13_0_1_libcpp:
   variables:
     SPEC: " ~shared +openmp %clang@13.0.1 cflags==\"-DGTEST_HAS_CXXABI_H_=0\" cxxflags==\"-stdlib=libc++ -DGTEST_HAS_CXXABI_H_=0\""
