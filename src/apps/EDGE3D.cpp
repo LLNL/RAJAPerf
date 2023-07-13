@@ -44,7 +44,6 @@ EDGE3D::EDGE3D(const RunParams& params)
 
   // touched data size, not actual number of stores and loads
   // see VOL3D.cpp
-  // 1
   size_t reads_per_node = 3*sizeof(Real_type);
   size_t writes_per_rep = 1*sizeof(Real_type);
   setBytesPerRep( writes_per_rep * getItsPerRep() +

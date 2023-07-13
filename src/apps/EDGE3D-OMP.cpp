@@ -60,7 +60,7 @@ void EDGE3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
         #pragma omp parallel for
         for (Index_type i = ibegin ; i < iend ; ++i ) {
-          edge3d_lam(i);
+          EDGE3D_BODY;
         }
 
       }

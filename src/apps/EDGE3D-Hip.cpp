@@ -56,11 +56,6 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
   EDGE3D_DATA_SETUP;
 
-  auto edge3d_lam =
-    [=](Index_type i) {
-      EDGE3D_BODY;
-    };
-
   if ( vid == Base_HIP ) {
 
     startTimer();
@@ -85,7 +80,7 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
-        edge3d_lam(i);
+        EDGE3D_BODY;
       });
 
     }
