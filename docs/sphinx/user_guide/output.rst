@@ -166,11 +166,12 @@ Caliper output files
 ===========================
 
 If you've built RAJAPerf with Caliper support turned on, then in addition to the
-outputs mentioned above, we also save a .cali file for each variant run, such as:
-Base_OpenMP.cali, Lambda_OpenMP.cali, RAJA_OpenMP.cali, etc.
+outputs mentioned above, we also save a .cali file for each variant & tuning run,
+such as:
+Base_OpenMP-default.cali, Lambda_OpenMP-default.cali, Base_CUDA-block_128.cali, etc.
 
-Also, by using the `--variants` and `--tunings` flag when running, you can generate 
-single variant/tuning runs. These work optimally with Hatchet/Thicket.
+Also, by using the `--variants` and `--tunings` flag when running, you can specify
+which variant/tunings to run.
 
 There are several techniques to display the Caliper trees (Timing Hierarchy)
 
