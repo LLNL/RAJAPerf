@@ -280,7 +280,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    KernelBase::setCaliperMgrStart(vid);
+    KernelBase::setCaliperMgrStart(vid, getVariantTuningName(vid, tune_idx));
   }
 #endif
 
@@ -356,7 +356,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
   }
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    KernelBase::setCaliperMgrStop(vid);
+    KernelBase::setCaliperMgrStop(vid, getVariantTuningName(vid, tune_idx));
   }
 #endif
 }
@@ -440,9 +440,7 @@ void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
     cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
     cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
     cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
-    double const block_size = getBlockSize();
-    if (!isnan(block_size))
-      cali_set_double(BlockSize_attr, block_size);
+    cali_set_double(BlockSize_attr, getBlockSize());
   }
 }
 
@@ -454,6 +452,6 @@ void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
 }
 
 // initialize a KernelBase static
-std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
+std::map<rajaperf::VariantID, std::map<std::string, cali::ConfigManager>> KernelBase::mgr;
 #endif
 }  // closing brace for rajaperf namespace

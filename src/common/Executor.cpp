@@ -713,12 +713,6 @@ void Executor::setupSuite()
       for (VIDset::iterator vid = run_var.begin();
            vid != run_var.end(); ++vid) {
         variant_ids.push_back( *vid );
-      #if defined(RAJA_PERFSUITE_USE_CALIPER)
-          KernelBase::setCaliperMgrVariant(*vid,
-                                            run_params.getOutputDirName(),
-                                            run_params.getAddToSpotConfig(),
-                                            run_params.getTuningInput());
-      #endif
       }
 
       //
@@ -779,7 +773,15 @@ void Executor::setupSuite()
 
           tuning_names[vid].resize(tuning_names_order_map.size());
           for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-            tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+            size_t tid = tuning_name_idx_pair.second;
+            std::string tstr = tuning_name_idx_pair.first;
+            tuning_names[vid][tid] = tstr;
+            #if defined(RAJA_PERFSUITE_USE_CALIPER)
+              KernelBase::setCaliperMgrVariantTuning(vid,
+                                                tstr,
+                                                run_params.getOutputDirName(),
+                                                run_params.getAddToSpotConfig());
+            #endif
           }
           // reorder to put "default" first
           auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
@@ -799,7 +801,6 @@ void Executor::setupSuite()
               tunings_set.emplace(tuning_name);
             }
           }
-          adiak::value("tunings", tunings_set);
         #endif
 
         //

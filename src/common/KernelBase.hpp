@@ -399,9 +399,10 @@ public:
   void caliperOff() { doCaliperTiming = false; }
   void doOnceCaliMetaBegin(VariantID vid, size_t tune_idx);
   void doOnceCaliMetaEnd(VariantID vid, size_t tune_idx);
-  static void setCaliperMgrVariant(VariantID vid, const std::string& outdir, 
-                                   const std::string& addToConfig,
-                                   const std::vector<std::string>& tuning_input)
+  static void setCaliperMgrVariantTuning(VariantID vid,
+                                    std::string tstr,
+                                    const std::string& outdir,
+                                    const std::string& addToConfig)
   {
     static bool ran_spot_config_check = false;
     bool config_ok = true;
@@ -546,46 +547,48 @@ public:
 
     if(config_ok) {
       cali::ConfigManager m;
-      mgr.insert(std::make_pair(vid, m));
+      mgr[vid][tstr] = m;
       std::string od("./");
       if (outdir.size()) {
         od = outdir + "/";
       }
       std::string vstr = getVariantName(vid);
-      std::string tstr = "";
-      std::string profile = "spot(output=" + od + vstr + ".cali)";
+      std::string profile = "spot(output=" + od + vstr + "-" + tstr + ".cali)";
       if(!addToConfig.empty()) {
         profile += "," + addToConfig;
       }
       std::cout << "Profile: " << profile << std::endl;
-      mgr[vid].add_option_spec(problem_size_json_spec.c_str());
-      mgr[vid].set_default_parameter("problem_size", "true");
-      mgr[vid].add_option_spec(reps_json_spec.c_str());
-      mgr[vid].set_default_parameter("reps", "true");
-      mgr[vid].add_option_spec(iters_json_spec.c_str());
-      mgr[vid].set_default_parameter("iters_p_rep", "true");
-      mgr[vid].add_option_spec(kernels_json_spec.c_str());
-      mgr[vid].set_default_parameter("kernels_p_rep", "true");
-      mgr[vid].add_option_spec(bytes_json_spec.c_str());
-      mgr[vid].set_default_parameter("bytes_p_rep", "true");
-      mgr[vid].add_option_spec(flops_rep_json_spec.c_str());
-      mgr[vid].set_default_parameter("flops_p_rep", "true");
-      mgr[vid].add_option_spec(block_size_json_spec.c_str());
-      mgr[vid].set_default_parameter("block_size", "true");
-      mgr[vid].add(profile.c_str());
+      mgr[vid][tstr].add_option_spec(problem_size_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("problem_size", "true");
+      mgr[vid][tstr].add_option_spec(reps_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("reps", "true");
+      mgr[vid][tstr].add_option_spec(iters_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("iters_p_rep", "true");
+      mgr[vid][tstr].add_option_spec(kernels_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("kernels_p_rep", "true");
+      mgr[vid][tstr].add_option_spec(bytes_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("bytes_p_rep", "true");
+      mgr[vid][tstr].add_option_spec(flops_rep_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("flops_p_rep", "true");
+      mgr[vid][tstr].add_option_spec(block_size_json_spec.c_str());
+      mgr[vid][tstr].set_default_parameter("block_size", "true");
+      mgr[vid][tstr].add(profile.c_str());
     }
   }
 
-  static void setCaliperMgrStart(VariantID vid) { mgr[vid].start(); }
-  static void setCaliperMgrStop(VariantID vid) { mgr[vid].stop(); }
+  static void setCaliperMgrStart(VariantID vid, std::string tstr) { mgr[vid][tstr].start(); }
+  static void setCaliperMgrStop(VariantID vid, std::string tstr) { mgr[vid][tstr].stop(); }
   static void setCaliperMgrFlush()
   { // we're going to flush all the variants at once
-    std::cout << "flushing " << mgr.size() << " variants\n";
-    for(auto const &kv : mgr) {
-      // set Adiak key first
-      std::string variant=getVariantName(kv.first);
-      adiak::value("variant",variant.c_str());
-      mgr[kv.first].flush();
+    for(auto const &mp : mgr) {
+      for(auto const &kv : mp.second) {
+        // set Adiak key first
+        std::string variant = getVariantName(mp.first);
+        std::string tstr = kv.first;
+        adiak::value("variant",variant.c_str());
+        adiak::value("tuning", tstr.c_str());
+        mgr[mp.first][kv.first].flush();
+      }
     }
   }
 
@@ -657,7 +660,7 @@ private:
 
   // we need a Caliper Manager object per variant
   // we can inline this with c++17
-  static std::map<rajaperf::VariantID, cali::ConfigManager> mgr;
+  static std::map<rajaperf::VariantID, std::map<std::string, cali::ConfigManager>> mgr;
 #endif
 
   std::vector<RAJA::Timer::ElapsedType> min_time[NumVariants];
