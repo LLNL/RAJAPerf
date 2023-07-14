@@ -189,6 +189,9 @@ void KernelBase::setVariantDefined(VariantID vid)
   min_time[vid].resize(variant_tuning_names[vid].size(), std::numeric_limits<double>::max());
   max_time[vid].resize(variant_tuning_names[vid].size(), -std::numeric_limits<double>::max());
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
+  #if defined(RAJA_PERFSUITE_USE_CALIPER)
+    doCaliMetaOnce[vid].resize(variant_tuning_names[vid].size(), true);
+  #endif
 }
 
 int KernelBase::getDataAlignment() const
@@ -277,7 +280,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    KernelBase::setCaliperMgrStart();
+    KernelBase::setCaliperMgrStart(vid);
   }
 #endif
 
@@ -353,7 +356,7 @@ void KernelBase::runKernel(VariantID vid, size_t tune_idx)
   }
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
   if (doCaliperTiming) {
-    setCaliperMgrStop();
+    KernelBase::setCaliperMgrStop(vid);
   }
 #endif
 }
@@ -427,21 +430,30 @@ void KernelBase::print(std::ostream& os) const
 }
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-void KernelBase::CaliMeta()
+void KernelBase::doOnceCaliMetaBegin(VariantID vid, size_t tune_idx)
 {
-  // attributes are class variables initialized in ctor
-  cali_set_double(ProblemSize_attr,(double)getActualProblemSize());
-  cali_set_double(Reps_attr,(double)getRunReps());
-  cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
-  cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
-  cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
-  cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
-  double const block_size = getBlockSize();
-  if (!isnan(block_size))
-    cali_set_double(BlockSize_attr, block_size);
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    // attributes are class variables initialized in ctor
+    cali_set_double(ProblemSize_attr,(double)getActualProblemSize());
+    cali_set_double(Reps_attr,(double)getRunReps());
+    cali_set_double(Iters_Rep_attr,(double)getItsPerRep());
+    cali_set_double(Kernels_Rep_attr,(double)getKernelsPerRep());
+    cali_set_double(Bytes_Rep_attr,(double)getBytesPerRep());
+    cali_set_double(Flops_Rep_attr,(double)getFLOPsPerRep());
+    double const block_size = getBlockSize();
+    if (!isnan(block_size))
+      cali_set_double(BlockSize_attr, block_size);
+  }
+}
+
+void KernelBase::doOnceCaliMetaEnd(VariantID vid, size_t tune_idx)
+{
+  if(doCaliMetaOnce[vid].at(tune_idx)) {
+    doCaliMetaOnce[vid].at(tune_idx) = false;
+  }
 }
 
 // initialize a KernelBase static
-cali::ConfigManager KernelBase::mgr;
+std::map<rajaperf::VariantID, cali::ConfigManager> KernelBase::mgr;
 #endif
 }  // closing brace for rajaperf namespace

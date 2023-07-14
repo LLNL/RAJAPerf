@@ -1114,7 +1114,7 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
       }
     }
     #if defined(RAJA_PERFSUITE_USE_CALIPER)
-      KernelBase::setCaliperMgrFlush(getVariantName(vid));
+      KernelBase::setCaliperMgrFlush();
     #endif
   } // loop over variants
 }
