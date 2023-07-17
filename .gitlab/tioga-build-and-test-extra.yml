@@ -13,7 +13,17 @@
 # We keep ${PROJECT_<MACHINE>_VARIANTS} and ${PROJECT_<MACHINE>_DEPS} So that
 # the comparison with the original job is easier.
 
-# No overridden jobs so far.
+rocmcc_5_5_1_hip:
+  variables:
+    SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@5.5.1 ^hip@5.5.1 ^blt@develop"
+  extends: .build_and_test_on_tioga
+
+cce_15_0_1:
+  variables:
+    SPEC: "${PROJECT_TIOGA_VARIANTS} +openmp %cce@15.0.1 ${PROJECT_TIOGA_DEPS}"
+  extends: .build_and_test_on_tioga
+
+# In post-build phase, deallocate resources.
 
 ############
 # Extra jobs
@@ -23,8 +33,8 @@
 # describe the spec here.
 
 # With GitLab CI, included files cannot be empty.
-variables:
-  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
+#variables:
+#  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
 
 # INFO: This job is activated in RAJA CI, but we don't use desul atomics here
 #rocmcc_5_4_3_hip_desul_atomics:
