@@ -150,8 +150,8 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
             buffer += len;
           }
         }
-#if 0
-//#if _OPENMP >= 200805
+
+#if defined(RAJA_ENABLE_OMP_TASK_INTERNAL) 
         #pragma omp parallel
         #pragma omp single nowait
         for (Index_type j = 0; j < pack_index; j++) {
@@ -189,8 +189,8 @@ void HALOEXCHANGE_FUSED::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_
             buffer += len;
           }
         }
-#if 0
-//#if _OPENMP >= 200805
+
+#if defined(RAJA_ENABLE_OMP_TASK_INTERNAL) 
         #pragma omp parallel
         #pragma omp single nowait
         for (Index_type j = 0; j < unpack_index; j++) {
