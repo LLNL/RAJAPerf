@@ -89,7 +89,7 @@ void DAXPY_ATOMIC::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY_ATOMIC, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DAXPY_ATOMIC, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf
