@@ -78,7 +78,7 @@ void DOT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> dot(m_dot_init);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           DOT_BODY;
         });

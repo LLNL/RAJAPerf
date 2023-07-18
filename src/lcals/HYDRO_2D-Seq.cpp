@@ -118,8 +118,8 @@ void HYDRO_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
       using EXECPOL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
+          RAJA::statement::For<0, RAJA::seq_exec,    // k
+            RAJA::statement::For<1, RAJA::seq_exec,  // j
               RAJA::statement::Lambda<0>
             >
           >

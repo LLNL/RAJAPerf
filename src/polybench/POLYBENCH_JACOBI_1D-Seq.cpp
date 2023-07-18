@@ -87,11 +87,11 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
+          RAJA::forall<RAJA::seq_exec> ( RAJA::RangeSegment{1, N-1},
             poly_jacobi1d_lam1
           );
 
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
+          RAJA::forall<RAJA::seq_exec> ( RAJA::RangeSegment{1, N-1},
             poly_jacobi1d_lam2
           );
 
