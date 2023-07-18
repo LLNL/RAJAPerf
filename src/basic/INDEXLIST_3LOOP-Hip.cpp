@@ -187,7 +187,7 @@ void INDEXLIST_3LOOP::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST_3LOOP, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INDEXLIST_3LOOP, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

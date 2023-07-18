@@ -90,7 +90,7 @@ void MULADDSUB::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MULADDSUB, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MULADDSUB, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

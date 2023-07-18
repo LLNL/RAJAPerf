@@ -165,7 +165,7 @@ void INDEXLIST_3LOOP::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST_3LOOP, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INDEXLIST_3LOOP, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf
