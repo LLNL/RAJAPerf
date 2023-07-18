@@ -38,11 +38,9 @@ void MASS3DEA::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
         MASS3DEA_0
 
-        CPU_FOREACH(iz, z, 1) {
-          CPU_FOREACH(d, x, MEA_D1D) {
-            CPU_FOREACH(q, y, MEA_Q1D) {
-              MASS3DEA_1
-            }
+        CPU_FOREACH(d, x, MEA_D1D) {
+          CPU_FOREACH(q, y, MEA_Q1D) {
+            MASS3DEA_1
           }
         }
 
