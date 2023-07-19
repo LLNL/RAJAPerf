@@ -99,11 +99,17 @@
 
 #define MASS3DEA_0 RAJA_TEAM_SHARED double s_B[MEA_Q1D][MEA_D1D];
 
+#define MASS3DEA_0_CPU double s_B[MEA_Q1D][MEA_D1D];
+
 #define MASS3DEA_1 s_B[q][d] = B_MEA_(q, d);
 
 #define MASS3DEA_2                                                      \
   double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                      \
   RAJA_TEAM_SHARED double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
+
+#define MASS3DEA_2_CPU                                                  \
+  double(*l_B)[MEA_D1D] = (double(*)[MEA_D1D])s_B;                      \
+  double s_D[MEA_Q1D][MEA_Q1D][MEA_Q1D];
 
 #define MASS3DEA_3 s_D[k1][k2][k3] = D_MEA_(k1, k2, k3, e);
 

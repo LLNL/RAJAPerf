@@ -33,7 +33,7 @@ void MASS3DEA::runSeqVariant(VariantID vid,
 
       for (int e = 0; e < NE; ++e) {
 
-        MASS3DEA_0
+        MASS3DEA_0_CPU
 
         CPU_FOREACH(d, x, MEA_D1D) {
           CPU_FOREACH(q, y, MEA_Q1D) {
@@ -41,7 +41,7 @@ void MASS3DEA::runSeqVariant(VariantID vid,
           }
         }
 
-        MASS3DEA_2
+        MASS3DEA_2_CPU
 
         CPU_FOREACH(k1, x, MEA_Q1D) {
           CPU_FOREACH(k2, y, MEA_Q1D) {
