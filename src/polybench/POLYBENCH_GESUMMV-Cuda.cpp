@@ -114,7 +114,7 @@ void POLYBENCH_GESUMMV::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GESUMMV, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

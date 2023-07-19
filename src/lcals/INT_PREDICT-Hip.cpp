@@ -80,7 +80,7 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INT_PREDICT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INT_PREDICT, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

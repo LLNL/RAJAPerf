@@ -218,7 +218,7 @@ Notable differences with the sequential variant file are:
   * The method to exjcute the CUDA kernel variants ``ADD::runCudaVariantImpl``
     is templated on a ``block_size`` parameter, which represents the 
     *tuning parameter*, and is passes to the kernel lauch methods.
-  * The ``RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE`` macro is
+  * The ``RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE`` macro is
     used (outside the method implementation, to generate different kernel 
     tuning implementations at compile-time to run the GPU ``block_size``
     versions specified via command-line input mentioned in 
