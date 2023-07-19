@@ -70,7 +70,7 @@ void FIRST_DIFF::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), firstdiff_lam);
 
       }
