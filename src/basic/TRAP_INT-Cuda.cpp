@@ -138,7 +138,7 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRAP_INT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

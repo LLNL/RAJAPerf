@@ -155,7 +155,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NESTED_INIT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -73,7 +73,7 @@ void FIRST_SUM::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_SUM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_SUM, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

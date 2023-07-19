@@ -140,7 +140,7 @@ void HALOEXCHANGE::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HALOEXCHANGE, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HALOEXCHANGE, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

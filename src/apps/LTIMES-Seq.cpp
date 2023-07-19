@@ -85,10 +85,10 @@ void LTIMES::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<1, RAJA::loop_exec,       // z
-            RAJA::statement::For<2, RAJA::loop_exec,     // g
-              RAJA::statement::For<3, RAJA::loop_exec,   // m
-                RAJA::statement::For<0, RAJA::loop_exec, // d
+          RAJA::statement::For<1, RAJA::seq_exec,       // z
+            RAJA::statement::For<2, RAJA::seq_exec,     // g
+              RAJA::statement::For<3, RAJA::seq_exec,   // m
+                RAJA::statement::For<0, RAJA::seq_exec, // d
                   RAJA::statement::Lambda<0>
                 >
               >
