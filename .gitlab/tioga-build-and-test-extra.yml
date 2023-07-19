@@ -15,6 +15,8 @@
 
 # No overridden jobs so far.
 
+# In post-build phase, deallocate resources.
+
 ############
 # Extra jobs
 ############
@@ -23,17 +25,10 @@
 # describe the spec here.
 
 # With GitLab CI, included files cannot be empty.
-variables:
-  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
+#variables:
+#  INCLUDED_FILE_CANNOT_BE_EMPTY: "True"
 
-# INFO: This job is activated in RAJA CI, but we don't use desul atomics here
-#rocmcc_5_4_3_hip_desul_atomics:
-#  variables:
-#    SPEC: "~shared +rocm ~openmp +desul amdgpu_target=gfx90a %rocmcc@5.4.3 ^hip@5.4.3 ^blt@develop"
-#  extends: .build_and_test_on_tioga
-
-# INFO: This job is activated in RAJA CI, but we may not want to run openmp here
-#rocmcc_5_4_3_hip_openmp:
-#  variables:
-#    SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@5.4.3 ^hip@5.4.3 ^blt@develop"
-#  extends: .build_and_test_on_tioga
+rocmcc_5_4_3_hip_openmp:
+  variables:
+    SPEC: "~shared +rocm +openmp amdgpu_target=gfx90a %rocmcc@5.4.3 ^hip@5.4.3 ^blt@develop"
+  extends: .build_and_test_on_tioga

@@ -78,7 +78,7 @@ void REDUCE_SUM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 
         RAJA::ReduceSum<RAJA::seq_reduce, Real_type> sum(m_sum_init);
 
-        RAJA::forall<RAJA::loop_exec>( RAJA::RangeSegment(ibegin, iend),
+        RAJA::forall<RAJA::seq_exec>( RAJA::RangeSegment(ibegin, iend),
           [=](Index_type i) {
             REDUCE_SUM_BODY;
         });

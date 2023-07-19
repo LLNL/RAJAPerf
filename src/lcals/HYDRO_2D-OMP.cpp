@@ -133,7 +133,7 @@ void HYDRO_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
       using EXECPOL =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_for_nowait_static_exec< >,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
+            RAJA::statement::For<1, RAJA::seq_exec,  // j
               RAJA::statement::Lambda<0>
             >
           >
