@@ -91,7 +91,7 @@ void COPY8::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(COPY8, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(COPY8, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf
