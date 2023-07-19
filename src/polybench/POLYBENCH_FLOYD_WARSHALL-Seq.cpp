@@ -82,9 +82,9 @@ void POLYBENCH_FLOYD_WARSHALL::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUS
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::For<2, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<0>
               >
             >

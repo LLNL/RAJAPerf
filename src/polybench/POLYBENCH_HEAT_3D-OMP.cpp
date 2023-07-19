@@ -112,7 +112,7 @@ void POLYBENCH_HEAT_3D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
         RAJA::KernelPolicy<
           RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                     RAJA::ArgList<0, 1>,
-            RAJA::statement::For<2, RAJA::loop_exec,
+            RAJA::statement::For<2, RAJA::seq_exec,
               RAJA::statement::Lambda<0>
             >
           >
