@@ -72,13 +72,13 @@ void MASS3DEA::runSeqVariant(VariantID vid,
     // Currently Teams requires two policies if compiled with a device
     using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
-    using outer_x = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using outer_x = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_x = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_y = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_z = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_z = RAJA::LoopPolicy<RAJA::seq_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
