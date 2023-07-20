@@ -80,7 +80,7 @@ void ZONAL_ACCUMULATION_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(zones, zonal_accumulation_3d_lam);
+        RAJA::forall<RAJA::seq_exec>(zones, zonal_accumulation_3d_lam);
 
       }
       stopTimer();
