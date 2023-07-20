@@ -17,6 +17,7 @@
 //
 // Basic kernels...
 //
+#include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
@@ -152,6 +153,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
@@ -632,6 +634,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_COPY8 : {
+       kernel = new basic::COPY8(run_params);
+       break;
+    }
     case Basic_DAXPY : {
        kernel = new basic::DAXPY(run_params);
        break;
