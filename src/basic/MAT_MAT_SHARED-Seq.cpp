@@ -157,13 +157,13 @@ void MAT_MAT_SHARED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     using launch_policy = RAJA::LaunchPolicy<RAJA::seq_launch_t>;
 
-    using outer_x = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using outer_x = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using outer_y = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using outer_y = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_x = RAJA::LoopPolicy<RAJA::seq_exec>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::loop_exec>;
+    using inner_y = RAJA::LoopPolicy<RAJA::seq_exec>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

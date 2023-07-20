@@ -326,7 +326,7 @@ void POLYBENCH_3MM::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_3MM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_3MM, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

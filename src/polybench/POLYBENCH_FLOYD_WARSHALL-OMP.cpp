@@ -99,7 +99,7 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid, size_t RAJAPERF_U
 #if defined(USE_RAJA_OMP_COLLAPSE)
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
             RAJA::statement::Collapse<RAJA::omp_parallel_collapse_exec,
                                       RAJA::ArgList<1, 2>,
               RAJA::statement::Lambda<0>
@@ -109,9 +109,9 @@ void POLYBENCH_FLOYD_WARSHALL::runOpenMPVariant(VariantID vid, size_t RAJAPERF_U
 #else
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
             RAJA::statement::For<1, RAJA::omp_parallel_for_exec,
-              RAJA::statement::For<2, RAJA::loop_exec,
+              RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<0>
               >
             >
