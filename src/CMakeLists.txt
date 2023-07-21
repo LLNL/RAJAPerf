@@ -81,6 +81,9 @@ blt_add_executable(
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
+  apps/ZONAL_ACCUMULATION_3D.cpp
+  apps/ZONAL_ACCUMULATION_3D-Seq.cpp
+  apps/ZONAL_ACCUMULATION_3D-OMPTarget.cpp
   basic/COPY8.cpp
   basic/COPY8-Seq.cpp
   basic/COPY8-OMPTarget.cpp

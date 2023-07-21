@@ -93,6 +93,7 @@
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
+#include "apps/ZONAL_ACCUMULATION_3D.hpp"
 
 //
 // Algorithm kernels...
@@ -230,6 +231,7 @@ static const std::string KernelNames [] =
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
+  std::string("Apps_ZONAL_ACCUMULATION_3D"),
 
 //
 // Algorithm kernels...
@@ -891,6 +893,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+    case Apps_ZONAL_ACCUMULATION_3D : {
+       kernel = new apps::ZONAL_ACCUMULATION_3D(run_params);
        break;
     }
 

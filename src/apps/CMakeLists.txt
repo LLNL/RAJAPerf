@@ -93,5 +93,11 @@ blt_add_library(
           VOL3D-Cuda.cpp 
           VOL3D-OMP.cpp 
           VOL3D-OMPTarget.cpp 
+          ZONAL_ACCUMULATION_3D.cpp
+          ZONAL_ACCUMULATION_3D-Seq.cpp
+          ZONAL_ACCUMULATION_3D-Hip.cpp
+          ZONAL_ACCUMULATION_3D-Cuda.cpp
+          ZONAL_ACCUMULATION_3D-OMP.cpp
+          ZONAL_ACCUMULATION_3D-OMPTarget.cpp
   DEPENDS_ON common ${RAJA_PERFSUITE_DEPENDS}
   )
