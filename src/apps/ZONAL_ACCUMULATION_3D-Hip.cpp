@@ -72,9 +72,8 @@ void ZONAL_ACCUMULATION_3D::runHipVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_HIP ) {
 
-    camp::resources::Resource working_res{camp::resources::Hip()};
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                             working_res, RAJA::Unowned);
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

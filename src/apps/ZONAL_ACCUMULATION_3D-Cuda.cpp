@@ -72,9 +72,8 @@ void ZONAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-    camp::resources::Resource working_res{camp::resources::Cuda()};
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                             working_res, RAJA::Unowned);
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
