@@ -61,6 +61,8 @@ template < size_t block_size >
 void MASS3DEA::runHipVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   MASS3DEA_DATA_SETUP;
 
   switch (vid) {
@@ -69,11 +71,12 @@ void MASS3DEA::runHipVariantImpl(VariantID vid) {
 
     dim3 nblocks(NE);
     dim3 nthreads_per_block(MEA_D1D, MEA_D1D, MEA_D1D);
+    constexpr size_t shmem = 0;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipLaunchKernelGGL((Mass3DEA<block_size>), dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+      hipLaunchKernelGGL((Mass3DEA<block_size>), dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          B, D, M);
 
       hipErrchk( hipGetLastError() );
@@ -100,7 +103,7 @@ void MASS3DEA::runHipVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(NE),
                          RAJA::Threads(MEA_D1D, MEA_D1D, MEA_D1D)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
