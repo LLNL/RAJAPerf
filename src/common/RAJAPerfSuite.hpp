@@ -70,7 +70,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_DAXPY = 0,
+  Basic_COPY8 = 0,
+  Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
   Basic_INDEXLIST,
@@ -140,10 +141,12 @@ enum KernelID {
   Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DEA,
   Apps_MASS3DPA,
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
+  Apps_ZONAL_ACCUMULATION_3D,
 
 //
 // Algorithm kernels...
