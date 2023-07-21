@@ -76,7 +76,7 @@ void FIRST_DIFF::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_DIFF, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_DIFF, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

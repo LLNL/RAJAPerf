@@ -178,7 +178,7 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
 
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE_STRUCT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

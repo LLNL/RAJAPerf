@@ -181,7 +181,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
 
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE_STRUCT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -109,7 +109,7 @@ void HALOEXCHANGE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
     case RAJA_Seq : {
 
-      using EXEC_POL = RAJA::loop_exec;
+      using EXEC_POL = RAJA::seq_exec;
 
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

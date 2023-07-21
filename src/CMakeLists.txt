@@ -69,6 +69,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DEA.cpp
+  apps/MASS3DEA-Seq.cpp
+  apps/MASS3DEA-OMPTarget.cpp  
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
@@ -78,6 +81,12 @@ blt_add_executable(
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
+  apps/ZONAL_ACCUMULATION_3D.cpp
+  apps/ZONAL_ACCUMULATION_3D-Seq.cpp
+  apps/ZONAL_ACCUMULATION_3D-OMPTarget.cpp
+  basic/COPY8.cpp
+  basic/COPY8-Seq.cpp
+  basic/COPY8-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp

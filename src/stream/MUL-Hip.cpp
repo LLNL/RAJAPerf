@@ -94,7 +94,7 @@ void MUL::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MUL, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MUL, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf

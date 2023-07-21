@@ -112,7 +112,7 @@ void POLYBENCH_GEMM::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
                                     RAJA::ArgList<0, 1>,
             RAJA::statement::Lambda<0, RAJA::Params<0>>,
             RAJA::statement::Lambda<1, RAJA::Segs<0,1>>,
-            RAJA::statement::For<2, RAJA::loop_exec,
+            RAJA::statement::For<2, RAJA::seq_exec,
               RAJA::statement::Lambda<2, RAJA::Segs<0,1,2>, RAJA::Params<0>>
             >,
             RAJA::statement::Lambda<3, RAJA::Segs<0,1>, RAJA::Params<0>>

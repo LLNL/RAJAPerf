@@ -77,7 +77,7 @@ void TRIDIAG_ELIM::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRIDIAG_ELIM, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIDIAG_ELIM, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

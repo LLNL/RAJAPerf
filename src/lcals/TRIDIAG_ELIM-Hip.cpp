@@ -76,7 +76,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRIDIAG_ELIM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIDIAG_ELIM, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf
