@@ -55,6 +55,8 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   PRESSURE_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -63,13 +65,14 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       hipLaunchKernelGGL((pressurecalc1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  bvc, compression,
+       hipLaunchKernelGGL((pressurecalc1<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  bvc, compression,
                                                  cls,
                                                  iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((pressurecalc2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  p_new, bvc, e_old,
+       hipLaunchKernelGGL((pressurecalc2<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
@@ -87,11 +90,11 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
         });
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });

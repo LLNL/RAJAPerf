@@ -53,6 +53,8 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   GEN_LIN_RECUR_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -60,14 +62,16 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+       constexpr size_t shmem = 0;
+
        const size_t grid_size1 = RAJA_DIVIDE_CEILING_INT(N, block_size);
-       genlinrecur1<block_size><<<grid_size1, block_size>>>( b5, stb5, sa, sb,
+       genlinrecur1<block_size><<<grid_size1, block_size, shmem, res.get_stream()>>>( b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        cudaErrchk( cudaGetLastError() );
 
        const size_t grid_size2 = RAJA_DIVIDE_CEILING_INT(N+1, block_size);
-       genlinrecur2<block_size><<<grid_size2, block_size>>>( b5, stb5, sa, sb,
+       genlinrecur2<block_size><<<grid_size2, block_size, shmem, res.get_stream()>>>( b5, stb5, sa, sb,
                                                  kb5i,
                                                  N );
        cudaErrchk( cudaGetLastError() );
@@ -80,12 +84,12 @@ void GEN_LIN_RECUR::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(0, N), [=] __device__ (Index_type k) {
          GEN_LIN_RECUR_BODY1;
        });
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(1, N+1), [=] __device__ (Index_type i) {
          GEN_LIN_RECUR_BODY2;
        });

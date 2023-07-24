@@ -16,6 +16,9 @@
 #include <mpi.h>
 #endif
 
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
+
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"

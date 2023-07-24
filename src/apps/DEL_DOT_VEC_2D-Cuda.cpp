@@ -54,6 +54,8 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
   const Index_type run_reps = getRunReps();
   const Index_type iend = m_domain->n_real_zones;
 
+  auto res{getCudaResource()};
+
   DEL_DOT_VEC_2D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -63,7 +65,8 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      deldotvec2d<block_size><<<grid_size, block_size>>>(div,
+      constexpr size_t shmem = 0;
+      deldotvec2d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(div,
                                              x1, x2, x3, x4,
                                              y1, y2, y3, y4,
                                              fx1, fx2, fx3, fx4,
@@ -83,7 +86,8 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
 
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+      constexpr size_t shmem = 0;
+      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
         0, iend,
         [=] __device__ (Index_type ii) {
 
@@ -97,14 +101,13 @@ void DEL_DOT_VEC_2D::runCudaVariantImpl(VariantID vid)
 
   } else if ( vid == RAJA_CUDA ) {
 
-    camp::resources::Resource working_res{camp::resources::Cuda::get_default()};
     RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
-                                             working_res, RAJA::Unowned);
+                                             res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          zones, [=] __device__ (Index_type i) {
          DEL_DOT_VEC_2D_BODY;
        });
