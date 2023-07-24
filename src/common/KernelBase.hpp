@@ -187,6 +187,25 @@ public:
 
   void execute(VariantID vid, size_t tune_idx);
 
+#if defined(RAJA_ENABLE_CUDA)
+  camp::resources::Cuda getCudaResource()
+  {
+    if (run_params.getGPUStream() == 0) {
+      return camp::resources::Cuda::CudaFromStream(0);
+    }
+    return camp::resources::Cuda::get_default();
+  }
+#endif
+#if defined(RAJA_ENABLE_HIP)
+  camp::resources::Hip getHipResource()
+  {
+    if (run_params.getGPUStream() == 0) {
+      return camp::resources::Hip::HipFromStream(0);
+    }
+    return camp::resources::Hip::get_default();
+  }
+#endif
+
   void synchronize()
   {
 #if defined(RAJA_ENABLE_CUDA)

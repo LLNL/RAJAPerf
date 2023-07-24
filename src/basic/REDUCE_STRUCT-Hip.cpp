@@ -103,6 +103,8 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE_STRUCT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -113,13 +115,14 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));
+      hipErrchk(hipMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
 
       hipLaunchKernelGGL((reduce_struct<block_size>), 
                          dim3(grid_size), dim3(block_size), 
-                         6*sizeof(Real_type)*block_size, 0,
+                         shmem, res.get_stream(),
 	                 points.x, points.y,
                          mem, mem+1, mem+2,    // xcenter,xmin,xmax
                          mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
@@ -128,8 +131,9 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      Real_ptr plmem = &lmem[0];
-      getHipDeviceData(plmem, mem, 6);
+      hipErrchk( hipMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
       points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
       points.SetXMin(lmem[1]);
@@ -155,7 +159,7 @@ void REDUCE_STRUCT::runHipVariantImpl(VariantID vid)
       RAJA::ReduceMax<RAJA::hip_reduce, Real_type> xmax(m_init_max);
       RAJA::ReduceMax<RAJA::hip_reduce, Real_type> ymax(m_init_max);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_STRUCT_BODY_RAJA;
       });

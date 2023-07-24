@@ -130,6 +130,8 @@ template < size_t block_size >
 void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   CONVECTION3DPA_DATA_SETUP;
 
   switch (vid) {
@@ -141,7 +143,8 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      Convection3DPA<block_size><<<NE, nthreads_per_block>>>
+      constexpr size_t shmem = 0;
+      Convection3DPA<block_size><<<NE, nthreads_per_block, shmem, res.get_stream()>>>
         (Basis, tBasis, dBasis, D, X, Y);
 
       cudaErrchk(cudaGetLastError());
@@ -173,7 +176,7 @@ void CONVECTION3DPA::runCudaVariantImpl(VariantID vid) {
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
           RAJA::LaunchParams(RAJA::Teams(NE),
                            RAJA::Threads(CPA_Q1D, CPA_Q1D, CPA_Q1D)),
           [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {

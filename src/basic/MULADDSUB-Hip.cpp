@@ -42,6 +42,8 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   MULADDSUB_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -50,7 +52,8 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((muladdsub<block_size>), dim3(grid_size), dim3(block_size), 0, 0,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((muladdsub<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
           out1, out2, out3, in1, in2, iend );
       hipErrchk( hipGetLastError() );
 
@@ -67,8 +70,9 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(muladdsub_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, muladdsub_lambda );
+        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, muladdsub_lambda );
       hipErrchk( hipGetLastError() );
 
     }
@@ -79,7 +83,7 @@ void MULADDSUB::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         MULADDSUB_BODY;
       });

@@ -28,6 +28,8 @@ void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   SORTPAIRS_DATA_SETUP;
 
   if ( vid == RAJA_HIP ) {
@@ -35,7 +37,7 @@ void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort_pairs< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORTPAIRS_ARGS);
+      RAJA::sort_pairs< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(res, RAJA_SORTPAIRS_ARGS);
 
     }
     stopTimer();
