@@ -179,6 +179,20 @@ public:
   const std::vector<std::string>& getInvalidExcludeVariantInput() const
                                   { return invalid_exclude_variant_input; }
 
+  const std::vector<std::string>& getTuningInput() const
+                                  { return tuning_input; }
+  void setInvalidTuningInput( std::vector<std::string>& svec )
+                               { invalid_tuning_input = svec; }
+  const std::vector<std::string>& getInvalidTuningInput() const
+                                  { return invalid_tuning_input; }
+
+  const std::vector<std::string>& getExcludeTuningInput() const
+                                  { return exclude_tuning_input; }
+  void setInvalidExcludeTuningInput( std::vector<std::string>& svec )
+                               { invalid_exclude_tuning_input = svec; }
+  const std::vector<std::string>& getInvalidExcludeTuningInput() const
+                                  { return invalid_exclude_tuning_input; }
+
   const std::vector<std::string>& getFeatureInput() const
                                   { return feature_input; }
   void setInvalidFeatureInput( std::vector<std::string>& svec )
@@ -274,6 +288,10 @@ private:
   std::vector<std::string> invalid_variant_input;
   std::vector<std::string> exclude_variant_input;
   std::vector<std::string> invalid_exclude_variant_input;
+  std::vector<std::string> tuning_input;
+  std::vector<std::string> invalid_tuning_input;
+  std::vector<std::string> exclude_tuning_input;
+  std::vector<std::string> invalid_exclude_tuning_input;
   std::vector<std::string> feature_input;
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
