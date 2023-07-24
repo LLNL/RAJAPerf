@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -71,6 +71,7 @@ enum KernelID {
 // Basic kernels...
 //
   Basic_ARRAY_OF_PTRS = 0,
+  Basic_COPY8,
   Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
@@ -133,7 +134,6 @@ enum KernelID {
 // Apps kernels...
 //
   Apps_CONVECTION3DPA,
-  Apps_COUPLE,
   Apps_DEL_DOT_VEC_2D,
   Apps_DIFFUSION3DPA,
   Apps_ENERGY,
@@ -142,10 +142,12 @@ enum KernelID {
   Apps_HALOEXCHANGE_FUSED,
   Apps_LTIMES,
   Apps_LTIMES_NOVIEW,
+  Apps_MASS3DEA,
   Apps_MASS3DPA,
   Apps_NODAL_ACCUMULATION_3D,
   Apps_PRESSURE,
   Apps_VOL3D,
+  Apps_ZONAL_ACCUMULATION_3D,
 
 //
 // Algorithm kernels...
@@ -218,7 +220,7 @@ enum FeatureID {
 
   Forall = 0,
   Kernel,
-  Teams,
+  Launch,
 
   Sort,
   Scan,
@@ -230,6 +232,47 @@ enum FeatureID {
   View,
 
   NumFeatures // Keep this one last and NEVER comment out (!!)
+
+};
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Enumeration defining unique id for each Data memory space
+ * used in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is used in suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *
+ *******************************************************************************
+ */
+enum struct DataSpace {
+
+  Host = 0,
+
+  Omp,
+
+  OmpTarget,
+
+  CudaPinned,
+  CudaManaged,
+  CudaDevice,
+
+  HipHostAdviseFine,
+  HipHostAdviseCoarse,
+  HipPinned,
+  HipPinnedFine,
+  HipPinnedCoarse,
+  HipManaged,
+  HipManagedAdviseFine,
+  HipManagedAdviseCoarse,
+  HipDevice,
+  HipDeviceFine,
+
+  NumSpaces // Keep this one last and NEVER comment out (!!)
 
 };
 
@@ -302,6 +345,24 @@ bool isVariantGPU(VariantID vid);
  *******************************************************************************
  */
 const std::string& getFeatureName(FeatureID vid);
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Return memory space name associated with CudaDataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace cd);
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace);
 
 /*!
  *******************************************************************************

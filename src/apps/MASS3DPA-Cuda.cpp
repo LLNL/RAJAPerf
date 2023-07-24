@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,21 +21,6 @@
 
 namespace rajaperf {
 namespace apps {
-
-#define MASS3DPA_DATA_SETUP_CUDA                                         \
-  allocAndInitCudaDeviceData(B, m_B, MPA_Q1D *MPA_D1D);                  \
-  allocAndInitCudaDeviceData(Bt, m_Bt, MPA_Q1D *MPA_D1D);                \
-  allocAndInitCudaDeviceData(D, m_D, MPA_Q1D *MPA_Q1D *MPA_Q1D *m_NE);   \
-  allocAndInitCudaDeviceData(X, m_X, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);   \
-  allocAndInitCudaDeviceData(Y, m_Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);
-
-#define MASS3DPA_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_Y, Y, MPA_D1D *MPA_D1D *MPA_D1D *m_NE);            \
-  deallocCudaDeviceData(B);                                              \
-  deallocCudaDeviceData(Bt);                                             \
-  deallocCudaDeviceData(D);                                              \
-  deallocCudaDeviceData(X);                                              \
-  deallocCudaDeviceData(Y);
 
 template < size_t block_size >
   __launch_bounds__(block_size)
@@ -112,8 +97,6 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
 
   case Base_CUDA: {
 
-    MASS3DPA_DATA_SETUP_CUDA;
-
     dim3 nthreads_per_block(MPA_Q1D, MPA_Q1D, 1);
 
     startTimer();
@@ -125,148 +108,142 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
     }
     stopTimer();
 
-    MASS3DPA_DATA_TEARDOWN_CUDA;
-
     break;
   }
 
   case RAJA_CUDA: {
 
-    MASS3DPA_DATA_SETUP_CUDA;
-
     constexpr bool async = true;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<async, MPA_Q1D*MPA_Q1D>>;
+    using launch_policy = RAJA::LaunchPolicy<RAJA::cuda_launch_t<async, MPA_Q1D*MPA_Q1D>>;
 
-    using outer_x = RAJA::expt::LoopPolicy<RAJA::cuda_block_x_direct>;
+    using outer_x = RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_x = RAJA::expt::LoopPolicy<RAJA::cuda_thread_x_loop>;
+    using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_x_loop>;
 
-    using inner_y = RAJA::expt::LoopPolicy<RAJA::cuda_thread_y_loop>;
+    using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_y_loop>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<launch_policy>(
-        RAJA::expt::Grid(RAJA::expt::Teams(NE),
-                         RAJA::expt::Threads(MPA_Q1D, MPA_Q1D, 1)),
-        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      RAJA::launch<launch_policy>(
+        RAJA::LaunchParams(RAJA::Teams(NE),
+                         RAJA::Threads(MPA_Q1D, MPA_Q1D, 1)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::expt::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
+          RAJA::loop<outer_x>(ctx, RAJA::RangeSegment(0, NE),
             [&](int e) {
 
               MASS3DPA_0_GPU
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_1
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
 
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int dx) {
                       MASS3DPA_2
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }  // lambda (dy)
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_3
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_4
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int qx) {
                       MASS3DPA_5
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int d) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                     [&](int q) {
                       MASS3DPA_6
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_Q1D),
                 [&](int qy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_7
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_8
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
               ctx.teamSync();
 
-              RAJA::expt::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+              RAJA::loop<inner_y>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                 [&](int dy) {
-                  RAJA::expt::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
+                  RAJA::loop<inner_x>(ctx, RAJA::RangeSegment(0, MPA_D1D),
                     [&](int dx) {
                       MASS3DPA_9
                     }
-                  );  // RAJA::expt::loop<inner_x>
+                  );  // RAJA::loop<inner_x>
                 }
-              );  // RAJA::expt::loop<inner_y>
+              );  // RAJA::loop<inner_y>
 
             }  // lambda (e)
-          );  // RAJA::expt::loop<outer_x>
+          );  // RAJA::loop<outer_x>
 
         }  // outer lambda (ctx)
-      );  // RAJA::expt::launch
+      );  // RAJA::launch
 
     }  // loop over kernel reps
     stopTimer();
-
-    MASS3DPA_DATA_TEARDOWN_CUDA;
 
     break;
   }
@@ -279,7 +256,7 @@ void MASS3DPA::runCudaVariantImpl(VariantID vid) {
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MASS3DPA, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MASS3DPA, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

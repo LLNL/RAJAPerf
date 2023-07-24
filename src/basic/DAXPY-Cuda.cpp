@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,15 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define DAXPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend);
-
-#define DAXPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -54,8 +45,6 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DAXPY_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -67,11 +56,7 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    DAXPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,11 +71,7 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    DAXPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -103,14 +84,12 @@ void DAXPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  DAXPY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DAXPY, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

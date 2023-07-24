@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,15 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define DAXPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define DAXPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -55,8 +46,6 @@ void DAXPY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DAXPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +57,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +74,7 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -106,14 +87,12 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DAXPY, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,21 +21,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define PLANCKIAN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(u, m_u, iend); \
-  allocAndInitCudaDeviceData(v, m_v, iend); \
-  allocAndInitCudaDeviceData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_w, w, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(u); \
-  deallocCudaDeviceData(v); \
-  deallocCudaDeviceData(w);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -61,8 +46,6 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    PLANCKIAN_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +58,7 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PLANCKIAN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,14 +71,12 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PLANCKIAN, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

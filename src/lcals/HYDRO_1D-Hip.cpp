@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,17 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define HYDRO_1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length);
-
-#define HYDRO_1D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -56,8 +45,6 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    HYDRO_1D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -70,11 +57,7 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HYDRO_1D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,14 +70,12 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  HYDRO_1D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_1D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HYDRO_1D, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,21 +21,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define PLANCKIAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend); \
-  allocAndInitHipDeviceData(u, m_u, iend); \
-  allocAndInitHipDeviceData(v, m_v, iend); \
-  allocAndInitHipDeviceData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_w, w, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(u); \
-  deallocHipDeviceData(v); \
-  deallocHipDeviceData(w);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -61,8 +46,6 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PLANCKIAN_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -75,11 +58,7 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PLANCKIAN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,14 +71,12 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PLANCKIAN, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

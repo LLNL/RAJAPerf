@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,12 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define PI_ATOMIC_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(pi, m_pi, 1);
-
-#define PI_ATOMIC_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(pi);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +47,6 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PI_ATOMIC_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -64,17 +56,13 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
       hipLaunchKernelGGL((atomic_pi<block_size>),grid_size, block_size, 0, 0, pi, dx, iend );
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -91,17 +79,13 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           grid_size, block_size, 0, 0, ibegin, iend, atomic_pi_lambda);
       hipErrchk( hipGetLastError() );
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PI_ATOMIC_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,20 +98,18 @@ void PI_ATOMIC::runHipVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::hip_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getHipDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getHipDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
-
-    PI_ATOMIC_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_ATOMIC, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

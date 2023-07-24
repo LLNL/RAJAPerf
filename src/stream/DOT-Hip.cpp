@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,14 +21,6 @@ namespace rajaperf
 {
 namespace stream
 {
-
-#define DOT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend);
-
-#define DOT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -78,10 +70,8 @@ void DOT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    DOT_DATA_SETUP_HIP;
-
     Real_ptr dprod;
-    allocAndInitHipDeviceData(dprod, &m_dot_init, 1);
+    allocData(DataSpace::HipDevice, dprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -102,13 +92,9 @@ void DOT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_HIP;
-
-    deallocHipDeviceData(dprod);
+    deallocData(DataSpace::HipDevice, dprod);
 
   } else if ( vid == RAJA_HIP ) {
-
-    DOT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -125,14 +111,12 @@ void DOT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DOT, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf

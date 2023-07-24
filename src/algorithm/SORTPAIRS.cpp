@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -55,15 +55,15 @@ void SORTPAIRS::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void SORTPAIRS::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
-  checksum[vid][tune_idx] += calcChecksum(m_i, getActualProblemSize()*getRunReps());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps(), vid);
+  checksum[vid][tune_idx] += calcChecksum(m_i, getActualProblemSize()*getRunReps(), vid);
 }
 
 void SORTPAIRS::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_i);
+  deallocData(m_x, vid);
+  deallocData(m_i, vid);
 }
 
 } // end namespace algorithm

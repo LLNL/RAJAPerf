@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -40,17 +40,6 @@ namespace apps
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_g, g_block_sz)), \
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_z, z_block_sz)));
 
-
-#define LTIMES_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(phidat, m_phidat, m_philen); \
-  allocAndInitCudaDeviceData(elldat, m_elldat, m_elllen); \
-  allocAndInitCudaDeviceData(psidat, m_psidat, m_psilen);
-
-#define LTIMES_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_phidat, phidat, m_philen); \
-  deallocCudaDeviceData(phidat); \
-  deallocCudaDeviceData(elldat); \
-  deallocCudaDeviceData(psidat);
 
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)
@@ -93,8 +82,6 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    LTIMES_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -110,11 +97,7 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    LTIMES_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -135,11 +118,7 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    LTIMES_DATA_SETUP_CUDA;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
@@ -181,14 +160,12 @@ void LTIMES::runCudaVariantImpl(VariantID vid)
       }
       stopTimer();
 
-      LTIMES_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n LTIMES : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(LTIMES, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(LTIMES, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

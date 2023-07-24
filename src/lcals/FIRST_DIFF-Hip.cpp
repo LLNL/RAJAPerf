@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,15 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define FIRST_DIFF_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_N); \
-  allocAndInitHipDeviceData(y, m_y, m_N);
-
-#define FIRST_DIFF_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, m_N); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +44,6 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    FIRST_DIFF_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +55,7 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    FIRST_DIFF_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -83,14 +68,12 @@ void FIRST_DIFF::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_DIFF_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  FIRST_DIFF : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_DIFF, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_DIFF, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

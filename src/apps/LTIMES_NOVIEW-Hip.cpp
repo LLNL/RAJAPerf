@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -39,17 +39,6 @@ namespace apps
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_g, g_block_sz)), \
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_z, z_block_sz)));
 
-
-#define LTIMES_NOVIEW_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(phidat, m_phidat, m_philen); \
-  allocAndInitHipDeviceData(elldat, m_elldat, m_elllen); \
-  allocAndInitHipDeviceData(psidat, m_psidat, m_psilen);
-
-#define LTIMES_NOVIEW_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_phidat, phidat, m_philen); \
-  deallocHipDeviceData(phidat); \
-  deallocHipDeviceData(elldat); \
-  deallocHipDeviceData(psidat);
 
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)
@@ -92,8 +81,6 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    LTIMES_NOVIEW_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -110,11 +97,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    LTIMES_NOVIEW_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -138,11 +121,7 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    LTIMES_NOVIEW_DATA_SETUP_HIP;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
@@ -182,14 +161,12 @@ void LTIMES_NOVIEW::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_NOVIEW_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n LTIMES_NOVIEW : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(LTIMES_NOVIEW, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(LTIMES_NOVIEW, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

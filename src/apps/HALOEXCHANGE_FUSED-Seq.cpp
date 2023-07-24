@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -158,7 +158,7 @@ void HALOEXCHANGE_FUSED::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
       AllocatorHolder allocatorHolder;
 
       using workgroup_policy = RAJA::WorkGroupPolicy <
-                                   RAJA::loop_work,
+                                   RAJA::seq_work,
                                    RAJA::ordered,
                                    RAJA::constant_stride_array_of_objects >;
 

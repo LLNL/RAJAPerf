@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -12,7 +12,7 @@
 #include "common/KernelBase.hpp"
 #include "common/OutputUtils.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -44,7 +44,7 @@ using namespace std;
 
 namespace {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
 void Allreduce(const Checksum_type* send, Checksum_type* recv, int count,
                MPI_Op op, MPI_Comm comm)
@@ -594,11 +594,7 @@ void Executor::setupSuite()
 
     for (KIDset::iterator kid = run_kern.begin();
          kid != run_kern.end(); ++kid) {
-///   RDH DISABLE COUPLE KERNEL until we find a reasonable way to do
-///   complex numbers in GPU code
-      if ( *kid != Apps_COUPLE ) {
-        kernels.push_back( getKernelObject(*kid, run_params) );
-      }
+      kernels.push_back( getKernelObject(*kid, run_params) );
     }
 
     if ( !(run_params.getInvalidVariantInput().empty()) ||
@@ -616,39 +612,93 @@ void Executor::setupSuite()
       //
       // Make a single ordering of tuning names for each variant across kernels.
       //
+      // Determine which tunings to execute from input.
+      const Svector& selected_tuning_names = run_params.getTuningInput();
+      const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
+      // Constuct set of all possible tunings
+      set<string> all_tunings;
       for (VariantID vid : variant_ids) {
-        std::unordered_map<std::string, size_t> tuning_names_order_map;
         for (const KernelBase* kernel : kernels) {
           for (std::string const& tuning_name :
                kernel->getVariantTuningNames(vid)) {
-            if (tuning_names_order_map.find(tuning_name) ==
-                tuning_names_order_map.end()) {
-              tuning_names_order_map.emplace(
-                  tuning_name, tuning_names_order_map.size());
-            }
+              all_tunings.insert(tuning_name);
           }
         }
-        tuning_names[vid].resize(tuning_names_order_map.size());
-        for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-          tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+      }
+      // Check for invalid tuning input
+      Svector invalid;
+      for (string const& tuning_name: selected_tuning_names) {
+        if (all_tunings.find(tuning_name) == all_tunings.end()) {
+          invalid.push_back(tuning_name);
         }
-        // reorder to put "default" first
-        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
-        if (default_order_iter != tuning_names_order_map.end()) {
-          size_t default_idx = default_order_iter->second;
-          std::string default_name = std::move(tuning_names[vid][default_idx]);
-          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
-          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+      }
+      run_params.setInvalidTuningInput(invalid);
+      // Check for invalid exclude tuning input
+      invalid.clear();
+      for (string const& tuning_name: excluded_tuning_names) {
+        if (all_tunings.find(tuning_name) == all_tunings.end()) {
+          invalid.push_back(tuning_name);
         }
+      }
+      run_params.setInvalidExcludeTuningInput(invalid);
+      // Validate invalid input
+      if ( !(run_params.getInvalidTuningInput().empty()) ||
+           !(run_params.getInvalidExcludeTuningInput().empty())) {
+        run_params.setInputState(RunParams::BadInput);
       }
 
-      //
-      // If we've gotten to this point, we have good input to run.
-      //
-      if ( run_params.getInputState() != RunParams::DryRun &&
-           run_params.getInputState() != RunParams::CheckRun ) {
-        run_params.setInputState(RunParams::PerfRun);
-      }
+      if (run_params.getInputState() != RunParams::BadInput) { // If tunings input is valid
+        for (VariantID vid : variant_ids) {
+          std::unordered_map<std::string, size_t> tuning_names_order_map;
+          for (const KernelBase* kernel : kernels) {
+            for (std::string const& tuning_name :
+                kernel->getVariantTuningNames(vid)) {
+              if (tuning_names_order_map.find(tuning_name) ==
+                  tuning_names_order_map.end()) {
+                if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
+                      &&
+                    find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exclusion list
+                      tuning_names_order_map.emplace(
+                          tuning_name, tuning_names_order_map.size()); // Add tuning name to map
+                }
+              }
+            }
+          }
+
+          tuning_names[vid].resize(tuning_names_order_map.size());
+          for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
+            tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+          }
+          // reorder to put "default" first
+          auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+          if (default_order_iter != tuning_names_order_map.end()) {
+            size_t default_idx = default_order_iter->second;
+            std::string default_name = std::move(tuning_names[vid][default_idx]);
+            tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
+            tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+          }
+        }
+
+        // Add tunings to Adiak metadata
+        #if defined(RAJA_PERFSUITE_USE_CALIPER)
+          std::set<std::string> tunings_set;
+          for (VariantID vid : variant_ids) {
+            for (std::string const& tuning_name : tuning_names[vid]) {
+              tunings_set.emplace(tuning_name);
+            }
+          }
+          adiak::value("tunings", tunings_set);
+        #endif
+
+        //
+        // If we've gotten to this point, we have good input to run.
+        //
+        if ( run_params.getInputState() != RunParams::DryRun &&
+            run_params.getInputState() != RunParams::CheckRun ) {
+          run_params.setInputState(RunParams::PerfRun);
+        }
+
+      } // tuning input looks good
 
     } // kernel and variant input both look good
 
@@ -715,6 +765,26 @@ void Executor::reportRunSummary(ostream& str) const
 
     str << "\nThe following kernels and variants (when available for a kernel) will be run:" << endl;
 
+    str << "\nData Spaces"
+        << "\n--------";
+    str << "\nSeq - " << getDataSpaceName(run_params.getSeqDataSpace());
+    if (isVariantAvailable(VariantID::Base_OpenMP)) {
+      str << "\nOpenMP - " << getDataSpaceName(run_params.getOmpDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_OpenMPTarget)) {
+      str << "\nOpenMP Target - " << getDataSpaceName(run_params.getOmpTargetDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_CUDA)) {
+      str << "\nCuda - " << getDataSpaceName(run_params.getCudaDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Base_HIP)) {
+      str << "\nHip - " << getDataSpaceName(run_params.getHipDataSpace());
+    }
+    if (isVariantAvailable(VariantID::Kokkos_Lambda)) {
+      str << "\nKokkos - " << getDataSpaceName(run_params.getKokkosDataSpace());
+    }
+    str << endl;
+
     str << "\nVariants and Tunings"
         << "\n--------\n";
     for (size_t iv = 0; iv < variant_ids.size(); ++iv) {
@@ -737,7 +807,7 @@ void Executor::reportRunSummary(ostream& str) const
 void Executor::writeKernelInfoSummary(ostream& str, bool to_file) const
 {
   if ( to_file ) {
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
     str << "Kernels run on " << num_ranks << " MPI ranks" << endl;
@@ -849,21 +919,23 @@ void Executor::runSuite()
     return;
   }
 
-  getCout() << "\n\nRun warmup kernels...\n";
+  if (!run_params.getDisableWarmup()) {
+    getCout() << "\n\nRun warmup kernels...\n";
 
-  vector<KernelBase*> warmup_kernels;
+    vector<KernelBase*> warmup_kernels;
 
-  warmup_kernels.push_back(makeKernel<basic::DAXPY>());
-  warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-  warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-  warmup_kernels.push_back(makeKernel<algorithm::SORT>());
-  warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
+    warmup_kernels.push_back(makeKernel<basic::DAXPY>());
+    warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
+    warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
+    warmup_kernels.push_back(makeKernel<algorithm::SORT>());
+    warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
 
-  for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
-    KernelBase* warmup_kernel = warmup_kernels[ik];
-    runKernel(warmup_kernel, true);
-    delete warmup_kernel;
-    warmup_kernels[ik] = nullptr;
+    for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
+      KernelBase* warmup_kernel = warmup_kernels[ik];
+      runKernel(warmup_kernel, true);
+      delete warmup_kernel;
+      warmup_kernels[ik] = nullptr;
+    }
   }
 
 
@@ -901,22 +973,26 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 
     if ( run_params.showProgress() ) {
       if ( kernel->hasVariantDefined(vid) ) {
-        getCout() << "   Running ";
+        getCout() << "\tRunning ";
       } else {
-        getCout() << "   No ";
+        getCout() << "\tNo ";
       }
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
     for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
-
-      if ( run_params.showProgress() ) {
-        getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
+      std::string const& tuning_name = kernel->getVariantTuningName(vid, tune_idx);
+      if (find(tuning_names[vid].begin(), tuning_names[vid].end(), tuning_name) != tuning_names[vid].end()) { // Check if valid tuning
+        if ( run_params.showProgress() ) {
+          getCout() << "\t\tRunning " << tuning_name << " tuning";
+        }
+        kernel->execute(vid, tune_idx); // Execute kernel
+        if ( run_params.showProgress() ) {
+          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+        }
       }
-      kernel->execute(vid, tune_idx);
-      if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+      else {
+        getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
     }
   } // loop over variants
@@ -977,7 +1053,7 @@ void Executor::outputRunData()
 unique_ptr<ostream> Executor::openOutputFile(const string& filename) const
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {
@@ -1374,7 +1450,7 @@ void Executor::writeChecksumReport(ostream& file)
 {
   if ( file ) {
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     int num_ranks;
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 #endif
@@ -1409,7 +1485,7 @@ void Executor::writeChecksumReport(ostream& file)
     //
     file << equal_line << endl;
     file << "Checksum Report ";
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
     file << "for " << num_ranks << " MPI ranks ";
 #endif
     file << endl;
@@ -1421,7 +1497,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "Kernel  " << endl;
     file << dot_line << endl;
     file <<left<< setw(namecol_width) << "Variants  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << "Average Checksum  "
          <<left<< setw(checksum_width) << "Max Checksum Diff  "
          <<left<< setw(checksum_width) << "Checksum Diff StdDev"
@@ -1433,7 +1509,7 @@ void Executor::writeChecksumReport(ostream& file)
     file <<left<< setw(namecol_width) << "  "
          <<left<< setw(checksum_width) << "  "
          <<left<< setw(checksum_width) << "(vs. first variant listed)  "
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
          <<left<< setw(checksum_width) << ""
 #endif
          << endl;
@@ -1481,7 +1557,7 @@ void Executor::writeChecksumReport(ostream& file)
         }
       }
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 
       // get stats for checksums
       std::vector<std::vector<Checksum_type>> checksums_sum(variant_ids.size());
@@ -1571,7 +1647,7 @@ void Executor::writeChecksumReport(ostream& file)
           if ( kern->wasVariantTuningRun(vid, tune_idx) ) {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
                  << showpoint << setprecision(prec)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << checksums_avg[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_max[iv][tune_idx]
                  <<left<< setw(checksum_width) << checksums_abs_diff_stddev[iv][tune_idx] << endl;
@@ -1581,7 +1657,7 @@ void Executor::writeChecksumReport(ostream& file)
 #endif
           } else {
             file <<left<< setw(namecol_width) << (variant_name+"-"+tuning_name)
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run"
                  <<left<< setw(checksum_width) << "Not Run" << endl;

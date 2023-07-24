@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -55,8 +55,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET;
-
       break;
     }
 
@@ -98,8 +96,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
       }
       stopTimer();
 
-      POLYBENCH_HEAT_3D_DATA_RESET;
-
       break;
     }
 
@@ -109,9 +105,9 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::For<2, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::For<2, RAJA::seq_exec,
                 RAJA::statement::Lambda<0>
               >
             >
@@ -147,8 +143,6 @@ void POLYBENCH_HEAT_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(
 
       }
       stopTimer();
-
-      POLYBENCH_HEAT_3D_DATA_RESET;
 
       break;
     }

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -23,12 +23,6 @@ namespace rajaperf
 {
 namespace algorithm
 {
-
-#define REDUCE_SUM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -74,14 +68,12 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_SUM_DATA_SETUP_CUDA;
-
     cudaStream_t stream = 0;
 
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocCudaPinnedData(sum_storage, 1);
+    allocData(DataSpace::CudaPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -97,7 +89,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -121,10 +113,8 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocCudaDeviceData(temp_storage);
-    deallocCudaPinnedData(sum_storage);
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, temp_storage);
+    deallocData(DataSpace::CudaPinned, sum_storage);
 
   } else {
 
@@ -145,10 +135,8 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_SUM_DATA_SETUP_CUDA;
-
     Real_ptr dsum;
-    allocCudaDeviceData(dsum, 1);
+    allocData(DataSpace::CudaDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -171,13 +159,9 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(dsum);
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, dsum);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE_SUM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -193,8 +177,6 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
 

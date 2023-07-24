@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -7,14 +7,100 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 #include "DataUtils.hpp"
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
+#include "OpenMPTargetDataUtils.hpp"
 
 
 #include "RAJA/internal/MemUtils_CPU.hpp"
 
 #include <cstdlib>
+#include <cstring>
+#include <stdexcept>
+#include <unistd.h>
 
 namespace rajaperf
 {
+
+namespace detail
+{
+
+/*!
+ * \brief Get if the data space is a host DataSpace.
+ */
+bool isHostDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a omp DataSpace.
+ */
+bool isOpenMPDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Omp:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a omp target DataSpace.
+ */
+bool isOpenMPTargetDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::OmpTarget:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a cuda DataSpace.
+ */
+bool isCudaDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/*!
+ * \brief Get if the data space is a hip DataSpace.
+ */
+bool isHipDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 static int data_init_count = 0;
 
@@ -34,98 +120,247 @@ void incDataInitCount()
   data_init_count++;
 }
 
-
 /*
- * Allocate and initialize aligned integer data arrays.
+ * Copy memory len bytes from src to dst.
  */
-void allocAndInitData(Int_ptr& ptr, int len, VariantID vid)
+void copyHostData(void* dst_ptr, const void* src_ptr, size_t len)
 {
-  allocData(ptr, len);
-  initData(ptr, len, vid);
-}
-
-/*
- * Allocate and initialize aligned data arrays.
- */
-void allocAndInitData(Real_ptr& ptr, int len, VariantID vid )
-{
-  allocData(ptr, len);
-  initData(ptr, len, vid);
-}
-
-void allocAndInitDataConst(Real_ptr& ptr, int len, Real_type val,
-                           VariantID vid)
-{
-  allocData(ptr, len);
-  initDataConst(ptr, len, val, vid);
-}
-
-void allocAndInitDataRandSign(Real_ptr& ptr, int len, VariantID vid)
-{
-  allocData(ptr, len);
-  initDataRandSign(ptr, len, vid);
-}
-
-void allocAndInitDataRandValue(Real_ptr& ptr, int len, VariantID vid)
-{
-  allocData(ptr, len);
-  initDataRandValue(ptr, len, vid);
-}
-
-void allocAndInitData(Complex_ptr& ptr, int len, VariantID vid)
-{
-  allocData(ptr, len);
-  initData(ptr, len, vid);
+  std::memcpy(dst_ptr, src_ptr, len);
 }
 
 
 /*
  * Allocate data arrays of given type.
  */
-void allocData(Int_ptr& ptr, int len)
+void* allocHostData(size_t len, size_t align)
 {
-  // Should we do this differently for alignment?? If so, change dealloc()
-  ptr = new Int_type[len];
-}
-
-void allocData(Real_ptr& ptr, int len)
-{
-  ptr =
-    RAJA::allocate_aligned_type<Real_type>(RAJA::DATA_ALIGN,
-                                           len*sizeof(Real_type));
-}
-
-void allocData(Complex_ptr& ptr, int len)
-{
-  // Should we do this differently for alignment?? If so, change dealloc()
-  ptr = new Complex_type[len];
+  return RAJA::allocate_aligned_type<Int_type>(
+      align, len);
 }
 
 
 /*
  * Free data arrays of given type.
  */
-void deallocData(Int_ptr& ptr)
-{
-  if (ptr) {
-    delete [] ptr;
-    ptr = 0;
-  }
-}
-
-void deallocData(Real_ptr& ptr)
+void deallocHostData(void* ptr)
 {
   if (ptr) {
     RAJA::free_aligned(ptr);
-    ptr = 0;
   }
 }
 
-void deallocData(Complex_ptr& ptr)
+
+/*
+ * Allocate data arrays of given dataSpace.
+ */
+void* allocData(DataSpace dataSpace, int nbytes, int align)
 {
-  if (ptr) {
-    delete [] ptr;
-    ptr = 0;
+  void* ptr = nullptr;
+
+  switch (dataSpace) {
+    case DataSpace::Host:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+    } break;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+    {
+      ptr = detail::allocOpenMPDeviceData(nbytes);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    {
+      ptr = detail::allocCudaPinnedData(nbytes);
+    } break;
+    case DataSpace::CudaManaged:
+    {
+      ptr = detail::allocCudaManagedData(nbytes);
+    } break;
+    case DataSpace::CudaDevice:
+    {
+      ptr = detail::allocCudaDeviceData(nbytes);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipFineData(ptr, nbytes);
+    } break;
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+    {
+      ptr = detail::allocHostData(nbytes, align);
+      detail::adviseHipCoarseData(ptr, nbytes);
+    } break;
+#endif
+    case DataSpace::HipPinned:
+    {
+      ptr = detail::allocHipPinnedData(nbytes);
+    } break;
+    case DataSpace::HipPinnedFine:
+    {
+      ptr = detail::allocHipPinnedFineData(nbytes);
+    } break;
+    case DataSpace::HipPinnedCoarse:
+    {
+      ptr = detail::allocHipPinnedCoarseData(nbytes);
+    } break;
+    case DataSpace::HipManaged:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+    } break;
+    case DataSpace::HipManagedAdviseFine:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipFineData(ptr, nbytes);
+    } break;
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+    {
+      ptr = detail::allocHipManagedData(nbytes);
+      detail::adviseHipCoarseData(ptr, nbytes);
+    } break;
+#endif
+    case DataSpace::HipDevice:
+    {
+      ptr = detail::allocHipDeviceData(nbytes);
+    } break;
+    case DataSpace::HipDeviceFine:
+    {
+      ptr = detail::allocHipDeviceFineData(nbytes);
+    } break;
+#endif
+
+    default:
+    {
+      throw std::invalid_argument("allocData : Unknown data space");
+    } break;
+  }
+
+  return ptr;
+}
+
+/*!
+ * \brief Copy data from one dataSpace to another.
+ */
+void copyData(DataSpace dst_dataSpace, void* dst_ptr,
+              DataSpace src_dataSpace, const void* src_ptr,
+              size_t nbytes)
+{
+  if (hostAccessibleDataSpace(dst_dataSpace) == dst_dataSpace &&
+      hostAccessibleDataSpace(src_dataSpace) == src_dataSpace) {
+    detail::copyHostData(dst_ptr, src_ptr, nbytes);
+  }
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  else if (isOpenMPTargetDataSpace(dst_dataSpace) ||
+           isOpenMPTargetDataSpace(src_dataSpace)) {
+    auto dst_did = isOpenMPTargetDataSpace(dst_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
+    auto src_did = isOpenMPTargetDataSpace(src_dataSpace) ? getOpenMPTargetDevice()
+                                                          : getOpenMPTargetHost();
+    detail::copyOpenMPTargetData(dst_ptr, src_ptr, nbytes,
+        dst_did, src_did);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+  else if (isCudaDataSpace(dst_dataSpace) ||
+           isCudaDataSpace(src_dataSpace)) {
+    detail::copyCudaData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+  else if (isHipDataSpace(dst_dataSpace) ||
+           isHipDataSpace(src_dataSpace)) {
+    detail::copyHipData(dst_ptr, src_ptr, nbytes);
+  }
+#endif
+
+  else {
+    throw std::invalid_argument("copyData : Unknown data space");
+  }
+}
+
+/*!
+ * \brief Deallocate data array (ptr).
+ */
+void deallocData(DataSpace dataSpace, void* ptr)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+    case DataSpace::Omp:
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+#endif
+    {
+      detail::deallocHostData(ptr);
+    } break;
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+    {
+      detail::deallocOpenMPDeviceData(ptr);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    {
+      detail::deallocCudaPinnedData(ptr);
+    } break;
+    case DataSpace::CudaManaged:
+    {
+      detail::deallocCudaManagedData(ptr);
+    } break;
+    case DataSpace::CudaDevice:
+    {
+      detail::deallocCudaDeviceData(ptr);
+    } break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    {
+      detail::deallocHipPinnedData(ptr);
+    } break;
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    {
+      detail::deallocHipManagedData(ptr);
+    } break;
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+    {
+      detail::deallocHipDeviceData(ptr);
+    } break;
+#endif
+
+    default:
+    {
+      throw std::invalid_argument("deallocData : Unknown data space");
+    } break;
   }
 }
 
@@ -134,22 +369,8 @@ void deallocData(Complex_ptr& ptr)
  * \brief Initialize Int_type data array to
  * randomly signed positive and negative values.
  */
-void initData(Int_ptr& ptr, int len, VariantID vid)
+void initData(Int_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0;
-    };
-  }
-#endif
-
   srand(4793);
 
   Real_type signfact = 0.0;
@@ -175,23 +396,9 @@ void initData(Int_ptr& ptr, int len, VariantID vid)
  * positive values (0.0, 1.0) based on their array position
  * (index) and the order in which this method is called.
  */
-void initData(Real_ptr& ptr, int len, VariantID vid)
+void initData(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
-
-// first touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    };
-  }
-#endif
 
   for (int i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
@@ -203,24 +410,20 @@ void initData(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Real_type data array to constant values.
  */
-void initDataConst(Real_ptr& ptr, int len, Real_type val,
-                   VariantID vid)
+void initDataConst(Real_ptr& ptr, int len, Real_type val)
 {
+  for (int i = 0; i < len; ++i) {
+    ptr[i] = val;
+  };
 
-// first touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0;
-    };
-  }
-#else
-  (void) vid;
-#endif
+  incDataInitCount();
+}
 
+/*
+ * Initialize Index_type data array to constant values.
+ */
+void initDataConst(Index_type*& ptr, int len, Index_type val)
+{
   for (int i = 0; i < len; ++i) {
     ptr[i] = val;
   };
@@ -231,22 +434,8 @@ void initDataConst(Real_ptr& ptr, int len, Real_type val,
 /*
  * Initialize Real_type data array with random sign.
  */
-void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandSign(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0.0;
-    };
-  }
-#endif
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
 
   srand(4793);
@@ -263,22 +452,8 @@ void initDataRandSign(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Real_type data array with random values.
  */
-void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
+void initDataRandValue(Real_ptr& ptr, int len)
 {
-  (void) vid;
-
-// First touch...
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = 0.0;
-    };
-  }
-#endif
-
   srand(4793);
 
   for (int i = 0; i < len; ++i) {
@@ -291,23 +466,10 @@ void initDataRandValue(Real_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize Complex_type data array.
  */
-void initData(Complex_ptr& ptr, int len, VariantID vid)
+void initData(Complex_ptr& ptr, int len)
 {
-  (void) vid;
-
   Complex_type factor = ( data_init_count % 2 ?  Complex_type(0.1,0.2) :
                                                  Complex_type(0.2,0.3) );
-
-#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
-  if ( vid == Base_OpenMP ||
-       vid == Lambda_OpenMP ||
-       vid == RAJA_OpenMP ) {
-    #pragma omp parallel for
-    for (int i = 0; i < len; ++i) {
-      ptr[i] = factor*(i + 1.1)/(i + 1.12345);
-    };
-  }
-#endif
 
   for (int i = 0; i < len; ++i) {
     ptr[i] = factor*(i + 1.1)/(i + 1.12345);
@@ -319,21 +481,18 @@ void initData(Complex_ptr& ptr, int len, VariantID vid)
 /*
  * Initialize scalar data.
  */
-void initData(Real_type& d, VariantID vid)
+void initData(Real_type& d)
 {
-  (void) vid;
-
   Real_type factor = ( data_init_count % 2 ? 0.1 : 0.2 );
   d = factor*1.1/1.12345;
 
   incDataInitCount();
 }
 
-
 /*
  * Calculate and return checksum for data arrays.
  */
-long double calcChecksum(const Int_ptr ptr, int len,
+long double calcChecksum(Int_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
@@ -355,7 +514,7 @@ long double calcChecksum(const Int_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(const Real_ptr ptr, int len,
+long double calcChecksum(Real_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
@@ -377,7 +536,7 @@ long double calcChecksum(const Real_ptr ptr, int len,
   return tchk;
 }
 
-long double calcChecksum(const Complex_ptr ptr, int len,
+long double calcChecksum(Complex_ptr ptr, int len,
                          Real_type scale_factor)
 {
   long double tchk = 0.0;
@@ -397,6 +556,48 @@ long double calcChecksum(const Complex_ptr ptr, int len,
   }
   tchk *= scale_factor;
   return tchk;
+}
+
+}  // closing brace for detail namespace
+
+
+/*!
+ * \brief Get an host accessible data space for this dataSpace.
+ */
+DataSpace hostAccessibleDataSpace(DataSpace dataSpace)
+{
+  switch (dataSpace) {
+    case DataSpace::Host:
+    case DataSpace::Omp:
+    case DataSpace::CudaPinned:
+    case DataSpace::HipHostAdviseFine:
+    case DataSpace::HipHostAdviseCoarse:
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+      return dataSpace;
+
+    case DataSpace::OmpTarget:
+      return DataSpace::Host;
+
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      return DataSpace::CudaPinned;
+
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+    case DataSpace::HipManagedAdviseCoarse:
+      return dataSpace;
+
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      return DataSpace::HipPinned;
+
+    default:
+    {
+      throw std::invalid_argument("hostAccessibleDataSpace : Unknown data space");
+    } break;
+  }
 }
 
 }  // closing brace for rajaperf namespace

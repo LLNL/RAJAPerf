@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,20 +20,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-#define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
-  allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
-  allocAndInitCudaDeviceData(P, m_P, m_n * m_n); \
-  allocAndInitCudaDeviceData(Q, m_Q, m_n * m_n);
-
-#define POLYBENCH_ADI_TEARDOWN_CUDA \
-  getCudaDeviceData(m_U, U, m_n * m_n); \
-  deallocCudaDeviceData(U); \
-  deallocCudaDeviceData(V); \
-  deallocCudaDeviceData(P); \
-  deallocCudaDeviceData(Q);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -96,8 +82,6 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -120,11 +104,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -166,11 +146,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     POLYBENCH_ADI_VIEWS_RAJA;
 
@@ -241,14 +217,12 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA
-
   } else {
       getCout() << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_ADI, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_ADI, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

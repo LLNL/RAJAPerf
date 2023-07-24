@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -22,17 +22,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-#define NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_nodal_array_length); \
-  allocAndInitCudaDeviceData(vol, m_vol, m_zonal_array_length); \
-  allocAndInitCudaDeviceData(real_zones, m_domain->real_zones, iend);
-
-#define NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_nodal_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(vol); \
-  deallocCudaDeviceData(real_zones);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -64,10 +53,6 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -82,18 +67,11 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
 
-    NODAL_ACCUMULATION_3D_DATA_SETUP_CUDA;
-
-    NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ;
-
     camp::resources::Resource working_res{camp::resources::Cuda()};
-    RAJA::TypedListSegment<Index_type> zones(m_domain->real_zones,
-                                             m_domain->n_real_zones,
-                                             working_res);
+    RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
+                                             working_res, RAJA::Unowned);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -106,14 +84,12 @@ void NODAL_ACCUMULATION_3D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    NODAL_ACCUMULATION_3D_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  NODAL_ACCUMULATION_3D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NODAL_ACCUMULATION_3D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NODAL_ACCUMULATION_3D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

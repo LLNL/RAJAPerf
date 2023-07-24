@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,13 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define INIT_VIEW1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend);
-
-#define INIT_VIEW1D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_a, a, iend); \
-  deallocHipDeviceData(a);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +46,6 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INIT_VIEW1D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +57,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    INIT_VIEW1D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,11 +74,7 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INIT_VIEW1D_DATA_SETUP_HIP;
 
     INIT_VIEW1D_VIEW_RAJA;
 
@@ -106,14 +89,12 @@ void INIT_VIEW1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  INIT_VIEW1D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT_VIEW1D, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

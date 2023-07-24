@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -37,18 +37,6 @@ namespace polybench
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, j_block_sz)), \
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(N-2, i_block_sz)), \
                static_cast<size_t>(1));
-
-
-#define POLYBENCH_JACOBI_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_Ainit, m_N*m_N); \
-  allocAndInitHipDeviceData(B, m_Binit, m_N*m_N);
-
-
-#define POLYBENCH_JACOBI_2D_TEARDOWN_HIP \
-  getHipDeviceData(m_A, A, m_N*m_N); \
-  getHipDeviceData(m_B, B, m_N*m_N); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
 
 
 template < size_t j_block_size, size_t i_block_size >
@@ -97,8 +85,6 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -122,11 +108,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -161,11 +143,7 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_JACOBI_2D_DATA_SETUP_HIP;
 
     POLYBENCH_JACOBI_2D_VIEWS_RAJA;
 
@@ -210,14 +188,12 @@ void POLYBENCH_JACOBI_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_JACOBI_2D_TEARDOWN_HIP;
-
   } else {
       getCout() << "\n  POLYBENCH_JACOBI_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_JACOBI_2D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_JACOBI_2D, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

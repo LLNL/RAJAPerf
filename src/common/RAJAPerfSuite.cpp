@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -10,7 +10,7 @@
 
 #include "RunParams.hpp"
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
@@ -18,6 +18,7 @@
 // Basic kernels...
 //
 #include "basic/ARRAY_OF_PTRS.hpp"
+#include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
 #include "basic/IF_QUAD.hpp"
@@ -80,7 +81,6 @@
 // Apps kernels...
 //
 #include "apps/CONVECTION3DPA.hpp"
-#include "apps/WIP-COUPLE.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
 #include "apps/ENERGY.hpp"
@@ -89,10 +89,12 @@
 #include "apps/HALOEXCHANGE_FUSED.hpp"
 #include "apps/LTIMES.hpp"
 #include "apps/LTIMES_NOVIEW.hpp"
+#include "apps/MASS3DEA.hpp"
 #include "apps/MASS3DPA.hpp"
 #include "apps/NODAL_ACCUMULATION_3D.hpp"
 #include "apps/PRESSURE.hpp"
 #include "apps/VOL3D.hpp"
+#include "apps/ZONAL_ACCUMULATION_3D.hpp"
 
 //
 // Algorithm kernels...
@@ -155,6 +157,7 @@ static const std::string KernelNames [] =
 // Basic kernels...
 //
   std::string("Basic_ARRAY_OF_PTRS"),
+  std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
   std::string("Basic_IF_QUAD"),
@@ -217,7 +220,6 @@ static const std::string KernelNames [] =
 // Apps kernels...
 //
   std::string("Apps_CONVECTION3DPA"),
-  std::string("Apps_COUPLE"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
   std::string("Apps_ENERGY"),
@@ -226,10 +228,12 @@ static const std::string KernelNames [] =
   std::string("Apps_HALOEXCHANGE_FUSED"),
   std::string("Apps_LTIMES"),
   std::string("Apps_LTIMES_NOVIEW"),
+  std::string("Apps_MASS3DEA"),
   std::string("Apps_MASS3DPA"),
   std::string("Apps_NODAL_ACCUMULATION_3D"),
   std::string("Apps_PRESSURE"),
   std::string("Apps_VOL3D"),
+  std::string("Apps_ZONAL_ACCUMULATION_3D"),
 
 //
 // Algorithm kernels...
@@ -304,7 +308,7 @@ static const std::string FeatureNames [] =
 
   std::string("Forall"),
   std::string("Kernel"),
-  std::string("Teams"),
+  std::string("Launch"),
 
   std::string("Sort"),
   std::string("Scan"),
@@ -318,6 +322,46 @@ static const std::string FeatureNames [] =
   std::string("Unknown Feature")  // Keep this at the end and DO NOT remove....
 
 }; // END FeatureNames
+
+
+/*!
+ *******************************************************************************
+ *
+ * \brief Array of names for each Memory Space in suite.
+ *
+ * IMPORTANT: This is only modified when a new memory space is added to the suite.
+ *
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *
+ *******************************************************************************
+ */
+static const std::string DataSpaceNames [] =
+{
+  std::string("Host"),
+
+  std::string("Omp"),
+
+  std::string("OmpTarget"),
+
+  std::string("CudaPinned"),
+  std::string("CudaManaged"),
+  std::string("CudaDevice"),
+
+  std::string("HipHostAdviseFine"),
+  std::string("HipHostAdviseCoarse"),
+  std::string("HipPinned"),
+  std::string("HipPinnedFine"),
+  std::string("HipPinnedCoarse"),
+  std::string("HipManaged"),
+  std::string("HipManagedAdviseFine"),
+  std::string("HipManagedAdviseCoarse"),
+  std::string("HipDevice"),
+  std::string("HipDeviceFine"),
+
+  std::string("Unknown Memory")  // Keep this at the end and DO NOT remove....
+
+}; // END VariantNames
 
 
 /*
@@ -508,6 +552,77 @@ const std::string& getFeatureName(FeatureID fid)
   return FeatureNames[fid];
 }
 
+
+/*
+ *******************************************************************************
+ *
+ * Return memory space name associated with DataSpace enum value.
+ *
+ *******************************************************************************
+ */
+const std::string& getDataSpaceName(DataSpace ds)
+{
+  return DataSpaceNames[static_cast<int>(ds)];
+}
+
+/*!
+ *******************************************************************************
+ *
+ * Return true if the allocate associated with DataSpace enum value is available.
+ *
+ *******************************************************************************
+ */
+bool isDataSpaceAvailable(DataSpace dataSpace)
+{
+  bool ret_val = false;
+
+  switch (dataSpace) {
+    case DataSpace::Host:
+      ret_val = true; break;
+
+#if defined(RAJA_ENABLE_OPENMP) && defined(RUN_OPENMP)
+    case DataSpace::Omp:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+    case DataSpace::OmpTarget:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_CUDA)
+    case DataSpace::CudaPinned:
+    case DataSpace::CudaManaged:
+    case DataSpace::CudaDevice:
+      ret_val = true; break;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+    case DataSpace::HipHostAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipHostAdviseCoarse:
+#endif
+    case DataSpace::HipPinned:
+    case DataSpace::HipPinnedFine:
+    case DataSpace::HipPinnedCoarse:
+    case DataSpace::HipManaged:
+    case DataSpace::HipManagedAdviseFine:
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+    case DataSpace::HipManagedAdviseCoarse:
+#endif
+    case DataSpace::HipDevice:
+    case DataSpace::HipDeviceFine:
+      ret_val = true; break;
+#endif
+
+    default:
+      ret_val = false; break;
+  }
+
+  return ret_val;
+}
+
+
 /*
  *******************************************************************************
  *
@@ -527,6 +642,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     case Basic_ARRAY_OF_PTRS : {
        kernel = new basic::ARRAY_OF_PTRS(run_params);
+       break;
+    }
+    case Basic_COPY8 : {
+       kernel = new basic::COPY8(run_params);
        break;
     }
     case Basic_DAXPY : {
@@ -729,10 +848,7 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::CONVECTION3DPA(run_params);
        break;
     }
-    case Apps_COUPLE : {
-       kernel = new apps::COUPLE(run_params);
-       break;
-    }
+
     case Apps_DEL_DOT_VEC_2D : {
        kernel = new apps::DEL_DOT_VEC_2D(run_params);
        break;
@@ -765,6 +881,10 @@ KernelBase* getKernelObject(KernelID kid,
        kernel = new apps::LTIMES_NOVIEW(run_params);
        break;
     }
+    case Apps_MASS3DEA : {
+       kernel = new apps::MASS3DEA(run_params);
+       break;
+    }      
     case Apps_MASS3DPA : {
        kernel = new apps::MASS3DPA(run_params);
        break;
@@ -779,6 +899,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_VOL3D : {
        kernel = new apps::VOL3D(run_params);
+       break;
+    }
+    case Apps_ZONAL_ACCUMULATION_3D : {
+       kernel = new apps::ZONAL_ACCUMULATION_3D(run_params);
        break;
     }
 
@@ -845,7 +969,7 @@ std::ostream& getNullStream()
 std::ostream& getCout()
 {
   int rank = 0;
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
   if (rank == 0) {

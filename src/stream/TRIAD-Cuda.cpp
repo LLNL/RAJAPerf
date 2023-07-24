@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,17 +20,6 @@ namespace rajaperf
 {
 namespace stream
 {
-
-#define TRIAD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define TRIAD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -55,8 +44,6 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRIAD_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +55,7 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    TRIAD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,11 +70,7 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    TRIAD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,14 +83,12 @@ void TRIAD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  TRIAD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRIAD, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIAD, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

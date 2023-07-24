@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -70,15 +70,15 @@ void FIR::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void FIR::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_out, getActualProblemSize(), checksum_scale_factor , vid);
 }
 
 void FIR::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_in);
-  deallocData(m_out);
+  deallocData(m_in, vid);
+  deallocData(m_out, vid);
 }
 
 } // end namespace apps

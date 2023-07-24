@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,13 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define INT_PREDICT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(px, m_px, m_array_length);
-
-#define INT_PREDICT_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_px, px, m_array_length); \
-  deallocHipDeviceData(px);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -55,8 +48,6 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    INT_PREDICT_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +62,7 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INT_PREDICT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -88,14 +75,12 @@ void INT_PREDICT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  INT_PREDICT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INT_PREDICT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INT_PREDICT, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

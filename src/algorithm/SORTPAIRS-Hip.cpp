@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,16 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SORTPAIRS_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend*run_reps); \
-  allocAndInitHipDeviceData(i, m_i, iend*run_reps);
-
-#define SORTPAIRS_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend*run_reps); \
-  getHipDeviceData(m_i, i, iend*run_reps); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(i);
-
 
 void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -42,8 +32,6 @@ void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   if ( vid == RAJA_HIP ) {
 
-    SORTPAIRS_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -51,8 +39,6 @@ void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
     }
     stopTimer();
-
-    SORTPAIRS_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  SORTPAIRS : Unknown Hip variant id = " << vid << std::endl;

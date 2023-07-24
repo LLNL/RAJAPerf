@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -26,16 +26,6 @@ namespace lcals
   //
   const size_t threads_per_team = 256;
 
-#define FIRST_MIN_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, m_N, did, hid);
-
-#define FIRST_MIN_DATA_TEARDOWN_OMP_TARGET \
-  deallocOpenMPDeviceData(x, did);
-
-FIRST_MIN_MINLOC_COMPARE;
 
 void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -47,13 +37,12 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
 
   if ( vid == Base_OpenMPTarget ) {
 
-    FIRST_MIN_DATA_SETUP_OMP_TARGET;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       #pragma omp declare reduction(minloc : MyMinLoc : \
-                                    omp_out = MinLoc_compare(omp_out, omp_in))
+                                    omp_out = MinLoc_compare(omp_out, omp_in))\
+                                    initializer (omp_priv = omp_orig)
 
       FIRST_MIN_MINLOC_INIT;
 
@@ -64,16 +53,12 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY;
       }
 
-      m_minloc = RAJA_MAX(m_minloc, mymin.loc);
+      m_minloc = mymin.loc;
 
     }
     stopTimer();
 
-    FIRST_MIN_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    FIRST_MIN_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -86,12 +71,10 @@ void FIRST_MIN::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG
         FIRST_MIN_BODY_RAJA;
       });
 
-      m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+      m_minloc = loc.getLoc();
 
     }
     stopTimer();
-
-    FIRST_MIN_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  FIRST_MIN : Unknown OMP Target variant id = " << vid << std::endl;

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -149,7 +149,7 @@ void POLYBENCH_FDTD_2D::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_A
       using EXEC_POL234 =
         RAJA::KernelPolicy<
           RAJA::statement::For<0, RAJA::omp_parallel_for_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<0>
             >
           >

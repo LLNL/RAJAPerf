@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -18,28 +18,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-namespace {
-
-void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       std::vector<Index_type >& pack_index_list_lengths,
-                       const Index_type halo_width, const Index_type* grid_dims,
-                       const Index_type num_neighbors,
-                       VariantID vid);
-void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                         std::vector<Index_type >& unpack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid);
-void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                        const Index_type num_neighbors,
-                        VariantID vid);
-void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid);
-
-}
-
 
 HALOEXCHANGE::HALOEXCHANGE(const RunParams& params)
   : KernelBase(rajaperf::Apps_HALOEXCHANGE, params)
@@ -109,6 +87,7 @@ void HALOEXCHANGE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_vars.resize(m_num_vars, nullptr);
   for (Index_type v = 0; v < m_num_vars; ++v) {
     allocAndInitData(m_vars[v], m_var_size, vid);
+    auto reset_var = scopedMoveData(m_vars[v], m_var_size, vid);
 
     Real_ptr var = m_vars[v];
 
@@ -135,14 +114,14 @@ void HALOEXCHANGE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 void HALOEXCHANGE::updateChecksum(VariantID vid, size_t tune_idx)
 {
   for (Real_ptr var : m_vars) {
-    checksum[vid][tune_idx] += calcChecksum(var, m_var_size);
+    checksum[vid][tune_idx] += calcChecksum(var, m_var_size, vid);
   }
 }
 
 void HALOEXCHANGE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   for (int l = 0; l < s_num_neighbors; ++l) {
-    deallocData(m_buffers[l]);
+    deallocData(m_buffers[l], vid);
   }
   m_buffers.clear();
 
@@ -155,7 +134,7 @@ void HALOEXCHANGE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_pack_index_lists.clear();
 
   for (int v = 0; v < m_num_vars; ++v) {
-    deallocData(m_vars[v]);
+    deallocData(m_vars[v], vid);
   }
   m_vars.clear();
 }
@@ -172,14 +151,17 @@ struct Extent
   Index_type k_max;
 };
 
+}
+
 //
 // Function to generate index lists for packing.
 //
-void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       std::vector<Index_type >& pack_index_list_lengths,
-                       const Index_type halo_width, const Index_type* grid_dims,
-                       const Index_type num_neighbors,
-                       VariantID vid)
+void HALOEXCHANGE::create_pack_lists(
+    std::vector<Int_ptr>& pack_index_lists,
+    std::vector<Index_type >& pack_index_list_lengths,
+    const Index_type halo_width, const Index_type* grid_dims,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   std::vector<Extent> pack_index_list_extents(num_neighbors);
 
@@ -280,6 +262,7 @@ void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
                                  (extent.k_max - extent.k_min) ;
 
     allocAndInitData(pack_index_lists[l], pack_index_list_lengths[l], vid);
+    auto reset_list = scopedMoveData(pack_index_lists[l], pack_index_list_lengths[l], vid);
 
     Int_ptr pack_list = pack_index_lists[l];
 
@@ -304,25 +287,27 @@ void create_pack_lists(std::vector<Int_ptr>& pack_index_lists,
 //
 // Function to destroy packing index lists.
 //
-void destroy_pack_lists(std::vector<Int_ptr>& pack_index_lists,
-                       const Index_type num_neighbors,
-                       VariantID vid)
+void HALOEXCHANGE::destroy_pack_lists(
+    std::vector<Int_ptr>& pack_index_lists,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   (void) vid;
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(pack_index_lists[l]);
+    deallocData(pack_index_lists[l], vid);
   }
 }
 
 //
 // Function to generate index lists for unpacking.
 //
-void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                         std::vector<Index_type >& unpack_index_list_lengths,
-                         const Index_type halo_width, const Index_type* grid_dims,
-                         const Index_type num_neighbors,
-                         VariantID vid)
+void HALOEXCHANGE::create_unpack_lists(
+    std::vector<Int_ptr>& unpack_index_lists,
+    std::vector<Index_type >& unpack_index_list_lengths,
+    const Index_type halo_width, const Index_type* grid_dims,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   std::vector<Extent> unpack_index_list_extents(num_neighbors);
 
@@ -423,6 +408,7 @@ void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
                                    (extent.k_max - extent.k_min) ;
 
     allocAndInitData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
+    auto reset_list = scopedMoveData(unpack_index_lists[l], unpack_index_list_lengths[l], vid);
 
     Int_ptr unpack_list = unpack_index_lists[l];
 
@@ -447,18 +433,17 @@ void create_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
 //
 // Function to destroy unpacking index lists.
 //
-void destroy_unpack_lists(std::vector<Int_ptr>& unpack_index_lists,
-                          const Index_type num_neighbors,
-                          VariantID vid)
+void HALOEXCHANGE::destroy_unpack_lists(
+    std::vector<Int_ptr>& unpack_index_lists,
+    const Index_type num_neighbors,
+    VariantID vid)
 {
   (void) vid;
 
   for (Index_type l = 0; l < num_neighbors; ++l) {
-    deallocData(unpack_index_lists[l]);
+    deallocData(unpack_index_lists[l], vid);
   }
 }
-
-} // end namespace
 
 } // end namespace apps
 } // end namespace rajaperf

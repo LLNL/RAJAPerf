@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -49,6 +49,8 @@ INT_PREDICT::INT_PREDICT(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 INT_PREDICT::~INT_PREDICT()
@@ -63,29 +65,33 @@ void INT_PREDICT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   m_px_initval = 1.0;
   allocAndInitDataConst(m_px, m_array_length, m_px_initval, vid);
 
-  initData(m_dm22);
-  initData(m_dm23);
-  initData(m_dm24);
-  initData(m_dm25);
-  initData(m_dm26);
-  initData(m_dm27);
-  initData(m_dm28);
-  initData(m_c0);
+  initData(m_dm22, vid);
+  initData(m_dm23, vid);
+  initData(m_dm24, vid);
+  initData(m_dm25, vid);
+  initData(m_dm26, vid);
+  initData(m_dm27, vid);
+  initData(m_dm28, vid);
+  initData(m_c0, vid);
 }
 
 void INT_PREDICT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  for (Index_type i = 0; i < getActualProblemSize(); ++i) {
-    m_px[i] -= m_px_initval;
+  {
+    auto reset_px = scopedMoveData(m_px, m_array_length, vid);
+
+    for (Index_type i = 0; i < getActualProblemSize(); ++i) {
+      m_px[i] -= m_px_initval;
+    }
   }
 
-  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_px, getActualProblemSize(), vid);
 }
 
 void INT_PREDICT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_px);
+  deallocData(m_px, vid);
 }
 
 } // end namespace lcals

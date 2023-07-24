@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -35,11 +35,6 @@ Real_type trap_int_func(Real_type x,
    denom = 1.0/sqrt(denom);
    return denom;
 }
-
-
-#define TRAP_INT_DATA_SETUP_HIP // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
 
 
 template < size_t block_size >
@@ -94,10 +89,8 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    TRAP_INT_DATA_SETUP_HIP;
-
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::HipDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -120,13 +113,9 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(sumx);
-
-    TRAP_INT_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, sumx);
 
   } else if ( vid == RAJA_HIP ) {
-
-    TRAP_INT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -143,14 +132,12 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRAP_INT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRAP_INT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -13,8 +13,10 @@ add_subdirectory(basic)
 add_subdirectory(basic-kokkos)
 add_subdirectory(apps)
 add_subdirectory(lcals)
+add_subdirectory(lcals-kokkos)
 add_subdirectory(polybench)
 add_subdirectory(stream)
+add_subdirectory(stream-kokkos)
 add_subdirectory(algorithm)
 
 set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
@@ -23,12 +25,14 @@ set(RAJA_PERFSUITE_EXECUTABLE_DEPENDS
     basic
     basic-kokkos
     lcals
+    lcals-kokkos
     polybench
     stream
+    stream-kokkos
     algorithm)
 list(APPEND RAJA_PERFSUITE_EXECUTABLE_DEPENDS ${RAJA_PERFSUITE_DEPENDS})
 
-if(ENABLE_TARGET_OPENMP)
+if(RAJA_ENABLE_TARGET_OPENMP)
   remove_definitions(-DRUN_RAJA_SEQ -DRUN_OPENMP )
 
 blt_add_executable(
@@ -65,6 +69,9 @@ blt_add_executable(
   apps/LTIMES_NOVIEW.cpp
   apps/LTIMES_NOVIEW-Seq.cpp
   apps/LTIMES_NOVIEW-OMPTarget.cpp
+  apps/MASS3DEA.cpp
+  apps/MASS3DEA-Seq.cpp
+  apps/MASS3DEA-OMPTarget.cpp  
   apps/MASS3DPA.cpp
   apps/MASS3DPA-Seq.cpp
   apps/MASS3DPA-OMPTarget.cpp
@@ -74,10 +81,15 @@ blt_add_executable(
   apps/VOL3D.cpp
   apps/VOL3D-Seq.cpp
   apps/VOL3D-OMPTarget.cpp
-  apps/WIP-COUPLE.cpp
+  apps/ZONAL_ACCUMULATION_3D.cpp
+  apps/ZONAL_ACCUMULATION_3D-Seq.cpp
+  apps/ZONAL_ACCUMULATION_3D-OMPTarget.cpp
   basic/ARRAY_OF_PTRS.cpp
   basic/ARRAY_OF_PTRS-Seq.cpp
   basic/ARRAY_OF_PTRS-OMPTarget.cpp
+  basic/COPY8.cpp
+  basic/COPY8-Seq.cpp
+  basic/COPY8-OMPTarget.cpp
   basic/DAXPY.cpp
   basic/DAXPY-Seq.cpp
   basic/DAXPY-OMPTarget.cpp
@@ -236,8 +248,11 @@ blt_add_executable(
   algorithm/MEMCPY.cpp
   algorithm/MEMCPY-Seq.cpp
   algorithm/MEMCPY-OMPTarget.cpp
-  DEPENDS_ON ${RAJA_PERFSUITE_DEPENDS}
+  DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
 )
+install( TARGETS raja-perf-omptarget.exe
+         RUNTIME DESTINATION bin
+       )
 
 else()
 blt_add_executable(
@@ -245,4 +260,7 @@ blt_add_executable(
   SOURCES RAJAPerfSuiteDriver.cpp
   DEPENDS_ON ${RAJA_PERFSUITE_EXECUTABLE_DEPENDS}
   )
+install( TARGETS raja-perf.exe
+         RUNTIME DESTINATION bin
+       )
 endif()

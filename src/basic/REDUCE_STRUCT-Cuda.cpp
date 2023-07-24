@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  
-#define REDUCE_STRUCT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(points.x, m_x, points.N); \
-  allocAndInitCudaDeviceData(points.y, m_y, points.N); \
-  
-
-#define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(points.x); \
-  deallocCudaDeviceData(points.y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -115,10 +106,8 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_STRUCT_DATA_SETUP_CUDA;
-
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocCudaDeviceData(mem,6);
+    allocData(DataSpace::CudaDevice, mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -149,13 +138,9 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
-
-    deallocCudaDeviceData(mem);
+    deallocData(DataSpace::CudaDevice, mem);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE_STRUCT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -183,15 +168,13 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown CUDA variant id = " << vid << std::endl;
   }
 
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE_STRUCT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

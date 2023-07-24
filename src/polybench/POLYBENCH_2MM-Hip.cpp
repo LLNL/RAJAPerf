@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -43,22 +43,6 @@ namespace polybench
                 static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, out_block_sz)), \
                 static_cast<size_t>(1));
 
-
-#define POLYBENCH_2MM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(tmp, m_tmp, m_ni * m_nj); \
-  allocAndInitHipDeviceData(A, m_A, m_ni * m_nk); \
-  allocAndInitHipDeviceData(B, m_B, m_nk * m_nj); \
-  allocAndInitHipDeviceData(C, m_C, m_nj * m_nl); \
-  allocAndInitHipDeviceData(D, m_D, m_ni * m_nl);
-
-
-#define POLYBENCH_2MM_TEARDOWN_HIP \
-  getHipDeviceData(m_D, D, m_ni * m_nl); \
-  deallocHipDeviceData(tmp); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C); \
-  deallocHipDeviceData(D);
 
 template < size_t in_block_size, size_t out_block_size >
 __launch_bounds__(in_block_size*out_block_size)
@@ -132,8 +116,6 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_2MM_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -156,11 +138,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_2MM_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
-
-    POLYBENCH_2MM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -198,11 +176,7 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_2MM_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_2MM_DATA_SETUP_HIP;
 
     POLYBENCH_2MM_VIEWS_RAJA;
 
@@ -271,14 +245,12 @@ void POLYBENCH_2MM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_2MM_TEARDOWN_HIP;
-
   } else {
       getCout() << "\n  POLYBENCH_2MM : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_2MM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_2MM, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,21 +20,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-#define POLYBENCH_ATAX_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(tmp, m_tmp, N); \
-  allocAndInitCudaDeviceData(y, m_y, N); \
-  allocAndInitCudaDeviceData(x, m_x, N); \
-  allocAndInitCudaDeviceData(A, m_A, N * N);
-
-
-#define POLYBENCH_ATAX_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(tmp); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(A);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -90,8 +75,6 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -106,11 +89,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -142,11 +121,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
@@ -223,14 +198,12 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  POLYBENCH_ATAX : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_ATAX, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_ATAX, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

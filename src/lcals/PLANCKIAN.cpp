@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -49,6 +49,8 @@ PLANCKIAN::PLANCKIAN(const RunParams& params)
 
   setVariantDefined( Base_HIP );
   setVariantDefined( RAJA_HIP );
+
+  setVariantDefined( Kokkos_Lambda );
 }
 
 PLANCKIAN::~PLANCKIAN()
@@ -66,17 +68,17 @@ void PLANCKIAN::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void PLANCKIAN::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_w, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_w, getActualProblemSize(), vid);
 }
 
 void PLANCKIAN::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
-  deallocData(m_y);
-  deallocData(m_u);
-  deallocData(m_v);
-  deallocData(m_w);
+  deallocData(m_x, vid);
+  deallocData(m_y, vid);
+  deallocData(m_u, vid);
+  deallocData(m_v, vid);
+  deallocData(m_w, vid);
 }
 
 } // end namespace lcals

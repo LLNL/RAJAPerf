@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -86,15 +86,15 @@ void POLYBENCH_GEMM::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void POLYBENCH_GEMM::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_C, m_ni * m_nj, checksum_scale_factor );
+  checksum[vid][tune_idx] += calcChecksum(m_C, m_ni * m_nj, checksum_scale_factor , vid);
 }
 
 void POLYBENCH_GEMM::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_A);
-  deallocData(m_B);
-  deallocData(m_C);
+  deallocData(m_A, vid);
+  deallocData(m_B, vid);
+  deallocData(m_C, vid);
 }
 
 } // end namespace polybench

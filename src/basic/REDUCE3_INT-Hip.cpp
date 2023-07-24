@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,12 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define REDUCE3_INT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(vec, m_vec, iend);
-
-#define REDUCE3_INT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(vec);
 
 
 template < size_t block_size >
@@ -90,13 +84,11 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    REDUCE3_INT_DATA_SETUP_HIP;
-
     Int_ptr vmem_init;
-    allocHipPinnedData(vmem_init, 3);
+    allocData(DataSpace::HipPinned, vmem_init, 3);
 
     Int_ptr vmem;
-    allocHipDeviceData(vmem, 3);
+    allocData(DataSpace::HipDevice, vmem, 3);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -126,14 +118,10 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_HIP;
-
-    deallocHipDeviceData(vmem);
-    deallocHipPinnedData(vmem_init);
+    deallocData(DataSpace::HipDevice, vmem);
+    deallocData(DataSpace::HipPinned, vmem_init);
 
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE3_INT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -154,14 +142,12 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE3_INT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  REDUCE3_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE3_INT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

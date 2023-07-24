@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,23 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define INIT3_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(out1, m_out1, iend); \
-  allocAndInitCudaDeviceData(out2, m_out2, iend); \
-  allocAndInitCudaDeviceData(out3, m_out3, iend); \
-  allocAndInitCudaDeviceData(in1, m_in1, iend); \
-  allocAndInitCudaDeviceData(in2, m_in2, iend);
-
-#define INIT3_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_out1, out1, iend); \
-  getCudaDeviceData(m_out2, out2, iend); \
-  getCudaDeviceData(m_out3, out3, iend); \
-  deallocCudaDeviceData(out1); \
-  deallocCudaDeviceData(out2); \
-  deallocCudaDeviceData(out3); \
-  deallocCudaDeviceData(in1); \
-  deallocCudaDeviceData(in2);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -63,8 +46,6 @@ void INIT3::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INIT3_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -76,11 +57,7 @@ void INIT3::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    INIT3_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -95,11 +72,7 @@ void INIT3::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INIT3_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -112,14 +85,12 @@ void INIT3::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  INIT3 : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT3, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

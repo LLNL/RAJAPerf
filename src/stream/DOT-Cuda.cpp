@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,14 +21,6 @@ namespace rajaperf
 {
 namespace stream
 {
-
-#define DOT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend);
-
-#define DOT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -77,10 +69,8 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    DOT_DATA_SETUP_CUDA;
-
     Real_ptr dprod;
-    allocAndInitCudaDeviceData(dprod, &m_dot_init, 1);
+    allocData(DataSpace::CudaDevice, dprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -100,13 +90,9 @@ void DOT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_CUDA;
-
-    deallocCudaDeviceData(dprod);
+    deallocData(DataSpace::CudaDevice, dprod);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    DOT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -123,14 +109,12 @@ void DOT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  DOT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DOT, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

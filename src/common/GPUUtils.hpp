@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -169,7 +169,7 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 } // closing brace for rajaperf namespace
 
 //
-#define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(kernel, variant)     \
+#define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(kernel, variant)     \
   void kernel::run##variant##Variant(VariantID vid, size_t tune_idx)           \
   {                                                                            \
     size_t t = 0;                                                              \

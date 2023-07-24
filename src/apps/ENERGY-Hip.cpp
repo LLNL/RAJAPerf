@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,42 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-#define ENERGY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(e_new, m_e_new, iend); \
-  allocAndInitHipDeviceData(e_old, m_e_old, iend); \
-  allocAndInitHipDeviceData(delvc, m_delvc, iend); \
-  allocAndInitHipDeviceData(p_new, m_p_new, iend); \
-  allocAndInitHipDeviceData(p_old, m_p_old, iend); \
-  allocAndInitHipDeviceData(q_new, m_q_new, iend); \
-  allocAndInitHipDeviceData(q_old, m_q_old, iend); \
-  allocAndInitHipDeviceData(work, m_work, iend); \
-  allocAndInitHipDeviceData(compHalfStep, m_compHalfStep, iend); \
-  allocAndInitHipDeviceData(pHalfStep, m_pHalfStep, iend); \
-  allocAndInitHipDeviceData(bvc, m_bvc, iend); \
-  allocAndInitHipDeviceData(pbvc, m_pbvc, iend); \
-  allocAndInitHipDeviceData(ql_old, m_ql_old, iend); \
-  allocAndInitHipDeviceData(qq_old, m_qq_old, iend); \
-  allocAndInitHipDeviceData(vnewc, m_vnewc, iend);
-
-#define ENERGY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_e_new, e_new, iend); \
-  getHipDeviceData(m_q_new, q_new, iend); \
-  deallocHipDeviceData(e_new); \
-  deallocHipDeviceData(e_old); \
-  deallocHipDeviceData(delvc); \
-  deallocHipDeviceData(p_new); \
-  deallocHipDeviceData(p_old); \
-  deallocHipDeviceData(q_new); \
-  deallocHipDeviceData(q_old); \
-  deallocHipDeviceData(work); \
-  deallocHipDeviceData(compHalfStep); \
-  deallocHipDeviceData(pHalfStep); \
-  deallocHipDeviceData(bvc); \
-  deallocHipDeviceData(pbvc); \
-  deallocHipDeviceData(ql_old); \
-  deallocHipDeviceData(qq_old); \
-  deallocHipDeviceData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -154,8 +118,6 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    ENERGY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -207,11 +169,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    ENERGY_DATA_SETUP_HIP;
 
     const bool async = true;
 
@@ -255,14 +213,12 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ENERGY_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  ENERGY : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ENERGY, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ENERGY, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

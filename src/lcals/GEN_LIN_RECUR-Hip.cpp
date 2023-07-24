@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,19 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define GEN_LIN_RECUR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(b5, m_b5, m_N); \
-  allocAndInitHipDeviceData(stb5, m_stb5, m_N); \
-  allocAndInitHipDeviceData(sa, m_sa, m_N); \
-  allocAndInitHipDeviceData(sb, m_sb, m_N);
-
-#define GEN_LIN_RECUR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_b5, b5, m_N); \
-  deallocHipDeviceData(b5); \
-  deallocHipDeviceData(stb5); \
-  deallocHipDeviceData(sa); \
-  deallocHipDeviceData(sb);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -70,8 +57,6 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    GEN_LIN_RECUR_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -92,11 +77,7 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    GEN_LIN_RECUR_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -114,14 +95,12 @@ void GEN_LIN_RECUR::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    GEN_LIN_RECUR_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  GEN_LIN_RECUR : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(GEN_LIN_RECUR, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(GEN_LIN_RECUR, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

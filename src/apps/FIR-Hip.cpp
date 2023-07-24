@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -30,15 +30,10 @@ namespace apps
 __constant__ Real_type coeff[FIR_COEFFLEN];
 
 #define FIR_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
-  hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice);
+  hipErrchk( hipMemcpyToSymbol(HIP_SYMBOL(coeff), coeff_array, FIR_COEFFLEN * sizeof(Real_type), 0, hipMemcpyHostToDevice));
 
 
-#define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getActualProblemSize()); \
-  deallocHipDeviceData(in); \
-  deallocHipDeviceData(out);
+#define FIR_DATA_TEARDOWN_HIP
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -56,18 +51,14 @@ __global__ void fir(Real_ptr out, Real_ptr in,
 
 #define FIR_DATA_SETUP_HIP \
   Real_ptr coeff; \
-\
-  allocAndInitHipDeviceData(in, m_in, getActualProblemSize()); \
-  allocAndInitHipDeviceData(out, m_out, getActualProblemSize()); \
+  \
   Real_ptr tcoeff = &coeff_array[0]; \
-  allocAndInitHipDeviceData(coeff, tcoeff, FIR_COEFFLEN);
+  allocData(DataSpace::HipDevice, coeff, FIR_COEFFLEN); \
+  copyData(DataSpace::HipDevice, coeff, DataSpace::Host, tcoeff, FIR_COEFFLEN);
 
 
 #define FIR_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out, out, getActualProblemSize()); \
-  deallocHipDeviceData(in); \
-  deallocHipDeviceData(out); \
-  deallocHipDeviceData(coeff);
+  deallocData(DataSpace::HipDevice, coeff);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -147,7 +138,7 @@ void FIR::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIR, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIR, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -1,11 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+// _add_run_cuda_start
 #include "ADD.hpp"
 
 #include "RAJA/RAJA.hpp"
@@ -21,21 +22,10 @@ namespace rajaperf
 namespace stream
 {
 
-#define ADD_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(b, m_b, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define ADD_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_c, c, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(b); \
-  deallocCudaDeviceData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void add(Real_ptr c, Real_ptr a, Real_ptr b,
-                     Index_type iend)
+                    Index_type iend)
 {
   Index_type i = blockIdx.x * block_size + threadIdx.x;
   if (i < iend) {
@@ -55,8 +45,6 @@ void ADD::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    ADD_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +56,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    ADD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -87,11 +71,7 @@ void ADD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    ADD_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,17 +84,16 @@ void ADD::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  ADD : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ADD, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf
 
 #endif  // RAJA_ENABLE_CUDA
+// _add_run_cuda_end
 

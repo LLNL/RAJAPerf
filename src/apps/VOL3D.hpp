@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -79,7 +79,11 @@
 \
   Real_ptr x0,x1,x2,x3,x4,x5,x6,x7 ; \
   Real_ptr y0,y1,y2,y3,y4,y5,y6,y7 ; \
-  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ;
+  Real_ptr z0,z1,z2,z3,z4,z5,z6,z7 ; \
+\
+  NDPTRSET(m_domain->jp, m_domain->kp, x,x0,x1,x2,x3,x4,x5,x6,x7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, y,y0,y1,y2,y3,y4,y5,y6,y7) ; \
+  NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 #define VOL3D_BODY \
   Real_type x71 = x7[i] - x1[i] ; \

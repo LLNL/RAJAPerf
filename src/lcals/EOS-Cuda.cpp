@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,19 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define EOS_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_array_length); \
-  allocAndInitCudaDeviceData(y, m_y, m_array_length); \
-  allocAndInitCudaDeviceData(z, m_z, m_array_length); \
-  allocAndInitCudaDeviceData(u, m_u, m_array_length);
-
-#define EOS_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_array_length); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(z); \
-  deallocCudaDeviceData(u);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -58,8 +45,6 @@ void EOS::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    EOS_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -72,11 +57,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EOS_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    EOS_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,14 +70,12 @@ void EOS::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    EOS_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  EOS : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EOS, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(EOS, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

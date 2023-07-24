@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,21 +20,6 @@ namespace rajaperf
 {
 namespace polybench
 {
-
-#define POLYBENCH_GESUMMV_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, N); \
-  allocAndInitHipDeviceData(y, m_y, N); \
-  allocAndInitHipDeviceData(A, m_A, N*N); \
-  allocAndInitHipDeviceData(B, m_B, N*N);
-
-
-#define POLYBENCH_GESUMMV_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, N); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B);
-
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -64,8 +49,6 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_GESUMMV_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -82,11 +65,7 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_HIP;
 
     POLYBENCH_GESUMMV_VIEWS_RAJA;
 
@@ -132,14 +111,12 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
       }
       stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_HIP;
-
   } else {
       getCout() << "\n  POLYBENCH_GESUMMV : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GESUMMV, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

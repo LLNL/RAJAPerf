@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,12 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define PI_ATOMIC_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(pi, m_pi, 1);
-
-#define PI_ATOMIC_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(pi);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +47,6 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    PI_ATOMIC_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -64,17 +56,13 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       pi_atomic<block_size><<<grid_size, block_size>>>( pi, dx, iend );
       cudaErrchk( cudaGetLastError() );
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,17 +77,13 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
       });
       cudaErrchk( cudaGetLastError() );
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
 
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PI_ATOMIC_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -112,20 +96,18 @@ void PI_ATOMIC::runCudaVariantImpl(VariantID vid)
           RAJA::atomicAdd<RAJA::cuda_atomic>(pi, dx / (1.0 + x * x));
       });
 
-      getCudaDeviceData(m_pi, pi, 1);
-      *m_pi *= 4.0;
+      getCudaDeviceData(&m_pi_final, pi, 1);
+      m_pi_final *= 4.0;
 
     }
     stopTimer();
-
-    PI_ATOMIC_DATA_TEARDOWN_CUDA;
 
   } else {
      getCout() << "\n  PI_ATOMIC : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_ATOMIC, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_ATOMIC, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

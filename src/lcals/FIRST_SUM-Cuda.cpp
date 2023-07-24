@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,15 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define FIRST_SUM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, m_N); \
-  allocAndInitCudaDeviceData(y, m_y, m_N);
-
-#define FIRST_SUM_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_x, x, m_N); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +44,6 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    FIRST_SUM_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -66,11 +55,7 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_SUM_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    FIRST_SUM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -83,14 +68,12 @@ void FIRST_SUM::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    FIRST_SUM_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  FIRST_SUM : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_SUM, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_SUM, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

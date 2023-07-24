@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -35,11 +35,6 @@ Real_type trap_int_func(Real_type x,
    denom = 1.0/sqrt(denom);
    return denom;
 }
-
-
-#define TRAP_INT_DATA_SETUP_CUDA  // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_CUDA // nothing to do here...
 
 
 template < size_t block_size >
@@ -94,10 +89,8 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    TRAP_INT_DATA_SETUP_CUDA;
-
     Real_ptr sumx;
-    allocAndInitCudaDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::CudaDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -121,13 +114,9 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocCudaDeviceData(sumx);
-
-    TRAP_INT_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, sumx);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    TRAP_INT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -144,14 +133,12 @@ void TRAP_INT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRAP_INT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  TRAP_INT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRAP_INT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

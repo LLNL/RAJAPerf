@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,13 +20,6 @@ namespace rajaperf
 {
 namespace algorithm
 {
-
-#define MEMSET_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
-
-#define MEMSET_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend); \
-  deallocHipDeviceData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -50,8 +43,6 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -60,11 +51,7 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     camp::resources::Hip res = camp::resources::Hip::get_default();
 
@@ -75,8 +62,6 @@ void MEMSET::runHipVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -97,8 +82,6 @@ void MEMSET::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMSET_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -111,11 +94,7 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -133,11 +112,7 @@ void MEMSET::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMSET_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMSET_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -149,8 +124,6 @@ void MEMSET::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    MEMSET_DATA_TEARDOWN_HIP;
 
   } else {
 

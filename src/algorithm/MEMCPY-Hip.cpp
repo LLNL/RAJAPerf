@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,15 +20,6 @@ namespace rajaperf
 {
 namespace algorithm
 {
-
-#define MEMCPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define MEMCPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -52,8 +43,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -62,11 +51,7 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     camp::resources::Hip res = camp::resources::Hip::get_default();
 
@@ -77,8 +62,6 @@ void MEMCPY::runHipVariantLibrary(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -99,8 +82,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    MEMCPY_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -113,11 +94,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -135,11 +112,7 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
     }
     stopTimer();
 
-    MEMCPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    MEMCPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -151,8 +124,6 @@ void MEMCPY::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    MEMCPY_DATA_TEARDOWN_HIP;
 
   } else {
 

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -70,7 +70,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
   if ( vid == Base_HIP ) {
 
     Real_ptr dpi;
-    allocAndInitHipDeviceData(dpi, &m_pi_init, 1);
+    allocData(DataSpace::HipDevice, dpi, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -92,7 +92,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    deallocHipDeviceData(dpi);
+    deallocData(DataSpace::HipDevice, dpi);
 
   } else if ( vid == RAJA_HIP ) {
 
@@ -116,7 +116,7 @@ void PI_REDUCE::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_REDUCE, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_REDUCE, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

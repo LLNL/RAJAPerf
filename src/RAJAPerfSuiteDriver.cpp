@@ -1,12 +1,12 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
 // SPDX-License-Identifier: (BSD-3-Clause)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-#ifdef RUN_KOKKOS
+#if defined(RUN_KOKKOS)
 #include <Kokkos_Core.hpp>
 #endif
 
@@ -14,21 +14,21 @@
 
 #include <iostream>
 
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
 #include <mpi.h>
 #endif
 
 //------------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Init(&argc, &argv);
 
   int num_ranks;
   MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
   rajaperf::getCout() << "\n\nRunning with " << num_ranks << " MPI ranks..." << std::endl;
 #endif
-#ifdef RUN_KOKKOS
+#if defined(RUN_KOKKOS)
   Kokkos::initialize(argc, argv);
 #endif
 
@@ -50,10 +50,10 @@ int main( int argc, char** argv )
 
   rajaperf::getCout() << "\n\nDONE!!!...." << std::endl;
 
-#ifdef RUN_KOKKOS
+#if defined(RUN_KOKKOS)
   Kokkos::finalize();
 #endif
-#ifdef RAJA_PERFSUITE_ENABLE_MPI
+#if defined(RAJA_PERFSUITE_ENABLE_MPI)
   MPI_Finalize();
 #endif
 

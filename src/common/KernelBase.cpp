@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -9,14 +9,19 @@
 #include "KernelBase.hpp"
 
 #include "RunParams.hpp"
+#include "OpenMPTargetDataUtils.hpp"
 
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace rajaperf {
 
-KernelBase::KernelBase(KernelID kid, const RunParams& params) :
-  run_params(params)
+KernelBase::KernelBase(KernelID kid, const RunParams& params)
+  : run_params(params)
+#if defined(RAJA_ENABLE_TARGET_OPENMP)
+  , did(getOpenMPTargetDevice())
+#endif
 {
   kernel_id = kid;
   name = getFullKernelName(kernel_id);
@@ -153,6 +158,52 @@ void KernelBase::setVariantDefined(VariantID vid)
   tot_time[vid].resize(variant_tuning_names[vid].size(), 0.0);
 }
 
+int KernelBase::getDataAlignment() const
+{
+  return run_params.getDataAlignment();
+}
+
+DataSpace KernelBase::getDataSpace(VariantID vid) const
+{
+  switch ( vid ) {
+
+    case Base_Seq :
+    case Lambda_Seq :
+    case RAJA_Seq :
+      return run_params.getSeqDataSpace();
+
+    case Base_OpenMP :
+    case Lambda_OpenMP :
+    case RAJA_OpenMP :
+      return run_params.getOmpDataSpace();
+
+    case Base_OpenMPTarget :
+    case RAJA_OpenMPTarget :
+      return run_params.getOmpTargetDataSpace();
+
+    case Base_CUDA :
+    case Lambda_CUDA :
+    case RAJA_CUDA :
+      return run_params.getCudaDataSpace();
+
+    case Base_HIP :
+    case Lambda_HIP :
+    case RAJA_HIP :
+      return run_params.getHipDataSpace();
+
+    case Kokkos_Lambda :
+      return run_params.getKokkosDataSpace();
+
+    default:
+      throw std::invalid_argument("getDataSpace : Unknown variant id");
+  }
+}
+
+DataSpace KernelBase::getHostAccessibleDataSpace(VariantID vid) const
+{
+  return hostAccessibleDataSpace(getDataSpace(vid));
+}
+
 void KernelBase::execute(VariantID vid, size_t tune_idx)
 {
   running_variant = vid;
@@ -160,7 +211,7 @@ void KernelBase::execute(VariantID vid, size_t tune_idx)
 
   resetTimer();
 
-  resetDataInitCount();
+  detail::resetDataInitCount();
   this->setUp(vid, tune_idx);
 
   this->runKernel(vid, tune_idx);

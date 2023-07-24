@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 ###############################################################################
-# Copyright (c) 2016-22, Lawrence Livermore National Security, LLC
-# and RAJA project contributors. See the RAJA/LICENSE file for details.
+# Copyright (c) 2016-23, Lawrence Livermore National Security, LLC
+# and RAJA project contributors. See the RAJAPerf/LICENSE file for details.
 #
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
@@ -57,7 +57,7 @@ rm -rf build_${BUILD_SUFFIX} >/dev/null
 mkdir build_${BUILD_SUFFIX} && cd build_${BUILD_SUFFIX}
 
 
-module load cmake/3.14.5
+module load cmake/3.23.1
 
 # unload rocm to avoid configuration problems where the loaded rocm and COMP_VER
 # are inconsistent causing the rocprim from the module to be used unexpectedly
@@ -74,6 +74,8 @@ cmake \
   -DCMAKE_C_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang \
   -DCMAKE_CXX_COMPILER=/opt/rocm-${COMP_VER}/llvm/bin/amdclang++ \
   -DCMAKE_HIP_ARCHITECTURES="${COMP_ARCH}" \
+  -DGPU_TARGETS="${COMP_ARCH}" \
+  -DAMDGPU_TARGETS="${COMP_ARCH}" \
   -DBLT_CXX_STD=c++14 \
   -C ${RAJA_HOSTCONFIG} \
   -DENABLE_MPI=ON \

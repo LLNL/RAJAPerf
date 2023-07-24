@@ -1,11 +1,5 @@
-variables:
-  DO_BUILD: 'yes'
-  DO_TEST: 'yes'
-  DO_INSTALL: 'yes'
-  COMPILER: 'g++'
-
 jobs:
-#- job: Windows #temporarily commenting out until cmake/azure version issue resolved
+#- job: Windows #commented out since we really don't need this
 #  strategy:
 #    matrix:
 #      shared:
@@ -32,7 +26,6 @@ jobs:
 #     inputs:
 #       script: 'ctest.exe -T test -C Release'
 #       workingDirectory: 'build'
-#     condition: eq( variables['Agent.OS'], 'Windows_NT')
 #   - task: PublishTestResults@2
 #     inputs:
 #       testResultsFormat: 'cTest'
@@ -41,30 +34,30 @@ jobs:
   timeoutInMinutes: 360
   strategy:
     matrix: 
-      gcc7:
-        docker_target: gcc7
-      gcc8:
-        docker_target: gcc8
-      gcc9:
-        docker_target: gcc9
-      gcc11:
-        docker_target: gcc11
-      clang11:
-        docker_target: clang11
-##      clang11-debug:
-##        docker_target: clang11-debug
-      clang13:
-        docker_target: clang13
-      nvcc10:
-        docker_target: nvcc10
-      nvcc11:
-        docker_target: nvcc11
-##      nvcc11-debug:
-##        docker_target: nvcc11-debug
-      hip:
-        docker_target: hip
-#     sycl:
-#       docker_target: sycl
+      gcc7.3.0:
+        docker_target: gcc7.3.0
+      gcc8.1.0:
+        docker_target: gcc8.1.0
+      gcc9.4.0:
+        docker_target: gcc9.4.0
+      gcc11.2.0:
+        docker_target: gcc11.2.0
+      clang11.0.0:
+        docker_target: clang11.0.0
+##      clang11.0.0-debug:
+##        docker_target: clang11.0.0-debug
+      clang13.0.0:
+        docker_target: clang13.0.0
+##      nvcc10.1.243:
+##        docker_target: nvcc10.1.243
+##      nvcc11.1.1:
+##        docker_target: nvcc11.1.1
+##      nvcc11.1.1-debug:
+##        docker_target: nvcc11.1.1-debug
+##      hip5.1.3:
+##        docker_target: hip5.1.3
+##     sycl:
+##       docker_target: sycl
   pool:
     vmImage: 'ubuntu-latest'
   variables:
@@ -79,6 +72,10 @@ jobs:
       command: build
       dockerFile: 'Dockerfile'
       arguments: '--target $(docker_target)'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Test.xml'
 - job: Mac 
   pool:
     vmImage: 'macOS-latest'
@@ -99,6 +96,9 @@ jobs:
     condition: eq( variables['Agent.OS'], 'Darwin')
   - script: |
       cd build
-      ./bin/raja-perf.exe --checkrun 5 -sp
-    displayName: 'Run Perf Suite'
-    condition: eq( variables['Agent.OS'], 'Darwin')
+      ctest -T test --output-on-failure
+    displayName: 'OSX Test'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'cTest'
+      testResultsFiles: '**/Test.xml'

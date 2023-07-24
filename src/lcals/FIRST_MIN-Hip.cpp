@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -21,23 +21,19 @@ namespace rajaperf
 namespace lcals
 {
 
-#define FIRST_MIN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_N);
-
-#define FIRST_MIN_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void first_min(Real_ptr x,
                           MyMinLoc* dminloc,
+                          MyMinLoc mininit,
                           Index_type iend)
 {
   extern __shared__ MyMinLoc minloc[ ];
 
   Index_type i = blockIdx.x * block_size + threadIdx.x;
 
-  minloc[ threadIdx.x ] = *dminloc;
+  minloc[ threadIdx.x ] = mininit;
 
   for ( ; i < iend ; i += gridDim.x * block_size ) {
     MyMinLoc& mymin = minloc[ threadIdx.x ];
@@ -55,9 +51,7 @@ __global__ void first_min(Real_ptr x,
   }
 
   if ( threadIdx.x == 0 ) {
-    if ( minloc[ 0 ].val < (*dminloc).val ) {
-      *dminloc = minloc[ 0 ];
-    }
+    dminloc[blockIdx.x] = minloc[ 0 ];
   }
 }
 
@@ -73,39 +67,43 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    FIRST_MIN_DATA_SETUP_HIP;
+    const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+    MyMinLoc* mymin_block = new MyMinLoc[grid_size]; //per-block min value
+
+    MyMinLoc* dminloc;
+    hipErrchk( hipMalloc( (void**)&dminloc, 
+                          grid_size * sizeof(MyMinLoc) ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        FIRST_MIN_MINLOC_INIT;
 
-       MyMinLoc* dminloc;
-       hipErrchk( hipMalloc( (void**)&dminloc, sizeof(MyMinLoc) ) );
-       hipErrchk( hipMemcpy( dminloc, &mymin, sizeof(MyMinLoc),
-                               hipMemcpyHostToDevice ) );
+       hipLaunchKernelGGL( (first_min<block_size>), grid_size, block_size,
+                           sizeof(MyMinLoc)*block_size, 0, x,
+                           dminloc,
+                           mymin,
+                           iend );
 
-       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((first_min<block_size>), grid_size, block_size,
-                   sizeof(MyMinLoc)*block_size, 0, x,
-                                                   dminloc,
-                                                   iend );
        hipErrchk( hipGetLastError() );
+       hipErrchk( hipMemcpy( mymin_block, dminloc,
+                             grid_size * sizeof(MyMinLoc),
+                             hipMemcpyDeviceToHost ) );
 
-       hipErrchk( hipMemcpy( &mymin, dminloc, sizeof(MyMinLoc),
-                               hipMemcpyDeviceToHost ) );
-       m_minloc = RAJA_MAX(m_minloc, mymin.loc);
-
-       hipErrchk( hipFree( dminloc ) );
+       for (Index_type i = 0; i < static_cast<Index_type>(grid_size); i++) {
+         if ( mymin_block[i].val < mymin.val ) {
+           mymin = mymin_block[i];
+         }
+       }
+       m_minloc = mymin.loc;
 
     }
     stopTimer();
 
-    FIRST_MIN_DATA_TEARDOWN_HIP;
+    hipErrchk( hipFree( dminloc ) );
+    delete[] mymin_block;
 
   } else if ( vid == RAJA_HIP ) {
-
-    FIRST_MIN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -118,19 +116,17 @@ void FIRST_MIN::runHipVariantImpl(VariantID vid)
          FIRST_MIN_BODY_RAJA;
        });
 
-       m_minloc = RAJA_MAX(m_minloc, loc.getLoc());
+       m_minloc = loc.getLoc();
 
     }
     stopTimer();
-
-    FIRST_MIN_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  FIRST_MIN : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(FIRST_MIN, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(FIRST_MIN, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

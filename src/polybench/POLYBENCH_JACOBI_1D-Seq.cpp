@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -53,8 +53,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -79,8 +77,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_1D_DATA_RESET;
-
       break;
     }
 
@@ -91,11 +87,11 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
         for (Index_type t = 0; t < tsteps; ++t) {
 
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
+          RAJA::forall<RAJA::seq_exec> ( RAJA::RangeSegment{1, N-1},
             poly_jacobi1d_lam1
           );
 
-          RAJA::forall<RAJA::loop_exec> ( RAJA::RangeSegment{1, N-1},
+          RAJA::forall<RAJA::seq_exec> ( RAJA::RangeSegment{1, N-1},
             poly_jacobi1d_lam2
           );
 
@@ -103,8 +99,6 @@ void POLYBENCH_JACOBI_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
       }
       stopTimer();
-
-      POLYBENCH_JACOBI_1D_DATA_RESET;
 
       break;
     }

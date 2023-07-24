@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -68,13 +68,13 @@ void INIT_VIEW1D_OFFSET::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_id
 
 void INIT_VIEW1D_OFFSET::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_a, getActualProblemSize(), vid);
 }
 
 void INIT_VIEW1D_OFFSET::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_a);
+  deallocData(m_a, vid);
 }
 
 } // end namespace basic

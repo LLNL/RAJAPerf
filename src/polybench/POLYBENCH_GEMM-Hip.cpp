@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -37,19 +37,6 @@ namespace polybench
   dim3 nblocks(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nj, j_block_sz)), \
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ni, i_block_sz)), \
                static_cast<size_t>(1));
-
-
-#define POLYBENCH_GEMM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(A, m_A, ni*nk); \
-  allocAndInitHipDeviceData(B, m_B, nk*nj); \
-  allocAndInitHipDeviceData(C, m_C, ni*nj);
-
-
-#define POLYBENCH_GEMM_TEARDOWN_HIP \
-  getHipDeviceData(m_C, C, ni*nj); \
-  deallocHipDeviceData(A); \
-  deallocHipDeviceData(B); \
-  deallocHipDeviceData(C);
 
 
 template < size_t j_block_size, size_t i_block_size >
@@ -94,8 +81,6 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -111,11 +96,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMM_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -140,11 +121,7 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_GEMM_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    POLYBENCH_GEMM_DATA_SETUP_HIP;
 
     POLYBENCH_GEMM_VIEWS_RAJA;
 
@@ -199,14 +176,12 @@ void POLYBENCH_GEMM::runHipVariantImpl(VariantID vid)
       }
       stopTimer();
 
-    POLYBENCH_GEMM_TEARDOWN_HIP;
-
   } else {
       getCout() << "\n  POLYBENCH_GEMM : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GEMM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GEMM, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

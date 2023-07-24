@@ -19,20 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-#define MAT_MAT_SHARED_DATA_SETUP_HIP                                          \
-  const Index_type NN = m_N * m_N;                                             \
-  allocAndInitHipDeviceData(A, m_A, NN);                                       \
-  allocAndInitHipDeviceData(B, m_B, NN);                                       \
-  allocAndInitHipDeviceData(C, m_C, NN);
-
-#define MAT_MAT_SHARED_DATA_TEARDOWN_HIP                                       \
-  getHipDeviceData(m_A, A, NN);                                                \
-  getHipDeviceData(m_B, B, NN);                                                \
-  getHipDeviceData(m_C, C, NN);                                                \
-  deallocHipDeviceData(A);                                                     \
-  deallocHipDeviceData(B);                                                     \
-  deallocHipDeviceData(C);
-
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
@@ -81,8 +67,6 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
   if (vid == Base_HIP) {
 
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -93,11 +77,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == Lambda_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -199,99 +179,93 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
-
   } else if (vid == RAJA_HIP) {
-
-    MAT_MAT_SHARED_DATA_SETUP_HIP;
 
     constexpr bool async = true;
 
-    using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<async, tile_size*tile_size>>;
+    using launch_policy = RAJA::LaunchPolicy<RAJA::hip_launch_t<async, tile_size*tile_size>>;
 
-    using teams_x = RAJA::expt::LoopPolicy<RAJA::hip_block_x_direct>;
+    using teams_x = RAJA::LoopPolicy<RAJA::hip_block_x_direct>;
 
-    using teams_y = RAJA::expt::LoopPolicy<RAJA::hip_block_y_direct>;
+    using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_x = RAJA::expt::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_x_direct>;
 
-    using threads_y = RAJA::expt::LoopPolicy<RAJA::hip_thread_y_direct>;
+    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_y_direct>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::expt::launch<launch_policy>(
-        RAJA::expt::Grid(RAJA::expt::Teams(Nx, Ny),
-                         RAJA::expt::Threads(tile_size, tile_size)),
-        [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+      RAJA::launch<launch_policy>(
+        RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
+                         RAJA::Threads(tile_size, tile_size)),
+        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
-          RAJA::expt::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny),
+          RAJA::loop<teams_y>(ctx, RAJA::RangeSegment(0, Ny),
             [&](Index_type by) {
-              RAJA::expt::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx),
+              RAJA::loop<teams_x>(ctx, RAJA::RangeSegment(0, Nx),
                 [&](Index_type bx) {
 
                   MAT_MAT_SHARED_BODY_0(tile_size)
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                  RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
                     [&](Index_type ty) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                      RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
                         [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_1(tile_size)
                         }
-                      );  // RAJA::expt::loop<threads_x>
+                      );  // RAJA::loop<threads_x>
                     }
-                  );  // RAJA::expt::loop<threads_y>
+                  );  // RAJA::loop<threads_y>
 
                   for (Index_type k = 0; k < (tile_size + N - 1) / tile_size; k++) {
 
-                    RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                    RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
                       [&](Index_type ty) {
-                        RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                        RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_2(tile_size)
                           }
-                        );  // RAJA::expt::loop<threads_x>
+                        );  // RAJA::loop<threads_x>
                       }
-                    );  // RAJA::expt::loop<threads_y>
+                    );  // RAJA::loop<threads_y>
 
                     ctx.teamSync();
 
-                    RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                    RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
                       [&](Index_type ty) {
-                        RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                        RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
                           [&](Index_type tx) {
                             MAT_MAT_SHARED_BODY_3(tile_size)
                           }
-                        );  // RAJA::expt::loop<threads_x>
+                        );  // RAJA::loop<threads_x>
                       }
-                    );  // RAJA::expt::loop<threads_y>
+                    );  // RAJA::loop<threads_y>
 
                     ctx.teamSync();
 
                   }  // for (k)
 
-                  RAJA::expt::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
+                  RAJA::loop<threads_y>(ctx, RAJA::RangeSegment(0, tile_size),
                     [&](Index_type ty) {
-                      RAJA::expt::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
+                      RAJA::loop<threads_x>(ctx, RAJA::RangeSegment(0, tile_size),
                         [&](Index_type tx) {
                           MAT_MAT_SHARED_BODY_4(tile_size)
                         }
-                      );  // RAJA::expt::loop<threads_x>
+                      );  // RAJA::loop<threads_x>
                     }
-                  );  // RAJA::expt::loop<threads_y>
+                  );  // RAJA::loop<threads_y>
 
                 }  // lambda (bx)
-              );  // RAJA::expt::loop<teams_x>
+              );  // RAJA::loop<teams_x>
             }  // lambda (by)
-          );  // RAJA::expt::loop<teams_y>
+          );  // RAJA::loop<teams_y>
 
         }  // outer lambda (ctx)
-      );  // RAJA::expt::launch
+      );  // RAJA::launch
 
     }  // loop over kernel reps
     stopTimer();
-
-    MAT_MAT_SHARED_DATA_TEARDOWN_HIP;
 
   } else {
     getCout() << "\n  MAT_MAT_SHARED : Unknown Hip variant id = " << vid
@@ -299,7 +273,7 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MAT_MAT_SHARED, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

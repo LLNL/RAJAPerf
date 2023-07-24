@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,13 +20,6 @@ namespace rajaperf
 {
 namespace lcals
 {
-
-#define INT_PREDICT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(px, m_px, m_array_length);
-
-#define INT_PREDICT_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_px, px, m_array_length); \
-  deallocCudaDeviceData(px);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -55,8 +48,6 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INT_PREDICT_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -71,11 +62,7 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INT_PREDICT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -88,14 +75,12 @@ void INT_PREDICT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INT_PREDICT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  INT_PREDICT : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INT_PREDICT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INT_PREDICT, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

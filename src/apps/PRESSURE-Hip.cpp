@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,21 +20,6 @@ namespace rajaperf
 {
 namespace apps
 {
-
-#define PRESSURE_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(compression, m_compression, iend); \
-  allocAndInitHipDeviceData(bvc, m_bvc, iend); \
-  allocAndInitHipDeviceData(p_new, m_p_new, iend); \
-  allocAndInitHipDeviceData(e_old, m_e_old, iend); \
-  allocAndInitHipDeviceData(vnewc, m_vnewc, iend);
-
-#define PRESSURE_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_p_new, p_new, iend); \
-  deallocHipDeviceData(compression); \
-  deallocHipDeviceData(bvc); \
-  deallocHipDeviceData(p_new); \
-  deallocHipDeviceData(e_old); \
-  deallocHipDeviceData(vnewc);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -74,8 +59,6 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    PRESSURE_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -95,11 +78,7 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PRESSURE_DATA_SETUP_HIP;
 
     const bool async = true;
 
@@ -122,14 +101,12 @@ void PRESSURE::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  PRESSURE : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PRESSURE, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PRESSURE, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,13 +20,6 @@ namespace rajaperf
 {
 namespace basic
 {
-
-#define INIT_VIEW1D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, getActualProblemSize());
-
-#define INIT_VIEW1D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_a, a, getActualProblemSize()); \
-  deallocCudaDeviceData(a);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -53,8 +46,6 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    INIT_VIEW1D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -65,11 +56,7 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    INIT_VIEW1D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -84,11 +71,7 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    INIT_VIEW1D_DATA_SETUP_CUDA;
 
     INIT_VIEW1D_VIEW_RAJA;
 
@@ -103,14 +86,12 @@ void INIT_VIEW1D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT_VIEW1D_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  INIT_VIEW1D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT_VIEW1D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT_VIEW1D, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

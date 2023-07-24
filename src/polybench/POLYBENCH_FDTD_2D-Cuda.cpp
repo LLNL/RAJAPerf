@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -37,20 +37,6 @@ namespace polybench
   dim3 nblocks234(static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(ny, j_block_sz)), \
                   static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(nx, i_block_sz)), \
                   static_cast<size_t>(1));
-
-
-#define POLYBENCH_FDTD_2D_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(hz, m_hz, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(ex, m_ex, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(ey, m_ey, m_nx * m_ny); \
-  allocAndInitCudaDeviceData(fict, m_fict, m_tsteps);
-
-
-#define POLYBENCH_FDTD_2D_TEARDOWN_CUDA \
-  getCudaDeviceData(m_hz, hz, m_nx * m_ny); \
-  deallocCudaDeviceData(ex); \
-  deallocCudaDeviceData(ey); \
-  deallocCudaDeviceData(fict);
 
 
 template < size_t block_size >
@@ -164,8 +150,6 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
 
   if ( vid == Base_CUDA ) {
 
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -196,11 +180,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -247,11 +227,7 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_CUDA;
 
     POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
@@ -313,14 +289,12 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  POLYBENCH_FDTD_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_FDTD_2D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_FDTD_2D, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

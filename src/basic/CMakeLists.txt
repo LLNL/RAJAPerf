@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+# Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 # and RAJA Performance Suite project contributors.
 # See the RAJAPerf/LICENSE file for details.
 #
@@ -14,6 +14,12 @@ blt_add_library(
           ARRAY_OF_PTRS-Cuda.cpp
           ARRAY_OF_PTRS-OMP.cpp
           ARRAY_OF_PTRS-OMPTarget.cpp
+          COPY8.cpp
+          COPY8-Seq.cpp
+          COPY8-Hip.cpp
+          COPY8-Cuda.cpp
+          COPY8-OMP.cpp
+          COPY8-OMPTarget.cpp
           DAXPY.cpp
           DAXPY-Seq.cpp
           DAXPY-Hip.cpp

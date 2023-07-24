@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
-// Copyright (c) 2017-22, Lawrence Livermore National Security, LLC
+// Copyright (c) 2017-23, Lawrence Livermore National Security, LLC
 // and RAJA Performance Suite project contributors.
 // See the RAJAPerf/LICENSE file for details.
 //
@@ -20,17 +20,6 @@ namespace rajaperf
 {
 namespace stream
 {
-
-#define ADD_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend); \
-  allocAndInitHipDeviceData(c, m_c, iend);
-
-#define ADD_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_c, c, iend); \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b); \
-  deallocHipDeviceData(c);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -55,8 +44,6 @@ void ADD::runHipVariantImpl(VariantID vid)
 
   if ( vid == Base_HIP ) {
 
-    ADD_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
@@ -68,11 +55,7 @@ void ADD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    ADD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -89,11 +72,7 @@ void ADD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    ADD_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -106,14 +85,12 @@ void ADD::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    ADD_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  ADD : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ADD, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ADD, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf
