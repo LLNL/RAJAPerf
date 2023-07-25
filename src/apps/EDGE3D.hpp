@@ -194,104 +194,104 @@
 
 RAJA_HOST_DEVICE
 inline void edge_MpSmatrix(
-  const double  (&x)[NB],
-  const double  (&y)[NB],
-  const double  (&z)[NB],
-  double        alpha,
-  double        beta,
-  const double  detj_tol,
-  const int     quad_type,
-  const int     quad_order,
-  double        (&matrix)[EB][EB])
+  const Real_type  (&x)[NB],
+  const Real_type  (&y)[NB],
+  const Real_type  (&z)[NB],
+  Real_type        alpha,
+  Real_type        beta,
+  const Real_type  detj_tol,
+  const Int_type   quad_type,
+  const Int_type   quad_order,
+  Real_type        (&matrix)[EB][EB])
 {
   // Get integration points and weights
-  double qpts_1d[MAX_QUAD_ORDER];
-  double wgts_1d[MAX_QUAD_ORDER];
+  Real_type qpts_1d[MAX_QUAD_ORDER];
+  Real_type wgts_1d[MAX_QUAD_ORDER];
 
   get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
 
   // Compute cell centered Jacobian
-  const double jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const double jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const Real_type jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
 
   // Compute cell centered Jacobian determinant
-  const double detj_cc = compute_detj(
+  const Real_type detj_cc = compute_detj(
     jxx_cc, jxy_cc, jxz_cc,
     jyx_cc, jyy_cc, jyz_cc,
     jzx_cc, jzy_cc, jzz_cc);
 
   // Initialize the stiffness matrix
-  for (int m = 0; m < EB; m++) {
-    for (int p = m; p < EB; p++) {
+  for (Int_type m = 0; m < EB; m++) {
+    for (Int_type p = m; p < EB; p++) {
       matrix[m][p] = 0.0;
     }
   }
 
   // Compute values at each quadrature point
-  for ( int i = 0; i < quad_order; i++ ) {
+  for ( Int_type i = 0; i < quad_order; i++ ) {
 
-    const double xloc = qpts_1d[i];
-    const double tmpx = 1. - xloc;
+    const Real_type xloc = qpts_1d[i];
+    const Real_type tmpx = 1. - xloc;
 
-    double dbasisx[EB] = {0};
+    Real_type dbasisx[EB] = {0};
     curl_edgebasis_x(dbasisx, tmpx, xloc);
 
-    for ( int j = 0; j < quad_order; j++ ) {
+    for ( Int_type j = 0; j < quad_order; j++ ) {
 
-      const double yloc = qpts_1d[j];
-      const double wgtxy = wgts_1d[i]*wgts_1d[j];
-      const double tmpy = 1. - yloc;
+      const Real_type yloc = qpts_1d[j];
+      const Real_type wgtxy = wgts_1d[i]*wgts_1d[j];
+      const Real_type tmpy = 1. - yloc;
 
-      double tmpxy    = tmpx*tmpy;
-      double xyloc    = xloc*yloc;
-      double tmpxyloc = tmpx*yloc;
-      double xloctmpy = xloc*tmpy;
+      Real_type tmpxy    = tmpx*tmpy;
+      Real_type xyloc    = xloc*yloc;
+      Real_type tmpxyloc = tmpx*yloc;
+      Real_type xloctmpy = xloc*tmpy;
 
-      const double jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
-      const double jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
-      const double jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const Real_type jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const Real_type jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const Real_type jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
 
-      double ebasisz[EB] = {0};
+      Real_type ebasisz[EB] = {0};
       edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
 
-      double dbasisy[EB] = {0};
+      Real_type dbasisy[EB] = {0};
       curl_edgebasis_y(dbasisy, tmpy, yloc);
 
       // Differeniate basis with respect to z at this quadrature point
 
-      for ( int k = 0; k < quad_order; k++ ) {
+      for ( Int_type k = 0; k < quad_order; k++ ) {
 
-        const double zloc = qpts_1d[k];
-        const double wgts = wgtxy*wgts_1d[k];
-        const double tmpz = 1. - zloc;
+        const Real_type zloc = qpts_1d[k];
+        const Real_type wgts = wgtxy*wgts_1d[k];
+        const Real_type tmpz = 1. - zloc;
 
-        const double tmpxz    = tmpx*tmpz;
-        const double tmpyz    = tmpy*tmpz;
+        const Real_type tmpxz    = tmpx*tmpz;
+        const Real_type tmpyz    = tmpy*tmpz;
 
-        const double xzloc    = xloc*zloc;
-        const double yzloc    = yloc*zloc;
+        const Real_type xzloc    = xloc*zloc;
+        const Real_type yzloc    = yloc*zloc;
 
-        const double tmpyzloc = tmpy*zloc;
-        const double tmpxzloc = tmpx*zloc;
+        const Real_type tmpyzloc = tmpy*zloc;
+        const Real_type tmpxzloc = tmpx*zloc;
 
-        const double yloctmpz = yloc*tmpz;
-        const double xloctmpz = xloc*tmpz;
+        const Real_type yloctmpz = yloc*tmpz;
+        const Real_type xloctmpz = xloc*tmpz;
 
-        const double jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const double jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const double jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const double jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
-        const double jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
-        const double jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const Real_type jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const Real_type jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const Real_type jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const Real_type jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const Real_type jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const Real_type jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
 
-        double jinvxx, jinvxy, jinvxz,
+        Real_type jinvxx, jinvxy, jinvxz,
                jinvyx, jinvyy, jinvyz,
                jinvzx, jinvzy, jinvzz,
                detj_unfixed, detj, abs_detj, invdetj;
@@ -306,22 +306,22 @@ inline void edge_MpSmatrix(
           jinvzx, jinvzy, jinvzz,
           detj_unfixed, detj, abs_detj, invdetj);
 
-        const double detjwgts = wgts*abs_detj;
+        const Real_type detjwgts = wgts*abs_detj;
 
-        double ebasisx[EB] = {0};
+        Real_type ebasisx[EB] = {0};
         edgebasis_x(ebasisx, tmpyz, yloctmpz, tmpyzloc, yzloc);
 
-        double ebasisy[EB] = {0};
+        Real_type ebasisy[EB] = {0};
         edgebasis_y(ebasisy, tmpxz, xloctmpz, tmpxzloc, xzloc);
 
-        double dbasisz[EB] = {0};
+        Real_type dbasisz[EB] = {0};
         curl_edgebasis_z(dbasisz, tmpz, zloc);
 
-        const double inv_abs_detj = 1./(abs_detj+ptiny);
+        const Real_type inv_abs_detj = 1./(abs_detj+ptiny);
 
-        double tebasisx[EB] = {0};
-        double tebasisy[EB] = {0};
-        double tebasisz[EB] = {0};
+        Real_type tebasisx[EB] = {0};
+        Real_type tebasisy[EB] = {0};
+        Real_type tebasisz[EB] = {0};
 
         transform_edge_basis(
           jinvxx, jinvxy, jinvxz,
@@ -330,9 +330,9 @@ inline void edge_MpSmatrix(
           ebasisx, ebasisy, ebasisz,
           tebasisx, tebasisy, tebasisz);
 
-        double tdbasisx[EB] = {0};
-        double tdbasisy[EB] = {0};
-        double tdbasisz[EB] = {0};
+        Real_type tdbasisx[EB] = {0};
+        Real_type tdbasisy[EB] = {0};
+        Real_type tdbasisz[EB] = {0};
 
         transform_curl_edge_basis(
           jxx, jxy, jxz,
@@ -375,15 +375,15 @@ inline void edge_MpSmatrix(
   NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 #define EDGE3D_BODY \
-  double X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
-  double Y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};\
-  double Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
-  double edge_matrix[EB][EB];\
+  Real_type X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
+  Real_type Y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};\
+  Real_type Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
+  Real_type edge_matrix[EB][EB];\
   edge_MpSmatrix(X, Y, Z, 1.0, 1.0, 0.0, 1.0, NQ_1D, edge_matrix);\
-  double local_sum = 0.0;\
-  for (int m = 0; m < EB; m++) {\
+  Real_type local_sum = 0.0;\
+  for (Int_type m = 0; m < EB; m++) {\
     Real_type check = 0.0;\
-    for (int p = 0; p < EB; p++) {\
+    for (Int_type p = 0; p < EB; p++) {\
       check += edge_matrix[m][p];\
     }\
     local_sum += check;\
