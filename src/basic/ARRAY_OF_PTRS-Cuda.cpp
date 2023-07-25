@@ -95,7 +95,7 @@ void ARRAY_OF_PTRS::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ARRAY_OF_PTRS, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ARRAY_OF_PTRS, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

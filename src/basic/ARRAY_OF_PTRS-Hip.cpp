@@ -97,7 +97,7 @@ void ARRAY_OF_PTRS::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ARRAY_OF_PTRS, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ARRAY_OF_PTRS, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf
