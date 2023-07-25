@@ -97,8 +97,8 @@ void NESTED_INIT::runOpenMPVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       using EXEC_POL =
         RAJA::KernelPolicy<
           RAJA::statement::For<2, RAJA::omp_parallel_for_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,            // j
-              RAJA::statement::For<0, RAJA::loop_exec,          // i
+            RAJA::statement::For<1, RAJA::seq_exec,            // j
+              RAJA::statement::For<0, RAJA::seq_exec,          // i
                 RAJA::statement::Lambda<0>
               >
             >

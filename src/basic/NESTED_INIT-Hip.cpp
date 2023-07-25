@@ -76,6 +76,8 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   NESTED_INIT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -85,9 +87,10 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((nested_init<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          array, ni, nj, nk);
       hipErrchk( hipGetLastError() );
 
@@ -101,6 +104,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
 
       NESTED_INIT_THREADS_PER_BLOCK_HIP;
       NESTED_INIT_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto nested_init_lambda = [=] __device__ (Index_type i, Index_type j,
                                                 Index_type k) {
@@ -108,7 +112,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
       };
 
       hipLaunchKernelGGL((nested_init_lam<NESTED_INIT_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(nested_init_lambda) >),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          ni, nj, nk, nested_init_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -140,9 +144,10 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment(0, ni),
                                                RAJA::RangeSegment(0, nj),
                                                RAJA::RangeSegment(0, nk)),
+                                       res,
         [=] __device__ (Index_type i, Index_type j, Index_type k) {
         NESTED_INIT_BODY;
       });
@@ -155,7 +160,7 @@ void NESTED_INIT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(NESTED_INIT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(NESTED_INIT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

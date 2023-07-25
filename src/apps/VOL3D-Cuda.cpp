@@ -56,6 +56,8 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = m_domain->fpz;
   const Index_type iend = m_domain->lpz+1;
 
+  auto res{getCudaResource()};
+
   VOL3D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -64,8 +66,9 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      vol3d<block_size><<<grid_size, block_size>>>(vol,
+      vol3d<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(vol,
                                        x0, x1, x2, x3, x4, x5, x6, x7,
                                        y0, y1, y2, y3, y4, y5, y6, y7,
                                        z0, z1, z2, z3, z4, z5, z6, z7,
@@ -81,7 +84,7 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         VOL3D_BODY;
       });
@@ -94,7 +97,7 @@ void VOL3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(VOL3D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(VOL3D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

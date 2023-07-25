@@ -41,6 +41,8 @@ void EOS::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   EOS_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -49,7 +51,8 @@ void EOS::runCudaVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       eos<block_size><<<grid_size, block_size>>>( x, y, z, u,
+       constexpr size_t shmem = 0;
+       eos<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y, z, u,
                                        q, r, t,
                                        iend );
        cudaErrchk( cudaGetLastError() );
@@ -62,7 +65,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          EOS_BODY;
        });
@@ -75,7 +78,7 @@ void EOS::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EOS, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(EOS, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

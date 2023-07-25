@@ -80,6 +80,8 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE3_INT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -97,10 +99,11 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
       vmem_init[1] = m_vmin_init;
       vmem_init[2] = m_vmax_init;
       hipErrchk( hipMemcpyAsync( vmem, vmem_init, 3*sizeof(Int_type),
-                                 hipMemcpyHostToDevice ) );
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), 3*sizeof(Int_type)*block_size, 0,
+      constexpr size_t shmem = 3*sizeof(Int_type)*block_size;
+      hipLaunchKernelGGL((reduce3int<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                                                     vec,
                                                     vmem + 0, m_vsum_init,
                                                     vmem + 1, m_vmin_init,
@@ -109,8 +112,9 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Int_type lmem[3];
-      Int_ptr plmem = &lmem[0];
-      getHipDeviceData(plmem, vmem, 3);
+      hipErrchk( hipMemcpyAsync( &lmem[0], vmem, 3*sizeof(Int_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_vsum += lmem[0];
       m_vmin = RAJA_MIN(m_vmin, lmem[1]);
       m_vmax = RAJA_MAX(m_vmax, lmem[2]);
@@ -130,7 +134,7 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
       RAJA::ReduceMin<RAJA::hip_reduce, Int_type> vmin(m_vmin_init);
       RAJA::ReduceMax<RAJA::hip_reduce, Int_type> vmax(m_vmax_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         REDUCE3_INT_BODY_RAJA;
       });
@@ -147,7 +151,7 @@ void REDUCE3_INT::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE3_INT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE3_INT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

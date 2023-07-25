@@ -64,11 +64,13 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    cudaStream_t stream = 0;
+    cudaStream_t stream = res.get_stream();
 
     int len = iend - ibegin;
 
@@ -131,6 +133,8 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -141,20 +145,20 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dsum, &m_sum_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       reduce_sum<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( x,
+                  shmem, res.get_stream()>>>( x,
                                                    dsum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getCudaDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      cudaErrchk( cudaMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
@@ -168,7 +172,7 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });

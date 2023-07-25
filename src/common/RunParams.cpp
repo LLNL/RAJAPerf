@@ -35,6 +35,7 @@ RunParams::RunParams(int argc, char** argv)
    size(0.0),
    size_factor(0.0),
    data_alignment(RAJA::DATA_ALIGN),
+   gpu_stream(1),
    gpu_block_sizes(),
    pf_tol(0.1),
    checkrun_reps(1),
@@ -47,6 +48,10 @@ RunParams::RunParams(int argc, char** argv)
    invalid_variant_input(),
    exclude_variant_input(),
    invalid_exclude_variant_input(),
+   tuning_input(),
+   invalid_tuning_input(),
+   exclude_tuning_input(),
+   invalid_exclude_tuning_input(),
    feature_input(),
    invalid_feature_input(),
    exclude_feature_input(),
@@ -101,6 +106,7 @@ void RunParams::print(std::ostream& str) const
   str << "\n size = " << size;
   str << "\n size_factor = " << size_factor;
   str << "\n data_alignment = " << data_alignment;
+  str << "\n gpu stream = " << ((gpu_stream == 0) ? "0" : "RAJA default");
   str << "\n gpu_block_sizes = ";
   for (size_t j = 0; j < gpu_block_sizes.size(); ++j) {
     str << "\n\t" << gpu_block_sizes[j];
@@ -154,6 +160,24 @@ void RunParams::print(std::ostream& str) const
   str << "\n invalid_exclude_variant_input = ";
   for (size_t j = 0; j < invalid_exclude_variant_input.size(); ++j) {
     str << "\n\t" << invalid_exclude_variant_input[j];
+  }
+
+  str << "\n tuning_input = ";
+  for (size_t j = 0; j < tuning_input.size(); ++j) {
+    str << "\n\t" << tuning_input[j];
+  }
+  str << "\n invalid_tuning_input = ";
+  for (size_t j = 0; j < invalid_tuning_input.size(); ++j) {
+    str << "\n\t" << invalid_tuning_input[j];
+  }
+
+  str << "\n exclude_tuning_input = ";
+  for (size_t j = 0; j < exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << exclude_tuning_input[j];
+  }
+  str << "\n invalid_exclude_tuning_input = ";
+  for (size_t j = 0; j < invalid_exclude_tuning_input.size(); ++j) {
+    str << "\n\t" << invalid_exclude_tuning_input[j];
   }
 
   str << "\n feature_input = ";
@@ -361,6 +385,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         input_state = BadInput;
       }
 
+    } else if ( opt == std::string("--gpu_stream_0") ) {
+
+      gpu_stream = 0;
+
     } else if ( opt == std::string("--gpu_block_size") ) {
 
       bool got_someting = false;
@@ -532,6 +560,37 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
                       << std::endl;
             input_state = BadInput;
           }
+        }
+      }
+    } else if ( std::string(argv[i]) == std::string("--tunings") ||
+                std::string(argv[i]) == std::string("-t") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          tuning_input.push_back(opt);
+          ++i;
+        }
+      }
+
+    } else if ( std::string(argv[i]) == std::string("--exclude-tunings") ||
+                std::string(argv[i]) == std::string("-et") ) {
+
+      bool done = false;
+      i++;
+      while ( i < argc && !done ) {
+        opt = std::string(argv[i]);
+        if ( opt.at(0) == '-' ) {
+          i--;
+          done = true;
+        } else {
+          exclude_tuning_input.push_back(opt);
+          ++i;
         }
       }
 
@@ -713,6 +772,10 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
+  str << "\t --gpu_stream_0 [default is off; i.e. use RAJA default stream]\n"
+      << "\t      (use stream 0 with hip and cuda kernel variants)\n"
+      << "\t      (If this is off then the RAJA default stream is used)\n";
+
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
       << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
@@ -750,6 +813,21 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
+
+  str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
+      << "\t      (names of tunings to run)\n"
+      << "\t      Note: knowing which tunings are available requires knowledge about the variants,\n"
+      << "\t      since available tunings depend on the given variant (and potentially other args).\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --tunings default (run all default tunings)\n"
+      << "\t\t -t default block_128 (run default and block_128 tunings)\n\n";
+
+  str << "\t --exclude-tunings, -et <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of tunings to exclude)\n"
+      << "\t      See --tunings for more information.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-tunings library (exclude all library tunings)\n"
+      << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (names of data space to use)\n";

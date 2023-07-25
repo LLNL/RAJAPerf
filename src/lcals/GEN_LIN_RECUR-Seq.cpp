@@ -79,10 +79,10 @@ void GEN_LIN_RECUR::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(0, N), genlinrecur_lam1);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(1, N+1), genlinrecur_lam2);
 
       }

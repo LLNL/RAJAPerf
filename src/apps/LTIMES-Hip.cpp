@@ -77,6 +77,8 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   LTIMES_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -86,9 +88,10 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          phidat, elldat, psidat,
                          num_d,
                          num_m, num_g, num_z);
@@ -104,6 +107,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto ltimes_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
@@ -113,7 +117,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
         };
 
       hipLaunchKernelGGL((ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(ltimes_lambda)>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          num_m, num_g, num_z, ltimes_lambda);
       hipErrchk( hipGetLastError() );
 
@@ -151,10 +155,11 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
                                                IZRange(0, num_z),
                                                IGRange(0, num_g),
                                                IMRange(0, num_m)),
+                                       res,
         [=] __device__ (ID d, IZ z, IG g, IM m) {
         LTIMES_BODY_RAJA;
       });
@@ -167,7 +172,7 @@ void LTIMES::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(LTIMES, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(LTIMES, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

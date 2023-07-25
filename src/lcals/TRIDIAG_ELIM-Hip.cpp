@@ -40,6 +40,8 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 1;
   const Index_type iend = m_N;
 
+  auto res{getHipResource()};
+
   TRIDIAG_ELIM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -48,7 +50,8 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((eos<block_size>), grid_size, block_size, 0, 0, xout, xin, y, z,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((eos<block_size>), grid_size, block_size, shmem, res.get_stream(), xout, xin, y, z,
                                        iend );
        hipErrchk( hipGetLastError() );
 
@@ -60,7 +63,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          TRIDIAG_ELIM_BODY;
        });
@@ -73,7 +76,7 @@ void TRIDIAG_ELIM::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRIDIAG_ELIM, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRIDIAG_ELIM, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

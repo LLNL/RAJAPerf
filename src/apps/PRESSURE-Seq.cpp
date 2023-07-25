@@ -83,10 +83,10 @@ void PRESSURE::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
         RAJA::region<RAJA::seq_region>( [=]() {
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), pressure_lam1);
 
-          RAJA::forall<RAJA::loop_exec>(
+          RAJA::forall<RAJA::seq_exec>(
             RAJA::RangeSegment(ibegin, iend), pressure_lam2);
 
         }); // end sequential region (for single-source code)
