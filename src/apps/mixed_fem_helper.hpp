@@ -11,6 +11,8 @@
 
 #include "RAJA/RAJA.hpp"
 
+#include "common/RPTypes.hpp"
+
 #include <cmath>
 
 #define NB 8
