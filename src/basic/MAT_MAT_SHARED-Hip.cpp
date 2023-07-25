@@ -192,9 +192,9 @@ void MAT_MAT_SHARED::runHipVariantImpl(VariantID vid)
 
     using teams_y = RAJA::LoopPolicy<RAJA::hip_block_y_direct>;
 
-    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_x_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::hip_thread_size_x_direct<tile_size>>;
 
-    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_y_direct>;
+    using threads_y = RAJA::LoopPolicy<RAJA::hip_thread_size_y_direct<tile_size>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

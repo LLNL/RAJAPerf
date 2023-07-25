@@ -92,11 +92,11 @@ void MASS3DEA::runCudaVariantImpl(VariantID vid) {
 
     using outer_x = RAJA::LoopPolicy<RAJA::cuda_block_x_direct>;
 
-    using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_x_loop>;
+    using inner_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_loop<MEA_D1D>>;
 
-    using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_y_loop>;
+    using inner_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_loop<MEA_D1D>>;
 
-    using inner_z = RAJA::LoopPolicy<RAJA::cuda_thread_z_loop>;
+    using inner_z = RAJA::LoopPolicy<RAJA::cuda_thread_size_z_loop<MEA_D1D>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {

@@ -131,15 +131,9 @@ void POLYBENCH_FLOYD_WARSHALL::runHipVariantImpl(VariantID vid)
       RAJA::KernelPolicy<
         RAJA::statement::For<0, RAJA::seq_exec,
           RAJA::statement::HipKernelFixedAsync<i_block_sz * j_block_sz,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<i_block_sz>,
-                                     RAJA::hip_block_y_direct,
-              RAJA::statement::Tile<2, RAJA::tile_fixed<j_block_sz>,
-                                       RAJA::hip_block_x_direct,
-                RAJA::statement::For<1, RAJA::hip_thread_y_direct,   // i
-                  RAJA::statement::For<2, RAJA::hip_thread_x_direct, // j
-                    RAJA::statement::Lambda<0>
-                  >
-                >
+            RAJA::statement::For<1, RAJA::hip_global_size_y_direct<i_block_sz>,   // i
+              RAJA::statement::For<2, RAJA::hip_global_size_x_direct<j_block_sz>, // j
+                RAJA::statement::Lambda<0>
               >
             >
           >
