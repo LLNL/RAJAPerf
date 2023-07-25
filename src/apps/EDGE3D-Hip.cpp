@@ -104,7 +104,7 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EDGE3D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(EDGE3D, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

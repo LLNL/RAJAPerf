@@ -104,7 +104,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(EDGE3D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(EDGE3D, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf
