@@ -234,30 +234,6 @@ inline void deallocHipPinnedData(void* pptr)
 
 }  // closing brace for detail namespace
 
-
-/*!
- * \brief Copy given hptr (host) data to HIP device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initHipDeviceData(T* dptr, const T* hptr, int len)
-{
-  hipErrchk( hipMemcpy( dptr, hptr, len * sizeof(T), hipMemcpyHostToDevice ) );
-}
-/*!
- * \brief Copy given dptr (HIP device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void getHipDeviceData(T* hptr, const T* dptr, int len)
-{
-  hipErrchk( hipMemcpy( hptr, dptr, len * sizeof(T), hipMemcpyDeviceToHost ) );
-}
-
 }  // closing brace for rajaperf namespace
 
 #endif // RAJA_ENABLE_HIP

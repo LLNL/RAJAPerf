@@ -182,31 +182,6 @@ inline void deallocCudaPinnedData(void* pptr)
 
 }  // closing brace for detail namespace
 
-
-/*!
- * \brief Copy given hptr (host) data to CUDA device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initCudaDeviceData(T* dptr, const T* hptr, int len)
-{
-  cudaErrchk( cudaMemcpy( dptr, hptr, len * sizeof(T), cudaMemcpyHostToDevice ) );
-}
-
-/*!
- * \brief Copy given dptr (CUDA device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void getCudaDeviceData(T* hptr, const T* dptr, int len)
-{
-  cudaErrchk( cudaMemcpy( hptr, dptr, len * sizeof(T), cudaMemcpyDeviceToHost ) );
-}
-
 }  // closing brace for rajaperf namespace
 
 #endif // RAJA_ENABLE_CUDA

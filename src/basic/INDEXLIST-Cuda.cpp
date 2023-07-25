@@ -253,6 +253,8 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   INDEXLIST_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -268,19 +270,20 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
     allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
     allocData(DataSpace::CudaDevice, block_readys, grid_size);
-    cudaErrchk( cudaMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
+    cudaErrchk( cudaMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
+    cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size>>>(
+          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
           x+ibegin, list+ibegin,
           block_counts, grid_counts, block_readys,
           len, iend-ibegin );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaDeviceSynchronize() );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_len = *len;
 
     }

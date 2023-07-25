@@ -69,7 +69,7 @@ void NODAL_ACCUMULATION_3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_
 
     case RAJA_Seq : {
 
-      camp::resources::Resource working_res{camp::resources::Host()};
+      camp::resources::Resource working_res{camp::resources::Host::get_default()};
       RAJA::TypedListSegment<Index_type> zones(real_zones, iend,
                                                working_res, RAJA::Unowned);
 

@@ -78,6 +78,8 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_ADI_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -88,16 +90,17 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
         hipLaunchKernelGGL((adi1<block_size>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n,
                            a, b, c, d, f,
                            P, Q, U, V);
         hipErrchk( hipGetLastError() );
 
         hipLaunchKernelGGL((adi2<block_size>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n,
                            a, c, d, e, f,
                            P, Q, U, V);
@@ -116,6 +119,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
         auto adi1_lamda = [=] __device__ (Index_type i) {
           POLYBENCH_ADI_BODY2;
@@ -129,7 +133,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         };
 
         hipLaunchKernelGGL((adi_lam<block_size, decltype(adi1_lamda)>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n, adi1_lamda);
         hipErrchk( hipGetLastError() );
 
@@ -145,7 +149,7 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
         };
 
         hipLaunchKernelGGL((adi_lam<block_size, decltype(adi2_lamda)>),
-                           dim3(grid_size), dim3(block_size), 0, 0,
+                           dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                            n, adi2_lamda);
         hipErrchk( hipGetLastError() );
 
@@ -182,10 +186,11 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
@@ -201,10 +206,11 @@ void POLYBENCH_ADI::runHipVariantImpl(VariantID vid)
           }
         );
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;

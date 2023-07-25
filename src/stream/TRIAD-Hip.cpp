@@ -40,6 +40,8 @@ void TRIAD::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   TRIAD_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -48,7 +50,8 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((triad<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  a, b, c, alpha,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((triad<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  a, b, c, alpha,
                                         iend );
       hipErrchk( hipGetLastError() );
 
@@ -65,8 +68,9 @@ void TRIAD::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(triad_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, triad_lambda);
+        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, triad_lambda);
       hipErrchk( hipGetLastError() );
 
     }
@@ -77,7 +81,7 @@ void TRIAD::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRIAD_BODY;
       });
