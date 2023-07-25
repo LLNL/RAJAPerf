@@ -16,6 +16,9 @@
 #include <mpi.h>
 #endif
 
+#include "CudaDataUtils.hpp"
+#include "HipDataUtils.hpp"
+
 // Warmup kernels to run first to help reduce startup overheads in timings
 #include "basic/DAXPY.hpp"
 #include "basic/REDUCE3_INT.hpp"
@@ -612,39 +615,93 @@ void Executor::setupSuite()
       //
       // Make a single ordering of tuning names for each variant across kernels.
       //
+      // Determine which tunings to execute from input.
+      const Svector& selected_tuning_names = run_params.getTuningInput();
+      const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
+      // Constuct set of all possible tunings
+      set<string> all_tunings;
       for (VariantID vid : variant_ids) {
-        std::unordered_map<std::string, size_t> tuning_names_order_map;
         for (const KernelBase* kernel : kernels) {
           for (std::string const& tuning_name :
                kernel->getVariantTuningNames(vid)) {
-            if (tuning_names_order_map.find(tuning_name) ==
-                tuning_names_order_map.end()) {
-              tuning_names_order_map.emplace(
-                  tuning_name, tuning_names_order_map.size());
-            }
+              all_tunings.insert(tuning_name);
           }
         }
-        tuning_names[vid].resize(tuning_names_order_map.size());
-        for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-          tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+      }
+      // Check for invalid tuning input
+      Svector invalid;
+      for (string const& tuning_name: selected_tuning_names) {
+        if (all_tunings.find(tuning_name) == all_tunings.end()) {
+          invalid.push_back(tuning_name);
         }
-        // reorder to put "default" first
-        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
-        if (default_order_iter != tuning_names_order_map.end()) {
-          size_t default_idx = default_order_iter->second;
-          std::string default_name = std::move(tuning_names[vid][default_idx]);
-          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
-          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+      }
+      run_params.setInvalidTuningInput(invalid);
+      // Check for invalid exclude tuning input
+      invalid.clear();
+      for (string const& tuning_name: excluded_tuning_names) {
+        if (all_tunings.find(tuning_name) == all_tunings.end()) {
+          invalid.push_back(tuning_name);
         }
+      }
+      run_params.setInvalidExcludeTuningInput(invalid);
+      // Validate invalid input
+      if ( !(run_params.getInvalidTuningInput().empty()) ||
+           !(run_params.getInvalidExcludeTuningInput().empty())) {
+        run_params.setInputState(RunParams::BadInput);
       }
 
-      //
-      // If we've gotten to this point, we have good input to run.
-      //
-      if ( run_params.getInputState() != RunParams::DryRun &&
-           run_params.getInputState() != RunParams::CheckRun ) {
-        run_params.setInputState(RunParams::PerfRun);
-      }
+      if (run_params.getInputState() != RunParams::BadInput) { // If tunings input is valid
+        for (VariantID vid : variant_ids) {
+          std::unordered_map<std::string, size_t> tuning_names_order_map;
+          for (const KernelBase* kernel : kernels) {
+            for (std::string const& tuning_name :
+                kernel->getVariantTuningNames(vid)) {
+              if (tuning_names_order_map.find(tuning_name) ==
+                  tuning_names_order_map.end()) {
+                if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
+                      &&
+                    find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exclusion list
+                      tuning_names_order_map.emplace(
+                          tuning_name, tuning_names_order_map.size()); // Add tuning name to map
+                }
+              }
+            }
+          }
+
+          tuning_names[vid].resize(tuning_names_order_map.size());
+          for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
+            tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+          }
+          // reorder to put "default" first
+          auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+          if (default_order_iter != tuning_names_order_map.end()) {
+            size_t default_idx = default_order_iter->second;
+            std::string default_name = std::move(tuning_names[vid][default_idx]);
+            tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
+            tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+          }
+        }
+
+        // Add tunings to Adiak metadata
+        #if defined(RAJA_PERFSUITE_USE_CALIPER)
+          std::set<std::string> tunings_set;
+          for (VariantID vid : variant_ids) {
+            for (std::string const& tuning_name : tuning_names[vid]) {
+              tunings_set.emplace(tuning_name);
+            }
+          }
+          adiak::value("tunings", tunings_set);
+        #endif
+
+        //
+        // If we've gotten to this point, we have good input to run.
+        //
+        if ( run_params.getInputState() != RunParams::DryRun &&
+            run_params.getInputState() != RunParams::CheckRun ) {
+          run_params.setInputState(RunParams::PerfRun);
+        }
+
+      } // tuning input looks good
 
     } // kernel and variant input both look good
 
@@ -919,22 +976,26 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
 
     if ( run_params.showProgress() ) {
       if ( kernel->hasVariantDefined(vid) ) {
-        getCout() << "   Running ";
+        getCout() << "\tRunning ";
       } else {
-        getCout() << "   No ";
+        getCout() << "\tNo ";
       }
       getCout() << getVariantName(vid) << " variant" << endl;
     }
 
     for (size_t tune_idx = 0; tune_idx < kernel->getNumVariantTunings(vid); ++tune_idx) {
-
-      if ( run_params.showProgress() ) {
-        getCout() << "     Running "
-                  << kernel->getVariantTuningName(vid, tune_idx) << " tuning";
+      std::string const& tuning_name = kernel->getVariantTuningName(vid, tune_idx);
+      if (find(tuning_names[vid].begin(), tuning_names[vid].end(), tuning_name) != tuning_names[vid].end()) { // Check if valid tuning
+        if ( run_params.showProgress() ) {
+          getCout() << "\t\tRunning " << tuning_name << " tuning";
+        }
+        kernel->execute(vid, tune_idx); // Execute kernel
+        if ( run_params.showProgress() ) {
+          getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+        }
       }
-      kernel->execute(vid, tune_idx);
-      if ( run_params.showProgress() ) {
-        getCout() << " -- " << kernel->getLastTime() << " sec." << endl;
+      else {
+        getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
     }
   } // loop over variants

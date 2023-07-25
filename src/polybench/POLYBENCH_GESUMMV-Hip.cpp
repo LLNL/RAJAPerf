@@ -45,6 +45,8 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   POLYBENCH_GESUMMV_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -53,9 +55,9 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
-
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((poly_gesummv<block_size>),
-                         dim3(grid_size), dim3(block_size),0,0,
+                         dim3(grid_size), dim3(block_size), shmem, res.get_stream(),
                          x, y,
                          A, B,
                          alpha, beta,
@@ -88,11 +90,12 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::kernel_param<EXEC_POL>(
+        RAJA::kernel_param_resource<EXEC_POL>(
           RAJA::make_tuple( RAJA::RangeSegment{0, N},
                             RAJA::RangeSegment{0, N} ),
           RAJA::make_tuple(static_cast<Real_type>(0.0),
                            static_cast<Real_type>(0.0)),
+          res,
 
           [=] __device__ (Real_type& tmpdot,
                           Real_type& ydot) {
@@ -116,7 +119,7 @@ void POLYBENCH_GESUMMV::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_GESUMMV, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_GESUMMV, Hip)
 
 } // end namespace polybench
 } // end namespace rajaperf

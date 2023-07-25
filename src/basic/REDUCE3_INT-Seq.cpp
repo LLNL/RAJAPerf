@@ -91,7 +91,7 @@ void REDUCE3_INT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
         RAJA::ReduceMin<RAJA::seq_reduce, Int_type> vmin(m_vmin_init);
         RAJA::ReduceMax<RAJA::seq_reduce, Int_type> vmax(m_vmax_init);
 
-        RAJA::forall<RAJA::loop_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), [=](Index_type i) {
           REDUCE3_INT_BODY_RAJA;
         });

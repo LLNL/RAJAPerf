@@ -82,7 +82,7 @@ void DEL_DOT_VEC_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::loop_exec>(zones, deldotvec2d_lam);
+        RAJA::forall<RAJA::seq_exec>(zones, deldotvec2d_lam);
 
       }
       stopTimer();

@@ -42,6 +42,8 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -50,7 +52,8 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((planckian<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((planckian<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  x, y,
                                              u, v, w,
                                              iend );
        hipErrchk( hipGetLastError() );
@@ -63,7 +66,7 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PLANCKIAN_BODY;
        });
@@ -76,7 +79,7 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PLANCKIAN, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

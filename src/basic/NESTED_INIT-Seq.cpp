@@ -75,9 +75,9 @@ void NESTED_INIT::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_i
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<2, RAJA::loop_exec,    // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
-              RAJA::statement::For<0, RAJA::loop_exec,// i
+          RAJA::statement::For<2, RAJA::seq_exec,    // k
+            RAJA::statement::For<1, RAJA::seq_exec,  // j
+              RAJA::statement::For<0, RAJA::seq_exec,// i
                 RAJA::statement::Lambda<0>
               >
             >

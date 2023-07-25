@@ -85,6 +85,8 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_HEAT_3D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -96,13 +98,14 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_heat_3D_1<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block>>>(A, B, N);
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
         poly_heat_3D_2<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block>>>(A, B, N);
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(A, B, N);
         cudaErrchk( cudaGetLastError() );
 
       }
@@ -119,9 +122,10 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 
         HEAT_3D_THREADS_PER_BLOCK_CUDA;
         HEAT_3D_NBLOCKS_CUDA;
+        constexpr size_t shmem = 0;
 
         poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block>>>(N,
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1;
           }
@@ -129,7 +133,7 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
         cudaErrchk( cudaGetLastError() );
 
         poly_heat_3D_lam<HEAT_3D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-            <<<nblocks, nthreads_per_block>>>(N,
+            <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(N,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2;
           }
@@ -170,17 +174,19 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
 
       for (Index_type t = 0; t < tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1}),
+                                         res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY1_RAJA;
           }
         );
 
-        RAJA::kernel<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
+        RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1},
                                                  RAJA::RangeSegment{1, N-1}),
+                                         res,
           [=] __device__ (Index_type i, Index_type j, Index_type k) {
             POLYBENCH_HEAT_3D_BODY2_RAJA;
           }
@@ -196,7 +202,7 @@ void POLYBENCH_HEAT_3D::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_HEAT_3D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_HEAT_3D, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

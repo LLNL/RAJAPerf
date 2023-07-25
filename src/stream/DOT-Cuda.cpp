@@ -65,6 +65,8 @@ void DOT::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   DOT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
@@ -75,16 +77,19 @@ void DOT::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dprod, &m_dot_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      dot<block_size><<<grid_size, block_size, sizeof(Real_type)*block_size>>>(
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
+      dot<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
           a, b, dprod, m_dot_init, iend );
       cudaErrchk( cudaGetLastError() );
 
       Real_type lprod;
-      Real_ptr plprod = &lprod;
-      getCudaDeviceData(plprod, dprod, 1);
+      cudaErrchk( cudaMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_dot += lprod;
 
     }
@@ -99,7 +104,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
 
        RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DOT_BODY;
        });
@@ -114,7 +119,7 @@ void DOT::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DOT, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

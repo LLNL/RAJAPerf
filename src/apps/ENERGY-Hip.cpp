@@ -114,6 +114,8 @@ void ENERGY::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   ENERGY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
@@ -122,13 +124,14 @@ void ENERGY::runHipVariantImpl(VariantID vid)
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       hipLaunchKernelGGL((energycalc1<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, e_old, delvc,
+       hipLaunchKernelGGL((energycalc1<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, e_old, delvc,
                                                p_old, q_old, work,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc2<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc, q_new,
+       hipLaunchKernelGGL((energycalc2<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc, q_new,
                                                compHalfStep, pHalfStep,
                                                e_new, bvc, pbvc,
                                                ql_old, qq_old,
@@ -136,18 +139,18 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc3<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, delvc,
+       hipLaunchKernelGGL((energycalc3<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, delvc,
                                                p_old, q_old,
                                                pHalfStep, q_new,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc4<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  e_new, work,
+       hipLaunchKernelGGL((energycalc4<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  e_new, work,
                                                e_cut, emin,
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc5<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
+       hipLaunchKernelGGL((energycalc5<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                ql_old, qq_old,
@@ -157,7 +160,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
                                                iend );
        hipErrchk( hipGetLastError() );
 
-       hipLaunchKernelGGL((energycalc6<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  delvc,
+       hipLaunchKernelGGL((energycalc6<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  delvc,
                                                pbvc, e_new, vnewc,
                                                bvc, p_new,
                                                q_new,
@@ -178,32 +181,32 @@ void ENERGY::runHipVariantImpl(VariantID vid)
 
       RAJA::region<RAJA::seq_region>( [=]() {
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY1;
         });
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY2;
         });
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY3;
         });
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY4;
         });
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY5;
         });
 
-        RAJA::forall< RAJA::hip_exec<block_size, async> >(
+        RAJA::forall< RAJA::hip_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           ENERGY_BODY6;
         });
@@ -218,7 +221,7 @@ void ENERGY::runHipVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(ENERGY, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(ENERGY, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

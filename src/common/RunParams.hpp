@@ -127,6 +127,7 @@ public:
 
   size_t getDataAlignment() const { return data_alignment; }
 
+  int getGPUStream() const { return gpu_stream; }
   size_t numValidGPUBlockSize() const { return gpu_block_sizes.size(); }
   bool validGPUBlockSize(size_t block_size) const
   {
@@ -178,6 +179,20 @@ public:
                                { invalid_exclude_variant_input = svec; }
   const std::vector<std::string>& getInvalidExcludeVariantInput() const
                                   { return invalid_exclude_variant_input; }
+
+  const std::vector<std::string>& getTuningInput() const
+                                  { return tuning_input; }
+  void setInvalidTuningInput( std::vector<std::string>& svec )
+                               { invalid_tuning_input = svec; }
+  const std::vector<std::string>& getInvalidTuningInput() const
+                                  { return invalid_tuning_input; }
+
+  const std::vector<std::string>& getExcludeTuningInput() const
+                                  { return exclude_tuning_input; }
+  void setInvalidExcludeTuningInput( std::vector<std::string>& svec )
+                               { invalid_exclude_tuning_input = svec; }
+  const std::vector<std::string>& getInvalidExcludeTuningInput() const
+                                  { return invalid_exclude_tuning_input; }
 
   const std::vector<std::string>& getFeatureInput() const
                                   { return feature_input; }
@@ -245,6 +260,8 @@ private:
   double size;           /*!< kernel size to run (input option) */
   double size_factor;    /*!< default kernel size multipier (input option) */
   size_t data_alignment;
+
+  int gpu_stream; /*!< 0 -> use stream 0; anything else -> use raja default stream */
   std::vector<size_t> gpu_block_sizes; /*!< Block sizes for gpu tunings to run (input option) */
 
   double pf_tol;         /*!< pct RAJA variant run time can exceed base for
@@ -274,6 +291,10 @@ private:
   std::vector<std::string> invalid_variant_input;
   std::vector<std::string> exclude_variant_input;
   std::vector<std::string> invalid_exclude_variant_input;
+  std::vector<std::string> tuning_input;
+  std::vector<std::string> invalid_tuning_input;
+  std::vector<std::string> exclude_tuning_input;
+  std::vector<std::string> invalid_exclude_tuning_input;
   std::vector<std::string> feature_input;
   std::vector<std::string> invalid_feature_input;
   std::vector<std::string> exclude_feature_input;
