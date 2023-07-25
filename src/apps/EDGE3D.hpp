@@ -194,104 +194,104 @@
 
 RAJA_HOST_DEVICE
 inline void edge_MpSmatrix(
-  const Real_type  (&x)[NB],
-  const Real_type  (&y)[NB],
-  const Real_type  (&z)[NB],
-  Real_type        alpha,
-  Real_type        beta,
-  const Real_type  detj_tol,
-  const Int_type   quad_type,
-  const Int_type   quad_order,
-  Real_type        (&matrix)[EB][EB])
+  const rajaperf::Real_type  (&x)[NB],
+  const rajaperf::Real_type  (&y)[NB],
+  const rajaperf::Real_type  (&z)[NB],
+  rajaperf::Real_type        alpha,
+  rajaperf::Real_type        beta,
+  const rajaperf::Real_type  detj_tol,
+  const rajaperf::Int_type   quad_type,
+  const rajaperf::Int_type   quad_order,
+  rajaperf::Real_type        (&matrix)[EB][EB])
 {
   // Get integration points and weights
-  Real_type qpts_1d[MAX_QUAD_ORDER];
-  Real_type wgts_1d[MAX_QUAD_ORDER];
+  rajaperf::Real_type qpts_1d[MAX_QUAD_ORDER];
+  rajaperf::Real_type wgts_1d[MAX_QUAD_ORDER];
 
   get_quadrature_rule(quad_type, quad_order, qpts_1d, wgts_1d);
 
   // Compute cell centered Jacobian
-  const Real_type jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
-  const Real_type jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jxx_cc = Jxx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jxy_cc = Jxy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jxz_cc = Jxz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyx_cc = Jyx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyy_cc = Jyy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jyz_cc = Jyz(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzx_cc = Jzx(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzy_cc = Jzy(x, y, z, 0.25, 0.25, 0.25, 0.25);
+  const rajaperf::Real_type jzz_cc = Jzz(x, y, z, 0.25, 0.25, 0.25, 0.25);
 
   // Compute cell centered Jacobian determinant
-  const Real_type detj_cc = compute_detj(
+  const rajaperf::Real_type detj_cc = compute_detj(
     jxx_cc, jxy_cc, jxz_cc,
     jyx_cc, jyy_cc, jyz_cc,
     jzx_cc, jzy_cc, jzz_cc);
 
   // Initialize the stiffness matrix
-  for (Int_type m = 0; m < EB; m++) {
-    for (Int_type p = m; p < EB; p++) {
+  for (rajaperf::Int_type m = 0; m < EB; m++) {
+    for (rajaperf::Int_type p = m; p < EB; p++) {
       matrix[m][p] = 0.0;
     }
   }
 
   // Compute values at each quadrature point
-  for ( Int_type i = 0; i < quad_order; i++ ) {
+  for ( rajaperf::Int_type i = 0; i < quad_order; i++ ) {
 
-    const Real_type xloc = qpts_1d[i];
-    const Real_type tmpx = 1. - xloc;
+    const rajaperf::Real_type xloc = qpts_1d[i];
+    const rajaperf::Real_type tmpx = 1. - xloc;
 
-    Real_type dbasisx[EB] = {0};
+    rajaperf::Real_type dbasisx[EB] = {0};
     curl_edgebasis_x(dbasisx, tmpx, xloc);
 
-    for ( Int_type j = 0; j < quad_order; j++ ) {
+    for ( rajaperf::Int_type j = 0; j < quad_order; j++ ) {
 
-      const Real_type yloc = qpts_1d[j];
-      const Real_type wgtxy = wgts_1d[i]*wgts_1d[j];
-      const Real_type tmpy = 1. - yloc;
+      const rajaperf::Real_type yloc = qpts_1d[j];
+      const rajaperf::Real_type wgtxy = wgts_1d[i]*wgts_1d[j];
+      const rajaperf::Real_type tmpy = 1. - yloc;
 
-      Real_type tmpxy    = tmpx*tmpy;
-      Real_type xyloc    = xloc*yloc;
-      Real_type tmpxyloc = tmpx*yloc;
-      Real_type xloctmpy = xloc*tmpy;
+      rajaperf::Real_type tmpxy    = tmpx*tmpy;
+      rajaperf::Real_type xyloc    = xloc*yloc;
+      rajaperf::Real_type tmpxyloc = tmpx*yloc;
+      rajaperf::Real_type xloctmpy = xloc*tmpy;
 
-      const Real_type jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
-      const Real_type jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
-      const Real_type jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const rajaperf::Real_type jzx = Jzx(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const rajaperf::Real_type jzy = Jzy(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
+      const rajaperf::Real_type jzz = Jzz(x, y, z, tmpxy, xloctmpy, xyloc, tmpxyloc);
 
-      Real_type ebasisz[EB] = {0};
+      rajaperf::Real_type ebasisz[EB] = {0};
       edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
 
-      Real_type dbasisy[EB] = {0};
+      rajaperf::Real_type dbasisy[EB] = {0};
       curl_edgebasis_y(dbasisy, tmpy, yloc);
 
       // Differeniate basis with respect to z at this quadrature point
 
-      for ( Int_type k = 0; k < quad_order; k++ ) {
+      for ( rajaperf::Int_type k = 0; k < quad_order; k++ ) {
 
-        const Real_type zloc = qpts_1d[k];
-        const Real_type wgts = wgtxy*wgts_1d[k];
-        const Real_type tmpz = 1. - zloc;
+        const rajaperf::Real_type zloc = qpts_1d[k];
+        const rajaperf::Real_type wgts = wgtxy*wgts_1d[k];
+        const rajaperf::Real_type tmpz = 1. - zloc;
 
-        const Real_type tmpxz    = tmpx*tmpz;
-        const Real_type tmpyz    = tmpy*tmpz;
+        const rajaperf::Real_type tmpxz    = tmpx*tmpz;
+        const rajaperf::Real_type tmpyz    = tmpy*tmpz;
 
-        const Real_type xzloc    = xloc*zloc;
-        const Real_type yzloc    = yloc*zloc;
+        const rajaperf::Real_type xzloc    = xloc*zloc;
+        const rajaperf::Real_type yzloc    = yloc*zloc;
 
-        const Real_type tmpyzloc = tmpy*zloc;
-        const Real_type tmpxzloc = tmpx*zloc;
+        const rajaperf::Real_type tmpyzloc = tmpy*zloc;
+        const rajaperf::Real_type tmpxzloc = tmpx*zloc;
 
-        const Real_type yloctmpz = yloc*tmpz;
-        const Real_type xloctmpz = xloc*tmpz;
+        const rajaperf::Real_type yloctmpz = yloc*tmpz;
+        const rajaperf::Real_type xloctmpz = xloc*tmpz;
 
-        const Real_type jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const Real_type jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const Real_type jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
-        const Real_type jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
-        const Real_type jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
-        const Real_type jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const rajaperf::Real_type jxx = Jxx(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jxy = Jxy(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jxz = Jxz(x, y, z, tmpyz, yloctmpz, tmpyzloc, yzloc);
+        const rajaperf::Real_type jyx = Jyx(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const rajaperf::Real_type jyy = Jyy(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
+        const rajaperf::Real_type jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
 
-        Real_type jinvxx, jinvxy, jinvxz,
+        rajaperf::Real_type jinvxx, jinvxy, jinvxz,
                jinvyx, jinvyy, jinvyz,
                jinvzx, jinvzy, jinvzz,
                detj_unfixed, detj, abs_detj, invdetj;
@@ -306,22 +306,22 @@ inline void edge_MpSmatrix(
           jinvzx, jinvzy, jinvzz,
           detj_unfixed, detj, abs_detj, invdetj);
 
-        const Real_type detjwgts = wgts*abs_detj;
+        const rajaperf::Real_type detjwgts = wgts*abs_detj;
 
-        Real_type ebasisx[EB] = {0};
+        rajaperf::Real_type ebasisx[EB] = {0};
         edgebasis_x(ebasisx, tmpyz, yloctmpz, tmpyzloc, yzloc);
 
-        Real_type ebasisy[EB] = {0};
+        rajaperf::Real_type ebasisy[EB] = {0};
         edgebasis_y(ebasisy, tmpxz, xloctmpz, tmpxzloc, xzloc);
 
-        Real_type dbasisz[EB] = {0};
+        rajaperf::Real_type dbasisz[EB] = {0};
         curl_edgebasis_z(dbasisz, tmpz, zloc);
 
-        const Real_type inv_abs_detj = 1./(abs_detj+ptiny);
+        const rajaperf::Real_type inv_abs_detj = 1./(abs_detj+ptiny);
 
-        Real_type tebasisx[EB] = {0};
-        Real_type tebasisy[EB] = {0};
-        Real_type tebasisz[EB] = {0};
+        rajaperf::Real_type tebasisx[EB] = {0};
+        rajaperf::Real_type tebasisy[EB] = {0};
+        rajaperf::Real_type tebasisz[EB] = {0};
 
         transform_edge_basis(
           jinvxx, jinvxy, jinvxz,
@@ -330,9 +330,9 @@ inline void edge_MpSmatrix(
           ebasisx, ebasisy, ebasisz,
           tebasisx, tebasisy, tebasisz);
 
-        Real_type tdbasisx[EB] = {0};
-        Real_type tdbasisy[EB] = {0};
-        Real_type tdbasisz[EB] = {0};
+        rajaperf::Real_type tdbasisx[EB] = {0};
+        rajaperf::Real_type tdbasisy[EB] = {0};
+        rajaperf::Real_type tdbasisz[EB] = {0};
 
         transform_curl_edge_basis(
           jxx, jxy, jxz,
@@ -375,15 +375,15 @@ inline void edge_MpSmatrix(
   NDPTRSET(m_domain->jp, m_domain->kp, z,z0,z1,z2,z3,z4,z5,z6,z7) ;
 
 #define EDGE3D_BODY \
-  Real_type X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
-  Real_type Y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};\
-  Real_type Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
-  Real_type edge_matrix[EB][EB];\
+  rajaperf::Real_type X[NB] = {x0[i],x1[i],x2[i],x3[i],x4[i],x5[i],x6[i],x7[i]};\
+  rajaperf::Real_type Y[NB] = {y0[i],y1[i],y2[i],y3[i],y4[i],y5[i],y6[i],y7[i]};\
+  rajaperf::Real_type Z[NB] = {z0[i],z1[i],z2[i],z3[i],z4[i],z5[i],z6[i],z7[i]};\
+  rajaperf::Real_type edge_matrix[EB][EB];\
   edge_MpSmatrix(X, Y, Z, 1.0, 1.0, 0.0, 1.0, NQ_1D, edge_matrix);\
-  Real_type local_sum = 0.0;\
-  for (Int_type m = 0; m < EB; m++) {\
-    Real_type check = 0.0;\
-    for (Int_type p = 0; p < EB; p++) {\
+  rajaperf::Real_type local_sum = 0.0;\
+  for (rajaperf::Int_type m = 0; m < EB; m++) {\
+    rajaperf::Real_type check = 0.0;\
+    for (rajaperf::Int_type p = 0; p < EB; p++) {\
       check += edge_matrix[m][p];\
     }\
     local_sum += check;\
