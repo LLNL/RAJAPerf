@@ -215,6 +215,11 @@ RAJA_INLINE void get_quadrature_rule(
   }
 }
 
+constexpr rajaperf::Int_type flops_compute_detj()
+{
+  return 17;
+}
+
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type compute_detj(
   const rajaperf::Real_type jxx,
@@ -261,6 +266,12 @@ constexpr void transform_basis(
 }
 
 template<rajaperf::Int_type M, rajaperf::Int_type P>
+constexpr rajaperf::Int_type flops_inner_product(const bool is_symmetric)
+{
+  return is_symmetric ? 6*P*(M+1)/2 : 6*P*M;
+}
+
+template<rajaperf::Int_type M, rajaperf::Int_type P>
 RAJA_HOST_DEVICE
 constexpr void inner_product(
   const rajaperf::Real_type weight,
@@ -298,8 +309,13 @@ constexpr void inner_product(
   }
 }
 
+constexpr rajaperf::Int_type flops_bad_zone_algorithm()
+{
+  return 5;
+}
+
 RAJA_HOST_DEVICE
-inline void bad_zone_algorithm(
+RAJA_INLINE void bad_zone_algorithm(
   const rajaperf::Real_type detj_unfixed,
   const rajaperf::Real_type detj_cc,
   const rajaperf::Real_type detj_tol,
@@ -314,6 +330,11 @@ inline void bad_zone_algorithm(
   // Note that this uses a potentially negative detj
 
   inv_detj = 1.0/(detj + ptiny);
+}
+
+constexpr rajaperf::Int_type flops_jacobian_inv()
+{
+  return flops_compute_detj() + flops_bad_zone_algorithm() + 4*9;
 }
 
 RAJA_HOST_DEVICE
@@ -411,7 +432,6 @@ constexpr rajaperf::Real_type Jzz(
          (z[7] - z[3])*tmpxyloc;
 }
 
-RAJA_HOST_DEVICE
 constexpr rajaperf::Int_type flops_Jxx()
 {
   return 8;
@@ -782,6 +802,11 @@ constexpr void edgebasis(
   edgebasis_z(ebasisz, tmpxy, xloctmpy, xyloc, tmpxyloc);
 }
 
+constexpr rajaperf::Int_type flops_transform_basis(int basis_size)
+{
+  return 3*5*basis_size;
+}
+
 RAJA_HOST_DEVICE
 constexpr void transform_edge_basis(
   const rajaperf::Real_type jinvxx,
@@ -808,7 +833,6 @@ constexpr void transform_edge_basis(
     basisx, basisy, basisz,
     tbasisx, tbasisy, tbasisz);
 }
-
 
 RAJA_HOST_DEVICE
 constexpr void transform_curl_edge_basis(

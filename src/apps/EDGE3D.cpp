@@ -49,15 +49,17 @@ EDGE3D::EDGE3D(const RunParams& params)
   setBytesPerRep( writes_per_rep * getItsPerRep() +
                   reads_per_node * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
 
-  // Only consider the operations in the innermost loop
-  // these are done for each element of a matrix of size matrix_size
-  // and this matrix is computed num_quadrature_points times
-  constexpr size_t innermost_flops =
-    6 + // detjwgts*(txm*txp + tym*typ + tzm*tzp)
-    6 + // detjwgts*(dtxm*dtxp + dtym*dtyp + dtzm*dtzp)
-    1;  // x = Mtemp + Stemp
+  constexpr size_t flops_k_loop = 15
+                                  + 6*flops_Jxx()
+                                  + flops_jacobian_inv()
+                                  + flops_transform_basis(EB) // flops for transform_edge_basis()
+                                  + flops_transform_basis(EB) + 9 // flops for transform_curl_edge_basis()
+                                  + 2*flops_inner_product<12, 12>(true);
 
-  constexpr size_t flops_per_element = num_quadrature_points*matrix_size*innermost_flops;
+  constexpr size_t flops_j_loop = flops_k_loop*NQ_1D + 3*flops_Jxx() + 6;
+  constexpr size_t flops_i_loop = flops_j_loop*NQ_1D + 1;
+
+  constexpr size_t flops_per_element = flops_i_loop*NQ_1D + 9*flops_Jxx() + flops_compute_detj();
 
   setFLOPsPerRep(number_of_elements * flops_per_element);
 
