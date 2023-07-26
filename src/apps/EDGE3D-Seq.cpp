@@ -56,7 +56,7 @@ void EDGE3D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
         for (Index_type i = ibegin ; i < iend; ++i ) {
-          EDGE3D_BODY;
+          edge3d_lam(i);
         }
 
       }
