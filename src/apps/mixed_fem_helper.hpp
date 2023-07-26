@@ -27,7 +27,7 @@ constexpr rajaperf::Real_type ptiny = 1.0e-50;
 //
 
 RAJA_HOST_DEVICE
-inline void LinAlg_qrule_Lobatto(
+RAJA_INLINE void LinAlg_qrule_Lobatto(
   rajaperf::Int_type    order,
   rajaperf::Real_type *qpts1D,
   rajaperf::Real_type *wgts1D)
@@ -111,7 +111,7 @@ inline void LinAlg_qrule_Lobatto(
 }
 
 RAJA_HOST_DEVICE
-inline void LinAlg_qrule_Legendre(
+RAJA_INLINE void LinAlg_qrule_Legendre(
   rajaperf::Int_type    order,
   rajaperf::Real_type *qpts1D,
   rajaperf::Real_type *wgts1D)
@@ -195,7 +195,7 @@ inline void LinAlg_qrule_Legendre(
 }
 
 RAJA_HOST_DEVICE
-inline void get_quadrature_rule(
+RAJA_INLINE void get_quadrature_rule(
   const rajaperf::Int_type    quad_type,
   const rajaperf::Int_type    quad_order,
   rajaperf::Real_type       (&qpts_1d)[MAX_QUAD_ORDER],
@@ -317,7 +317,7 @@ inline void bad_zone_algorithm(
 }
 
 RAJA_HOST_DEVICE
-inline void jacobian_inv(
+RAJA_INLINE void jacobian_inv(
   const rajaperf::Real_type jxx,
   const rajaperf::Real_type jxy,
   const rajaperf::Real_type jxz,
@@ -366,181 +366,151 @@ inline void jacobian_inv(
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jzx(
   const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpxy,
   const rajaperf::Real_type  xloctmpy,
   const rajaperf::Real_type  xyloc,
   const rajaperf::Real_type  tmpxyloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (x[4] - x[0])*tmpxy    +
-    (x[5] - x[1])*xloctmpy +
-    (x[6] - x[2])*xyloc    +
-    (x[7] - x[3])*tmpxyloc;
+  return (x[4] - x[0])*tmpxy    +
+         (x[5] - x[1])*xloctmpy +
+         (x[6] - x[2])*xyloc    +
+         (x[7] - x[3])*tmpxyloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jzy(
-  const rajaperf::Real_type  (&x)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
   const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpxy,
   const rajaperf::Real_type  xloctmpy,
   const rajaperf::Real_type  xyloc,
   const rajaperf::Real_type  tmpxyloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (y[4] - y[0])*tmpxy    +
-    (y[5] - y[1])*xloctmpy +
-    (y[6] - y[2])*xyloc    +
-    (y[7] - y[3])*tmpxyloc;
+  return (y[4] - y[0])*tmpxy    +
+         (y[5] - y[1])*xloctmpy +
+         (y[6] - y[2])*xyloc    +
+         (y[7] - y[3])*tmpxyloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jzz(
-  const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
   const rajaperf::Real_type  (&z)[NB],
   const rajaperf::Real_type  tmpxy,
   const rajaperf::Real_type  xloctmpy,
   const rajaperf::Real_type  xyloc,
   const rajaperf::Real_type  tmpxyloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (z[4] - z[0])*tmpxy    +
-    (z[5] - z[1])*xloctmpy +
-    (z[6] - z[2])*xyloc    +
-    (z[7] - z[3])*tmpxyloc;
+  return (z[4] - z[0])*tmpxy    +
+         (z[5] - z[1])*xloctmpy +
+         (z[6] - z[2])*xyloc    +
+         (z[7] - z[3])*tmpxyloc;
+}
+
+RAJA_HOST_DEVICE
+constexpr rajaperf::Int_type flops_Jxx()
+{
+  return 8;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jxx(
   const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpyz,
   const rajaperf::Real_type  yloctmpz,
   const rajaperf::Real_type  tmpyzloc,
   const rajaperf::Real_type  yzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (x[1] - x[0])*tmpyz   +
-    (x[2] - x[3])*yloctmpz +
-    (x[5] - x[4])*tmpyzloc +
-    (x[6] - x[7])*yzloc;
+  return (x[1] - x[0])*tmpyz   +
+         (x[2] - x[3])*yloctmpz +
+         (x[5] - x[4])*tmpyzloc +
+         (x[6] - x[7])*yzloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jxy(
-  const rajaperf::Real_type  (&x)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
   const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpyz,
   const rajaperf::Real_type  yloctmpz,
   const rajaperf::Real_type  tmpyzloc,
   const rajaperf::Real_type  yzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (y[1] - y[0])*tmpyz    +
-    (y[2] - y[3])*yloctmpz +
-    (y[5] - y[4])*tmpyzloc +
-    (y[6] - y[7])*yzloc;
+  return (y[1] - y[0])*tmpyz    +
+         (y[2] - y[3])*yloctmpz +
+         (y[5] - y[4])*tmpyzloc +
+         (y[6] - y[7])*yzloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jxz(
-  const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
   const rajaperf::Real_type  (&z)[NB],
   const rajaperf::Real_type  tmpyz,
   const rajaperf::Real_type  yloctmpz,
   const rajaperf::Real_type  tmpyzloc,
   const rajaperf::Real_type  yzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (z[1] - z[0])*tmpyz   +
-    (z[2] - z[3])*yloctmpz +
-    (z[5] - z[4])*tmpyzloc +
-    (z[6] - z[7])*yzloc;
+  return (z[1] - z[0])*tmpyz   +
+         (z[2] - z[3])*yloctmpz +
+         (z[5] - z[4])*tmpyzloc +
+         (z[6] - z[7])*yzloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jyx(
   const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpxz,
   const rajaperf::Real_type  xloctmpz,
   const rajaperf::Real_type  tmpxzloc,
   const rajaperf::Real_type  xzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (x[3] - x[0])*tmpxz    +
-    (x[2] - x[1])*xloctmpz +
-    (x[7] - x[4])*tmpxzloc +
-    (x[6] - x[5])*xzloc;
+  return (x[3] - x[0])*tmpxz    +
+         (x[2] - x[1])*xloctmpz +
+         (x[7] - x[4])*tmpxzloc +
+         (x[6] - x[5])*xzloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jyy(
-  const rajaperf::Real_type  (&x)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
   const rajaperf::Real_type  (&y)[NB],
-  const rajaperf::Real_type  (&z)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(z))[NB],
   const rajaperf::Real_type  tmpxz,
   const rajaperf::Real_type  xloctmpz,
   const rajaperf::Real_type  tmpxzloc,
   const rajaperf::Real_type  xzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (y[3] - y[0])*tmpxz    +
-    (y[2] - y[1])*xloctmpz +
-    (y[7] - y[4])*tmpxzloc +
-    (y[6] - y[5])*xzloc;
+  return (y[3] - y[0])*tmpxz    +
+         (y[2] - y[1])*xloctmpz +
+         (y[7] - y[4])*tmpxzloc +
+         (y[6] - y[5])*xzloc;
 }
 
 RAJA_HOST_DEVICE
 constexpr rajaperf::Real_type Jyz(
-  const rajaperf::Real_type  (&x)[NB],
-  const rajaperf::Real_type  (&y)[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(x))[NB],
+  const rajaperf::Real_type  (&RAJA_UNUSED_ARG(y))[NB],
   const rajaperf::Real_type  (&z)[NB],
   const rajaperf::Real_type  tmpxz,
   const rajaperf::Real_type  xloctmpz,
   const rajaperf::Real_type  tmpxzloc,
   const rajaperf::Real_type  xzloc)
 {
-  (void) x[0];
-  (void) y[0];
-  (void) z[0];
-  return
-    (z[3] - z[0])*tmpxz    +
-    (z[2] - z[1])*xloctmpz +
-    (z[7] - z[4])*tmpxzloc +
-    (z[6] - z[5])*xzloc;
+  return (z[3] - z[0])*tmpxz    +
+         (z[2] - z[1])*xloctmpz +
+         (z[7] - z[4])*tmpxzloc +
+         (z[6] - z[5])*xzloc;
 }
 
 //-----------------------------------------

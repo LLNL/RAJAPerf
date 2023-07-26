@@ -193,7 +193,7 @@
 #include "mixed_fem_helper.hpp"
 
 RAJA_HOST_DEVICE
-inline void edge_MpSmatrix(
+RAJA_INLINE void edge_MpSmatrix(
   const rajaperf::Real_type  (&x)[NB],
   const rajaperf::Real_type  (&y)[NB],
   const rajaperf::Real_type  (&z)[NB],
@@ -292,9 +292,9 @@ inline void edge_MpSmatrix(
         const rajaperf::Real_type jyz = Jyz(x, y, z, tmpxz, xloctmpz, tmpxzloc, xzloc);
 
         rajaperf::Real_type jinvxx, jinvxy, jinvxz,
-               jinvyx, jinvyy, jinvyz,
-               jinvzx, jinvzy, jinvzz,
-               detj_unfixed, detj, abs_detj, invdetj;
+                            jinvyx, jinvyy, jinvyz,
+                            jinvzx, jinvzy, jinvzz,
+                            detj_unfixed, detj, abs_detj, invdetj;
 
         jacobian_inv(
           jxx, jxy, jxz,
