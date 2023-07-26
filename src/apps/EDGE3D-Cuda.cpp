@@ -83,7 +83,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
 
       constexpr size_t shmem = 0;
 
-      auto edge3d_lam = [=](Index_type i) { EDGE3D_BODY; };
+      auto edge3d_lam = [=] __device__ (Index_type i) { EDGE3D_BODY; };
 
       lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
         0, iend, edge3d_lam);

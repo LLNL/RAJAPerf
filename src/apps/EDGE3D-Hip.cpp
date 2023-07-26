@@ -81,10 +81,10 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      constexpr size_t shmem = 0;
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
 
-      auto edge3d_lam = [=](Index_type i) { EDGE3D_BODY; };
+      auto edge3d_lam = [=] __device__ (Index_type i) { EDGE3D_BODY; };
 
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(edge3d_lam)>),
         grid_size, block_size, shmem, res.get_stream(),
