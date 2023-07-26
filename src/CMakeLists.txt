@@ -84,6 +84,9 @@ blt_add_executable(
   apps/ZONAL_ACCUMULATION_3D.cpp
   apps/ZONAL_ACCUMULATION_3D-Seq.cpp
   apps/ZONAL_ACCUMULATION_3D-OMPTarget.cpp
+  basic/ARRAY_OF_PTRS.cpp
+  basic/ARRAY_OF_PTRS-Seq.cpp
+  basic/ARRAY_OF_PTRS-OMPTarget.cpp
   basic/COPY8.cpp
   basic/COPY8-Seq.cpp
   basic/COPY8-OMPTarget.cpp

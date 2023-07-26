@@ -67,38 +67,6 @@ __global__ void lambda_hip(Lambda body)
   body();
 }
 
-/*!
- * \brief Getters for hip kernel indices.
- */
-template < typename Index >
-__device__ inline Index_type lambda_hip_get_index();
-
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_x_direct>() {
-  return threadIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_y_direct>() {
-  return threadIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_z_direct>() {
-  return threadIdx.z;
-}
-
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_x_direct>() {
-  return blockIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_y_direct>() {
-  return blockIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
-  return blockIdx.z;
-}
-
 
 namespace detail
 {

@@ -17,6 +17,7 @@
 //
 // Basic kernels...
 //
+#include "basic/ARRAY_OF_PTRS.hpp"
 #include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
@@ -155,6 +156,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ARRAY_OF_PTRS"),
   std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
@@ -638,6 +640,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ARRAY_OF_PTRS : {
+       kernel = new basic::ARRAY_OF_PTRS(run_params);
+       break;
+    }
     case Basic_COPY8 : {
        kernel = new basic::COPY8(run_params);
        break;
