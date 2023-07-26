@@ -183,19 +183,13 @@ void POLYBENCH_2MM::runCudaVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<out_block_sz * in_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<out_block_sz>,
-                                   RAJA::cuda_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<in_block_sz>,
-                                     RAJA::cuda_block_x_direct,
-              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // outer
-                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // inner
-                  RAJA::statement::Lambda<0, RAJA::Params<0>>,
-                  RAJA::statement::For<2, RAJA::seq_exec,
-                    RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
-                  >,
-                  RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
-                >
-              >
+          RAJA::statement::For<0, RAJA::cuda_global_size_y_direct<out_block_sz>,   // outer
+            RAJA::statement::For<1, RAJA::cuda_global_size_x_direct<in_block_sz>, // inner
+              RAJA::statement::Lambda<0, RAJA::Params<0>>,
+              RAJA::statement::For<2, RAJA::seq_exec,
+                RAJA::statement::Lambda<1, RAJA::Segs<0,1,2>, RAJA::Params<0>>
+              >,
+              RAJA::statement::Lambda<2, RAJA::Segs<0,1>, RAJA::Params<0>>
             >
           >
         >
