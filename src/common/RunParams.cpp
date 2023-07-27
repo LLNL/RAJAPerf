@@ -813,7 +813,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
 
   str << "\t --exclude-variants, -ev <space-separated strings> [Default is exclude none]\n"
-      << "\t      (names of variants to exclude)\n";
+      << "\t      (names of variants to exclude)\n"
       << "\t      See '--print-variants'/'-pv' option for list of valid variant names.\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
@@ -877,14 +877,14 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
       << "\t      (names of features to run)\n"
-      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
   str << "\t\t Examples...\n"
       << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
       << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
 
   str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
       << "\t      (names of features to exclude)\n"
-      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
       << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
