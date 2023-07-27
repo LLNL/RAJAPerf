@@ -720,7 +720,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\nUsage: ./raja-perf.exe [options]\n";
   str << "Valid options are:\n";
 
-  str << "\t --help, -h (print options with descriptions)\n\n";
+  str << "\t --help, -h (print available command line options with descriptions)\n\n";
 
   str << "\t --show-progress, -sp (print execution progress during run)\n\n";
 
@@ -743,7 +743,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
 
-  str << "\t --npasses-combiners <space-separated strings> [Default is average]\n"
+  str << "\t --npasses-combiners <space-separated strings> [Default is 'Average']\n"
       << "\t      (Ways of combining npasses timing data into timing files)\n";
   str << "\t\t Example...\n"
       << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
@@ -752,19 +752,19 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --repfact <double> [default is 1.0]\n"
       << "\t      (multiplier on default # reps to run each kernel)\n";
   str << "\t\t Example...\n"
-      << "\t\t --repfact 0.5 (runs kernels 1/2 as many times as default)\n\n";
+      << "\t\t --repfact 0.5 (run each kernels 1/2 as many times as its default reps)\n\n";
 
   str << "\t --sizefact <double> [default is 1.0]\n"
       << "\t      (fraction of default kernel sizes to run)\n"
       << "\t      (may not be set if --size is set)\n";
   str << "\t\t Example...\n"
-      << "\t\t --sizefact 2.0 (kernels will run with size twice the default)\n\n";
+      << "\t\t --sizefact 2.0 (run each kernel with size twice its default size)\n\n";
 
   str << "\t --size <int> [no default]\n"
       << "\t      (kernel size to run for all kernels)\n"
       << "\t      (may not be set if --sizefact is set)\n";
   str << "\t\t Example...\n"
-      << "\t\t --size 1000000 (runs kernels with size ~1,000,000)\n\n";
+      << "\t\t --size 1000000 (runs each kernel with size ~1,000,000)\n\n";
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
@@ -772,14 +772,13 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
-  str << "\t --gpu_stream_0 [default is off; i.e. use RAJA default stream]\n"
-      << "\t      (use stream 0 with hip and cuda kernel variants)\n"
-      << "\t      (If this is off then the RAJA default stream is used)\n";
+  str << "\t --gpu_stream_0 [default is to use RAJA default stream if option is not given]\n"
+      << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n";
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
       << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
-      << "\t      (Support is determined by kernel implementation and cmake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
+      << "\t      (Support is determined by kernel implementation and CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
   str << "\t\t Example...\n"
       << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
 
@@ -789,27 +788,33 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
-      << "\t      (names of individual kernels and/or groups of kernels to run)\n";
+      << "\t      (names of individual kernels and/or groups of kernels to run)\n"
+      << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
+      << "\t      Kernel names are listed as <group name>_<kernel name>.\n";
   str << "\t\t Examples...\n"
       << "\t\t --kernels Polybench (run all kernels in Polybench group)\n"
       << "\t\t -k INIT3 MULADDSUB (run INIT3 and MULADDSUB kernels)\n"
       << "\t\t -k INIT3 Apps (run INIT3 kernel and all kernels in Apps group)\n\n";
 
   str << "\t --exclude-kernels, -ek <space-separated strings> [Default is exclude none]\n"
-      << "\t      (names of individual kernels and/or groups of kernels to exclude)\n";
+      << "\t      (names of individual kernels and/or groups of kernels to exclude)\n"
+      << "\t      See '--print-kernels'/'-pk' option for list of valid kernel and group names.\n"
+      << "\t      Kernel names are listed as <group name>_<kernel name>.\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-kernels Polybench (exclude all kernels in Polybench group)\n"
       << "\t\t -ek INIT3 MULADDSUB (exclude INIT3 and MULADDSUB kernels)\n"
       << "\t\t -ek INIT3 Apps (exclude INIT3 kernel and all kernels in Apps group)\n\n";
 
   str << "\t --variants, -v <space-separated strings> [Default is run all]\n"
-      << "\t      (names of variants to run)\n";
+      << "\t      (names of variants to run)\n"
+      << "\t      See '--print-variants'/'-pv' option for list of valid variant names.\n";
   str << "\t\t Examples...\n"
       << "\t\t --variants RAJA_CUDA (run all RAJA_CUDA kernel variants)\n"
       << "\t\t -v Base_Seq RAJA_CUDA (run Base_Seq and  RAJA_CUDA variants)\n\n";
 
   str << "\t --exclude-variants, -ev <space-separated strings> [Default is exclude none]\n"
       << "\t      (names of variants to exclude)\n";
+      << "\t      See '--print-variants'/'-pv' option for list of valid variant names.\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
@@ -824,37 +829,42 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --exclude-tunings, -et <space-separated strings> [Default is exclude none]\n"
       << "\t      (names of tunings to exclude)\n"
-      << "\t      See --tunings for more information.\n";
+      << "\t      See --tunings option for more information.\n";
   str << "\t\t Examples...\n"
       << "\t\t --exclude-tunings library (exclude all library tunings)\n"
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (name of data space to use for sequential variants)\n"
+      << "\t      Valid data space names are 'Host' or 'CudaPinned'\n";
   str << "\t\t Examples...\n"
       << "\t\t --seq-data-space Host (run sequential variants with Host memory)\n"
       << "\t\t -sds CudaPinned (run sequential variants with Cuda Pinned memory)\n\n";
 
   str << "\t --omp-data-space, -ods <string> [Default is Omp]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (names of data space to use for OpenMP variants)\n"
+      << "\t      Valid data space names are 'Host' or 'Omp'\n";
   str << "\t\t Examples...\n"
       << "\t\t --omp-data-space Omp (run Omp variants with Omp memory)\n"
       << "\t\t -ods Host (run Omp variants with Host memory)\n\n";
 
   str << "\t --omptarget-data-space, -otds <string> [Default is OmpTarget]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (names of data space to use for OpenMP Target variants)\n"
+      << "\t      Valid data space names are 'OmpTarget' or 'CudaPinned'\n";
   str << "\t\t Examples...\n"
       << "\t\t --omptarget-data-space OmpTarget (run Omp Target variants with Omp Target memory)\n"
       << "\t\t -otds CudaPinned (run Omp Target variants with Cuda Pinned memory)\n\n";
 
   str << "\t --cuda-data-space, -cds <string> [Default is CudaDevice]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (names of data space to use for CUDA variants)\n"
+      << "\t      Valid data space names are 'CudaDevice', 'CudaPinned', or 'CudaManaged'\n";
   str << "\t\t Examples...\n"
       << "\t\t --cuda-data-space CudaManaged (run CUDA variants with Cuda Managed memory)\n"
       << "\t\t -cds CudaPinned (run CUDA variants with Cuda Pinned memory)\n\n";
 
   str << "\t --hip-data-space, -hds <string> [Default is HipDevice]\n"
-      << "\t      (names of data space to use)\n";
+      << "\t      (names of data space to use for HIP variants)\n"
+      << "\t      Valid data space names are 'HipDevice', 'HipPinned', or 'HipManaged'\n";
   str << "\t\t Examples...\n"
       << "\t\t --hip-data-space HipManaged (run HIP variants with Hip Managed memory)\n"
       << "\t\t -hds HipPinned (run HIP variants with Hip Pinned memory)\n\n";
@@ -866,13 +876,15 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
 
   str << "\t --features, -f <space-separated strings> [Default is run all]\n"
-      << "\t      (names of features to run)\n";
+      << "\t      (names of features to run)\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n"
   str << "\t\t Examples...\n"
       << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
       << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
 
   str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
-      << "\t      (names of features to exclude)\n";
+      << "\t      (names of features to exclude)\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n"
   str << "\t\t Examples...\n"
       << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
       << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
