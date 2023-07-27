@@ -773,7 +773,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
   str << "\t --gpu_stream_0 [default is to use RAJA default stream if option is not given]\n"
-      << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n";
+      << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n\n";
 
   str << "\t --gpu_block_size <space-separated ints> [no default]\n"
       << "\t      (block sizes to run for all GPU kernels)\n"
