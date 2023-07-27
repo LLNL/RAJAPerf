@@ -824,9 +824,9 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t ======================\n\n";;
 
   str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (run each kernel a given number of times)\n;
-      << "\t Helpful to check things are working properly or 
-      << "\t run a small sample to reduce aggregate execution time)\n";
+      << "\t      (run each kernel a given number of times)\n"
+      << "\t      Helpful to check things are working properly or\n" 
+      << "\t      run a small sample to reduce aggregate execution time)\n";
   str << "\t\t Example...\n"
       << "\t\t --checkrun 2 (run each kernel twice)\n\n";
 
