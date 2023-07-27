@@ -718,17 +718,17 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 void RunParams::printHelpMessage(std::ostream& str) const
 {
   str << "\nUsage: ./raja-perf.exe [options]\n";
+
   str << "Valid options are:\n";
 
   str << "\t --help, -h (print available command line options with descriptions)\n\n";
 
-  str << "\t --show-progress, -sp (print execution progress during run)\n\n";
+  str << "\t Print info about option arguments....\n"
+      << "\t =====================================\n\n";;
 
   str << "\t --print-kernels, -pk (print names of available kernels to run)\n\n";
 
   str << "\t --print-variants, -pv (print names of available variants to run)\n\n";
-
-  str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
   str << "\t --print-features, -pf (print names of RAJA features exercised in Suite)\n\n";
 
@@ -738,54 +738,41 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t --print-kernel-features, -pkf \n"
       << "\t      (print names of features used by each kernel)\n\n";
 
-  str << "\t --npasses <int> [default is 1]\n"
-      << "\t      (num passes through Suite)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
+  str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
-  str << "\t --npasses-combiners <space-separated strings> [Default is 'Average']\n"
-      << "\t      (Ways of combining npasses timing data into timing files)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
-      << "\t\t   max timing .csv files)\n\n";
+  str << "\t Selecting output details....\n"
+      << "\t ============================\n\n";;
 
-  str << "\t --repfact <double> [default is 1.0]\n"
-      << "\t      (multiplier on default # reps to run each kernel)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --repfact 0.5 (run each kernels 1/2 as many times as its default reps)\n\n";
+  str << "\t --show-progress, -sp (print execution progress during run)\n\n";
 
-  str << "\t --sizefact <double> [default is 1.0]\n"
-      << "\t      (fraction of default kernel sizes to run)\n"
-      << "\t      (may not be set if --size is set)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --sizefact 2.0 (run each kernel with size twice its default size)\n\n";
+  str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
 
-  str << "\t --size <int> [no default]\n"
-      << "\t      (kernel size to run for all kernels)\n"
-      << "\t      (may not be set if --sizefact is set)\n";
+  str << "\t --refvar, -rv <string> [Default is none]\n"
+      << "\t      (reference variant for speedup calculation)\n\n";
   str << "\t\t Example...\n"
-      << "\t\t --size 1000000 (runs each kernel with size ~1,000,000)\n\n";
-
-  str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
-      << "\t      (minimum memory alignment for host allocations)\n"
-      << "\t      (must be a power of 2 at least as large as the default alignment)\n";
-  str << "\t\t Example...\n"
-      << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
-
-  str << "\t --gpu_stream_0 [default is to use RAJA default stream if option is not given]\n"
-      << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n\n";
-
-  str << "\t --gpu_block_size <space-separated ints> [no default]\n"
-      << "\t      (block sizes to run for all GPU kernels)\n"
-      << "\t      (GPU kernels not supporting gpu_block_size will be skipped)\n"
-      << "\t      (Support is determined by kernel implementation and CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
+      << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
 
   str << "\t --pass-fail-tol, -pftol <double> [default is 0.1; i.e., 10%]\n"
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
   str << "\t\t Example...\n"
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
+
+  str << "\t --outdir, -od <string> [Default is current directory]\n"
+      << "\t      (directory path for output data files)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --outdir foo (output files to ./foo directory\n"
+      << "\t\t -od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
+
+  str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
+      << "\t      (file name prefix for output files)\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
+      << "\t\t -of dat (output data will be in files 'dat*')\n\n";
+
+  str << "\t Selecting kernels to run....\n"
+      << "\t ==========================\n\n";;
+
+  str << "\t --disable-warmup (disable warmup kernel) [Default is run all warmup kernels]\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
@@ -819,6 +806,72 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-variants RAJA_CUDA (exclude all RAJA_CUDA kernel variants)\n"
       << "\t\t -ev Base_Seq RAJA_CUDA (exclude Base_Seq and  RAJA_CUDA variants)\n\n";
 
+  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
+      << "\t      (names of features to run)\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
+      << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
+
+  str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
+      << "\t      (names of features to exclude)\n"
+      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
+  str << "\t\t Examples...\n"
+      << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
+      << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
+
+  str << "\t Selecting run size....\n"
+      << "\t ======================\n\n";;
+
+  str << "\t --checkrun <int> [default is 1]\n"
+<< "\t      (run each kernel a given number of times)\n;
+      << "\t Helpful to check things are working properly or 
+      << "\t run a small sample to reduce aggregate execution time)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --checkrun 2 (run each kernel twice)\n\n";
+
+  str << "\t --npasses <int> [default is 1]\n"
+      << "\t      (num passes through Suite)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
+
+  str << "\t --npasses-combiners <space-separated strings> [Default is 'Average']\n"
+      << "\t      (Specify combining npasses timing data into timing files)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
+      << "\t\t   max timing .csv files)\n\n";
+
+  str << "\t --repfact <double> [default is 1.0]\n"
+      << "\t      (multiplier on default # reps to run each kernel)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --repfact 0.5 (run each kernels 1/2 as many times as its default reps)\n\n";
+
+  str << "\t --sizefact <double> [default is 1.0]\n"
+      << "\t      (fraction of default kernel sizes to run)\n"
+      << "\t      May not be set if '--size' is set.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --sizefact 2.0 (run each kernel with size twice its default size)\n\n";
+
+  str << "\t --size <int> [no default]\n"
+      << "\t      (kernel size to run for all kernels)\n"
+      << "\t      May not be set if --sizefact is set.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --size 1000000 (runs each kernel with size ~1,000,000)\n\n";
+
+  str << "\t Selecting GPU execution details....\n"
+      << "\t ===================================\n\n";;
+
+  str << "\t --gpu_stream_0 [default is to use RAJA default stream]\n"
+      << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n\n";
+
+  str << "\t --gpu_block_size <space-separated ints> [no default]\n"
+      << "\t      (block sizes to run for all GPU kernels)\n"
+      << "\t      GPU kernels not supporting gpu_block_size option will be skipped.\n"
+      << "\t      Behavior depends on kernel implementations and \n"
+      << "\t      values give via CMake variable RAJA_PERFSUITE_GPU_BLOCKSIZES.\n";
+  str << "\t\t Example...\n"
+      << "\t\t --gpu_block_size 128 256 512 (runs kernels with gpu_block_size 128, 256, and 512)\n\n";
+
   str << "\t --tunings, -t <space-separated strings> [Default is run all]\n"
       << "\t      (names of tunings to run)\n"
       << "\t      Note: knowing which tunings are available requires knowledge about the variants,\n"
@@ -833,6 +886,15 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t --exclude-tunings library (exclude all library tunings)\n"
       << "\t\t -et default library (exclude default and library tunings)\n\n";
+
+  str << "\t Selecting kernel data details....\n"
+      << "\t =================================\n\n";;
+
+  str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
+      << "\t      (minimum memory alignment for host allocations)\n"
+      << "\t      Must be a power of 2 at least as large as default alignment.\n";
+  str << "\t\t Example...\n"
+      << "\t\t -align 4096 (allocates memory aligned to 4KiB boundaries)\n\n";
 
   str << "\t --seq-data-space, -sds <string> [Default is Host]\n"
       << "\t      (name of data space to use for sequential variants)\n"
@@ -874,46 +936,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Examples...\n"
       << "\t\t --kokkos-data-space Host (run KOKKOS variants with Host memory)\n"
       << "\t\t -kds HipPinned (run KOKKOS variants with Hip Pinned memory)\n\n";
-
-  str << "\t --features, -f <space-separated strings> [Default is run all]\n"
-      << "\t      (names of features to run)\n"
-      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --features Forall (run all kernels that use RAJA forall)\n"
-      << "\t\t -f Forall Reduction (run all kernels that use RAJA forall or RAJA reductions)\n\n";
-
-  str << "\t --exclude-features, -ef <space-separated strings> [Default is exclude none]\n"
-      << "\t      (names of features to exclude)\n"
-      << "\t      See '--print-kernel-features'/'-pkf' option for list of RAJA features used by kernels.\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
-      << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
-
-  str << "\t --outdir, -od <string> [Default is current directory]\n"
-      << "\t      (directory path for output data files)\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --outdir foo (output files to ./foo directory\n"
-      << "\t\t -od /nfs/tmp/me (output files to /nfs/tmp/me directory)\n\n";
-
-  str << "\t --outfile, -of <string> [Default is RAJAPerf]\n"
-      << "\t      (file name prefix for output files)\n";
-  str << "\t\t Examples...\n"
-      << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
-      << "\t\t -of dat (output data will be in files 'dat*')\n\n";
-
-  str << "\t --refvar, -rv <string> [Default is none]\n"
-      << "\t      (reference variant for speedup calculation)\n\n";
-  str << "\t\t Example...\n"
-      << "\t\t --refvar Base_Seq (speedups reported relative to Base_Seq variants)\n\n";
-
-  str << "\t --dryrun (print summary of how Suite will run without running it)\n\n";
-
-  str << "\t --disable-warmup (disable warmup tests)\n\n";
-
-  str << "\t --checkrun <int> [default is 1]\n"
-<< "\t      (run each kernel a given number of times; usually to check things are working properly or to reduce aggregate execution time)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --checkrun 2 (run each kernel twice)\n\n";
 
   str << std::endl;
   str.flush();
