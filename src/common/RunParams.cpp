@@ -208,6 +208,9 @@ void RunParams::print(std::ostream& str) const
  *
  * Parse command line args to set how suite will run.
  *
+ * Important: Some input is checked for correctness in this method. Otherwise,
+ *            it is checked for correctness in Executor::setupSuite().
+ *
  *******************************************************************************
  */
 void RunParams::parseCommandLineOptions(int argc, char** argv)
@@ -685,7 +688,15 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
         if ( opt.at(0) == '-' ) {
           i--;
         } else {
-          checkrun_reps = ::atoi( argv[i] );
+          int cr = ::atoi( argv[i] );
+          if ( cr < 0 ) {
+            getCout() << "\nBad input:"
+                      << " must give --checkrun a non-negative value (int)"
+                      << std::endl;
+            input_state = BadInput;
+          } else {
+            checkrun_reps = cr;
+          }
         }
 
       }
