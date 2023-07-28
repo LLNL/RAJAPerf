@@ -719,10 +719,8 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_factor = 1.0;
   }
 
-  // Default npasses_combiners if no input
-  if (npasses_combiner_input.empty()) {
-    npasses_combiners.emplace_back(CombinerOpt::Average);
-  }
+  checkNpassesCombinerInput();
+
 }
 
 
@@ -767,6 +765,12 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (slowdown tolerance for RAJA vs. Base variants in FOM report)\n";
   str << "\t\t Example...\n"
       << "\t\t -pftol 0.2 (RAJA kernel variants that run 20% or more slower than Base variants will be reported as OVER_TOL in FOM report)\n\n";
+
+  str << "\t --npasses-combiners <space-separated strings> [Default is 'Average']\n"
+      << "\t      (Specify combining npasses timing data into timing files)\n";
+  str << "\t\t Example...\n"
+      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
+      << "\t\t   max timing .csv files)\n\n";
 
   str << "\t --outdir, -od <string> [Default is current directory]\n"
       << "\t      (directory path for output data files)\n";
@@ -845,12 +849,6 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t      (num passes through Suite)\n";
   str << "\t\t Example...\n"
       << "\t\t --npasses 2 (runs complete Suite twice)\n\n";
-
-  str << "\t --npasses-combiners <space-separated strings> [Default is 'Average']\n"
-      << "\t      (Specify combining npasses timing data into timing files)\n";
-  str << "\t\t Example...\n"
-      << "\t\t --npasses-combiners Average Minimum Maximum (produce average, min, and\n"
-      << "\t\t   max timing .csv files)\n\n";
 
   str << "\t --repfact <double> [default is 1.0]\n"
       << "\t      (multiplier on default # reps to run each kernel)\n";
@@ -1065,6 +1063,32 @@ void RunParams::printKernelFeatures(std::ostream& str) const
     delete kern;
   }  // loop over kernels
   str.flush();
+}
+
+void RunParams::checkNpassesCombinerInput()
+{
+  // Default npasses_combiners if no input
+  if ( npasses_combiner_input.empty() ) {
+    npasses_combiners.emplace_back(CombinerOpt::Average);
+  } else {
+
+    for (const std::string& combiner_name : npasses_combiner_input) {
+
+      if (combiner_name == CombinerOptToStr(CombinerOpt::Average)) {
+        npasses_combiners.emplace_back(CombinerOpt::Average);
+      } else if (combiner_name == CombinerOptToStr(CombinerOpt::Minimum)) {
+        npasses_combiners.emplace_back(CombinerOpt::Minimum);
+      } else if (combiner_name == CombinerOptToStr(CombinerOpt::Maximum)) {
+        npasses_combiners.emplace_back(CombinerOpt::Maximum);
+      } else {
+        // Invalid option input
+        input_state = BadInput;
+        invalid_npasses_combiner_input.emplace_back(combiner_name);
+      }
+
+    } // for
+
+  } // else
 }
 
 }  // closing brace for rajaperf namespace

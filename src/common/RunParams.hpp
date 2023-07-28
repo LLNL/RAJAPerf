@@ -115,9 +115,6 @@ public:
 
   const std::vector<CombinerOpt>& getNpassesCombinerOpts() const
   { return npasses_combiners; }
-  void setNpassesCombinerOpts( std::vector<CombinerOpt>& cvec )
-  { npasses_combiners = cvec; }
-
 
   SizeMeaning getSizeMeaning() const { return size_meaning; }
 
@@ -208,13 +205,6 @@ public:
   const std::vector<std::string>& getInvalidExcludeFeatureInput() const
                                   { return invalid_exclude_feature_input; }
 
-  const std::vector<std::string>& getNpassesCombinerOptInput() const
-                                  { return npasses_combiner_input; }
-  const std::vector<std::string>& getInvalidNpassesCombinerOptInput() const
-                                  { return invalid_npasses_combiner_input; }
-  void setInvalidNpassesCombinerOptInput( std::vector<std::string>& svec )
-                              { invalid_npasses_combiner_input = svec; }
-
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
@@ -243,6 +233,8 @@ private:
   void printFeatureNames(std::ostream& str) const;
   void printFeatureKernels(std::ostream& str) const;
   void printKernelFeatures(std::ostream& str) const;
+
+  void checkNpassesCombinerInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
