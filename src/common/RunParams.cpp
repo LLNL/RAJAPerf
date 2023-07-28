@@ -734,8 +734,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --help, -h (print available command line options with descriptions)\n\n";
 
-  str << "\t Print info about option arguments....\n"
-      << "\t =====================================\n\n";;
+  str << "\t Options to print information about the Suite....\n"
+      << "\t =================================================\n\n";;
 
   str << "\t --print-kernels, -pk (print names of available kernels to run)\n\n";
 
