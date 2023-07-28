@@ -751,8 +751,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
 
   str << "\t --print-data-spaces, -pds (print names of data spaces)\n\n";
 
-  str << "\t Selecting output details....\n"
-      << "\t ============================\n\n";;
+  str << "\t Options for selecting output details....\n"
+      << "\t ========================================\n\n";;
 
   str << "\t --show-progress, -sp (print execution progress during run)\n\n";
 
@@ -780,8 +780,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --outfile mydata (output data will be in files 'mydata*')\n"
       << "\t\t -of dat (output data will be in files 'dat*')\n\n";
 
-  str << "\t Selecting kernels to run....\n"
-      << "\t ==========================\n\n";;
+  str << "\t Options for selecting kernels to run....\n"
+      << "\t ========================================\n\n";;
 
   str << "\t --disable-warmup (disable warmup kernel) [Default is run all warmup kernels]\n\n";
 
@@ -831,8 +831,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-features Forall (exclude all kernels that use RAJA forall)\n"
       << "\t\t -ef Forall Reduction (exclude all kernels that use RAJA forall or RAJA reductions)\n\n";
 
-  str << "\t Selecting run size....\n"
-      << "\t ======================\n\n";;
+  str << "\t Options for selecting run size....\n"
+      << "\t ==================================\n\n";;
 
   str << "\t --checkrun <int> [default is 1]\n"
       << "\t      (run each kernel a given number of times)\n"
@@ -869,8 +869,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t\t Example...\n"
       << "\t\t --size 1000000 (runs each kernel with size ~1,000,000)\n\n";
 
-  str << "\t Selecting GPU execution details....\n"
-      << "\t ===================================\n\n";;
+  str << "\t Options for selecting GPU execution details....\n"
+      << "\t ===============================================\n\n";;
 
   str << "\t --gpu_stream_0 [default is to use RAJA default stream]\n"
       << "\t      (when this option is given, use stream 0 with HIP and CUDA kernel variants)\n\n";
@@ -898,8 +898,8 @@ void RunParams::printHelpMessage(std::ostream& str) const
       << "\t\t --exclude-tunings library (exclude all library tunings)\n"
       << "\t\t -et default library (exclude default and library tunings)\n\n";
 
-  str << "\t Selecting kernel data details....\n"
-      << "\t =================================\n\n";;
+  str << "\t Options for selecting kernel data used in kernels....\n"
+      << "\t ======================================================\n\n";;
 
   str << "\t --data_alignment, -align <int> [default is RAJA::DATA_ALIGN]\n"
       << "\t      (minimum memory alignment for host allocations)\n"
