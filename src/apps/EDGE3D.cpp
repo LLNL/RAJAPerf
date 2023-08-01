@@ -45,8 +45,8 @@ EDGE3D::EDGE3D(const RunParams& params)
   // touched data size, not actual number of stores and loads
   // see VOL3D.cpp
   size_t reads_per_node = 3*sizeof(Real_type);
-  size_t writes_per_rep = 1*sizeof(Real_type);
-  setBytesPerRep( writes_per_rep * getItsPerRep() +
+  size_t writes_per_zone = 1*sizeof(Real_type);
+  setBytesPerRep( writes_per_zone * getItsPerRep() +
                   reads_per_node * (getItsPerRep() + 1+m_domain->jp+m_domain->kp) );
 
   constexpr size_t flops_k_loop = 15
