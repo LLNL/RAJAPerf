@@ -81,6 +81,7 @@ void EDGE3D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
+      const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
       constexpr size_t shmem = 0;
 
       auto edge3d_lam = [=] __device__ (Index_type i) { EDGE3D_BODY; };
