@@ -88,7 +88,7 @@ void EDGE3D::runHipVariantImpl(VariantID vid)
 
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(edge3d_lam)>),
         grid_size, block_size, shmem, res.get_stream(),
-        0, iend,  edge3d_lam);
+        ibegin, iend,  edge3d_lam);
 
       hipErrchk( hipGetLastError() );
 
