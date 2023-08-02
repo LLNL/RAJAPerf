@@ -602,10 +602,10 @@ public:
     for(auto const &mp : mgr) {
       for(auto const &kv : mp.second) {
         // set Adiak key first
-        std::string variant = getVariantName(mp.first);
-        std::string tstr = kv.first;
-        adiak::value("variant",variant.c_str());
-        adiak::value("tuning", tstr.c_str());
+        adiak::catstring variant = getVariantName(mp.first);
+        adiak::catstring tstr = kv.first;
+        adiak::value("variant", variant);
+        adiak::value("tuning", tstr);
         mgr[mp.first][kv.first].flush();
       }
     }

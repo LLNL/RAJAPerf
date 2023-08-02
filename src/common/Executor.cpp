@@ -120,7 +120,7 @@ Executor::Executor(int argc, char** argv)
     reference_tune_idx(KernelBase::getUnknownTuningIdx())
 {
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-  struct configuration cc;
+  configuration cc;
   adiak::init(NULL);
   adiak::user();
   adiak::launchdate();
@@ -131,30 +131,32 @@ Executor::Executor(int argc, char** argv)
   adiak::value("raja_version", cc.adiak_raja_version);
   adiak::value("cmake_build_type", cc.adiak_cmake_build_type);
   adiak::value("cmake_cxx_flags", cc.adiak_cmake_cxx_flags);
-  adiak::value("cmake_exe_linker_flags", cc.adiak_cmake_exe_linker_flags);
   adiak::value("rajaperf_compiler", cc.adiak_rajaperf_compiler);
-  adiak::value("rajaperf_compiler_options", cc.adiak_rajaperf_compiler_options);
   adiak::value("compiler_version", cc.adiak_compiler_version);
 
   auto tokens = split(cc.adiak_rajaperf_compiler, "/");
   string compiler_exec = tokens.back();
-  string compiler = compiler_exec + "-" + cc.adiak_compiler_version;
-  cout << "Compiler: " << compiler << "\n";
-  adiak::value("compiler", compiler.c_str());
+  adiak::catstring compiler = compiler_exec + "-" + std::string(cc.adiak_compiler_version);
+  cout << "Compiler: " << (string)compiler << "\n";
+  adiak::value("compiler", compiler);
   auto tsize = tokens.size();
   if (tsize >= 3) {
     // pickup path version <compiler-version-hash|date>/bin/exec
     string path_version = tokens[tsize-3];
-    //cout << "Compiler path version: " << path_version << "\n";
     auto s = split(path_version,"-");
     if (s.size() >= 2) {
-      string path_version_short = s[0] + "-" + s[1];
-      //cout << "Compiler path version short: " << path_version_short << "\n";
-      adiak::value("Compiler_path_version",path_version_short.c_str());
+      adiak::path path_version_short = s[0] + "-" + s[1];
+      adiak::value("Compiler_path_version", (adiak::catstring)path_version_short);
     } 
   }
 
-  if (strlen(cc.adiak_cuda_compiler_version) > 0) {
+  if (cc.adiak_cmake_exe_linker_flags.size() > 0) {
+    adiak::value("cmake_exe_linker_flags", cc.adiak_cmake_exe_linker_flags);
+  }
+  if (cc.adiak_rajaperf_compiler_options.size() > 0) {
+    adiak::value("rajaperf_compiler_options", cc.adiak_rajaperf_compiler_options);
+  }
+  if (std::string(cc.adiak_cuda_compiler_version).size() > 0) {
     adiak::value("cuda_compiler_version", cc.adiak_cuda_compiler_version);
   }
   if (strlen(cc.adiak_gpu_targets) > 0) {
@@ -163,28 +165,27 @@ Executor::Executor(int argc, char** argv)
   if (strlen(cc.adiak_cmake_hip_architectures) > 0) {
     adiak::value("cmake_hip_architectures", cc.adiak_cmake_hip_architectures);
   }
-  if (strlen(cc.adiak_gpu_targets_block_sizes) > 0) {
+  if (cc.adiak_gpu_targets_block_sizes.size() > 0) {
     adiak::value("gpu_targets_block_sizes", cc.adiak_gpu_targets_block_sizes);
   }
-  if (strlen(cc.adiak_raja_hipcc_flags) > 0) {
+  if (cc.adiak_raja_hipcc_flags.size() > 0) {
     adiak::value("raja_hipcc_flags", cc.adiak_raja_hipcc_flags);
   }
-  if (strlen(cc.adiak_mpi_cxx_compiler) > 0) {
+  if (std::string(cc.adiak_mpi_cxx_compiler).size() > 0) {
     adiak::value("mpi_cxx_compiler", cc.adiak_mpi_cxx_compiler);
   }
-  if (strlen(cc.adiak_systype_build) > 0) {
+  if (std::string(cc.adiak_systype_build).size() > 0) {
     adiak::value("systype_build", cc.adiak_systype_build);
   }
-  if (strlen(cc.adiak_machine_build) > 0) {
+  if (std::string(cc.adiak_machine_build).size() > 0) {
     adiak::value("machine_build", cc.adiak_machine_build);
   }
 
-  adiak::value("ProblemSizeRunParam",(double)1.0);
-  adiak::value("SizeMeaning",run_params.SizeMeaningToStr(run_params.getSizeMeaning()).c_str());
+  adiak::value("SizeMeaning",(adiak::catstring)run_params.SizeMeaningToStr(run_params.getSizeMeaning()));
   if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Factor) {
-    adiak::value("ProblemSizeRunParam",(double)run_params.getSizeFactor());
+    adiak::value("ProblemSizeRunParam",(uint)run_params.getSizeFactor());
   } else if (run_params.getSizeMeaning() == RunParams::SizeMeaning::Direct) {
-    adiak::value("ProblemSizeRunParam",(double)run_params.getSize());
+    adiak::value("ProblemSizeRunParam",(uint)run_params.getSize());
   }
 
   if (run_params.numValidGPUBlockSize() > 0) {
@@ -205,9 +206,9 @@ Executor::Executor(int argc, char** argv)
     strval="Version Not Detected";
   }
   std::cerr << "_OPENMP:" << test << " at version: " << strval << "\n";
-  adiak::value("omp_version",strval.c_str());
-  strval = std::to_string(omp_get_max_threads());
-  adiak::value("omp_max_threads",strval.c_str());
+  adiak::value("omp_version",(adiak::version)strval);
+  uint ompthreads = omp_get_max_threads();
+  adiak::value("omp_max_threads",ompthreads);
 #endif
 
 #endif
