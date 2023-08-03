@@ -17,6 +17,7 @@
 //
 // Basic kernels...
 //
+#include "basic/ARRAY_OF_PTRS.hpp"
 #include "basic/COPY8.hpp"
 #include "basic/DAXPY.hpp"
 #include "basic/DAXPY_ATOMIC.hpp"
@@ -120,7 +121,7 @@ namespace rajaperf
  * IMPORTANT: This is only modified when a group is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF GROUP IDS IN HEADER FILE!!!
+ *            ITEMS IN THE GroupID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -146,7 +147,7 @@ static const std::string GroupNames [] =
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF KERNEL IDS IN HEADER FILE!!!
+ *            ITEMS IN THE KernelID enum IN HEADER FILE!!! 
  *
  *******************************************************************************
  */
@@ -156,6 +157,7 @@ static const std::string KernelNames [] =
 //
 // Basic kernels...
 //
+  std::string("Basic_ARRAY_OF_PTRS"),
   std::string("Basic_COPY8"),
   std::string("Basic_DAXPY"),
   std::string("Basic_DAXPY_ATOMIC"),
@@ -258,7 +260,7 @@ static const std::string KernelNames [] =
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF VARIANT IDS IN HEADER FILE!!!
+ *            ITEMS IN THE VariantID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -299,7 +301,7 @@ static const std::string VariantNames [] =
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF FEATURE IDS IN HEADER FILE!!!
+ *            ITEMS IN THE FeatureID enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -332,7 +334,7 @@ static const std::string FeatureNames [] =
  * IMPORTANT: This is only modified when a new memory space is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ENUM OF CUDADATA IDS IN HEADER FILE!!!
+ *            ITEMS IN THE DataSpace enum IN HEADER FILE!!!
  *
  *******************************************************************************
  */
@@ -640,6 +642,10 @@ KernelBase* getKernelObject(KernelID kid,
     //
     // Basic kernels...
     //
+    case Basic_ARRAY_OF_PTRS : {
+       kernel = new basic::ARRAY_OF_PTRS(run_params);
+       break;
+    }
     case Basic_COPY8 : {
        kernel = new basic::COPY8(run_params);
        break;

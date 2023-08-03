@@ -33,8 +33,8 @@ class RunParams;
  *
  * IMPORTANT: This is only modified when a group is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF GROUP NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE GroupNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -60,8 +60,8 @@ enum GroupID {
  *
  * IMPORTANT: This is only modified when a kernel is added or removed.
  *
- *            ENUM VALUES MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE)
- *            WITH ARRAY OF KERNEL NAMES IN IMPLEMENTATION FILE!!!
+ *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
+ *            ITEMS IN THE KernelNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -70,7 +70,8 @@ enum KernelID {
 //
 // Basic kernels...
 //
-  Basic_COPY8 = 0,
+  Basic_ARRAY_OF_PTRS = 0,
+  Basic_COPY8,
   Basic_DAXPY,
   Basic_DAXPY_ATOMIC,
   Basic_IF_QUAD,
@@ -172,7 +173,7 @@ enum KernelID {
  * IMPORTANT: This is only modified when a new variant is added to the suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF VARIANT NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE VariantNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -212,7 +213,7 @@ enum VariantID {
  * IMPORTANT: This is only modified when a new feature is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF FEATURE NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE FeatureNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */
@@ -245,7 +246,7 @@ enum FeatureID {
  * IMPORTANT: This is only modified when a new memory space is used in suite.
  *
  *            IT MUST BE KEPT CONSISTENT (CORRESPONDING ONE-TO-ONE) WITH
- *            ARRAY OF MEMORY SPACE NAMES IN IMPLEMENTATION FILE!!!
+ *            ITEMS IN THE DataSpaceNames ARRAY IN IMPLEMENTATION FILE!!!
  *
  *******************************************************************************
  */

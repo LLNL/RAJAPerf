@@ -8,7 +8,13 @@
 
 blt_add_library(
   NAME basic
-  SOURCES COPY8.cpp
+  SOURCES ARRAY_OF_PTRS.cpp
+          ARRAY_OF_PTRS-Seq.cpp
+          ARRAY_OF_PTRS-Hip.cpp
+          ARRAY_OF_PTRS-Cuda.cpp
+          ARRAY_OF_PTRS-OMP.cpp
+          ARRAY_OF_PTRS-OMPTarget.cpp
+          COPY8.cpp
           COPY8-Seq.cpp
           COPY8-Hip.cpp
           COPY8-Cuda.cpp

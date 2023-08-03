@@ -240,15 +240,9 @@ void POLYBENCH_FDTD_2D::runCudaVariantImpl(VariantID vid)
     using EXEC_POL234 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<i_block_sz * j_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<i_block_sz>,
-                                   RAJA::cuda_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
-                                     RAJA::cuda_block_x_direct,
-              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // i
-                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
-                  RAJA::statement::Lambda<0>
-                >
-              >
+          RAJA::statement::For<0, RAJA::cuda_global_size_y_direct<i_block_sz>,   // i
+            RAJA::statement::For<1, RAJA::cuda_global_size_x_direct<j_block_sz>, // j
+              RAJA::statement::Lambda<0>
             >
           >
         >

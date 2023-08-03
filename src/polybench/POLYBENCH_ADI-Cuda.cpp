@@ -157,17 +157,14 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>>,
-              RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
-              >
+          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>>,
+            RAJA::statement::For<2, RAJA::seq_exec,
+              RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
             >
           >
         >
