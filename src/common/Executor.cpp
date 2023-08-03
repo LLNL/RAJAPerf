@@ -1118,9 +1118,6 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
     }
-    #if defined(RAJA_PERFSUITE_USE_CALIPER)
-      KernelBase::setCaliperMgrFlush();
-    #endif
   } // loop over variants
 }
 
@@ -1174,6 +1171,10 @@ void Executor::outputRunData()
     bool to_file = true;
     writeKernelInfoSummary(*file, to_file);
   }
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  KernelBase::setCaliperMgrFlush();
+#endif
 }
 
 unique_ptr<ostream> Executor::openOutputFile(const string& filename) const

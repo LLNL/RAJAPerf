@@ -23,6 +23,7 @@
 #include "RAJA/config.hpp"
 #include "camp/number.hpp"
 
+#include <algorithm>
 #include <string>
 
 #cmakedefine RAJA_PERFSUITE_ENABLE_MPI
