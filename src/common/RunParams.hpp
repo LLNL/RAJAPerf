@@ -10,6 +10,7 @@
 #define RAJAPerf_RunParams_HPP
 
 #include <string>
+#include <set>
 #include <vector>
 #include <iosfwd>
 
@@ -149,20 +150,6 @@ public:
 
   const std::string& getReferenceVariant() const { return reference_variant; }
 
-  const std::vector<std::string>& getKernelInput() const
-                                  { return kernel_input; }
-  void setInvalidKernelInput( std::vector<std::string>& svec )
-                              { invalid_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidKernelInput() const
-                                  { return invalid_kernel_input; }
-
-  const std::vector<std::string>& getExcludeKernelInput() const
-                                  { return exclude_kernel_input; }
-  void setInvalidExcludeKernelInput( std::vector<std::string>& svec )
-                              { invalid_exclude_kernel_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeKernelInput() const
-                                  { return invalid_exclude_kernel_input; }
-
   const std::vector<std::string>& getVariantInput() const
                                   { return variant_input; }
   void setInvalidVariantInput( std::vector<std::string>& svec )
@@ -191,24 +178,12 @@ public:
   const std::vector<std::string>& getInvalidExcludeTuningInput() const
                                   { return invalid_exclude_tuning_input; }
 
-  const std::vector<std::string>& getFeatureInput() const
-                                  { return feature_input; }
-  void setInvalidFeatureInput( std::vector<std::string>& svec )
-                               { invalid_feature_input = svec; }
-  const std::vector<std::string>& getInvalidFeatureInput() const
-                                  { return invalid_feature_input; }
-
-  const std::vector<std::string>& getExcludeFeatureInput() const
-                                  { return exclude_feature_input; }
-  void setInvalidExcludeFeatureInput( std::vector<std::string>& svec )
-                               { invalid_exclude_feature_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeFeatureInput() const
-                                  { return invalid_exclude_feature_input; }
-
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
 
   bool getDisableWarmup() const { return disable_warmup; }
+
+  const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
 
 //@}
 
@@ -234,7 +209,9 @@ private:
   void printFeatureKernels(std::ostream& str) const;
   void printKernelFeatures(std::ostream& str) const;
 
-  void checkNpassesCombinerInput();
+  void processNpassesCombinerInput();
+
+  void processKernelsToRunInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -299,6 +276,8 @@ private:
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
 
   bool disable_warmup;
+
+  std::set<KernelID> run_kernels;
 
 };
 

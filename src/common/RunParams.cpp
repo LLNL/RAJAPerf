@@ -14,6 +14,9 @@
 #include <cstdio>
 #include <iostream>
 
+#include <list>
+#include <set>
+
 namespace rajaperf
 {
 
@@ -60,7 +63,8 @@ RunParams::RunParams(int argc, char** argv)
    invalid_npasses_combiner_input(),
    outdir(),
    outfile_prefix("RAJAPerf"),
-   disable_warmup(false)
+   disable_warmup(false),
+   run_kernels()
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -719,7 +723,25 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
     size_factor = 1.0;
   }
 
-  checkNpassesCombinerInput();
+  processNpassesCombinerInput();
+
+  processKernelsToRunInput(); 
+
+
+  //
+  // Set BadInput state based on invalid input
+  // 
+
+  if ( !(invalid_kernel_input.empty()) ||
+       !(invalid_exclude_kernel_input.empty()) ) {
+    input_state = BadInput;
+  }
+
+  if ( !(invalid_feature_input.empty()) ||
+       !(invalid_exclude_feature_input.empty()) ) {  
+    input_state = BadInput;
+  }
+  
 
 }
 
@@ -1065,7 +1087,7 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str.flush();
 }
 
-void RunParams::checkNpassesCombinerInput()
+void RunParams::processNpassesCombinerInput()
 {
   // Default npasses_combiners if no input
   if ( npasses_combiner_input.empty() ) {
@@ -1086,9 +1108,317 @@ void RunParams::checkNpassesCombinerInput()
         invalid_npasses_combiner_input.emplace_back(combiner_name);
       }
 
-    } // for
+    } // iterate over combiner input
 
   } // else
+}
+
+void RunParams::processKernelsToRunInput()
+{
+  using Slist = std::list<std::string>;
+  using Svector = std::vector<std::string>;
+  using KIDset = std::set<KernelID>;
+
+  // ================================================================
+  //
+  // Determine IDs of kernels to exclude from run based on exclude
+  // kernel input.
+  // 
+  // exclude_kern will be ordered set of IDs of kernel to exclude.
+  //
+  // ================================================================
+
+  KIDset exclude_kern;
+
+  if ( !exclude_kernel_input.empty() ) {
+
+    // Make list copy of exclude kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist exclude_kern_names( exclude_kernel_input.begin(), 
+                              exclude_kernel_input.end() );
+
+    //
+    // Search exclude_kern_names for valid group names.
+    // groups2exclude will contain names of valid groups to exclude.
+    //
+    Svector groups2exclude;
+    for (Slist::iterator it = exclude_kern_names.begin(); 
+         it != exclude_kern_names.end(); ++it) {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          groups2exclude.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in exclude_kern_names, assemble kernels in 
+    // those group(s) to exclude from run. Also remove the group names from
+    // the exclude_kern_names list.
+    //
+    for (size_t ig = 0; ig < groups2exclude.size(); ++ig) {
+      const std::string& gname(groups2exclude[ig]);
+
+      for (size_t ik = 0; ik < NumKernels; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getFullKernelName(kid).find(gname) != std::string::npos ) {
+          exclude_kern.insert(kid);
+        }
+      }
+
+      exclude_kern_names.remove(gname);
+
+    }  // iterate over groups to exclude
+
+    //
+    // Search for valid names of individual kernels in remaining items in
+    // exclude_kern_names list.
+    //
+    for (Slist::iterator it = exclude_kern_names.begin(); 
+         it != exclude_kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
+        KernelID kid = static_cast<KernelID>(ik);
+        if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
+          exclude_kern.insert(kid);
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input items for output message.
+      if ( !found_it ) {
+        invalid_exclude_kernel_input.push_back(*it);
+      }
+
+    }  // iterate over names of kernels to exclude
+
+  }  //  if ( !exclude_kernel_input.empty() )
+
+
+  // ================================================================
+  //
+  // Determine IDs of kernels to exclude from run based on exclude
+  // feature input.
+  //
+  // ================================================================
+
+  if ( !exclude_feature_input.empty() ) {
+
+    // First, check for invalid exclude_feature input.
+    Svector invalid;
+
+    for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+      bool found_it = false;
+
+      for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+        FeatureID tfid = static_cast<FeatureID>(fid);
+        if ( getFeatureName(tfid) == exclude_feature_input[i] ) {
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input items for output message.
+      if ( !found_it ) {
+        invalid_exclude_feature_input.push_back( exclude_feature_input[i] );
+      }
+
+    }  // iterate over features to exclude
+
+    //
+    // If exclude feature input is valid, determine which kernels use input-
+    // specified features and add to set of kernel IDs to exclude from run.
+    //
+    if ( invalid_exclude_feature_input.empty() ) {
+
+      for (size_t i = 0; i < exclude_feature_input.size(); ++i) {
+
+        const std::string& feature = exclude_feature_input[i];
+
+        bool found_it = false;
+        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+          FeatureID tfid = static_cast<FeatureID>(fid);
+
+          if ( getFeatureName(tfid) == feature ) {
+
+            // Found valid feature name, exclude kernels that use the feature.
+            found_it = true;
+
+            for (int kid = 0; kid < NumKernels; ++kid) {
+              KernelID tkid = static_cast<KernelID>(kid);
+              KernelBase* kern = getKernelObject(tkid, *this);
+              if ( kern->usesFeature(tfid) ) {
+                 exclude_kern.insert( tkid );
+              }
+              delete kern;
+            }  // loop over kernels
+
+          }  // if input feature name matches feature id
+
+        }  // iterate over feature ids until name match is found
+
+      }  // loop over exclude feature name input
+
+    }  // if exclude feature name input is valid
+ 
+  }  // if exclude feature name input is not empty
+
+
+  // ================================================================
+  //
+  // Determine IDs of kernels to run based on input.
+  // run_kernels will be ordered set of IDs of kernels to run.
+  //
+  // ================================================================
+
+  run_kernels.clear();
+
+  if ( kernel_input.empty() && feature_input.empty() ) {
+
+    //
+    // No kernels or features specified in input. Run 'em all!
+    //
+    for (size_t kid = 0; kid < NumKernels; ++kid) {
+      KernelID tkid = static_cast<KernelID>(kid);
+      if (exclude_kern.find(tkid) == exclude_kern.end()) {
+        run_kernels.insert( tkid );
+      }
+    }
+
+  } else {
+
+    //
+    // Need to parse input to determine which kernels to run
+    //
+
+    //
+    // Look for kernels using features if such input provided
+    //
+    if ( !feature_input.empty() ) {
+
+      //
+      // First, check for invalid feature input.
+      //
+      for (size_t i = 0; i < feature_input.size(); ++i) {
+        bool found_it = false;
+
+        for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+          FeatureID tfid = static_cast<FeatureID>(fid);
+          if ( getFeatureName(tfid) == feature_input[i] ) {
+            found_it = true;
+          }
+        }
+
+        // Assemble invalid input items for output message.
+        if ( !found_it )  {
+          invalid_feature_input.push_back( feature_input[i] );
+        }
+
+      } // iterate over feature input items
+
+      //
+      // If feature input is valid, determine which kernels use
+      // input-specified features and add to set of kernels to run.
+      //
+      if ( invalid_feature_input.empty() ) {
+
+        for (size_t i = 0; i < feature_input.size(); ++i) {
+
+          const std::string& feature = feature_input[i];
+
+          bool found_it = false;
+          for (size_t fid = 0; fid < NumFeatures && !found_it; ++fid) {
+            FeatureID tfid = static_cast<FeatureID>(fid);
+
+            if ( getFeatureName(tfid) == feature ) {
+              found_it = true;
+
+              for (int kid = 0; kid < NumKernels; ++kid) {
+                KernelID tkid = static_cast<KernelID>(kid);
+                KernelBase* kern = getKernelObject(tkid, *this);
+                if ( kern->usesFeature(tfid) &&
+                     exclude_kern.find(tkid) == exclude_kern.end() ) {
+                   run_kernels.insert( tkid );
+                }
+                delete kern;
+              }  // iterate over kernels
+
+            }  // if input feature name matches feature id
+
+          }  // iterate over feature ids until name match is found
+
+        }  // iterate over feature name input
+
+      }  // if feature name input is valid
+
+    } // if !feature_input.empty()
+
+    // Make list copy of kernel name input to manipulate for
+    // processing potential group names and/or kernel names, next
+    Slist kern_names(kernel_input.begin(), kernel_input.end());
+
+    //
+    // Search kern_names for matching group names.
+    // groups2run will contain names of groups to run.
+    //
+    Svector groups2run;
+    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
+    {
+      for (size_t ig = 0; ig < NumGroups; ++ig) {
+        const std::string& group_name = getGroupName(static_cast<GroupID>(ig));
+        if ( group_name == *it ) {
+          groups2run.push_back(group_name);
+        }
+      }
+    }
+
+    //
+    // If group name(s) found in kern_names, assemble kernels in group(s)
+    // to run and remove those group name(s) from kern_names list.
+    //
+    for (size_t ig = 0; ig < groups2run.size(); ++ig) {
+      const std::string& gname(groups2run[ig]);
+
+      for (size_t kid = 0; kid < NumKernels; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getFullKernelName(tkid).find(gname) != std::string::npos &&
+             exclude_kern.find(tkid) == exclude_kern.end()) {
+          run_kernels.insert(tkid);
+        }
+      }
+
+      kern_names.remove(gname);
+    }
+
+    //
+    // Look for matching names of individual kernels in remaining kern_names.
+    //
+    for (Slist::iterator it = kern_names.begin(); it != kern_names.end(); ++it)
+    {
+      bool found_it = false;
+
+      for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
+        KernelID tkid = static_cast<KernelID>(kid);
+        if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
+          if (exclude_kern.find(tkid) == exclude_kern.end()) {
+            run_kernels.insert(tkid);
+          }
+          found_it = true;
+        }
+      }
+
+      // Assemble invalid input for output message.
+      if ( !found_it ) {
+        invalid_kernel_input.push_back(*it);
+      }
+
+    } // iterate over kernel name input
+
+  }  // else either kernel input or feature input is non-empty
+   
+
 }
 
 }  // closing brace for rajaperf namespace
