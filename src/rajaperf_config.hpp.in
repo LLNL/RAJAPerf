@@ -39,6 +39,7 @@
 
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
 #include <adiak.hpp>
+#include <algorithm>
 #endif
 
 namespace rajaperf {
