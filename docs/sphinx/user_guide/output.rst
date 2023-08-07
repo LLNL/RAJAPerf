@@ -231,7 +231,7 @@ or the variant represented in this file::
 
 `Find out more on hatchet <https://github.com/LLNL/hatchet>`_
 
-3: Using the *Thicket* Python module for multiple files::
+4: Using the *Thicket* Python module for multiple files::
 
   import thicket as th
   DATA_DIR = os.getenv('HOME')+"/data/default_problem_size/gcc"
