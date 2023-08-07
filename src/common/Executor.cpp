@@ -779,7 +779,7 @@ void Executor::setupSuite()
           tuning_names[vid].resize(tuning_names_order_map.size());
           for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
             size_t tid = tuning_name_idx_pair.second;
-            std::string tstr = tuning_name_idx_pair.first;
+            std::string const& tstr = tuning_name_idx_pair.first;
             tuning_names[vid][tid] = tstr;
             #if defined(RAJA_PERFSUITE_USE_CALIPER)
               KernelBase::setCaliperMgrVariantTuning(vid,
