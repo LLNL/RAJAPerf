@@ -7,15 +7,22 @@
 # SPDX-License-Identifier: (BSD-3-Clause)
 ###############################################################################
 
-if [ "$1" == "" ]; then
+if [[ $# -ne 3 ]]; then
   echo
-  echo "You must pass a compiler version number to script. For example,"
-  echo "    toss4_clang_caliper.sh 14.0.6"
+  echo "You must pass 3 arguments to the script (in this order): "
+  echo "   1) compiler version number"
+  echo "   2) path to caliper cmake directory"
+  echo "   3) path to adiak cmake directory"
+  echo
+  echo "For example: "
+  echo "    toss4_clang_caliper.sh 14.0.6 /usr/workspace/wsb/asde/caliper-quartz/share/cmake/caliper /usr/workspace/wsb/asde/caliper-quartz/lib/cmake/adiak"
   exit
 fi
 
 COMP_VER=$1
-shift 1
+CALI_DIR=$2
+ADIAK_DIR=$3
+shift 3
 
 BUILD_SUFFIX=lc_toss4-clang-${COMP_VER}
 RAJA_HOSTCONFIG=../tpl/RAJA/host-configs/lc-builds/toss3/clang_X.cmake
@@ -39,8 +46,8 @@ cmake \
   -DENABLE_OPENMP=On \
   -DCMAKE_INSTALL_PREFIX=../install_${BUILD_SUFFIX} \
   -DRAJA_PERFSUITE_USE_CALIPER=ON \
-  -Dcaliper_DIR=/usr/workspace/wsb/asde/caliper-quartz/share/cmake/caliper \
-  -Dadiak_DIR=/usr/workspace/wsb/asde/caliper-quartz/lib/cmake/adiak \
+  -Dcaliper_DIR=${CALI_DIR} \
+  -Dadiak_DIR=${ADIAK_DIR} \
   -DCMAKE_C_FLAGS="-g -O0" \
   -DCMAKE_CXX_FLAGS="-g -O0" \
   "$@" \
