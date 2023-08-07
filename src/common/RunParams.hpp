@@ -148,22 +148,6 @@ public:
 
   int getCheckRunReps() const { return checkrun_reps; }
 
-  const std::string& getReferenceVariant() const { return reference_variant; }
-
-  const std::vector<std::string>& getVariantInput() const
-                                  { return variant_input; }
-  void setInvalidVariantInput( std::vector<std::string>& svec )
-                               { invalid_variant_input = svec; }
-  const std::vector<std::string>& getInvalidVariantInput() const
-                                  { return invalid_variant_input; }
-
-  const std::vector<std::string>& getExcludeVariantInput() const
-                                  { return exclude_variant_input; }
-  void setInvalidExcludeVariantInput( std::vector<std::string>& svec )
-                               { invalid_exclude_variant_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeVariantInput() const
-                                  { return invalid_exclude_variant_input; }
-
   const std::vector<std::string>& getTuningInput() const
                                   { return tuning_input; }
   void setInvalidTuningInput( std::vector<std::string>& svec )
@@ -184,6 +168,8 @@ public:
   bool getDisableWarmup() const { return disable_warmup; }
 
   const std::set<KernelID>& getKernelIDsToRun() const { return run_kernels; }
+  const std::set<VariantID>& getVariantIDsToRun() const { return run_variants; }
+  VariantID getReferenceVariantID() const { return reference_vid; }
 
 //@}
 
@@ -210,8 +196,8 @@ private:
   void printKernelFeatures(std::ostream& str) const;
 
   void processNpassesCombinerInput();
-
   void processKernelsToRunInput();
+  void processVariantsToRunInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
@@ -239,7 +225,8 @@ private:
   int checkrun_reps;     /*!< Num reps each kernel is run in check run */
 
   std::string reference_variant;   /*!< Name of reference variant for speedup
-                                        calculations */
+                                        calculations given in input */
+  VariantID reference_vid;  /*!< ID of reference variant */
 
   DataSpace seqDataSpace = DataSpace::Host;
   DataSpace ompDataSpace = DataSpace::Omp;
@@ -277,7 +264,8 @@ private:
 
   bool disable_warmup;
 
-  std::set<KernelID> run_kernels;
+  std::set<KernelID>  run_kernels;
+  std::set<VariantID> run_variants;
 
 };
 

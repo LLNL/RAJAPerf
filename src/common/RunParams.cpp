@@ -43,6 +43,7 @@ RunParams::RunParams(int argc, char** argv)
    pf_tol(0.1),
    checkrun_reps(1),
    reference_variant(),
+   reference_vid(NumVariants),
    kernel_input(),
    invalid_kernel_input(),
    exclude_kernel_input(),
@@ -725,11 +726,10 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
   processNpassesCombinerInput();
 
-  processKernelsToRunInput(); 
-
+  processKernelsToRunInput();
 
   //
-  // Set BadInput state based on invalid input
+  // Set BadInput state based on invalid kernel input
   // 
 
   if ( !(invalid_kernel_input.empty()) ||
@@ -741,7 +741,17 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
        !(invalid_exclude_feature_input.empty()) ) {  
     input_state = BadInput;
   }
-  
+
+  processVariantsToRunInput();
+
+  //
+  // Set BadInput state based on invalid variant input
+  // 
+
+  if ( !(invalid_variant_input.empty()) ||
+       !(invalid_exclude_variant_input.empty()) ) {
+    input_state = BadInput;
+  }
 
 }
 
@@ -1124,11 +1134,11 @@ void RunParams::processKernelsToRunInput()
   // Determine IDs of kernels to exclude from run based on exclude
   // kernel input.
   // 
-  // exclude_kern will be ordered set of IDs of kernel to exclude.
+  // exclude_kernels will be ordered set of IDs of kernels to exclude.
   //
   // ================================================================
 
-  KIDset exclude_kern;
+  KIDset exclude_kernels;
 
   if ( !exclude_kernel_input.empty() ) {
 
@@ -1163,7 +1173,7 @@ void RunParams::processKernelsToRunInput()
       for (size_t ik = 0; ik < NumKernels; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
         if ( getFullKernelName(kid).find(gname) != std::string::npos ) {
-          exclude_kern.insert(kid);
+          exclude_kernels.insert(kid);
         }
       }
 
@@ -1176,14 +1186,13 @@ void RunParams::processKernelsToRunInput()
     // exclude_kern_names list.
     //
     for (Slist::iterator it = exclude_kern_names.begin(); 
-         it != exclude_kern_names.end(); ++it)
-    {
+         it != exclude_kern_names.end(); ++it) {
       bool found_it = false;
 
       for (size_t ik = 0; ik < NumKernels && !found_it; ++ik) {
         KernelID kid = static_cast<KernelID>(ik);
         if ( getKernelName(kid) == *it || getFullKernelName(kid) == *it ) {
-          exclude_kern.insert(kid);
+          exclude_kernels.insert(kid);
           found_it = true;
         }
       }
@@ -1250,7 +1259,7 @@ void RunParams::processKernelsToRunInput()
               KernelID tkid = static_cast<KernelID>(kid);
               KernelBase* kern = getKernelObject(tkid, *this);
               if ( kern->usesFeature(tfid) ) {
-                 exclude_kern.insert( tkid );
+                 exclude_kernels.insert( tkid );
               }
               delete kern;
             }  // loop over kernels
@@ -1282,7 +1291,7 @@ void RunParams::processKernelsToRunInput()
     //
     for (size_t kid = 0; kid < NumKernels; ++kid) {
       KernelID tkid = static_cast<KernelID>(kid);
-      if (exclude_kern.find(tkid) == exclude_kern.end()) {
+      if (exclude_kernels.find(tkid) == exclude_kernels.end()) {
         run_kernels.insert( tkid );
       }
     }
@@ -1339,7 +1348,7 @@ void RunParams::processKernelsToRunInput()
                 KernelID tkid = static_cast<KernelID>(kid);
                 KernelBase* kern = getKernelObject(tkid, *this);
                 if ( kern->usesFeature(tfid) &&
-                     exclude_kern.find(tkid) == exclude_kern.end() ) {
+                     exclude_kernels.find(tkid) == exclude_kernels.end() ) {
                    run_kernels.insert( tkid );
                 }
                 delete kern;
@@ -1384,7 +1393,7 @@ void RunParams::processKernelsToRunInput()
       for (size_t kid = 0; kid < NumKernels; ++kid) {
         KernelID tkid = static_cast<KernelID>(kid);
         if ( getFullKernelName(tkid).find(gname) != std::string::npos &&
-             exclude_kern.find(tkid) == exclude_kern.end()) {
+             exclude_kernels.find(tkid) == exclude_kernels.end()) {
           run_kernels.insert(tkid);
         }
       }
@@ -1402,7 +1411,7 @@ void RunParams::processKernelsToRunInput()
       for (size_t kid = 0; kid < NumKernels && !found_it; ++kid) {
         KernelID tkid = static_cast<KernelID>(kid);
         if ( getKernelName(tkid) == *it || getFullKernelName(tkid) == *it ) {
-          if (exclude_kern.find(tkid) == exclude_kern.end()) {
+          if (exclude_kernels.find(tkid) == exclude_kernels.end()) {
             run_kernels.insert(tkid);
           }
           found_it = true;
@@ -1418,6 +1427,140 @@ void RunParams::processKernelsToRunInput()
 
   }  // else either kernel input or feature input is non-empty
    
+}
+
+void RunParams::processVariantsToRunInput()
+{
+  using VIDset = std::set<VariantID>;
+
+  //
+  // Assemble set of available variants to run based on compile configuration.
+  //
+  VIDset available_variants;
+
+  for (size_t iv = 0; iv < NumVariants; ++iv) {
+    VariantID vid = static_cast<VariantID>(iv);
+    if ( isVariantAvailable( vid ) ) {
+       available_variants.insert( vid );
+    }
+  }
+
+  // ================================================================
+  //
+  // Determine IDs of variants to exclude from run based on exclude
+  // variant input.
+  //
+  // exclude_variants will be ordered set of IDs of variants to exclude.
+  //
+  // ================================================================
+  //
+
+  VIDset exclude_variants;
+
+  if ( !exclude_variant_input.empty() ) {
+
+    //
+    // Parse input to determine which variants to exclude.
+    //
+    // Assemble invalid input for warning message.
+    //
+
+    for (size_t it = 0; it < exclude_variant_input.size(); ++it) {
+      bool found_it = false;
+
+      for (VIDset::iterator vid_it = available_variants.begin();
+           vid_it != available_variants.end(); ++vid_it) {
+        VariantID vid = *vid_it;
+        if ( getVariantName(vid) == exclude_variant_input[it] ) {
+          exclude_variants.insert(vid);
+          found_it = true;
+        }
+      }  // iterate over available variants
+
+      // Assemble invalid input items for output message.
+      if ( !found_it ) {
+        invalid_exclude_variant_input.push_back(exclude_variant_input[it]);
+      }
+
+    }
+
+  }  // !exclude_variant_input.empty()
+
+  
+  //
+  // ================================================================
+  //
+  // Determine IDs of variants to execute based on variant input.
+  //
+  // run_variants will be ordered set of IDs of variants to exclude.
+  //
+  // ================================================================
+  //
+
+  if ( variant_input.empty() ) {
+
+    //
+    // No variants specified in input options, run all available.
+    // Also, set reference variant if specified.
+    //
+    for (VIDset::iterator vid_it = available_variants.begin();
+         vid_it != available_variants.end(); ++vid_it) {
+      VariantID vid = *vid_it;
+
+      if (exclude_variants.find(vid) == exclude_variants.end()) {
+        run_variants.insert( vid );
+        if ( getVariantName(vid) == reference_variant ) {
+          reference_vid = vid;
+        }
+      }
+
+    }
+
+  } else {  // variant input given
+
+    //
+    // Parse input to determine which variants to run:
+    //   - variants to run will be the intersection of available variants
+    //     and those specified in input
+    //   - reference variant will be set to specified input if available
+    //     and variant will be run; else first variant that will be run.
+    //
+
+    for (size_t it = 0; it < variant_input.size(); ++it) {
+      bool found_it = false;
+
+      for (VIDset::iterator vid_it = available_variants.begin();
+           vid_it != available_variants.end(); ++vid_it) {
+        VariantID vid = *vid_it;
+
+        if ( getVariantName(vid) == variant_input[it] ) {
+          if (exclude_variants.find(vid) == exclude_variants.end()) {
+            run_variants.insert(vid);
+            if ( getVariantName(vid) == reference_variant ) {
+              reference_vid = vid;
+            }
+          }
+          found_it = true;
+        }
+
+      }
+  
+      // Assemble invalid input items for output message.
+      if ( !found_it ) {
+         invalid_variant_input.push_back(variant_input[it]);
+      } 
+
+    }
+
+  }  // else variant input not-empty
+
+  //
+  // Set reference variant to first to run if not specified.
+  //
+  if ( reference_variant.empty() && !run_variants.empty() ) {
+    reference_vid = *run_variants.begin();
+  }
+
 
 }
 

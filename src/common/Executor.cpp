@@ -129,259 +129,145 @@ void Executor::setupSuite()
   getCout() << "\nSetting up suite based on input..." << endl;
 
   using Svector = vector<string>;
-  using VIDset = set<VariantID>;
-
 
   //
-  // Assemble set of available variants to run
-  // (based on compile-time configuration).
+  // Configure suite to run based on kernel and variant input.
   //
-  VIDset available_var;
-  for (size_t iv = 0; iv < NumVariants; ++iv) {
-    VariantID vid = static_cast<VariantID>(iv);
-    if ( isVariantAvailable( vid ) ) {
-       available_var.insert( vid );
-    }
-  }
-
-
+  // Kernel and variant input is assumed to be good at this point.
   //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
-  //
-  const Svector& exclude_variant_names = run_params.getExcludeVariantInput();
-
-  VIDset exclude_var;
-
-  if ( !exclude_variant_names.empty() ) {
-
-    //
-    // Parse input to determine which variants to exclude.
-    //
-    // Assemble invalid input for warning message.
-    //
-
-    Svector invalid;
-
-    for (size_t it = 0; it < exclude_variant_names.size(); ++it) {
-      bool found_it = false;
-
-      for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-        VariantID vid = *vid_it;
-        if ( getVariantName(vid) == exclude_variant_names[it] ) {
-          exclude_var.insert(vid);
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(exclude_variant_names[it]);
-    }
-
-    run_params.setInvalidExcludeVariantInput(invalid);
-
-  }
-
-  //
-  // Determine variants to execute from input.
-  // run_var will be non-duplicated ordered set of IDs of variants to run.
-  //
-  const Svector& variant_names = run_params.getVariantInput();
-
-  VIDset run_var;
-
-  if ( variant_names.empty() ) {
-
-    //
-    // No variants specified in input options, run all available.
-    // Also, set reference variant if specified.
-    //
-    for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-      VariantID vid = *vid_it;
-      if (exclude_var.find(vid) == exclude_var.end()) {
-        run_var.insert( vid );
-        if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-          reference_vid = vid;
-          reference_tune_idx = 0;
-        }
-      }
-    }
-
-    //
-    // Set reference variant if not specified.
-    //
-    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
-      reference_vid = *run_var.begin();
-      reference_tune_idx = 0;
-    }
-
-  } else {
-
-    //
-    // Parse input to determine which variants to run:
-    //   - variants to run will be the intersection of available variants
-    //     and those specified in input
-    //   - reference variant will be set to specified input if available
-    //     and variant will be run; else first variant that will be run.
-    //
-    // Assemble invalid input for warning message.
-    //
-
-    Svector invalid;
-
-    for (size_t it = 0; it < variant_names.size(); ++it) {
-      bool found_it = false;
-
-      for (VIDset::iterator vid_it = available_var.begin();
-         vid_it != available_var.end(); ++vid_it) {
-        VariantID vid = *vid_it;
-        if ( getVariantName(vid) == variant_names[it] ) {
-          if (exclude_var.find(vid) == exclude_var.end()) {
-            run_var.insert(vid);
-            if ( getVariantName(vid) == run_params.getReferenceVariant() ) {
-              reference_vid = vid;
-              reference_tune_idx = 0;
-            }
-          }
-          found_it = true;
-        }
-      }
-
-      if ( !found_it )  invalid.push_back(variant_names[it]);
-    }
-
-    //
-    // Set reference variant if not specified.
-    //
-    if ( run_params.getReferenceVariant().empty() && !run_var.empty() ) {
-      reference_vid = *run_var.begin();
-      reference_tune_idx = 0;
-    }
-
-    run_params.setInvalidVariantInput(invalid);
-
-  }
-
-  //
-  // Create kernel objects and variants to execute. If invalid input is not
-  // empty for either case, then there were unmatched input items.
-  //
-  // A message will be emitted later so user can sort it out...
-  //
-
-  // Kernel and Feature input is assumed to be good at this point
 
   const std::set<KernelID>& run_kern = run_params.getKernelIDsToRun();
-
   for (auto kid = run_kern.begin(); kid != run_kern.end(); ++kid) {
     kernels.push_back( getKernelObject(*kid, run_params) );
   }
 
-  if ( !(run_params.getInvalidVariantInput().empty()) ||
-       !(run_params.getInvalidExcludeVariantInput().empty()) ) {
+  const std::set<VariantID>& run_var = run_params.getVariantIDsToRun();
+  for (auto vid = run_var.begin(); vid != run_var.end(); ++vid) {
+    variant_ids.push_back( *vid );
+  }
 
-     run_params.setInputState(RunParams::BadInput);
-
-  } else { // variant input looks good
-
-    for (VIDset::iterator vid = run_var.begin();
-         vid != run_var.end(); ++vid) {
-      variant_ids.push_back( *vid );
+  //
+  // Set reference variant and reference tuning index IDs. 
+  //
+  // This logic seems a bit strange. Not sure why we do it this way.
+  //
+  reference_vid = run_params.getReferenceVariantID();
+  if ( reference_vid == NumVariants && !variant_ids.empty() ) {
+    reference_tune_idx = 0;
+  }
+  for (auto vid = variant_ids.begin(); vid != variant_ids.end(); ++vid) {
+    if ( *vid == reference_vid ) {
+      reference_tune_idx = 0;
     }
+  }
+
+ 
+  //
+  // Make a single ordering of tuning names for each variant across kernels.
+  //
+  // Determine which tunings to execute from input.
+  //
+
+  const Svector& selected_tuning_names = run_params.getTuningInput();
+  const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
+
+  // Constuct set of all possible tunings
+  set<string> all_tunings;
+  for (VariantID vid : variant_ids) {
+    for (const KernelBase* kernel : kernels) {
+      for (std::string const& tuning_name :
+           kernel->getVariantTuningNames(vid)) {
+        all_tunings.insert(tuning_name);
+      }
+    }
+  }
+
+  // Check for invalid tuning input
+  Svector invalid;
+  for (string const& tuning_name: selected_tuning_names) {
+    if (all_tunings.find(tuning_name) == all_tunings.end()) {
+      invalid.push_back(tuning_name);
+    }
+  }
+  run_params.setInvalidTuningInput(invalid);
+
+  // Check for invalid exclude tuning input
+  invalid.clear();
+  for (string const& tuning_name: excluded_tuning_names) {
+    if (all_tunings.find(tuning_name) == all_tunings.end()) {
+      invalid.push_back(tuning_name);
+    }
+  }
+  run_params.setInvalidExcludeTuningInput(invalid);
+
+  // Validate invalid input
+  if ( !(run_params.getInvalidTuningInput().empty()) ||
+       !(run_params.getInvalidExcludeTuningInput().empty())) {
+    run_params.setInputState(RunParams::BadInput);
+  }
+
+  if (run_params.getInputState() != RunParams::BadInput) { 
 
     //
-    // Make a single ordering of tuning names for each variant across kernels.
+    // Tunings input is good
     //
-    // Determine which tunings to execute from input.
-    const Svector& selected_tuning_names = run_params.getTuningInput();
-    const Svector& excluded_tuning_names = run_params.getExcludeTuningInput();
-    // Constuct set of all possible tunings
-    set<string> all_tunings;
+
     for (VariantID vid : variant_ids) {
+
+      std::unordered_map<std::string, size_t> tuning_names_order_map;
       for (const KernelBase* kernel : kernels) {
         for (std::string const& tuning_name :
-             kernel->getVariantTuningNames(vid)) {
-            all_tunings.insert(tuning_name);
-        }
-      }
-    }
-    // Check for invalid tuning input
-    Svector invalid;
-    for (string const& tuning_name: selected_tuning_names) {
-      if (all_tunings.find(tuning_name) == all_tunings.end()) {
-        invalid.push_back(tuning_name);
-      }
-    }
-    run_params.setInvalidTuningInput(invalid);
-    // Check for invalid exclude tuning input
-    invalid.clear();
-    for (string const& tuning_name: excluded_tuning_names) {
-      if (all_tunings.find(tuning_name) == all_tunings.end()) {
-        invalid.push_back(tuning_name);
-      }
-    }
-    run_params.setInvalidExcludeTuningInput(invalid);
-    // Validate invalid input
-    if ( !(run_params.getInvalidTuningInput().empty()) ||
-         !(run_params.getInvalidExcludeTuningInput().empty())) {
-      run_params.setInputState(RunParams::BadInput);
-    }
-
-    if (run_params.getInputState() != RunParams::BadInput) { // If tunings input is valid
-      for (VariantID vid : variant_ids) {
-        std::unordered_map<std::string, size_t> tuning_names_order_map;
-        for (const KernelBase* kernel : kernels) {
-          for (std::string const& tuning_name :
-              kernel->getVariantTuningNames(vid)) {
-            if (tuning_names_order_map.find(tuning_name) ==
-                tuning_names_order_map.end()) {
-              if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
-                    &&
-                  find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exclusion list
-                    tuning_names_order_map.emplace(
-                        tuning_name, tuning_names_order_map.size()); // Add tuning name to map
-              }
+            kernel->getVariantTuningNames(vid)) {
+          if (tuning_names_order_map.find(tuning_name) ==
+              tuning_names_order_map.end()) {
+            if ((selected_tuning_names.empty() || find(selected_tuning_names.begin(), selected_tuning_names.end(), tuning_name) != selected_tuning_names.end()) // If argument is not provided or name is selected
+                  &&
+                find(excluded_tuning_names.begin(), excluded_tuning_names.end(), tuning_name) == excluded_tuning_names.end()) { // name does not exist in exclusion list
+                  tuning_names_order_map.emplace(
+                      tuning_name, tuning_names_order_map.size()); // Add tuning name to map
             }
           }
         }
-
-        tuning_names[vid].resize(tuning_names_order_map.size());
-        for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
-          tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
-        }
-        // reorder to put "default" first
-        auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
-        if (default_order_iter != tuning_names_order_map.end()) {
-          size_t default_idx = default_order_iter->second;
-          std::string default_name = std::move(tuning_names[vid][default_idx]);
-          tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
-          tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
-        }
       }
 
+      tuning_names[vid].resize(tuning_names_order_map.size());
+      for (auto const& tuning_name_idx_pair : tuning_names_order_map) {
+        tuning_names[vid][tuning_name_idx_pair.second] = tuning_name_idx_pair.first;
+      }
+
+      // reorder to put "default" first
+      auto default_order_iter = tuning_names_order_map.find(KernelBase::getDefaultTuningName());
+      if (default_order_iter != tuning_names_order_map.end()) {
+        size_t default_idx = default_order_iter->second;
+        std::string default_name = std::move(tuning_names[vid][default_idx]);
+        tuning_names[vid].erase(tuning_names[vid].begin()+default_idx);
+        tuning_names[vid].emplace(tuning_names[vid].begin(), std::move(default_name));
+      }
+
+    }  // iterate over variant_ids to run
+
+    #if defined(RAJA_PERFSUITE_USE_CALIPER)
+      //
       // Add tunings to Adiak metadata
-      #if defined(RAJA_PERFSUITE_USE_CALIPER)
-        std::set<std::string> tunings_set;
-        for (VariantID vid : variant_ids) {
-          for (std::string const& tuning_name : tuning_names[vid]) {
-            tunings_set.emplace(tuning_name);
-          }
+      //
+      std::set<std::string> tunings_set;
+      for (VariantID vid : variant_ids) {
+        for (std::string const& tuning_name : tuning_names[vid]) {
+          tunings_set.emplace(tuning_name);
         }
-        adiak::value("tunings", tunings_set);
-      #endif
-
-      //
-      // If we've gotten to this point, we have good input to run.
-      //
-      if ( run_params.getInputState() != RunParams::DryRun &&
-           run_params.getInputState() != RunParams::CheckRun ) {
-        run_params.setInputState(RunParams::PerfRun);
       }
+      adiak::value("tunings", tunings_set);
+    #endif
 
-    } // tuning input looks good
+    //
+    // If we've gotten to this point, we have good input to run.
+    //
+    if ( run_params.getInputState() != RunParams::DryRun &&
+         run_params.getInputState() != RunParams::CheckRun ) {
+      run_params.setInputState(RunParams::PerfRun);
+    }
 
-  } // kernel and variant input both look good
+  } // tuning input looks good
 
 }
 
