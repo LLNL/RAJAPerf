@@ -235,14 +235,18 @@ Caliper *annotation* is in the following tree structure::
 |   **caliper@2.9.0** (preferred target)
 |   **caliper@master** (if using older Spack version)
 
-In Cmake scripts add
-  **-DRAJA_PERFSUITE_USE_CALIPER=On** 
+1: Use one of the caliper build scripts in `scripts/lc-builds/*_caliper.sh`
 
-Add to **-DCMAKE_PREFIX_PATH**
-  ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+2: Add the build options manually to an existing build::
 
-or use 
-  -Dcaliper_DIR -Dadiak_DIR package prefixes
+  In Cmake scripts add
+    **-DRAJA_PERFSUITE_USE_CALIPER=On**
+
+  Add to **-DCMAKE_PREFIX_PATH**
+    ;${CALIPER_PREFIX}/share/cmake/caliper;${ADIAK_PREFIX}/lib/cmake/adiak
+
+  or use
+    -Dcaliper_DIR -Dadiak_DIR package prefixes
 
 For Spack : raja_perf +caliper ^caliper@2.9.0
 
