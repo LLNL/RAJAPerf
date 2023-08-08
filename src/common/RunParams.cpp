@@ -783,7 +783,7 @@ void RunParams::printHelpMessage(std::ostream& str) const
   str << "\t Options for selecting kernels to run....\n"
       << "\t ========================================\n\n";;
 
-  str << "\t --disable-warmup (disable warmup kernel) [Default is run all warmup kernels]\n\n";
+  str << "\t --disable-warmup (disable warmup kernels) [Default is run warmup kernels that are relevant to kernels selected to run]\n\n";
 
   str << "\t --kernels, -k <space-separated strings> [Default is run all]\n"
       << "\t      (names of individual kernels and/or groups of kernels to run)\n"
