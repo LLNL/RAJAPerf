@@ -27,8 +27,6 @@ EDGE3D::EDGE3D(const RunParams& params)
 {
   setDefaultProblemSize(100*100*100);  // See rzmax in ADomain struct
   setDefaultReps(10);
-  constexpr int num_quadrature_points = NQ_1D*NQ_1D*NQ_1D;
-
   Index_type rzmax = std::cbrt(getTargetProblemSize())+1;
   m_domain = new ADomain(rzmax, /* ndims = */ 3);
 
@@ -39,8 +37,6 @@ EDGE3D::EDGE3D(const RunParams& params)
 
   setItsPerRep( number_of_elements );
   setKernelsPerRep(1);
-
-  constexpr size_t matrix_size = NB*NB;
 
   // touched data size, not actual number of stores and loads
   // see VOL3D.cpp
