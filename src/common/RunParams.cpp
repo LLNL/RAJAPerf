@@ -23,7 +23,7 @@ namespace rajaperf
 /*
  *******************************************************************************
  *
- * Ctor for PunParams class defines suite execution defaults and parses
+ * Ctor for RunParams class defines suite execution defaults and parses
  * command line args to set others that are specified when suite is run.
  *
  *******************************************************************************
@@ -65,7 +65,8 @@ RunParams::RunParams(int argc, char** argv)
    outdir(),
    outfile_prefix("RAJAPerf"),
    disable_warmup(false),
-   run_kernels()
+   run_kernels(),
+   run_variants()
 {
   parseCommandLineOptions(argc, argv);
 }
@@ -726,31 +727,16 @@ void RunParams::parseCommandLineOptions(int argc, char** argv)
 
   processNpassesCombinerInput();
 
-  processKernelsToRunInput();
+  processKernelInput();
 
-  //
-  // Set BadInput state based on invalid kernel input
-  // 
+  processVariantInput();
 
-  if ( !(invalid_kernel_input.empty()) ||
-       !(invalid_exclude_kernel_input.empty()) ) {
-    input_state = BadInput;
-  }
+  processTuningInput();
 
-  if ( !(invalid_feature_input.empty()) ||
-       !(invalid_exclude_feature_input.empty()) ) {  
-    input_state = BadInput;
-  }
-
-  processVariantsToRunInput();
-
-  //
-  // Set BadInput state based on invalid variant input
-  // 
-
-  if ( !(invalid_variant_input.empty()) ||
-       !(invalid_exclude_variant_input.empty()) ) {
-    input_state = BadInput;
+  if ( input_state != BadInput &&
+       input_state != DryRun && 
+       input_state != CheckRun ) {
+    input_state = PerfRun;
   }
 
 }
@@ -1097,6 +1083,15 @@ void RunParams::printKernelFeatures(std::ostream& str) const
   str.flush();
 }
 
+/*
+ *******************************************************************************
+ *
+ * Process input for combining timing output over multiple passes through Suite
+ *
+ * If invalid input is found, it will be saved for error message
+ *
+ *******************************************************************************
+ */
 void RunParams::processNpassesCombinerInput()
 {
   // Default npasses_combiners if no input
@@ -1123,7 +1118,17 @@ void RunParams::processNpassesCombinerInput()
   } // else
 }
 
-void RunParams::processKernelsToRunInput()
+/*
+ *******************************************************************************
+ *
+ * Process input for determining which kernels to run. Result will be stored in
+ * run_kernels member variable. 
+ *
+ * If invalid input is found, it will be saved for error message.
+ *
+ *******************************************************************************
+ */
+void RunParams::processKernelInput()
 {
   using Slist = std::list<std::string>;
   using Svector = std::vector<std::string>;
@@ -1426,10 +1431,34 @@ void RunParams::processKernelsToRunInput()
     } // iterate over kernel name input
 
   }  // else either kernel input or feature input is non-empty
+
+  //
+  // Set BadInput state based on invalid kernel input
+  //
+
+  if ( !(invalid_kernel_input.empty()) ||
+       !(invalid_exclude_kernel_input.empty()) ) {
+    input_state = BadInput;
+  }
+
+  if ( !(invalid_feature_input.empty()) ||
+       !(invalid_exclude_feature_input.empty()) ) {
+    input_state = BadInput;
+  }
    
 }
 
-void RunParams::processVariantsToRunInput()
+/*
+ *******************************************************************************
+ *
+ * Process input for determining which variants to run. Result will be stored in
+ * run_variants member variable.
+ *
+ * If invalid input is found, it will be saved for error message.
+ *
+ *******************************************************************************
+ */
+void RunParams::processVariantInput()
 {
   using VIDset = std::set<VariantID>;
 
@@ -1561,7 +1590,70 @@ void RunParams::processVariantsToRunInput()
     reference_vid = *run_variants.begin();
   }
 
+  //
+  // Set BadInput state based on invalid variant input
+  //
+  if ( !(invalid_variant_input.empty()) ||
+       !(invalid_exclude_variant_input.empty()) ) {
+    input_state = BadInput;
+  }
 
 }
+
+/*
+ *******************************************************************************
+ *
+ * Check tuning input for errors.
+ *
+ * If invalid input is found, it will be saved for error message.
+ *
+ *******************************************************************************
+ */
+void RunParams::processTuningInput()
+{
+  //
+  //  Construct set of all possible tunings based on given sets of
+  //  kernels and variants
+  //
+  std::set<std::string> all_tunings;
+  for (auto vid = run_variants.begin(); vid != run_variants.end(); ++vid) {
+    for (auto kid = run_kernels.begin(); kid != run_kernels.end(); ++kid) {
+      KernelBase* kern = getKernelObject(*kid, *this);
+      for (std::string const& tuning_name :
+           kern->getVariantTuningNames(*vid)) {
+        all_tunings.insert(tuning_name);
+      }
+      delete kern;
+    }
+  }
+
+  //
+  //  Check for invalid tuning input
+  //
+  for (std::string const& tuning_name : tuning_input) {
+    if (all_tunings.find(tuning_name) == all_tunings.end()) {
+      invalid_tuning_input.push_back(tuning_name);
+    }
+  }
+
+  //
+  //  Check for invalid exclude tuning input
+  //
+  for (std::string const& tuning_name : exclude_tuning_input) {
+    if (all_tunings.find(tuning_name) == all_tunings.end()) {
+      invalid_exclude_tuning_input.push_back(tuning_name);
+    }
+  }
+
+  //
+  // Set BadInput state based on invalid tuning input
+  //
+  if ( !(invalid_tuning_input.empty()) ||
+       !(invalid_exclude_tuning_input.empty()) ) {
+    input_state = BadInput;
+  }
+
+}
+
 
 }  // closing brace for rajaperf namespace

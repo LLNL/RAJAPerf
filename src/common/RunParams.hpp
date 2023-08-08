@@ -78,6 +78,9 @@ public:
     Direct,   /*!< directly use as kernel iteration space */
   };
 
+  /*!
+   * \brief Translate SizeMeaning enum value to string
+   */
   static std::string SizeMeaningToStr(SizeMeaning sm)
   {
     switch (sm) {
@@ -92,17 +95,10 @@ public:
     }
   }
 
-//@{
-//! @name Methods to get/set input state
-
-  InputOpt getInputState() const { return input_state; }
-
   /*!
-   * \brief Set whether run parameters (from input) are valid.
+   * \brief Return state of input parsed to this point.
    */
-  void setInputState(InputOpt is) { input_state = is; }
-
-//@}
+  InputOpt getInputState() const { return input_state; }
 
 
 //@{
@@ -150,17 +146,8 @@ public:
 
   const std::vector<std::string>& getTuningInput() const
                                   { return tuning_input; }
-  void setInvalidTuningInput( std::vector<std::string>& svec )
-                               { invalid_tuning_input = svec; }
-  const std::vector<std::string>& getInvalidTuningInput() const
-                                  { return invalid_tuning_input; }
-
   const std::vector<std::string>& getExcludeTuningInput() const
                                   { return exclude_tuning_input; }
-  void setInvalidExcludeTuningInput( std::vector<std::string>& svec )
-                               { invalid_exclude_tuning_input = svec; }
-  const std::vector<std::string>& getInvalidExcludeTuningInput() const
-                                  { return invalid_exclude_tuning_input; }
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
@@ -196,8 +183,9 @@ private:
   void printKernelFeatures(std::ostream& str) const;
 
   void processNpassesCombinerInput();
-  void processKernelsToRunInput();
-  void processVariantsToRunInput();
+  void processKernelInput();
+  void processVariantInput();
+  void processTuningInput();
 //@}
 
   InputOpt input_state;  /*!< state of command line input */
