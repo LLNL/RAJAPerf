@@ -83,6 +83,7 @@
 #include "apps/CONVECTION3DPA.hpp"
 #include "apps/DEL_DOT_VEC_2D.hpp"
 #include "apps/DIFFUSION3DPA.hpp"
+#include "apps/EDGE3D.hpp"
 #include "apps/ENERGY.hpp"
 #include "apps/FIR.hpp"
 #include "apps/HALOEXCHANGE.hpp"
@@ -222,6 +223,7 @@ static const std::string KernelNames [] =
   std::string("Apps_CONVECTION3DPA"),
   std::string("Apps_DEL_DOT_VEC_2D"),
   std::string("Apps_DIFFUSION3DPA"),
+  std::string("Apps_EDGE3D"),
   std::string("Apps_ENERGY"),
   std::string("Apps_FIR"),
   std::string("Apps_HALOEXCHANGE"),
@@ -855,6 +857,10 @@ KernelBase* getKernelObject(KernelID kid,
     }
     case Apps_DIFFUSION3DPA : {
        kernel = new apps::DIFFUSION3DPA(run_params);
+       break;
+    }
+    case Apps_EDGE3D : {
+       kernel = new apps::EDGE3D(run_params);
        break;
     }
     case Apps_ENERGY : {
