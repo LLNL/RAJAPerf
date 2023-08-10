@@ -131,6 +131,7 @@ def plot(thicket, kind=None, metric=None, prefix=None):
         drop_cols = [col for col in df.columns if not "name" in col and not metric in col]
         df.drop(columns=drop_cols, inplace=True)
         df.set_index([("name", "")], inplace=True)
+        df.columns = df.columns.droplevel(1)
         g_func(df, metric, prefix)
     elif kind == "line":
         # Plot for each node
@@ -139,6 +140,7 @@ def plot(thicket, kind=None, metric=None, prefix=None):
             name = df[("name", "")].iloc[0]
             drop_cols = [col for col in df.columns if col[1] != metric or df[col].isnull().values.all()]
             df = df.drop(columns=drop_cols, axis=1)
+            df.columns = df.columns.droplevel(1)
             g_func(df, metric, prefix, name)
     
     return df
