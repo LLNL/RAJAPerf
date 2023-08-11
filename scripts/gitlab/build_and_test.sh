@@ -21,16 +21,25 @@ hostname="$(hostname)"
 truehostname=${hostname//[0-9]/}
 project_dir="$(pwd)"
 
-build_root=${BUILD_ROOT:-""}
 hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
+module_list=${MODULE_LIST:-""}
 job_unique_id=${CI_JOB_ID:-""}
+use_dev_shm=${USE_DEV_SHM:-true}
+
 raja_version=${UPDATE_RAJA:-""}
 sys_type=${SYS_TYPE:-""}
-use_dev_shm=${USE_DEV_SHM:-true}
 
 spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
 update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-false}
+
+if [[ -n ${module_list} ]]
+then
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~ Modules to load: ${module_list}"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    module load ${module_list}
+fi
 
 prefix=""
 
@@ -55,8 +64,9 @@ then
     prefix="${prefix}-${job_unique_id}"
     mkdir -p ${prefix}
 else
-    prefix="spack-and-build-root"
-    mkdir ${prefix}
+    # We set the prefix in the parent directory so that spack dependencies are not installed inside the source tree.
+    prefix="$(pwd)/../spack-and-build-root"
+    mkdir -p ${prefix}
 fi
 
 # Dependencies
@@ -131,17 +141,8 @@ fi
 hostconfig=$(basename ${hostconfig_path})
 
 # Build Directory
-if [[ -z ${build_root} ]]
-then
-    if [[ -d /dev/shm && ${use_dev_shm} == true ]]
-    then
-        build_root="${prefix}"
-    else
-        build_root="$(pwd)"
-    fi
-else
-    build_root="${build_root}"
-fi
+# When using /dev/shm, we use prefix for both spack builds and source build, unless BUILD_ROOT was defined
+build_root=${BUILD_ROOT:-"${prefix}"}
 
 build_dir="${build_root}/build_${hostconfig//.cmake/}"
 
@@ -187,7 +188,6 @@ then
     mkdir -p ${build_dir} && cd ${build_dir}
 
     date
-
     if [[ "${truehostname}" == "corona"  || "${truehostname}" == "tioga" ]]
     then
         module unload rocm
@@ -200,11 +200,11 @@ then
         echo "ERROR: compilation failed, building with verbose output..."
         $cmake_exe --build . --verbose -j 1
     fi
+    date
 
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     echo "~~~~~ RAJA Perf Suite Built"
     echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    date
 fi
 
 if [[ ! -d ${build_dir} ]]
