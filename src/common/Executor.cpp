@@ -450,25 +450,7 @@ void Executor::runSuite()
     return;
   }
 
-  if ( !run_params.getDisableWarmup() ) {
-    getCout() << "\n\nRun warmup kernels...\n";
-
-    vector<KernelBase*> warmup_kernels;
-
-    warmup_kernels.push_back(makeKernel<basic::DAXPY>());
-    warmup_kernels.push_back(makeKernel<basic::REDUCE3_INT>());
-    warmup_kernels.push_back(makeKernel<basic::INDEXLIST_3LOOP>());
-    warmup_kernels.push_back(makeKernel<algorithm::SORT>());
-    warmup_kernels.push_back(makeKernel<apps::HALOEXCHANGE_FUSED>());
-
-    for (size_t ik = 0; ik < warmup_kernels.size(); ++ik) {
-      KernelBase* warmup_kernel = warmup_kernels[ik];
-      runKernel(warmup_kernel, true);
-      delete warmup_kernel;
-      warmup_kernels[ik] = nullptr;
-    }
-  }
-
+  runWarmupKernels();
 
   getCout() << "\n\nRunning specified kernels and variants...\n";
 
@@ -481,9 +463,9 @@ void Executor::runSuite()
     for (size_t ik = 0; ik < kernels.size(); ++ik) {
       KernelBase* kernel = kernels[ik];
       runKernel(kernel, false);
-    } // loop over kernels
+    } // iterate over kernels
 
-  } // loop over passes through suite
+  } // iterate over passes through suite
 
 }
 
@@ -537,9 +519,82 @@ void Executor::runKernel(KernelBase* kernel, bool print_kernel_name)
         getCout() << "\t\tSkipping " << tuning_name << " tuning" << endl;
       }
 
-    }  // iterate over tunings
- 
-  }  // iterate over variants
+    }  // iterate over tunings 
+
+  } // iterate over variants
+
+}
+
+void Executor::runWarmupKernels()
+{
+  if ( run_params.getDisableWarmup() ) {
+    return;
+  } 
+
+  getCout() << "\n\nRun warmup kernels...\n";
+
+  //
+  // For kernels to be run, assemble a set of feature IDs
+  //
+  std::set<FeatureID> feature_ids;
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    KernelBase* kernel = kernels[ik];
+
+    for (size_t fid = 0; fid < NumFeatures; ++fid) {
+      FeatureID tfid = static_cast<FeatureID>(fid);
+      if (kernel->usesFeature(tfid) ) {
+         feature_ids.insert( tfid );
+      }
+    }
+  
+  } // iterate over kernels
+
+  //
+  // Map feature IDs to set of warmup kernel IDs
+  //
+  std::set<KernelID> kernel_ids;
+  for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
+
+    switch (*fid) {
+
+      case Forall:
+      case Kernel:
+      case Launch:
+        kernel_ids.insert(Basic_DAXPY); break;
+
+      case Sort:
+        kernel_ids.insert(Algorithm_SORT); break;
+   
+      case Scan:
+        kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
+
+      case Workgroup:
+        kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+
+      case Reduction:
+        kernel_ids.insert(Basic_REDUCE3_INT); break;
+
+      case Atomic:
+        kernel_ids.insert(Basic_PI_ATOMIC); break; 
+
+      case View:
+        break;
+  
+      default:
+        break;
+
+    }
+
+  }
+
+  //
+  // Run warmup kernels
+  //
+  for ( auto kid = kernel_ids.begin(); kid != kernel_ids.end(); ++ kid ) {
+    KernelBase* kernel = getKernelObject(*kid, run_params);
+    runKernel(kernel, true);
+    delete kernel;
+  }
 
 }
 
@@ -875,13 +930,13 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
             col++;
           }
 
-        }  // loop over group variants
+        }  // iterate over group variants
 
-      }  // loop over fom_groups (i.e., columns)
+      }  // iterate over fom_groups (i.e., columns)
 
       file << endl;
 
-    } // loop over kernels
+    } // iterate over kernels
 
 
     //
@@ -922,11 +977,11 @@ void Executor::writeFOMReport(ostream& file, vector<FOMGroup>& fom_groups)
             col++;
           }
 
-        } // loop over group variants
+        } // iterate over group variants
 
-      }  // loop over groups
+      }  // iterate over groups
 
-    }  // loop over kernels
+    }  // iterate over kernels
 
     for (size_t ifg = 0; ifg < fom_groups.size(); ++ifg) {
       for (size_t col = 0; col < fom_group_ncols[ifg]; ++col) {
