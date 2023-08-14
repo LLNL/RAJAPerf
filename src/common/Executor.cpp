@@ -987,74 +987,72 @@ void Executor::runWarmupKernels()
 {
   if ( run_params.getDisableWarmup() ) {
     return;
-  } else {
+  } 
 
-    getCout() << "\n\nRun warmup kernels...\n";
+  getCout() << "\n\nRun warmup kernels...\n";
 
-    //
-    // For kernels to be run, assemble a set of feature IDs
-    //
-    std::set<FeatureID> feature_ids;
-    for (size_t ik = 0; ik < kernels.size(); ++ik) {
-      KernelBase* kernel = kernels[ik];
+  //
+  // For kernels to be run, assemble a set of feature IDs
+  //
+  std::set<FeatureID> feature_ids;
+  for (size_t ik = 0; ik < kernels.size(); ++ik) {
+    KernelBase* kernel = kernels[ik];
 
-      for (size_t fid = 0; fid < NumFeatures; ++fid) {
-        FeatureID tfid = static_cast<FeatureID>(fid);
-        if (kernel->usesFeature(tfid) ) {
-           feature_ids.insert( tfid );
-        }
+    for (size_t fid = 0; fid < NumFeatures; ++fid) {
+      FeatureID tfid = static_cast<FeatureID>(fid);
+      if (kernel->usesFeature(tfid) ) {
+         feature_ids.insert( tfid );
       }
-    
-    } // iterate over kernels
-
-    //
-    // Map feature IDs to set of warmup kernel IDs
-    //
-    std::set<KernelID> kernel_ids;
-    for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
-
-      switch (*fid) {
-
-        case Forall:
-        case Kernel:
-        case Launch:
-          kernel_ids.insert(Basic_DAXPY); break;
-
-        case Sort:
-          kernel_ids.insert(Algorithm_SORT); break;
-     
-        case Scan:
-          kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
+    }
   
-        case Workgroup:
-          kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+  } // iterate over kernels
 
-        case Reduction:
-          kernel_ids.insert(Basic_REDUCE3_INT); break;
+  //
+  // Map feature IDs to set of warmup kernel IDs
+  //
+  std::set<KernelID> kernel_ids;
+  for ( auto fid = feature_ids.begin(); fid != feature_ids.end(); ++ fid ) {
 
-        case Atomic:
-          kernel_ids.insert(Basic_PI_ATOMIC); break; 
+    switch (*fid) {
 
-        case View:
-          break;
-    
-        default:
-          break;
+      case Forall:
+      case Kernel:
+      case Launch:
+        kernel_ids.insert(Basic_DAXPY); break;
 
-      }
+      case Sort:
+        kernel_ids.insert(Algorithm_SORT); break;
+   
+      case Scan:
+        kernel_ids.insert(Basic_INDEXLIST_3LOOP); break;
+
+      case Workgroup:
+        kernel_ids.insert(Apps_HALOEXCHANGE_FUSED); break;
+
+      case Reduction:
+        kernel_ids.insert(Basic_REDUCE3_INT); break;
+
+      case Atomic:
+        kernel_ids.insert(Basic_PI_ATOMIC); break; 
+
+      case View:
+        break;
+  
+      default:
+        break;
 
     }
 
-    //
-    // Run warmup kernels
-    //
-    for ( auto kid = kernel_ids.begin(); kid != kernel_ids.end(); ++ kid ) {
-      KernelBase* kernel = getKernelObject(*kid, run_params);
-      runKernel(kernel, true);
-      delete kernel;
-    }
+  }
 
-  }  // warmup kernels not disabled
+  //
+  // Run warmup kernels
+  //
+  for ( auto kid = kernel_ids.begin(); kid != kernel_ids.end(); ++ kid ) {
+    KernelBase* kernel = getKernelObject(*kid, run_params);
+    runKernel(kernel, true);
+    delete kernel;
+  }
 
 }
 
