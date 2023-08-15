@@ -26,22 +26,18 @@ hostconfig=${HOST_CONFIG:-""}
 spec=${SPEC:-""}
 job_unique_id=${CI_JOB_ID:-""}
 raja_version=${UPDATE_RAJA:-""}
-sys_type=${SYS_TYPE:-""}
-use_dev_shm=${USE_DEV_SHM:-true}
 
-spack_upstream_path=${SPACK_UPSTREAM_PATH:-"/usr/workspace/umdev/RAJAPerf/upstream"}
-update_spack_upstream=${UPDATE_SPACK_UPSTREAM:-false}
+if [[ -n ${module_list} ]]
+then
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~ Modules to load: ${module_list}"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    module load ${module_list}
+fi
 
 prefix=""
 
-if [[ ${update_spack_upstream} == true ]]
-then
-    use_dev_shm=false
-    echo "We don't build in shared memory when updating the spack upstream"
-
-    prefix=${spack_upstream_path}
-    mkdir -p ${prefix}
-elif [[ -d /dev/shm && ${use_dev_shm} == true ]]
+if [[ -d /dev/shm ]]
 then
     prefix="/dev/shm/${hostname}"
     if [[ -z ${job_unique_id} ]]; then
@@ -54,9 +50,6 @@ then
 
     prefix="${prefix}-${job_unique_id}"
     mkdir -p ${prefix}
-else
-    prefix="spack-and-build-root"
-    mkdir ${prefix}
 fi
 
 # Dependencies
@@ -76,23 +69,22 @@ then
         exit 1
     fi
 
-    prefix_opt="--prefix=${prefix}"
+    prefix_opt=""
 
-    upstream_opt=""
-    if [[ ${update_spack_upstream} == false && -e ${spack_upstream_path}/.spack-db ]]
+    if [[ -d /dev/shm ]]
     then
-        upstream_opt="--upstream=${spack_upstream_path}"
+        prefix_opt="--prefix=${prefix}"
+
+        # We force Spack to put all generated files (cache and configuration of
+        # all sorts) in a unique location so that there can be no collision
+        # with existing or concurrent Spack.
+        spack_user_cache="${prefix}/spack-user-cache"
+        export SPACK_DISABLE_LOCAL_CONFIG=""
+        export SPACK_USER_CACHE_PATH="${spack_user_cache}"
+        mkdir -p ${spack_user_cache}
     fi
 
-    # We force Spack to put all generated files (cache and configuration of
-    # all sorts) in a unique location so that there can be no collision
-    # with existing or concurrent Spack.
-    spack_user_cache="${prefix}/spack-user-cache"
-    export SPACK_DISABLE_LOCAL_CONFIG=""
-    export SPACK_USER_CACHE_PATH="${spack_user_cache}"
-    mkdir -p ${spack_user_cache}
-
-    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt} ${upstream_opt}
+    ./tpl/RAJA/scripts/uberenv/uberenv.py --project-json=".uberenv_config.json" --spec="${spec}" ${prefix_opt}
 
     mv ${project_dir}/tpl/RAJA/*.cmake ${project_dir}/.
 
@@ -133,7 +125,7 @@ hostconfig=$(basename ${hostconfig_path})
 # Build Directory
 if [[ -z ${build_root} ]]
 then
-    if [[ -d /dev/shm && ${use_dev_shm} == true ]]
+    if [[ -d /dev/shm ]]
     then
         build_root="${prefix}"
     else
@@ -214,6 +206,7 @@ fi
 
 cd ${build_dir}
 
+date
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "~~~~~ TESTING RAJAPERF SUITE"
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -269,6 +262,11 @@ then
     then
         echo "ERROR: failure(s) while running CTest" && exit 1
     fi
+
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    echo "~~~~~ RAJAPERF Suite tests complete"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    date
 fi
 
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
