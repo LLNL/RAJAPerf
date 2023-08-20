@@ -188,10 +188,6 @@ Executor::Executor(int argc, char** argv)
     adiak::value("ProblemSizeRunParam",(uint)run_params.getSize());
   }
 
-  if (run_params.numValidGPUBlockSize() > 0) {
-    adiak::value("runtime_gpu_block_sizes", run_params.getGPUBlockSizeInput());
-  }
-
   // Openmp section
 #if defined(_OPENMP)
   std::string strval = "";
@@ -336,19 +332,6 @@ void Executor::setupSuite()
     }
 
   }  // iterate over variant_ids to run
-
-#if defined(RAJA_PERFSUITE_USE_CALIPER)
-  //
-  // Add tunings to Adiak metadata
-  //
-  std::set<std::string> tunings_set;
-  for (VariantID vid : variant_ids) {
-    for (std::string const& tuning_name : tuning_names[vid]) {
-      tunings_set.emplace(tuning_name);
-    }
-  }
-  adiak::value("tunings", tunings_set);
-#endif
 
 }
 
@@ -708,11 +691,11 @@ void Executor::runWarmupKernels()
   for ( auto kid = kernel_ids.begin(); kid != kernel_ids.end(); ++ kid ) {
     KernelBase* kernel = getKernelObject(*kid, run_params);
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-    warmup_kernel->caliperOff();
+    kernel->caliperOff();
 #endif
     runKernel(kernel, true);
 #if defined(RAJA_PERFSUITE_USE_CALIPER)
-    warmup_kernel->caliperOn();
+    kernel->caliperOn();
 #endif
     delete kernel;
   }
