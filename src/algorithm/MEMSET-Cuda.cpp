@@ -159,7 +159,7 @@ void MEMSET::runCudaVariant(VariantID vid, size_t tune_idx)
         run_params.validGPUBlockSize(block_size)) {
 
       if (tune_idx == t) {
-
+        setBlockSize(block_size);
         runCudaVariantBlock<block_size>(vid);
 
       }

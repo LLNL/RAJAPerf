@@ -144,6 +144,8 @@ public:
 
   int getCheckRunReps() const { return checkrun_reps; }
 
+  const std::string& getReferenceVariant() const { return reference_variant; }
+
   const std::vector<std::string>& getTuningInput() const
                                   { return tuning_input; }
   const std::vector<std::string>& getExcludeTuningInput() const
@@ -151,6 +153,10 @@ public:
 
   const std::string& getOutputDirName() const { return outdir; }
   const std::string& getOutputFilePrefix() const { return outfile_prefix; }
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  const std::string& getAddToSpotConfig() const { return add_to_spot_config; }
+#endif
 
   bool getDisableWarmup() const { return disable_warmup; }
 
@@ -249,6 +255,10 @@ private:
 
   std::string outdir;          /*!< Output directory name. */
   std::string outfile_prefix;  /*!< Prefix for output data file names. */
+
+#if defined(RAJA_PERFSUITE_USE_CALIPER)
+  std::string add_to_spot_config;
+#endif
 
   bool disable_warmup;
 
