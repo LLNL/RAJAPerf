@@ -159,3 +159,84 @@ storing the result in matrix A (N_i X N_j). Problem size could be chosen to be
 the maximum number of entries in matrix B or C. We choose the size of matrix 
 A (N_i * N_j), which is more closely aligned with the number of independent 
 operations (i.e., the amount of parallel work) in the kernels.
+
+
+===========================
+Caliper output files
+===========================
+
+If you've built RAJAPerf with Caliper support turned on, then in addition to the
+outputs mentioned above, we also save a .cali file for each variant & tuning run,
+such as:
+Base_OpenMP-default.cali, Lambda_OpenMP-default.cali, Base_CUDA-block_128.cali, etc.
+
+Also, by using the `--variants` and `--tunings` flag when running, you can specify
+which variant/tunings to run.
+
+There are several techniques to display the Caliper trees (Timing Hierarchy)
+
+| 1: Caliper's cali-query tool.
+| The first technique is with Caliper's own tool cali-query, we run it with 
+| **-T** to display tree, or you can specify **--tree**. 
+|
+| cali-query -T $HOME/data/default_problem_size/gcc/RAJA_Seq.cali
+
+2: Caliper's Python module *caliperreader*::
+
+  import os
+  import caliperreader as cr
+  DATA_DIR = os.getenv('HOME')+"/data/default_problem_size/gcc"
+  os.chdir(DATA_DIR)
+  r = cr.CaliperReader()
+  r.read("RAJA_Seq.cali")
+  metric = 'avg#inclusive#sum#time.duration'
+  for rec in r.records:
+    path = rec['path'] if 'path' in rec else 'UNKNOWN'
+    time = rec[metric] if metric in rec else '0'
+    if not 'UNKNOWN' in path:
+        if (isinstance(path, list)):
+            path = "/".join(path)
+        print("{0}: {1}".format(path, time))
+  
+You can add a couple of lines to view the metadata keys captured by Caliper/Adiak::
+
+  for g in r.globals:  
+    print(g)  
+
+You can also add a line to display metadata value in the dictionary **r.globals**
+
+For example print out the OpenMP Max Threads value recorded at runtime:: 
+
+  print('OMP Max Threads: ' + r.globals['omp_max_threads'])`  
+
+or the variant represented in this file::  
+  
+  print('Variant: ' + r.globals['variant'])
+ 
+
+.. note:: The script above was written using caliper-reader 0.3.0, 
+          but is fairly generic. Other version usage notes may be 
+          found at the link below
+
+`caliper-reader <https://pypi.org/project/caliper-reader/>`_ 
+
+
+3: Using the *Hatchet* Python module for single files::
+
+  import hatchet as ht
+  DATA_DIR = os.getenv('HOME')+"/data/default_problem_size/gcc"
+  os.chdir(DATA_DIR)
+  gf1 = ht.GraphFrame.from_caliperreader("RAJA_Seq.cali")
+  print(gf1.tree())
+
+`Find out more on hatchet <https://github.com/LLNL/hatchet>`_
+
+4: Using the *Thicket* Python module for multiple files::
+
+  import thicket as th
+  DATA_DIR = os.getenv('HOME')+"/data/default_problem_size/gcc"
+  os.chdir(DATA_DIR)
+  th1 = th.Thicket.from_caliperreader(["RAJA_Seq-default.cali", "Base_Seq-default.cali", "Base_CUDA-block_128", "Base_CUDA-block_256"])
+  print(th1.tree())
+
+`Find out more on thicket <https://github.com/LLNL/thicket>`_

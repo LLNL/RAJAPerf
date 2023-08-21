@@ -177,6 +177,7 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
       if (run_params.numValidGPUBlockSize() == 0u ||                           \
           run_params.validGPUBlockSize(block_size)) {                          \
         if (tune_idx == t) {                                                   \
+          setBlockSize(block_size);                                            \
           run##variant##VariantImpl<block_size>(vid);                          \
         }                                                                      \
         t += 1;                                                                \
