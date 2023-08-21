@@ -50,8 +50,6 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET;
-
       break;
     }
 
@@ -88,8 +86,6 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
       }
       stopTimer();
 
-      POLYBENCH_JACOBI_2D_DATA_RESET;
-
       break;
     }
 
@@ -106,13 +102,13 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
       using EXEC_POL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<0>
             >
           >,
-          RAJA::statement::For<0, RAJA::loop_exec,
-            RAJA::statement::For<1, RAJA::loop_exec,
+          RAJA::statement::For<0, RAJA::seq_exec,
+            RAJA::statement::For<1, RAJA::seq_exec,
               RAJA::statement::Lambda<1>
             >
           >
@@ -134,8 +130,6 @@ void POLYBENCH_JACOBI_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_AR
 
       }
       stopTimer();
-
-      POLYBENCH_JACOBI_2D_DATA_RESET;
 
       break;
     }

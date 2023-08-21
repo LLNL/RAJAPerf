@@ -22,21 +22,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define PLANCKIAN_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(y, m_y, iend); \
-  allocAndInitCudaDeviceData(u, m_u, iend); \
-  allocAndInitCudaDeviceData(v, m_v, iend); \
-  allocAndInitCudaDeviceData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_w, w, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(u); \
-  deallocCudaDeviceData(v); \
-  deallocCudaDeviceData(w);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
@@ -57,17 +42,18 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    PLANCKIAN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       planckian<block_size><<<grid_size, block_size>>>( x, y,
+       constexpr size_t shmem = 0;
+       planckian<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( x, y,
                                              u, v, w,
                                              iend );
        cudaErrchk( cudaGetLastError() );
@@ -75,16 +61,12 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PLANCKIAN_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PLANCKIAN_BODY;
        });
@@ -92,14 +74,12 @@ void PLANCKIAN::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PLANCKIAN, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

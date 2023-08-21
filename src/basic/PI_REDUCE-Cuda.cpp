@@ -65,35 +65,38 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   PI_REDUCE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
     Real_ptr dpi;
-    allocAndInitCudaDeviceData(dpi, &m_pi_init, 1);
+    allocData(DataSpace::CudaDevice, dpi, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dpi, &m_pi_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dpi, &m_pi_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       pi_reduce<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( dx,
+                  shmem, res.get_stream()>>>( dx,
                                                    dpi, m_pi_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lpi;
-      Real_ptr plpi = &lpi;
-      getCudaDeviceData(plpi, dpi, 1);
-
-      m_pi = 4.0 * lpi;
+      cudaErrchk( cudaMemcpyAsync( &m_pi, dpi, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
+      m_pi *= 4.0;
 
     }
     stopTimer();
 
-    deallocCudaDeviceData(dpi);
+    deallocData(DataSpace::CudaDevice, dpi);
 
   } else if ( vid == RAJA_CUDA ) {
 
@@ -102,7 +105,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> pi(m_pi_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PI_REDUCE_BODY;
        });
@@ -117,7 +120,7 @@ void PI_REDUCE::runCudaVariantImpl(VariantID vid)
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PI_REDUCE, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PI_REDUCE, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

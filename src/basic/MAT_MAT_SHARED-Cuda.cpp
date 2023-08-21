@@ -19,20 +19,6 @@
 namespace rajaperf {
 namespace basic {
 
-#define MAT_MAT_SHARED_DATA_SETUP_CUDA                                         \
-  const Index_type NN = m_N * m_N;                                             \
-  allocAndInitCudaDeviceData(A, m_A, NN);                                      \
-  allocAndInitCudaDeviceData(B, m_B, NN);                                      \
-  allocAndInitCudaDeviceData(C, m_C, NN);
-
-#define MAT_MAT_SHARED_DATA_TEARDOWN_CUDA                                      \
-  getCudaDeviceData(m_A, A, NN);                                               \
-  getCudaDeviceData(m_B, B, NN);                                               \
-  getCudaDeviceData(m_C, C, NN);                                               \
-  deallocCudaDeviceData(A);                                                    \
-  deallocCudaDeviceData(B);                                                    \
-  deallocCudaDeviceData(C);
-
 template < Index_type tile_size >
   __launch_bounds__(tile_size*tile_size)
 __global__ void mat_mat_shared(Index_type N, Real_ptr C, Real_ptr A,
@@ -73,35 +59,32 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
   dim3 blockDim(tile_size, tile_size);
   dim3 gridDim(RAJA_DIVIDE_CEILING_INT(N, blockDim.x),
                RAJA_DIVIDE_CEILING_INT(N, blockDim.y));
+  constexpr size_t shmem = 0;
 
   const Index_type Nx = gridDim.x;
   const Index_type Ny = gridDim.y;
+
+  auto res{getCudaResource()};
 
   MAT_MAT_SHARED_DATA_SETUP;
 
   if (vid == Base_CUDA) {
 
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      mat_mat_shared<tile_size><<<gridDim, blockDim>>>(N, C, A, B);
+      mat_mat_shared<tile_size><<<gridDim, blockDim, shmem, res.get_stream()>>>(N, C, A, B);
 
       cudaErrchk( cudaGetLastError() );
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
-
   } else if (vid == Lambda_CUDA) {
-
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      lambda_cuda<tile_size*tile_size><<<gridDim, blockDim>>>([=] __device__() {
+      lambda_cuda<tile_size*tile_size><<<gridDim, blockDim, shmem, res.get_stream()>>>([=] __device__() {
         auto outer_y = [&](Index_type by) {
           auto outer_x = [&](Index_type bx) {
             MAT_MAT_SHARED_BODY_0(tile_size)
@@ -194,11 +177,7 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    MAT_MAT_SHARED_DATA_SETUP_CUDA;
 
     constexpr bool async = true;
 
@@ -208,14 +187,14 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
 
     using teams_y = RAJA::LoopPolicy<RAJA::cuda_block_y_direct>;
 
-    using threads_x = RAJA::LoopPolicy<RAJA::cuda_thread_x_direct>;
+    using threads_x = RAJA::LoopPolicy<RAJA::cuda_thread_size_x_direct<tile_size>>;
 
-    using threads_y = RAJA::LoopPolicy<RAJA::cuda_thread_y_direct>;
+    using threads_y = RAJA::LoopPolicy<RAJA::cuda_thread_size_y_direct<tile_size>>;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::launch<launch_policy>(
+      RAJA::launch<launch_policy>( res,
         RAJA::LaunchParams(RAJA::Teams(Nx, Ny),
                          RAJA::Threads(tile_size, tile_size)),
         [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
@@ -287,15 +266,13 @@ void MAT_MAT_SHARED::runCudaVariantImpl(VariantID vid)
     }  // loop over kernel reps
     stopTimer();
 
-    MAT_MAT_SHARED_DATA_TEARDOWN_CUDA;
-
   } else {
     getCout() << "\n  MAT_MAT_SHARED : Unknown Cuda variant id = " << vid
               << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(MAT_MAT_SHARED, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(MAT_MAT_SHARED, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -40,36 +40,6 @@ namespace lcals
                static_cast<size_t>(1));
 
 
-#define HYDRO_2D_DATA_SETUP_CUDA \
-\
-  allocAndInitCudaDeviceData(zadat, m_za, m_array_length); \
-  allocAndInitCudaDeviceData(zbdat, m_zb, m_array_length); \
-  allocAndInitCudaDeviceData(zmdat, m_zm, m_array_length); \
-  allocAndInitCudaDeviceData(zpdat, m_zp, m_array_length); \
-  allocAndInitCudaDeviceData(zqdat, m_zq, m_array_length); \
-  allocAndInitCudaDeviceData(zrdat, m_zr, m_array_length); \
-  allocAndInitCudaDeviceData(zudat, m_zu, m_array_length); \
-  allocAndInitCudaDeviceData(zvdat, m_zv, m_array_length); \
-  allocAndInitCudaDeviceData(zzdat, m_zz, m_array_length); \
-  allocAndInitCudaDeviceData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitCudaDeviceData(zzoutdat, m_zzout, m_array_length);
-
-
-#define HYDRO_2D_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_zrout, zroutdat, m_array_length); \
-  getCudaDeviceData(m_zzout, zzoutdat, m_array_length); \
-  deallocCudaDeviceData(zadat); \
-  deallocCudaDeviceData(zbdat); \
-  deallocCudaDeviceData(zmdat); \
-  deallocCudaDeviceData(zpdat); \
-  deallocCudaDeviceData(zqdat); \
-  deallocCudaDeviceData(zrdat); \
-  deallocCudaDeviceData(zudat); \
-  deallocCudaDeviceData(zvdat); \
-  deallocCudaDeviceData(zzdat); \
-  deallocCudaDeviceData(zroutdat); \
-  deallocCudaDeviceData(zzoutdat);
-
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
@@ -127,33 +97,35 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
+  auto res{getCudaResource()};
+
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    HYDRO_2D_DATA_SETUP_CUDA;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      constexpr size_t shmem = 0;
 
       HYDRO_2D_THREADS_PER_BLOCK_CUDA;
       HYDRO_2D_NBLOCKS_CUDA;
 
       hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zadat, zbdat,
+               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zadat, zbdat,
                                                  zpdat, zqdat, zrdat, zmdat,
                                                  jn, kn);
       cudaErrchk( cudaGetLastError() );
 
       hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zudat, zvdat,
+               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zudat, zvdat,
                                                  zadat, zbdat, zzdat, zrdat,
                                                  s,
                                                  jn, kn);
       cudaErrchk( cudaGetLastError() );
 
       hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_CUDA>
-               <<<nblocks, nthreads_per_block>>>(zroutdat, zzoutdat,
+               <<<nblocks, nthreads_per_block, shmem, res.get_stream()>>>(zroutdat, zzoutdat,
                                                  zrdat, zudat, zzdat, zvdat,
                                                  t,
                                                  jn, kn);
@@ -162,26 +134,16 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    HYDRO_2D_DATA_SETUP_CUDA;
 
     HYDRO_2D_VIEWS_RAJA;
 
     using EXECPOL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<j_block_sz * k_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>,
-                                   RAJA::cuda_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
-                                   RAJA::cuda_block_x_direct,
-              RAJA::statement::For<0, RAJA::cuda_thread_y_direct,   // k
-                RAJA::statement::For<1, RAJA::cuda_thread_x_direct, // j
-                  RAJA::statement::Lambda<0>
-                >
-              >
+          RAJA::statement::For<0, RAJA::cuda_global_size_y_direct<k_block_sz>,   // k
+            RAJA::statement::For<1, RAJA::cuda_global_size_x_direct<j_block_sz>, // j
+              RAJA::statement::Lambda<0>
             >
           >
         >
@@ -190,23 +152,26 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });
@@ -214,14 +179,12 @@ void HYDRO_2D::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  HYDRO_2D : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_2D, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HYDRO_2D, Cuda)
 
 } // end namespace lcals
 } // end namespace rajaperf

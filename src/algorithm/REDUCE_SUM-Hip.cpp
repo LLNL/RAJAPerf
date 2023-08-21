@@ -29,12 +29,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define REDUCE_SUM_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -75,18 +69,18 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
-    hipStream_t stream = 0;
+    hipStream_t stream = res.get_stream();
 
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocHipPinnedData(sum_storage, 1);
+    allocData(DataSpace::HipPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -113,7 +107,7 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocHipDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::HipDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -148,10 +142,8 @@ void REDUCE_SUM::runHipVariantRocprim(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocHipDeviceData(temp_storage);
-    deallocHipPinnedData(sum_storage);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, temp_storage);
+    deallocData(DataSpace::HipPinned, sum_storage);
 
   } else {
 
@@ -168,49 +160,45 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    REDUCE_SUM_DATA_SETUP_HIP;
-
     Real_ptr dsum;
-    allocHipDeviceData(dsum, 1);
+    allocData(DataSpace::HipDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dsum, &m_sum_init, 1);
+      hipErrchk( hipMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL( (reduce_sum<block_size>), dim3(grid_size), dim3(block_size),
-                          sizeof(Real_type)*block_size, 0,
+                          shmem, res.get_stream(),
                           x, dsum, m_sum_init, iend );
       hipErrchk( hipGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getHipDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      hipErrchk( hipMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
-    deallocHipDeviceData(dsum);
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, dsum);
 
   } else if ( vid == RAJA_HIP ) {
-
-    REDUCE_SUM_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });
@@ -219,8 +207,6 @@ void REDUCE_SUM::runHipVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_HIP;
 
   } else {
 
@@ -250,7 +236,7 @@ void REDUCE_SUM::runHipVariant(VariantID vid, size_t tune_idx)
           run_params.validGPUBlockSize(block_size)) {
 
         if (tune_idx == t) {
-
+          setBlockSize(block_size);
           runHipVariantBlock<block_size>(vid);
 
         }

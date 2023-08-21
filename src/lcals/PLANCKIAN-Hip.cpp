@@ -22,21 +22,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define PLANCKIAN_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend); \
-  allocAndInitHipDeviceData(u, m_u, iend); \
-  allocAndInitHipDeviceData(v, m_v, iend); \
-  allocAndInitHipDeviceData(w, m_w, iend);
-
-#define PLANCKIAN_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_w, w, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(u); \
-  deallocHipDeviceData(v); \
-  deallocHipDeviceData(w);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void planckian(Real_ptr x, Real_ptr y,
@@ -57,17 +42,18 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   PLANCKIAN_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    PLANCKIAN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((planckian<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((planckian<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  x, y,
                                              u, v, w,
                                              iend );
        hipErrchk( hipGetLastError() );
@@ -75,16 +61,12 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    PLANCKIAN_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          PLANCKIAN_BODY;
        });
@@ -92,14 +74,12 @@ void PLANCKIAN::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PLANCKIAN_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  PLANCKIAN : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PLANCKIAN, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PLANCKIAN, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

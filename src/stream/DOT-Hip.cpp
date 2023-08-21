@@ -22,14 +22,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define DOT_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(a, m_a, iend); \
-  allocAndInitHipDeviceData(b, m_b, iend);
-
-#define DOT_DATA_TEARDOWN_HIP \
-  deallocHipDeviceData(a); \
-  deallocHipDeviceData(b);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void dot(Real_ptr a, Real_ptr b,
@@ -74,48 +66,47 @@ void DOT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   DOT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    DOT_DATA_SETUP_HIP;
-
     Real_ptr dprod;
-    allocAndInitHipDeviceData(dprod, &m_dot_init, 1);
+    allocData(DataSpace::HipDevice, dprod, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(dprod, &m_dot_init, 1);
+      hipErrchk( hipMemcpyAsync( dprod, &m_dot_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       hipLaunchKernelGGL((dot<block_size>), dim3(grid_size), dim3(block_size),
-                                            sizeof(Real_type)*block_size, 0,
+                                            shmem, res.get_stream(),
                          a, b, dprod, m_dot_init, iend );
       hipErrchk( hipGetLastError() );
 
       Real_type lprod;
-      Real_ptr plprod = &lprod;
-      getHipDeviceData(plprod, dprod, 1);
+      hipErrchk( hipMemcpyAsync( &lprod, dprod, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_dot += lprod;
 
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_HIP;
-
-    deallocHipDeviceData(dprod);
+    deallocData(DataSpace::HipDevice, dprod);
 
   } else if ( vid == RAJA_HIP ) {
-
-    DOT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        RAJA::ReduceSum<RAJA::hip_reduce, Real_type> dot(m_dot_init);
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          DOT_BODY;
        });
@@ -125,14 +116,12 @@ void DOT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DOT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  DOT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DOT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DOT, Hip)
 
 } // end namespace stream
 } // end namespace rajaperf

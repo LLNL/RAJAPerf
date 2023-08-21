@@ -21,16 +21,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define SORTPAIRS_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend*run_reps); \
-  allocAndInitHipDeviceData(i, m_i, iend*run_reps);
-
-#define SORTPAIRS_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, iend*run_reps); \
-  getHipDeviceData(m_i, i, iend*run_reps); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(i);
-
 
 void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
@@ -38,21 +28,19 @@ void SORTPAIRS::runHipVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   SORTPAIRS_DATA_SETUP;
 
   if ( vid == RAJA_HIP ) {
 
-    SORTPAIRS_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::sort_pairs< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(RAJA_SORTPAIRS_ARGS);
+      RAJA::sort_pairs< RAJA::hip_exec<default_gpu_block_size, true /*async*/> >(res, RAJA_SORTPAIRS_ARGS);
 
     }
     stopTimer();
-
-    SORTPAIRS_DATA_TEARDOWN_HIP;
 
   } else {
      getCout() << "\n  SORTPAIRS : Unknown Hip variant id = " << vid << std::endl;

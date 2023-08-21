@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-  
-#define REDUCE_STRUCT_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(points.x, m_x, points.N); \
-  allocAndInitCudaDeviceData(points.y, m_y, points.N); \
-  
-
-#define REDUCE_STRUCT_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(points.x); \
-  deallocCudaDeviceData(points.y);
 
 template < size_t block_size >
 __launch_bounds__(block_size)
@@ -111,23 +102,24 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_STRUCT_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_STRUCT_DATA_SETUP_CUDA;
-
     Real_ptr mem; //xcenter,xmin,xmax,ycenter,ymin,ymax
-    allocCudaDeviceData(mem,6);
+    allocData(DataSpace::CudaDevice, mem,6);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type)));  
+      cudaErrchk(cudaMemsetAsync(mem, 0.0, 6*sizeof(Real_type), res.get_stream()));
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 6*sizeof(Real_type)*block_size;
                                                             
       reduce_struct<block_size><<<grid_size, block_size,
-                                  6*sizeof(Real_type)*block_size>>>(
+                                  shmem, res.get_stream()>>>(
         points.x, points.y,
         mem, mem+1, mem+2,    // xcenter,xmin,xmax
         mem+3, mem+4, mem+5,  // ycenter,ymin,ymax
@@ -136,8 +128,9 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
       cudaErrchk( cudaGetLastError() );
 
       Real_type lmem[6]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-      Real_ptr plmem = &lmem[0];
-      getCudaDeviceData(plmem, mem, 6);
+      cudaErrchk( cudaMemcpyAsync( &lmem[0], mem, 6*sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
       points.SetCenter(lmem[0]/points.N, lmem[3]/points.N);
       points.SetXMin(lmem[1]);
@@ -149,13 +142,9 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
-
-    deallocCudaDeviceData(mem);
+    deallocData(DataSpace::CudaDevice, mem);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE_STRUCT_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -167,7 +156,7 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
       RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> xmax(m_init_max); 
       RAJA::ReduceMax<RAJA::cuda_reduce, Real_type> ymax(m_init_max);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_STRUCT_BODY_RAJA;
       });
@@ -183,15 +172,13 @@ void REDUCE_STRUCT::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    REDUCE_STRUCT_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  REDUCE_STRUCT : Unknown CUDA variant id = " << vid << std::endl;
   }
 
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(REDUCE_STRUCT, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(REDUCE_STRUCT, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

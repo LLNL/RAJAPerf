@@ -26,23 +26,6 @@ namespace polybench
   //
   const size_t threads_per_team = 256;
 
-#define POLYBENCH_FDTD_2D_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(hz, m_hz, m_nx * m_ny, did, hid); \
-  allocAndInitOpenMPDeviceData(ex, m_ex, m_nx * m_ny, did, hid); \
-  allocAndInitOpenMPDeviceData(ey, m_ey, m_nx * m_ny, did, hid); \
-  allocAndInitOpenMPDeviceData(fict, m_fict, m_tsteps, did, hid);
-
-
-#define POLYBENCH_FDTD_2D_TEARDOWN_OMP_TARGET  \
-  getOpenMPDeviceData(m_hz, hz, m_nx * m_ny, hid, did); \
-  deallocOpenMPDeviceData(ex, did); \
-  deallocOpenMPDeviceData(ey, did); \
-  deallocOpenMPDeviceData(fict, did);
-
-
 void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -50,8 +33,6 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
   POLYBENCH_FDTD_2D_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -93,11 +74,7 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
     }
     stopTimer();
 
-    POLYBENCH_FDTD_2D_TEARDOWN_OMP_TARGET;
-
   } else if (vid == RAJA_OpenMPTarget) {
-
-    POLYBENCH_FDTD_2D_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_FDTD_2D_VIEWS_RAJA;
 
@@ -149,8 +126,6 @@ void POLYBENCH_FDTD_2D::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
 
     } // run_reps
     stopTimer();
-
-    POLYBENCH_FDTD_2D_TEARDOWN_OMP_TARGET;
 
   } else {
       getCout() << "\n  POLYBENCH_FDTD_2D : Unknown OMP Target variant id = " << vid << std::endl;

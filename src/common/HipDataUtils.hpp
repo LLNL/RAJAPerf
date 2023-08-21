@@ -15,11 +15,14 @@
 #define RAJAPerf_HipDataUtils_HPP
 
 #include "RPTypes.hpp"
+#include <stdexcept>
 
 #if defined(RAJA_ENABLE_HIP)
 
+#include "common/RAJAPerfSuite.hpp"
 #include "common/GPUUtils.hpp"
 
+#include "RAJA/policy/hip/policy.hpp"
 #include "RAJA/policy/hip/raja_hiperrchk.hpp"
 
 
@@ -64,120 +67,140 @@ __global__ void lambda_hip(Lambda body)
   body();
 }
 
-/*!
- * \brief Getters for hip kernel indices.
- */
-template < typename Index >
-__device__ inline Index_type lambda_hip_get_index();
 
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_x_direct>() {
-  return threadIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_y_direct>() {
-  return threadIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_thread_z_direct>() {
-  return threadIdx.z;
-}
-
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_x_direct>() {
-  return blockIdx.x;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_y_direct>() {
-  return blockIdx.y;
-}
-template < >
-__device__ inline Index_type lambda_hip_get_index<RAJA::hip_block_z_direct>() {
-  return blockIdx.z;
-}
-
-/*!
- * \brief Copy given hptr (host) data to HIP device (dptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
- */
-template <typename T>
-void initHipDeviceData(T& dptr, const T hptr, int len)
+namespace detail
 {
-  hipErrchk( hipMemcpy( dptr, hptr,
-                          len * sizeof(typename std::remove_pointer<T>::type),
-                          hipMemcpyHostToDevice ) );
 
-  incDataInitCount();
+/*!
+ * \brief Get current hip device.
+ */
+inline int getHipDevice()
+{
+  int device = hipInvalidDeviceId;
+  hipErrchk( hipGetDevice( &device ) );
+  return device;
+}
+
+/*
+ * Copy memory len bytes from src to dst.
+ */
+inline void copyHipData(void* dst_ptr, const void* src_ptr, size_t len)
+{
+  hipErrchk( hipMemcpy( dst_ptr, src_ptr, len,
+             hipMemcpyDefault ) );
 }
 
 /*!
  * \brief Allocate HIP device data array (dptr).
  */
-template <typename T>
-void allocHipDeviceData(T& dptr, int len)
+inline void* allocHipDeviceData(size_t len)
 {
-  hipErrchk( hipMalloc( (void**)&dptr,
-              len * sizeof(typename std::remove_pointer<T>::type) ) );
+  void* dptr = nullptr;
+  hipErrchk( hipMalloc( &dptr, len ) );
+  return dptr;
+}
+
+/*!
+ * \brief Allocate HIP fine-grained device data array (dfptr).
+ */
+inline void* allocHipDeviceFineData(size_t len)
+{
+  void* dfptr = nullptr;
+  hipErrchk( hipExtMallocWithFlags( &dfptr, len,
+              hipDeviceMallocFinegrained ) );
+  return dfptr;
+}
+
+/*!
+ * \brief Allocate HIP managed data array (mptr).
+ */
+inline void* allocHipManagedData(size_t len)
+{
+  void* mptr = nullptr;
+  hipErrchk( hipMallocManaged( &mptr, len,
+              hipMemAttachGlobal ) );
+  return mptr;
 }
 
 /*!
  * \brief Allocate HIP pinned data array (pptr).
  */
-template <typename T>
-void allocHipPinnedData(T& pptr, int len)
+inline void* allocHipPinnedData(size_t len)
 {
-  hipErrchk( hipHostMalloc( (void**)&pptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
+  void* pptr = nullptr;
+  hipErrchk( hipHostMalloc( &pptr, len,
               hipHostMallocMapped ) );
+  return pptr;
 }
 
 /*!
- * \brief Allocate HIP device data array (dptr) and copy given hptr (host)
- * data to device array.
+ * \brief Allocate HIP fine-grained pinned data array (pfptr).
  */
-template <typename T>
-void allocAndInitHipDeviceData(T& dptr, const T hptr, int len)
+inline void* allocHipPinnedFineData(size_t len)
 {
-  allocHipDeviceData(dptr, len);
-  initHipDeviceData(dptr, hptr, len);
+  void* pfptr = nullptr;
+  hipErrchk( hipHostMalloc( &pfptr, len,
+              hipHostMallocMapped | hipHostMallocCoherent ) );
+  return pfptr;
 }
 
 /*!
- * \brief Copy given dptr (HIP device) data to host (hptr).
- *
- * Method assumes both host and device data arrays are allocated
- * and of propoer size for copy operation to succeed.
+ * \brief Allocate HIP coarse-grained pinned data array (pcptr).
  */
-template <typename T>
-void getHipDeviceData(T& hptr, const T dptr, int len)
+inline void* allocHipPinnedCoarseData(size_t len)
 {
-  hipErrchk( hipMemcpy( hptr, dptr,
-              len * sizeof(typename std::remove_pointer<T>::type),
-              hipMemcpyDeviceToHost ) );
+  void* pcptr = nullptr;
+  hipErrchk( hipHostMalloc( &pcptr, len,
+              hipHostMallocMapped | hipHostMallocNonCoherent ) );
+  return pcptr;
 }
+
+/*!
+ * \brief Apply mem advice to HIP data array (ptr).
+ */
+inline void adviseHipData(void* ptr, int len, hipMemoryAdvise advice, int device)
+{
+  hipErrchk( hipMemAdvise( ptr, len, advice, device ) );
+}
+
+#if defined(RAJAPERF_USE_MEMADVISE_COARSE)
+inline void adviseHipCoarseData(void* ptr, size_t len)
+{
+  adviseHipData(ptr, len, hipMemAdviseSetCoarseGrain, getHipDevice());
+}
+#endif
+
+inline void adviseHipFineData(void* ptr, size_t len)
+{
+  adviseHipData(ptr, len, hipMemAdviseUnsetCoarseGrain, getHipDevice());
+}
+
 
 /*!
  * \brief Free device data array.
  */
-template <typename T>
-void deallocHipDeviceData(T& dptr)
+inline void deallocHipDeviceData(void* dptr)
 {
   hipErrchk( hipFree( dptr ) );
-  dptr = nullptr;
+}
+
+/*!
+ * \brief Free managed data array.
+ */
+inline void deallocHipManagedData(void* mptr)
+{
+  hipErrchk( hipFree( mptr ) );
 }
 
 /*!
  * \brief Free pinned data array.
  */
-template <typename T>
-void deallocHipPinnedData(T& pptr)
+inline void deallocHipPinnedData(void* pptr)
 {
   hipErrchk( hipHostFree( pptr ) );
-  pptr = nullptr;
 }
 
+}  // closing brace for detail namespace
 
 }  // closing brace for rajaperf namespace
 

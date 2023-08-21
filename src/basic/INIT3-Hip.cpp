@@ -21,23 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define INIT3_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(out1, m_out1, iend); \
-  allocAndInitHipDeviceData(out2, m_out2, iend); \
-  allocAndInitHipDeviceData(out3, m_out3, iend); \
-  allocAndInitHipDeviceData(in1, m_in1, iend); \
-  allocAndInitHipDeviceData(in2, m_in2, iend);
-
-#define INIT3_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_out1, out1, iend); \
-  getHipDeviceData(m_out2, out2, iend); \
-  getHipDeviceData(m_out3, out3, iend); \
-  deallocHipDeviceData(out1); \
-  deallocHipDeviceData(out2); \
-  deallocHipDeviceData(out3); \
-  deallocHipDeviceData(in1); \
-  deallocHipDeviceData(in2);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void init3(Real_ptr out1, Real_ptr out2, Real_ptr out3,
@@ -59,28 +42,25 @@ void INIT3::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   INIT3_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    INIT3_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((init3<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  out1, out2, out3, in1, in2,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((init3<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  out1, out2, out3, in1, in2,
                                         iend );
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    INIT3_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -90,23 +70,20 @@ void INIT3::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(init3_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, init3_lambda);
+        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, init3_lambda);
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    INIT3_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         INIT3_BODY;
       });
@@ -114,14 +91,12 @@ void INIT3::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    INIT3_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  INIT3 : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INIT3, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INIT3, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

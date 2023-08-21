@@ -55,17 +55,23 @@ public:
       imax = rzmax + NPNR;
       jmax = rzmax + NPNR;
       jp = imax - imin + 1 + NPNL + NPNR;
+      n_real_zones = (imax - imin);
+      n_real_nodes = (imax+1 - imin);
 
       if ( ndims == 2 ) {
          kmin = 0;
          kmax = 0;
          kp = 0;
          nnalls = jp * (jmax - jmin + 1 + NPNL + NPNR) ;
+         n_real_zones *= (jmax - jmin);
+         n_real_nodes *= (jmax+1 - jmin);
       } else if ( ndims == 3 ) {
          kmin = NPNL;
          kmax = rzmax + NPNR;
          kp = jp * (jmax - jmin + 1 + NPNL + NPNR);
          nnalls = kp * (kmax - kmin + 1 + NPNL + NPNR) ;
+         n_real_zones *= (jmax - jmin) * (kmax - kmin);
+         n_real_nodes *= (jmax+1 - jmin) * (kmax+1 - kmin);
       }
 
       fpn = 0;
@@ -75,45 +81,10 @@ public:
 
       fpz = frn - jp - kp - 1;
       lpz = lrn;
-
-      real_zones = new Index_type[nnalls];
-      for (Index_type i = 0; i < nnalls; ++i) real_zones[i] = -1;
-
-      n_real_zones = 0;
-
-      if ( ndims == 2 ) {
-
-         for (Index_type j = jmin; j < jmax; j++) {
-            for (Index_type i = imin; i < imax; i++) {
-               Index_type ip = i + j*jp ;
-
-               Index_type id = n_real_zones;
-               real_zones[id] = ip;
-               n_real_zones++;
-            }
-         }
-
-      } else if ( ndims == 3 ) {
-
-         for (Index_type k = kmin; k < kmax; k++) { 
-            for (Index_type j = jmin; j < jmax; j++) {
-               for (Index_type i = imin; i < imax; i++) {
-                  Index_type ip = i + j*jp + kp*k ;
-
-                  Index_type id = n_real_zones;
-                  real_zones[id] = ip;
-                  n_real_zones++;
-               }
-            }
-         } 
-
-      }
-
    }
 
-   ~ADomain() 
+   ~ADomain()
    {
-      if (real_zones) delete [] real_zones; 
    }
 
    Index_type ndims;
@@ -139,9 +110,18 @@ public:
    Index_type fpz;
    Index_type lpz;
 
-   Index_type* real_zones;
    Index_type  n_real_zones;
+   Index_type  n_real_nodes;
 };
+
+//
+// Routines for initializing real zone indices for 2d/3d domains.
+//
+void setRealZones_2d(Index_type* real_zones,
+                     const ADomain& domain);
+
+void setRealZones_3d(Index_type* real_zones,
+                     const ADomain& domain);
 
 //
 // Routines for initializing mesh positions for 2d/3d domains.

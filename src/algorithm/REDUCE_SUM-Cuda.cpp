@@ -24,12 +24,6 @@ namespace rajaperf
 namespace algorithm
 {
 
-#define REDUCE_SUM_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend);
-
-#define REDUCE_SUM_DATA_TEARDOWN_CUDA \
-  deallocCudaDeviceData(x);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void reduce_sum(Real_ptr x, Real_ptr dsum, Real_type sum_init,
@@ -70,18 +64,18 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_SUM_DATA_SETUP_CUDA;
-
-    cudaStream_t stream = 0;
+    cudaStream_t stream = res.get_stream();
 
     int len = iend - ibegin;
 
     Real_type* sum_storage;
-    allocCudaPinnedData(sum_storage, 1);
+    allocData(DataSpace::CudaPinned, sum_storage, 1);
 
     // Determine temporary device storage requirements
     void* d_temp_storage = nullptr;
@@ -97,7 +91,7 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
 
     // Allocate temporary storage
     unsigned char* temp_storage;
-    allocCudaDeviceData(temp_storage, temp_storage_bytes);
+    allocData(DataSpace::CudaDevice, temp_storage, temp_storage_bytes);
     d_temp_storage = temp_storage;
 
 
@@ -121,10 +115,8 @@ void REDUCE_SUM::runCudaVariantCub(VariantID vid)
     stopTimer();
 
     // Free temporary storage
-    deallocCudaDeviceData(temp_storage);
-    deallocCudaPinnedData(sum_storage);
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, temp_storage);
+    deallocData(DataSpace::CudaPinned, sum_storage);
 
   } else {
 
@@ -141,50 +133,46 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   REDUCE_SUM_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
 
-    REDUCE_SUM_DATA_SETUP_CUDA;
-
     Real_ptr dsum;
-    allocCudaDeviceData(dsum, 1);
+    allocData(DataSpace::CudaDevice, dsum, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initCudaDeviceData(dsum, &m_sum_init, 1);
+      cudaErrchk( cudaMemcpyAsync( dsum, &m_sum_init, sizeof(Real_type),
+                                   cudaMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
       reduce_sum<block_size><<<grid_size, block_size,
-                  sizeof(Real_type)*block_size>>>( x,
+                  shmem, res.get_stream()>>>( x,
                                                    dsum, m_sum_init,
                                                    iend );
       cudaErrchk( cudaGetLastError() );
 
-      Real_type lsum;
-      Real_ptr plsum = &lsum;
-      getCudaDeviceData(plsum, dsum, 1);
-
-      m_sum = lsum;
+      cudaErrchk( cudaMemcpyAsync( &m_sum, dsum, sizeof(Real_type),
+                                   cudaMemcpyDeviceToHost, res.get_stream() ) );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     }
     stopTimer();
 
-    deallocCudaDeviceData(dsum);
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaDevice, dsum);
 
   } else if ( vid == RAJA_CUDA ) {
-
-    REDUCE_SUM_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::ReduceSum<RAJA::cuda_reduce, Real_type> sum(m_sum_init);
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           REDUCE_SUM_BODY;
       });
@@ -193,8 +181,6 @@ void REDUCE_SUM::runCudaVariantBlock(VariantID vid)
 
     }
     stopTimer();
-
-    REDUCE_SUM_DATA_TEARDOWN_CUDA;
 
   } else {
 
@@ -224,7 +210,7 @@ void REDUCE_SUM::runCudaVariant(VariantID vid, size_t tune_idx)
           run_params.validGPUBlockSize(block_size)) {
 
         if (tune_idx == t) {
-
+          setBlockSize(block_size);
           runCudaVariantBlock<block_size>(vid);
 
         }

@@ -26,9 +26,11 @@ void HYDRO_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
   HYDRO_1D_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto hydro1d_lam = [=](Index_type i) {
                        HYDRO_1D_BODY;
                      };
+#endif
 
   switch ( vid ) {
 
@@ -68,7 +70,7 @@ void HYDRO_1D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), hydro1d_lam);
 
       }

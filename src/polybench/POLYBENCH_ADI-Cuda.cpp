@@ -21,20 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ADI_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(U, m_U, m_n * m_n); \
-  allocAndInitCudaDeviceData(V, m_V, m_n * m_n); \
-  allocAndInitCudaDeviceData(P, m_P, m_n * m_n); \
-  allocAndInitCudaDeviceData(Q, m_Q, m_n * m_n);
-
-#define POLYBENCH_ADI_TEARDOWN_CUDA \
-  getCudaDeviceData(m_U, U, m_n * m_n); \
-  deallocCudaDeviceData(U); \
-  deallocCudaDeviceData(V); \
-  deallocCudaDeviceData(P); \
-  deallocCudaDeviceData(Q);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void adi1(const Index_type n,
@@ -92,11 +78,11 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_ADI_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -104,13 +90,14 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
-        adi1<block_size><<<grid_size, block_size>>>(n,
+        adi1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
                                         a, b, c, d, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
 
-        adi2<block_size><<<grid_size, block_size>>>(n,
+        adi2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
                                         a, c, d, e, f,
                                         P, Q, U, V);
         cudaErrchk( cudaGetLastError() );
@@ -120,11 +107,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -132,8 +115,9 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
       for (Index_type t = 1; t <= tsteps; ++t) {
 
         const size_t grid_size = RAJA_DIVIDE_CEILING_INT(n-2, block_size);
+        constexpr size_t shmem = 0;
 
-        adi_lam<block_size><<<grid_size, block_size>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2;
             for (Index_type j = 1; j < n-1; ++j) {
@@ -147,7 +131,7 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
         );
         cudaErrchk( cudaGetLastError() );
 
-        adi_lam<block_size><<<grid_size, block_size>>>(n,
+        adi_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(n,
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6;
             for (Index_type j = 1; j < n-1; ++j) {
@@ -166,28 +150,21 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_ADI_DATA_SETUP_CUDA;
 
     POLYBENCH_ADI_VIEWS_RAJA;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>>,
-              RAJA::statement::For<2, RAJA::seq_exec,
-                RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
-              >
+          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>>,
+            RAJA::statement::For<2, RAJA::seq_exec,
+              RAJA::statement::Lambda<3, RAJA::Segs<0,2>>
             >
           >
         >
@@ -198,10 +175,11 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
 
       for (Index_type t = 1; t <= tsteps; ++t) {
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY2_RAJA;
@@ -217,10 +195,11 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
           }
         );
 
-        RAJA::kernel<EXEC_POL>(
+        RAJA::kernel_resource<EXEC_POL>(
           RAJA::make_tuple(RAJA::RangeSegment{1, n-1},
                            RAJA::RangeSegment{1, n-1},
                            RAJA::RangeStrideSegment{n-2, 0, -1}),
+          res,
 
           [=] __device__ (Index_type i) {
             POLYBENCH_ADI_BODY6_RAJA;
@@ -241,14 +220,12 @@ void POLYBENCH_ADI::runCudaVariantImpl(VariantID vid)
     } // run_reps
     stopTimer();
 
-    POLYBENCH_ADI_TEARDOWN_CUDA
-
   } else {
       getCout() << "\n  POLYBENCH_ADI : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_ADI, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_ADI, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

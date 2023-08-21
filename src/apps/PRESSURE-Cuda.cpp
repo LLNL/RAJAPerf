@@ -21,21 +21,6 @@ namespace rajaperf
 namespace apps
 {
 
-#define PRESSURE_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(compression, m_compression, iend); \
-  allocAndInitCudaDeviceData(bvc, m_bvc, iend); \
-  allocAndInitCudaDeviceData(p_new, m_p_new, iend); \
-  allocAndInitCudaDeviceData(e_old, m_e_old, iend); \
-  allocAndInitCudaDeviceData(vnewc, m_vnewc, iend);
-
-#define PRESSURE_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_p_new, p_new, iend); \
-  deallocCudaDeviceData(compression); \
-  deallocCudaDeviceData(bvc); \
-  deallocCudaDeviceData(p_new); \
-  deallocCudaDeviceData(e_old); \
-  deallocCudaDeviceData(vnewc);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void pressurecalc1(Real_ptr bvc, Real_ptr compression,
@@ -70,23 +55,24 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   PRESSURE_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    PRESSURE_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+       constexpr size_t shmem = 0;
 
-       pressurecalc1<block_size><<<grid_size, block_size>>>( bvc, compression,
+       pressurecalc1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( bvc, compression,
                                                  cls,
                                                  iend );
        cudaErrchk( cudaGetLastError() );
 
-       pressurecalc2<block_size><<<grid_size, block_size>>>( p_new, bvc, e_old,
+       pressurecalc2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( p_new, bvc, e_old,
                                                  vnewc,
                                                  p_cut, eosvmax, pmin,
                                                  iend );
@@ -95,11 +81,7 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    PRESSURE_DATA_SETUP_CUDA;
 
     const bool async = true;
 
@@ -112,12 +94,12 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
       RAJA::region<RAJA::seq_region>( [=]() {
 #endif
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY1;
         });
 
-        RAJA::forall< RAJA::cuda_exec<block_size, async> >(
+        RAJA::forall< RAJA::cuda_exec<block_size, async> >( res,
           RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
           PRESSURE_BODY2;
         });
@@ -129,14 +111,12 @@ void PRESSURE::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    PRESSURE_DATA_TEARDOWN_CUDA;
-
   } else {
      getCout() << "\n  PRESSURE : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(PRESSURE, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(PRESSURE, Cuda)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -21,15 +21,6 @@ namespace rajaperf
 namespace basic
 {
 
-#define DAXPY_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(y, m_y, iend);
-
-#define DAXPY_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_y, y, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void daxpy(Real_ptr y, Real_ptr x,
@@ -51,28 +42,25 @@ void DAXPY::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   DAXPY_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((daxpy<block_size>),dim3(grid_size), dim3(block_size), 0, 0, y, x, a,
+      constexpr size_t shmem = 0;
+      hipLaunchKernelGGL((daxpy<block_size>),dim3(grid_size), dim3(block_size), shmem, res.get_stream(), y, x, a,
                                         iend );
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -82,23 +70,20 @@ void DAXPY::runHipVariantImpl(VariantID vid)
       };
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
+      constexpr size_t shmem = 0;
       hipLaunchKernelGGL((lambda_hip_forall<block_size, decltype(daxpy_lambda)>),
-        grid_size, block_size, 0, 0, ibegin, iend, daxpy_lambda);
+        grid_size, block_size, shmem, res.get_stream(), ibegin, iend, daxpy_lambda);
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    DAXPY_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         DAXPY_BODY;
       });
@@ -106,14 +91,12 @@ void DAXPY::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    DAXPY_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  DAXPY : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(DAXPY, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(DAXPY, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -26,9 +26,11 @@ void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
 
   TRIDIAG_ELIM_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto tridiag_elim_lam = [=](Index_type i) {
                             TRIDIAG_ELIM_BODY;
                           };
+#endif
 
   switch ( vid ) {
 
@@ -68,7 +70,7 @@ void TRIDIAG_ELIM::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), tridiag_elim_lam);
 
       }

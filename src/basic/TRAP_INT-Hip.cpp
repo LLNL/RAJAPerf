@@ -37,11 +37,6 @@ Real_type trap_int_func(Real_type x,
 }
 
 
-#define TRAP_INT_DATA_SETUP_HIP // nothing to do here...
-
-#define TRAP_INT_DATA_TEARDOWN_HIP // nothing to do here...
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void trapint(Real_type x0, Real_type xp,
@@ -90,22 +85,24 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   TRAP_INT_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    TRAP_INT_DATA_SETUP_HIP;
-
     Real_ptr sumx;
-    allocAndInitHipDeviceData(sumx, &m_sumx_init, 1);
+    allocData(DataSpace::HipDevice, sumx, 1);
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      initHipDeviceData(sumx, &m_sumx_init, 1);
+      hipErrchk( hipMemcpyAsync( sumx, &m_sumx_init, sizeof(Real_type),
+                                 hipMemcpyHostToDevice, res.get_stream() ) );
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), sizeof(Real_type)*block_size, 0, x0, xp,
+      constexpr size_t shmem = sizeof(Real_type)*block_size;
+      hipLaunchKernelGGL((trapint<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(), x0, xp,
                                                 y, yp,
                                                 h,
                                                 sumx,
@@ -113,27 +110,24 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
       hipErrchk( hipGetLastError() );
 
       Real_type lsumx;
-      Real_ptr plsumx = &lsumx;
-      getHipDeviceData(plsumx, sumx, 1);
+      hipErrchk( hipMemcpyAsync( &lsumx, sumx, sizeof(Real_type),
+                                 hipMemcpyDeviceToHost, res.get_stream() ) );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_sumx += lsumx * h;
 
     }
     stopTimer();
 
-    deallocHipDeviceData(sumx);
-
-    TRAP_INT_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipDevice, sumx);
 
   } else if ( vid == RAJA_HIP ) {
-
-    TRAP_INT_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       RAJA::ReduceSum<RAJA::hip_reduce, Real_type> sumx(m_sumx_init);
 
-      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         TRAP_INT_BODY;
       });
@@ -143,14 +137,12 @@ void TRAP_INT::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    TRAP_INT_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  TRAP_INT : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(TRAP_INT, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(TRAP_INT, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

@@ -33,16 +33,6 @@ namespace basic
   const size_t items_per_thread = 15;
 
 
-#define INDEXLIST_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(x, m_x, iend); \
-  allocAndInitCudaDeviceData(list, m_list, iend);
-
-#define INDEXLIST_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_list, list, iend); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(list);
-
-
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
 template < size_t block_size, size_t items_per_thread >
@@ -263,54 +253,53 @@ void INDEXLIST::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   INDEXLIST_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    INDEXLIST_DATA_SETUP_CUDA;
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocCudaPinnedData(len, 1);
+    allocData(DataSpace::CudaPinned, len, 1);
     Index_type* block_counts;
-    allocCudaDeviceData(block_counts, grid_size);
+    allocData(DataSpace::CudaDevice, block_counts, grid_size);
     Index_type* grid_counts;
-    allocCudaDeviceData(grid_counts, grid_size);
+    allocData(DataSpace::CudaDevice, grid_counts, grid_size);
     unsigned* block_readys;
-    allocCudaDeviceData(block_readys, grid_size);
-    cudaErrchk( cudaMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
+    allocData(DataSpace::CudaDevice, block_readys, grid_size);
+    cudaErrchk( cudaMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
+    cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size>>>(
+          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
           x+ibegin, list+ibegin,
           block_counts, grid_counts, block_readys,
           len, iend-ibegin );
       cudaErrchk( cudaGetLastError() );
 
-      cudaErrchk( cudaDeviceSynchronize() );
+      cudaErrchk( cudaStreamSynchronize( res.get_stream() ) );
       m_len = *len;
 
     }
     stopTimer();
 
-    deallocCudaPinnedData(len);
-    deallocCudaDeviceData(block_counts);
-    deallocCudaDeviceData(grid_counts);
-    deallocCudaDeviceData(block_readys);
-
-    INDEXLIST_DATA_TEARDOWN_CUDA;
+    deallocData(DataSpace::CudaPinned, len);
+    deallocData(DataSpace::CudaDevice, block_counts);
+    deallocData(DataSpace::CudaDevice, grid_counts);
+    deallocData(DataSpace::CudaDevice, block_readys);
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INDEXLIST, Cuda)
 
 } // end namespace basic
 } // end namespace rajaperf

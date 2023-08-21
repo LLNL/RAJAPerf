@@ -54,13 +54,13 @@ void SORT::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
 void SORT::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps());
+  checksum[vid][tune_idx] += calcChecksum(m_x, getActualProblemSize()*getRunReps(), vid);
 }
 
 void SORT::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
-  deallocData(m_x);
+  deallocData(m_x, vid);
 }
 
 } // end namespace algorithm

@@ -27,6 +27,9 @@ void HYDRO_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
   const Index_type jend = m_jn - 1;
 
   HYDRO_2D_DATA_SETUP;
+#if !defined(RUN_RAJA_SEQ)
+  RAJA_UNUSED_VAR(kn);   // prevents a compiler warning in the OpenMP target offload build case
+#endif
 
   switch ( vid ) {
 
@@ -115,8 +118,8 @@ void HYDRO_2D::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx)
 
       using EXECPOL =
         RAJA::KernelPolicy<
-          RAJA::statement::For<0, RAJA::loop_exec,  // k
-            RAJA::statement::For<1, RAJA::loop_exec,  // j
+          RAJA::statement::For<0, RAJA::seq_exec,    // k
+            RAJA::statement::For<1, RAJA::seq_exec,  // j
               RAJA::statement::Lambda<0>
             >
           >

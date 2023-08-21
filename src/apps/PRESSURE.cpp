@@ -66,26 +66,26 @@ void PRESSURE::setUp(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   allocAndInitData(m_e_old, getActualProblemSize(), vid);
   allocAndInitData(m_vnewc, getActualProblemSize(), vid);
 
-  initData(m_cls);
-  initData(m_p_cut);
-  initData(m_pmin);
-  initData(m_eosvmax);
+  initData(m_cls, vid);
+  initData(m_p_cut, vid);
+  initData(m_pmin, vid);
+  initData(m_eosvmax, vid);
 }
 
 void PRESSURE::updateChecksum(VariantID vid, size_t tune_idx)
 {
-  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize());
+  checksum[vid][tune_idx] += calcChecksum(m_p_new, getActualProblemSize(), vid);
 }
 
 void PRESSURE::tearDown(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   (void) vid;
 
-  deallocData(m_compression);
-  deallocData(m_bvc);
-  deallocData(m_p_new);
-  deallocData(m_e_old);
-  deallocData(m_vnewc);
+  deallocData(m_compression, vid);
+  deallocData(m_bvc, vid);
+  deallocData(m_p_new, vid);
+  deallocData(m_e_old, vid);
+  deallocData(m_vnewc, vid);
 }
 
 } // end namespace apps

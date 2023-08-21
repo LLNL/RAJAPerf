@@ -40,17 +40,6 @@ namespace apps
                static_cast<size_t>(RAJA_DIVIDE_CEILING_INT(num_z, z_block_sz)));
 
 
-#define LTIMES_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(phidat, m_phidat, m_philen); \
-  allocAndInitHipDeviceData(elldat, m_elldat, m_elllen); \
-  allocAndInitHipDeviceData(psidat, m_psidat, m_psilen);
-
-#define LTIMES_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_phidat, phidat, m_philen); \
-  deallocHipDeviceData(phidat); \
-  deallocHipDeviceData(elldat); \
-  deallocHipDeviceData(psidat);
-
 template < size_t m_block_size, size_t g_block_size, size_t z_block_size >
 __launch_bounds__(m_block_size*g_block_size*z_block_size)
 __global__ void ltimes(Real_ptr phidat, Real_ptr elldat, Real_ptr psidat,
@@ -88,20 +77,21 @@ void LTIMES::runHipVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getHipResource()};
+
   LTIMES_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    LTIMES_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       hipLaunchKernelGGL((ltimes<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          phidat, elldat, psidat,
                          num_d,
                          num_m, num_g, num_z);
@@ -110,17 +100,14 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_HIP;
-
   } else if ( vid == Lambda_HIP ) {
-
-    LTIMES_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       LTIMES_THREADS_PER_BLOCK_HIP;
       LTIMES_NBLOCKS_HIP;
+      constexpr size_t shmem = 0;
 
       auto ltimes_lambda =
         [=] __device__ (Index_type z, Index_type g, Index_type m) {
@@ -130,38 +117,25 @@ void LTIMES::runHipVariantImpl(VariantID vid)
         };
 
       hipLaunchKernelGGL((ltimes_lam<LTIMES_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP, decltype(ltimes_lambda)>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          num_m, num_g, num_z, ltimes_lambda);
       hipErrchk( hipGetLastError() );
 
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    LTIMES_DATA_SETUP_HIP;
 
     LTIMES_VIEWS_RANGES_RAJA;
 
     using EXEC_POL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<m_block_sz*g_block_sz*z_block_sz,
-          RAJA::statement::Tile<1, RAJA::tile_fixed<z_block_sz>,
-                                   RAJA::hip_block_z_direct,
-            RAJA::statement::Tile<2, RAJA::tile_fixed<g_block_sz>,
-                                     RAJA::hip_block_y_direct,
-              RAJA::statement::Tile<3, RAJA::tile_fixed<m_block_sz>,
-                                       RAJA::hip_block_x_direct,
-                RAJA::statement::For<1, RAJA::hip_thread_z_direct,     //z
-                  RAJA::statement::For<2, RAJA::hip_thread_y_direct,   //g
-                    RAJA::statement::For<3, RAJA::hip_thread_x_direct, //m
-                      RAJA::statement::For<0, RAJA::seq_exec,          //d
-                        RAJA::statement::Lambda<0>
-                      >
-                    >
-                  >
+          RAJA::statement::For<1, RAJA::hip_global_size_z_direct<z_block_sz>,     //z
+            RAJA::statement::For<2, RAJA::hip_global_size_y_direct<g_block_sz>,   //g
+              RAJA::statement::For<3, RAJA::hip_global_size_x_direct<m_block_sz>, //m
+                RAJA::statement::For<0, RAJA::seq_exec,          //d
+                  RAJA::statement::Lambda<0>
                 >
               >
             >
@@ -172,10 +146,11 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
+      RAJA::kernel_resource<EXEC_POL>( RAJA::make_tuple(IDRange(0, num_d),
                                                IZRange(0, num_z),
                                                IGRange(0, num_g),
                                                IMRange(0, num_m)),
+                                       res,
         [=] __device__ (ID d, IZ z, IG g, IM m) {
         LTIMES_BODY_RAJA;
       });
@@ -183,14 +158,12 @@ void LTIMES::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    LTIMES_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n LTIMES : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(LTIMES, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(LTIMES, Hip)
 
 } // end namespace apps
 } // end namespace rajaperf

@@ -26,20 +26,6 @@ namespace stream
   //
   const size_t threads_per_team = 256;
 
-#define TRIAD_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(a, m_a, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(b, m_b, iend, did, hid); \
-  allocAndInitOpenMPDeviceData(c, m_c, iend, did, hid);
-
-#define TRIAD_DATA_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_a, a, iend, hid, did); \
-  deallocOpenMPDeviceData(a, did); \
-  deallocOpenMPDeviceData(b, did); \
-  deallocOpenMPDeviceData(c, did);
-
 void TRIAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -49,8 +35,6 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
   TRIAD_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    TRIAD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -64,11 +48,7 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
     }
     stopTimer();
 
-    TRIAD_DATA_TEARDOWN_OMP_TARGET;
-
   } else if ( vid == RAJA_OpenMPTarget ) {
-
-    TRIAD_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -80,8 +60,6 @@ void TRIAD::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tun
 
     }
     stopTimer();
-
-    TRIAD_DATA_TEARDOWN_OMP_TARGET;
 
   } else {
      getCout() << "\n  TRIAD : Unknown OMP Target variant id = " << vid << std::endl;

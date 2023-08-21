@@ -17,7 +17,7 @@ namespace rajaperf
 namespace stream
 {
 
-
+// _add_run_seq_start
 void ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -26,9 +26,11 @@ void ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 
   ADD_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto add_lam = [=](Index_type i) {
                    ADD_BODY;
                  };
+#endif
 
   switch ( vid ) {
 
@@ -68,7 +70,7 @@ void ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), add_lam);
 
       }
@@ -85,6 +87,7 @@ void ADD::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
   }
 
 }
+// _add_run_seq_end
 
 } // end namespace stream
 } // end namespace rajaperf

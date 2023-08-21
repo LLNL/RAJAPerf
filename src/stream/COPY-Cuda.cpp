@@ -21,15 +21,6 @@ namespace rajaperf
 namespace stream
 {
 
-#define COPY_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(a, m_a, iend); \
-  allocAndInitCudaDeviceData(c, m_c, iend);
-
-#define COPY_DATA_TEARDOWN_CUDA \
-  getCudaDeviceData(m_c, c, iend); \
-  deallocCudaDeviceData(a); \
-  deallocCudaDeviceData(c);
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void copy(Real_ptr c, Real_ptr a,
@@ -49,34 +40,32 @@ void COPY::runCudaVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getCudaResource()};
+
   COPY_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    COPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      copy<block_size><<<grid_size, block_size>>>( c, a,
+      constexpr size_t shmem = 0;
+      copy<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>( c, a,
                                        iend );
       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    COPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-      lambda_cuda_forall<block_size><<<grid_size, block_size>>>(
+      constexpr size_t shmem = 0;
+      lambda_cuda_forall<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(
         ibegin, iend, [=] __device__ (Index_type i) {
         COPY_BODY;
       });
@@ -85,16 +74,12 @@ void COPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_CUDA;
-
   } else if ( vid == RAJA_CUDA ) {
-
-    COPY_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >(
+      RAJA::forall< RAJA::cuda_exec<block_size, true /*async*/> >( res,
         RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
         COPY_BODY;
       });
@@ -102,14 +87,12 @@ void COPY::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    COPY_DATA_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  COPY : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(COPY, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(COPY, Cuda)
 
 } // end namespace stream
 } // end namespace rajaperf

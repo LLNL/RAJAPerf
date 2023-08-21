@@ -169,7 +169,7 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
 } // closing brace for rajaperf namespace
 
 //
-#define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(kernel, variant)     \
+#define RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(kernel, variant)     \
   void kernel::run##variant##Variant(VariantID vid, size_t tune_idx)           \
   {                                                                            \
     size_t t = 0;                                                              \
@@ -177,6 +177,7 @@ inline void seq_for(camp::int_seq<T, ts...> const&, Func&& func)
       if (run_params.numValidGPUBlockSize() == 0u ||                           \
           run_params.validGPUBlockSize(block_size)) {                          \
         if (tune_idx == t) {                                                   \
+          setBlockSize(block_size);                                            \
           run##variant##VariantImpl<block_size>(vid);                          \
         }                                                                      \
         t += 1;                                                                \

@@ -21,17 +21,6 @@ namespace rajaperf
 namespace lcals
 {
 
-#define HYDRO_1D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, m_array_length); \
-  allocAndInitHipDeviceData(y, m_y, m_array_length); \
-  allocAndInitHipDeviceData(z, m_z, m_array_length);
-
-#define HYDRO_1D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_x, x, m_array_length); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(y); \
-  deallocHipDeviceData(z); \
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void hydro_1d(Real_ptr x, Real_ptr y, Real_ptr z,
@@ -52,17 +41,18 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   HYDRO_1D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    HYDRO_1D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
        const size_t grid_size = RAJA_DIVIDE_CEILING_INT(iend, block_size);
-       hipLaunchKernelGGL((hydro_1d<block_size>), dim3(grid_size), dim3(block_size), 0, 0,  x, y, z,
+       constexpr size_t shmem = 0;
+       hipLaunchKernelGGL((hydro_1d<block_size>), dim3(grid_size), dim3(block_size), shmem, res.get_stream(),  x, y, z,
                                             q, r, t,
                                             iend );
        hipErrchk( hipGetLastError() );
@@ -70,16 +60,12 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HYDRO_1D_DATA_SETUP_HIP;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >(
+       RAJA::forall< RAJA::hip_exec<block_size, true /*async*/> >( res,
          RAJA::RangeSegment(ibegin, iend), [=] __device__ (Index_type i) {
          HYDRO_1D_BODY;
        });
@@ -87,14 +73,12 @@ void HYDRO_1D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_1D_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  HYDRO_1D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_1D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HYDRO_1D, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

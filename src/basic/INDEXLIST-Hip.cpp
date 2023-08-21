@@ -33,16 +33,6 @@ namespace basic
   const size_t items_per_thread = 8;
 
 
-#define INDEXLIST_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(x, m_x, iend); \
-  allocAndInitHipDeviceData(list, m_list, iend);
-
-#define INDEXLIST_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_list, list, iend); \
-  deallocHipDeviceData(x); \
-  deallocHipDeviceData(list);
-
-
 // perform a grid scan on val and returns the result at each thread
 // in exclusive and inclusive, note that val is used as scratch space
 template < size_t block_size, size_t items_per_thread >
@@ -263,54 +253,53 @@ void INDEXLIST::runHipVariantImpl(VariantID vid)
   const Index_type ibegin = 0;
   const Index_type iend = getActualProblemSize();
 
+  auto res{getHipResource()};
+
   INDEXLIST_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
-
-    INDEXLIST_DATA_SETUP_HIP;
 
     const size_t grid_size = RAJA_DIVIDE_CEILING_INT((iend-ibegin), block_size*items_per_thread);
     const size_t shmem_size = 0;
 
     Index_type* len;
-    allocHipPinnedData(len, 1);
+    allocData(DataSpace::HipPinned, len, 1);
     Index_type* block_counts;
-    allocHipDeviceData(block_counts, grid_size);
+    allocData(DataSpace::HipDevice, block_counts, grid_size);
     Index_type* grid_counts;
-    allocHipDeviceData(grid_counts, grid_size);
+    allocData(DataSpace::HipDevice, grid_counts, grid_size);
     unsigned* block_readys;
-    allocHipDeviceData(block_readys, grid_size);
-    hipErrchk( hipMemset(block_readys, 0, sizeof(unsigned)*grid_size) );
+    allocData(DataSpace::HipDevice, block_readys, grid_size);
+    hipErrchk( hipMemsetAsync(block_readys, 0, sizeof(unsigned)*grid_size, res.get_stream()) );
+    hipErrchk( hipStreamSynchronize( res.get_stream() ) );
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       indexlist<block_size, items_per_thread>
-          <<<grid_size, block_size, shmem_size>>>(
+          <<<grid_size, block_size, shmem_size, res.get_stream()>>>(
           x+ibegin, list+ibegin,
           block_counts, grid_counts, block_readys,
           len, iend-ibegin );
       hipErrchk( hipGetLastError() );
 
-      hipErrchk( hipDeviceSynchronize() );
+      hipErrchk( hipStreamSynchronize( res.get_stream() ) );
       m_len = *len;
 
     }
     stopTimer();
 
-    deallocHipPinnedData(len);
-    deallocHipDeviceData(block_counts);
-    deallocHipDeviceData(grid_counts);
-    deallocHipDeviceData(block_readys);
-
-    INDEXLIST_DATA_TEARDOWN_HIP;
+    deallocData(DataSpace::HipPinned, len);
+    deallocData(DataSpace::HipDevice, block_counts);
+    deallocData(DataSpace::HipDevice, grid_counts);
+    deallocData(DataSpace::HipDevice, block_readys);
 
   } else {
     getCout() << "\n  INDEXLIST : Unknown variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(INDEXLIST, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(INDEXLIST, Hip)
 
 } // end namespace basic
 } // end namespace rajaperf

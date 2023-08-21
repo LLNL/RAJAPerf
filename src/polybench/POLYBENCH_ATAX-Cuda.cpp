@@ -21,21 +21,6 @@ namespace rajaperf
 namespace polybench
 {
 
-#define POLYBENCH_ATAX_DATA_SETUP_CUDA \
-  allocAndInitCudaDeviceData(tmp, m_tmp, N); \
-  allocAndInitCudaDeviceData(y, m_y, N); \
-  allocAndInitCudaDeviceData(x, m_x, N); \
-  allocAndInitCudaDeviceData(A, m_A, N * N);
-
-
-#define POLYBENCH_ATAX_TEARDOWN_CUDA \
-  getCudaDeviceData(m_y, y, N); \
-  deallocCudaDeviceData(tmp); \
-  deallocCudaDeviceData(y); \
-  deallocCudaDeviceData(x); \
-  deallocCudaDeviceData(A);
-
-
 template < size_t block_size >
 __launch_bounds__(block_size)
 __global__ void poly_atax_1(Real_ptr A, Real_ptr x, Real_ptr y, Real_ptr tmp,
@@ -86,38 +71,36 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 {
   const Index_type run_reps = getRunReps();
 
+  auto res{getCudaResource()};
+
   POLYBENCH_ATAX_DATA_SETUP;
 
   if ( vid == Base_CUDA ) {
-
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
+      constexpr size_t shmem = 0;
 
-      poly_atax_1<block_size><<<grid_size, block_size>>>(A, x, y, tmp, N);
+      poly_atax_1<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, x, y, tmp, N);
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_2<block_size><<<grid_size, block_size>>>(A, tmp, y, N);
+      poly_atax_2<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(A, tmp, y, N);
       cudaErrchk( cudaGetLastError() );
 
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else if ( vid == Lambda_CUDA ) {
-
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
       const size_t grid_size = RAJA_DIVIDE_CEILING_INT(N, block_size);
+      constexpr size_t shmem = 0;
 
-      poly_atax_lam<block_size><<<grid_size, block_size>>>(N,
+      poly_atax_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(N,
         [=] __device__ (Index_type i) {
           POLYBENCH_ATAX_BODY1;
           for (Index_type j = 0; j < N; ++j ) {
@@ -128,7 +111,7 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
       );
       cudaErrchk( cudaGetLastError() );
 
-      poly_atax_lam<block_size><<<grid_size, block_size>>>(N,
+      poly_atax_lam<block_size><<<grid_size, block_size, shmem, res.get_stream()>>>(N,
         [=] __device__ (Index_type j) {
           POLYBENCH_ATAX_BODY4;
           for (Index_type i = 0; i < N; ++i ) {
@@ -142,26 +125,19 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else if (vid == RAJA_CUDA) {
-
-    POLYBENCH_ATAX_DATA_SETUP_CUDA;
 
     POLYBENCH_ATAX_VIEWS_RAJA;
 
     using EXEC_POL1 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<0, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
-              RAJA::statement::For<1, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
-            >
+          RAJA::statement::For<0, RAJA::cuda_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Segs<0>, RAJA::Params<0>>,
+            RAJA::statement::For<1, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<0>, RAJA::Params<0>>
           >
         >
       >;
@@ -169,15 +145,12 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     using EXEC_POL2 =
       RAJA::KernelPolicy<
         RAJA::statement::CudaKernelFixedAsync<block_size,
-          RAJA::statement::Tile<1, RAJA::tile_fixed<block_size>,
-                                   RAJA::cuda_block_x_direct,
-            RAJA::statement::For<1, RAJA::cuda_thread_x_direct,
-              RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
-              RAJA::statement::For<0, RAJA::seq_exec,
-                RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
-              >,
-              RAJA::statement::Lambda<2, RAJA::Segs<1>, RAJA::Params<0>>
-            >
+          RAJA::statement::For<1, RAJA::cuda_global_size_x_direct<block_size>,
+            RAJA::statement::Lambda<0, RAJA::Segs<1>, RAJA::Params<0>>,
+            RAJA::statement::For<0, RAJA::seq_exec,
+              RAJA::statement::Lambda<1, RAJA::Segs<0,1>, RAJA::Params<0>>
+            >,
+            RAJA::statement::Lambda<2, RAJA::Segs<1>, RAJA::Params<0>>
           >
         >
       >;
@@ -186,10 +159,11 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel_param<EXEC_POL1>(
+      RAJA::kernel_param_resource<EXEC_POL1>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type i, Real_type &dot) {
           POLYBENCH_ATAX_BODY1_RAJA;
@@ -203,10 +177,11 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
 
       );
 
-      RAJA::kernel_param<EXEC_POL2>(
+      RAJA::kernel_param_resource<EXEC_POL2>(
         RAJA::make_tuple(RAJA::RangeSegment{0, N},
                          RAJA::RangeSegment{0, N}),
         RAJA::tuple<Real_type>{0.0},
+        res,
 
         [=] __device__ (Index_type j, Real_type &dot) {
           POLYBENCH_ATAX_BODY4_RAJA;
@@ -223,14 +198,12 @@ void POLYBENCH_ATAX::runCudaVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    POLYBENCH_ATAX_TEARDOWN_CUDA;
-
   } else {
       getCout() << "\n  POLYBENCH_ATAX : Unknown Cuda variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(POLYBENCH_ATAX, Cuda)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(POLYBENCH_ATAX, Cuda)
 
 } // end namespace polybench
 } // end namespace rajaperf

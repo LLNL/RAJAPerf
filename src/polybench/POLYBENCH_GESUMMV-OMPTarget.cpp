@@ -26,24 +26,6 @@ namespace polybench
   //
   const size_t threads_per_team = 256;
 
-#define POLYBENCH_GESUMMV_DATA_SETUP_OMP_TARGET \
-  int hid = omp_get_initial_device(); \
-  int did = omp_get_default_device(); \
-\
-  allocAndInitOpenMPDeviceData(x, m_x, N, did, hid); \
-  allocAndInitOpenMPDeviceData(y, m_y, N, did, hid); \
-  allocAndInitOpenMPDeviceData(A, m_A, N*N, did, hid); \
-  allocAndInitOpenMPDeviceData(B, m_B, N*N, did, hid);
-
-
-#define POLYBENCH_GESUMMV_TEARDOWN_OMP_TARGET \
-  getOpenMPDeviceData(m_y, y, N, hid, did); \
-  deallocOpenMPDeviceData(x, did); \
-  deallocOpenMPDeviceData(y, did); \
-  deallocOpenMPDeviceData(A, did); \
-  deallocOpenMPDeviceData(B, did);
-
-
 void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx))
 {
   const Index_type run_reps = getRunReps();
@@ -51,8 +33,6 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
   POLYBENCH_GESUMMV_DATA_SETUP;
 
   if ( vid == Base_OpenMPTarget ) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_OMP_TARGET;
 
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
@@ -70,11 +50,7 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
     }
     stopTimer();
 
-    POLYBENCH_GESUMMV_TEARDOWN_OMP_TARGET;
-
   } else if (vid == RAJA_OpenMPTarget) {
-
-    POLYBENCH_GESUMMV_DATA_SETUP_OMP_TARGET;
 
     POLYBENCH_GESUMMV_VIEWS_RAJA;
 
@@ -114,8 +90,6 @@ void POLYBENCH_GESUMMV::runOpenMPTargetVariant(VariantID vid, size_t RAJAPERF_UN
 
       }
       stopTimer();
-
-    POLYBENCH_GESUMMV_TEARDOWN_OMP_TARGET;
 
   } else {
       getCout() << "\n  POLYBENCH_GESUMMV : Unknown OMP Target variant id = " << vid << std::endl;

@@ -40,35 +40,6 @@ namespace lcals
                static_cast<size_t>(1));
 
 
-#define HYDRO_2D_DATA_SETUP_HIP \
-  allocAndInitHipDeviceData(zadat, m_za, m_array_length); \
-  allocAndInitHipDeviceData(zbdat, m_zb, m_array_length); \
-  allocAndInitHipDeviceData(zmdat, m_zm, m_array_length); \
-  allocAndInitHipDeviceData(zpdat, m_zp, m_array_length); \
-  allocAndInitHipDeviceData(zqdat, m_zq, m_array_length); \
-  allocAndInitHipDeviceData(zrdat, m_zr, m_array_length); \
-  allocAndInitHipDeviceData(zudat, m_zu, m_array_length); \
-  allocAndInitHipDeviceData(zvdat, m_zv, m_array_length); \
-  allocAndInitHipDeviceData(zzdat, m_zz, m_array_length); \
-  allocAndInitHipDeviceData(zroutdat, m_zrout, m_array_length); \
-  allocAndInitHipDeviceData(zzoutdat, m_zzout, m_array_length);
-
-
-#define HYDRO_2D_DATA_TEARDOWN_HIP \
-  getHipDeviceData(m_zrout, zroutdat, m_array_length); \
-  getHipDeviceData(m_zzout, zzoutdat, m_array_length); \
-  deallocHipDeviceData(zadat); \
-  deallocHipDeviceData(zbdat); \
-  deallocHipDeviceData(zmdat); \
-  deallocHipDeviceData(zpdat); \
-  deallocHipDeviceData(zqdat); \
-  deallocHipDeviceData(zrdat); \
-  deallocHipDeviceData(zudat); \
-  deallocHipDeviceData(zvdat); \
-  deallocHipDeviceData(zzdat); \
-  deallocHipDeviceData(zroutdat); \
-  deallocHipDeviceData(zzoutdat);
-
 template < size_t j_block_size, size_t k_block_size >
 __launch_bounds__(j_block_size*k_block_size)
 __global__ void hydro_2d1(Real_ptr zadat, Real_ptr zbdat,
@@ -126,27 +97,29 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
   const Index_type jbeg = 1;
   const Index_type jend = m_jn - 1;
 
+  auto res{getHipResource()};
+
   HYDRO_2D_DATA_SETUP;
 
   if ( vid == Base_HIP ) {
 
-    HYDRO_2D_DATA_SETUP_HIP;
-
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
+
+      constexpr size_t shmem = 0;
 
       HYDRO_2D_THREADS_PER_BLOCK_HIP;
       HYDRO_2D_NBLOCKS_HIP;
 
       hipLaunchKernelGGL((hydro_2d1<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                         dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                         dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                          zadat, zbdat,
                          zpdat, zqdat, zrdat, zmdat,
                          jn, kn);
        hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((hydro_2d2<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                           zudat, zvdat,
                           zadat, zbdat, zzdat, zrdat,
                           s,
@@ -154,7 +127,7 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
        hipErrchk( hipGetLastError() );
 
        hipLaunchKernelGGL((hydro_2d3<HYDRO_2D_THREADS_PER_BLOCK_TEMPLATE_PARAMS_HIP>),
-                          dim3(nblocks), dim3(nthreads_per_block), 0, 0,
+                          dim3(nblocks), dim3(nthreads_per_block), shmem, res.get_stream(),
                           zroutdat, zzoutdat,
                           zrdat, zudat, zzdat, zvdat,
                           t,
@@ -164,26 +137,16 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_HIP;
-
   } else if ( vid == RAJA_HIP ) {
-
-    HYDRO_2D_DATA_SETUP_HIP;
 
     HYDRO_2D_VIEWS_RAJA;
 
     using EXECPOL =
       RAJA::KernelPolicy<
         RAJA::statement::HipKernelFixedAsync<j_block_sz * k_block_sz,
-          RAJA::statement::Tile<0, RAJA::tile_fixed<k_block_sz>,
-                                   RAJA::hip_block_y_direct,
-            RAJA::statement::Tile<1, RAJA::tile_fixed<j_block_sz>,
-                                   RAJA::hip_block_x_direct,
-              RAJA::statement::For<0, RAJA::hip_thread_y_direct,   // k
-                RAJA::statement::For<1, RAJA::hip_thread_x_direct, // j
-                  RAJA::statement::Lambda<0>
-                >
-              >
+          RAJA::statement::For<0, RAJA::hip_global_size_y_direct<k_block_sz>,   // k
+            RAJA::statement::For<1, RAJA::hip_global_size_x_direct<j_block_sz>, // j
+              RAJA::statement::Lambda<0>
             >
           >
         >
@@ -192,23 +155,26 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
     startTimer();
     for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY1_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY2_RAJA;
       });
 
-      RAJA::kernel<EXECPOL>(
+      RAJA::kernel_resource<EXECPOL>(
         RAJA::make_tuple( RAJA::RangeSegment(kbeg, kend),
                           RAJA::RangeSegment(jbeg, jend)),
+        res,
         [=] __device__ (Index_type k, Index_type j) {
         HYDRO_2D_BODY3_RAJA;
       });
@@ -216,14 +182,12 @@ void HYDRO_2D::runHipVariantImpl(VariantID vid)
     }
     stopTimer();
 
-    HYDRO_2D_DATA_TEARDOWN_HIP;
-
   } else {
      getCout() << "\n  HYDRO_2D : Unknown Hip variant id = " << vid << std::endl;
   }
 }
 
-RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BIOLERPLATE(HYDRO_2D, Hip)
+RAJAPERF_GPU_BLOCK_SIZE_TUNING_DEFINE_BOILERPLATE(HYDRO_2D, Hip)
 
 } // end namespace lcals
 } // end namespace rajaperf

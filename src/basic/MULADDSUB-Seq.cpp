@@ -26,9 +26,11 @@ void MULADDSUB::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
 
   MULADDSUB_DATA_SETUP;
 
+#if defined(RUN_RAJA_SEQ)
   auto mas_lam = [=](Index_type i) {
                    MULADDSUB_BODY;
                  };
+#endif
 
   switch ( vid ) {
 
@@ -68,7 +70,7 @@ void MULADDSUB::runSeqVariant(VariantID vid, size_t RAJAPERF_UNUSED_ARG(tune_idx
       startTimer();
       for (RepIndex_type irep = 0; irep < run_reps; ++irep) {
 
-        RAJA::forall<RAJA::simd_exec>(
+        RAJA::forall<RAJA::seq_exec>(
           RAJA::RangeSegment(ibegin, iend), mas_lam);
 
       }
