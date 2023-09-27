@@ -48,7 +48,10 @@ INDEXLIST::INDEXLIST(const RunParams& params)
 
   setVariantDefined( Base_CUDA );
 
-  setVariantDefined( Base_HIP );
+  if (0) {
+    // deadlocks
+    setVariantDefined( Base_HIP );
+  }
 }
 
 INDEXLIST::~INDEXLIST()
