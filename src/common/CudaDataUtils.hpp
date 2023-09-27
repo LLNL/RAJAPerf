@@ -84,6 +84,43 @@ __global__ void lambda_cuda(Lambda body)
 namespace detail
 {
 
+/*!
+ * \brief Get current cuda device.
+ */
+inline int getCudaDevice()
+{
+  int device = -1;
+  cudaErrchk( cudaGetDevice( &device ) );
+  return device;
+}
+
+/*!
+ * \brief Get properties of the current cuda device.
+ */
+inline cudaDeviceProp getCudaDeviceProp()
+{
+  cudaDeviceProp prop;
+  cudaErrchk(cudaGetDeviceProperties(&prop, getCudaDevice()));
+  return prop;
+}
+
+/*!
+ * \brief Get max occupancy in blocks for the given kernel for the current
+ *        cuda device.
+ */
+template < typename Func >
+RAJA_INLINE
+int getCudaOccupancyMaxBlocks(Func&& func, int num_threads, size_t shmem_size)
+{
+  int max_blocks = -1;
+  cudaErrchk(cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+      &max_blocks, func, num_threads, shmem_size));
+
+  size_t multiProcessorCount = getCudaDeviceProp().multiProcessorCount;
+
+  return max_blocks * multiProcessorCount;
+}
+
 /*
  * Copy memory len bytes from src to dst.
  */
